@@ -1,0 +1,220 @@
+<mat-card class="card-details" [formGroup]="personForm">
+    <div>
+        <mat-dialog-content>
+            <h6>{{general_information_employee}}</h6>
+            <div class="half-width-wrapper">
+                <!-- Firstname -->
+                <mat-form-field class="half-width">
+                    <mat-label>Prénom</mat-label>
+                    <input type="text" matInput formControlName="firstname" placeholder="Nom de l'employer" />
+                    <mat-icon matSuffix>description</mat-icon>
+                </mat-form-field>
+                <!-- Lastname -->
+                <mat-form-field class="half-width">
+                    <mat-label>Nom</mat-label>
+                    <input type="text" matInput formControlName="lastname" placeholder="Prénom de l'employer" />
+                    <mat-icon matSuffix>description</mat-icon>
+                </mat-form-field>
+            </div>
+            <!-- Birthdate -->
+            <div class="square-width-wrapper">
+                <!-- <mat-form-field class="square-width">
+                    <mat-label>Date de Naissance</mat-label>
+                    <input matInput [matDatepicker]="picker" formControlName="birthdate">
+                    <mat-hint>MM/DD/YYYY</mat-hint>
+                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-datepicker #picker></mat-datepicker>
+                </mat-form-field> -->
+                <mat-form-field class="square-width">
+                    <mat-label>Date de Naissance</mat-label>
+                    <input matInput [matDatepicker]="pickerBirthdate"
+                        [value]="personForm.get('birthdate')?.value || 'No Date'" formControlName="birthdate"
+                        placeholder="MM/DD/YYYY" />
+                    <mat-hint>MM/DD/YYYY</mat-hint>
+                    <mat-datepicker-toggle matIconSuffix [for]="pickerBirthdate"></mat-datepicker-toggle>
+                    <mat-datepicker #pickerBirthdate></mat-datepicker>
+                </mat-form-field>
+
+
+
+                <!-- <mat-form-field class="square-width">
+                    <mat-label>Date de Recrutement</mat-label>
+                    <input matInput [matDatepicker]="picker1" formControlName="hiredate">
+                    <mat-hint>MM/DD/YYYY</mat-hint>
+                    <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
+                    <mat-datepicker #picker1></mat-datepicker>
+                </mat-form-field> -->
+
+                <mat-form-field class="square-width">
+                    <mat-label>Date de Recrutemente</mat-label>
+                    <input matInput [matDatepicker]="pickerHireDate" [value]="personForm.get('hiredate')?.value || ''"
+                        formControlName="hiredate" placeholder="MM/DD/YYYY" />
+                    <mat-hint>MM/DD/YYYY</mat-hint>
+                    <mat-datepicker-toggle matIconSuffix [for]="pickerHireDate"></mat-datepicker-toggle>
+                    <mat-datepicker #pickerHireDate></mat-datepicker>
+                </mat-form-field>
+
+                <!-- <mat-form-field class="square-width">
+                    <mat-label>Date de fin de Contrat</mat-label>
+                    <input matInput [matDatepicker]="picker2" formControlName="firedate">
+                    <mat-hint>MM/DD/YYYY</mat-hint>
+                    <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
+                    <mat-datepicker #picker2></mat-datepicker>
+                </mat-form-field> -->
+
+                <mat-form-field class="square-width">
+                    <mat-label>Date de fin de Contrat</mat-label>
+                    <input matInput [matDatepicker]="pickerFireDate" [value]="personForm.get('firedate')?.value || ''"
+                        formControlName="firedate" placeholder="MM/DD/YYYY" />
+                    <mat-hint>MM/DD/YYYY</mat-hint>
+                    <mat-datepicker-toggle matIconSuffix [for]="pickerFireDate"></mat-datepicker-toggle>
+                    <mat-datepicker #pickerFireDate></mat-datepicker>
+                </mat-form-field>
+
+
+            </div>
+
+            <div class="half-width-wrapper">
+                <!-- CIN -->
+                <mat-form-field class="half-width">
+                    <mat-label>Numéro carte d'identité Nationale</mat-label>
+                    <input type="text" matInput formControlName="cin"
+                        placeholder="Numéro carte d\'identité NAtionale" />
+                    <mat-icon matSuffix>check</mat-icon>
+                </mat-form-field>
+                <!-- IdCnss -->
+                <mat-form-field class="half-width">
+                    <mat-label>Identificateur CNSS</mat-label>
+                    <input type="text" matInput formControlName="idcnss" placeholder="Identificateur CNSS" />
+                    <mat-icon matSuffix>check</mat-icon>
+                </mat-form-field>
+            </div>
+
+
+            <div class="half-width-wrapper">
+                <!-- Address -->
+                <mat-form-field class="half-width">
+                    <mat-label>Adresse</mat-label>
+                    <input type="text" matInput formControlName="address" placeholder="Adresse" />
+                    <mat-icon matSuffix>check</mat-icon>
+                </mat-form-field>
+                <!-- Pays de Naissance -->
+                <mat-form-field class="half-width">
+                    <mat-label>Pays de Naissance</mat-label>
+                    <mat-select formControlName="birthtown">
+                        <mat-option *ngFor="let gov of allGovTn" [value]="gov.key">{{gov.value}}</mat-option>
+                    </mat-select>
+                    <mat-icon matSuffix>check</mat-icon>
+                </mat-form-field>
+            </div>
+
+            <div class="half-width-wrapper">
+                <!-- Bank Name -->
+                <mat-form-field class="half-width">
+                    <mat-label>Banque</mat-label>
+                    <mat-select formControlName="bankname">
+                        <mat-option *ngFor="let bank of allBanks" [value]="bank.key">{{ bank.key }} - {{ bank.value
+                            }}</mat-option>
+                    </mat-select>
+                    <mat-icon matSuffix>check</mat-icon>
+                </mat-form-field>
+                <!-- Bank Account -->
+                <mat-form-field class="half-width">
+                    <mat-label>Compte Bancaire</mat-label>
+                    <input type="text" matInput formControlName="bankaccount" placeholder="Compte bancaire" />
+                    <mat-icon matSuffix>check</mat-icon>
+                </mat-form-field>
+            </div>
+
+            <div class="half-width-wrapper">
+                <!-- Role -->
+                <mat-form-field appearance="fill" class="half-width">
+                    <mat-label>Sélectionner le Rôle</mat-label>
+                    <mat-select formControlName="selectedRole" (selectionChange)="onRoleSelected()">
+                        <mat-option *ngFor="let role of roles" [value]="role.key">
+                            {{ role.value }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+                <!-- Bank Account -->
+                <mat-form-field class="half-width">
+                    <mat-label>Numéro de Téléphone</mat-label>
+                    <input type="text" matInput formControlName="phonenumber" placeholder="Numéro de Téléphone" />
+                    <mat-icon matSuffix>phone_android</mat-icon>
+                </mat-form-field>
+
+            </div>
+
+
+
+        </mat-dialog-content>
+    </div>
+    <div class="control-button">
+        <mat-dialog-actions *ngIf="!userRoleSelected">
+            <button mat-flat-button color="primary" *ngIf="!isUpdate" (click)="onSubmit()">{{register_button}}</button>
+            <button mat-flat-button color="primary" *ngIf="isUpdate" (click)="onSubmit()">{{update_button}}
+                <mat-icon>
+                    update
+                </mat-icon>
+            </button>
+            <button mat-flat-button color="warn" (click)="onAbort()">{{abort_button}}</button>
+        </mat-dialog-actions>
+    </div>
+</mat-card>
+<mat-card class="card-details" [formGroup]="userForm" *ngIf="userRoleSelected">
+    <mat-dialog-content class="scrollable-content">
+        <h6>Identificateurs de l'utilisateur</h6>
+        <div class="half-width-wrapper">
+            <!--Email-->
+            <mat-form-field class="half-width">
+                <mat-label>Email</mat-label>
+                <input type="text" matInput formControlName="email" placeholder="Email" />
+                <mat-icon matSuffix>email</mat-icon>
+            </mat-form-field>
+
+            <!--Default site-->
+            <mat-form-field class="half-width">
+                <mat-label>Site par défaut</mat-label>
+                <mat-select formControlName="defaultsite" placeholder="choisir le site par défaut">
+                    <mat-option *ngFor="let site of allSites" [value]="site.id">
+                        {{ site.address }}
+                    </mat-option>
+                </mat-select>
+                <mat-icon matSuffix style="scale: 1.2;">person_pin_circle</mat-icon>
+            </mat-form-field>
+        </div>
+
+        <div class="half-width-wrapper" id="userDetailsCard">
+            <!-- Login -->
+            <mat-form-field class="half-width">
+                <mat-label>Nom utilisateur</mat-label>
+                <input type="text" matInput formControlName="login" placeholder="Login" />
+                <mat-icon matSuffix>check</mat-icon>
+            </mat-form-field>
+            <!-- Password -->
+            <mat-form-field class="half-width">
+                <mat-label>Mot de Passe</mat-label>
+                <input type="password" matInput formControlName="password" placeholder="Mot de Passe" />
+                <mat-icon matSuffix>password</mat-icon>
+            </mat-form-field>
+        </div>
+        <!--Is Active-->
+        <div class="slide-toggle-container">
+            <mat-slide-toggle class="my-slide" formControlName="isactive" labelPosition="after">Utilisateur
+                Actif</mat-slide-toggle>
+        </div>
+
+    </mat-dialog-content>
+
+    <div class="control-button">
+        <mat-dialog-actions>
+            <button mat-flat-button color="primary" *ngIf="!isUpdate" (click)="onSubmit()">{{register_button}}</button>
+            <button mat-flat-button color="primary" *ngIf="isUpdate" (click)="onSubmit()">{{update_button}}
+                <mat-icon>
+                    update
+                </mat-icon>
+            </button>
+            <button mat-flat-button color="warn" (click)="onAbort()">{{abort_button}}</button>
+        </mat-dialog-actions>
+    </div>
+</mat-card>

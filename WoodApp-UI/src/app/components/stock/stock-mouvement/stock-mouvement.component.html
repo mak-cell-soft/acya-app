@@ -1,0 +1,57 @@
+<h4>Fiche de Mouvement Stock</h4>
+<!-- Add this progress bar at the top of the page -->
+<mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+<div class="search">
+    <div class="search-bar-container">
+        <button mat-icon-button>
+            <mat-icon>
+                search
+            </mat-icon>
+        </button>
+        <input (keyup)="applyFilter($event)" placeholder="Rechercher dans le mouvement Stock" #input />
+    </div>
+</div>
+
+<!-- Filter -->
+<mat-card class="card-details">
+    <div class="filter-container" [formGroup]="filterForm">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Articles</mat-label>
+            <mat-select placeholder="Choisir parmi la liste" formControlName="selectedArticle"
+                (selectionChange)="onArticleChange($event.value)">
+                <mat-option *ngFor="let article of allArticles" [value]="article">
+                    {{ article.reference }} - {{ article.description }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+        <div class="half-width-wrapper">
+            <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Date de début</mat-label>
+                <input matInput [matDatepicker]="pickerBegin" formControlName="BeginDate">
+                <mat-datepicker-toggle matIconSuffix [for]="pickerBegin"></mat-datepicker-toggle>
+                <mat-datepicker #pickerBegin></mat-datepicker>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Date de fin</mat-label>
+                <input matInput [matDatepicker]="pickerEnd" formControlName="EndDate">
+                <mat-datepicker-toggle matIconSuffix [for]="pickerEnd"></mat-datepicker-toggle>
+                <mat-datepicker #pickerEnd></mat-datepicker>
+            </mat-form-field>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Site de Vente</mat-label>
+            <mat-select placeholder="Choisir parmi la liste" formControlName="selectedSite"
+                (selectionChange)="onSiteChange($event.value)">
+                <mat-option *ngFor="let site of allSites" [value]="site.id">
+                    {{ site.address }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+    </div>
+    <div class="control-button">
+        <mat-dialog-actions>
+            <button mat-flat-button class="reset" (click)="resetFilters()">Réinitialiser</button>
+            <button mat-flat-button class="filter" (click)="applyFilters()">Filtrer</button>
+        </mat-dialog-actions>
+    </div>
+</mat-card>

@@ -1,0 +1,44 @@
+.modal-container {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.warning-icon {
+    font-size: 24px;
+    margin-right: 8px;
+}
+
+.modal-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.modal-body {
+    margin-bottom: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.control-button {
+    display: flex;
+    justify-content: flex-end;
+    margin-right: 12px;
+    margin-top: 12px;
+    align-items: center;
+}
+
+.control-button button {
+    margin-right: 10px;
+}
+
+.control-button button:last-child {
+    margin-right: 0;
+}

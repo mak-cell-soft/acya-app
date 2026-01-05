@@ -1,0 +1,63 @@
+<form [formGroup]="paymentForm" class="payment-sub-form">
+    <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Numéro de Chèque</mat-label>
+            <input matInput formControlName="number" placeholder="1234567">
+            <mat-error *ngIf="paymentForm.get('number')?.hasError('required')">Requis</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Banque</mat-label>
+            <mat-select formControlName="bank">
+                <mat-option *ngFor="let bank of bankOptions" [value]="bank.key">
+                    {{ bank.key }}
+                </mat-option>
+            </mat-select>
+            <mat-error *ngIf="paymentForm.get('bank')?.hasError('required')">Requis</mat-error>
+        </mat-form-field>
+    </div>
+
+    <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Propriétaire (Tiré)</mat-label>
+            <input matInput formControlName="owner">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+            <!-- Identifying the Porter/Bearer by name but using ID in form value -->
+            <mat-label>Porteur (Client)</mat-label>
+            <input matInput [value]="porterName" readonly>
+        </mat-form-field>
+    </div>
+
+    <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Montant</mat-label>
+            <input matInput type="number" formControlName="amount">
+            <span matSuffix>TND</span>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Date de paiement</mat-label>
+            <input matInput [matDatepicker]="pickerPay" formControlName="paymentDate">
+            <mat-datepicker-toggle matSuffix [for]="pickerPay"></mat-datepicker-toggle>
+            <mat-datepicker #pickerPay></mat-datepicker>
+        </mat-form-field>
+    </div>
+
+    <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Date d'échéance</mat-label>
+            <input matInput [matDatepicker]="pickerDue" formControlName="dueDate">
+            <mat-datepicker-toggle matSuffix [for]="pickerDue"></mat-datepicker-toggle>
+            <mat-datepicker #pickerDue></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Date d'expiration</mat-label>
+            <input matInput [matDatepicker]="pickerExp" formControlName="expirationDate">
+            <mat-datepicker-toggle matSuffix [for]="pickerExp"></mat-datepicker-toggle>
+            <mat-datepicker #pickerExp></mat-datepicker>
+        </mat-form-field>
+    </div>
+</form>

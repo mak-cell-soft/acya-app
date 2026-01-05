@@ -1,0 +1,49 @@
+mat-toolbar {
+    justify-content: space-between;
+    background: #004a9f;
+    color: white;
+
+}
+
+.form-container {
+    padding: 32px;
+    display: block;
+    max-width: 500px;
+    min-width: 500px;
+    margin: auto;
+
+    background: #eceff1;
+    padding: 48px;
+    border-radius: 16px;
+}
+
+.form-container mat-form-field {
+    width: 100%;
+
+}
+
+.margin-top {
+    margin-top: 16px;
+}
+
+.center {
+    display: flex;
+    justify-content: center;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.sign-up-link {
+    font-size: 1.2rem;
+    margin-left: 8px;
+}
+
+.custom-icon {
+    transform: scale(2);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}

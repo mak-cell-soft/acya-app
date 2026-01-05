@@ -1,0 +1,68 @@
+<h1 mat-dialog-title class="dialog-title">
+    <mat-icon class="title-icon">local_shipping</mat-icon>
+    Confirmer le transfert
+</h1>
+
+<div mat-dialog-content class="dialog-content">
+    <div class="detail-grid">
+        <div class="half-width-wrapper">
+            <div class="detail-item">
+                <span class="detail-label">Doc. Sortie N°:</span>
+                <span class="detail-value">{{ data.docSortie || 'N/A' }}</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label">Doc. Reception N°:</span>
+                <span class="detail-value">{{ data.docReception || 'N/A' }}</span>
+            </div>
+        </div>
+
+        <div class="half-width-wrapper">
+            <div class="detail-item">
+                <span class="detail-label">Dépôt Origine:</span>
+                <span class="detail-value">{{ data.origine || 'N/A' }}</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label">Dépôt Destination:</span>
+                <span class="detail-value">{{ data.destination || 'N/A' }}</span>
+            </div>
+        </div>
+
+        <div class="detail-item">
+            <span class="detail-label">Référence Marchandise:</span>
+            <span class="detail-value">{{ data.refMerchandise || 'N/A' }}</span>
+        </div>
+
+        <div class="half-width-wrapper">
+            <div class="detail-item">
+                <span class="detail-label">Référence paquet:</span>
+                <span class="detail-value">{{ data.refPaquet || 'N/A' }}</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label">Quantité:</span>
+                <span class="detail-value">{{ data.quantity | number:'1.2-2' }}</span>
+            </div>
+        </div>
+
+        <div class="half-width-wrapper">
+            <div class="detail-item">
+                <span class="detail-label">Date du transfert:</span>
+                <span class="detail-value">{{ data.transferDate | date:'mediumDate' }}</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-label">Transporteur:</span>
+                <span class="detail-value">{{ data.transporter || 'N/A' }}</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<mat-dialog-actions align="end">
+    <button mat-raised-button (click)="onAbort()" color="warn">Fermer</button>
+    <button mat-button (click)="onReject()" color="warn">Rejeter</button>
+    <button mat-button (click)="onConfirm()" color="primary" cdkFocusInitial>Confirmer</button>
+</mat-dialog-actions>

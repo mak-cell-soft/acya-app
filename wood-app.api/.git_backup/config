@@ -1,0 +1,30 @@
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = false
+	logallrefupdates = true
+	symlinks = false
+	ignorecase = true
+[submodule]
+	active = .
+[branch "amine/updateStock"]
+	vscode-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/amine/updateStock
+[remote "origin"]
+	url = https://ACYAConsulting@dev.azure.com/ACYAConsulting/WoodApp-MS-API/_git/WoodApp-MS-API
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+	remote = origin
+	merge = refs/heads/main
+[branch "amine/newFeatures"]
+	vscode-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/amine/newFeatures
+[branch "amine/stockTransfer"]
+	vscode-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/amine/stockTransfer
+[remote "secondary"]
+	url = https://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@github.com/mak-cell-soft/wood-app-api.git
+	fetch = +refs/heads/*:refs/remotes/secondary/*

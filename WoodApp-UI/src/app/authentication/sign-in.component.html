@@ -1,0 +1,59 @@
+<mat-toolbar>
+  Accéder à votre Plateforme
+  <button mat-button routerLink="/">
+    <mat-icon class="custom-icon">
+      logout
+    </mat-icon>
+  </button>
+
+</mat-toolbar>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<div class="form-container mat-elevation-z5">
+  <h1>Se connecter</h1>
+  <form [formGroup]="loginForm" (ngSubmit)="submit()">
+    <mat-form-field appearance="fill">
+      <input matInput placeholder="Email" formControlName="login" />
+      <mat-icon matPrefix>email</mat-icon>
+      <mat-error *ngIf="login?.errors?.['required']">
+        Login requis
+      </mat-error>
+      <mat-error *ngIf="login?.errors?.['login']">
+        Entrer votre Login
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <input matInput type="{{hide ? 'password' : 'text'}}" placeholder="Mot de Passe" formControlName="password" />
+      <mat-icon matPrefix>lock</mat-icon>
+      <mat-icon (click)="hide = !hide" matSuffix>
+        {{hide ? 'visibility_off' : 'visibility'}}
+      </mat-icon>
+      <mat-error *ngIf="password?.errors?.['required']">
+        Mot de passe requis
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <input matInput placeholder="Référence de l'Entreprise" formControlName="enterpriseRef" />
+      <mat-icon matPrefix>qr_code_2</mat-icon>
+      <mat-error *ngIf="enterpriseRef?.errors?.['required']">
+        Référence Entreprise requise
+      </mat-error>
+      <mat-error *ngIf="enterpriseRef?.errors?.['enterpriseRef']">
+        Entrer votre Référence
+      </mat-error>
+    </mat-form-field>
+    <div class="center margin-top">
+      <button type="submit" mat-raised-button>Login</button>
+    </div>
+
+    <span class="center margin-top">Nouveau sur la plateforme? &nbsp;<a class="sign-up-link"
+        routerLink="/register">Créer un compte !</a></span>
+  </form>
+  <br>
+  <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+
+</div>

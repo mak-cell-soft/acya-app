@@ -1,0 +1,93 @@
+.dashboard-container {
+    padding: 20px;
+    background-color: #f5f5f5;
+}
+
+.dashboard-header {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.dashboard-summary {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.card {
+    background-color: #82cbdd;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 22%;
+}
+
+.card-content h3 {
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.card-content p {
+    font-size: 24px;
+    color: #007bff;
+}
+
+.sales-summary,
+.invoices-summary {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.sales-item,
+.invoice-item {
+    background-color: #415e94;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 22%;
+}
+
+.sales-item h4,
+.invoice-item h4 {
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.sales-item p,
+.invoice-item p {
+    font-size: 20px;
+    color: #333;
+}
+
+.sales-chart {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.activity-log {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.activity-log h4 {
+    margin-bottom: 15px;
+}
+
+.activity-log ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.activity-log ul li {
+    margin-bottom: 10px;
+    font-size: 14px;
+}

@@ -1,0 +1,21 @@
+.payment-sub-form {
+    padding-top: 10px;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+}
+
+.half-width {
+    flex: 1;
+}
+
+/* Response to smaller screens */
+@media (max-width: 600px) {
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+}

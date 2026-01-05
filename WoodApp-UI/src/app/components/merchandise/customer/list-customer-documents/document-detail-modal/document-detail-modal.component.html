@@ -1,0 +1,92 @@
+<h2 mat-dialog-title>Détails du Document : {{document.docnumber}}</h2>
+
+<mat-dialog-content class="mat-typography">
+
+    <!-- Document Info Card -->
+    <mat-card class="info-card">
+        <mat-card-header>
+            <mat-card-subtitle>Informations Générales</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <div class="row">
+                <div class="col">
+                    <strong>Créé par :</strong> {{document.appuser.email || 'Inconnu'}}
+                </div>
+                <div class="col">
+                    <strong>Date :</strong> {{document.updatedate | date: 'dd/MM/yyyy HH:mm'}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <strong>Client :</strong>
+                    {{document.counterpart.firstname}} {{document.counterpart.lastname}}
+                    <span *ngIf="document.counterpart.identitycardnumber">
+                        (CIN: {{document.counterpart.identitycardnumber}})
+                    </span>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <mat-divider style="margin: 15px 0;"></mat-divider>
+
+    <!-- Merchandise List -->
+    <h3>Marchandises</h3>
+    <div *ngFor="let item of document.merchandises" class="merchandise-item">
+        <div class="item-header">
+            <span class="item-ref">{{item.article.reference}}</span>
+            <span class="item-desc">{{item.article.description}}</span>
+        </div>
+
+        <div class="item-details">
+            <div class="detail-row">
+                <span>Quantité : <strong>{{item.quantity}}</strong></span>
+                <span>Prix Unitaire HT : <strong>{{item.unit_price_ht | number:'1.3-3'}} TND</strong></span>
+                <span>Total HT : <strong>{{item.cost_net_ht | number:'1.3-3'}} TND</strong></span>
+            </div>
+
+            <!-- Length Details for Wood -->
+            <div *ngIf="item.lisoflengths && item.lisoflengths.length > 0" class="length-details">
+                <strong>Détail des longueurs :</strong>
+                <ul>
+                    <li *ngFor="let length of item.lisoflengths">
+                        {{length.nbpieces}} pièces × {{length.length.name}}
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <mat-divider></mat-divider>
+    </div>
+
+    <!-- Totals Section -->
+    <div class="totals-section">
+        <div class="total-row">
+            <span>Total HT Net :</span>
+            <span>{{document.total_ht_net_doc | number:'1.3-3'}} TND</span>
+        </div>
+        <div class="total-row" *ngIf="document.total_discount_doc > 0">
+            <span>Remise :</span>
+            <span>{{document.total_discount_doc | number:'1.3-3'}} TND</span>
+        </div>
+        <div class="total-row" *ngIf="document.total_tva_doc > 0">
+            <span>TVA :</span>
+            <span>{{document.total_tva_doc | number:'1.3-3'}} TND</span>
+        </div>
+        <div class="total-row grand-total">
+            <span>Total TTC :</span>
+            <span>{{document.total_net_ttc | number:'1.3-3'}} TND</span>
+        </div>
+    </div>
+
+    <!-- Notes if any -->
+    <div *ngIf="document.description" class="notes-section">
+        <strong>Notes:</strong>
+        <p>{{document.description}}</p>
+    </div>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button (click)="onClose()">Fermer</button>
+    <!-- Optional: Add Print button here if needed later -->
+</mat-dialog-actions>

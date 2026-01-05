@@ -1,0 +1,1 @@
+feat: Implement `DocumentController` for document creation and retrieval by type and date, and introduce `DocStatus` and `BillingStatus` enums.

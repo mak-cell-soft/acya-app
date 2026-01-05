@@ -1,0 +1,253 @@
+<mat-toolbar>
+    Créer votre compte sur la Plateforme
+    <button mat-button routerLink="/">
+        <mat-icon class="custom-icon">
+            logout
+        </mat-icon>
+    </button>
+
+</mat-toolbar>
+<!-- Informations générales de l'entreprise -->
+<div style="width: 75%; margin-left: 260px; background-color: aliceblue; margin-top: 20px;">
+    <div [formGroup]="enterpriseForm">
+        <!-- Info AppUser and Enterprise  -->
+        <div class="appuser-enterprise">
+            <mat-card class="card-details enterprise-info">
+                <h5>{{mat_card_header_enterprise}}</h5>
+                <div class="half-width-wrapper">
+                    <mat-form-field class="half-width">
+                        <mat-label>{{mat_label_input_enterprise_name}}</mat-label>
+                        <input matInput formControlName="name" placeholder={{mat_input_enterprise_placeholder_name}}>
+                        <mat-icon matSuffix>spatial-audio-off</mat-icon>
+                    </mat-form-field>
+                    <mat-form-field class="half-width">
+                        <mat-label>{{mat_label_input_enterprise_desc}}</mat-label>
+                        <input matInput formControlName="description"
+                            placeholder={{mat_input_enterprise_placeholder_desc}}>
+                        <mat-icon matSuffix>description</mat-icon>
+                    </mat-form-field>
+                    <mat-form-field class="half-width">
+                        <mat-label>{{mat_label_input_enterprise_mail}}</mat-label>
+                        <input matInput type="email" formControlName="email"
+                            placeholder={{mat_input_enterprise_placeholder_email}}>
+                        <mat-icon matSuffix>email</mat-icon>
+                    </mat-form-field>
+                    <mat-form-field class="half-width">
+                        <mat-label>{{mat_label_input_enterprise_fix_phone}}</mat-label>
+                        <input matInput formControlName="phone" placeholder={{mat_input_enterprise_placeholder_phone}}>
+                        <mat-icon matSuffix>phone</mat-icon>
+                    </mat-form-field>
+                    <mat-form-field class="half-width">
+                        <mat-label>{{mat_label_input_enterprise_mobile_1}}</mat-label>
+                        <input matInput formControlName="mobileOne"
+                            placeholder={{mat_input_enterprise_placeholder_mobile1}}>
+                        <mat-icon matSuffix>phone_android</mat-icon>
+                    </mat-form-field>
+                    <mat-form-field class="half-width">
+                        <mat-label>{{mat_label_input_enterprise_mobile_2}}</mat-label>
+                        <input matInput formControlName="mobileTwo"
+                            placeholder={{mat_input_enterprise_placeholder_mobile2}}>
+                        <mat-icon matSuffix>phone_android</mat-icon>
+                    </mat-form-field>
+                </div>
+                <mat-form-field class="full-width">
+                    <mat-label>{{mat_label_input_enterprise_details_mf}}</mat-label>
+                    <input matInput formControlName="matriculeFiscal"
+                        placeholder={{mat_input_enterprise_details_placeholder_mf}}>
+                </mat-form-field>
+
+                <mat-form-field class="full-width">
+                    <mat-label>{{mat_label_input_enterprise_details_devise}}</mat-label>
+                    <mat-select formControlName="devise"
+                        placeholder={{mat_input_enterprise_details_placeholder_devise}}>
+                        <mat-option *ngFor="let devise of devisesOptions" [value]="devise.key">
+                            {{ devise.value }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </mat-card>
+            <mat-card class="card-details enterprise-auth">
+                <h5>Utilisateur de l'Application</h5>
+                <div class="half-width-wrapper">
+                    <mat-form-field class="half-width">
+                        <mat-label>Nom Utilisateur</mat-label>
+                        <input matInput formControlName="appusername"
+                            placeholder={{mat_input_enterprise_details_placeholder_resp_name}}>
+                    </mat-form-field>
+
+                    <mat-form-field class="half-width">
+                        <mat-label>Prenom Utilisateur</mat-label>
+                        <input matInput formControlName="appusersurname"
+                            placeholder={{mat_input_enterprise_details_placeholder_resp_surname}}>
+                    </mat-form-field>
+                </div>
+                <div class="ful-width-wrapper">
+                    <mat-form-field class="full-width" appearance="fill">
+                        <input matInput placeholder="Login : Email" formControlName="emailappuser" />
+                        <mat-icon matPrefix>email</mat-icon>
+                    </mat-form-field>
+                    <mat-form-field class="full-width" appearance="fill">
+                        <input matInput type="{{passwordHide ? 'password' : 'text'}}" placeholder="Mot de Passe"
+                            formControlName="passwordappuser" />
+                        <mat-icon matPrefix>lock</mat-icon>
+                        <mat-icon (click)="passwordHide = !passwordHide" matSuffix>
+                            {{passwordHide ? 'visibility_off' : 'visibility'}}
+                        </mat-icon>
+                    </mat-form-field>
+                    <mat-form-field class="full-width" appearance="fill">
+                        <input matInput type="{{confirmHide ? 'password' : 'text'}}"
+                            placeholder="Confirmer mot de Passe" formControlName="confirmpasswordappuser" />
+                        <mat-icon matPrefix>lock</mat-icon>
+                        <mat-icon (click)="confirmHide = !confirmHide" matSuffix>
+                            {{confirmHide ? 'visibility_off' : 'visibility'}}
+                        </mat-icon>
+
+                    </mat-form-field>
+                    <span style="text-decoration-color: red;"
+                        *ngIf="enterpriseForm.hasError('passwordMisMatch') && enterpriseForm.get('confirmpasswordappuser')?.dirty && enterpriseForm.get('confirmpasswordappuser')?.touched">Mots
+                        de passes ne correspondent
+                        pas</span>
+                    <!-- Role -->
+                    <mat-form-field appearance="fill" class="full-width">
+                        <mat-label>Sélectionner le Rôle</mat-label>
+                        <mat-select formControlName="selectedRole">
+                            <mat-option *ngFor="let role of roles" [value]="role.key">
+                                {{ role.value }}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+
+            </mat-card>
+        </div>
+
+        <mat-card class="card-details">
+            <!-- Informations détaillées de l'entreprise -->
+            <div>
+                <h5>{{mat_card_header_details}}</h5>
+
+                <div class="half-width-wrapper">
+                    <mat-form-field class="half-width">
+                        <mat-label>{{mat_label_input_enterprise_details_resp_surname}}</mat-label>
+                        <input matInput formControlName="surnameResponsable"
+                            placeholder={{mat_input_enterprise_details_placeholder_resp_surname}}>
+                    </mat-form-field>
+                    <mat-form-field class="half-width">
+                        <mat-label>{{mat_label_input_enterprise_details_resp_name}}</mat-label>
+                        <input matInput formControlName="nameResponsable"
+                            placeholder={{mat_input_enterprise_details_placeholder_resp_name}}>
+                    </mat-form-field>
+                </div>
+
+                <mat-form-field class="full-width">
+                    <mat-label>{{mat_label_input_enterprise_details_position}}</mat-label>
+
+                    <mat-select formControlName="positionResponsable"
+                        placeholder={{mat_input_enterprise_details_placeholder_position}}>
+                        <mat-option *ngFor="let job of jobDescOptions" [value]="job.key">
+                            {{ job.value }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field class="full-width">
+                    <mat-label>{{mat_label_input_enterprise_details_address}}</mat-label>
+                    <input matInput formControlName="siegeAddress"
+                        placeholder={{mat_input_enterprise_details_placeholder_address}}>
+                    <mat-icon matSuffix>home</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field class="full-width">
+                    <mat-label>Registre de Commerce</mat-label>
+                    <input matInput formControlName="commercialregister" placeholder="Registre de Commerce">
+                    <mat-icon matSuffix>check</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field class="full-width">
+                    <mat-label>Au Capital de </mat-label>
+                    <input matInput formControlName="capital" placeholder="Exemple : 50 0000,000">
+                    <mat-icon matSuffix>check</mat-icon>
+                </mat-form-field>
+            </div>
+        </mat-card>
+        <!-- Sites de l'entreprise -->
+        <mat-card class="card-details">
+
+            <div>
+                <h5>{{mat_card_header_enter_sites}}</h5>
+                <table mat-table [dataSource]="allSites" class="mat-elevation-z8 mt-3" *ngIf="allSites.data.length">
+                    <ng-container matColumnDef="number">
+                        <th mat-header-cell *matHeaderCellDef> Numéro </th>
+                        <td mat-cell *matCellDef="let element; let i=index">{{ i + 1 }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="address">
+                        <th mat-header-cell *matHeaderCellDef> Adresse </th>
+                        <td mat-cell *matCellDef="let element">{{element.address}}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="_gov">
+                        <th mat-header-cell *matHeaderCellDef> Gouvernorat </th>
+                        <td mat-cell *matCellDef="let element">{{element.gov}}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="isForsale">
+                        <th mat-header-cell *matHeaderCellDef> Est un point de Vente </th>
+                        <td mat-cell *matCellDef="let element">
+                            <!-- Bind the slide toggle to the 'isForsale' FormControl for each row -->
+                            <mat-slide-toggle [checked]="element.isForsale"
+                                (change)="onToggleChange($event, element)"></mat-slide-toggle>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="action">
+                        <th mat-header-cell *matHeaderCellDef> Action </th>
+                        <td mat-cell style="white-space: pre-line" *matCellDef="let element; let i = index">
+                            <mat-icon class="red-icon" (click)="delete(i)">delete</mat-icon>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedSitesColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedSitesColumns;"></tr>
+                </table>
+                <div class="control-button">
+                    <mat-dialog-actions>
+                        <button mat-flat-button color="primary" (click)="openAddSalesSiteDialog()">
+                            <mat-icon>
+                                add
+                            </mat-icon>
+                            {{add_button}}
+                        </button>
+                    </mat-dialog-actions>
+                </div>
+            </div>
+        </mat-card>
+        <!-- Is Enterprise Selling Wood-->
+        <mat-card class="card-details">
+            <div class="full-width-wrapper">
+                <mat-checkbox formControlName="iswoodselling" class="ask-margin" value="after">
+                    <h6>{{ask_for_wood_selling}}</h6>
+                </mat-checkbox>
+            </div>
+        </mat-card>
+
+        <mat-card class="card-details">
+            <div class=" control-button">
+
+                <mat-dialog-actions>
+                    <button [disabled]="!enterpriseForm.valid" mat-flat-button color="primary" (click)="register()">
+                        <mat-icon>
+                            download
+                        </mat-icon>
+                        Enregistrer
+                    </button>
+                    <button mat-flat-button color="warn" (click)="abort()">{{ abort_button_label }}</button>
+                </mat-dialog-actions>
+            </div>
+
+            <mat-progress-bar style="margin-top: 20px;" *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+        </mat-card>
+
+    </div>
+
+</div>

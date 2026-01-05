@@ -1,0 +1,207 @@
+<div>
+    <h4>Ajouter un nouvel Article</h4>
+    <mat-card class="card-details" [formGroup]="articleForm">
+        <div>
+            <mat-dialog-content>
+                <h6>{{general_information}}</h6>
+                <div class="half-width-wrapper">
+                    <!-- Code Article -->
+                    <mat-form-field class="half-width">
+                        <mat-label>{{code_article}}</mat-label>
+                        <input type="text" matInput formControlName="articlecode"
+                            placeholder="Ex: RF163100, MB18250185, ..." />
+                        <mat-icon matSuffix>code</mat-icon>
+                    </mat-form-field>
+                    <!-- Libellé -->
+                    <mat-form-field class="half-width">
+                        <mat-label>{{description_label}}</mat-label>
+                        <input type="text" matInput formControlName="description"
+                            placeholder="Ex: Bois Rouge Finlandais 63*100" />
+                        <mat-icon matSuffix></mat-icon>
+                    </mat-form-field>
+                </div>
+
+                <div class="half-width-wrapper">
+                    <!-- Catégorie -->
+                    <mat-form-field class="half-width">
+                        <mat-label>{{categories_label}}</mat-label>
+                        <mat-select formControlName="selectedCategory" [(ngModel)]="woodId"
+                            (selectionChange)="onCategoryChange($event.value)" disableRipple>
+                            <mat-option *ngFor="let category of categories" [value]="category.id">{{
+                                category.description
+                                }}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <!-- Sous Catégorie -->
+                    <mat-form-field class="half-width">
+                        <mat-label>{{under_categories_label}}</mat-label>
+                        <mat-select formControlName="selectedSubCategory" disableRipple>
+                            <mat-option *ngFor="let subcategory of filteredSubCategories" [value]="subcategory.id">{{
+                                subcategory.description }}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+            </mat-dialog-content>
+        </div>
+        <div *ngIf="woodId === 1">
+            <mat-dialog-content>
+                <h6>{{wood_properties_label}}</h6>
+                <div class="half-width-wrapper">
+                    <!-- Thickness Choice -->
+                    <mat-form-field class="half-width">
+                        <mat-label>{{thikness_label}}</mat-label>
+                        <mat-select formControlName="selectedThikness" disableRipple>
+                            <mat-option *ngFor="let thikness of appvariablesThikness" [value]="thikness.id">{{
+                                thikness.name}}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <!-- Width Choice -->
+                    <mat-form-field class="half-width">
+                        <mat-label>{{width_label}}</mat-label>
+                        <mat-select formControlName="selectedWidth" disableRipple>
+                            <mat-option *ngFor="let width of appvariablesWidth"
+                                [value]="width.id">{{width.name}}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <!-- Lengths Choice -->
+                <div class="full-width">
+                    <label>{{legth_label}}</label>
+                    <div class="checkbox-container">
+                        <ng-container *ngFor="let length of appvariablesLength; let i = index">
+                            <mat-checkbox [checked]="isLengthSelected(length.name)"
+                                (change)="onLengthSelectionChange($event, length.name)">
+                                {{ length.name }}
+                            </mat-checkbox>
+
+                            <!-- Add hyphen separator, but only between checkboxes (not after the last one) -->
+                            <span *ngIf="i < appvariablesLength.length - 1"> - </span>
+                        </ng-container>
+                    </div>
+                </div>
+            </mat-dialog-content>
+
+        </div>
+        <div>
+            <mat-dialog-content>
+                <h6>{{sales_price_label}}</h6>
+                <div class="half-width-wrapper">
+                    <!-- Prix -->
+                    <mat-form-field class="half-width">
+                        <mat-label>{{price_label}}</mat-label>
+                        <input type="number" formControlName="selectedPriceTTC" matInput
+                            placeholder="Ex : 240, 1260.504, ..." />
+                    </mat-form-field>
+                    <!-- Hors Taxe -->
+
+                    <mat-form-field class="half-width">
+                        <mat-label>{{tva_label}}</mat-label>
+                        <mat-select formControlName="selectedTva" disableRipple>
+                            <mat-option *ngFor="let tva of appvariablesTVA" [value]="tva.id">{{ tva.value}}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="half-width-wrapper">
+                    <!-- Prix Calculé -->
+                    <mat-form-field class="half-width">
+                        <mat-label>{{calculated_price_label}}</mat-label>
+                        <input formControlName="calculatedPriceHT" type="number" matInput readonly />
+                    </mat-form-field>
+                    <mat-form-field class="half-width">
+                        <mat-label>{{quantity_unit}}</mat-label>
+                        <mat-select formControlName="quantityUnit" disableRipple>
+                            <mat-option *ngFor="let unit of quantityUnits" [value]="unit">{{ unit }}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                </div>
+                <div class="half-width-wrapper">
+                    <!-- Min Quantity -->
+                    <mat-form-field class="half-width">
+                        <mat-label>{{min_quantity}}</mat-label>
+                        <input formControlName="minquantity" type="number" matInput placeholder="Ex. 2.52/ 30 / ..." />
+                    </mat-form-field>
+                    <!-- Marge Minimale de Profit -->
+                    <mat-form-field class="half-width">
+                        <mat-label>{{min_profit_percentage}}</mat-label>
+                        <input formControlName="profitpercentage" type="number" matInput
+                            placeholder="Ex. 8%/ 15% / ..." />
+                    </mat-form-field>
+                </div>
+            </mat-dialog-content>
+        </div>
+
+        <div class="control-button">
+            <mat-dialog-actions>
+                <button mat-flat-button color="primary" (click)="onSubmit()">{{register_button}}</button>
+                <button mat-flat-button color="warn" routerLink="../">{{abort_button}}</button>
+            </mat-dialog-actions>
+        </div>
+    </mat-card>
+    <mat-card class="card-details">
+        <h5>{{mat_card_provider_price}}</h5>
+        <!--  Table -->
+        <table mat-table [dataSource]="articlesPrices" class="mat-elevation-z8 mt-3" *ngIf="articlesPrices.length">
+            <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef> {{mat_header_cell_article_price_date}} </th>
+                <td mat-cell *matCellDef="let element">
+                    <ng-container *ngIf="!element.editing">
+                        {{element.date}}
+                    </ng-container>
+                    <ng-container *ngIf="element.editing">
+                        <input matInput [(ngModel)]="element.date">
+                    </ng-container>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="provider">
+                <th mat-header-cell *matHeaderCellDef> {{mat_header_cell_article_price_provider}} </th>
+                <td mat-cell *matCellDef="let element">
+                    <ng-container *ngIf="!element.editing">
+                        {{element.provider}}
+                    </ng-container>
+                    <ng-container *ngIf="element.editing">
+                        <input matInput [(ngModel)]="element.provider">
+                    </ng-container>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="price">
+                <th mat-header-cell *matHeaderCellDef> {{mat_header_cell_price_value}} </th>
+                <td mat-cell *matCellDef="let element">
+                    <ng-container *ngIf="!element.editing">
+                        {{element.provider}}
+                    </ng-container>
+                    <ng-container *ngIf="element.editing">
+                        <input matInput [(ngModel)]="element.provider">
+                    </ng-container>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="action">
+                <th mat-header-cell *matHeaderCellDef> {{mat_header_cell_provider_price_action}} </th>
+                <td mat-cell style="white-space: pre-line" *matCellDef="let element">
+                    <mat-icon *ngIf="!element.editing">edit</mat-icon>
+                    <mat-icon *ngIf="element.editing">save</mat-icon>
+                    <mat-icon *ngIf="element.editing">cancel</mat-icon>
+                    <mat-icon>delete</mat-icon>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedArticleProviderColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedArticleProviderColumns;"></tr>
+        </table>
+        <div class="control-button">
+            <mat-dialog-actions>
+                <button mat-flat-button color="primary">
+                    <mat-icon>
+                        add
+                    </mat-icon>
+                    {{add_button}}
+                </button>
+            </mat-dialog-actions>
+        </div>
+    </mat-card>
+
+</div>

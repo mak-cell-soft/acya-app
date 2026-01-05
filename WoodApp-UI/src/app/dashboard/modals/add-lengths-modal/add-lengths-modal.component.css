@@ -1,0 +1,51 @@
+.card-details {
+    margin: 20px;
+    padding: 20px;
+}
+
+.half-width {
+    width: calc(50% - 10px);
+    /* Adjust width to account for the gap */
+    margin-bottom: 15px;
+}
+
+.full-width {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.half-width-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    /* Adds space between the form fields */
+}
+
+.control-button {
+    display: flex;
+    justify-content: flex-end;
+    /* Align items to the end (left) */
+    margin-right: 12px;
+    margin-top: 5px;
+    align-items: center;
+}
+
+.control-button button {
+    margin-right: 0px;
+    /* Add space between buttons */
+}
+
+/* Optional: Remove the right margin for the last button */
+.control-button button:last-child {
+    margin-right: 0;
+}
+
+input[readonly] {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.tot-quantity {
+    font-size: 16px;
+    color: cornflowerblue;
+}

@@ -1,0 +1,259 @@
+.search-bar-container {
+    flex-grow: 1;
+    padding: 0px 56px 0px 8px;
+    background: #eaf1fb;
+    border-radius: 32px;
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+}
+
+input {
+    font-size: 1.1rem;
+    outline: none;
+    border: none;
+    background: inherit;
+    min-width: 352px;
+    flex-grow: 1;
+}
+
+.search {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.button-container {
+    /* display: flex; */
+    align-items: center;
+}
+
+.table-container {
+    margin-top: 15px;
+}
+
+.article-table {
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.article-table-cell {
+    border: 1px 1px #dddddd;
+    text-align: left;
+    padding: 3px;
+}
+
+.prefix-column {
+    width: 15%;
+}
+
+.description-column {
+    width: 12%;
+}
+
+.name-column {
+    width: 8%;
+}
+
+.phone-column {
+    width: 10%;
+}
+
+.mat-column-cin {
+    width: 10%;
+}
+
+.mat-column-mobileone {
+    width: 10%;
+}
+
+.mat-column-action {
+    width: 13%;
+}
+
+.mat-column-expand {
+    width: 5%;
+}
+
+.reference-column {
+    width: 30%;
+}
+
+
+table {
+    width: 100%;
+}
+
+.mat-mdc-form-field {
+    font-size: 14px;
+    width: 100%;
+}
+
+/* Remove generic td, th width to allow specific column widths */
+
+tr.example-detail-row {
+    height: 0;
+}
+
+tr.example-element-row:not(.example-expanded-row):hover {
+    background: whitesmoke;
+}
+
+tr.example-element-row:not(.example-expanded-row):active {
+    background: #efefef;
+}
+
+.example-element-row td {
+    border-bottom-width: 0;
+}
+
+.example-element-detail {
+    overflow: hidden;
+    display: flex;
+}
+
+.example-element-diagram {
+    min-width: 80px;
+    border: 2px solid black;
+    padding: 8px;
+    font-weight: lighter;
+    margin: 8px 0;
+    height: 104px;
+}
+
+.example-element-symbol {
+    font-weight: bold;
+    font-size: 40px;
+    line-height: normal;
+}
+
+.example-element-description {
+    padding: 16px;
+}
+
+.example-element-description-attribution {
+    opacity: 0.5;
+}
+
+.card-details {
+    margin-left: 0px;
+    margin-right: 20px;
+    padding: 20px;
+}
+
+.half-width {
+    width: calc(50% - 10px);
+    /* Adjust width to account for the gap */
+    margin-bottom: 15px;
+}
+
+.full-width {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.half-width-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    /* Adds space between the form fields */
+}
+
+.form-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    /* Adjust the gap value as needed */
+    padding: 15px;
+}
+
+.form-content-price {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    /* Adjust the gap value as needed */
+    padding: 15px;
+}
+
+.form-field-price {
+    min-width: 40px;
+}
+
+/* mat-form-field{
+    font-weight: 400;
+    font-size: x-large;
+} */
+
+.form-field {
+    min-width: 49%;
+    /* Minimum width to ensure proper wrapping */
+}
+
+.control-button {
+    display: flex;
+    justify-content: flex-end;
+    /* Align items to the end (left) */
+    margin-right: 12px;
+    margin-top: 12px;
+    align-items: center;
+}
+
+.control-button button {
+    margin-right: 10px;
+    /* Add space between buttons */
+}
+
+/* Optional: Remove the right margin for the last button */
+.control-button button:last-child {
+    margin-right: 0;
+}
+
+.full-width {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.blue-icon {
+    color: blue;
+}
+
+.red-icon {
+    color: red;
+}
+
+.green-icon {
+    color: green;
+}
+
+.half-width-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    /* Adds space between the form fields */
+}
+
+.square-width-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    /* Adds space between the form fields */
+}
+
+.square-width {
+    width: calc(33.3333% - 6.66px);
+    /* Adjust width to account for the gap */
+    margin-bottom: 15px;
+}
+
+.half-width {
+    width: calc(50% - 10px);
+    /* Adjust width to account for the gap */
+    margin-bottom: 15px;
+}
+
+
+.full-width {
+    width: 100%;
+    margin-bottom: 15px;
+}

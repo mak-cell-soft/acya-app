@@ -1,0 +1,50 @@
+mat-toolbar {
+    justify-content: space-between;
+    background: #004a9f;
+    color: white;
+
+}
+
+.custom-icon {
+    transform: scale(2);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.button-bar {
+    color: aliceblue;
+    font-size: large;
+    padding-left: 10px;
+}
+
+.hero-gradient {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4f0e8 100%);
+}
+
+.btn-primary {
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -10px rgba(59, 130, 246, 0.6);
+}
+
+.btn-secondary {
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -10px rgba(16, 185, 129, 0.6);
+}
+
+.feature-icon {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+}
+
+.timber-pattern {
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNmNWY3ZmEiLz48cGF0aCBkPSJNMzAgMTVIMHYxNWgzMFYxNXpNMzAgNDVIMHYxNWgzMFY0NXpNNDUgMTVIMzB2MTVoMTVWMTV6TTQ1IDQ1SDMwdjE1aDE1VjQ1eiIgZmlsbD0iI2U0ZjBlOCIgb3BhY2l0eT0iLjUiLz48L3N2Zz4=');
+}

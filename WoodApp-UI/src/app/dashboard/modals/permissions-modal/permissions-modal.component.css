@@ -1,0 +1,31 @@
+.mat-table {
+    width: 800px;
+}
+
+.no-borders .mat-header-cell,
+.no-borders .mat-cell {
+    margin: 20PX;
+    border: none;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 20px;
+    color: #333;
+}
+
+.operation-nature {
+    width: 30%;
+}
+
+.custom-dialog-container {
+    width: 1500px;
+    /* Adjusted width*/
+    height: 900px;
+    /* Adjusted height*/
+    max-width: 90vw;
+    /* Use viewport units for better responsiveness*/
+    max-height: 90vh;
+    /* This keeps the modal within the screen bounds*/
+}

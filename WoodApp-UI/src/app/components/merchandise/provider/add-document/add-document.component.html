@@ -1,0 +1,311 @@
+<mat-card class="card-details">
+
+    <h4>Ajouter un bon de réception</h4>
+
+    <mat-card class="card-details">
+        <div class="head-doc">
+            <!-- Date Picker Section -->
+            <div class="date-picker-container">
+                <mat-card class="calendar-card">
+                    <mat-calendar [(selected)]="selected"></mat-calendar>
+                </mat-card>
+                <p class="date-display">Date: {{selected | date: 'dd MMMM yyyy'}}</p>
+            </div>
+
+            <!-- Separator -->
+            <div class="vertical-separator"></div>
+
+            <!-- Inputs Section -->
+            <div class="inputs-container">
+
+                <div class="provider-choice" [formGroup]="documentForm">
+                    <mat-form-field appearance="fill">
+                        <mat-label>Fournisseur</mat-label>
+                        <mat-select formControlName="supplier" placeholder="Choisir parmi la liste"
+                            (selectionChange)="onSupplierChange($event.value)">
+                            <mat-option *ngFor="let supplier of allSuppliers" [value]="supplier">
+                                {{ supplier.name}} - {{supplier.description }}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <div *ngIf="selectedSupplier" class="provider-info">
+                        <mat-card>
+                            <p><strong>Responsable :</strong> {{ selectedSupplier.firstname }}
+                                {{selectedSupplier.lastname}}</p>
+                            <p><strong>Adresse :</strong> {{ selectedSupplier.address }}</p>
+                            <p><strong>Mobile :</strong> {{ selectedSupplier.phonenumberone }}</p>
+                        </mat-card>
+                    </div>
+
+                    <mat-form-field appearance="fill">
+                        <mat-label>Référence Document Fournisseur</mat-label>
+                        <input matInput formControlName="supplierReference"
+                            placeholder="Insrérer le numéro du Bon de Livraison">
+                    </mat-form-field>
+                    <mat-error
+                        *ngIf="documentForm.get('supplierReference')?.hasError('required') && documentForm.get('supplierReference')?.touched">
+                        Numéro de la pièce Fournisseur requis
+                    </mat-error>
+
+                </div>
+            </div>
+        </div>
+    </mat-card>
+
+
+    <mat-card class="card-details" [formGroup]="merchandiseForm">
+        <div class="full-width">
+            <mat-form-field appearance="outline">
+                <!-- Search Input -->
+                <input matInput [formControl]="searchControl" placeholder="recherche article" autocomplete="off"
+                    (input)="applyFilter($event)" (focus)="openDropdown()" />
+
+                <!-- Dropdown -->
+                <mat-select #articleSelect (selectionChange)="onOptionSelected($event.value)">
+                    <mat-option *ngFor="let item of filteredArticles" [value]="item.id">
+                        {{ item.reference }}
+                        <div class="article-description" *ngIf="item.description"> / &nbsp;{{ item.description }}
+                        </div>
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+        <!-- Prix HT + Quantité -->
+        <div class="half-width-wrapper">
+            <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Insérer le prix d'achat HT</mat-label>
+                <input matInput formControlName="unit_price_ht" type="text" placeholder="Prix d'achat HT">
+                <mat-error
+                    *ngIf="merchandiseForm.get('unit_price_ht')?.hasError('required') && merchandiseForm.get('unit_price_ht')?.touched">
+                    Prix hors taxe doit être saisie
+                </mat-error>
+            </mat-form-field>
+            <div class="half-width">
+                <div class="legths" [ngClass]="{'has-button': isArticleTypeWood}">
+                    <mat-form-field appearance="outline" class="mat-form-length">
+                        <mat-label>Insérer la quantité</mat-label>
+                        <input matInput formControlName="quantity" type="number" placeholder="Quantité" />
+                        <mat-error>La quantité doit être saisie</mat-error>
+                    </mat-form-field>
+                    <button mat-raised-button *ngIf="isArticleTypeWood" class="button-length"
+                        (click)="openAddQuantityModal(selectedArticle)">
+                        Ajouter les longueurs
+                        <mat-icon style="scale: 1.2;" matPrefix>segment</mat-icon>
+                    </button>
+                </div>
+            </div>
+
+
+
+        </div>
+        <!-- HT Total Sans remise-->
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Total Hors Taxe sans remise</mat-label>
+            <input matInput formControlName="merchandise_cost_ht" type="number" placeholder="HT Total sans remise" />
+        </mat-form-field>
+        <!-- %Remise + %TVA -->
+        <div class="half-width-wrapper">
+            <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Saisir la remise</mat-label>
+                <input matInput formControlName="selldiscountpercentage" type="number"
+                    placeholder="Pourcentage remise article">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="half-width">
+                <mat-select formControlName="tva" placeholder="choisir">
+                    <!-- (selectionChange)="onArticleChange($event.value)"> -->
+                    <mat-option *ngFor="let tva of TVAs" [value]="tva.id">{{ tva.value }}</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+        </div>
+        <!-- Total Hors Taxe NET Avec Remise -->
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Total Hors Taxe Net</mat-label>
+            <input matInput formControlName="sellcostprice_net_ht" type="number" placeholder="Total HT Net" />
+        </mat-form-field>
+        <!-- net HT + Total TTC -->
+        <div class="half-width-wrapper">
+            <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Montant Remise calculé</mat-label>
+                <input matInput formControlName="sellcostprice_discountValue" type="number"
+                    placeholder="montant de la remise">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Montant TVA calculé</mat-label>
+                <input matInput formControlName="sellcostprice_taxValue" type="text" placeholder="montant de la TVA">
+            </mat-form-field>
+        </div>
+        <!-- Total TTC -->
+        <!-- <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Total TTC</mat-label>
+            <input matInput formControlName="totalWithTax" type="number" placeholder="Total TTC" />
+        </mat-form-field> -->
+        <!-- Référence + Description -->
+        <div class="half-width-wrapper">
+            <mat-form-field appearance="outline" class="half-width">
+                <div class="generate-reference">
+                    <mat-label>Référence de la marchandise</mat-label>
+                    <input matInput formControlName="reference" type="text" placeholder="Référence"
+                        [required]="isArticleTypeWood">
+                    <!-- Add loading spinner and disable button when loading -->
+                    <button (click)="generateMerchandReference()" [disabled]="isLoading">
+                        <mat-icon>code</mat-icon>
+                        <span *ngIf="!isLoading">Générer</span>
+                        <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+                    </button>
+                    <!-- Custom error message -->
+                    <mat-error *ngIf="merchandiseForm.get('reference')?.hasError('required') && isArticleTypeWood">
+                        La référence est obligatoire pour les articles de type bois
+                    </mat-error>
+                </div>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Description</mat-label>
+                <input matInput formControlName="description" type="text" placeholder="Description">
+            </mat-form-field>
+        </div>
+
+
+        <!-- IsInvoicible + AllowNegativStock -->
+        <div class="half-width-wrapper">
+            <div class="half-width">
+                <mat-slide-toggle formControlName="isinvoicible" labelPosition="after" class="my-slide">
+                    Est Facturable</mat-slide-toggle>
+            </div>
+            <div class="half-width">
+                <mat-slide-toggle formControlName="allownegativstock" labelPosition="after" class="my-slide">
+                    Autoriser stock Négatif
+                </mat-slide-toggle>
+            </div>
+        </div>
+
+    </mat-card>
+    <!-- <picture>
+        <source media="(min-width:650px)" srcset="desk.jpg">
+        <img src="mobile.jpg" alt="device">
+    </picture> -->
+    <div>
+        <button mat-raised-button color="primary" (click)="addMerchandise()" class="button-merchandise">
+            <mat-icon>
+                add
+            </mat-icon>
+            Ajouter une marchandise
+        </button>
+    </div>
+</mat-card>
+<!-- Mat Card Table Presenting All Merchandises Created -->
+<mat-card class="card-details">
+    <table mat-table [dataSource]="merchandisDocument" class="mat-elevation-z8">
+        <!-- Index Column -->
+        <ng-container matColumnDef="index">
+            <th mat-header-cell *matHeaderCellDef> # </th>
+            <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
+        </ng-container>
+
+        <!-- Article Column -->
+        <ng-container matColumnDef="article">
+            <th mat-header-cell *matHeaderCellDef> Article </th>
+            <td mat-cell *matCellDef="let element">
+                {{ element.article.reference }} / {{ element.article.description }}
+            </td>
+        </ng-container>
+
+        <!-- Sell Cost Price HT Column -->
+        <ng-container matColumnDef="sellCostPriceHT">
+            <th mat-header-cell *matHeaderCellDef> Prix Un HT </th>
+            <td mat-cell *matCellDef="let element">{{ element.unit_price_ht | number: '1.3-3' }}</td>
+        </ng-container>
+
+        <!-- Quantity Column -->
+        <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef> Quantité </th>
+            <td mat-cell *matCellDef="let element">
+                {{ element.quantity % 1 === 0 ? element.quantity : (element.quantity | number: '1.3-3') }}
+            </td>
+        </ng-container>
+
+
+        <!-- Cost HT Column -->
+        <ng-container matColumnDef="costHT">
+            <th mat-header-cell *matHeaderCellDef> Total HT </th>
+            <td mat-cell *matCellDef="let element">{{ element.cost_ht | number: '1.3-3' }}</td>
+        </ng-container>
+
+        <!-- Discount Percentage Column -->
+        <ng-container matColumnDef="discountPercentage">
+            <th mat-header-cell *matHeaderCellDef> Remise (%) </th>
+            <td mat-cell *matCellDef="let element">{{ element.discount_percentage | number: '1.2-2' }}</td>
+        </ng-container>
+
+        <!-- Cost Net HT Column -->
+        <ng-container matColumnDef="costNetHT">
+            <th mat-header-cell *matHeaderCellDef> Net HT </th>
+            <td mat-cell *matCellDef="let element">{{ element.cost_net_ht | number: '1.3-3' }}</td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef> Actions </th>
+            <td mat-cell *matCellDef="let element">
+                <button mat-icon-button class="red-icon" (click)="deleteRow(element)">
+                    <mat-icon>delete</mat-icon>
+                </button>
+                <button mat-icon-button class="green-icon" (click)="editRow(element)">
+                    <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Example icon-button with a menu">
+                    <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #menu="matMenu" xPosition="before">
+                    <div>
+                        <span>Val Remise: &nbsp;</span>
+                        {{ element.cost_discount_value | number: '1.3-3' }}
+                    </div>
+                    <div>
+                        <span>TVA: &nbsp;</span>
+                        {{ element.tva_value | number: '1.3-3' }}
+                    </div>
+                    <div>
+                        <span>Prix TTC: &nbsp;</span>
+                        {{ element.cost_ttc | number: '1.3-3' }}
+                    </div>
+                    <mat-checkbox [disabled]="true" [(ngModel)]="element.allownegativstock">Autoriser stock
+                        négatif</mat-checkbox>
+                    <mat-checkbox [disabled]="true" [(ngModel)]="element.isinvoicible">Est Facturable</mat-checkbox>
+                </mat-menu>
+            </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <!-- Controls Section -->
+    <div class="summary-container">
+        <div class="summary-row">
+            <span class="summary-label">Total HT Net</span>
+            <span class="summary-value">{{ totalHTNet_doc$ | async | number: '1.3-3' }}</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Total Remise</span>
+            <span class="summary-value">{{ totalRemise_doc$ | async | number: '1.3-3' }}</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Total TVA</span>
+            <span class="summary-value">{{ totalTVA_doc$ | async | number: '1.3-3' }}</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Net TTC</span>
+            <span class="summary-value">{{ netTTC_doc$ | async | number: '1.3-3' }}</span>
+        </div>
+    </div>
+
+    <div class="control-button">
+        <mat-dialog-actions>
+            <button mat-flat-button color="primary" (click)="onSubmit()">{{register_button}}</button>
+            <button mat-flat-button color="warn" routerLink="/home/dashboard">{{abort_button}}</button>
+        </mat-dialog-actions>
+    </div>
+
+</mat-card>

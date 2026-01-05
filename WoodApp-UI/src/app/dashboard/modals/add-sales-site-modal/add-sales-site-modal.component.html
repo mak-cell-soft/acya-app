@@ -1,0 +1,42 @@
+<h1 mat-dialog-title>{{ mat_dialog_title_modal }}</h1>
+
+<div mat-dialog-content [formGroup]="sitesForm">
+    <div class="half-width-wrapper">
+        <mat-form-field class="half-width">
+            <mat-label>{{ mat_label_town }}</mat-label>
+            <input matInput formControlName="town" placeholder="{{ mat_placeholder_town }}">
+            <mat-icon matSuffix>check</mat-icon>
+        </mat-form-field>
+        <mat-form-field class="half-width">
+            <mat-label>{{ mat_label_code_post }}</mat-label>
+            <input matInput formControlName="codepost" placeholder="{{ mat_placeholder_code_post }}">
+            <mat-icon matSuffix>check</mat-icon>
+        </mat-form-field>
+    </div>
+
+    <div class="half-width-wrapper">
+        <mat-form-field class="half-width">
+            <mat-label>{{ mat_label_gov }}</mat-label>
+            <mat-select placeholder="Choisir Parmi la liste" formControlName="gov">
+                <mat-option *ngFor="let gov of govOptions" [value]="gov.key">{{ gov.value }}</mat-option>
+            </mat-select>
+            <mat-icon matSuffix>check</mat-icon>
+        </mat-form-field>
+
+        <!-- Move slide-toggle outside mat-form-field to avoid error -->
+        <div class="half-width">
+            <div class="slide-toggle-container">
+                <mat-slide-toggle class="my-slide" formControlName="isForsale" labelPosition="after">
+                    <h6>Est un dépôt de Vente</h6>
+                </mat-slide-toggle>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="control-button">
+    <mat-dialog-actions>
+        <button mat-flat-button color="primary" (click)="register()">{{ register_button_label }}</button>
+        <button mat-flat-button color="warn" (click)="onNoClick()">{{ abort_button_label }}</button>
+    </mat-dialog-actions>
+</div>

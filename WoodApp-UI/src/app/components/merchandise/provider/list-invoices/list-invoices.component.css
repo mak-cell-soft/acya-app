@@ -1,0 +1,349 @@
+.search-bar-container {
+    flex-grow: 1;
+    padding: 0px 56px 0px 8px;
+    background: #eaf1fb;
+    border-radius: 32px;
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+}
+
+input {
+    font-size: 1.1rem;
+    outline: none;
+    border: none;
+    background: inherit;
+    min-width: 352px;
+    flex-grow: 1;
+}
+
+.search {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.button-container {
+    display: flex;
+    align-items: center;
+}
+
+.table-container {
+    margin-top: 15px;
+    cursor: pointer;
+}
+
+.article-table {
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.date-picker-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.article-table-cell {
+    border: 1px 1px #dddddd;
+    text-align: center;
+    padding: 3px;
+}
+
+.icon-center {
+    display: flex;
+    justify-content: center;
+    /* Centers horizontally */
+    align-items: center;
+    /* Centers vertically */
+}
+
+.reference-column {
+    width: 30%;
+}
+
+
+table {
+    width: 100%;
+}
+
+.mat-mdc-form-field {
+    font-size: 14px;
+    width: 100%;
+}
+
+td,
+th {
+    width: 25%;
+}
+
+tr.example-detail-row {
+    height: 0;
+}
+
+tr.example-element-row:not(.example-expanded-row):hover {
+    background: whitesmoke;
+}
+
+tr.example-element-row:not(.example-expanded-row):active {
+    background: #efefef;
+}
+
+.example-element-row td {
+    border-bottom-width: 0;
+}
+
+.example-element-detail {
+    overflow: hidden;
+    display: flex;
+}
+
+.example-element-diagram {
+    min-width: 80px;
+    border: 2px solid black;
+    padding: 8px;
+    font-weight: lighter;
+    margin: 8px 0;
+    height: 104px;
+}
+
+.example-element-symbol {
+    font-weight: bold;
+    font-size: 40px;
+    line-height: normal;
+}
+
+.example-element-description {
+    padding: 16px;
+}
+
+.example-element-description-attribution {
+    opacity: 0.5;
+}
+
+.card-details {
+    margin: 20px;
+    padding: 20px;
+}
+
+.devide-width {
+    width: 32%;
+    /* Adjust width to account for the gap */
+    margin-bottom: 15px;
+}
+
+
+
+.full-width {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.half-width-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    /* Adds space between the form fields */
+}
+
+.action-document-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 0.5px solid #ccc;
+    align-items: center;
+    /* Ensures vertical centering */
+}
+
+.control-button-filter {
+    display: flex;
+    justify-content: flex-start;
+    /* Align to the left */
+    align-items: center;
+    /* Center vertically */
+    margin: 12px;
+    /* Adjust margin for spacing */
+    height: 50px;
+    /* Adjust this based on the button size */
+}
+
+.control-button-filter button {
+    margin: auto;
+    /* Ensure even spacing */
+    padding: 10px 20px;
+    /* Adjust button padding */
+    margin-right: 10px;
+}
+
+/* Optional: Remove the right margin for the last button */
+.control-button-filter button:last-child {
+    margin-right: 0;
+}
+
+.control-button-filter p {
+    margin: 10px;
+    padding: 5px 0;
+    text-align: center;
+}
+
+.control-button-filter span {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: bold;
+    color: #d9534f;
+    /* Bootstrap danger red */
+    /*background-color: #f8d7da;  Light red background */
+    padding: 5px 10px;
+    /* border-radius: 5px;
+    border: 1px solid #d9534f; */
+}
+
+.invoice_docs {
+    background-color: #E5D283;
+    color: gray;
+}
+
+.invoice_button {
+    background-color: #4F709C;
+    color: white;
+}
+
+.control-button {
+    display: flex;
+    justify-content: flex-end;
+    /* Align items to the end (left) */
+    margin-right: 12px;
+    margin-top: 18px;
+    align-items: center;
+}
+
+.control-button button {
+    margin-right: 10px;
+    /* Add space between buttons */
+}
+
+/*Optional: Remove the right margin for the last button */
+.control-button button:last-child {
+    margin-right: 0;
+}
+
+.reset {
+    background-color: #f44336;
+    color: white;
+}
+
+.filter {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.full-width {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.blue-icon {
+    color: blue;
+}
+
+.red-icon {
+    color: red;
+}
+
+.green-icon {
+    color: green;
+}
+
+
+/* Merchandise Details */
+
+.merchandise-number {
+    font-weight: normal;
+    color: #1caa92;
+    margin-bottom: 8px;
+    /* Add spacing if needed */
+}
+
+.merchandise-element-detail {
+    display: block;
+    /* padding: 16px; */
+    background-color: #f9f9f9;
+    /* border: 1px solid #ddd;
+    border-radius: 4px; */
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.merchandise-detail {
+    display: flex;
+    margin-bottom: 16px;
+    margin-right: 16px;
+}
+
+.merchandise-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    /* Space between items */
+}
+
+.merchandise-item {
+    flex: 1 1 200px;
+    /* Flex-grow, flex-shrink, and flex-basis */
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+h6 {
+    margin-bottom: 8px;
+    font-size: 16px;
+    color: #333;
+}
+
+/* Filter Section*/
+/* .filter-container {
+    display: flex;
+    /* border: 1px solid #ccc;
+    
+    width: 100%;
+} */
+
+.filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 40px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.filter-container mat-radio-group:last-child {
+    margin-left: 20px;
+}
+
+.filter-buttons button {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.mat-mdc-radio-button~.mat-mdc-radio-button {
+    margin-left: 16px;
+}
+
+.checkbox-width {
+    width: 45px;
+}
+
+.row-count {
+    margin-bottom: 16px;
+    font-size: 18px;
+    font-weight: normal;
+    color: #4F709C;
+}

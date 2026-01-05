@@ -1,0 +1,324 @@
+.card-details {
+    margin: 10px;
+    padding: 20px;
+}
+
+.calendar-card {
+    width: 300px;
+    background: rgb(207, 227, 235);
+}
+
+.head-doc {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+}
+
+.date-picker-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.vertical-separator {
+    width: 1px;
+    background-color: #ddd;
+    height: 100%;
+    margin: 0 20px;
+}
+
+.inputs-container {
+    display: flex;
+    flex-grow: 1;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+    justify-content: space-around;
+    height: 300px;
+    /* Matches the height of the date picker */
+}
+
+.provider-choice {
+    display: block;
+    /* grid-template-columns: 1fr 1fr; Two inputs per row */
+    gap: 5px;
+    /* Adds space between inputs */
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+mat-form-field {
+    width: 100%;
+    height: 100%;
+}
+
+.provider-info {
+    margin-top: 0px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.provider-info mat-card {
+    padding: 15px;
+    background-color: #f4f6f8;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    margin-bottom: 20px;
+    /* margin-top: 15px; */
+}
+
+.provider-info h3 {
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    color: #333;
+}
+
+.provider-info p {
+    margin: 5px 0;
+    font-size: 13px;
+    color: #555;
+}
+
+mat-error {
+    font-size: 12px;
+    color: red;
+}
+
+.blue-icon {
+    color: blue;
+}
+
+.red-icon {
+    color: red;
+}
+
+.green-icon {
+    color: green;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.full-width {
+    width: 100%;
+    margin-bottom: 1px;
+}
+
+.article-description {
+    font-size: 0.9em;
+    color: gray;
+}
+
+.mat-form-field {
+    position: relative;
+}
+
+.mat-select-panel {
+    max-height: 15px;
+    /* Adjust as needed */
+    /* overflow-y: auto; */
+}
+
+.half-width-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    /* Adds space between the form fields */
+}
+
+/*
+* Generate Reference CSS
+*/
+.generate-reference {
+    display: flex;
+    align-items: center;
+    /* Aligns the input and button vertically */
+    gap: 10px;
+    /* Adds space between the input and button */
+}
+
+.generate-reference input {
+    flex: 1;
+    /* Takes up the remaining space (70%) */
+}
+
+/* .generate-reference button {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between icon and text/spinner 
+  } */
+  
+  /* .generate-reference mat-spinner {
+    margin: 0; /* Remove default margin *
+  } */
+
+.generate-reference button {
+    width: 30%;
+    /* Button takes 30% of the width */
+    height: 100%;
+    /* Matches the height of the input */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    /* Adds space between the icon and text */
+    padding: 0 10px;
+    /* Adds padding inside the button */
+    background-color: #007bff;
+    /* Example button color */
+    color: white;
+    /* Text color */
+    border: none;
+    /* Removes default border */
+    border-radius: 4px;
+    /* Rounded corners */
+    cursor: pointer;
+    /* Changes cursor to pointer on hover */
+}
+
+.generate-reference button:hover {
+    background-color: #0056b3;
+    /* Darker shade on hover */
+}
+
+.half-width {
+    width: calc(50% - 10px);
+    /* Adjust width to account for the gap */
+    margin-bottom: 5px;
+}
+
+.date-display {
+    color: cornflowerblue;
+    font-weight: bold;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+.add-lengths {
+    scale: 1.2;
+    cursor: pointer;
+}
+
+.quantity-hint {
+    color: #ff9800;
+    /* Orange color for info */
+    font-style: italic;
+}
+
+mat-slide-toggle.my-slide {
+    --mdc-switch-selected-handle-color: lightgreen;
+    --mdc-switch-selected-pressed-handle-color: lightgreen;
+    --mdc-switch-selected-pressed-state-layer-color: green;
+    --mdc-switch-selected-hover-state-layer-color: lightgreen;
+    --mdc-switch-selected-hover-handle-color: lightgreen;
+    --mdc-switch-selected-focus-state-layer-color: lightgreen;
+    --mdc-switch-selected-focus-handle-color: lightgreen;
+    --mdc-switch-selected-track-color: green;
+    --mdc-switch-selected-pressed-track-color: green;
+    --mdc-switch-selected-hover-track-color: green;
+    --mdc-switch-selected-focus-track-color: green;
+}
+
+.legths {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.mat-form-length {
+    flex: 1;
+    /* Default to full width */
+    transition: flex 0.3s ease;
+    /* Smooth transition */
+}
+
+.has-button .mat-form-length {
+    flex: 0 0 58%;
+    /* Adjust width when the button is visible */
+}
+
+.button-length {
+    flex: 0 0 40%;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.button-merchandise {
+    margin-top: 10px;
+    flex: 0 0 40%;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+input[readonly] {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.summary-container {
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+    /* Occupy half the width */
+    margin-left: auto;
+    /* Push to the right side */
+    padding-top: 20px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #d0d0d0;
+    /* Optional separator for rows */
+}
+
+.summary-label {
+    font-weight: bold;
+    color: #333;
+    /* Darker label text */
+    flex: 1;
+    /* Takes the first column */
+}
+
+.summary-value {
+    flex: 1;
+    /* Takes the second column */
+    text-align: right;
+    /* Align values to the right */
+    color: #000;
+    /* Ensure value contrast */
+}
+
+.control-button {
+    display: flex;
+    justify-content: flex-end;
+    /* Align items to the end (left) */
+    margin-right: 12px;
+    margin-top: 35px;
+    align-items: center;
+}
+
+.control-button button {
+    margin-right: 10px;
+    /* Add space between buttons */
+}
+
+/* Optional: Remove the right margin for the last button */
+.control-button button:last-child {
+    margin-right: 0;
+}
+
+mat-checkbox[disabled] {
+    pointer-events: none;
+    opacity: 1;
+    /* Keep the same appearance */
+}

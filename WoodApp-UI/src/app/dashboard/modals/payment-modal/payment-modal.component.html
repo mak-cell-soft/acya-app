@@ -1,0 +1,84 @@
+<h1 mat-dialog-title>Enregistrer un paiement</h1>
+<div mat-dialog-content>
+    <!-- Document Summary -->
+    <div class="document-summary">
+        <div class="summary-item">
+            <span class="label">Document:</span>
+            <span class="value">{{ data.documentNumber }}</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Client:</span>
+            <span class="value">{{ data.ownerFullName }}</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Total:</span>
+            <span class="value">{{ data.totalAmount | number:'1.3-3' }} TND</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Reste à payer:</span>
+            <span class="value highlight">{{ data.remainingAmount | number:'1.3-3' }} TND</span>
+        </div>
+    </div>
+
+    <mat-divider class="divider"></mat-divider>
+
+    <!-- Method Selection -->
+    <div class="method-selection">
+        <h3>Méthode de paiement</h3>
+        <div class="methods-grid">
+            <div *ngFor="let method of paymentMethods" class="method-card"
+                [class.selected]="selectedPaymentMethod === method.value" (click)="onPaymentMethodChange(method.value)">
+                <!-- Assuming FontAwesome is available or using text/material icons -->
+                <i *ngIf="method.value === 'ESPECE'" class="fa fa-money-bill"></i>
+                <i *ngIf="method.value === 'CHEQUE'" class="fa fa-money-check"></i>
+                <i *ngIf="method.value === 'TRAITE'" class="fa fa-file-invoice"></i>
+                <span>{{ method.label }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forms -->
+    <div class="payment-form-container" [ngSwitch]="selectedPaymentMethod">
+
+        <!-- Cash Form (Inline) -->
+        <form *ngSwitchCase="'ESPECE'" [formGroup]="paymentForm" class="cash-form">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Montant</mat-label>
+                <input matInput type="number" formControlName="amount">
+                <span matSuffix>TND</span>
+                <mat-error *ngIf="paymentForm.get('amount')?.hasError('required')">Le montant est requis</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Date de paiement</mat-label>
+                <input matInput [matDatepicker]="picker" formControlName="paymentDate">
+                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Notes</mat-label>
+                <textarea matInput formControlName="notes" rows="3"></textarea>
+            </mat-form-field>
+        </form>
+
+        <!-- Cheque Form -->
+        <app-cheque-payment-form *ngSwitchCase="'CHEQUE'" [ownerName]="data.ownerFullName" [porterId]="data.porterId"
+            [porterName]="data.porterName" [defaultAmount]="data.remainingAmount"
+            (formReady)="onCustomFormReady($event, 'CHEQUE')">
+        </app-cheque-payment-form>
+
+        <!-- Traite Form -->
+        <app-traite-payment-form *ngSwitchCase="'TRAITE'" [ownerName]="data.ownerFullName" [porterId]="data.porterId"
+            [porterName]="data.porterName" [defaultAmount]="data.remainingAmount"
+            (formReady)="onCustomFormReady($event, 'TRAITE')">
+        </app-traite-payment-form>
+
+    </div>
+
+</div>
+
+<div mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Annuler</button>
+    <button mat-flat-button color="primary" [disabled]="!isValid()" (click)="onConfirm()">Confirmer</button>
+</div>

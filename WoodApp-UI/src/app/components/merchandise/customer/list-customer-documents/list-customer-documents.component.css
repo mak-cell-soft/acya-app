@@ -1,0 +1,505 @@
+/* Header Container (mat-toolbar) */
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    /* Aligns text to the left and buttons to the right */
+    align-items: center;
+    /* Vertically centers the content */
+    padding: 0 16px;
+    /* Add horizontal padding */
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Text */
+.header-text h2 {
+    font-size: 24px;
+    font-weight: 500;
+    color: #333;
+    margin: 0;
+    /* Removes default margin */
+}
+
+/* Spacer to push buttons to the right */
+.spacer {
+    flex: 1;
+    /* Takes up remaining space */
+}
+
+/* Header Buttons Container */
+.header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    /* Space between buttons and separator */
+}
+
+/* Angular Material Divider (Vertical Separator) */
+mat-divider {
+    height: 24px;
+    /* Matches button height */
+    margin: 0 8px;
+    /* Space around the separator */
+}
+
+/* Angular Material Buttons */
+button[mat-flat-button] {
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+button[mat-flat-button]:hover {
+    opacity: 0.9;
+}
+
+.search {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-top: 15px;
+}
+
+.search-bar-container {
+    flex-grow: 1;
+    padding: 0px 56px 0px 8px;
+    background: #eaf1fb;
+    border-radius: 32px;
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+}
+
+input {
+    font-size: 1.1rem;
+    outline: none;
+    border: none;
+    background: inherit;
+    min-width: 352px;
+    flex-grow: 1;
+}
+
+.card-details {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 0 16px;
+    width: 100%;
+    /* Ensure the card takes full width */
+}
+
+
+
+.card-details-months {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 16px;
+    width: 100%;
+}
+
+.month-navigation-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.month-header-text {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    text-align: center;
+}
+
+.month-header-text h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.date-range {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 0.9rem;
+}
+
+.month-buttons {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.month-buttons button[mat-flat-button] {
+    min-width: 80px;
+}
+
+.month-buttons button[mat-raised-button] {
+    min-width: 90px;
+}
+
+.month-buttons button[mat-flat-button].selected-month {
+    background-color: #e0584f;
+    /* Red color */
+    color: white;
+}
+
+.month-buttons button {
+    flex: 1;
+    /* Allow buttons to grow and take equal space */
+    margin: 5px;
+    padding: 10px;
+    color: lightslategrey;
+    background-color: #F0F0F0;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    text-align: center;
+    /* Center text within buttons */
+}
+
+.current-year {
+    font-weight: bold;
+    background-color: rgba(0, 0, 0, 0.1);
+    /* Slightly darker background */
+}
+
+.chevrons {
+    color: black;
+    font-size: 18px;
+}
+
+.month-buttons button:hover {
+    background-color: #ddd;
+}
+
+/* Table Container */
+.table-container {
+    margin-top: 15px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+
+/* .article-table {
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
+} */
+
+.article-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.article-table-cell {
+    border: 1px 1px #dddddd;
+    text-align: center;
+    padding: 10px;
+}
+
+.checkbox-width {
+    width: 45px;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.status-delivered {
+    background-color: #4CAF50;
+}
+
+.status-abandoned {
+    background-color: #F44336;
+}
+
+.status-created {
+    background-color: #2196F3;
+}
+
+.status-deleted {
+    background-color: #9E9E9E;
+}
+
+.status-not-delivered {
+    background-color: #FF9800;
+}
+
+.status-not-confirmed {
+    background-color: #FFC107;
+}
+
+.status-confirmed {
+    background-color: #4CAF50;
+}
+
+/* Reference column styling */
+.reference-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.reference-cell {
+    font-weight: 450;
+    font-size: 1.1em;
+    color: #1976d2;
+    /* Blue color */
+}
+
+.date-cell {
+    font-size: 1em;
+    color: #666;
+}
+
+/* Amount column styling */
+.amount-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: right;
+}
+
+.amount-ttc {
+    font-weight: 600;
+    font-size: 1.1em;
+}
+
+.amount-ht {
+    font-size: 0.85em;
+    color: #f44336;
+    /* Red color */
+}
+
+/* Make sure the cells have proper padding */
+.mat-cell {
+    padding: 8px 16px !important;
+}
+
+
+
+
+/*
+Added Now
+*/
+/* Table Header */
+.mat-header-row {
+    background-color: #3f51b5;
+    height: 56px;
+}
+
+.mat-header-cell {
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Table Cells */
+.mat-cell {
+    padding: 12px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    color: #424242;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Row Styling */
+.mat-row {
+    transition: background-color 0.2s ease;
+}
+
+.mat-row:hover {
+    background-color: #f5f5f5;
+}
+
+.mat-row:nth-child(even) {
+    background-color: #fafafa;
+}
+
+/* Reference Column */
+.reference-cell {
+    font-weight: 450;
+    font-size: 1.1em;
+    color: #1976d2;
+}
+
+/* Date Column */
+.date-cell {
+    font-size: 1em;
+    color: #666;
+}
+
+/* Counterpart Column */
+.counterpart-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.counterpart-name {
+    font-weight: 500;
+}
+
+.counterpart-cin {
+    font-size: 0.8em;
+    color: #666;
+}
+
+/* Amount Column */
+.amount-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: right;
+    padding-right: 24px;
+}
+
+.amount-ttc {
+    font-weight: 600;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.amount-ht {
+    font-size: 0.85em;
+    color: #f44336;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 16px;
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-block;
+    min-width: 100px;
+    text-align: center;
+}
+
+.status-delivered {
+    background-color: #4CAF50;
+}
+
+.status-abandoned {
+    background-color: #F44336;
+}
+
+.status-created {
+    background-color: #2196F3;
+}
+
+.status-deleted {
+    background-color: #9E9E9E;
+}
+
+.status-not-delivered {
+    background-color: #FF9800;
+}
+
+.status-not-confirmed {
+    background-color: #FFC107;
+}
+
+.status-confirmed {
+    background-color: #4CAF50;
+}
+
+/* Action Column */
+.mat-column-action {
+    width: 120px;
+}
+
+/* Paginator */
+.mat-paginator {
+    background: white;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* No Data Message */
+.no-data-message {
+    padding: 24px;
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    background: #f9f9f9;
+}
+
+/* Days Selection */
+.card-details-days {
+    margin-top: 10px;
+    margin-bottom: 20px;
+    padding: 16px;
+    width: 100%;
+    overflow-x: auto;
+}
+
+.days-container {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding-bottom: 4px;
+    /* Space for scrollbar if needed */
+}
+
+.day-button {
+    min-width: 40px !important;
+    height: 40px !important;
+    font-size: 14px !important;
+    line-height: 40px !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+    color: #333;
+    transition: all 0.2s ease;
+}
+
+.day-button:hover {
+    background-color: #e0e0e0;
+}
+
+.selected-day-btn {
+    background-color: #ff4081 !important;
+    /* Accent color */
+    color: white !important;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Scrollbar styling for days container */
+.card-details-days::-webkit-scrollbar {
+    height: 6px;
+}
+
+.card-details-days::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.card-details-days::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+
+.card-details-days::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}

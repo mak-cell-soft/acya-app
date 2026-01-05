@@ -1,0 +1,100 @@
+.card-details {
+    margin: 20px;
+    padding: 20px;
+}
+
+.control-button {
+    display: flex;
+    justify-content: flex-end;
+    margin-right: 12px;
+    margin-top: 12px;
+    align-items: center;
+}
+
+.control-button button {
+    margin-right: 10px;
+}
+
+.control-button button:last-child {
+    margin-right: 0;
+}
+
+.half-width-wrapper,
+.square-width-wrapper {
+    display: flex;
+    flex-wrap: nowrap;
+    /* Keep fields in one line */
+    gap: 10px;
+    /* Add spacing between fields */
+}
+
+.half-width,
+.square-width {
+    width: calc(33.33% - 10px);
+    /* Consistent width for all form fields */
+    margin-bottom: 15px;
+}
+
+mat-form-field {
+    flex: 1;
+    /* Make fields expand equally */
+    min-width: 0;
+    /* Prevent fields from exceeding their container */
+    height: 80px;
+}
+
+mat-select,
+input {
+    width: 100%;
+    /* Ensure inputs and selects take full width of mat-form-field */
+    box-sizing: border-box;
+    /* Include padding in width calculation */
+}
+
+.full-width {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.summary-container {
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+    /* Occupy half the width */
+    margin-left: auto;
+    /* Push to the right side */
+    padding-top: 20px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #d0d0d0;
+    /* Optional separator for rows */
+}
+
+.summary-label {
+    font-weight: bold;
+    color: #333;
+    /* Darker label text */
+    flex: 1;
+    /* Takes the first column */
+}
+
+.summary-value {
+    flex: 1;
+    /* Takes the second column */
+    text-align: right;
+    /* Align values to the right */
+    color: #000;
+    /* Ensure value contrast */
+}
+
+.row-count {
+    margin-bottom: 16px;
+    font-size: 18px;
+    font-weight: normal;
+    color: #4F709C;
+}

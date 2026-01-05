@@ -1,0 +1,84 @@
+.info-card {
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.col {
+    flex: 1;
+}
+
+.merchandise-item {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 500;
+    color: #3f51b5; /* Primary color */
+    margin-bottom: 5px;
+}
+
+.item-ref {
+    font-weight: bold;
+}
+
+.item-details {
+    padding-left: 10px;
+    color: #555;
+}
+
+.detail-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 5px;
+}
+
+.length-details {
+    margin-top: 5px;
+    font-size: 0.9em;
+    background-color: #f0f0f0;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.length-details ul {
+    margin: 5px 0 0 0;
+    padding-left: 20px;
+    list-style-type: square;
+}
+
+.totals-section {
+    margin-top: 20px;
+    background-color: #e8eaf6; /* Light indigo */
+    padding: 15px;
+    border-radius: 4px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.grand-total {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #3f51b5;
+    border-top: 1px solid #ccc;
+    padding-top: 5px;
+    margin-top: 5px;
+}
+
+.notes-section {
+    margin-top: 15px;
+    font-style: italic;
+    color: #666;
+}

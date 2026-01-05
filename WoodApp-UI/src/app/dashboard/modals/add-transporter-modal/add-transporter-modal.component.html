@@ -1,0 +1,48 @@
+<mat-card class="card-details" [formGroup]="transporterForm">
+    <h6>Ajouter un nouveau Transporteur</h6>
+    <div class="half-width-wrapper">
+        <mat-form-field class="half-width">
+            <mat-label>Prénom Chauffeur</mat-label>
+            <input matInput formControlName="transpSurname">
+            <mat-icon matSuffix>check</mat-icon>
+        </mat-form-field>
+        <mat-form-field class="half-width">
+            <mat-label>Nom Chauffeur</mat-label>
+            <input matInput formControlName="transpName">
+            <mat-icon matSuffix>check</mat-icon>
+        </mat-form-field>
+    </div>
+    <div class="square-width-wrapper">
+        <!-- <mat-form-field class="full-width">
+            <mat-label>Vehicule Matricule</mat-label>
+            <input matInput formControlName="vehiculematricule" />
+            <mat-error *ngIf="transporterForm.get('vehiculematricule')?.hasError('vehiculeMatriculeInvalid')">
+                Le format du matricule Vehicule doit être comme : 123 TU 1234
+            </mat-error>
+        </mat-form-field> -->
+        <mat-form-field class="squre-width">
+            <mat-label>Série</mat-label>
+            <input matInput formControlName="serie" />
+            <mat-icon matSuffix>check</mat-icon>
+        </mat-form-field>
+        <mat-form-field class="square-width">
+            <mat-label>Type</mat-label>
+            <mat-select formControlName="letter" >
+                <mat-option *ngFor="let s of allSeries" [value]="s.id">{{s.value}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field class="squre-width">
+            <mat-label>Numéro</mat-label>
+            <input matInput formControlName="number"/>
+            <mat-icon matSuffix>check</mat-icon>
+        </mat-form-field>
+
+
+    </div>
+
+</mat-card>
+
+<div class="control-button">
+    <button mat-flat-button color="primary" (click)="onSubmit()">Enregistrer</button>
+    <button mat-flat-button color="warn" (click)="onCancel()">Annuler</button>
+</div>

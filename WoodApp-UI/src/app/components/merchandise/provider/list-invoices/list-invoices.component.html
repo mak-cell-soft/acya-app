@@ -1,0 +1,198 @@
+<h4>Liste des Factures Fournisseur</h4>
+<!-- Add this progress bar at the top of the page -->
+<mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+<div class="search">
+    <div class="search-bar-container">
+        <button mat-icon-button>
+            <mat-icon>
+                search
+            </mat-icon>
+        </button>
+        <input (keyup)="applyFilter($event)" placeholder="Rechercher dans les documents fournisseurs" #input />
+    </div>
+    <div class="button-container">
+        <mat-dialog-actions>
+            <button mat-flat-button color="primary" [routerLink]="['../']">
+                <mat-icon>
+                    add
+                </mat-icon>
+                Ajouter
+            </button>
+        </mat-dialog-actions>
+    </div>
+</div>
+<p></p>
+<div class="row-count">
+    {{Number_of_Rows}} : {{ allInvoices.data.length || 0 }}
+</div>
+<!-- Table List Documents -->
+<div class="table-container mat-elevation-z8">
+    <table mat-table (click)="clearErrorMessage()" [dataSource]="allInvoices" matSort class="article-table"
+        *ngIf="allInvoices.data?.length" multiTemplateDataRows>
+
+
+        <ng-container matColumnDef="number">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
+                {{mat_header_cell_doc_number}} </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">{{element.parentDocument.docnumber}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
+                {{mat_header_cell_doc_type}} </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                {{getDocumentTypeDescription(element.parentDocument.type)}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="counterpart">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
+                {{mat_header_cell_doc_supplier}} </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                {{element.parentDocument.counterpart.name}}
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="supplierreference">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
+                {{mat_header_cell_doc_supplierReference}}
+            </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                {{element.parentDocument.supplierReference}}
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="TotalHTNet">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
+                {{mat_header_cell_doc_TotalHTNet}} </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                {{element.parentDocument.total_ht_net_doc | number:'1.3-3'}}
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="TotalDiscountDoc">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
+                {{mat_header_cell_doc_TotalDiscountDoc}}
+            </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                {{element.parentDocument.total_discount_doc | number:'1.3-3'}}
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="TotalTVADoc">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
+                {{mat_header_cell_doc_TotalTVADoc}}
+            </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                {{element.parentDocument.total_tva_doc | number:'1.3-3'}}
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="TotalNetTTC">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell"> {{mat_header_cell_doc_TotalNetTTC}}
+            </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                {{element.parentDocument.total_net_ttc | number:'1.3-3'}}
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="LastModified">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell"> {{mat_header_cell_doc_UpdatedDate}}
+            </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                {{element.parentDocument.updatedate | date: 'dd-MM-yyyy'}}
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="EditedBy">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell"> {{mat_header_cell_doc_UpdatedBy}}
+            </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                {{element.parentDocument.appuser.person.firstname}} {{element.parentDocument.appuser.person.lastname}}
+            </td>
+        </ng-container>
+
+        <!-- Action Column -->
+        <ng-container matColumnDef="action">
+            <th mat-header-cell *matHeaderCellDef> action </th>
+            <td mat-cell style="white-space: pre-line" *matCellDef="let element">
+                <mat-icon class="blue-icon" (click)="displaySettings()">display_settings</mat-icon>
+                <mat-icon class="red-icon" *ngIf="element.editing"
+                    (click)="cancelEditDocument(element)">cancel</mat-icon>
+                <mat-icon class="green-icon" *ngIf="!element.editing" (click)="editDocument(element)">edit</mat-icon>
+                <mat-icon class="red-icon" (click)="deleteDocument(element)">delete</mat-icon>
+
+
+            </td>
+        </ng-container>
+
+        <!-- Expanded Element-->
+        <ng-container matColumnDef="expand">
+            <th mat-header-cell *matHeaderCellDef aria-label="row actions">&nbsp;</th>
+            <td mat-cell *matCellDef="let element">
+                <button mat-icon-button aria-label="expand row"
+                    (click)="(expandedElement = expandedElement === element ? null : element); $event.stopPropagation()">
+                    <mat-icon>{{expandedElement === element ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
+                </button>
+            </td>
+        </ng-container>
+
+        <!-- Expanded Content Column - Detail row for additional properties -->
+        <ng-container matColumnDef="expandedDetail">
+            <td mat-cell *matCellDef="let element" [attr.colspan]="columnsToDisplayWithExpand.length-1">
+                <div class="merchandise-element-detail"
+                    [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
+                    <!-- Display the desired additional fields from Counter Part model -->
+                    <!-- Loop here on merchandises and display details-->
+                    <h6>Liste des bons de réception</h6>
+                    <div *ngFor="let reception of element.childDocuments; let i = index" class="merchandise-detail">
+                        <!-- <div><strong># &nbsp; &nbsp;</strong> {{ i + 1 }} &nbsp;</div> -->
+                        <div class="merchandise-number"><strong># &nbsp;</strong>{{ i + 1 }} &nbsp;</div>
+                        <div><strong>Référence: &nbsp; </strong> {{ reception.docnumber }} &nbsp;</div>
+                        <div><strong>Réf. Fournisseur: &nbsp; </strong> {{ reception.supplierReference }} &nbsp;</div>
+                        <div><strong>Prix Net. HT: &nbsp; </strong> {{ reception.total_ht_net_doc | number:'1.3-3'}}
+                            &nbsp;</div>
+                        <div><strong>Remise: &nbsp; </strong> {{ reception.total_discount_doc | number:'1.3-3'}} &nbsp;
+                        </div>
+                        <div><strong>Total TVA: &nbsp; </strong> {{ reception.total_tva_doc | number:'1.2-2'}}
+                            &nbsp;</div>
+                        <div><strong>Net TTC: &nbsp;</strong> {{ reception.total_net_ttc | number:'1.3-3'}} &nbsp;
+                        </div>
+                        <div><strong>Modifié le: &nbsp;</strong> {{ reception.updatedate | date: 'dd-MM-yyyy'}} &nbsp;
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </ng-container>
+
+
+        <tr mat-header-row *matHeaderRowDef="columnsToDisplayWithExpand"></tr>
+        <tr mat-row *matRowDef="let element; columns: columnsToDisplayWithExpand;" class="example-element-row"
+            [class.example-expanded-row]="expandedElement === element"
+            (click)="expandedElement = expandedElement === element ? null : element">
+        </tr>
+        <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="example-detail-row"></tr>
+
+        <!-- <tr mat-header-row *matHeaderRowDef="displayedDocumentsColumns"></tr>
+        <tr mat-row *matRowDef="let element; columns: displayedDocumentsColumns;"></tr> -->
+
+
+        <!-- Row shown when there is no matching data. -->
+        <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell" colspan="4">Ce Document n'existe pas "{{input.value}}"</td>
+        </tr>
+    </table>
+    <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" aria-label="Selectionner les documents"></mat-paginator>
+
+    <!-- Make Invoice Payment and Other Stuff-->
+    <mat-card class="card-details" *ngIf="invoiceSettings">
+        <div class="action-document-buttons">
+            <div class="control-button-filter">
+                <button mat-raised-button class="invoice_docs">Payement</button>
+                <button mat-raised-button class="invoice_button">Historique des Payements</button>
+                <p><span>{{errorMessage}}</span></p>
+            </div>
+
+        </div>
+    </mat-card>
+
+</div>

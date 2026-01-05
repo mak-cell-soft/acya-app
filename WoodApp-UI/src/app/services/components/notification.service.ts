@@ -1,0 +1,253 @@
+// notification.service.ts
+import { Injectable, OnDestroy, OnInit } from '@angular/core';
+import * as signalR from '@microsoft/signalr';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { map, Observable, Subject } from 'rxjs';
+import { AuthenticationService } from './authentication.service';
+import { environment } from '../../../environments/environment';
+import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class NotificationService implements OnDestroy, OnInit {
+  private hubConnection!: signalR.HubConnection;
+  private notifications: TransferNotification[] = [];
+  private destroy$ = new Subject<void>();
+  private isManualReconnect = false;
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private authService: AuthenticationService,
+    private http: HttpClient
+  ) {
+    this.initializeConnection();
+  }
+
+  ngOnInit(): void {
+    //this.startDebugMonitor();
+  }
+
+  retryFailedNotifications(): Observable<any> {
+    return this.http.post(
+      `${environment.apiBaseUrl}/api/notifications/retry-failed`,
+      {},
+      {
+        observe: 'response', // Get full response
+        responseType: 'text' // Handle both JSON and text
+      }
+    ).pipe(
+      map(response => {
+        try {
+          // Try to parse as JSON
+          return JSON.parse(response.body || '');
+        } catch {
+          // Return as text if not JSON
+          return response.body;
+        }
+      })
+    );
+  }
+
+
+  retryFailedNotifications1(): Observable<string> {
+    return this.http.post(
+      `${environment.apiBaseUrl}/api/notifications/retry-failed`,
+      {},
+      { responseType: 'text' } // Explicitly expect text response
+    );
+  }
+
+  private initializeConnection() {
+    this.hubConnection = new signalR.HubConnectionBuilder()
+      .withUrl(`${environment.apiBaseUrl}/api/notificationHub`, {
+        skipNegotiation: true,
+        transport: signalR.HttpTransportType.WebSockets,
+        accessTokenFactory: () => this.authService.getToken() || ''
+      })
+      .withAutomaticReconnect({
+        nextRetryDelayInMilliseconds: retryContext => {
+          // Return 5000ms (5 seconds) if it's the first retry attempt,
+          // otherwise return null to let the default retry policy handle it
+          return retryContext.previousRetryCount === 0 ? 5000 : null;
+        }
+      })
+      .build();
+
+    this.registerHandlers();
+    this.startConnection();
+    this.logConnectionState();
+  }
+
+  startConnection(): Promise<void> {
+    // Only start if disconnected or reconnecting
+    if (this.hubConnection.state === signalR.HubConnectionState.Disconnected ||
+      this.hubConnection.state === signalR.HubConnectionState.Reconnecting) {
+      return this.hubConnection.start()
+        .then(() => {
+          console.log('SignalR Connected - Current state:', this.hubConnection.state);
+          const user = this.authService.getUserDetail();
+          if (user?.defaultSite) {
+            this.joinGroup(user.defaultSite);
+          }
+        })
+        .catch(err => {
+          console.error('Connection failed:', err);
+          // Don't automatically retry here - let withAutomaticReconnect handle it
+        });
+    }
+    return Promise.resolve();
+  }
+
+  public retryRegisterHandlers() {
+    this.hubConnection.on('RetryReceiveNotification', (transfer: any) => {
+      this.handleTransferNotification(transfer);
+      console.log('this.handleTransferNotification(transfer)', transfer);
+    });
+
+    this.hubConnection.onclose(() => {
+      console.log('SignalR Disconnected - Attempting to reconnect...');
+      setTimeout(() => this.startConnection(), 5000);
+    });
+  }
+
+  private registerHandlers() {
+    this.hubConnection.on('ReceiveTransferNotification', (transfer: any) => {
+      this.handleTransferNotification(transfer);
+    });
+
+    this.hubConnection.onclose(() => {
+      console.log('SignalR Disconnected - Attempting to reconnect...');
+      setTimeout(() => this.startConnection(), 5000);
+    });
+  }
+
+  private joinGroup(siteAddress: string) {
+    if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
+      this.hubConnection.invoke('JoinGroup', siteAddress)
+        .then(() => console.log(`Joined group for site ${siteAddress}`))
+        .catch(err => console.error('Error joining group:', err));
+    } else {
+      console.warn('Cannot join group - connection not established');
+    }
+  }
+
+  private handleTransferNotification(transfer: any) {
+    console.log('[SignalR] Raw notification:', transfer);
+
+    // Ensure required fields exist
+    if (!transfer?.transferId || !transfer?.reference) {
+      console.error('Invalid notification format:', transfer);
+      return;
+    }
+
+    const notification: TransferNotification = {
+      id: transfer.transferId,
+      transferRef: transfer.reference,
+      originSite: transfer.originSite,
+      date: new Date(), // Or transfer.createdAt if available
+      itemsCount: transfer.itemsCount || 0,
+      exitDocNumber: transfer.exitDocNumber,
+      receiptDocNumber: transfer.receiptDocNumber,
+      destinationSiteId: transfer.destinationSiteId
+    };
+
+    // Update array immutably
+    this.notifications = [
+      ...this.notifications.filter(n => n.id !== notification.id),
+      notification
+    ];
+
+    //console.log('[SignalR] Current notifications:', this.notifications);
+    this.showNotification(notification);
+  }
+
+  // private handleTransferNotification(transfer: any) {
+  //   console.log('[SignalR] Raw notification:', transfer);
+
+  //   const notification: TransferNotification = {
+  //     id: transfer.transferId,
+  //     transferRef: transfer.reference,
+  //     originSite: transfer.originSite,
+  //     date: new Date(),
+  //     itemsCount: transfer.itemsCount || 0,
+  //     exitDocNumber: transfer.exitDocNumber,
+  //     receiptDocNumber: transfer.receiptDocNumber,
+  //     destinationSiteId: transfer.destinationSiteId
+  //   };
+
+  //   if (!this.notifications.some(n => n.id === notification.id)) {
+  //     this.notifications.push(notification);
+  //     this.showNotification(notification);
+  //   }
+
+  //   console.log('[SignalR] Current notifications:', this.notifications);
+  //   this.showNotification(notification);
+  // }
+
+  private showNotification(notification: TransferNotification) {
+    if (this.authService.isLoggedIn()) {
+      this.snackBar.open( //`Nouveau(x) transfert(s) reçu(s) (${notification.transferRef})`,
+        `Nouveau(x) transfert(s) reçu(s)`,
+        'Voir',
+        { duration: 5000 }
+      ).onAction().subscribe(() => {
+        // Handle notification click
+      });
+    }
+  }
+
+  private logConnectionState() {
+    console.log('Current connection state:', this.hubConnection.state);
+    this.hubConnection.onreconnecting(() => console.log('Connection reconnecting...'));
+    this.hubConnection.onreconnected(() => console.log('Connection reestablished'));
+    this.hubConnection.onclose(() => console.log('Connection closed'));
+  }
+
+  getPendingNotifications(): TransferNotification[] {
+    return [...this.notifications];
+  }
+
+  removeNotification(id: number) {
+    this.notifications = this.notifications.filter(n => n.id !== id);
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    if (this.hubConnection) {
+      this.hubConnection.stop();
+    }
+  }
+
+  isConnected(): boolean {
+    return this.hubConnection?.state === signalR.HubConnectionState.Connected;
+  }
+
+  // Add to NotificationService
+  printNotificationState() {
+    console.group('Current Notification State');
+    console.log('Connection State:', this.hubConnection.state);
+    console.log('Active Groups:', this.hubConnection.connectionId ?
+      'Subscribed' : 'None');
+    console.table(this.notifications);
+    console.groupEnd();
+  }
+
+  // Call this periodically to monitor state
+  startDebugMonitor() {
+    setInterval(() => this.printNotificationState(), 10000);
+  }
+}
+
+interface TransferNotification {
+  id: number;
+  transferRef: string;
+  originSite: number;
+  date: Date;
+  itemsCount: number;
+  exitDocNumber: string;
+  receiptDocNumber: string;
+  destinationSiteId: number;
+}

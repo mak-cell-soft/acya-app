@@ -1,0 +1,170 @@
+<div>
+    <mat-card class="card-details" [formGroup]="supplierForm">
+        <div>
+            <mat-dialog-content>
+                <h6>{{general_information_provider}}</h6>
+                <div class="square-width-wrapper">
+                    <!-- Préfixe -->
+                    <mat-form-field class="square-width">
+                        <mat-label>Préfixe</mat-label>
+                        <mat-select formControlName="prefix">
+                            <mat-option *ngFor="let prefix of allPrefixes" [value]="prefix.id">{{prefix.id}} -
+                                {{prefix.name}}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <!-- Nom Fournisseur -->
+                    <mat-form-field class="square-width">
+                        <mat-label>Nom</mat-label>
+                        <input type="text" matInput formControlName="name" placeholder="Nom du Fournisseur" />
+                        <mat-icon matSuffix>spatial-audio-off</mat-icon>
+                        <mat-error *ngIf="supplierForm.get('name')?.hasError('required')">
+                            Ce champ est obligatoire
+                        </mat-error>
+                    </mat-form-field>
+                    <!-- matricule fiscal -->
+                    <mat-form-field class="square-width">
+                        <mat-label>Description</mat-label>
+                        <input type="text" matInput formControlName="description"
+                            placeholder="Nom complet du Fournisseur" />
+                        <mat-icon matSuffix>description</mat-icon>
+
+
+                        <!-- Error message for invalid Matricule Fiscal format -->
+
+                    </mat-form-field>
+
+                </div>
+                <!-- Description Nom-->
+                <div class="half-width-wrapper">
+                    <mat-form-field class="half-width">
+                        <mat-label>Matricule Fiscal</mat-label>
+                        <input type="text" matInput formControlName="taxRegistration"
+                            placeholder="Exemple : 1234567A /B/M/ 000" />
+                        <mat-icon matSuffix>description</mat-icon>
+                        <mat-error *ngIf="supplierForm.get('taxRegistration')?.hasError('invalidMatriculeFiscal')">
+                            Matricule Fiscal Invalide. Format souhaité : 7 chiffres, 1 lettre, /lettre/lettre/, 3
+                            chiffres.
+                        </mat-error>
+                        <mat-error *ngIf="supplierForm.get('taxRegistration')?.hasError('required')">
+                            Matricule Fiscal est required.
+                        </mat-error>
+                    </mat-form-field>
+                    <!--Email-->
+                    <mat-form-field class="half-width">
+                        <mat-label>Email</mat-label>
+                        <input type="text" matInput formControlName="email" placeholder="Email" />
+                        <mat-icon matSuffix>email</mat-icon>
+
+                        <!-- Error message for invalid email -->
+                        <mat-error
+                            *ngIf="supplierForm.get('email')?.hasError('email') && supplierForm.get('email')?.touched">
+                            This is not a valid email address
+                        </mat-error>
+
+                        <!-- Error message for required field -->
+                        <mat-error
+                            *ngIf="supplierForm.get('email')?.hasError('required') && supplierForm.get('email')?.touched">
+                            Email is required
+                        </mat-error>
+                    </mat-form-field>
+
+                </div>
+
+                <div class="half-width-wrapper">
+                    <!-- Adresse -->
+                    <mat-form-field class="half-width">
+                        <mat-label>Adresse</mat-label>
+                        <input type="text" matInput formControlName="address" placeholder="Adresse" />
+                        <mat-icon matSuffix>check</mat-icon>
+                        <mat-error *ngIf="supplierForm.get('address')?.hasError('required')">
+                            Ce champ est obligatoire
+                        </mat-error>
+                    </mat-form-field>
+                    <!-- Catégorie -->
+                    <mat-form-field class="half-width">
+                        <mat-label>Activité</mat-label>
+                        <mat-select formControlName="category">
+                            <mat-option *ngFor="let cat of allProvidersCategories"
+                                [value]="cat.id">{{cat.value}}</mat-option>
+                        </mat-select>
+                        <mat-icon matSuffix>check</mat-icon>
+                    </mat-form-field>
+                </div>
+
+
+                <div class="half-width-wrapper">
+                    <!-- Nom responsable -->
+                    <mat-form-field class="half-width">
+                        <mat-label>Prénom responsable</mat-label>
+                        <input type="text" matInput formControlName="representedBySurname"
+                            placeholder="Prénom du responsable" />
+                        <mat-icon matSuffix>check</mat-icon>
+                        <mat-error *ngIf="supplierForm.get('representedBySurname')?.hasError('required')">
+                            Ce champ est obligatoire
+                        </mat-error>
+                    </mat-form-field>
+                    <!-- Prénom responsable -->
+                    <mat-form-field class="half-width">
+                        <mat-label>Nom responsable</mat-label>
+                        <input type="text" matInput formControlName="representedByName"
+                            placeholder="Nom du responsable" />
+                        <mat-icon matSuffix>check</mat-icon>
+                        <mat-error *ngIf="supplierForm.get('representedByName')?.hasError('required')">
+                            Ce champ est obligatoire
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div class="half-width-wrapper">
+                    <!-- Téléphone 1 -->
+                    <mat-form-field class="half-width">
+                        <mat-label>Téléphone 1</mat-label>
+                        <input type="text" matInput formControlName="phoneOne" placeholder="Mobile 1" />
+                        <mat-icon matSuffix>phone_android</mat-icon>
+                        <mat-error *ngIf="supplierForm.get('phoneOne')?.hasError('required')">
+                            Ce champ est obligatoire
+                        </mat-error>
+                    </mat-form-field>
+                    <!-- Téléphone 2 -->
+                    <mat-form-field class="half-width">
+                        <mat-label>Téléphone 2</mat-label>
+                        <input type="text" matInput formControlName="phoneTwo" placeholder="Mobile 2" />
+                        <mat-icon matSuffix>phone_android</mat-icon>
+                    </mat-form-field>
+                </div>
+
+                <div class="half-width-wrapper">
+                    <!-- Banque -->
+                    <mat-form-field class="half-width">
+                        <mat-label>Banque</mat-label>
+                        <mat-select formControlName="bank">
+                            <mat-option *ngFor="let bank of allBanks" [value]="bank.key">{{ bank.key }} - {{ bank.value
+                                }}</mat-option>
+                        </mat-select>
+                        <mat-icon matSuffix>check</mat-icon>
+                        <mat-error *ngIf="supplierForm.get('bank')?.hasError('required')">
+                            Ce champ est obligatoire
+                        </mat-error>
+                    </mat-form-field>
+                    <!-- compte Banquaire -->
+                    <mat-form-field class="half-width">
+                        <mat-label>RIB Bancaire</mat-label>
+                        <input type="text" matInput formControlName="bankAccountNumber" placeholder="Compte Courant" />
+                        <mat-icon matSuffix>check</mat-icon>
+                        <mat-error *ngIf="supplierForm.get('bankAccountNumber')?.hasError('required')">
+                            Ce champ est obligatoire
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+            </mat-dialog-content>
+        </div>
+
+
+        <div class="control-button">
+            <mat-dialog-actions>
+                <button mat-flat-button color="primary" (click)="onSubmit()">{{register_button}}</button>
+                <button mat-flat-button color="warn" routerLink="../">{{abort_button}}</button>
+            </mat-dialog-actions>
+        </div>
+    </mat-card>
+</div>

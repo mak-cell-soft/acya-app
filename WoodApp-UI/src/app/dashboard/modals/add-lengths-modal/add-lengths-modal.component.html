@@ -1,0 +1,63 @@
+<mat-card class="card-details">
+    <h6>Ajouter les longueurs pour <strong>{{article_inputdata.reference}}</strong></h6>
+    <div class="half-width-wrapper" [formGroup]="lengthsForm">
+        <mat-form-field class="half-width" appearance="outline">
+            <mat-label>Epaisseur</mat-label>
+            <input matInput formControlName="thickness" readonly>
+            <mat-icon matSuffix>height</mat-icon>
+        </mat-form-field>
+        <mat-form-field class="half-width" appearance="outline">
+            <mat-label>Largeur</mat-label>
+            <input matInput formControlName="width" readonly>
+            <mat-icon matSuffix>sync_alt</mat-icon>
+        </mat-form-field>
+    </div>
+
+    <div>
+        <table mat-table [dataSource]="lengths" class="mat-elevation-z8 mt-3">
+            <ng-container matColumnDef="number">
+                <th mat-header-cell *matHeaderCellDef>#</th>
+                <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="nbpieces">
+                <th mat-header-cell *matHeaderCellDef>Nombre de Pièces</th>
+                <td mat-cell *matCellDef="let element">
+                    <ng-container>
+                        <input type="number" [(ngModel)]="element.nbpieces" (input)="updateQuantity(element)" />
+                    </ng-container>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="length">
+                <th mat-header-cell *matHeaderCellDef>Longueur</th>
+                <td mat-cell *matCellDef="let element">{{ element.length.value }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="quantity">
+                <th mat-header-cell *matHeaderCellDef>Quantité</th>
+                <td mat-cell *matCellDef="let element">{{ element.quantity | number:'1.3-3'}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="available">
+                <th mat-header-cell *matHeaderCellDef>Disponible (pcs)</th>
+                <td mat-cell *matCellDef="let element">{{ element.availablePieces || 0 }}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedLengthsColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedLengthsColumns;"></tr>
+        </table>
+
+    </div>
+    <div class="tot-quantity">
+        <p>
+            Quantité Totale : {{totalQuantity | number:'1.3-3'}} M3
+        </p>
+    </div>
+</mat-card>
+<div class="control-button">
+    <mat-dialog-actions>
+        <button mat-raised-button color="primary" (click)="onSubmit()">{{register_button}}</button>
+        <button mat-raised-button color="warn" (click)="onAbort()">{{abort_button}}</button>
+    </mat-dialog-actions>
+</div>

@@ -1,0 +1,76 @@
+.card-details {
+    margin: 20px;
+    padding: 20px;
+}
+
+.half-width {
+    width: calc(50% - 10px);
+    /* Adjust width to account for the gap */
+    margin-bottom: 15px;
+}
+
+.full-width {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.half-width-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    /* Adds space between the form fields */
+}
+
+.form-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    /* Adjust the gap value as needed */
+    padding: 15px;
+}
+
+.form-content-price {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    /* Adjust the gap value as needed */
+    padding: 15px;
+}
+
+.form-field-price {
+    min-width: 40px;
+}
+
+/* mat-form-field{
+    font-weight: 400;
+    font-size: x-large;
+} */
+
+.form-field {
+    min-width: 49%;
+    /* Minimum width to ensure proper wrapping */
+}
+
+.control-button {
+    display: flex;
+    justify-content: flex-end;
+    /* Align items to the end (left) */
+    margin-right: 12px;
+    margin-top: 12px;
+    align-items: center;
+}
+
+.control-button button {
+    margin-right: 10px;
+    /* Add space between buttons */
+}
+
+/* Optional: Remove the right margin for the last button */
+.control-button button:last-child {
+    margin-right: 0;
+}
+
+.full-width {
+    width: 100%;
+    margin-bottom: 15px;
+}

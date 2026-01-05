@@ -1,0 +1,48 @@
+<h1 mat-dialog-title>{{mat_dialog_title_modal}}</h1>
+<div mat-dialog-content>
+  <form [formGroup]="categoryForm">
+    <div class="half-width-wrapper">
+      <mat-form-field class="half-width">
+        <mat-label>{{mat_label_reference}}</mat-label>
+        <input matInput formControlName="reference" />
+        <mat-icon matSuffix>code</mat-icon>
+      </mat-form-field>
+      <mat-form-field class="half-width">
+        <mat-label>{{mat_label_description}}</mat-label>
+        <input matInput formControlName="description" />
+        <mat-icon matSuffix>description</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <div class="half-width-wrapper add-subcategory-wrapper">
+      <button mat-flat-button color="primary" type="button" (click)="addSubcategory()">
+        <mat-icon>add</mat-icon>
+        {{add_under_category_button}}
+      </button>
+    </div>
+
+    <div formArrayName="subcategories" *ngFor="let subcategory of subcategories.controls; let i=index" >
+      <div class="square-width-wrapper" [formGroupName]="i">
+        <mat-form-field class="square-width">
+          <mat-label>{{mat_label_reference}}</mat-label>
+          <input matInput formControlName="subReference" />
+          <mat-icon matSuffix>code</mat-icon>
+        </mat-form-field>
+        <mat-form-field class="square-width">
+          <mat-label>{{mat_label_description}}</mat-label>
+          <input matInput formControlName="subDescription" />
+          <mat-icon matSuffix>description</mat-icon>
+        </mat-form-field>
+        <button mat-icon-button color="warn" class="square-width" type="button" (click)="removeSubcategory(i)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+<div class="control-button">
+  <mat-dialog-actions>
+    <button mat-flat-button color="primary" (click)="onSubmit()">{{register_button}}</button>
+    <button mat-flat-button color="warn" (click)="onNoClick()">{{abort_button}}</button>
+  </mat-dialog-actions>
+</div>

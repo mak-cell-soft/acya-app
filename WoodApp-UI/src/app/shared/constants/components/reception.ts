@@ -1,0 +1,12 @@
+export const MAT_HEADER_CELL_DOC_NUMBER = 'Référence';
+export const MAT_HEADER_CELL_DOC_TYPE = 'Type';
+export const MAT_HEADER_CELL_DOC_SUPPLIER = 'Fournisseur';
+export const MAT_HEADER_CELL_DOC_SUPPLIERREFERENCE = 'Réf Four.';
+export const MAT_HEADER_CELL_DOC_TOTALNETHT = 'Net HT';
+export const MAT_HEADER_CELL_DOC_TOTALDISCOUNTDOC = 'Remise';
+export const MAT_HEADER_CELL_DOC_TOTALTVADOC = 'TVA';
+export const MAT_HEADER_CELL_DOC_TOTALNETTTC = 'Net TTC';
+export const MAT_HEADER_CELL_DOC_UPDATEDDATE = 'Edité le';
+export const MAT_HEADER_CELL_DOC_UPDATEDBY = 'Edité par';
+export const MAT_HEADER_CELL_DOC_IS_INVOICED = 'Est facturé';
+export const NUMBER_OF_ROWS = 'Nombre de Documents';

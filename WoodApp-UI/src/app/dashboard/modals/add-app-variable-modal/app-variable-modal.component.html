@@ -1,0 +1,89 @@
+<h1 mat-dialog-title>{{mat_dialog_appvar_title}}</h1>
+<div mat-dialog-content>
+  <form [formGroup]="appvariableForm">
+    <div *ngIf="nature !== 'Dimension' && nature !== 'Length'">
+      <mat-form-field class="full-width">
+        <mat-label>{{mat_label_appvar_name}}</mat-label>
+        <input matInput formControlName="name" placeholder="{{mat_placeholder_appvar_name}}">
+      </mat-form-field>
+      <mat-form-field class="full-width">
+        <mat-label>{{mat_label_appvar_value}}</mat-label>
+        <input matInput formControlName="value" placeholder="{{mat_placeholder_appvar_value}}">
+      </mat-form-field>
+    </div>
+
+    <!-- Length Menu to display -->
+    <div *ngIf="nature === 'Length'">
+      <mat-form-field class="full-width">
+        <mat-label>{{mat_label_appvar_name}}</mat-label>
+        <input matInput formControlName="name" placeholder="{{mat_placeholder_appvar_name}}">
+        <mat-error *ngIf="appvariableForm.get('name')?.hasError('centimeterInvalid')">
+          {{error_invalid_centimeter_value}}
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field class="full-width">
+        <mat-label>{{mat_label_appvar_value}}</mat-label>
+        <input matInput formControlName="value" placeholder="{{mat_placeholder_appvar_value}}">
+        <mat-error *ngIf="appvariableForm.get('value')?.hasError('meterCentimeterInvalid')">
+          {{error_invalid_meter_centimeter_value}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+
+    <!-- Dimension Menu to display -->
+    <div *ngIf="nature === 'Dimension'">
+      <mat-form-field class="full-width">
+        <mat-label>{{mat_label_appvar_nature}}</mat-label>
+        <mat-select disableRipple formControlName="nature">
+          <mat-option *ngFor="let option of natureKeys" [value]="option[0]">
+            {{ option[1] }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="half-width-wrapper">
+        <mat-form-field class="half-width">
+          <mat-label>{{mat_label_appvar_name}}</mat-label>
+          <input matInput formControlName="name" placeholder="{{mat_placeholder_appvar_name}}">
+          <mat-error *ngIf="appvariableForm.get('name')?.hasError('millimeterInvalid')">
+            {{error_invalid_millimeter_value}}
+          </mat-error>
+
+        </mat-form-field>
+
+        <mat-form-field class="half-width">
+          <mat-label>{{mat_label_appvar_value}}</mat-label>
+          <input matInput formControlName="value" placeholder="{{mat_placeholder_appvar_value}}">
+          <mat-error *ngIf="appvariableForm.get('value')?.hasError('meterInvalid')">
+            {{error_value_match_meter}}
+          </mat-error>
+
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="slide-toggle-container">
+      <div *ngIf="nature != 'Dimension' && nature != 'Length'">
+        <mat-slide-toggle formControlName="isdefault" labelPosition="after">
+          {{mat_label_appvar_isdefault}}
+        </mat-slide-toggle>
+        <mat-slide-toggle formControlName="isactive" labelPosition="after">
+          {{mat_label_appvar_isactive}}
+        </mat-slide-toggle>
+      </div>
+      <div *ngIf="nature == 'Dimension' || nature == 'Length'">
+        <mat-slide-toggle formControlName="isactive" labelPosition="after">
+          {{mat_label_appvar_isactive}}
+        </mat-slide-toggle>
+      </div>
+    </div>
+  </form>
+
+  <div class="control-button">
+    <mat-dialog-actions>
+      <button mat-flat-button color="primary" (click)="onSubmit()">{{register_button_text}}</button>
+      <button mat-flat-button color="warn" (click)="onNoClick()">{{abort_button_text}}</button>
+    </mat-dialog-actions>
+  </div>
+</div>

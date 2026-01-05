@@ -1,0 +1,401 @@
+<div>
+    <mat-card class="card-details">
+        <div>
+
+            <h6>{{general_information_customer}}</h6>
+            <mat-tab-group>
+                <!-- Person Customer -->
+                <mat-tab>
+                    <ng-template mat-tab-label>
+                        <mat-icon style="margin-right: 8px;">account_circle</mat-icon>
+                        Client Particulier
+                    </ng-template>
+                    <div [formGroup]="customerForm">
+                        <mat-card class="card-details">
+                            <div class="square-width-wrapper">
+                                <mat-form-field class="square-width">
+                                    <mat-label>Type</mat-label>
+                                    <mat-select formControlName="selectedprefix" disableRipple>
+                                        <mat-option *ngFor="let prefix of customerPrefixes"
+                                            [value]="prefix.id">{{prefix.id}}
+                                            - {{prefix.name}}</mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                                <mat-form-field class="square-width">
+                                    <mat-label>Prénom</mat-label>
+                                    <input matInput formControlName="firstname">
+                                    <mat-icon matSuffix>check</mat-icon>
+                                </mat-form-field>
+                                <mat-form-field class="square-width">
+                                    <mat-label>Nom</mat-label>
+                                    <input matInput formControlName="lastname">
+                                    <mat-icon matSuffix>check</mat-icon>
+                                </mat-form-field>
+
+                            </div>
+                            <div class="half-width-wrapper">
+                                <mat-form-field class="half-width">
+                                    <mat-label>Identité Nationale N°</mat-label>
+                                    <input matInput formControlName="cin">
+                                    <mat-icon matSuffix>check</mat-icon>
+                                    <mat-error *ngIf="customerForm.get('cin')?.hasError('numeric')">
+                                        La CIN doit contenir uniquement des numéros.
+                                    </mat-error>
+                                </mat-form-field>
+                                <mat-form-field class="half-width">
+                                    <mat-label>Email</mat-label>
+                                    <input matInput formControlName="email">
+                                    <mat-icon matSuffix>email</mat-icon>
+                                </mat-form-field>
+                            </div>
+                            <div class="half-width-wrapper">
+                                <mat-form-field class="half-width">
+                                    <mat-label>Téléphone 1</mat-label>
+                                    <input matInput formControlName="phonenumberone">
+                                    <mat-icon matSuffix>phone_android</mat-icon>
+                                </mat-form-field>
+                                <mat-form-field class="half-width">
+                                    <mat-label>Téléphone 2</mat-label>
+                                    <input matInput formControlName="phonenumbertwo">
+                                    <mat-icon matSuffix>phone_android</mat-icon>
+                                </mat-form-field>
+                            </div>
+                            <div class="half-width-wrapper">
+                                <mat-form-field class="half-width">
+                                    <mat-label>Activité</mat-label>
+                                    <mat-select formControlName="activity" disableRipple>
+                                        <mat-option *ngFor="let activ of societyActivities"
+                                            [value]="activ.key">{{activ.value}}</mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                                <mat-form-field class="half-width">
+                                    <mat-label>Notes</mat-label>
+                                    <input matInput formControlName="notes">
+                                    <mat-icon matSuffix>description</mat-icon>
+                                </mat-form-field>
+                            </div>
+                        </mat-card>
+
+                        <mat-card class="card-details">
+                            <div class="half-width-wrapper">
+                                <mat-form-field class="half-width">
+                                    <mat-label>Matricule Fiscal</mat-label>
+                                    <input matInput formControlName="mfcode" (input)="onUpperCase($event, 'mfcode')">
+                                    <mat-icon matSuffix>check</mat-icon>
+                                    <mat-error *ngIf="customerForm.get('mfcode')?.hasError('uppercaseAlphanumeric')">
+                                        Le Matricule Fiscal doit contenir des chiffres et des lettres en Majuscule.
+                                    </mat-error>
+                                </mat-form-field>
+                                <mat-form-field class="half-width">
+                                    <mat-label>Patente</mat-label>
+                                    <input matInput formControlName="patentecode"
+                                        (input)="onUpperCase($event, 'patentecode')">
+                                    <mat-icon matSuffix>check</mat-icon>
+                                    <mat-error
+                                        *ngIf="customerForm.get('patentecode')?.hasError('uppercaseAlphanumeric')">
+                                        La Patente doit contenir des chiffres et des lettres en Majuscule.
+                                    </mat-error>
+                                </mat-form-field>
+                            </div>
+                            <div class="half-width-wrapper">
+                                <mat-form-field class="half-width">
+                                    <mat-label>Remise Maximale</mat-label>
+                                    <input matInput type="number" formControlName="maximumdiscount">
+                                    <mat-icon matSuffix>check</mat-icon>
+                                </mat-form-field>
+                                <mat-form-field class="half-width">
+                                    <mat-label>Encours Total</mat-label>
+                                    <input matInput type="number" formControlName="maximumsalesbar">
+                                    <mat-icon matSuffix>check</mat-icon>
+                                </mat-form-field>
+                            </div>
+                            <div class="half-width-wrapper">
+                                <mat-form-field class="half-width">
+                                    <mat-label>Adresse</mat-label>
+                                    <input matInput formControlName="address">
+                                    <mat-icon matSuffix>check</mat-icon>
+                                </mat-form-field>
+                                <mat-form-field class="half-width">
+                                    <mat-label>Guouvernorat</mat-label>
+                                    <mat-select formControlName="gouvernorate" isableRipple>
+                                        <mat-option *ngFor="let gov of gouvernorate"
+                                            [value]="gov.key">{{gov.value}}</mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                            </div>
+                        </mat-card>
+                        <mat-card class="card-details">
+                            <div class="half-width-wrapper">
+                                <mat-form-field class="half-width">
+                                    <mat-label>Banque</mat-label>
+                                    <mat-select formControlName="bank" disableRipple>
+                                        <mat-option *ngFor="let bank of allBanks" [value]="bank.key">{{bank.key}}
+                                            - {{bank.value}}</mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                                <mat-form-field class="half-width">
+                                    <mat-label>RIB Bancaire</mat-label>
+                                    <input matInput formControlName="bankaccount">
+                                    <mat-icon matSuffix>check</mat-icon>
+                                </mat-form-field>
+                            </div>
+                        </mat-card>
+                        <div><button mat-raised-button color="primary" (click)="openCreateTransporterModal()">
+                                <mat-icon>
+                                    add
+                                </mat-icon>
+                                Ajouter un Transporteur</button>
+                        </div>
+                        <mat-card class="card-details">
+                            <div>
+                                <h5>Transporteur</h5>
+                                <table mat-table [dataSource]="transporters" class="mat-elevation-z8 mt-3">
+                                    <ng-container matColumnDef="number">
+                                        <th mat-header-cell *matHeaderCellDef>#</th>
+                                        <td mat-cell *matCellDef="let element; let i=index">{{ i + 1 }}</td>
+                                    </ng-container>
+
+                                    <ng-container matColumnDef="surname">
+                                        <th mat-header-cell *matHeaderCellDef> Prénom </th>
+                                        <td mat-cell *matCellDef="let element">{{element.transpSurname}}</td>
+                                    </ng-container>
+
+                                    <ng-container matColumnDef="name">
+                                        <th mat-header-cell *matHeaderCellDef> Nom </th>
+                                        <td mat-cell *matCellDef="let element">{{element.transpName}}</td>
+                                    </ng-container>
+
+                                    <ng-container matColumnDef="vehiculematricule">
+                                        <th mat-header-cell *matHeaderCellDef> Matricule Véhicule </th>
+                                        <td mat-cell *matCellDef="let element">{{element.vehiculematricule}}</td>
+                                    </ng-container>
+
+                                    <ng-container matColumnDef="action">
+                                        <th mat-header-cell *matHeaderCellDef> Action </th>
+                                        <td mat-cell style="white-space: pre-line"
+                                            *matCellDef="let element; let i = index">
+                                            <mat-icon class="red-icon" (click)="delete(i)">delete</mat-icon>
+                                        </td>
+                                    </ng-container>
+
+                                    <tr mat-header-row *matHeaderRowDef="displayedTransporterColumns"></tr>
+                                    <tr mat-row *matRowDef="let row; columns: displayedTransporterColumns;"></tr>
+                                </table>
+                            </div>
+                        </mat-card>
+
+                        <div class="control-button">
+                            <mat-dialog-actions>
+                                <button mat-flat-button color="primary"
+                                    (click)="onSubmit(customerForm)">{{register_button}}</button>
+                                <button mat-flat-button color="warn" routerLink="../">{{abort_button}}</button>
+                            </mat-dialog-actions>
+                        </div>
+                    </div>
+
+                </mat-tab>
+                <!-- Society Customer -->
+                <mat-tab>
+                    <ng-template mat-tab-label>
+                        <mat-icon style="margin-right: 8px;">storefront</mat-icon>
+                        Société
+                    </ng-template>
+                    <div [formGroup]="societyForm">
+                        <mat-card class="card-details">
+                            <div class="square-width-wrapper">
+                                <mat-form-field class="square-width">
+                                    <mat-label>Type</mat-label>
+                                    <mat-select formControlName="selectedprefix" disableRipple>
+                                        <mat-option *ngFor="let prefix of societyPrefixes"
+                                            [value]="prefix.id">{{prefix.id}}
+                                            - {{prefix.name}}</mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                                <mat-form-field class="square-width">
+                                    <mat-label>Nom</mat-label>
+                                    <input matInput formControlName="name">
+                                    <mat-icon matSuffix>spatial-audio-off</mat-icon>
+                                </mat-form-field>
+                                <mat-form-field class="square-width">
+                                    <mat-label>Description</mat-label>
+                                    <input matInput formControlName="description">
+                                    <mat-icon matSuffix>description</mat-icon>
+                                </mat-form-field>
+
+                            </div>
+                            <div class="half-width-wrapper">
+                                <mat-form-field class="half-width">
+                                    <mat-label>Activité</mat-label>
+                                    <mat-select formControlName="activity" disableRipple>
+                                        <mat-option *ngFor="let activ of societyActivities"
+                                            [value]="activ.key">{{activ.value}}</mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                                <mat-form-field class="half-width">
+                                    <mat-label>Email</mat-label>
+                                    <input matInput formControlName="email">
+                                    <mat-icon matSuffix>email</mat-icon>
+                                </mat-form-field>
+                            </div>
+
+                            <div class="half-width-wrapper">
+                                <mat-form-field class="half-width">
+                                    <mat-label>Mobile 1</mat-label>
+                                    <input matInput formControlName="phonenumberone">
+                                    <mat-icon matSuffix>phone_android</mat-icon>
+                                </mat-form-field>
+                                <mat-form-field class="half-width">
+                                    <mat-label>Mobile 2</mat-label>
+                                    <input matInput formControlName="phonenumbertwo">
+                                    <mat-icon matSuffix>phone_android</mat-icon>
+                                </mat-form-field>
+                            </div>
+
+                        </mat-card>
+                        <mat-card class="card-details">
+                            <div class="half-width-wrapper">
+                                <mat-form-field class="half-width">
+                                    <mat-label>Matricule Fiscal</mat-label>
+                                    <input matInput formControlName="mfcode" (input)="onUpperCase($event, 'mfcode')">
+                                    <mat-icon matSuffix>check</mat-icon>
+                                </mat-form-field>
+                                <mat-form-field class="half-width">
+                                    <mat-label>Patente</mat-label>
+                                    <input matInput formControlName="patentecode"
+                                        (input)="onUpperCase($event, 'patentecode')">
+                                    <mat-icon matSuffix>check</mat-icon>
+
+                                </mat-form-field>
+
+                            </div>
+                            <div class="half-width-wrapper">
+                                <mat-form-field class="half-width">
+                                    <mat-label>Prénom Responsable</mat-label>
+                                    <input matInput formControlName="firstname">
+                                    <mat-icon matSuffix>check</mat-icon>
+                                </mat-form-field>
+                                <mat-form-field class="half-width">
+                                    <mat-label>Nom Respansable</mat-label>
+                                    <input matInput formControlName="lastname">
+                                    <mat-icon matSuffix>check</mat-icon>
+                                </mat-form-field>
+                            </div>
+
+                        </mat-card>
+                        <mat-card class="card-details">
+                            <div class="half-width-wrapper">
+                                <mat-form-field class="half-width">
+                                    <mat-label>Remise Maximale</mat-label>
+                                    <input matInput type="number" formControlName="maximumdiscount" defaultValue="0">
+                                    <mat-icon matSuffix>check</mat-icon>
+                                </mat-form-field>
+                                <mat-form-field class="half-width">
+                                    <mat-label>Encours Total</mat-label>
+                                    <input matInput type="number" formControlName="maximumsalesbar" defaultValue="0">
+                                    <mat-icon matSuffix>check</mat-icon>
+                                </mat-form-field>
+                            </div>
+                            <div class="half-width-wrapper">
+                                <mat-form-field class="half-width">
+                                    <mat-label>Adresse</mat-label>
+                                    <input matInput formControlName="address">
+                                    <mat-icon matSuffix>check</mat-icon>
+                                </mat-form-field>
+                                <mat-form-field class="half-width">
+                                    <mat-label>Guouvernorat</mat-label>
+                                    <mat-select formControlName="gouvernorate" disableRipple>
+                                        <mat-option *ngFor="let gov of gouvernorate"
+                                            [value]="gov.key">{{gov.value}}</mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                            </div>
+                            <mat-form-field class="full-width">
+                                <mat-label>Notes</mat-label>
+                                <input matInput formControlName="notes">
+                                <mat-icon matSuffix>description</mat-icon>
+                            </mat-form-field>
+                        </mat-card>
+                        <mat-card class="card-details">
+                            <div class="half-width-wrapper">
+                                <mat-form-field class="half-width">
+                                    <mat-label>Banque</mat-label>
+                                    <mat-select formControlName="bank" disableRipple>
+                                        <mat-option *ngFor="let bank of allBanks" [value]="bank.key">{{bank.key}}
+                                            - {{bank.value}}</mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                                <mat-form-field class="half-width">
+                                    <mat-label>RIB Bancaire</mat-label>
+                                    <input matInput formControlName="bankaccount">
+                                    <mat-icon matSuffix>check</mat-icon>
+                                </mat-form-field>
+                            </div>
+                            <div class="full-width">
+                                <mat-checkbox labelPosition="after" formControlName="isTypeBoth">
+                                    <h6>Société pouvant être un Fournisseur</h6>
+                                </mat-checkbox>
+                            </div>
+                        </mat-card>
+                        <div><button mat-raised-button color="primary" (click)="openCreateTransporterModal()">
+                                <mat-icon>
+                                    add
+                                </mat-icon>
+                                Ajouter un Transporteur</button>
+                        </div>
+                        <mat-card class="card-details">
+                            <div>
+                                <h5>Transporteur</h5>
+                                <table mat-table [dataSource]="transporters" class="mat-elevation-z8 mt-3">
+                                    <ng-container matColumnDef="number">
+                                        <th mat-header-cell *matHeaderCellDef>#</th>
+                                        <td mat-cell *matCellDef="let element; let i=index">{{ i + 1 }}</td>
+                                    </ng-container>
+
+                                    <ng-container matColumnDef="surname">
+                                        <th mat-header-cell *matHeaderCellDef> Prénom </th>
+                                        <td mat-cell *matCellDef="let element">{{element.transpSurname}}</td>
+                                    </ng-container>
+
+                                    <ng-container matColumnDef="name">
+                                        <th mat-header-cell *matHeaderCellDef> Nom </th>
+                                        <td mat-cell *matCellDef="let element">{{element.transpName}}</td>
+                                    </ng-container>
+
+                                    <ng-container matColumnDef="vehiculematricule">
+                                        <th mat-header-cell *matHeaderCellDef> Matricule Véhicule </th>
+                                        <td mat-cell *matCellDef="let element">{{element.vehiculematricule}}</td>
+                                    </ng-container>
+
+                                    <ng-container matColumnDef="action">
+                                        <th mat-header-cell *matHeaderCellDef> Action </th>
+                                        <td mat-cell style="white-space: pre-line"
+                                            *matCellDef="let element; let i = index">
+                                            <mat-icon class="red-icon" (click)="delete(i)">delete</mat-icon>
+                                        </td>
+                                    </ng-container>
+
+                                    <tr mat-header-row *matHeaderRowDef="displayedTransporterColumns"></tr>
+                                    <tr mat-row *matRowDef="let row; columns: displayedTransporterColumns;"></tr>
+                                </table>
+                            </div>
+                        </mat-card>
+
+                        <div class="control-button">
+                            <mat-dialog-actions>
+                                <button mat-flat-button color="primary"
+                                    (click)="onSubmit(societyForm)">{{register_button}}</button>
+                                <button mat-flat-button color="warn" routerLink="../">{{abort_button}}</button>
+                            </mat-dialog-actions>
+                        </div>
+                    </div>
+                </mat-tab>
+            </mat-tab-group>
+        </div>
+
+    </mat-card>
+
+
+
+
+
+</div>

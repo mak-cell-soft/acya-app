@@ -1,0 +1,294 @@
+<h4>Liste des Documents Fournisseur</h4>
+<!-- Add this progress bar at the top of the page -->
+<mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+<div class="search">
+    <div class="search-bar-container">
+        <button mat-icon-button>
+            <mat-icon>
+                search
+            </mat-icon>
+        </button>
+        <input (keyup)="applyFilter($event)" placeholder="Rechercher dans les documents fournisseurs" #input />
+    </div>
+    <div class="button-container">
+        <mat-dialog-actions>
+            <button mat-flat-button color="primary" [routerLink]="['../']">
+                <mat-icon>
+                    add
+                </mat-icon>
+                Ajouter
+            </button>
+        </mat-dialog-actions>
+    </div>
+</div>
+
+<!-- Filter -->
+<mat-card class="card-details" (click)="clearErrorMessage()">
+    <h5>FILTRE</h5>
+    <div>
+        <!-- Date Section -->
+        <div class="filter-container" [formGroup]="filterForm">
+            <mat-form-field appearance="outline" class="devide-width">
+                <mat-label>Entrer une rangée de date</mat-label>
+                <mat-date-range-input [rangePicker]="picker" formGroupName="dateRange">
+                    <input class="input" matStartDate placeholder="Start date" formControlName="start">
+                    <input class="input" matEndDate placeholder="End date" formControlName="end">
+                </mat-date-range-input>
+                <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-date-range-picker #picker></mat-date-range-picker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="devide-width">
+                <mat-label>Fournisseur</mat-label>
+                <mat-select placeholder="Choisir parmi la liste" formControlName="selectedSupplier"
+                    (selectionChange)="onSupplierChange($event.value)">
+                    <mat-option *ngFor="let supplier of allSuppliers" [value]="supplier">
+                        {{ supplier.name }} - {{ supplier.description }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <mat-radio-group aria-label="Select an option" class="devide-width" formControlName="isInvoiced">
+                <mat-radio-button [value]="true">Facturé</mat-radio-button>
+                <mat-radio-button [value]="false">Non facturé</mat-radio-button>
+            </mat-radio-group>
+        </div>
+        <!-- Buttons Section -->
+        <div class="control-button">
+            <mat-dialog-actions>
+                <button mat-flat-button class="reset" (click)="resetFilters()">Réinitialiser</button>
+                <button mat-flat-button class="filter" (click)="applyFilters()">Filtrer</button>
+            </mat-dialog-actions>
+        </div>
+    </div>
+</mat-card>
+
+<!-- Make Invoices and Other Stuff-->
+<mat-card class="card-details">
+    <div class="action-document-buttons">
+        <div class="control-button-filter">
+            <button mat-raised-button class="invoice_docs" (click)="makeInvoiceDocuments()">Facturer les bons de
+                réception</button>
+            <button mat-raised-button class="invoice_button">Voir Mes Factures</button>
+            <p><span>{{errorMessage}}</span></p>
+        </div>
+
+    </div>
+</mat-card>
+
+<!-- Row count display -->
+<div class="row-count">
+    {{Number_of_Rows}} : {{ allDocuments.data.length || 0 }}
+</div>
+<!-- Table List Documents -->
+<div class="table-container mat-elevation-z8">
+    <table mat-table (click)="clearErrorMessage()" [dataSource]="allDocuments" matSort class="article-table"
+        *ngIf="allDocuments.data?.length" multiTemplateDataRows>
+
+        <!-- Add the new checkbox column -->
+        <ng-container matColumnDef="select">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell checkbox-width">
+                <!-- Header checkbox to select/deselect all -->
+                <mat-checkbox (change)="$event ? toggleSelectAll() : null" [checked]="isAllSelected()"
+                    [indeterminate]="isSomeSelected()">
+                </mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell checkbox-width">
+                <!-- Row checkbox to select/deselect individual rows -->
+                <mat-checkbox (change)="$event ? toggleSelection(element) : null"
+                    [checked]="selection.isSelected(element)">
+                </mat-checkbox>
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="number">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
+                {{mat_header_cell_doc_number}} </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">{{element.docnumber}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
+                {{mat_header_cell_doc_type}} </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                {{getDocumentTypeDescription(element.type)}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="counterpart">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
+                {{mat_header_cell_doc_supplier}} </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">{{element.counterpart.name}}
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="supplierreference">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
+                {{mat_header_cell_doc_supplierReference}}
+            </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                {{element.supplierReference}}
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="TotalHTNet">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
+                {{mat_header_cell_doc_TotalHTNet}} </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                {{element.total_ht_net_doc | number:'1.3-3'}}
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="TotalDiscountDoc">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
+                {{mat_header_cell_doc_TotalDiscountDoc}}
+            </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                {{element.total_discount_doc | number:'1.3-3'}}
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="TotalTVADoc">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
+                {{mat_header_cell_doc_TotalTVADoc}}
+            </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                {{element.total_tva_doc | number:'1.3-3'}}
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="TotalNetTTC">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell"> {{mat_header_cell_doc_TotalNetTTC}}
+            </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                {{element.total_net_ttc | number:'1.3-3'}}
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="EditedBy">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell"> {{mat_header_cell_doc_UpdatedDate}}
+            </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                {{element.updatedate | date: 'dd-MM-yyyy'}}
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="LastModified">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell"> {{mat_header_cell_doc_UpdatedBy}}
+            </th>
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                {{element.appuser.person.firstname}} {{element.appuser.person.lastname}}
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="IsInvoiced">
+            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
+                <!-- {{mat_header_cell_doc_IsInvoiced}} -->
+                <!-- Tooltip position (above, below, left, right) -->
+                <!-- Delay in milliseconds before showing the tooltip -->
+                <mat-icon matTooltip="Est Facturé ?" matTooltipPosition="above" matTooltipShowDelay="500">
+                    autorenew
+                </mat-icon>
+            </th>
+            <!-- <td mat-cell *matCellDef="let element" class="article-table-cell">
+                <span *ngIf="element.isinvoiced; else disabledIcon"
+                    class="material-symbols-outlined green-icon">
+                    lock
+                </span>
+                <ng-template #disabledIcon>
+                    <span class="material-symbols-outlined red-icon">
+                        lock_open
+                    </span>
+                </ng-template>
+            </td> -->
+            <td mat-cell *matCellDef="let element" class="article-table-cell">
+                <span *ngIf="element.isinvoiced; else disabledIcon" class="material-symbols-outlined green-icon">
+                    lock
+                </span>
+                <ng-template #disabledIcon>
+                    <span class="material-symbols-outlined red-icon">
+                        lock_open
+                    </span>
+                </ng-template>
+            </td>
+        </ng-container>
+
+        <!-- Action Column -->
+        <ng-container matColumnDef="action">
+            <th mat-header-cell *matHeaderCellDef> action </th>
+            <td mat-cell style="white-space: pre-line" *matCellDef="let element">
+                <!-- <mat-icon class="blue-icon">display_settings</mat-icon> -->
+                <mat-icon class="red-icon" *ngIf="element.editing"
+                    (click)="cancelEditDocument(element)">cancel</mat-icon>
+                <mat-icon class="green-icon" *ngIf="!element.editing" (click)="editDocument(element)">edit</mat-icon>
+                <mat-icon class="red-icon" (click)="deleteDocument(element)">delete</mat-icon>
+
+
+            </td>
+        </ng-container>
+
+        <!-- Expanded Element-->
+        <ng-container matColumnDef="expand">
+            <th mat-header-cell *matHeaderCellDef aria-label="row actions">&nbsp;</th>
+            <td mat-cell *matCellDef="let element">
+                <button mat-icon-button aria-label="expand row"
+                    (click)="(expandedElement = expandedElement === element ? null : element); $event.stopPropagation()">
+                    <mat-icon>{{expandedElement === element ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
+                </button>
+            </td>
+        </ng-container>
+
+        <!-- Expanded Content Column - Detail row for additional properties -->
+        <ng-container matColumnDef="expandedDetail">
+            <td mat-cell *matCellDef="let element" [attr.colspan]="columnsToDisplayWithExpand.length-1">
+                <div class="merchandise-element-detail"
+                    [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
+                    <!-- Display the desired additional fields from Counter Part model -->
+                    <!-- Loop here on merchandises and display details-->
+                    <h6>Liste des Marchandises</h6>
+                    <div *ngFor="let merchandise of element.merchandises; let i = index" class="merchandise-detail">
+                        <!-- <div><strong># &nbsp; &nbsp;</strong> {{ i + 1 }} &nbsp;</div> -->
+                        <div class="merchandise-number"><strong># &nbsp;</strong>{{ i + 1 }} &nbsp;</div>
+                        <div><strong>Référence: &nbsp; </strong> {{ merchandise.article.reference }} &nbsp;</div>
+                        <div><strong>Description: &nbsp; </strong> {{ merchandise.article.description }} &nbsp;</div>
+                        <div><strong>Quantité: &nbsp; </strong> {{ merchandise.quantity | number:'1.3-3'}} &nbsp;</div>
+                        <div><strong>Prix Unit. HT: &nbsp; </strong> {{ merchandise.unit_price_ht | number:'1.3-3'}}
+                            &nbsp;</div>
+                        <div><strong>Prix HT: &nbsp; </strong> {{ merchandise.cost_ht | number:'1.3-3'}} &nbsp;</div>
+                        <div><strong>Remise (%): &nbsp; </strong> {{ merchandise.discount_percentage | number:'1.2-2'}}
+                            &nbsp;</div>
+                        <div><strong>Prix Net HT: &nbsp;</strong> {{ merchandise.cost_net_ht | number:'1.3-3'}} &nbsp;
+                        </div>
+                        <div><strong>Valeur remise: &nbsp;</strong> {{ merchandise.cost_discount_value |
+                            number:'1.3-3'}} &nbsp;</div>
+                        <div><strong>TVA: &nbsp; </strong> {{ merchandise.tva_value | number:'1.3-3'}} &nbsp;</div>
+                        <div><strong>Prix Total TTC: &nbsp; </strong> {{ merchandise.cost_ttc | number:'1.3-3'}} &nbsp;
+                        </div>
+                        <div><mat-icon matTooltip="Est Facturable" matTooltipPosition="above" matTooltipShowDelay="500">
+                                autorenew</mat-icon> &nbsp;{{translateTrueFalse(merchandise.isinvoicible) }} &nbsp;
+                        </div>
+
+                    </div>
+                </div>
+            </td>
+        </ng-container>
+
+
+        <tr mat-header-row *matHeaderRowDef="columnsToDisplayWithExpand"></tr>
+        <tr mat-row *matRowDef="let element; columns: columnsToDisplayWithExpand;" class="example-element-row"
+            [class.example-expanded-row]="expandedElement === element"
+            (click)="expandedElement = expandedElement === element ? null : element">
+        </tr>
+        <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="example-detail-row"></tr>
+
+        <!-- <tr mat-header-row *matHeaderRowDef="displayedDocumentsColumns"></tr>
+        <tr mat-row *matRowDef="let element; columns: displayedDocumentsColumns;"></tr> -->
+
+
+        <!-- Row shown when there is no matching data. -->
+        <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell" colspan="4">Ce Document n'existe pas "{{input.value}}"</td>
+        </tr>
+    </table>
+    <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" aria-label="Selectionner les documents"></mat-paginator>
+
+</div>

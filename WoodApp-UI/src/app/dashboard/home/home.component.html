@@ -1,0 +1,123 @@
+<app-header [sidenav]="sidenav"></app-header>
+<mat-sidenav-container>
+  <mat-sidenav #sidenav="matSidenav">
+    <img class="avatar mat-elevation-z8" src="https://gravatar.com/avatar" />
+    <h4 class="name">SOCOFEB</h4>
+    <p class="designation">Vente Bois et Dérivés</p>
+    <mat-divider></mat-divider>
+    <button mat-button class="menu-button" routerLink="dashboard">
+      <mat-icon>home</mat-icon>
+      <span>{{button_home}}</span>
+    </button>
+
+    <!-- Vente -->
+    <button mat-button class="menu-button" (click)="toggleVenteMenu()">
+      <mat-icon>store</mat-icon>
+      <span>{{menu_sell}}</span>
+      <span class="spacer"></span>
+      <mat-icon>{{isVenteMenuOpen ? 'expand_less' : 'expand_more'}}</mat-icon>
+    </button>
+    <!-- submenu Vente -->
+    <div *ngIf="isVenteMenuOpen" class="submenu" routerLinkActive="active">
+      <button mat-button class="submenu-button">
+        <span>{{menu_sub_sell_devis}}</span>
+      </button>
+      <button mat-button class="submenu-button" routerLinkActive="active">
+        <span>{{menu_sub_sell_bc}}</span>
+      </button>
+      <button mat-button class="submenu-button" routerLinkActive="active">
+        <div class="button-links">
+          <span routerLink="customerdelivery">{{menu_sub_sell_bl}}</span>
+          <mat-icon routerLink="customerdelivery/add">add</mat-icon>
+        </div>
+        <span></span>
+      </button>
+      <button mat-button class="submenu-button" routerLinkActive="active">
+        <span>{{menu_sub_sell_fact}}</span>
+      </button>
+      <button mat-button class="submenu-button" routerLinkActive="active">
+        <span routerLink="stock/exit">{{menu_sub_sell_bon_sortie}}</span>
+      </button>
+    </div>
+
+    <!-- Achat -->
+    <button mat-button class="menu-button" (click)="toggleAchatMenu()">
+      <mat-icon>shopping_cart</mat-icon>
+      <span>{{menu_purchase}}</span>
+      <mat-icon>{{isPurchaseMenuOpen ? 'expand_less' : 'expand_more'}}</mat-icon>
+    </button>
+    <!-- submenu Achat -->
+    <div *ngIf="isPurchaseMenuOpen" class="submenu">
+      <!-- Bon de Commande -->
+      <button mat-button class="submenu-button">
+        <span>{{menu_sub_purchase_bc}}</span>
+      </button>
+      <!-- Bon de Réception -->
+      <button mat-button class="submenu-button">
+        <div class="button-links">
+          <span routerLink="reception/list">{{menu_sub_purchase_br}}</span>
+          <mat-icon routerLink="reception">add</mat-icon>
+        </div>
+
+      </button>
+
+      <!-- Facture -->
+      <button mat-button class="submenu-button" routerLink="sinvoices">
+        <span>{{menu_sub_purchase_fact}}</span>
+      </button>
+    </div>
+
+    <!-- Client -->
+    <button mat-button class="menu-button" routerLink="customers">
+      <mat-icon>group</mat-icon>
+      <span>{{menu_client}}</span>
+    </button>
+
+    <!-- Fournisseur -->
+    <button mat-button class="menu-button" routerLink="providers">
+      <mat-icon>view_in_ar</mat-icon>
+      <span>{{menu_provider}}</span>
+    </button>
+
+    <!-- Articles -->
+    <button mat-button class="menu-button" routerLink="articles">
+      <mat-icon>article</mat-icon>
+      <span>{{menu_articles}}</span>
+    </button>
+
+    <!-- Stock -->
+    <button mat-button class="menu-button" (click)="toggleStockMenu()">
+      <mat-icon>inventory</mat-icon>
+      <span>{{menu_stock}}</span>
+      <mat-icon>{{isStockMenuOpen ? 'expand_less' : 'expand_more'}}</mat-icon>
+    </button>
+    <div *ngIf="isStockMenuOpen" class="submenu">
+      <button mat-button class="submenu-button" routerLinkActive="active">
+        <span routerLink="stock">{{menu_sub_stock_manage}}</span>
+      </button>
+      <button mat-button class="submenu-button" routerLinkActive="active">
+        <span routerLink="stock/transferinfo">{{menu_sub_stock_list}}</span>
+      </button>
+      <button mat-button class="submenu-button">
+        <span>{{menu_sub_inventory}}</span>
+      </button>
+    </div>
+
+    <!-- Comptabilité -->
+    <button mat-button class="menu-button">
+      <mat-icon>credit_score</mat-icon>
+      <span>{{menu_accounting}}</span>
+    </button>
+
+    <mat-divider></mat-divider>
+    <button mat-button class="menu-button">
+      <mat-icon>help</mat-icon>
+      <span>{{menu_help}}</span>
+    </button>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <div class="content mat-elevation-z4">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

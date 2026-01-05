@@ -1,0 +1,32 @@
+.full-width {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.half-width {
+    width: calc(50% - 10px); /* Adjust width to account for the gap */
+    margin-bottom: 15px;
+}
+
+.half-width-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    /* Adds space between the form fields */
+}
+
+.control-button {
+    display: flex;
+    justify-content: flex-end;
+    /* Align items to the end (left) */
+    margin-right: 12px;
+    margin-top: 12px;
+    align-items: center;
+}
+
+.slide-toggle-container mat-slide-toggle {
+    display: inline-block;
+    width: calc(33.3333% - 6.6666px); /* Adjust width to account for the gap */
+    margin-bottom: 15px;
+    /* Adjust the value as needed */
+}

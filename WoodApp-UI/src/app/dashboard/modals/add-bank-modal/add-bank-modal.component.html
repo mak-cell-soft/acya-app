@@ -1,0 +1,35 @@
+<h1 mat-dialog-title>{{mat_dialog_title}}</h1>
+<div mat-dialog-content>
+  <form [formGroup]="bankForm">
+    <mat-form-field class="full-width">
+      <mat-label>{{mat_label_bank}}</mat-label>
+      <mat-select formControlName="reference" (selectionChange)="onBankChange($event.value)">
+        <mat-option *ngFor="let bank of sortedBankOptions" [value]="bank.key">{{bank.key}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field class="full-width">
+      <mat-label>{{mat_label_designation}}</mat-label>
+      <input matInput readonly formControlName="designation">
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-label>{{mat_label_agency}}</mat-label>
+      <input matInput formControlName="agency" placeholder="{{mat_placeholder_agency}}">
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-label>{{mat_label_rib}}</mat-label>
+      <input matInput formControlName="rib" placeholder="{{mat_placeholder_rib}}">
+    </mat-form-field>
+    <mat-form-field class="full-width">
+      <mat-label>{{mat_label_iban}}</mat-label>
+      <input matInput formControlName="iban" placeholder="{{mat_placeholder_iban}}">
+    </mat-form-field>
+  </form>
+</div>
+<div class="control-button">
+  <mat-dialog-actions>
+    <button mat-flat-button color="primary" (click)="onSubmit()">{{register_button_text}}</button>
+    <button mat-flat-button color="warn" (click)="onNoClick()">{{abort_button_text}}</button>
+  </mat-dialog-actions>
+</div>

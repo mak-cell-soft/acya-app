@@ -1,0 +1,203 @@
+<mat-toolbar class="header-container">
+    <!-- Text on the top left -->
+    <div class="header-text">
+        <h2>Bon de livraison</h2>
+    </div>
+
+    <!-- Spacer to push buttons to the right -->
+    <span class="spacer"></span>
+
+    <!-- Buttons on the top right -->
+    <div class="header-buttons">
+        <button mat-raised-button color="primary" (click)="onExport()">Exporter</button>
+        <mat-divider [vertical]="true"></mat-divider>
+        <button mat-flat-button color="accent" (click)="onAddNewDocument()">
+            <mat-icon>
+                add
+            </mat-icon>
+            Ajouter un nouveau document</button>
+    </div>
+</mat-toolbar>
+
+<!-- Head : list of months of the current Year -->
+<mat-card class="card-details">
+    <!-- Month Navigation Header -->
+    <div class="month-navigation-header">
+        <button mat-icon-button (click)="navigateMonth('prev')">
+            <mat-icon>chevron_left</mat-icon>
+        </button>
+
+        <div class="month-header-text">
+            <h2>{{ monthHeaderText }}</h2>
+            <div class="date-range">{{ dateRangeText }}</div>
+        </div>
+
+        <button mat-icon-button (click)="navigateMonth('next')">
+            <mat-icon>chevron_right</mat-icon>
+        </button>
+    </div>
+    <!-- Year and Month Buttons -->
+    <div class="month-buttons">
+        <button mat-raised-button color="primary" (click)="navigateYear('prev')">
+            <mat-icon class="chevrons">chevron_left</mat-icon>
+            {{ previousYear }}
+        </button>
+        <button mat-flat-button *ngFor="let month of getMonthValues()" (click)="selectMonth(month)"
+            [class.selected-month]="month === selectedMonth">
+            {{ month }}
+        </button>
+        <button mat-raised-button color="primary" (click)="navigateYear('next')">
+            <mat-icon class="chevrons">chevron_right</mat-icon>
+            {{ nextYear }}
+        </button>
+    </div>
+</mat-card>
+
+
+
+<!-- <div class="search-bar-container">
+    <button mat-icon-button>
+        <mat-icon>
+            search
+        </mat-icon>
+    </button>
+    <input (keyup)="applyFilter($event)" placeholder="Rechercher dans les documents" #input />
+</div> -->
+
+<!-- Days Selection -->
+<mat-card class="card-details-days" *ngIf="daysInMonth.length > 0">
+    <div class="search-bar-container">
+        <button mat-icon-button>
+            <mat-icon>
+                search
+            </mat-icon>
+        </button>
+        <input (keyup)="applyFilter($event)" placeholder="Rechercher dans les documents" #input />
+    </div>
+    <!-- <div class="days-container" style="width: 100%; display: flex; justify-content: center; align-items: center;">
+        <button mat-mini-fab *ngFor="let day of daysInMonth" [color]="day === selectedDay ? 'accent' : ''"
+            (click)="selectDay(day)" class="day-button" [class.selected-day-btn]="day === selectedDay">
+            {{ day }}
+        </button>
+    </div> -->
+</mat-card>
+
+
+<!-- Table of Customer Delivery Notes -->
+<mat-card class="card-details-doc">
+
+    <div *ngIf="daysInMonth.length > 0" class="days-container"
+        style="width: 100%; display: flex; justify-content: center; align-items: center;">
+        <button mat-mini-fab *ngFor="let day of daysInMonth" [color]="day === selectedDay ? 'accent' : ''"
+            (click)="selectDay(day)" class="day-button" [class.selected-day-btn]="day === selectedDay">
+            {{ day }}
+        </button>
+    </div>
+    <div class="table-container mat-elevation-z8">
+        <table mat-table [dataSource]="allCustomerDeliveryNotes" class="mat-elevation-z8">
+            <ng-container matColumnDef="reference">
+                <th mat-header-cell *matHeaderCellDef class="article-table-cell">Référence</th>
+                <td mat-cell *matCellDef="let element" class="article-table-cell">
+                    <div class="reference-cell">{{element.docnumber}}</div>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef class="article-table-cell">Date</th>
+                <td mat-cell *matCellDef="let element" class="article-table-cell">
+                    <div class="date-cell">{{element.updatedate | date: 'dd MMMM yyyy:HH:mm:ss':'':'fr'}}</div>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="counterPart">
+                <th mat-header-cell *matHeaderCellDef class="article-table-cell">Client</th>
+                <td mat-cell *matCellDef="let element" class="article-table-cell">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <!-- Avatar - you can use mat-icon or img tag -->
+                        <mat-icon matListItemAvatar style="color: lightblue;">account_circle</mat-icon>
+
+                        <div style="display: flex; flex-direction: column;">
+                            <span>{{element.counterpart.firstname}} {{element.counterpart.lastname}}</span>
+                            <span *ngIf="element.counterpart.identitycardnumber" style="font-size: 0.8em; color: #666;">
+                                CIN : {{element.counterpart.identitycardnumber}}
+                            </span>
+                        </div>
+                    </div>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="amount">
+                <th mat-header-cell *matHeaderCellDef class="article-table-cell">Montant TTC</th>
+                <td mat-cell *matCellDef="let element" class="article-table-cell">
+                    <div class="amount-cell">
+                        <div class="amount-ttc">{{element.total_net_ttc | number:'1.3-3'}} TND</div>
+                        <div class="amount-ht">{{element.total_ht_net_doc | number:'1.3-3'}} TND</div>
+                    </div>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef class="article-table-cell">Etat</th>
+                <td mat-cell *matCellDef="let element" class="article-table-cell">
+                    <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+                        <span class="status-badge" [ngClass]="'status-' + DocStatus[element.docstatus].toLowerCase()">
+                            {{getStatusInfo(element.docstatus).text}}
+                        </span>
+                        <span class="status-badge"
+                            [style.background-color]="getBillingStatusInfo(element.billingstatus).color"
+                            style="color: white; font-size: 0.8em; padding: 2px 6px;">
+                            {{getBillingStatusInfo(element.billingstatus).text}}
+                        </span>
+                    </div>
+                </td>
+            </ng-container>
+
+            <!-- Action Column -->
+            <ng-container matColumnDef="action">
+                <th mat-header-cell *matHeaderCellDef> Actions </th>
+                <td mat-cell style="white-space: pre-line" *matCellDef="let element">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button mat-icon-button color="primary" matTooltip="Paiement"
+                            (click)="openPaymentModal(element)">
+                            <mat-icon>payment</mat-icon>
+                        </button>
+                        <button mat-icon-button color="primary" (click)="onDetail(element)" matTooltip="Détail">
+                            <mat-icon>visibility</mat-icon>
+                        </button>
+                        <button mat-icon-button color="primary" [matMenuTriggerFor]="menu" aria-label="Actions">
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #menu="matMenu">
+                            <button mat-menu-item (click)="onModify(element)">
+                                <mat-icon>edit</mat-icon>
+                                <span>Modifier</span>
+                            </button>
+                            <button mat-menu-item (click)="onConvert(element)">
+                                <mat-icon>transform</mat-icon>
+                                <span>Convertir</span>
+                            </button>
+                            <button mat-menu-item (click)="onDownload(element)">
+                                <mat-icon>download</mat-icon>
+                                <span>Télécharger</span>
+                            </button>
+                            <button mat-menu-item (click)="onPrint(element)">
+                                <mat-icon>print</mat-icon>
+                                <span>Imprimer</span>
+                            </button>
+                        </mat-menu>
+                    </div>
+                </td>
+            </ng-container>
+
+
+            <tr mat-header-row *matHeaderRowDef="displayedDeliveryNotesColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedDeliveryNotesColumns;"></tr>
+        </table>
+        <mat-paginator [pageSizeOptions]="[20, 35, 45]" aria-label="Selectionner les documents"></mat-paginator>
+
+        <!-- Fallback for empty data -->
+        <div *ngIf="!allCustomerDeliveryNotes.data.length" class="no-data-message">
+            Aucun Bon de réception n'a été selectionné.
+        </div>
+    </div>
+</mat-card>

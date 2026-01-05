@@ -1,0 +1,19 @@
+<h2 mat-dialog-title>Confirmer le site de vente</h2>
+    <mat-dialog-content>
+      <form [formGroup]="siteForm">
+        <mat-form-field class="full-width">
+          <mat-label>Site de vente</mat-label>
+          <mat-select formControlName="salesSite" required>
+            <mat-option *ngFor="let site of allSites" [value]="site.id">
+              {{ site.address }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close color="warn">Annuler</button>
+      <button mat-raised-button color="primary" 
+              [disabled]="!siteForm.valid" 
+              (click)="confirm()">Confirmer</button>
+    </mat-dialog-actions>

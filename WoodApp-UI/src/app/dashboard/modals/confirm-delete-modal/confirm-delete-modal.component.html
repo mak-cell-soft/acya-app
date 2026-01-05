@@ -1,0 +1,13 @@
+<div class="modal-container">
+    <div class="modal-header">
+        <mat-icon color="warn" class="warning-icon">warning</mat-icon>
+        <h2 class="modal-title">Confirmation</h2>
+    </div>
+    <div class="modal-body">
+        <p>Voulez-vous supprimer <strong>{{ data.item?.name || 'cet élément' }}</strong> ?</p>
+    </div>
+    <div class="control-button">
+        <button mat-button color="warn" (click)="confirmDelete()">Oui</button>
+        <button mat-button (click)="cancel()">Non</button>
+    </div>
+</div>
