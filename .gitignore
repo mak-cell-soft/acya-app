@@ -1,0 +1,9 @@
+
+.git_backup
+.git_backup/
+*/.git_backup
+node_modules/
+bin/
+obj/
+.vs/
+*.user
