@@ -6,7 +6,6 @@ using System.Security.Claims;
 
 namespace ms.webapp.api.acya.api.Controllers
 {
-    [Authorize]
     public class PaymentsController : BaseApiController
     {
         private readonly IPaymentService _paymentService;
