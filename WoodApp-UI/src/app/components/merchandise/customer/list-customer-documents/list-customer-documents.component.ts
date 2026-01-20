@@ -11,6 +11,9 @@ import { Router } from '@angular/router';
 import { format, getDaysInMonth, startOfMonth, endOfMonth, subMonths, addMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { DocumentService } from '../../../../services/components/document.service';
+import { PaymentService } from '../../../../services/components/payment.service';
+import { AuthenticationService } from '../../../../services/components/authentication.service';
+import { Payment } from '../../../../models/components/payment';
 import { MatDialog } from '@angular/material/dialog';
 
 
@@ -24,6 +27,8 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
 
   router = inject(Router);
   docService = inject(DocumentService);
+  paymentService = inject(PaymentService);
+  authService = inject(AuthenticationService);
   dialog = inject(MatDialog);
 
   months = Months_FR;
@@ -362,17 +367,54 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.onPaymentSubmit(result);
+        this.onPaymentSubmit(result, doc);
       }
     });
   }
 
-  onPaymentSubmit(paymentResult: any) {
+  onPaymentSubmit(paymentResult: any, doc: Document) {
     console.log('Payment Submitted:', paymentResult);
-    // Here you would call your service to save the payment
-    // Example: this.paymentService.save(paymentResult)...
 
-    // For now just log usage
+    const payment = new Payment();
+    payment.documentid = doc.id;
+    payment.customerid = doc.counterpart.id;
+    payment.paymentdate = paymentResult.date;
+    payment.amount = paymentResult.amount;
+    payment.paymentmethod = paymentResult.method;
+
+    // Handle details
+    if (paymentResult.details) {
+      if (paymentResult.method === 'ESPECE') {
+        payment.notes = paymentResult.details.notes || '';
+      } else {
+        // Store cheque/traite details in reference or notes (as JSON or formatted string)
+        // Assuming reference column for number, and notes for JSON
+        payment.reference = paymentResult.details.number || '';
+        payment.notes = JSON.stringify(paymentResult.details);
+      }
+    }
+
+    // Context fields
+    payment.createdat = new Date();
+    // payment.createdby = this.authService.getUserDetail()?.fullname || ''; // Optional: if needed
+    payment.updatedat = new Date();
+    payment.updatedbyid = Number(this.authService.getUserDetail()?.id) || 0;
+
+    this.paymentService.Add(payment).subscribe({
+      next: (res) => {
+        console.log('Payment saved successfully', res);
+        // Refresh list or show success
+        this.toggleSelection(doc); // Deselect if needed
+        // Ideally reload the doc to update status
+        // Filter by current day initially
+        //this.filterByDay(this.selectedDay);
+        doc.total_net_ttc -= payment.amount; // Optimistic update or refresh
+      },
+      error: (err) => {
+        console.error('Error saving payment', err);
+      }
+    });
+
   }
 
   closePaymentModal() {

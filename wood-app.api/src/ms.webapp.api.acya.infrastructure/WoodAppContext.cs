@@ -57,6 +57,7 @@ namespace ms.webapp.api.acya.infrastructure
     public virtual DbSet<StockTransfer> StockTransfers { get; set; }
 
     public DbSet<PendingNotification> PendingNotifications { get; set; }
+    public DbSet<Payment> Payments { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

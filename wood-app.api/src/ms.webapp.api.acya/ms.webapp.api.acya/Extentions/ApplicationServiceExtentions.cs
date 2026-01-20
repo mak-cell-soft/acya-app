@@ -7,6 +7,7 @@ using ms.webapp.api.acya.api.Services;
 using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.infrastructure;
 using ms.webapp.api.acya.infrastructure.Repositories;
+using ms.webapp.api.acya.api.Interfaces;
 
 namespace ms.webapp.api.acya.api.Extentions
 {
@@ -50,6 +51,8 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<TransporterRepository>();
       services.AddScoped<VehicleRepository>();
       services.AddScoped<IStockService, StockService>();
+      services.AddScoped<IPaymentRepository, PaymentRepository>();
+      services.AddScoped<IPaymentService, PaymentService>();
       
 
       services.AddDbContext<WoodAppContext>(options =>
