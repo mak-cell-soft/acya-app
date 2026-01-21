@@ -15,6 +15,7 @@ import { PaymentService } from '../../../../services/components/payment.service'
 import { AuthenticationService } from '../../../../services/components/authentication.service';
 import { Payment } from '../../../../models/components/payment';
 import { MatDialog } from '@angular/material/dialog';
+import { ToastrService } from 'ngx-toastr';
 
 
 
@@ -30,6 +31,7 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
   paymentService = inject(PaymentService);
   authService = inject(AuthenticationService);
   dialog = inject(MatDialog);
+  toastr = inject(ToastrService);
 
   months = Months_FR;
   selectedMonth: string = '';
@@ -409,9 +411,11 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
         // Filter by current day initially
         //this.filterByDay(this.selectedDay);
         doc.total_net_ttc -= payment.amount; // Optimistic update or refresh
+        this.toastr.success('Payment effectué avec succès');
       },
       error: (err) => {
         console.error('Error saving payment', err);
+        this.toastr.error('Erreur lors de l\'enregistrement du paiement');
       }
     });
 

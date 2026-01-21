@@ -61,6 +61,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public bool isdeleted { get; set; }
     public bool editing { get; set; } = false;
     public DocStatus docstatus { get; set; }
+    public BillingStatus billingstatus { get; set; }
 
     public ICollection<DocumentDto>? childdocuments { get; set; } = new List<DocumentDto>();
 
@@ -91,6 +92,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       total_tva_doc = entity.TotalCostTvaDoc;
       total_discount_doc = entity.TotalCostDiscountDoc;
       docstatus = entity.DocStatus;
+      billingstatus = entity.BillingStatus;
       isdeleted = entity.IsDeleted;
       if(entity.Taxes != null)
       {

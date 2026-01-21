@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS tbl_document (
     taxeid INTEGER,
     updatedbyid INTEGER,
     counterpartid INTEGER,
+    billingstatus INTEGER DEFAULT 1,
     isdeleted BOOLEAN DEFAULT FALSE
 );
 

@@ -22,6 +22,7 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
             entity.Property(e => e.UpdateDate).HasColumnName("updatedate");
             entity.Property(e => e.WithHoldingTax).HasColumnName("withholdingtax");
             entity.Property(e => e.DocStatus).HasColumnName("docstatus");
+            entity.Property(e => e.BillingStatus).HasColumnName("billingstatus");
             // Cost Doc Details
             entity.Property(e => e.TotalCostHTNetDoc).HasColumnName("totalcostpriceht");
             entity.Property(e => e.TotalCostNetTTCDoc).HasColumnName("totalcostpricettc");
