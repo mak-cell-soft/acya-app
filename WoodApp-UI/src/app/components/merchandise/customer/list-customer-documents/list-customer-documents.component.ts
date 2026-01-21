@@ -58,6 +58,7 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
   mat_header_cell_doc_TotalNetTTC: string = MAT_HEADER_CELL_DOC_TOTALNETTTC;
   mat_header_cell_doc_UpdatedDate: string = MAT_HEADER_CELL_DOC_UPDATEDDATE;
   Number_of_Rows: string = NUMBER_OF_ROWS;
+  typefiltered: typeDocsToFilter = new typeDocsToFilter();
   //#endregion Labels
 
   allCustomerDeliveryNotes: MatTableDataSource<Document> = new MatTableDataSource<Document>();
@@ -91,6 +92,12 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
     this.updateDaysInMonth();
 
     // Filter by current day initially
+    this.typefiltered = {
+      typeDoc: DocumentTypes.customerDeliveryNote,
+      month: currentMonthIndex,
+      year: this.currentYear,
+      day: this.selectedDay
+    };
     this.filterByDay(this.selectedDay);
   }
 
@@ -178,13 +185,13 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
   }
 
   filterByDay(day: number) {
-    let _typeDocsToFilter = {
+    this.typefiltered = {
       typeDoc: DocumentTypes.customerDeliveryNote,
       month: this.currentDate.getMonth() + 1,
       year: this.currentYear,
       day: day
     };
-    this.getAllCustomerDeliveryNotesDocumentsFiltered(_typeDocsToFilter);
+    this.getAllCustomerDeliveryNotesDocumentsFiltered(this.typefiltered);
   }
 
   navigateMonth(direction: 'prev' | 'next') {
@@ -344,6 +351,7 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
     }
   }
 
+  //#region Payment Modal
   // Payment Modal
   openPaymentModal(doc: Document) {
     const modalData = {
@@ -398,7 +406,7 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
 
     // Context fields
     payment.createdat = new Date();
-    // payment.createdby = this.authService.getUserDetail()?.fullname || ''; // Optional: if needed
+    payment.createdby = this.authService.getUserDetail()?.fullname || ''; // Optional: if needed
     payment.updatedat = new Date();
     payment.updatedbyid = Number(this.authService.getUserDetail()?.id) || 0;
 
@@ -412,6 +420,7 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
         //this.filterByDay(this.selectedDay);
         doc.total_net_ttc -= payment.amount; // Optimistic update or refresh
         this.toastr.success('Payment effectué avec succès');
+        this.getAllCustomerDeliveryNotesDocumentsFiltered(this.typefiltered);
       },
       error: (err) => {
         console.error('Error saving payment', err);
@@ -423,8 +432,10 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
 
   closePaymentModal() {
     this.dialog.closeAll();
+    this.getAllCustomerDeliveryNotesDocumentsFiltered(this.typefiltered);
     // this.selectedDocument = null; // Property removed as not needed
   }
+  //#endregion
 
   // Action Menu Methods
   onConvert(doc: Document) {

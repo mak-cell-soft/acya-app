@@ -105,7 +105,7 @@ namespace ms.webapp.api.acya.api.Controllers
                 // var userId = GetCurrentUserId();
                 // if (userId == 0) return Unauthorized("Invalid User ID in token");
 
-                var userId = createDto.CustomerId;
+                var userId = createDto.updatedbyid;
 
                 var payment = await _paymentService.CreateAsync(createDto, userId);
                 return CreatedAtAction(nameof(GetById), new { id = payment.PaymentId }, payment);

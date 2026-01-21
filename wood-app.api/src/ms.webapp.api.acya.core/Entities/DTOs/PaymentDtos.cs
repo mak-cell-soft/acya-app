@@ -6,6 +6,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     {
         public int DocumentId { get; set; }
         public int CustomerId { get; set; }
+        public int updatedbyid { get; set; }
         public DateTime PaymentDate { get; set; }
         public decimal Amount { get; set; }
         public string? PaymentMethod { get; set; }
