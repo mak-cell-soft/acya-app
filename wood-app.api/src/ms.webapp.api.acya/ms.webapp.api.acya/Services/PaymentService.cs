@@ -105,7 +105,11 @@ namespace ms.webapp.api.acya.api.Services
             var createdPayment = await _paymentRepository.Add(payment);
 
             // Update document billing status
-            document.BillingStatus = 2; 
+            if (createDto.Amount < remainingBalance) {
+                document.BillingStatus = (BillingStatus)3; 
+            } else {
+                document.BillingStatus = (BillingStatus)2; 
+            }
             await _documentRepository.Update(document);
                         
             createdPayment.Document = document;

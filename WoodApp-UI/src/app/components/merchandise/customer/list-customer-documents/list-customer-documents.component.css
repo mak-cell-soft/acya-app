@@ -201,8 +201,7 @@ input {
 }
 
 .article-table-cell {
-    border: 1px 1px #dddddd;
-    text-align: center;
+    text-align: left;
     padding: 10px;
 }
 

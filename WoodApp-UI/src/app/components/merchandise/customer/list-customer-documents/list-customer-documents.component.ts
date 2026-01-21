@@ -61,7 +61,7 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
   //#endregion Labels
 
   allCustomerDeliveryNotes: MatTableDataSource<Document> = new MatTableDataSource<Document>();
-  displayedDeliveryNotesColumns: string[] = ['reference', 'date', 'counterPart', 'amount', 'status', 'action'];
+  displayedDeliveryNotesColumns: string[] = ['reference', 'date', 'counterPart', 'amount', 'status', 'sellSite', 'action'];
 
   selection = new SelectionModel<any>(false, []); // true = allow multiple selections
 
