@@ -53,7 +53,7 @@ export class Document {
     regulationid: number = 0;
     editing: boolean = false;
     docstatus!: DocStatus;
-    billingstatus!: BillingStatus;
+    billingstatus: BillingStatus = 1;
 }
 
 export class typeDocsToFilter {

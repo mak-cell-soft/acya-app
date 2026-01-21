@@ -334,13 +334,13 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
   getBillingStatusInfo(status: BillingStatus): { text: string, color: string } {
     switch (status) {
       case BillingStatus.NotBilled:
-        return { text: 'Non Facturé', color: '#FF5722' }; // Deep Orange
+        return { text: 'Non Payé', color: '#FF5722' }; // Deep Orange
       case BillingStatus.Billed:
-        return { text: 'Facturé', color: '#4CAF50' }; // Green
+        return { text: 'Payé', color: '#4CAF50' }; // Green
       case BillingStatus.PartiallyBilled:
-        return { text: 'Partiellement Facturé', color: '#FFC107' }; // Amber
+        return { text: 'Partiellement Payé', color: '#FFC107' }; // Amber
       default:
-        return { text: 'Non Facturé', color: '#FF5722' };
+        return { text: 'Non Payé', color: '#FF5722' };
     }
   }
 

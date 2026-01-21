@@ -103,7 +103,11 @@ namespace ms.webapp.api.acya.api.Services
             };
 
             var createdPayment = await _paymentRepository.Add(payment);
-            
+
+            // Update document billing status
+            document.BillingStatus = 2; 
+            await _documentRepository.Update(document);
+                        
             createdPayment.Document = document;
             createdPayment.Customer = customer; 
             createdPayment.AppUser = user;
