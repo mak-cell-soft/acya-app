@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, ViewChild, AfterViewInit, TemplateRef } from '@angular/core';
 import { PaymentModalComponent } from '../../../../dashboard/modals/payment-modal/payment-modal.component';
+import { DocumentConversionModalComponent } from './document-conversion-modal/document-conversion-modal.component';
 import { DocumentDetailModalComponent } from './document-detail-modal/document-detail-modal.component';
 import { Months_FR } from '../../../../shared/constants/list_of_constants';
 import { MatTableDataSource } from '@angular/material/table';
@@ -62,7 +63,7 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
   //#endregion Labels
 
   allCustomerDeliveryNotes: MatTableDataSource<Document> = new MatTableDataSource<Document>();
-  displayedDeliveryNotesColumns: string[] = ['reference', 'date', 'counterPart', 'amount', 'status', 'sellSite', 'action'];
+  displayedDeliveryNotesColumns: string[] = ['reference', 'date', 'counterPart', 'amount', 'status', 'isInvoiced', 'sellSite', 'action'];
 
   selection = new SelectionModel<any>(false, []); // true = allow multiple selections
 
@@ -396,6 +397,9 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
     if (paymentResult.details) {
       if (paymentResult.method === 'ESPECE') {
         payment.notes = paymentResult.details.notes || '';
+      } else if (paymentResult.method === 'VIREMENT' || paymentResult.method === 'CARTE') {
+        payment.reference = paymentResult.details.reference || '';
+        payment.notes = paymentResult.details.notes || '';
       } else {
         // Store cheque/traite details in reference or notes (as JSON or formatted string)
         // Assuming reference column for number, and notes for JSON
@@ -439,11 +443,23 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
 
   // Action Menu Methods
   onConvert(doc: Document) {
-    console.log('Convert to Invoice:', doc);
-    // Implement conversion logic
-    if (confirm('Voulez-vous vraiment convertir ce document en facture ?')) {
-      // Call service
+    if (doc.isinvoiced) {
+      this.toastr.warning('Ce document est déjà facturé.');
+      return;
     }
+
+    const dialogRef = this.dialog.open(DocumentConversionModalComponent, {
+      width: '600px',
+      disableClose: true,
+      data: { document: doc }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        // Refresh list if conversion was successful
+        this.getAllCustomerDeliveryNotesDocumentsFiltered(this.typefiltered);
+      }
+    });
   }
 
   onDownload(doc: Document) {

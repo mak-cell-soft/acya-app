@@ -113,7 +113,9 @@ export enum BillingStatus {
 
 export enum PaymentInstrumentType {
     CHEQUE = 'CHEQUE',
-    TRAITE = 'TRAITE'
+    TRAITE = 'TRAITE',
+    VIREMENT = 'VIREMENT',
+    CARTE = 'CARTE'
 }
 
 export enum PaymentState {

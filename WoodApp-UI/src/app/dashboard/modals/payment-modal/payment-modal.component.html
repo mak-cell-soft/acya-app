@@ -32,16 +32,20 @@
                 <i *ngIf="method.value === 'ESPECE'" class="fa fa-money-bill"></i>
                 <i *ngIf="method.value === 'CHEQUE'" class="fa fa-money-check"></i>
                 <i *ngIf="method.value === 'TRAITE'" class="fa fa-file-invoice"></i>
+                <i *ngIf="method.value === 'VIREMENT'" class="fa fa-university"></i>
+                <i *ngIf="method.value === 'CARTE'" class="fa fa-credit-card"></i>
                 <span>{{ method.label }}</span>
             </div>
         </div>
     </div>
 
     <!-- Forms -->
-    <div class="payment-form-container" [ngSwitch]="selectedPaymentMethod">
+    <div class="payment-form-container">
 
-        <!-- Cash Form (Inline) -->
-        <form *ngSwitchCase="'ESPECE'" [formGroup]="paymentForm" class="cash-form">
+        <!-- Generic Form (Cash, Virement, Carte) -->
+        <form
+            *ngIf="selectedPaymentMethod === 'ESPECE' || selectedPaymentMethod === 'VIREMENT' || selectedPaymentMethod === 'CARTE'"
+            [formGroup]="paymentForm" class="cash-form">
             <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Montant</mat-label>
                 <input matInput type="number" formControlName="amount">
@@ -56,6 +60,11 @@
                 <mat-datepicker #picker></mat-datepicker>
             </mat-form-field>
 
+            <mat-form-field appearance="outline" class="full-width" *ngIf="selectedPaymentMethod !== 'ESPECE'">
+                <mat-label>Référence</mat-label>
+                <input matInput type="text" formControlName="reference">
+            </mat-form-field>
+
             <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Notes</mat-label>
                 <textarea matInput formControlName="notes" rows="3"></textarea>
@@ -63,14 +72,14 @@
         </form>
 
         <!-- Cheque Form -->
-        <app-cheque-payment-form *ngSwitchCase="'CHEQUE'" [ownerName]="data.ownerFullName" [porterId]="data.porterId"
-            [porterName]="data.porterName" [defaultAmount]="data.remainingAmount"
+        <app-cheque-payment-form *ngIf="selectedPaymentMethod === 'CHEQUE'" [ownerName]="data.ownerFullName"
+            [porterId]="data.porterId" [porterName]="data.porterName" [defaultAmount]="data.remainingAmount"
             (formReady)="onCustomFormReady($event, 'CHEQUE')">
         </app-cheque-payment-form>
 
         <!-- Traite Form -->
-        <app-traite-payment-form *ngSwitchCase="'TRAITE'" [ownerName]="data.ownerFullName" [porterId]="data.porterId"
-            [porterName]="data.porterName" [defaultAmount]="data.remainingAmount"
+        <app-traite-payment-form *ngIf="selectedPaymentMethod === 'TRAITE'" [ownerName]="data.ownerFullName"
+            [porterId]="data.porterId" [porterName]="data.porterName" [defaultAmount]="data.remainingAmount"
             (formReady)="onCustomFormReady($event, 'TRAITE')">
         </app-traite-payment-form>
 

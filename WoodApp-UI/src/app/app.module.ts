@@ -4,6 +4,8 @@ import { BrowserModule, provideClientHydration } from '@angular/platform-browser
 import localeFr from '@angular/common/locales/fr'; // Import French locale data
 import { DecimalPipe, registerLocaleData } from '@angular/common';
 
+registerLocaleData(localeFr);
+
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -87,9 +89,7 @@ import { TransferConfirmationComponent } from './components/stock/transfer-confi
 import { PaymentModalComponent } from './dashboard/modals/payment-modal/payment-modal.component';
 import { ChequePaymentFormComponent } from './dashboard/modals/payment-modal/payment-forms/cheque-payment-form/cheque-payment-form.component';
 import { TraitePaymentFormComponent } from './dashboard/modals/payment-modal/payment-forms/traite-payment-form/traite-payment-form.component';
-
-// Register French locale
-registerLocaleData(localeFr, 'fr');
+import { DocumentConversionModalComponent } from './components/merchandise/customer/list-customer-documents/document-conversion-modal/document-conversion-modal.component';
 
 @NgModule({
   declarations: [
@@ -131,12 +131,12 @@ registerLocaleData(localeFr, 'fr');
     TransfertStockComponent,
     StockTransferListComponent,
     TransferDetailsDialogComponent,
-    TransferDetailsDialogComponent,
     TransferConfirmationComponent,
     PaymentModalComponent,
     ChequePaymentFormComponent,
     TraitePaymentFormComponent,
-    DocumentDetailModalComponent
+    DocumentDetailModalComponent,
+    DocumentConversionModalComponent
   ],
   imports: [
     BrowserModule,

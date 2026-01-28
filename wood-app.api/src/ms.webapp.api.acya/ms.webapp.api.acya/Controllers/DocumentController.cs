@@ -293,6 +293,7 @@ namespace ms.webapp.api.acya.api.Controllers
             TotalCostTvaDoc = dto.total_tva_doc,
             IsDeleted = dto.isdeleted,
             IsInvoiced = dto.isinvoiced,
+            BillingStatus = dto.billingstatus,
             WithHoldingTax = dto.withholdingtax,
 
           };

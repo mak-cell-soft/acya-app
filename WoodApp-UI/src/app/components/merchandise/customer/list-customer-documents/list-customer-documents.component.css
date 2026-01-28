@@ -218,6 +218,14 @@ input {
     display: inline-block;
 }
 
+.red-icon {
+    color: red;
+}
+
+.green-icon {
+    color: green;
+}
+
 .status-delivered {
     background-color: #4CAF50;
 }

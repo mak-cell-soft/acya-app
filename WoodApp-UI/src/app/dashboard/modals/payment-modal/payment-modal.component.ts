@@ -24,13 +24,15 @@ export interface PaymentModalData {
 })
 export class PaymentModalComponent implements OnInit {
     paymentForm: FormGroup;
-    selectedPaymentMethod: 'ESPECE' | 'CHEQUE' | 'TRAITE' = 'ESPECE';
+    selectedPaymentMethod: 'ESPECE' | 'CHEQUE' | 'TRAITE' | 'VIREMENT' | 'CARTE' = 'ESPECE';
 
     // Payment methods for selection
     paymentMethods = [
         { value: 'ESPECE', label: 'Espèce', icon: 'money_bill' }, // Using local material icons or fontawesome if available
         { value: 'CHEQUE', label: 'Chèque', icon: 'payment' },
-        { value: 'TRAITE', label: 'Traite', icon: 'receipt' }
+        { value: 'TRAITE', label: 'Traite', icon: 'receipt' },
+        { value: 'VIREMENT', label: 'Virement', icon: 'receipt' },
+        { value: 'CARTE', label: 'Carte', icon: 'receipt' }
     ];
 
     // Forms for validaton tracking
@@ -46,6 +48,7 @@ export class PaymentModalComponent implements OnInit {
             // Common fields or Cash specific fields
             amount: [this.data.remainingAmount, [Validators.required, Validators.min(0)]],
             paymentDate: [new Date(), Validators.required],
+            reference: [''], // For Virement/Carte
             notes: ['']
         });
     }
@@ -54,7 +57,7 @@ export class PaymentModalComponent implements OnInit {
     }
 
     onPaymentMethodChange(method: string): void {
-        this.selectedPaymentMethod = method as 'ESPECE' | 'CHEQUE' | 'TRAITE';
+        this.selectedPaymentMethod = method as 'ESPECE' | 'CHEQUE' | 'TRAITE' | 'VIREMENT' | 'CARTE';
         // Reset validity check logic if needed
     }
 
@@ -84,6 +87,11 @@ export class PaymentModalComponent implements OnInit {
             result.details = this.chequeFormGroup.value;
         } else if (this.selectedPaymentMethod === 'TRAITE' && this.traiteFormGroup) {
             result.details = this.traiteFormGroup.value;
+        } else if (this.selectedPaymentMethod === 'VIREMENT' || this.selectedPaymentMethod === 'CARTE') {
+            result.details = {
+                reference: this.paymentForm.get('reference')?.value,
+                notes: this.paymentForm.get('notes')?.value
+            };
         } else {
             // Cash
             result.details = {
@@ -95,7 +103,7 @@ export class PaymentModalComponent implements OnInit {
     }
 
     isValid(): boolean {
-        if (this.selectedPaymentMethod === 'ESPECE') {
+        if (this.selectedPaymentMethod === 'ESPECE' || this.selectedPaymentMethod === 'VIREMENT' || this.selectedPaymentMethod === 'CARTE') {
             return this.paymentForm.valid;
         } else if (this.selectedPaymentMethod === 'CHEQUE') {
             return this.chequeFormGroup ? this.chequeFormGroup.valid : false;
