@@ -33,7 +33,10 @@
         <span></span>
       </button>
       <button mat-button class="submenu-button" routerLinkActive="active">
-        <span>{{menu_sub_sell_fact}}</span>
+        <div class="button-links">
+          <span routerLink="customerinvoices">{{menu_sub_sell_fact}}</span>
+          <mat-icon routerLink="customerinvoices/add">add</mat-icon>
+        </div>
       </button>
       <button mat-button class="submenu-button" routerLinkActive="active">
         <span routerLink="stock/exit">{{menu_sub_sell_bon_sortie}}</span>

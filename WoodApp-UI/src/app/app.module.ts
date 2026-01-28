@@ -90,6 +90,7 @@ import { PaymentModalComponent } from './dashboard/modals/payment-modal/payment-
 import { ChequePaymentFormComponent } from './dashboard/modals/payment-modal/payment-forms/cheque-payment-form/cheque-payment-form.component';
 import { TraitePaymentFormComponent } from './dashboard/modals/payment-modal/payment-forms/traite-payment-form/traite-payment-form.component';
 import { DocumentConversionModalComponent } from './components/merchandise/customer/list-customer-documents/document-conversion-modal/document-conversion-modal.component';
+import { ListCustomerInvoicesComponent } from './components/merchandise/customer/list-customer-invoices/list-customer-invoices.component';
 
 @NgModule({
   declarations: [
@@ -136,7 +137,8 @@ import { DocumentConversionModalComponent } from './components/merchandise/custo
     ChequePaymentFormComponent,
     TraitePaymentFormComponent,
     DocumentDetailModalComponent,
-    DocumentConversionModalComponent
+    DocumentConversionModalComponent,
+    ListCustomerInvoicesComponent
   ],
   imports: [
     BrowserModule,

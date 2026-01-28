@@ -1,0 +1,150 @@
+<mat-toolbar class="header-container">
+    <div class="header-text">
+        <h2>Factures client</h2>
+    </div>
+    <span class="spacer"></span>
+    <div class="header-buttons">
+        <button mat-raised-button color="primary" (click)="onExport()">Exporter</button>
+        <mat-divider [vertical]="true"></mat-divider>
+        <button mat-flat-button color="accent" (click)="onAddNew()">
+            <mat-icon>add</mat-icon>
+            Ajouter une facture
+        </button>
+    </div>
+</mat-toolbar>
+
+<!-- Filter Card -->
+<mat-card class="filter-card">
+    <mat-card-header>
+        <mat-card-title>Filtres</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="filter-content">
+        <mat-form-field appearance="outline">
+            <mat-label>Client</mat-label>
+            <input matInput [(ngModel)]="filterClient" (ngModelChange)="onFilterChange()"
+                placeholder="Rechercher par client">
+            <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Date</mat-label>
+            <input matInput [matDatepicker]="pickerDate" [(ngModel)]="filterDate" (dateChange)="onFilterChange()">
+            <mat-datepicker-toggle matIconSuffix [for]="pickerDate"></mat-datepicker-toggle>
+            <mat-datepicker #pickerDate></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Période</mat-label>
+            <mat-date-range-input [rangePicker]="pickerRange">
+                <input matStartDate [(ngModel)]="filterStartDate" (dateChange)="onFilterChange()" placeholder="Début">
+                <input matEndDate [(ngModel)]="filterEndDate" (dateChange)="onFilterChange()" placeholder="Fin">
+            </mat-date-range-input>
+            <mat-datepicker-toggle matIconSuffix [for]="pickerRange"></mat-datepicker-toggle>
+            <mat-date-range-picker #pickerRange></mat-date-range-picker>
+        </mat-form-field>
+    </mat-card-content>
+</mat-card>
+
+<!-- Summary Card -->
+<mat-card class="summary-card">
+    <mat-card-content class="summary-content">
+        <div class="summary-item">
+            <span class="label">Total HT</span>
+            <span class="value">{{totalHt | number:'1.3-3'}} TND</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Total TVA</span>
+            <span class="value">{{totalTva | number:'1.3-3'}} TND</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Total TTC</span>
+            <span class="value total-ttc">{{totalTtc | number:'1.3-3'}} TND</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Nombre de factures</span>
+            <span class="value">{{invoiceCount}}</span>
+        </div>
+    </mat-card-content>
+</mat-card>
+
+
+<!-- Data Table Card -->
+<mat-card class="table-card">
+    <div class="table-container mat-elevation-z8">
+        <table mat-table [dataSource]="allCustomerInvoices">
+            <ng-container matColumnDef="reference">
+                <th mat-header-cell *matHeaderCellDef>Référence</th>
+                <td mat-cell *matCellDef="let element">{{element.docnumber}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef>Date</th>
+                <td mat-cell *matCellDef="let element">{{element.updatedate | date: 'dd/MM/yyyy HH:mm'}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="counterPart">
+                <th mat-header-cell *matHeaderCellDef>Client</th>
+                <td mat-cell *matCellDef="let element">
+                    {{element.counterpart?.firstname}} {{element.counterpart?.lastname}}
+                    <span *ngIf="element.counterpart?.name">({{element.counterpart?.name}})</span>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="amount">
+                <th mat-header-cell *matHeaderCellDef>Montant</th>
+                <td mat-cell *matCellDef="let element">
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-weight: bold;">{{element.total_net_ttc | number:'1.3-3'}} TTC</span>
+                        <span style="font-size: 0.8em; color: gray;">{{element.total_ht_net_doc | number:'1.3-3'}}
+                            HT</span>
+                    </div>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Etat</th>
+                <td mat-cell *matCellDef="let element">
+                    <span class="status-badge" [style.color]="getStatusInfo(element.docstatus).color">
+                        {{getStatusInfo(element.docstatus).text}}
+                    </span>
+                    <br>
+                    <span class="status-badge" [style.color]="getBillingStatusInfo(element.billingstatus).color">
+                        {{getBillingStatusInfo(element.billingstatus).text}}
+                    </span>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="sellSite">
+                <th mat-header-cell *matHeaderCellDef>Site</th>
+                <td mat-cell *matCellDef="let element">{{element.sales_site?.address}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="isInvoiced">
+                <th mat-header-cell *matHeaderCellDef>Facturé</th>
+                <td mat-cell *matCellDef="let element">
+                    <mat-icon *ngIf="element.isinvoiced" color="primary">lock</mat-icon>
+                    <mat-icon *ngIf="!element.isinvoiced" color="warn">lock_open</mat-icon>
+                </td>
+            </ng-container>
+
+            <!-- Actions Column: Only Details -->
+            <ng-container matColumnDef="action">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let element">
+                    <button mat-icon-button color="primary" (click)="onDetail(element)" matTooltip="Détail">
+                        <mat-icon>visibility</mat-icon>
+                    </button>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <mat-paginator [pageSizeOptions]="[20, 35, 45]" showFirstLastButtons></mat-paginator>
+
+        <div *ngIf="!allCustomerInvoices.data.length" class="no-data-message">
+            Aucune facture trouvée pour les filtres sélectionnés.
+        </div>
+    </div>
+</mat-card>

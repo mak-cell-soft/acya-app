@@ -83,7 +83,7 @@
 <!-- Table List Documents -->
 <div class="table-container mat-elevation-z8">
     <table mat-table (click)="clearErrorMessage()" [dataSource]="allDocuments" matSort class="article-table"
-        *ngIf="allDocuments.data?.length" multiTemplateDataRows>
+        *ngIf="allDocuments.data.length" multiTemplateDataRows>
 
         <!-- Add the new checkbox column -->
         <ng-container matColumnDef="select">
