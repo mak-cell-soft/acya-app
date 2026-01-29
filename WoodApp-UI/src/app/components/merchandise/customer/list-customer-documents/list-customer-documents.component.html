@@ -9,6 +9,12 @@
 
     <!-- Buttons on the top right -->
     <div class="header-buttons">
+        <button mat-raised-button color="warn" (click)="makeInvoiceDocuments()"
+            [disabled]="selection.selected.length === 0">
+            <mat-icon>transform</mat-icon>
+            Convertir plusieurs ({{ selection.selected.length }})
+        </button>
+        <mat-divider [vertical]="true"></mat-divider>
         <button mat-raised-button color="primary" (click)="onExport()">Exporter</button>
         <mat-divider [vertical]="true"></mat-divider>
         <button mat-flat-button color="accent" (click)="onAddNewDocument()">
@@ -95,6 +101,21 @@
     </div>
     <div class="table-container mat-elevation-z8">
         <table mat-table [dataSource]="allCustomerDeliveryNotes" class="mat-elevation-z8">
+            <!-- Select Column -->
+            <ng-container matColumnDef="select">
+                <th mat-header-cell *matHeaderCellDef class="article-table-cell">
+                    <mat-checkbox (change)="$event ? toggleSelectAll() : null"
+                        [checked]="selection.hasValue() && isAllSelected()"
+                        [indeterminate]="selection.hasValue() && !isAllSelected()">
+                    </mat-checkbox>
+                </th>
+                <td mat-cell *matCellDef="let element" class="article-table-cell">
+                    <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? toggleSelection(element) : null"
+                        [checked]="selection.isSelected(element)" [disabled]="element.isinvoiced">
+                    </mat-checkbox>
+                </td>
+            </ng-container>
+
             <ng-container matColumnDef="reference">
                 <th mat-header-cell *matHeaderCellDef class="article-table-cell">Référence</th>
                 <td mat-cell *matCellDef="let element" class="article-table-cell">

@@ -103,8 +103,24 @@ namespace ms.webapp.api.acya.core.Entities
       LastName = dto.lastname!.ToUpper();
       IdentityCardNumber = dto.identitycardnumber;
       Email = dto.email;
-      TaxRegistrationNumber = dto.taxregistrationnumber!.ToString();
-      PatenteCode = dto.patentecode!.ToString();
+      //TaxRegistrationNumber = dto.taxregistrationnumber!.ToString();
+      if (dto.taxregistrationnumber != null)
+      {
+        TaxRegistrationNumber = dto.taxregistrationnumber!.ToString();
+      }
+      else
+      {
+        TaxRegistrationNumber = null;
+      }
+      //PatenteCode = dto.patentecode!.ToString();
+      if (dto.patentecode != null)
+      {
+        PatenteCode = dto.patentecode!.ToString();
+      }
+      else
+      {
+        PatenteCode = null;
+      }
       Address = dto.address;
       Gouvernorate = dto.gouvernorate;
       MaximumDiscount = dto.maximumdiscount;

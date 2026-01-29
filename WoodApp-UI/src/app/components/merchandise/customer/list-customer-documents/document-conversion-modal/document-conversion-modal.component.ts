@@ -9,7 +9,7 @@ import { Payment } from '../../../../../models/components/payment';
 import { ToastrService } from 'ngx-toastr';
 
 export interface DocumentConversionModalData {
-    document: Document;
+    documents: Document[];
 }
 
 @Component({
@@ -19,9 +19,16 @@ export interface DocumentConversionModalData {
 })
 export class DocumentConversionModalComponent implements OnInit {
 
-    document!: Document;
+    documents: Document[] = [];
     hasPayment: boolean = false;
     isConverting: boolean = false;
+    isBatchMode: boolean = false;
+
+    // Calculated totals for batch mode
+    totalHT: number = 0;
+    totalTTC: number = 0;
+    totalTVA: number = 0;
+    totalDiscount: number = 0;
 
     constructor(
         public dialogRef: MatDialogRef<DocumentConversionModalComponent>,
@@ -32,29 +39,45 @@ export class DocumentConversionModalComponent implements OnInit {
         private authService: AuthenticationService,
         private toastr: ToastrService
     ) {
-        this.document = data.document;
+        this.documents = data.documents || [];
+        this.isBatchMode = this.documents.length > 1;
     }
 
     ngOnInit(): void {
+        this.calculateTotals();
         this.checkPayments();
     }
 
+    calculateTotals() {
+        this.totalHT = this.documents.reduce((sum, doc) => sum + doc.total_ht_net_doc, 0);
+        this.totalTTC = this.documents.reduce((sum, doc) => sum + doc.total_net_ttc, 0);
+        this.totalTVA = this.documents.reduce((sum, doc) => sum + doc.total_tva_doc, 0);
+        this.totalDiscount = this.documents.reduce((sum, doc) => sum + doc.total_discount_doc, 0);
+    }
+
     checkPayments() {
-        // 1 = NotBilled, 2 = Billed, 3 = PartiallyBilled
-        this.hasPayment = this.document.billingstatus !== 1;
+        // Check if any document has payment (for single mode) or all have payment (for batch)
+        this.hasPayment = this.documents.some(doc => doc.billingstatus !== 1);
     }
 
     openPaymentModal() {
+        // Payment modal only available in single-document mode
+        if (this.isBatchMode) {
+            this.toastr.info('Le paiement en mode batch n\'est pas supporté. Veuillez convertir puis payer individuellement.');
+            return;
+        }
+
+        const doc = this.documents[0];
         const modalData = {
-            documentId: this.document.id,
-            documentNumber: this.document.docnumber,
-            totalAmount: this.document.total_net_ttc,
-            remainingAmount: this.document.total_net_ttc,
-            ownerFullName: this.document.counterpart?.name || this.document.counterpart?.firstname + ' ' + this.document.counterpart?.lastname || '',
-            porterName: this.document.counterpart?.name || this.document.counterpart?.firstname + ' ' + this.document.counterpart?.lastname || '',
-            porterId: this.document.counterpart?.id || 0,
-            billingStatus: this.document.billingstatus,
-            documentType: this.document.type
+            documentId: doc.id,
+            documentNumber: doc.docnumber,
+            totalAmount: doc.total_net_ttc,
+            remainingAmount: doc.total_net_ttc,
+            ownerFullName: doc.counterpart?.name || doc.counterpart?.firstname + ' ' + doc.counterpart?.lastname || '',
+            porterName: doc.counterpart?.name || doc.counterpart?.firstname + ' ' + doc.counterpart?.lastname || '',
+            porterId: doc.counterpart?.id || 0,
+            billingStatus: doc.billingstatus,
+            documentType: doc.type
         };
 
         const dialogRef = this.dialog.open(PaymentModalComponent, {
@@ -71,9 +94,10 @@ export class DocumentConversionModalComponent implements OnInit {
     }
 
     savePayment(paymentResult: any) {
+        const doc = this.documents[0];
         const payment = new Payment();
-        payment.documentid = this.document.id;
-        payment.customerid = this.document.counterpart.id;
+        payment.documentid = doc.id;
+        payment.customerid = doc.counterpart.id;
         payment.paymentdate = paymentResult.date;
         payment.amount = paymentResult.amount;
         payment.paymentmethod = paymentResult.method;
@@ -97,8 +121,8 @@ export class DocumentConversionModalComponent implements OnInit {
 
         this.paymentService.Add(payment).subscribe({
             next: (res) => {
-                this.document.total_net_ttc -= payment.amount;
-                this.document.billingstatus = 3; // Update status to at least partially billed
+                doc.total_net_ttc -= payment.amount;
+                doc.billingstatus = 3; // Update status to at least partially billed
                 this.toastr.success('Paiement effectué avec succès');
                 this.hasPayment = true;
             },
@@ -112,24 +136,37 @@ export class DocumentConversionModalComponent implements OnInit {
     onConvert() {
         this.isConverting = true;
 
-        // Create the new invoice object (clone of the current document)
-        const newInvoice: Document = { ...this.document };
+        // Use first document as template for invoice header
+        const firstDoc = this.documents[0];
+        const newInvoice: Document = { ...firstDoc };
         newInvoice.id = 0; // Reset ID for new document
         newInvoice.type = DocumentTypes.customerInvoice; // Set type to Customer Invoice
         newInvoice.docnumber = ''; // Allow backend to generate new number
         newInvoice.creationdate = new Date();
         newInvoice.updatedate = new Date();
-        // Assuming backend handles stock transaction type logic for Invoices (usually no movement if coming from Delivery Note)
-        // Constraint: "Do NOT update stock levels during this conversion"
+
+        // Use calculated totals for batch mode
+        if (this.isBatchMode) {
+            newInvoice.total_ht_net_doc = this.totalHT;
+            newInvoice.total_net_ttc = this.totalTTC;
+            newInvoice.total_tva_doc = this.totalTVA;
+            newInvoice.total_discount_doc = this.totalDiscount;
+        }
+
+        // Collect all document IDs for the invoice relationship
+        const docChildrenIds = this.documents.map(doc => doc.id);
 
         const invoiceModel = {
             invoiceDoc: newInvoice,
-            docChildrenIds: [this.document.id]
+            docChildrenIds: docChildrenIds
         };
 
         this.docService.CreateInvoice(invoiceModel).subscribe({
             next: () => {
-                this.toastr.success('Conversion réussie');
+                const message = this.isBatchMode
+                    ? `Conversion de ${this.documents.length} documents réussie`
+                    : 'Conversion réussie';
+                this.toastr.success(message);
                 // Close modal and return true to refresh list
                 this.dialogRef.close(true);
             },

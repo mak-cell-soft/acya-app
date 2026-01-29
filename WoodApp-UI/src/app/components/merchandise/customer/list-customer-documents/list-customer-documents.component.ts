@@ -63,9 +63,9 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
   //#endregion Labels
 
   allCustomerDeliveryNotes: MatTableDataSource<Document> = new MatTableDataSource<Document>();
-  displayedDeliveryNotesColumns: string[] = ['reference', 'date', 'counterPart', 'amount', 'status', 'isInvoiced', 'sellSite', 'action'];
+  displayedDeliveryNotesColumns: string[] = ['select', 'reference', 'date', 'counterPart', 'amount', 'status', 'isInvoiced', 'sellSite', 'action'];
 
-  selection = new SelectionModel<any>(false, []); // true = allow multiple selections
+  selection = new SelectionModel<any>(true, []); // true = allow multiple selections
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -451,12 +451,44 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
     const dialogRef = this.dialog.open(DocumentConversionModalComponent, {
       width: '600px',
       disableClose: true,
-      data: { document: doc }
+      data: { documents: [doc] }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result === true) {
         // Refresh list if conversion was successful
+        this.getAllCustomerDeliveryNotesDocumentsFiltered(this.typefiltered);
+      }
+    });
+  }
+
+  // Batch conversion
+  makeInvoiceDocuments(): void {
+    const selectedRows = this.selection.selected;
+
+    // Check if at least one row is selected
+    if (selectedRows.length === 0) {
+      this.toastr.warning('Aucun document n\'a été sélectionné.');
+      return;
+    }
+
+    // Check if any selected document is already invoiced
+    if (selectedRows.some(row => row.isinvoiced === true)) {
+      this.toastr.warning('Vous ne pouvez pas créer une facture pour un document déjà facturé.');
+      return;
+    }
+
+    // If all checks pass, proceed with batch conversion
+    const dialogRef = this.dialog.open(DocumentConversionModalComponent, {
+      width: '600px',
+      disableClose: true,
+      data: { documents: selectedRows }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        // Refresh list and clear selection
+        this.selection.clear();
         this.getAllCustomerDeliveryNotesDocumentsFiltered(this.typefiltered);
       }
     });
