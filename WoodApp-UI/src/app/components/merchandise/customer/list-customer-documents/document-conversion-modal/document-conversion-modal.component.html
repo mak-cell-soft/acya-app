@@ -18,6 +18,15 @@
         <div *ngIf="isBatchMode" class="batch-controls">
             <p><strong>Nombre de documents:</strong> {{ documents.length }}</p>
 
+            <div class="documents-list-container">
+                <p class="list-label">Documents sélectionnés :</p>
+                <div class="documents-list">
+                    <span class="doc-chip" *ngFor="let doc of documents">
+                        {{ doc.docnumber }}
+                    </span>
+                </div>
+            </div>
+
             <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Rechercher un Client</mat-label>
                 <input type="text" matInput [formControl]="searchCustomerControl" [matAutocomplete]="auto"

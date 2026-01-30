@@ -76,21 +76,56 @@ mat-spinner {
 
 /* Batch Mode Styles */
 .batch-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .full-width {
-    width: 100%;
+  width: 100%;
 }
 
 .selected-customer-info {
-    font-size: 0.9rem;
-    color: #4caf50;
-    margin-bottom: 8px;
-    padding: 8px;
-    background: #e8f5e9;
-    border-radius: 4px;
+  font-size: 0.9rem;
+  color: #4caf50;
+  margin-bottom: 8px;
+  padding: 8px;
+  background: #e8f5e9;
+  border-radius: 4px;
+}
+
+/* Document List Styles */
+.documents-list-container {
+  margin: 8px 0;
+  padding: 10px;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.list-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 8px !important;
+}
+
+.documents-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.doc-chip {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 8px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid #bbdefb;
+  white-space: nowrap;
 }
