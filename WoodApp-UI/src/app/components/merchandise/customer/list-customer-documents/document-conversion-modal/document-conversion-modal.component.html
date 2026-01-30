@@ -7,12 +7,50 @@
 
 <div class="modal-content">
     <div class="summary-section">
-        <p *ngIf="!isBatchMode"><strong>Client:</strong> {{ documents[0].counterpart.firstname }} {{
-            documents[0].counterpart.lastname }}</p>
-        <p *ngIf="isBatchMode"><strong>Nombre de documents:</strong> {{ documents.length }}</p>
-        <p><strong>Montant Total:</strong> {{ (isBatchMode ? totalTTC : documents[0].total_net_ttc) | number:'1.3-3' }}
+        <!-- Single Mode Summary -->
+        <div *ngIf="!isBatchMode">
+            <p><strong>Client:</strong> {{ documents[0].counterpart.firstname }} {{ documents[0].counterpart.lastname }}
+            </p>
+            <p><strong>Référence BL:</strong> {{ documents[0].docnumber }}</p>
+        </div>
+
+        <!-- Batch Mode Summary & Controls -->
+        <div *ngIf="isBatchMode" class="batch-controls">
+            <p><strong>Nombre de documents:</strong> {{ documents.length }}</p>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Rechercher un Client</mat-label>
+                <input type="text" matInput [formControl]="searchCustomerControl" [matAutocomplete]="auto"
+                    placeholder="Nom, Prénom ou Raison Sociale">
+                <mat-autocomplete #auto="matAutocomplete"
+                    (optionSelected)="onOptionCustomerSelected($event.option.value)">
+                    <mat-option *ngFor="let item of filteredCustomers" [value]="item.id">
+                        {{ item.name }} {{item.firstname}} {{ item.lastname}}
+                        <small *ngIf="item.description">({{ item.description }})</small>
+                    </mat-option>
+                </mat-autocomplete>
+            </mat-form-field>
+
+            <div *ngIf="selectedCustomer" class="selected-customer-info">
+                <strong>Selectionné:</strong> {{ selectedCustomer.firstname }} {{ selectedCustomer.lastname }} {{
+                selectedCustomer.name }}
+            </div>
+
+            <form [formGroup]="taxeForm">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Taxe</mat-label>
+                    <mat-select formControlName="selectedTaxe">
+                        <mat-option *ngFor="let taxe of appvariablesTaxes" [value]="taxe.id">
+                            {{ taxe.value }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </form>
+        </div>
+
+        <p><strong>Montant Total TTC:</strong> {{ (isBatchMode ? totalTTC : documents[0].total_net_ttc) | number:'1.3-3'
+            }}
             TND</p>
-        <p *ngIf="!isBatchMode"><strong>Référence BL:</strong> {{ documents[0].docnumber }}</p>
     </div>
 
     <mat-divider></mat-divider>

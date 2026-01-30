@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Document, DocumentTypes } from '../../../../../models/components/document';
 import { PaymentModalComponent } from '../../../../../dashboard/modals/payment-modal/payment-modal.component';
@@ -7,6 +7,12 @@ import { PaymentService } from '../../../../../services/components/payment.servi
 import { AuthenticationService } from '../../../../../services/components/authentication.service';
 import { Payment } from '../../../../../models/components/payment';
 import { ToastrService } from 'ngx-toastr';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AppVariableService } from '../../../../../services/configuration/app-variable.service';
+import { CounterpartService } from '../../../../../services/components/counterpart.service';
+import { AppVariable } from '../../../../../models/configuration/appvariable';
+import { CounterPart } from '../../../../../models/components/counterpart';
+import { CounterPartType_FR } from '../../../../../shared/constants/list_of_constants';
 
 export interface DocumentConversionModalData {
     documents: Document[];
@@ -23,6 +29,19 @@ export class DocumentConversionModalComponent implements OnInit {
     hasPayment: boolean = false;
     isConverting: boolean = false;
     isBatchMode: boolean = false;
+
+    // Batch Mode Controls
+    taxeForm!: FormGroup;
+    searchCustomerControl = new FormControl('');
+    filteredCustomers: CounterPart[] = [];
+    allCustomers: CounterPart[] = [];
+    appvariablesTaxes: AppVariable[] = [];
+    selectedCustomer: CounterPart | null = null;
+
+    // Services
+    fb = inject(FormBuilder);
+    appVarService = inject(AppVariableService);
+    counterpartService = inject(CounterpartService);
 
     // Calculated totals for batch mode
     totalHT: number = 0;
@@ -44,16 +63,94 @@ export class DocumentConversionModalComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        if (this.isBatchMode) {
+            this.createForm();
+            this.getAllTaxes();
+            this.getCustomers();
+            this.searchCustomerControl.valueChanges.subscribe(() => this.applyCustomerFilter());
+
+            // Listen for tax changes to recalculate totals
+            this.taxeForm.get('selectedTaxe')?.valueChanges.subscribe(() => {
+                this.calculateTotals();
+            });
+        }
+
         this.calculateTotals();
         this.checkPayments();
     }
 
-    calculateTotals() {
-        this.totalHT = this.documents.reduce((sum, doc) => sum + doc.total_ht_net_doc, 0);
-        this.totalTTC = this.documents.reduce((sum, doc) => sum + doc.total_net_ttc, 0);
-        this.totalTVA = this.documents.reduce((sum, doc) => sum + doc.total_tva_doc, 0);
-        this.totalDiscount = this.documents.reduce((sum, doc) => sum + doc.total_discount_doc, 0);
+    createForm() {
+        this.taxeForm = this.fb.group({
+            selectedTaxe: [null, Validators.required]
+        });
     }
+
+    getAllTaxes() {
+        this.appVarService.GetAll('Taxe').subscribe({
+            next: (response: any) => {
+                this.appvariablesTaxes = response;
+                // Find default tax
+                const defaultTax = this.appvariablesTaxes.find(taxe => taxe.isdefault === true);
+                if (defaultTax) {
+                    this.taxeForm.get('selectedTaxe')?.setValue(defaultTax.id);
+                } else if (this.appvariablesTaxes.length > 0) {
+                    this.taxeForm.get('selectedTaxe')?.setValue(this.appvariablesTaxes[0].id);
+                }
+            },
+            error: (err) => console.error('Error loading taxes', err)
+        });
+    }
+
+    getCustomers() {
+        this.counterpartService.GetAll(CounterPartType_FR.customer).subscribe({
+            next: (response: any) => {
+                this.allCustomers = response;
+                this.filteredCustomers = this.allCustomers;
+            },
+            error: (err) => console.error('Error loading customers', err)
+        });
+    }
+
+    applyCustomerFilter() {
+        const filterValue = (this.searchCustomerControl.value || '').trim().toLowerCase();
+        this.filteredCustomers = this.allCustomers.filter(customer =>
+            (customer.firstname && customer.firstname.toLowerCase().includes(filterValue)) ||
+            (customer.lastname && customer.lastname.toLowerCase().includes(filterValue)) ||
+            (customer.name && customer.name.toLowerCase().includes(filterValue)) ||
+            (customer.description && customer.description.toLowerCase().includes(filterValue))
+        );
+    }
+
+    onOptionCustomerSelected(customerId: number) {
+        this.selectedCustomer = this.allCustomers.find(c => c.id === customerId) || null;
+    }
+
+    calculateTotals() {
+        this.totalHTNet_doc = this.documents.reduce((sum, doc) => sum + doc.total_ht_net_doc, 0);
+        this.totalTVA_doc = this.documents.reduce((sum, doc) => sum + doc.total_tva_doc, 0);
+        this.totalDiscount_doc = this.documents.reduce((sum, doc) => sum + doc.total_discount_doc, 0);
+
+        // Base TTC from documents
+        let baseTTC = this.documents.reduce((sum, doc) => sum + doc.total_net_ttc, 0);
+
+        if (this.isBatchMode && this.taxeForm) {
+            const selectedTaxId = this.taxeForm.get('selectedTaxe')?.value;
+            const selectedTax = this.appvariablesTaxes.find(t => t.id === selectedTaxId);
+            const taxValue = selectedTax ? parseFloat(selectedTax.value) : 0; // Assuming value is the amount to add, per reference implementation logic
+            // NOTE: Reference implementation adds tax value directly to TTC. 
+            // "const netTTC = data.reduce(...) + taxValue;"
+            // This implies the tax is a fixed stamp duty or similar added to the final invoice total, not a percentage.
+
+            this.totalTTC = baseTTC + taxValue;
+        } else {
+            this.totalTTC = baseTTC;
+        }
+    }
+
+    // Helper properties to match template usage if needed, or update template to use these
+    totalHTNet_doc: number = 0;
+    totalTVA_doc: number = 0;
+    totalDiscount_doc: number = 0;
 
     checkPayments() {
         // Check if any document has payment (for single mode) or all have payment (for batch)
@@ -139,6 +236,29 @@ export class DocumentConversionModalComponent implements OnInit {
         // Use first document as template for invoice header
         const firstDoc = this.documents[0];
         const newInvoice: Document = { ...firstDoc };
+
+        // If batch mode, validation for required fields
+        if (this.isBatchMode) {
+            if (this.taxeForm.invalid) {
+                this.toastr.warning('Veuillez sélectionner une taxe.');
+                this.isConverting = false;
+                return;
+            }
+            if (!this.selectedCustomer) {
+                this.toastr.warning('Veuillez sélectionner un client.');
+                this.isConverting = false;
+                return;
+            }
+
+            // Assign selected customer
+            newInvoice.counterpart = this.selectedCustomer;
+
+            // Assign selected tax
+            const selectedTaxId = this.taxeForm.get('selectedTaxe')?.value;
+            const selectedTax = this.appvariablesTaxes.find(t => t.id === selectedTaxId);
+            newInvoice.taxe = selectedTax ?? new AppVariable();
+        }
+
         newInvoice.id = 0; // Reset ID for new document
         newInvoice.type = DocumentTypes.customerInvoice; // Set type to Customer Invoice
         newInvoice.docnumber = ''; // Allow backend to generate new number
@@ -147,10 +267,10 @@ export class DocumentConversionModalComponent implements OnInit {
 
         // Use calculated totals for batch mode
         if (this.isBatchMode) {
-            newInvoice.total_ht_net_doc = this.totalHT;
+            newInvoice.total_ht_net_doc = this.totalHTNet_doc;
             newInvoice.total_net_ttc = this.totalTTC;
-            newInvoice.total_tva_doc = this.totalTVA;
-            newInvoice.total_discount_doc = this.totalDiscount;
+            newInvoice.total_tva_doc = this.totalTVA_doc;
+            newInvoice.total_discount_doc = this.totalDiscount_doc;
         }
 
         // Collect all document IDs for the invoice relationship
