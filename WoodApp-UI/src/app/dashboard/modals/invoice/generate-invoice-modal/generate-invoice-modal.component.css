@@ -1,100 +1,193 @@
+/* Main Modal Layout */
 .card-details {
-    margin: 20px;
-    padding: 20px;
+    padding: 24px;
+    margin: 0;
+    box-shadow: none;
+    /* Remove default shadow if inside dialog */
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    /* Ensure content doesn't overflow rounded corners */
 }
 
-.control-button {
+h6 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 16px;
     display: flex;
-    justify-content: flex-end;
-    margin-right: 12px;
-    margin-top: 12px;
     align-items: center;
+    gap: 8px;
 }
 
-.control-button button {
-    margin-right: 10px;
+/* Row Count */
+.row-count {
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #666;
+    font-style: italic;
+    background-color: #f5f5f5;
+    padding: 8px 12px;
+    border-radius: 4px;
+    display: inline-block;
 }
 
-.control-button button:last-child {
-    margin-right: 0;
-}
-
-.half-width-wrapper,
-.square-width-wrapper {
+/* Form Fields */
+.form-container {
     display: flex;
-    flex-wrap: nowrap;
-    /* Keep fields in one line */
-    gap: 10px;
-    /* Add spacing between fields */
-}
-
-.half-width,
-.square-width {
-    width: calc(33.33% - 10px);
-    /* Consistent width for all form fields */
-    margin-bottom: 15px;
-}
-
-mat-form-field {
-    flex: 1;
-    /* Make fields expand equally */
-    min-width: 0;
-    /* Prevent fields from exceeding their container */
-    height: 80px;
-}
-
-mat-select,
-input {
-    width: 100%;
-    /* Ensure inputs and selects take full width of mat-form-field */
-    box-sizing: border-box;
-    /* Include padding in width calculation */
+    gap: 16px;
+    margin-bottom: 20px;
+    align-items: flex-start;
 }
 
 .full-width {
     width: 100%;
-    margin-bottom: 15px;
 }
 
+mat-form-field {
+    width: 100%;
+}
+
+/* Table Container */
+.table-container {
+    max-height: 400px;
+    overflow: auto;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 24px;
+}
+
+table.mat-table {
+    width: 100%;
+}
+
+.mat-header-cell {
+    background-color: #f8f9fa;
+    color: #424242;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 12px 8px;
+}
+
+.mat-cell {
+    font-size: 13px;
+    padding: 8px;
+    color: #333;
+}
+
+.no-data-message {
+    padding: 24px;
+    text-align: center;
+    color: #757575;
+    font-style: italic;
+    background: #f9f9f9;
+}
+
+/* Summary Section */
 .summary-container {
-    display: flex;
-    flex-direction: column;
-    width: 50%;
-    /* Occupy half the width */
+    background-color: #f8fbfd;
+    border: 1px solid #e1eff7;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 400px;
     margin-left: auto;
-    /* Push to the right side */
-    padding-top: 20px;
+    /* Right align */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .summary-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid #d0d0d0;
-    /* Optional separator for rows */
+    padding: 8px 0;
+    border-bottom: 1px dashed #dae1e7;
+    font-size: 14px;
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 2px solid #3f51b5;
+    /* Highlight total */
 }
 
 .summary-label {
-    font-weight: bold;
-    color: #333;
-    /* Darker label text */
-    flex: 1;
-    /* Takes the first column */
+    color: #555;
+    font-weight: 500;
 }
 
 .summary-value {
-    flex: 1;
-    /* Takes the second column */
+    font-weight: 600;
+    color: #222;
     text-align: right;
-    /* Align values to the right */
-    color: #000;
-    /* Ensure value contrast */
 }
 
-.row-count {
-    margin-bottom: 16px;
-    font-size: 18px;
-    font-weight: normal;
-    color: #4F709C;
+.summary-row:last-child .summary-label,
+.summary-row:last-child .summary-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #3f51b5;
+}
+
+mat-select.summary-value {
+    width: 120px;
+    text-align: right;
+}
+
+/* Action Buttons */
+.control-button {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    background-color: #f5f5f5;
+    border-top: 1px solid #e0e0e0;
+    border-radius: 0 0 8px 8px;
+    margin: 0 -24px -24px -24px;
+    /* Stretch to edges of dialog */
+}
+
+button[mat-flat-button] {
+    min-width: 100px;
+    line-height: 36px;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.loading-text {
+    font-weight: 500;
+    color: #3f51b5;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .summary-container {
+        max-width: 100%;
+        margin-top: 16px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .article-table {
+        min-width: 600px;
+        /* Force scroll on small screens */
+    }
 }

@@ -96,7 +96,7 @@
             <td mat-cell *matCellDef="let element" class="article-table-cell checkbox-width">
                 <!-- Row checkbox to select/deselect individual rows -->
                 <mat-checkbox (change)="$event ? toggleSelection(element) : null"
-                    [checked]="selection.isSelected(element)">
+                    [checked]="selection.isSelected(element)" [disabled]="element.isinvoiced">
                 </mat-checkbox>
             </td>
         </ng-container>

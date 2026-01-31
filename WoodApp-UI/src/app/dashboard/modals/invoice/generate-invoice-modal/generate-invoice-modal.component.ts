@@ -3,7 +3,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MAT_HEADER_CELL_DOC_NUMBER, MAT_HEADER_CELL_DOC_SUPPLIERREFERENCE, MAT_HEADER_CELL_DOC_TOTALDISCOUNTDOC, MAT_HEADER_CELL_DOC_TOTALNETHT, MAT_HEADER_CELL_DOC_TOTALNETTTC, MAT_HEADER_CELL_DOC_TOTALTVADOC, MAT_HEADER_CELL_DOC_UPDATEDDATE, NUMBER_OF_ROWS } from '../../../../shared/constants/components/reception';
 import { MatTableDataSource } from '@angular/material/table';
 import { BehaviorSubject } from 'rxjs';
-import { Document, DocumentTypes, BillingStatus } from '../../../../models/components/document';
+import { Document, DocumentTypes, BillingStatus, DocStatus } from '../../../../models/components/document';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { AppVariable } from '../../../../models/configuration/appvariable';
@@ -71,6 +71,9 @@ export class GenerateInvoiceModalComponent implements OnInit, AfterViewInit {
   totalRemise_invoice_doc: number = 0;
   totalTVA_invoice_doc: number = 0;
   netTTC_invoice_doc: number = 0;
+
+  loading: boolean = false; // Add loading state
+
   //#region constructor
   /**
    *
@@ -130,10 +133,12 @@ export class GenerateInvoiceModalComponent implements OnInit, AfterViewInit {
     });
   }
 
+  //#region onSubmit
   onSubmit() {
     let formValues: any;
 
     if (this.taxeForm.valid) {
+      this.loading = true; // Start loading
       formValues = this.taxeForm.value;
       let doc = this.createInvoiceInstance(formValues); // Assuming this returns a `Document`
       let childsIds = this.createDocChildIds(); // Assuming this returns `number[]`
@@ -149,6 +154,7 @@ export class GenerateInvoiceModalComponent implements OnInit, AfterViewInit {
       // Call the service to create the invoice
       this.docService.CreateInvoice(_gi).subscribe({
         next: (response: any) => {
+          this.loading = false; // Stop loading
           // Assuming the response object contains the invoice details
           // and the DocRef property is available directly in the response.
           const docRef = response.DocRef;
@@ -156,17 +162,21 @@ export class GenerateInvoiceModalComponent implements OnInit, AfterViewInit {
           // Handle the response here
           console.log('Invoice created successfully', response);
           this.toastr.success('Facture référence ' + docRef + ' est crée avec succés.');
+          this.dialogRef.close(true); // Close with success
         },
         error: (err: any) => {
+          this.loading = false; // Stop loading on error
           // Handle errors here
           console.error('Error creating invoice', err);
           this.toastr.error('Erreur lors de la création de la facture.');
         }
       });
     } else {
-      this.toastr.info('Saisir la référence de la Facture Fournisseur');
+      this.taxeForm.markAllAsTouched();
+      this.toastr.info('Veuillez remplir les champs obligatoires');
     }
   }
+  //#endregion onSubmit
 
   //#region Generate Invoice Object 
   createInvoiceInstance(formValues: any): Document {
@@ -203,7 +213,7 @@ export class GenerateInvoiceModalComponent implements OnInit, AfterViewInit {
       isdeleted: false,
       regulationid: 0,
       editing: false,
-      docstatus: 3,
+      docstatus: DocStatus.Created,
       billingstatus: BillingStatus.NotBilled
     }
     return newInvoice;

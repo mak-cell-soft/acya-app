@@ -200,6 +200,7 @@ export class ListDocumentsComponent implements OnInit, AfterViewInit {
       // Check if there is one row with isinvoiced === true.
       if (selectedRows.some(row => row.isinvoiced === true)) {
         this.errorMessage = 'Vous ne pouvez pas créer une facture pour un document déjà facturé';
+        this.toastr.warning(this.errorMessage);
         return;
       }
     }
@@ -215,7 +216,7 @@ export class ListDocumentsComponent implements OnInit, AfterViewInit {
   callModal(selectedDocs: Document[]): void {
     const dialogRef = this.dialog.open(GenerateInvoiceModalComponent, {
       width: '1000px',
-      height: '1000px',
+      height: 'auto',
       maxWidth: '90vw',
       maxHeight: '85vh',
       data: {
@@ -224,15 +225,10 @@ export class ListDocumentsComponent implements OnInit, AfterViewInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        console.log("Invoice Genration Object is ", result);
-
-        // Create a new instance of `GenerateInvoice` and map values
-        const newGenerateInvoice = ({
-          docChildrenIds: result.docChildrenIds,
-          docInvoice: result.docInvoice,
-        });
-        // Perform further actions with `newGenerateInvoice` if needed
+      if (result === true) {
+        // Refresh the list if the result is true (success)
+        this.getAllDocumentsByType();
+        this.selection.clear(); // Clear selection after successful invoice creation
       }
     });
   }
@@ -348,7 +344,9 @@ export class ListDocumentsComponent implements OnInit, AfterViewInit {
     if (this.isAllSelected()) {
       this.selection.clear(); // Deselect all
     } else {
-      this.allDocuments.data.forEach(row => this.selection.select(row)); // Select all
+      this.allDocuments.data
+        .filter(row => !row.isinvoiced) // Only select rows that are NOT invoiced
+        .forEach(row => this.selection.select(row));
     }
   }
 
