@@ -171,6 +171,7 @@ namespace ms.webapp.api.acya.api.Controllers
     }
 
     [HttpPost("confirm-transfer/{transferId}")]
+    [HttpPost("transfers/{transferId}/confirm")]
     public async Task<ActionResult> ConfirmTransfer(int transferId, [FromBody] ConfirmTransferRequest request)
     {
        var result = await _stockService.ConfirmTransferAsync(transferId, request.ConfirmedByUserId);
@@ -185,12 +186,29 @@ namespace ms.webapp.api.acya.api.Controllers
     }
 
     [HttpPost("reject-transfer/{transferId}")]
+    [HttpPost("transfers/{transferId}/reject")]
     public async Task<ActionResult> RejectTransfer(int transferId, [FromBody] RejectTransferRequest request)
     {
        var result = await _stockService.RejectTransferAsync(transferId, request.RejectedByUserId, request.Reason);
        if (!result.Success) return BadRequest(result.Message);
 
        return Ok(new { Message = result.Message });
+    }
+
+    [HttpPut("transfers/{transferId}")]
+    public async Task<ActionResult> UpdateTransfer(int transferId, [FromBody] UpdateTransferRequest request)
+    {
+        var result = await _stockService.UpdateTransferAsync(transferId, request);
+        if (!result.Success) return BadRequest(result.Message);
+
+        return Ok(new
+        {
+            Message = result.Message,
+            TransferId = result.TransferId,
+            TransferRef = result.TransferRef,
+            ExitDocNumber = result.ExitDocumentNumber,
+            ReceiptDocNumber = result.ReceiptDocumentNumber
+        });
     }
 
     [HttpGet("notifications/missed")]

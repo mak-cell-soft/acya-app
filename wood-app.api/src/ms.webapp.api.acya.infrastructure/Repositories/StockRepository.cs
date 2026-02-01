@@ -360,9 +360,18 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                          join exitMerch in context.DocumentMerchandises on exitDoc.Id equals exitMerch.DocumentId
                          join receiptMerch in context.DocumentMerchandises on receiptDoc.Id equals receiptMerch.DocumentId
                          join merchandise in context.Merchandises on exitMerch.MerchandiseId equals merchandise.Id
+                         join article in context.Articles on merchandise.ArticleId equals article.Id
+                         join category in context.Parents on article.ParentId equals category.Id into catGroup
+                         from category in catGroup.DefaultIfEmpty()
+                         join subcategory in context.FirstChildren on article.FirstChildId equals subcategory.Id into subGroup
+                         from subcategory in subGroup.DefaultIfEmpty()
+                         join thickness in context.AppVariables on article.ThicknessId equals thickness.Id into thickGroup
+                         from thickness in thickGroup.DefaultIfEmpty()
+                         join width in context.AppVariables on article.WidthId equals width.Id into widthGroup
+                         from width in widthGroup.DefaultIfEmpty()
                          where (originDoc == null || exitDoc.DocNumber == originDoc) &&
                                (receipt_Doc == null || receiptDoc.DocNumber == receipt_Doc)
-                         group new { exitMerch, exitDoc, receiptDoc, exitSite, receiptSite, st, transporter, merchandise }
+                         group new { exitMerch, exitDoc, receiptDoc, exitSite, receiptSite, st, transporter, merchandise, article, category, subcategory, thickness, width }
                          by new { exitMerch.MerchandiseId, exitMerch.Quantity } into grouped
                          select new
                          {
@@ -374,7 +383,11 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                            St = grouped.First().st,
                            Transporter = grouped.First().transporter,
                            Merchandise = grouped.First().merchandise,
-                           Article = grouped.First().merchandise.Articles,
+                           Article = grouped.First().article,
+                           Category = grouped.First().category,
+                           SubCategory = grouped.First().subcategory,
+                           Thickness = grouped.First().thickness,
+                           Width = grouped.First().width,
                            Quantity = grouped.Key.Quantity
                          };
 
@@ -399,6 +412,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       // Build the final result
       return results.Select(r => new StockTransferDetailsDto
       {
+        Id = r.St.Id,
         DocSortie = r.ExitDoc.DocNumber!,
         DocReception = r.ReceiptDoc.DocNumber!,
         Origine = r.ExitSite.Address,
@@ -406,12 +420,47 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         TransferDate = r.St.TransferDate,
         Transporter = r.Transporter.FullName,
         RefPaquet = r.Merchandise.PackageReference,
+        ArticleId = r.Article.Id,
+        MerchandiseId = r.Merchandise.Id,
         RefMerchandise = r.Article?.Reference ?? string.Empty,
         Description = r.Article?.Description ?? string.Empty,
+        CategoryName = r.Category?.Name,
+        SubCategoryName = r.SubCategory?.Name,
+        Thickness = r.Thickness?.Name,
+        Width = r.Width?.Name,
         Unit = r.Article?.Unit ?? string.Empty,
         Quantity = r.Quantity,
         ExitDocLengths = exitLengthsDict[r.ExitMerch.Id],
       }).ToList();
+    }
+
+    public async Task<bool> RestoreStockForTransfer(int exitDocId)
+    {
+      var exitDoc = await context.Documents
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.Merchandise)
+          .Include(d => d.SalesSite)
+          .FirstOrDefaultAsync(d => d.Id == exitDocId);
+
+      if (exitDoc == null) return false;
+
+      // To restore stock that was "Retrieved", we need to perform an "Add" transaction
+      foreach (var dm in exitDoc.DocumentMerchandises)
+      {
+        var stockTransaction = new Stock
+        {
+          Id = 0,
+          Quantity = dm.Quantity,
+          Type = TransactionType.Add, // Correcting the previous "Retrieve"
+          Merchandises = dm.Merchandise,
+          SalesSites = exitDoc.SalesSite,
+          AppUsers = await context.AppUsers.FindAsync(exitDoc.UpdatedById)
+        };
+
+        await HandleTransaction(stockTransaction);
+      }
+
+      return true;
     }
 
 

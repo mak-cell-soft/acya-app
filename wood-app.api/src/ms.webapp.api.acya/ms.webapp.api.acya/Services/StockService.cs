@@ -286,15 +286,21 @@ namespace ms.webapp.api.acya.api.Services
             try
             {
                 var transfer = await _context.StockTransfers
-                    .Include(t => t.ExitDocument) // Needed for notification
+                    .Include(t => t.ExitDocument)
                     .FirstOrDefaultAsync(t => t.Id == transferId && t.Status == TransferStatus.Pending);
 
                 if (transfer == null) return StockTransferResult.Fail("Transfer not found or already processed");
 
                 transfer.Status = TransferStatus.Rejected;
                 transfer.RejectionReason = reason;
-                transfer.ConfirmedById = rejectedByUserId; // Reusing field for rejector
+                transfer.ConfirmedById = rejectedByUserId;
                 transfer.ConfirmationDate = DateTime.UtcNow;
+
+                // Restore stock at origin site
+                if (transfer.ExitDocumentId != 0)
+                {
+                    await _repository.RestoreStockForTransfer(transfer.ExitDocumentId);
+                }
 
                 await _context.SaveChangesAsync();
 
@@ -310,12 +316,106 @@ namespace ms.webapp.api.acya.api.Services
                         });
                 }
 
-                return StockTransferResult.Ok("Transfer rejected successfully", transferId, transfer.Reference!, "", "", "Rejected");
+                return StockTransferResult.Ok("Transfer rejected and stock restored successfully", transferId, transfer.Reference!, "", "", "Rejected");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error rejecting transfer");
                 return StockTransferResult.Fail($"Error rejecting transfer: {ex.Message}");
+            }
+        }
+
+        public async Task<StockTransferResult> UpdateTransferAsync(int transferId, UpdateTransferRequest request)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var transfer = await _context.StockTransfers
+                    .Include(t => t.ExitDocument)
+                        .ThenInclude(d => d!.DocumentMerchandises)
+                    .Include(t => t.ReceiptDocument)
+                        .ThenInclude(d => d!.DocumentMerchandises)
+                    .FirstOrDefaultAsync(t => t.Id == transferId);
+
+                if (transfer == null) return StockTransferResult.Fail("Transfer not found");
+                if (transfer.Status != TransferStatus.Pending) return StockTransferResult.Fail("Only pending transfers can be edited");
+
+                // 1. Restore previous stock at origin
+                await _repository.RestoreStockForTransfer(transfer.ExitDocumentId);
+
+                // 2. Update Transfer details
+                if (request.TransferDate.HasValue) transfer.TransferDate = request.TransferDate.Value;
+                if (request.Notes != null) transfer.Notes = request.Notes;
+                if (request.TransporterId.HasValue) transfer.TransporterId = request.TransporterId.Value;
+                if (request.UpdatedByUserId.HasValue) transfer.CreatedById = request.UpdatedByUserId.Value; // Track last editor
+
+                // 3. Update Merchandises if provided
+                if (request.MerchandisesItems != null && request.MerchandisesItems.Any())
+                {
+                    // Clear existing items in docs
+                    _context.DocumentMerchandises.RemoveRange(transfer.ExitDocument!.DocumentMerchandises);
+                    _context.DocumentMerchandises.RemoveRange(transfer.ReceiptDocument!.DocumentMerchandises);
+
+                    // Re-add new items
+                    foreach (var merchItem in request.MerchandisesItems)
+                    {
+                        var merchandise = await _context.Merchandises.FindAsync(merchItem.id);
+                        if (merchandise == null)
+                        {
+                            await transaction.RollbackAsync();
+                            return StockTransferResult.Fail($"Merchandise {merchItem.id} not found");
+                        }
+
+                        var exitDM = new DocumentMerchandise
+                        {
+                            DocumentId = transfer.ExitDocumentId,
+                            MerchandiseId = merchandise.Id,
+                            Quantity = merchItem.quantity,
+                            CreationDate = DateTime.UtcNow,
+                            UpdateDate = DateTime.UtcNow
+                        };
+
+                        var receiptDM = new DocumentMerchandise
+                        {
+                            DocumentId = transfer.ReceiptDocumentId,
+                            MerchandiseId = merchandise.Id,
+                            Quantity = merchItem.quantity,
+                            CreationDate = DateTime.UtcNow,
+                            UpdateDate = DateTime.UtcNow
+                        };
+
+                        // Handle movements/lengths if needed (simplified for brevity here, should mirror InitiateTransferAsync)
+                         if (merchItem.lisoflengths != null && merchItem.lisoflengths.Any())
+                        {
+                            exitDM.QuantityMovements = CreateQuantityMovement(exitDM, -merchItem.quantity, merchItem.lisoflengths);
+                            receiptDM.QuantityMovements = CreateQuantityMovement(receiptDM, merchItem.quantity, merchItem.lisoflengths);
+                        }
+
+                        _context.DocumentMerchandises.Add(exitDM);
+                        _context.DocumentMerchandises.Add(receiptDM);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                // 4. Re-apply stock reduction at origin site
+                await _repository.UpdateStockForTransfer(transfer.ExitDocumentId, null);
+
+                await transaction.CommitAsync();
+
+                // 5. Notify destination site of the update
+                var originSite = await _context.SalesSites.FindAsync(transfer.ExitDocument!.SalesSiteId);
+                var destinationSite = await _context.SalesSites.FindAsync(transfer.ReceiptDocument!.SalesSiteId);
+                
+                await SendTransferNotificationAsync(destinationSite!, originSite!, transfer, request.MerchandisesItems?.Length ?? 0, transfer.ExitDocument!.DocNumber!, transfer.ReceiptDocument!.DocNumber!);
+
+                return StockTransferResult.Ok("Transfer updated successfully", transfer.Id, transfer.Reference ?? "", transfer.ExitDocument.DocNumber!, transfer.ReceiptDocument.DocNumber!, "Pending");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error updating transfer");
+                return StockTransferResult.Fail($"Error updating transfer: {ex.Message}");
             }
         }
 

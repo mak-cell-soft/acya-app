@@ -37,6 +37,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
 
   public class StockTransferDetailsDto
   {
+    public int Id { get; set; }
     public string? DocSortie { get; set; }
     public string? DocReception { get; set; }
     public string? Origine { get; set; }
@@ -44,11 +45,27 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public DateTime TransferDate { get; set; }
     public string? Transporter { get; set; }
     public string? RefPaquet { get; set; }
+    public int ArticleId { get; set; }
+    public int MerchandiseId { get; set; }
     public string? RefMerchandise { get; set; }
     public string? Description { get; set; }
+    public string? CategoryName { get; set; }
+    public string? SubCategoryName { get; set; }
+    public string? Thickness { get; set; }
+    public string? Width { get; set; }
     public double Quantity { get; set; }
     public string? Unit { get; set; }
+    public double? TotalWeight { get; set; }
     public IEnumerable<ListOflengthDto>? ExitDocLengths { get; set; }
+  }
+
+  public class UpdateTransferRequest
+  {
+    public MerchandiseDto[]? MerchandisesItems { get; set; }
+    public string? Notes { get; set; }
+    public DateTime? TransferDate { get; set; }
+    public int? TransporterId { get; set; }
+    public int? UpdatedByUserId { get; set; }
   }
 
   public class NotificationDto
