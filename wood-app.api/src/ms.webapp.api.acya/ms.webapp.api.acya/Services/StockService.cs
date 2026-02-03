@@ -312,7 +312,7 @@ namespace ms.webapp.api.acya.api.Services
                 await transaction.CommitAsync();
 
                 // Notify Origin
-                if (transfer.ExitDocument != null)
+                if (transfer.ExitDocument != null && transfer.Status == TransferStatus.Pending)
                 {
                     await _hubContext.Clients.Group(transfer.ExitDocument.SalesSiteId.ToString())
                         .SendAsync("TransferRejected", new
@@ -513,6 +513,8 @@ namespace ms.webapp.api.acya.api.Services
 
         private async Task SendTransferNotificationAsync(SalesSite destination, SalesSite origin, StockTransfer transfer, int itemsCount, string exitDocNum, string receiptDocNum)
         {
+            if (transfer.Status != TransferStatus.Pending) return;
+
             try
             {
                 await _hubContext.Clients.Group(destination.Id.ToString())
@@ -535,6 +537,8 @@ namespace ms.webapp.api.acya.api.Services
 
         private async Task QueueNotificationAsync(SalesSite destination, SalesSite origin, StockTransfer transfer, int itemsCount, string exitDocNum, string receiptDocNum)
         {
+            if (transfer.Status != TransferStatus.Pending) return;
+
             try 
             {
                 var notification = new NotificationDto
