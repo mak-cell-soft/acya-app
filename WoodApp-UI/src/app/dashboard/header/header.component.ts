@@ -109,7 +109,7 @@ export class HeaderComponent implements OnInit, AfterViewInit {
   openTransferConfirmation(notif: any) {
     console.log('Details of notifications are here', notif);
     const dialogRef = this.dialog.open(TransferConfirmationComponent, {
-      width: '500px',  // Adjust width as needed
+      maxWidth: '700px',  // Adjust width as needed
       data: {
         id: notif.id,  // Assuming your notification has an ID
         transferRef: notif.exitDocNumber,

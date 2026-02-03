@@ -214,9 +214,12 @@ namespace ms.webapp.api.acya.api.Controllers
     [HttpGet("notifications/missed")]
     public async Task<ActionResult> GetMissedNotifications(string since)
     {
+      var siteId = User.FindFirst("DefaultSite")?.Value;
+      if (string.IsNullOrEmpty(siteId)) return BadRequest("User site context not found.");
+
       var sinceDate = DateTime.Parse(since);
       var notifications = await _context.PendingNotifications
-          .Where(n => n.CreatedAt > sinceDate)
+          .Where(n => n.CreatedAt > sinceDate && n.TargetGroup == siteId)
           .ToListAsync();
 
       return Ok(notifications);

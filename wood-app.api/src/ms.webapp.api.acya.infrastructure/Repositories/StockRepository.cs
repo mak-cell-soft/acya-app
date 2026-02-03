@@ -217,7 +217,12 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
       if (id1.HasValue)
       {
-        exitDoc = await context.Documents.FindAsync(id1.Value);
+        exitDoc = await context.Documents
+            .Include(d => d.DocumentMerchandises)
+                .ThenInclude(dm => dm.Merchandise)
+            .Include(d => d.SalesSite)
+            .FirstOrDefaultAsync(d => d.Id == id1.Value);
+            
         if (exitDoc == null)
         {
           return false; // or throw an exception if document not found
@@ -226,7 +231,12 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
       if (id2.HasValue)
       {
-        receiptDoc = await context.Documents.FindAsync(id2.Value);
+        receiptDoc = await context.Documents
+            .Include(d => d.DocumentMerchandises)
+                .ThenInclude(dm => dm.Merchandise)
+            .Include(d => d.SalesSite)
+            .FirstOrDefaultAsync(d => d.Id == id2.Value);
+
         if (receiptDoc == null)
         {
           return false; // or throw an exception if document not found

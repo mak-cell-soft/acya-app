@@ -283,6 +283,7 @@ namespace ms.webapp.api.acya.api.Services
 
         public async Task<StockTransferResult> RejectTransferAsync(int transferId, int rejectedByUserId, string reason)
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var transfer = await _context.StockTransfers
@@ -299,10 +300,16 @@ namespace ms.webapp.api.acya.api.Services
                 // Restore stock at origin site
                 if (transfer.ExitDocumentId != 0)
                 {
-                    await _repository.RestoreStockForTransfer(transfer.ExitDocumentId);
+                    var restored = await _repository.RestoreStockForTransfer(transfer.ExitDocumentId);
+                    if (!restored)
+                    {
+                        await transaction.RollbackAsync();
+                        return StockTransferResult.Fail("Failed to restore stock at origin site.");
+                    }
                 }
 
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
 
                 // Notify Origin
                 if (transfer.ExitDocument != null)
@@ -320,6 +327,7 @@ namespace ms.webapp.api.acya.api.Services
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 _logger.LogError(ex, "Error rejecting transfer");
                 return StockTransferResult.Fail($"Error rejecting transfer: {ex.Message}");
             }
@@ -507,7 +515,7 @@ namespace ms.webapp.api.acya.api.Services
         {
             try
             {
-                await _hubContext.Clients.Group(destination.Address!.ToString())
+                await _hubContext.Clients.Group(destination.Id.ToString())
                     .SendAsync("ReceiveTransferNotification", new
                     {
                         TransferId = transfer.Id,
@@ -532,7 +540,7 @@ namespace ms.webapp.api.acya.api.Services
                 var notification = new NotificationDto
                 {
                     NotificationType = "TransferCreated",
-                    TargetGroup = destination.Address!.ToString(),
+                    TargetGroup = destination.Id.ToString(),
                     TransferId = transfer.Id,
                     Reference = transfer.Reference,
                     OriginSite = origin.Address,

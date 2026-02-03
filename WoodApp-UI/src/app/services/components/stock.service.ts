@@ -97,7 +97,7 @@ export class StockService {
 
   confirmTransfer(transferId: number, comment: string) {
     const userId = this.authService.getUserDetail()?.id;
-    return this.http.post(`${this.baseUrl}/Stock/confirm/${transferId}`, {
+    return this.http.post(`${this.baseUrl}Stock/confirm-transfer/${transferId}`, {
       confirmedByUserId: userId,
       comment
     });
@@ -105,7 +105,7 @@ export class StockService {
 
   rejectTransfer(transferId: number, comment: string) {
     const userId = this.authService.getUserDetail()?.id;
-    return this.http.post(`${this.baseUrl}/Stock/reject/${transferId}`, {
+    return this.http.post(`${this.baseUrl}Stock/reject-transfer/${transferId}`, {
       rejectedByUserId: userId,
       comment
     });

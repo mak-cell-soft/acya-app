@@ -3,66 +3,71 @@
     Confirmer le transfert
 </h1>
 
+<mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+
 <div mat-dialog-content class="dialog-content">
-    <div class="detail-grid">
+    <div class="detail-grid" *ngIf="!loading">
         <div class="half-width-wrapper">
             <div class="detail-item">
                 <span class="detail-label">Doc. Sortie N°:</span>
-                <span class="detail-value">{{ data.docSortie || 'N/A' }}</span>
+                <span class="detail-value">{{ commonData.docSortie || 'N/A' }}</span>
             </div>
 
             <div class="detail-item">
                 <span class="detail-label">Doc. Reception N°:</span>
-                <span class="detail-value">{{ data.docReception || 'N/A' }}</span>
+                <span class="detail-value">{{ commonData.docReception || 'N/A' }}</span>
             </div>
         </div>
 
         <div class="half-width-wrapper">
             <div class="detail-item">
                 <span class="detail-label">Dépôt Origine:</span>
-                <span class="detail-value">{{ data.origine || 'N/A' }}</span>
+                <span class="detail-value">{{ commonData.origine || 'N/A' }}</span>
             </div>
 
             <div class="detail-item">
                 <span class="detail-label">Dépôt Destination:</span>
-                <span class="detail-value">{{ data.destination || 'N/A' }}</span>
+                <span class="detail-value">{{ commonData.destination || 'N/A' }}</span>
             </div>
         </div>
 
-        <div class="detail-item">
-            <span class="detail-label">Référence Marchandise:</span>
-            <span class="detail-value">{{ data.refMerchandise || 'N/A' }}</span>
-        </div>
-
-        <div class="half-width-wrapper">
-            <div class="detail-item">
-                <span class="detail-label">Référence paquet:</span>
-                <span class="detail-value">{{ data.refPaquet || 'N/A' }}</span>
-            </div>
-
-            <div class="detail-item">
-                <span class="detail-label">Quantité:</span>
-                <span class="detail-value">{{ data.quantity | number:'1.2-2' }}</span>
+        <div class="full-width" *ngFor="let item of items">
+            <div class="detail-item-full">
+                <span class="detail-label-full">Marchandise:</span>
+                <div class="detail-value-full">
+                    <div>{{ getMerchandiseInfo(item).line1 }}</div>
+                    <div>{{ getMerchandiseInfo(item).line2 }}</div>
+                    <div style="font-weight: 500;">{{ getMerchandiseInfo(item).line3 }}</div>
+                </div>
             </div>
         </div>
 
         <div class="half-width-wrapper">
             <div class="detail-item">
                 <span class="detail-label">Date du transfert:</span>
-                <span class="detail-value">{{ data.transferDate | date:'mediumDate' }}</span>
+                <span class="detail-value">{{ commonData.transferDate | date:'mediumDate' }}</span>
             </div>
 
             <div class="detail-item">
                 <span class="detail-label">Transporteur:</span>
-                <span class="detail-value">{{ data.transporter || 'N/A' }}</span>
+                <span class="detail-value">{{ commonData.transporter || 'N/A' }}</span>
             </div>
+        </div>
+
+        <div class="full-width">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Commentaire</mat-label>
+                <textarea matInput [(ngModel)]="comment" rows="3"
+                    placeholder="Ajouter un commentaire (optionnel)"></textarea>
+            </mat-form-field>
         </div>
 
     </div>
 </div>
 
 <mat-dialog-actions align="end">
-    <button mat-raised-button (click)="onAbort()" color="warn">Fermer</button>
-    <button mat-button (click)="onReject()" color="warn">Rejeter</button>
-    <button mat-button (click)="onConfirm()" color="primary" cdkFocusInitial>Confirmer</button>
+    <button mat-flat-button (click)="onAbort()">Annuler</button>
+    <button mat-flat-button (click)="onReject()" color="warn">Rejeter</button>
+    <button mat-flat-button (click)="onConfirm()" color="primary" cdkFocusInitial
+        [disabled]="loading">Confirmer</button>
 </mat-dialog-actions>
