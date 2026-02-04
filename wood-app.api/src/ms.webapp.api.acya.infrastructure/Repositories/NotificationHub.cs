@@ -3,20 +3,45 @@ using Microsoft.AspNetCore.Http;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 
+using ms.webapp.api.acya.infrastructure;
+using Microsoft.EntityFrameworkCore;
+
 public class NotificationHub : Hub
 {
   private readonly IHttpContextAccessor _httpContextAccessor;
   private readonly ILogger<NotificationHub> _logger;
+  private readonly WoodAppContext _context;
 
-  public NotificationHub(IHttpContextAccessor httpContextAccessor, ILogger<NotificationHub> logger)
+  public NotificationHub(
+      IHttpContextAccessor httpContextAccessor, 
+      ILogger<NotificationHub> logger,
+      WoodAppContext context)
   {
     _httpContextAccessor = httpContextAccessor;
     _logger = logger;
+    _context = context;
   }
 
   public override async Task OnConnectedAsync()
   {
     var siteId = Context.User?.FindFirst("DefaultSiteId")?.Value;
+    
+    // Fallback for old tokens: Try to find ID by Address
+    if (string.IsNullOrEmpty(siteId))
+    {
+         var siteAddress = Context.User?.FindFirst("DefaultSite")?.Value;
+         if (!string.IsNullOrEmpty(siteAddress))
+         {
+             var site = await _context.SalesSites.FirstOrDefaultAsync(s => s.Address == siteAddress);
+             if (site != null) 
+             {
+                 siteId = site.Id.ToString();
+                 _logger.LogInformation("Resolved SiteId {SiteId} from Address {SiteAddress} for connection {ConnectionId}", 
+                     siteId, siteAddress, Context.ConnectionId);
+             }
+         }
+    }
+
     _logger.LogInformation("New connection from site {SiteId}. Connection ID: {ConnectionId}",
         siteId, Context.ConnectionId);
 
