@@ -88,8 +88,15 @@ export class NotificationService implements OnDestroy, OnInit {
         .then(() => {
           console.log('SignalR Connected - Current state:', this.hubConnection.state);
           const user = this.authService.getUserDetail();
-          if (user?.defaultSiteId) {
-            this.joinGroup(user.defaultSiteId);
+
+          // Try ID first, then fallback to address/name
+          const siteIdentifier = user?.defaultSiteId || user?.defaultSite;
+
+          if (siteIdentifier) {
+            console.log('Joining group with identifier:', siteIdentifier);
+            this.joinGroup(siteIdentifier);
+          } else {
+            console.warn('No site identifier found for user, cannot join notification group');
           }
         })
         .catch(err => {
@@ -146,6 +153,8 @@ export class NotificationService implements OnDestroy, OnInit {
 
     // Target Check
     const user = this.authService.getUserDetail();
+    // Only filter if we have a valid ID to check against. 
+    // If the user is on an old token (no ID), trust the SignalR group routing (which we fixed on backend).
     if (user && user.defaultSiteId && transfer.destinationSiteId) {
       if (user.defaultSiteId != transfer.destinationSiteId.toString()) {
         console.log(`Notification ignored: Targeted to ${transfer.destinationSiteId} but user is at ${user.defaultSiteId}`);

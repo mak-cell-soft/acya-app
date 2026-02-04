@@ -122,13 +122,25 @@ public class NotificationHub : Hub
     await base.OnDisconnectedAsync(exception);
   }
 
-  public async Task JoinGroup(string siteAddress)
+  public async Task JoinGroup(string siteIdentifier)
   {
+    var groupId = siteIdentifier;
     
-    await Groups.AddToGroupAsync(Context.ConnectionId, siteAddress);
+    // Try to parse as ID first
+    if (!int.TryParse(siteIdentifier, out _))
+    {
+        // It's likely an address, try to resolve to ID
+        var site = await _context.SalesSites.FirstOrDefaultAsync(s => s.Address == siteIdentifier);
+        if (site != null)
+        {
+            groupId = site.Id.ToString();
+            _logger.LogInformation("JoinGroup: Resolved address {Address} to ID {GroupId}", siteIdentifier, groupId);
+        }
+    }
 
-    _logger.LogInformation($"JoinGroup requested for site: {siteAddress}");
-
+    await Groups.AddToGroupAsync(Context.ConnectionId, groupId);
+    _logger.LogInformation("JoinGroup: Connection {ConnectionId} joined group {GroupId} (requested: {Requested})", 
+        Context.ConnectionId, groupId, siteIdentifier);
   }
 
   
