@@ -125,7 +125,7 @@ export class HeaderComponent implements OnInit, AfterViewInit {
       next: (result) => {
         if (result === true || result === false) {
           // Whether confirmed or rejected, the notification is processed and should be removed
-          this.notificationService.removeNotification(notif.id);
+          this.notificationService.dismissNotification(notif.id);
           this.toastr.success('Notification mise à jour');
         }
       },

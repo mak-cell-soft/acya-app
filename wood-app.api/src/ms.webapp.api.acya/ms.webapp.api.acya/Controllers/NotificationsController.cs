@@ -24,5 +24,15 @@ namespace ms.webapp.api.acya.api.Controllers
         timestamp = DateTime.UtcNow
       });
     }
+
+    [HttpDelete("{transferId}")]
+    public async Task<IActionResult> Delete(int transferId)
+    {
+      var siteId = User.FindFirst("DefaultSite")?.Value;
+      if (string.IsNullOrEmpty(siteId)) return BadRequest("User site context not found.");
+
+      await _notificationService.DeleteNotificationByTransferId(transferId, siteId);
+      return Ok();
+    }
   }
 }

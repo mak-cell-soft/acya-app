@@ -106,6 +106,10 @@ export class NotificationService implements OnDestroy, OnInit {
       console.log('this.handleTransferNotification(transfer)', transfer);
     });
 
+    this.hubConnection.on('NotificationDeleted', (data: any) => {
+      this.removeNotification(data.id);
+    });
+
     this.hubConnection.onclose(() => {
       console.log('SignalR Disconnected - Attempting to reconnect...');
       setTimeout(() => this.startConnection(), 5000);
@@ -115,6 +119,10 @@ export class NotificationService implements OnDestroy, OnInit {
   private registerHandlers() {
     this.hubConnection.on('ReceiveTransferNotification', (transfer: any) => {
       this.handleTransferNotification(transfer);
+    });
+
+    this.hubConnection.on('NotificationDeleted', (data: any) => {
+      this.removeNotification(data.id);
     });
 
     this.hubConnection.onclose(() => {
@@ -135,6 +143,15 @@ export class NotificationService implements OnDestroy, OnInit {
 
   private handleTransferNotification(transfer: any) {
     console.log('[SignalR] Raw notification:', transfer);
+
+    // Target Check
+    const user = this.authService.getUserDetail();
+    if (user && user.defaultSite && transfer.destinationSiteId) {
+      if (user.defaultSite != transfer.destinationSiteId.toString()) {
+        console.log(`Notification ignored: Targeted to ${transfer.destinationSiteId} but user is at ${user.defaultSite}`);
+        return;
+      }
+    }
 
     // Ensure required fields exist
     if (!transfer?.transferId || !transfer?.reference) {
@@ -163,29 +180,6 @@ export class NotificationService implements OnDestroy, OnInit {
     this.showNotification(notification);
   }
 
-  // private handleTransferNotification(transfer: any) {
-  //   console.log('[SignalR] Raw notification:', transfer);
-
-  //   const notification: TransferNotification = {
-  //     id: transfer.transferId,
-  //     transferRef: transfer.reference,
-  //     originSite: transfer.originSite,
-  //     date: new Date(),
-  //     itemsCount: transfer.itemsCount || 0,
-  //     exitDocNumber: transfer.exitDocNumber,
-  //     receiptDocNumber: transfer.receiptDocNumber,
-  //     destinationSiteId: transfer.destinationSiteId
-  //   };
-
-  //   if (!this.notifications.some(n => n.id === notification.id)) {
-  //     this.notifications.push(notification);
-  //     this.showNotification(notification);
-  //   }
-
-  //   console.log('[SignalR] Current notifications:', this.notifications);
-  //   this.showNotification(notification);
-  // }
-
   private showNotification(notification: TransferNotification) {
     if (this.authService.isLoggedIn()) {
       this.snackBar.open( //`Nouveau(x) transfert(s) reçu(s) (${notification.transferRef})`,
@@ -207,6 +201,14 @@ export class NotificationService implements OnDestroy, OnInit {
 
   getPendingNotifications(): TransferNotification[] {
     return [...this.notifications];
+  }
+
+  dismissNotification(id: number) {
+    // Optimistic update
+    this.removeNotification(id);
+    this.http.delete(`${environment.apiBaseUrl}/api/notifications/${id}`).subscribe({
+      error: (err) => console.error('Failed to dismiss notification on server', err)
+    });
   }
 
   removeNotification(id: number) {

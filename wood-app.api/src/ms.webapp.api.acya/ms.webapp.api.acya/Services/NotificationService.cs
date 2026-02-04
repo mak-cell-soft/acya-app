@@ -85,9 +85,9 @@ namespace ms.webapp.api.acya.api.Services
         _logger.LogInformation("Successfully delivered RetryReceiveNotification {NotificationId}", pendingNotification.Id);
 
         // Update status
-        //pendingNotification.Status = TransferStatus.Delivered;
-        //pendingNotification.DeliveredAt = DateTime.UtcNow;
-        //pendingNotification.ErrorMessage = null;
+        pendingNotification.Status = TransferStatus.Delivered;
+        pendingNotification.DeliveredAt = DateTime.UtcNow;
+        pendingNotification.ErrorMessage = null;
 
         _logger.LogInformation("Successfully delivered notification {NotificationId}", pendingNotification.Id);
       }
@@ -118,6 +118,35 @@ namespace ms.webapp.api.acya.api.Services
       {
         await TryDeliver(notification);
       }
+    }
+
+    public async Task DeleteNotificationByTransferId(int transferId, string targetGroup)
+    {
+       // Fetch all pending notifications for this group to avoid loading everything
+       // and verify content in memory
+       var candidates = await _context!.PendingNotifications
+           .Where(n => n.TargetGroup == targetGroup && n.Status == TransferStatus.Pending)
+           .ToListAsync();
+
+       foreach (var notification in candidates)
+       {
+           try
+           {
+               var content = JsonSerializer.Deserialize<NotificationDto>(notification.Content!);
+               if (content != null && content.TransferId == transferId)
+               {
+                   _context.PendingNotifications.Remove(notification);
+                   await _hubContext.Clients.Group(notification.TargetGroup!)
+                        .SendAsync("NotificationDeleted", new { id = transferId });
+               }
+           }
+           catch
+           {
+               // Ignore parsing errors
+           }
+       }
+       
+       await _context.SaveChangesAsync();
     }
   }
 }
