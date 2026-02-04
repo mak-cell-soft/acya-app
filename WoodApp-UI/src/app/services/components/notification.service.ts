@@ -88,8 +88,8 @@ export class NotificationService implements OnDestroy, OnInit {
         .then(() => {
           console.log('SignalR Connected - Current state:', this.hubConnection.state);
           const user = this.authService.getUserDetail();
-          if (user?.defaultSite) {
-            this.joinGroup(user.defaultSite);
+          if (user?.defaultSiteId) {
+            this.joinGroup(user.defaultSiteId);
           }
         })
         .catch(err => {
@@ -146,9 +146,9 @@ export class NotificationService implements OnDestroy, OnInit {
 
     // Target Check
     const user = this.authService.getUserDetail();
-    if (user && user.defaultSite && transfer.destinationSiteId) {
-      if (user.defaultSite != transfer.destinationSiteId.toString()) {
-        console.log(`Notification ignored: Targeted to ${transfer.destinationSiteId} but user is at ${user.defaultSite}`);
+    if (user && user.defaultSiteId && transfer.destinationSiteId) {
+      if (user.defaultSiteId != transfer.destinationSiteId.toString()) {
+        console.log(`Notification ignored: Targeted to ${transfer.destinationSiteId} but user is at ${user.defaultSiteId}`);
         return;
       }
     }

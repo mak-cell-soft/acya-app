@@ -102,6 +102,7 @@ namespace ms.webapp.api.acya.api.Services
       if(user.SalesSite != null)
       {
         claims.Add(new Claim("DefaultSite", user.SalesSite.Address!.ToString()!));
+        claims.Add(new Claim("DefaultSiteId", user.SalesSite.Id.ToString()));
       }
 
       var tokenDescriptor = new SecurityTokenDescriptor

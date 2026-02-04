@@ -16,7 +16,7 @@ public class NotificationHub : Hub
 
   public override async Task OnConnectedAsync()
   {
-    var siteId = Context.User?.FindFirst("DefaultSite")?.Value;
+    var siteId = Context.User?.FindFirst("DefaultSiteId")?.Value;
     _logger.LogInformation("New connection from site {SiteId}. Connection ID: {ConnectionId}",
         siteId, Context.ConnectionId);
 
@@ -73,7 +73,7 @@ public class NotificationHub : Hub
   {
     try
     {
-      var siteId = _httpContextAccessor.HttpContext?.User?.FindFirst("DefaultSite")?.Value;
+      var siteId = _httpContextAccessor.HttpContext?.User?.FindFirst("DefaultSiteId")?.Value;
 
       _logger.LogInformation($"Connection {Context.ConnectionId} disconnecting from group {siteId}");
 

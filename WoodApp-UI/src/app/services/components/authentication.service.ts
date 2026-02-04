@@ -13,6 +13,7 @@ interface CustomJwtPayload {
   role: string;
   EnterpriseId: string; // Added Recently
   DefaultSite: string;
+  DefaultSiteId: string;
 }
 
 @Injectable({
@@ -97,7 +98,8 @@ export class AuthenticationService {
       email: decodedToken.email,
       role: decodedToken.role,
       enterpriseId: decodedToken.EnterpriseId,
-      defaultSite: decodedToken.DefaultSite
+      defaultSite: decodedToken.DefaultSite,
+      defaultSiteId: decodedToken.DefaultSiteId
     };
     console.log('Connected User Details fullname + Default site: ', userDetail.fullname + '  ' + userDetail.defaultSite);
     return userDetail;
