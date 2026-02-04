@@ -59,6 +59,54 @@ export class NotificationService implements OnDestroy, OnInit {
     );
   }
 
+  getMissedNotifications(): Observable<TransferNotification[]> {
+    const now = new Date();
+    now.setDate(now.getDate() - 7); // Look back 7 days
+    const since = now.toISOString();
+
+    return this.http.get<any[]>(`${environment.apiBaseUrl}/api/stock/notifications/missed?since=${since}`)
+      .pipe(
+        map(pendingItems => {
+          return pendingItems.map(item => {
+            try {
+              // item.content is a JSON string containing the NotificationDto
+              const content = JSON.parse(item.content);
+              // NotificationDto has AdditionalData string/object
+              let additionalData = content.AdditionalData;
+              // Sometimes AdditionalData might be a JSON string itself depending on serialization depth
+              if (typeof additionalData === 'string') {
+                try { additionalData = JSON.parse(additionalData); } catch { }
+              }
+
+              return {
+                id: content.TransferId, // Use TransferId as the ID for client logic
+                transferRef: content.Reference,
+                originSite: content.OriginSite, // This might be address string
+                date: new Date(item.createdAt),
+                itemsCount: content.ItemsCount,
+                exitDocNumber: additionalData?.ExitDocNumber,
+                receiptDocNumber: additionalData?.ReceiptDocNumber,
+                destinationSiteId: Number(item.targetGroup) // targetGroup stores the Site ID
+              } as TransferNotification;
+            } catch (e) {
+              console.error('Failed to parse missed notification', item, e);
+              return null;
+            }
+          }).filter(n => n !== null) as TransferNotification[];
+        }),
+        map(notifications => {
+          // Merge with existing
+          notifications.forEach(n => {
+            if (!this.notifications.some(existing => existing.id === n.id)) {
+              this.notifications.push(n);
+              this.showNotification(n);
+            }
+          });
+          return this.notifications;
+        })
+      );
+  }
+
   private initializeConnection() {
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl(`${environment.apiBaseUrl}/api/notificationHub`, {

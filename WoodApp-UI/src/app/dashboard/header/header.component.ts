@@ -30,21 +30,21 @@ export class HeaderComponent implements OnInit, AfterViewInit {
       this.notificationService.startConnection();
     }
 
-    // Wait 5 seconds before retrying to ensure connection is established
-    setTimeout(() => this.triggerRetry(), 5000);
+    // Wait 2 seconds before fetching missed to ensure auth is settled
+    setTimeout(() => this.fetchMissedNotifications(), 2000);
   }
 
-  triggerRetry() {
-    this.notificationService.retryFailedNotifications().subscribe({
-      next: (response: string) => {
-        this.toastr.info("Recherche de Notifications"); // Will show "Retry initiated"
-        console.log('Retry response:', response);
-        console.log('Call this.notificationService.retryRegisterHandlers()');
+  fetchMissedNotifications() {
+    this.notificationService.getMissedNotifications().subscribe({
+      next: (count) => {
+        if (count && count.length > 0) {
+          this.toastr.info(`${count.length} notification(s) manquée(s) récupérée(s)`);
+        }
+        // Also ensure retry handlers are registered in case backend pushes retries
         this.notificationService.retryRegisterHandlers();
       },
       error: (err) => {
-        this.toastr.error('Retry failed');
-        console.error('Retry failed:', err);
+        console.error('Failed to fetch missed notifications:', err);
       }
     });
   }
@@ -112,12 +112,14 @@ export class HeaderComponent implements OnInit, AfterViewInit {
     const dialogRef = this.dialog.open(TransferConfirmationComponent, {
       maxWidth: '700px',  // Adjust width as needed
       data: {
-        id: notif.id,  // Assuming your notification has an ID
-        transferRef: notif.exitDocNumber,
+        id: notif.id,
+        transferRef: notif.transferRef,
         originSite: notif.originSite,
         itemsCount: notif.itemsCount,
-        date: notif.date || new Date(),  // Use provided date or current date
-        confirmed: false
+        date: notif.date || new Date(),
+        confirmed: false,
+        docSortie: notif.exitDocNumber,
+        docReception: notif.receiptDocNumber
       }
     });
 
