@@ -213,6 +213,10 @@ export class NotificationService implements OnDestroy, OnInit {
     this.notifications = this.notifications.filter(n => n.id !== id);
   }
 
+  clearNotifications() {
+    this.notifications = [];
+  }
+
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();

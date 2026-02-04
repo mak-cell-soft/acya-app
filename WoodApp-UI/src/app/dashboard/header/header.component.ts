@@ -72,6 +72,7 @@ export class HeaderComponent implements OnInit, AfterViewInit {
 
   logout() {
     this.authService.logout();
+    this.notificationService.clearNotifications();
     this.toastr.info("Au revoir et à la prochaine :)");
     this.router.navigate(['/login']);
   }
@@ -120,22 +121,18 @@ export class HeaderComponent implements OnInit, AfterViewInit {
       }
     });
 
-    // dialogRef.afterClosed().subscribe({
-    //   next: (result) => {
-    //     if (result === true) {
-    //       console.log('Transfer was confirmed');
-    //       // Optionally refresh notifications
-    //       this.notificationService.refreshNotifications();
-    //     } else if (result === false) {
-    //       console.log('Transfer was rejected');
-    //       // Optionally refresh notifications
-    //       this.notificationService.refreshNotifications();
-    //     }
-    //   },
-    //   error: (err) => {
-    //     console.error('Dialog error:', err);
-    //   }
-    // });
+    dialogRef.afterClosed().subscribe({
+      next: (result) => {
+        if (result === true || result === false) {
+          // Whether confirmed or rejected, the notification is processed and should be removed
+          this.notificationService.removeNotification(notif.id);
+          this.toastr.success('Notification mise à jour');
+        }
+      },
+      error: (err) => {
+        console.error('Dialog error:', err);
+      }
+    });
   }
   //#endregion
 
