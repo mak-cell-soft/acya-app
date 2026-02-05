@@ -212,29 +212,82 @@ namespace ms.webapp.api.acya.api.Controllers
     }
 
     [HttpGet("notifications/missed")]
-    public async Task<ActionResult> GetMissedNotifications(string since)
+    public async Task<ActionResult> GetMissedNotifications(int userId)
     {
-      var siteId = User.FindFirst("DefaultSiteId")?.Value;
-      if (string.IsNullOrEmpty(siteId))
+      try
       {
-           // Fallback logic
-           var siteAddress = User.FindFirst("DefaultSite")?.Value;
-           if (!string.IsNullOrEmpty(siteAddress))
-           {
-                 var site = await _context.SalesSites.FirstOrDefaultAsync(s => s.Address == siteAddress);
-                 if (site != null) siteId = site.Id.ToString();
-           }
+        string? siteId = null;
+
+        // Try to get siteId from the user's associated SalesSite
+        var user = await _context.AppUsers
+            .Include(u => u.SalesSite)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user?.SalesSite != null)
+        {
+          siteId = user.SalesSite.Id.ToString();
+        }
+
+        // Fallback logic: try to get siteId from JWT claims
+        if (string.IsNullOrEmpty(siteId))
+        {
+          var siteAddress = User.FindFirst("DefaultSite")?.Value;
+          if (!string.IsNullOrEmpty(siteAddress))
+          {
+            var site = await _context.SalesSites
+                .FirstOrDefaultAsync(s => s.Address == siteAddress);
+            if (site != null)
+            {
+              siteId = site.Id.ToString();
+            }
+          }
+        }
+
+        // If still no siteId found, return error
+        if (string.IsNullOrEmpty(siteId))
+        {
+          return BadRequest("User site context not found.");
+        }
+
+        // Fetch pending notifications for the user's site
+        var notifications = await _context.PendingNotifications
+            .Where(n => n.Status == TransferStatus.Pending && n.TargetGroup == siteId)
+            .OrderByDescending(n => n.CreatedAt)
+            .ToListAsync();
+
+        return Ok(notifications);
       }
-
-      if (string.IsNullOrEmpty(siteId)) return BadRequest("User site context not found.");
-
-      var sinceDate = DateTime.Parse(since);
-      var notifications = await _context.PendingNotifications
-          .Where(n => n.CreatedAt > sinceDate && n.TargetGroup == siteId)
-          .ToListAsync();
-
-      return Ok(notifications);
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Error retrieving missed notifications for user {UserId}", userId);
+        return StatusCode(500, $"An error occurred while retrieving notifications: {ex.Message}");
+      }
     }
+
+    // [HttpGet("notifications/missed")]
+    // public async Task<ActionResult> GetMissedNotifications(string since)
+    // {
+    //   var siteId = User.FindFirst("DefaultSiteId")?.Value;
+    //   if (string.IsNullOrEmpty(siteId))
+    //   {
+    //        // Fallback logic
+    //        var siteAddress = User.FindFirst("DefaultSite")?.Value;
+    //        if (!string.IsNullOrEmpty(siteAddress))
+    //        {
+    //              var site = await _context.SalesSites.FirstOrDefaultAsync(s => s.Address == siteAddress);
+    //              if (site != null) siteId = site.Id.ToString();
+    //        }
+    //   }
+
+    //   if (string.IsNullOrEmpty(siteId)) return BadRequest("User site context not found.");
+
+    //   var sinceDate = DateTime.Parse(since);
+    //   var notifications = await _context.PendingNotifications
+    //       .Where(n => n.CreatedAt > sinceDate && n.TargetGroup == siteId)
+    //       .ToListAsync();
+
+    //   return Ok(notifications);
+    // }
 
   }
 

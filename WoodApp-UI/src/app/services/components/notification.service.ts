@@ -64,7 +64,9 @@ export class NotificationService implements OnDestroy, OnInit {
     now.setDate(now.getDate() - 7); // Look back 7 days
     const since = now.toISOString();
 
-    return this.http.get<any[]>(`${environment.apiBaseUrl}/api/stock/notifications/missed?since=${since}`)
+
+    let user = this.authService.getUserDetail();
+    return this.http.get<any[]>(`${environment.apiBaseUrl}/api/stock/notifications/missed?userId=${user!.id}`)
       .pipe(
         map(pendingItems => {
           return pendingItems.map(item => {
