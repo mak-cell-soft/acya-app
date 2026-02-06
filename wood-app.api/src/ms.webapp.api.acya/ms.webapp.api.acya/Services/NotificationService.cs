@@ -32,8 +32,7 @@ namespace ms.webapp.api.acya.api.Services
         TargetGroup = notification.TargetGroup,
         CreatedAt = DateTime.UtcNow,
         Status = TransferStatus.Pending,
-        DeliveredAt= DateTime.UtcNow,
-        LastAttemptAt= DateTime.UtcNow
+        RetryCount = 0
       };
 
       _context!.PendingNotifications.Add(pending);
@@ -84,8 +83,7 @@ namespace ms.webapp.api.acya.api.Services
         _logger.LogInformation("****************************************************************");
         _logger.LogInformation("Successfully delivered RetryReceiveNotification {NotificationId}", pendingNotification.Id);
 
-        // Update status
-        pendingNotification.Status = TransferStatus.Delivered;
+        // Mark as pushed but keep Pending status until user action
         pendingNotification.DeliveredAt = DateTime.UtcNow;
         pendingNotification.ErrorMessage = null;
 
@@ -111,7 +109,7 @@ namespace ms.webapp.api.acya.api.Services
     public async Task RetryFailedNotifications()
     {
       var failed = await _context!.PendingNotifications
-          .Where(n => n.Status == TransferStatus.Pending)
+          .Where(n => n.Status == TransferStatus.Pending && n.DeliveredAt == null)
           .ToListAsync();
 
       foreach (var notification in failed)
@@ -120,12 +118,13 @@ namespace ms.webapp.api.acya.api.Services
       }
     }
 
-    public async Task DeleteNotificationByTransferId(int transferId, string targetGroup)
+    public async Task UpdateStatusByTransferId(int transferId, string targetGroup, TransferStatus newStatus)
     {
-       // Fetch all pending notifications for this group to avoid loading everything
-       // and verify content in memory
+       // Fetch all notifications for this group and verify content in memory
+       // This handles cases where multiple notifications might exist for the same transfer
        var candidates = await _context!.PendingNotifications
-           .Where(n => n.TargetGroup == targetGroup && n.Status == TransferStatus.Pending)
+           .Where(n => n.TargetGroup == targetGroup && 
+                      (n.Status == TransferStatus.Pending || n.Status == TransferStatus.Delivered))
            .ToListAsync();
 
        foreach (var notification in candidates)
@@ -135,9 +134,14 @@ namespace ms.webapp.api.acya.api.Services
                var content = JsonSerializer.Deserialize<NotificationDto>(notification.Content!);
                if (content != null && content.TransferId == transferId)
                {
-                   _context.PendingNotifications.Remove(notification);
-                   await _hubContext.Clients.Group(notification.TargetGroup!)
-                        .SendAsync("NotificationDeleted", new { id = transferId });
+                   notification.Status = newStatus;
+                   
+                   if (newStatus == TransferStatus.Confirmed || newStatus == TransferStatus.Rejected)
+                   {
+                       // Finalized
+                       await _hubContext.Clients.Group(notification.TargetGroup!)
+                            .SendAsync("NotificationFinalized", new { id = transferId, status = newStatus.ToString() });
+                   }
                }
            }
            catch
@@ -147,6 +151,17 @@ namespace ms.webapp.api.acya.api.Services
        }
        
        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteNotificationByTransferId(int transferId, string targetGroup)
+    {
+        // For backwards compatibility or explicit dismissal, we can either delete or mark as Rejected/Cancelled
+        // Let's stick to the directive: "Status should only change to Delivered, Confirmed, or Rejected"
+        // But if explicitly "Deleted" from UI, maybe mark as Rejected or similar if we want to keep it.
+        // Or actually delete it if it's meant to be a transient queue.
+        // Given the requirement "Consider adding a ViewedAt timestamp for analytics", keeping them is better.
+        
+        await UpdateStatusByTransferId(transferId, targetGroup, TransferStatus.Rejected); 
     }
   }
 }

@@ -264,6 +264,12 @@ namespace ms.webapp.api.acya.api.Services
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
+                // Finalize notification
+                if (transfer.ReceiptDocument != null)
+                {
+                    await _notificationService.UpdateStatusByTransferId(transferId, transfer.ReceiptDocument.SalesSiteId.ToString(), TransferStatus.Confirmed);
+                }
+
                 return StockTransferResult.Ok(
                     "Transfer confirmed and stock updated",
                     transfer.Id,
@@ -310,6 +316,17 @@ namespace ms.webapp.api.acya.api.Services
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
+
+                // Finalize notification at destination site
+                var destinationSiteId = await _context.Documents
+                    .Where(d => d.Id == transfer.ReceiptDocumentId)
+                    .Select(d => d.SalesSiteId)
+                    .FirstOrDefaultAsync();
+                
+                if (destinationSiteId != 0)
+                {
+                    await _notificationService.UpdateStatusByTransferId(transferId, destinationSiteId.ToString(), TransferStatus.Rejected);
+                }
 
                 // Notify Origin
                 if (transfer.ExitDocument != null && transfer.Status == TransferStatus.Pending)

@@ -249,9 +249,12 @@ namespace ms.webapp.api.acya.api.Controllers
           return BadRequest("User site context not found.");
         }
 
-        // Fetch pending notifications for the user's site
+        // Fetch non-finalized notifications (exclude Confirmed, Rejected, Cancelled)
         var notifications = await _context.PendingNotifications
-            .Where(n => n.Status == TransferStatus.Pending && n.TargetGroup == siteId)
+            .Where(n => n.Status != TransferStatus.Confirmed && 
+                        n.Status != TransferStatus.Rejected && 
+                        n.Status != TransferStatus.Cancelled && 
+                        n.TargetGroup == siteId)
             .OrderByDescending(n => n.CreatedAt)
             .ToListAsync();
 
@@ -263,32 +266,6 @@ namespace ms.webapp.api.acya.api.Controllers
         return StatusCode(500, $"An error occurred while retrieving notifications: {ex.Message}");
       }
     }
-
-    // [HttpGet("notifications/missed")]
-    // public async Task<ActionResult> GetMissedNotifications(string since)
-    // {
-    //   var siteId = User.FindFirst("DefaultSiteId")?.Value;
-    //   if (string.IsNullOrEmpty(siteId))
-    //   {
-    //        // Fallback logic
-    //        var siteAddress = User.FindFirst("DefaultSite")?.Value;
-    //        if (!string.IsNullOrEmpty(siteAddress))
-    //        {
-    //              var site = await _context.SalesSites.FirstOrDefaultAsync(s => s.Address == siteAddress);
-    //              if (site != null) siteId = site.Id.ToString();
-    //        }
-    //   }
-
-    //   if (string.IsNullOrEmpty(siteId)) return BadRequest("User site context not found.");
-
-    //   var sinceDate = DateTime.Parse(since);
-    //   var notifications = await _context.PendingNotifications
-    //       .Where(n => n.CreatedAt > sinceDate && n.TargetGroup == siteId)
-    //       .ToListAsync();
-
-    //   return Ok(notifications);
-    // }
-
   }
 
 }

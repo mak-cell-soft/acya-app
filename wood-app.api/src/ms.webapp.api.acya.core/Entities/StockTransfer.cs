@@ -61,7 +61,7 @@ namespace ms.webapp.api.acya.core.Entities
     public DateTime? LastAttemptAt { get; set; }
 
     public DateTime? DeliveredAt { get; set; }
-
+    
     [StringLength(500)]
     public string? ErrorMessage { get; set; }
 
