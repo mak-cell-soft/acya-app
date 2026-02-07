@@ -4,7 +4,7 @@ import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
 import { Stock, StockQuantity, StockWithLengthDetails, WoodParams } from '../../models/components/stock';
 import { Site } from '../../models/components/sites';
-import { StockTransferDetails, StockTransferInfo, StockTransfert } from '../../models/components/stock_transfert';
+import { ConfirmTransferResponse, StockTransferDetails, StockTransferInfo, StockTransfert } from '../../models/components/stock_transfert';
 import { AuthenticationService } from './authentication.service';
 
 @Injectable({
@@ -95,12 +95,23 @@ export class StockService {
     return this.http.get<StockTransferDetails[]>(this.baseUrl + 'Stock/transfers/details', { params });
   }
 
-  confirmTransfer(transferId: number, comment: string) {
+  // confirmTransfer(transferId: number, comment: string) {
+  //   const userId = this.authService.getUserDetail()?.id;
+  //   return this.http.post(`${this.baseUrl}Stock/confirm-transfer/${transferId}`, {
+  //     confirmedByUserId: userId,
+  //     comment
+  //   });
+  // }
+
+  confirmTransfer(transferId: number, comment: string): Observable<ConfirmTransferResponse> {
     const userId = this.authService.getUserDetail()?.id;
-    return this.http.post(`${this.baseUrl}Stock/confirm-transfer/${transferId}`, {
-      confirmedByUserId: userId,
-      comment
-    });
+    return this.http.post<ConfirmTransferResponse>(
+      `${this.baseUrl}Stock/confirm-transfer/${transferId}`,
+      {
+        confirmedByUserId: userId,
+        comment
+      }
+    );
   }
 
   rejectTransfer(transferId: number, comment: string) {

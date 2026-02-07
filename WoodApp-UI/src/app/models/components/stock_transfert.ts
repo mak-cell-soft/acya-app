@@ -63,3 +63,9 @@ export enum TransferStatus_FR {
     Delivered = 'Livré',
     Failed = 'Echoué'
 }
+
+export interface ConfirmTransferResponse {
+    Message: string;
+    ExitDocNumber: string;
+    ReceiptDocNumber: string;
+}

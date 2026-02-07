@@ -85,6 +85,11 @@ namespace ms.webapp.api.acya.api.Controllers
     [HttpGet("_type")]
     public async Task<ActionResult<IEnumerable<DocumentDto>>> GetByType(DocumentTypes _type)
     {
+      // Parse the string to enum
+    if (!Enum.TryParse<DocumentTypes>(_type, true, out var documentType))
+    {
+        return BadRequest($"Invalid document type: {_type}");
+    }
       // First get all DocumentMerchandise records with their relationships
       var documentMerchandises = await _context.DocumentMerchandises
           .Include(dm => dm.Document)
@@ -98,7 +103,8 @@ namespace ms.webapp.api.acya.api.Controllers
               .ThenInclude(m => m!.Articles)
           .Include(dm => dm.QuantityMovements)
               .ThenInclude(qm => qm!.ListOfLengths)
-          .Where(dm => dm.Document!.Type == _type)
+              .ThenInclude(ll=>ll.AppVarLength)
+          .Where(dm => dm.Document!.Type == documentType)
           .ToListAsync();
 
       // Group by Document to avoid duplicates

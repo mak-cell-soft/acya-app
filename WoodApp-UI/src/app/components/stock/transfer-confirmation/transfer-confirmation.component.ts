@@ -3,6 +3,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { StockService } from '../../../services/components/stock.service';
 import { StockTransferDetails, StockTransferInfo } from '../../../models/components/stock_transfert';
 import { ListOfLength } from '../../../models/components/listoflength';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-transfer-confirmation',
@@ -12,6 +13,7 @@ import { ListOfLength } from '../../../models/components/listoflength';
 export class TransferConfirmationComponent implements OnInit {
   comment: string = '';
   stockTransferService = inject(StockService);
+  toastr = inject(ToastrService);
   loading: boolean = false;
 
   // Common data (same for all items)
@@ -77,14 +79,35 @@ export class TransferConfirmationComponent implements OnInit {
       .join(', ');
   }
 
+  // onConfirm(): void {
+  //   this.stockTransferService.confirmTransfer(this.data.id, this.comment).subscribe(() => {
+  //     this.dialogRef.close(true);
+  //   });
+  // }
+
   onConfirm(): void {
-    this.stockTransferService.confirmTransfer(this.data.id, this.comment).subscribe(() => {
-      this.dialogRef.close(true);
+    this.stockTransferService.confirmTransfer(this.data.id, this.comment).subscribe({
+      next: (response) => {
+        this.toastr.success(
+          `Transfer confirmé avec succés`,
+          'Confirmation'
+        );
+        this.dialogRef.close(true);
+      },
+      error: (error) => {
+        const errorMessage = error.error?.Message || error.error || 'An error occurred while confirming the transfer';
+        this.toastr.error(errorMessage, 'Confirmation Failed');
+        console.error('Transfer confirmation error:', error);
+      }
     });
   }
 
   onReject(): void {
     this.stockTransferService.rejectTransfer(this.data.id, this.comment).subscribe(() => {
+      this.toastr.info(
+        `Transfer rejeté avec succés`,
+        'Rejet'
+      );
       this.dialogRef.close(false);
     });
   }

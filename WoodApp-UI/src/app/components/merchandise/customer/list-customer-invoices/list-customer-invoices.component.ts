@@ -74,7 +74,8 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
         this.docService.GetByType(DocumentTypes.customerInvoice).subscribe({
             next: (response: Document[]) => {
                 let filteredData = response;
-
+                console.log(filteredData);
+                this.allCustomerInvoices.data = filteredData;
                 // Filter by Date (Single Date)
                 if (this.filterDate && !this.filterStartDate && !this.filterEndDate) {
                     filteredData = filteredData.filter(d => this.isSameDay(new Date(d.updatedate), this.filterDate));
