@@ -12,7 +12,12 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
 
             // Properties
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Type).HasColumnName("type");
+            entity.Property(e => e.Type)
+                .HasColumnName("type")
+                .HasConversion(
+                    v => v.HasValue ? ((int)v.Value).ToString() : null,
+                    v => !string.IsNullOrEmpty(v) ? (DocumentTypes)int.Parse(v.Trim()) : (DocumentTypes?)null
+                );
             entity.Property(e => e.StockTransactionType).HasColumnName("stocktransactiontype");
             entity.Property(e => e.DocNumber).HasColumnName("docnumber");
             entity.Property(e => e.Description).HasColumnName("description");
