@@ -86,41 +86,35 @@ namespace ms.webapp.api.acya.api.Controllers
     public async Task<ActionResult<IEnumerable<DocumentDto>>> GetByType(string _type)
     {
       // Parse the string to enum
-    if (!Enum.TryParse<DocumentTypes>(_type, true, out var documentType))
-    {
+      if (!Enum.TryParse<DocumentTypes>(_type, true, out var documentType))
+      {
         return BadRequest($"Invalid document type: {_type}");
-    }
-      // First get all DocumentMerchandise records with their relationships
-      var documentMerchandises = await _context.DocumentMerchandises
-          .Include(dm => dm.Document)
-              .ThenInclude(d => d!.CounterPart)
-          .Include(dm => dm.Document)
-              .ThenInclude(d => d!.SalesSite)
-          .Include(dm => dm.Document)
-              .ThenInclude(d => d!.AppUsers)
-                  .ThenInclude(u => u!.Persons)
-          .Include(dm => dm.Merchandise)
-              .ThenInclude(m => m!.Articles)
-          .Include(dm => dm.QuantityMovements)
-              .ThenInclude(qm => qm!.ListOfLengths)
-              .ThenInclude(ll=>ll.AppVarLength)
-          .Where(dm => dm.Document!.Type == documentType)
-          .ToListAsync();
+      }
 
-      // Group by Document to avoid duplicates
-      var documents = documentMerchandises
-          .GroupBy(dm => dm.Document)
-          .Select(g => g.Key)
-          .ToList();
+      // Query from Documents instead of DocumentMerchandises
+      // This ensures we get the document even if it has no direct merchandise records
+      var documents = await _context.Documents
+          .Include(d => d.CounterPart)
+          .Include(d => d.SalesSite)
+          .Include(d => d.AppUsers)
+              .ThenInclude(u => u!.Persons)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.Merchandise)
+                  .ThenInclude(m => m!.Articles)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.QuantityMovements)
+                  .ThenInclude(qm => qm!.ListOfLengths)
+                      .ThenInclude(ll => ll.AppVarLength)
+          .Where(d => d.Type == documentType)
+          .ToListAsync();
 
       // Convert to DTOs
       var documentDtos = documents.Select(d =>
       {
-        var dto = new DocumentDto(d!);
+        var dto = new DocumentDto(d);
 
-        // Add DocumentMerchandise data to the DTO
-        dto.merchandises = documentMerchandises
-            .Where(dm => dm.DocumentId == d!.Id)
+        // Map the specific DocumentMerchandise data (prices, specific quantities) to the DTO
+        dto.merchandises = d.DocumentMerchandises
             .Select(dm => new MerchandiseDto
             {
               id = dm.MerchandiseId,
@@ -132,7 +126,6 @@ namespace ms.webapp.api.acya.api.Controllers
               cost_discount_value = dm.CostDiscountValue,
               tva_value = dm.TvaValue,
               cost_ttc = dm.CostTTC,
-              // Add other properties as needed
               article = dm.Merchandise?.Articles != null ?
                     new ArticleDto(dm.Merchandise.Articles) : null,
               lisoflengths = dm.QuantityMovements?.ListOfLengths?
@@ -148,7 +141,7 @@ namespace ms.webapp.api.acya.api.Controllers
             .ToArray();
 
         return dto;
-      });
+      }).ToList();
 
       return Ok(documentDtos);
     }
