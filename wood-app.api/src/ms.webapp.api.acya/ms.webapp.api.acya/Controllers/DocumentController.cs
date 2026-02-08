@@ -83,7 +83,7 @@ namespace ms.webapp.api.acya.api.Controllers
     //}
 
     [HttpGet("_type")]
-    public async Task<ActionResult<IEnumerable<DocumentDto>>> GetByType(string _type)
+    public async Task<ActionResult<IEnumerable<DocumentDto>>> GetByType(DocumentTypes _type)
     {
       // Parse the string to enum
       if (!Enum.TryParse<DocumentTypes>(_type, true, out var documentType))
@@ -116,7 +116,7 @@ namespace ms.webapp.api.acya.api.Controllers
                       .ThenInclude(cdm => cdm.QuantityMovements)
                           .ThenInclude(qm => qm!.ListOfLengths)
                               .ThenInclude(ll => ll.AppVarLength)
-          .Where(d => d.Type == documentType)
+          .Where(d => d.Type == _type)
           .ToListAsync();
 
       // Convert to DTOs
