@@ -64,6 +64,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public BillingStatus billingstatus { get; set; }
 
     public ICollection<DocumentDto>? childdocuments { get; set; } = new List<DocumentDto>();
+    public List<string>? deliveryNoteDocNumbers { get; set; }
 
     public DocumentDto()
     {

@@ -105,6 +105,17 @@ namespace ms.webapp.api.acya.api.Controllers
               .ThenInclude(dm => dm.QuantityMovements)
                   .ThenInclude(qm => qm!.ListOfLengths)
                       .ThenInclude(ll => ll.AppVarLength)
+          .Include(d => d.ChildDocuments)
+              .ThenInclude(cd => cd.ChildDocument)
+                  .ThenInclude(c => c!.DocumentMerchandises)
+                      .ThenInclude(cdm => cdm.Merchandise)
+                          .ThenInclude(m => m!.Articles)
+          .Include(d => d.ChildDocuments)
+              .ThenInclude(cd => cd.ChildDocument)
+                  .ThenInclude(c => c!.DocumentMerchandises)
+                      .ThenInclude(cdm => cdm.QuantityMovements)
+                          .ThenInclude(qm => qm!.ListOfLengths)
+                              .ThenInclude(ll => ll.AppVarLength)
           .Where(d => d.Type == documentType)
           .ToListAsync();
 
@@ -113,8 +124,36 @@ namespace ms.webapp.api.acya.api.Controllers
       {
         var dto = new DocumentDto(d);
 
-        // Map the specific DocumentMerchandise data (prices, specific quantities) to the DTO
-        dto.merchandises = d.DocumentMerchandises
+        // Logic to retrieve merchandises: 
+        // 1. If ChildDocuments exist (Generated Invoice), aggregate from them
+        // 2. Otherwise use d.DocumentMerchandises (Direct Invoice)
+        
+        var sourceMerchandises = new List<DocumentMerchandise>();
+        if (d.ChildDocuments != null && d.ChildDocuments.Any())
+        {
+            dto.deliveryNoteDocNumbers = d.ChildDocuments
+                .Where(cd => cd.ChildDocument != null)
+                .Select(cd => cd.ChildDocument!.DocNumber ?? "")
+                .ToList();
+
+            foreach (var rel in d.ChildDocuments.Where(cd => cd.ChildDocument != null))
+            {
+                if (rel.ChildDocument!.DocumentMerchandises != null)
+                {
+                    sourceMerchandises.AddRange(rel.ChildDocument.DocumentMerchandises);
+                }
+            }
+        }
+        else
+        {
+            if (d.DocumentMerchandises != null)
+            {
+                sourceMerchandises.AddRange(d.DocumentMerchandises);
+            }
+        }
+
+        // Map the source merchandises to the DTO
+        dto.merchandises = sourceMerchandises
             .Select(dm => new MerchandiseDto
             {
               id = dm.MerchandiseId,
@@ -149,41 +188,72 @@ namespace ms.webapp.api.acya.api.Controllers
     [HttpPost("_typefiltered")]
     public async Task<ActionResult<IEnumerable<DocumentDto>>> GetByTypeByMonth([FromBody] TypeDocToFilterDto _type)
     {
-      // First get all DocumentMerchandise records with their relationships
-      var documentMerchandises = await _context.DocumentMerchandises
-          .Include(dm => dm.Document)
-              .ThenInclude(d => d!.CounterPart)
-          .Include(dm => dm.Document)
-              .ThenInclude(d => d!.SalesSite)
-          .Include(dm => dm.Document)
-              .ThenInclude(d => d!.AppUsers)
-                  .ThenInclude(u => u!.Persons)
-          .Include(dm => dm.Merchandise)
-              .ThenInclude(m => m!.Articles)
-          .Include(dm => dm.QuantityMovements)
-              .ThenInclude(qm => qm!.ListOfLengths)
-                .ThenInclude(ll=>ll.AppVarLength)
-          .Where(dm => dm.Document!.Type == _type.typeDoc)
-          .Where(dm => dm.Document!.CreationDate.HasValue
-           && dm.Document.CreationDate.Value.Day == _type.day
-                   && dm.Document.CreationDate.Value.Month == _type.month
-                   && dm.Document.CreationDate.Value.Year == _type.year)
-      .ToListAsync();
-
-      // Group by Document to avoid duplicates
-      var documents = documentMerchandises
-          .GroupBy(dm => dm.Document)
-          .Select(g => g.Key)
-          .ToList();
+      // Query from Documents instead of DocumentMerchandises
+      var documents = await _context.Documents
+          .Include(d => d.CounterPart)
+          .Include(d => d.SalesSite)
+          .Include(d => d.AppUsers)
+              .ThenInclude(u => u!.Persons)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.Merchandise)
+                  .ThenInclude(m => m!.Articles)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.QuantityMovements)
+                  .ThenInclude(qm => qm!.ListOfLengths)
+                      .ThenInclude(ll => ll.AppVarLength)
+          .Include(d => d.ChildDocuments)
+              .ThenInclude(cd => cd.ChildDocument)
+                  .ThenInclude(c => c!.DocumentMerchandises)
+                      .ThenInclude(cdm => cdm.Merchandise)
+                          .ThenInclude(m => m!.Articles)
+          .Include(d => d.ChildDocuments)
+              .ThenInclude(cd => cd.ChildDocument)
+                  .ThenInclude(c => c!.DocumentMerchandises)
+                      .ThenInclude(cdm => cdm.QuantityMovements)
+                          .ThenInclude(qm => qm!.ListOfLengths)
+                              .ThenInclude(ll => ll.AppVarLength)
+          .Where(d => d.Type == _type.typeDoc)
+          .Where(d => d.CreationDate.HasValue
+                   && d.CreationDate.Value.Day == _type.day
+                   && d.CreationDate.Value.Month == _type.month
+                   && d.CreationDate.Value.Year == _type.year)
+          .ToListAsync();
 
       // Convert to DTOs
       var documentDtos = documents.Select(d =>
       {
-        var dto = new DocumentDto(d!);
+        var dto = new DocumentDto(d);
 
-        // Add DocumentMerchandise data to the DTO
-        dto.merchandises = documentMerchandises
-            .Where(dm => dm.DocumentId == d!.Id)
+        // Logic to retrieve merchandises: 
+        // 1. If ChildDocuments exist (Generated Invoice), aggregate from them
+        // 2. Otherwise use d.DocumentMerchandises (Direct Invoice)
+        
+        var sourceMerchandises = new List<DocumentMerchandise>();
+        if (d.ChildDocuments != null && d.ChildDocuments.Any())
+        {
+            dto.deliveryNoteDocNumbers = d.ChildDocuments
+                .Where(cd => cd.ChildDocument != null)
+                .Select(cd => cd.ChildDocument!.DocNumber ?? "")
+                .ToList();
+
+            foreach (var rel in d.ChildDocuments.Where(cd => cd.ChildDocument != null))
+            {
+                if (rel.ChildDocument!.DocumentMerchandises != null)
+                {
+                    sourceMerchandises.AddRange(rel.ChildDocument.DocumentMerchandises);
+                }
+            }
+        }
+        else
+        {
+            if (d.DocumentMerchandises != null)
+            {
+                sourceMerchandises.AddRange(d.DocumentMerchandises);
+            }
+        }
+
+        // Map the source merchandises to the DTO
+        dto.merchandises = sourceMerchandises
             .Select(dm => new MerchandiseDto
             {
               id = dm.MerchandiseId,
@@ -195,7 +265,6 @@ namespace ms.webapp.api.acya.api.Controllers
               cost_discount_value = dm.CostDiscountValue,
               tva_value = dm.TvaValue,
               cost_ttc = dm.CostTTC,
-              // Add other properties as needed
               article = dm.Merchandise?.Articles != null ?
                     new ArticleDto(dm.Merchandise.Articles) : null,
               lisoflengths = dm.QuantityMovements?.ListOfLengths?
@@ -211,7 +280,7 @@ namespace ms.webapp.api.acya.api.Controllers
             .ToArray();
 
         return dto;
-      });
+      }).ToList();
 
       return Ok(documentDtos);
     }
