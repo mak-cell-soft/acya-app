@@ -10,7 +10,7 @@
         <mat-card-content>
             <div class="row">
                 <div class="col">
-                    <strong>Créé par :</strong> {{document.appuser.email || 'Inconnu'}}
+                    <strong>Créé par :</strong> {{document.appuser.login || 'Inconnu'}}
                 </div>
                 <div class="col">
                     <strong>Date :</strong> {{document.updatedate | date: 'dd/MM/yyyy HH:mm'}}

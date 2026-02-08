@@ -23,7 +23,7 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
 
     // Filters
     filterClient: string = '';
-    filterDate: Date = new Date(); // Default to today
+    filterDate: Date | null = new Date(); // Default to today
     filterStartDate?: Date;
     filterEndDate?: Date;
 
@@ -43,6 +43,7 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
     // Enums for Template
     DocStatus = DocStatus;
     BillingStatus = BillingStatus;
+    isLoading: boolean = false;
 
     ngAfterViewInit() {
         this.allCustomerInvoices.paginator = this.paginator;
@@ -54,6 +55,7 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
     }
 
     fetchInvoices() {
+        this.isLoading = true;
         // Note: The backend generally handles retrieving by type. 
         // If the API supports filtering by date params directly, we would use that.
         // Based on reference, it fetches by type then filters or fetches specific filtered type.
@@ -78,7 +80,7 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
                 this.allCustomerInvoices.data = filteredData;
                 // Filter by Date (Single Date)
                 if (this.filterDate && !this.filterStartDate && !this.filterEndDate) {
-                    filteredData = filteredData.filter(d => this.isSameDay(new Date(d.updatedate), this.filterDate));
+                    filteredData = filteredData.filter(d => this.isSameDay(new Date(d.updatedate), this.filterDate!));
                     // Note: using updatedate as per reference (or creationdate?) Reference uses updatedate in table display.
                 }
 
@@ -101,14 +103,16 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
                 }
 
                 // Sort desc
-                filteredData.sort((a, b) => b.docnumber.localeCompare(a.docnumber));
+                filteredData.sort((a, b) => (b.docnumber || "").localeCompare(a.docnumber || ""));
 
                 this.allCustomerInvoices.data = filteredData;
                 this.updateSummary();
+                this.isLoading = false;
             },
             error: (error) => {
                 console.error(error);
                 this.toastr.error('Erreur lors du chargement des factures');
+                this.isLoading = false;
             }
         });
     }
@@ -130,7 +134,7 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
         this.invoiceCount = this.allCustomerInvoices.data.length;
         this.totalHt = this.allCustomerInvoices.data.reduce((acc, curr) => acc + (curr.total_ht_net_doc || 0), 0);
         this.totalTva = this.allCustomerInvoices.data.reduce((acc, curr) => acc + (curr.total_tva_doc || 0), 0);
-        this.totalTtc = this.allCustomerInvoices.data.reduce((acc, curr) => acc + (curr.total_net_ttc || 0), 0);
+        this.totalTtc = this.totalHt + this.totalTva;
     }
 
     onDetail(doc: Document) {
@@ -151,25 +155,25 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
     }
 
     // Helpers for Status
-    getStatusInfo(status: DocStatus): { text: string, color: string } {
+    getStatusInfo(status: DocStatus): { text: string, color: string, bgColor: string } {
         switch (status) {
-            case DocStatus.Delivered: return { text: DocStatus_FR.Delivered, color: '#4CAF50' };
-            case DocStatus.Abandoned: return { text: DocStatus_FR.Abandoned, color: '#F44336' };
-            case DocStatus.Created: return { text: DocStatus_FR.Created, color: '#2196F3' };
-            case DocStatus.Deleted: return { text: DocStatus_FR.Deleted, color: '#9E9E9E' };
-            case DocStatus.NotDelivered: return { text: DocStatus_FR.NotDelivered, color: '#FF9800' };
-            case DocStatus.NotConfirmed: return { text: DocStatus_FR.NotConfirmed, color: '#FFC107' };
-            case DocStatus.Confirmed: return { text: DocStatus_FR.Confirmed, color: '#4CAF50' };
-            default: return { text: 'Inconnu', color: '#9E9E9E' };
+            case DocStatus.Delivered: return { text: DocStatus_FR.Delivered, color: '#2e7d32', bgColor: '#e8f5e9' };
+            case DocStatus.Abandoned: return { text: DocStatus_FR.Abandoned, color: '#c62828', bgColor: '#ffebee' };
+            case DocStatus.Created: return { text: DocStatus_FR.Created, color: '#1565c0', bgColor: '#e3f2fd' };
+            case DocStatus.Deleted: return { text: DocStatus_FR.Deleted, color: '#37474f', bgColor: '#eceff1' };
+            case DocStatus.NotDelivered: return { text: DocStatus_FR.NotDelivered, color: '#ef6c00', bgColor: '#fff3e0' };
+            case DocStatus.NotConfirmed: return { text: DocStatus_FR.NotConfirmed, color: '#f9a825', bgColor: '#fffde7' };
+            case DocStatus.Confirmed: return { text: DocStatus_FR.Confirmed, color: '#2e7d32', bgColor: '#e8f5e9' };
+            default: return { text: 'Inconnu', color: '#37474f', bgColor: '#eceff1' };
         }
     }
 
-    getBillingStatusInfo(status: BillingStatus): { text: string, color: string } {
+    getBillingStatusInfo(status: BillingStatus): { text: string, color: string, bgColor: string } {
         switch (status) {
-            case BillingStatus.NotBilled: return { text: 'Non Payé', color: '#FF5722' };
-            case BillingStatus.Billed: return { text: 'Payé', color: '#4CAF50' };
-            case BillingStatus.PartiallyBilled: return { text: 'Partiellement Payé', color: '#FFC107' };
-            default: return { text: 'Non Payé', color: '#FF5722' };
+            case BillingStatus.NotBilled: return { text: 'Non Payé', color: '#d84315', bgColor: '#fbe9e7' };
+            case BillingStatus.Billed: return { text: 'Payé', color: '#2e7d32', bgColor: '#e8f5e9' };
+            case BillingStatus.PartiallyBilled: return { text: 'Partiellement Payé', color: '#f9a825', bgColor: '#fffde7' };
+            default: return { text: 'Non Payé', color: '#d84315', bgColor: '#fbe9e7' };
         }
     }
 }

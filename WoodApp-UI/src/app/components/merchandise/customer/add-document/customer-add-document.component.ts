@@ -664,7 +664,8 @@ export class CustomerAddDocumentComponent {
         appuser: _user,
         editing: false,
         docstatus: 3,
-        billingstatus: BillingStatus.NotBilled
+        billingstatus: BillingStatus.NotBilled,
+        deliveryNoteDocNumbers: []
       };
 
       console.log('Created Document : ', doc);

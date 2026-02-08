@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { Document, DocumentTypes } from '../../../../../models/components/document';
+import { DocStatus, Document, DocumentTypes } from '../../../../../models/components/document';
 import { PaymentModalComponent } from '../../../../../dashboard/modals/payment-modal/payment-modal.component';
 import { DocumentService } from '../../../../../services/components/document.service';
 import { PaymentService } from '../../../../../services/components/payment.service';
@@ -235,7 +235,10 @@ export class DocumentConversionModalComponent implements OnInit {
 
         // Use first document as template for invoice header
         const firstDoc = this.documents[0];
-        const newInvoice: Document = { ...firstDoc };
+        const newInvoice: Document = {
+            ...firstDoc,
+            deliveryNoteDocNumbers: []
+        };
 
         // If batch mode, validation for required fields
         if (this.isBatchMode) {
@@ -264,6 +267,7 @@ export class DocumentConversionModalComponent implements OnInit {
         newInvoice.docnumber = ''; // Allow backend to generate new number
         newInvoice.creationdate = new Date();
         newInvoice.updatedate = new Date();
+        newInvoice.docstatus = DocStatus.Confirmed;
 
         // Use calculated totals for batch mode
         if (this.isBatchMode) {
