@@ -85,12 +85,6 @@ namespace ms.webapp.api.acya.api.Controllers
     [HttpGet("_type")]
     public async Task<ActionResult<IEnumerable<DocumentDto>>> GetByType(DocumentTypes _type)
     {
-      // Parse the string to enum
-      if (!Enum.TryParse<DocumentTypes>(_type, true, out var documentType))
-      {
-        return BadRequest($"Invalid document type: {_type}");
-      }
-
       // Query from Documents instead of DocumentMerchandises
       // This ensures we get the document even if it has no direct merchandise records
       var documents = await _context.Documents
