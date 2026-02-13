@@ -55,6 +55,7 @@ export class Document {
     docstatus!: DocStatus;
     billingstatus: BillingStatus = 1;
     deliveryNoteDocNumbers?: string[] = [];
+    transporter?: any;
 }
 
 export class typeDocsToFilter {

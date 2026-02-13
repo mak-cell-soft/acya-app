@@ -25,6 +25,7 @@ import { StockMouvementComponent } from './components/stock/stock-mouvement/stoc
 import { TransfertStockComponent } from './components/stock/stock-transfer/transfert-stock.component';
 import { StockTransferListComponent } from './components/stock/stock-transfer-list/stock-transfer-list.component';
 import { ListCustomerInvoicesComponent } from './components/merchandise/customer/list-customer-invoices/list-customer-invoices.component';
+import { AddInvoiceComponent } from './components/merchandise/customer/add-invoice/add-invoice.component';
 
 const routes: Routes = [
   {
@@ -103,6 +104,7 @@ const routes: Routes = [
       },
       { path: 'customerdelivery', component: ListCustomerDocumentsComponent },
       { path: 'customerinvoices', component: ListCustomerInvoicesComponent },
+      { path: 'customerinvoices/add', component: AddInvoiceComponent },
       { path: 'customerdelivery/add', component: CustomerAddDocumentComponent },
       { path: 'customers', component: ListCustomersComponent },
       {

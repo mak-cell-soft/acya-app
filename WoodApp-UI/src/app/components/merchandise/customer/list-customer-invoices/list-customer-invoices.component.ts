@@ -146,8 +146,7 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
     }
 
     onAddNew() {
-        // this.router.navigateByUrl('home/customerinvoices/add');
-        this.toastr.info("La création de facture directe est en cours de développement. Veuillez créer un BL et le convertir.");
+        this.router.navigateByUrl('home/customerinvoices/add');
     }
 
     onExport() {
