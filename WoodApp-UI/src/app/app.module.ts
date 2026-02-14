@@ -92,6 +92,7 @@ import { TraitePaymentFormComponent } from './dashboard/modals/payment-modal/pay
 import { DocumentConversionModalComponent } from './components/merchandise/customer/list-customer-documents/document-conversion-modal/document-conversion-modal.component';
 import { ListCustomerInvoicesComponent } from './components/merchandise/customer/list-customer-invoices/list-customer-invoices.component';
 import { AddInvoiceComponent } from './components/merchandise/customer/add-invoice/add-invoice.component';
+import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 @NgModule({
   declarations: [
@@ -181,14 +182,16 @@ import { AddInvoiceComponent } from './components/merchandise/customer/add-invoi
     AppRoutingModule,
     StoreModule.forRoot({ appVariableState: appVariableReducer }),
     StoreModule.forFeature('banks', bankReducer),
-    EffectsModule.forRoot([AppVariableEffects, BankEffects])
+    EffectsModule.forRoot([AppVariableEffects, BankEffects]),
+    BaseChartDirective
   ],
   providers: [
     provideClientHydration(),
     DecimalPipe,
     provideAnimationsAsync(),
     { provide: LOCALE_ID, useValue: 'fr' }, // Set French as the locale
-    provideHttpClient(...[withFetch(), withInterceptors([tokenInterceptor])])
+    provideHttpClient(...[withFetch(), withInterceptors([tokenInterceptor])]),
+    provideCharts(withDefaultRegisterables())
   ],
   bootstrap: [AppComponent]
 })

@@ -1,93 +1,142 @@
-.dashboard-container {
-    padding: 20px;
-    background-color: #f5f5f5;
+.dashboard-wrapper {
+    padding: 24px;
+    background-color: #f5f7fa;
+    min-height: calc(100vh - 64px);
 }
 
-.dashboard-header {
-    text-align: left;
-    margin-bottom: 20px;
+.header-section {
+    margin-bottom: 24px;
 }
 
-.dashboard-summary {
+.welcome-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: #6b7280;
+    margin: 0;
+}
+
+/* Shortcuts */
+.shortcuts-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.shortcut-card {
+    cursor: pointer;
+    border-radius: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background-color: white;
+}
+
+.shortcut-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.shortcut-content {
     display: flex;
-    justify-content: space-around;
-    margin-bottom: 20px;
+    align-items: center;
+    gap: 16px;
+    padding: 16px !important;
 }
 
-.card {
-    background-color: #82cbdd;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    width: 22%;
-}
-
-.card-content h3 {
-    margin-bottom: 10px;
-    font-size: 18px;
-}
-
-.card-content p {
-    font-size: 24px;
-    color: #007bff;
-}
-
-.sales-summary,
-.invoices-summary {
+.icon-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
     display: flex;
-    justify-content: space-around;
-    margin-bottom: 20px;
+    align-items: center;
+    justify-content: center;
+    color: white;
 }
 
-.sales-item,
-.invoice-item {
-    background-color: #415e94;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.bg-blue {
+    background-color: #3b82f6;
+}
+
+.bg-orange {
+    background-color: #f97316;
+}
+
+.bg-green {
+    background-color: #22c55e;
+}
+
+.bg-purple {
+    background-color: #a855f7;
+}
+
+.shortcut-label {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #374151;
+}
+
+/* Loading */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    gap: 16px;
+    color: #6b7280;
+}
+
+/* Charts Grid */
+.charts-container {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 24px;
+}
+
+.chart-card {
+    border-radius: 12px;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-content {
+    flex: 1;
+    position: relative;
+    padding: 16px;
+    min-height: 0;
+}
+
+.doughnut-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.sales-today {
+    color: #22c55e;
+    font-weight: 700;
+}
+
+.total-contacts {
     text-align: center;
-    width: 22%;
+    margin-top: 10px;
+    color: #6b7280;
+    font-size: 0.9rem;
 }
 
-.sales-item h4,
-.invoice-item h4 {
-    margin-bottom: 10px;
-    font-size: 16px;
-}
+@media (max-width: 992px) {
+    .charts-container {
+        grid-template-columns: 1fr;
+    }
 
-.sales-item p,
-.invoice-item p {
-    font-size: 20px;
-    color: #333;
-}
-
-.sales-chart {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.activity-log {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.activity-log h4 {
-    margin-bottom: 15px;
-}
-
-.activity-log ul {
-    list-style-type: none;
-    padding-left: 0;
-}
-
-.activity-log ul li {
-    margin-bottom: 10px;
-    font-size: 14px;
+    .chart-card {
+        height: auto;
+        min-height: 350px;
+    }
 }
