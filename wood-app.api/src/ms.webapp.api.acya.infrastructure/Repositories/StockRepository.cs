@@ -40,6 +40,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       var all = await context.Stocks
         .Include(s => s.Merchandises)
           .ThenInclude(s => s!.Articles)
+            .ThenInclude(a => a!.Parents)
         .Include(s => s.SalesSites)
         .Include(s => s.AppUsers)
           .ThenInclude(sp => sp!.Persons)
