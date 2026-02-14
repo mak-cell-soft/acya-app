@@ -5,7 +5,7 @@ import { HomeComponent } from './dashboard/home/home.component';
 import { AddArticleComponent } from './components/articles/add-article/add-article.component';
 import { ListArticleComponent } from './components/articles/list-article/list-article.component';
 import { ConfigurationComponent } from './dashboard/configuration/configuration.component';
-import { HomeMenuComponent } from './dashboard/home-menu/home-menu.component';
+import { HomeDashboardComponent } from './dashboard/home-dashboard/home-dashboard.component';
 import { ListProviderComponent } from './components/providers/list-provider/list-provider.component';
 import { AddProviderComponent } from './components/providers/add-provider/add-provider.component';
 import { WebAppComponent } from './auth-web-app/web-app.component';
@@ -71,7 +71,7 @@ const routes: Routes = [
           roles: ['Admin'] // Allow access to this route for users with this role
         }
       },
-      { path: 'dashboard', component: HomeMenuComponent },
+      { path: 'dashboard', component: HomeDashboardComponent },
       { path: 'providers', component: ListProviderComponent },
       {
         path: 'providers/add',

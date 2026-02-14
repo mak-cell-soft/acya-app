@@ -48,7 +48,7 @@ import { AddSalesSiteModalComponent } from './dashboard/modals/add-sales-site-mo
 import { AddCategoriesModalComponent } from './dashboard/modals/add-categories-modal/add-categories-modal.component';
 import { AddSubCategoriesModalComponent } from './dashboard/modals/add-sub-categories-modal/add-sub-categories-modal.component';
 import { AppVariableModalComponent } from './dashboard/modals/add-app-variable-modal/app-variable-modal.component';
-import { HomeMenuComponent } from './dashboard/home-menu/home-menu.component';
+import { HomeDashboardComponent } from './dashboard/home-dashboard/home-dashboard.component';
 
 import { EffectsModule } from '@ngrx/effects';
 import { appVariableReducer } from './store/reducers/appvariable.reducer';
@@ -108,7 +108,7 @@ import { AddInvoiceComponent } from './components/merchandise/customer/add-invoi
     AddCategoriesModalComponent,
     AddSubCategoriesModalComponent,
     AppVariableModalComponent,
-    HomeMenuComponent,
+    HomeDashboardComponent,
     AddProviderComponent,
     ListProviderComponent,
     PermissionsModalComponent,
