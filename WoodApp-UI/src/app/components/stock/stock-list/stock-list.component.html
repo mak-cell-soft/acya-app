@@ -18,95 +18,107 @@
             Mouvement Stock</button>
     </div>
 </mat-toolbar>
+
 <!-- Add this progress bar at the top of the page -->
 <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
 
-<div class="search">
-    <div class="search-bar-container">
-        <button mat-icon-button>
-            <mat-icon>
-                search
-            </mat-icon>
-        </button>
-        <input (keyup)="applyFilter($event)" placeholder="Rechercher dans le Stock" #input />
+<!-- Sticky Category Navigation -->
+<div class="sticky-nav-container" *ngIf="categoryGroups.length > 0">
+    <div class="category-shortcuts">
+        <div *ngFor="let group of categoryGroups" class="shortcut-card" (click)="scrollToCategory(group.id)" matRipple>
+            <div class="shortcut-content">
+                <span class="shortcut-name">{{group.categoryName}}</span>
+                <span class="shortcut-badge">{{group.totalQuantity | number:'1.3-3'}} {{group.unit}}</span>
+            </div>
+        </div>
     </div>
-
 </div>
 
-<!-- Table List Stock -->
-<div class="table-container mat-elevation-z8">
-    <table mat-table [dataSource]="allStocks" matSort class="article-table" *ngIf="allStocks.data.length"
-        multiTemplateDataRows>
+<div class="main-content-container">
+    <div *ngFor="let group of categoryGroups" [id]="group.id" class="category-section">
 
-        <ng-container matColumnDef="articleReference">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell">Référence Article</th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell">
-                {{element.merchandise.article.reference}}</td>
-        </ng-container>
+        <div class="category-header">
+            <h3>{{group.categoryName}}</h3>
 
-        <ng-container matColumnDef="articleDescription">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell description-column">Description</th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell description-column">
-                {{element.merchandise.article.description}}</td>
-        </ng-container>
+            <div class="search-bar-container local-search">
+                <button mat-icon-button>
+                    <mat-icon>search</mat-icon>
+                </button>
+                <input (keyup)="applyCategoryFilter(group, $event)" placeholder="Rechercher dans {{group.categoryName}}"
+                    #input />
+            </div>
+        </div>
 
-        <ng-container matColumnDef="packageReference">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell">Référence Paquet</th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell">
-                {{element.merchandise.packagereference?.trim() ? element.merchandise.packagereference : 'Standard'}}
-            </td>
-        </ng-container>
+        <!-- Table List Stock -->
+        <div class="table-container mat-elevation-z8">
+            <table mat-table [dataSource]="group.dataSource" matSort class="article-table" multiTemplateDataRows>
 
-        <ng-container matColumnDef="merchandiseDescription">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell">Libellé</th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell">
-                {{element.merchandise.description?.trim() ? element.merchandise.description : '**'}}
-            </td>
-        </ng-container>
+                <ng-container matColumnDef="articleReference">
+                    <th mat-header-cell *matHeaderCellDef class="article-table-cell">Référence Article</th>
+                    <td mat-cell *matCellDef="let element" class="article-table-cell">
+                        {{element.merchandise?.article?.reference}}</td>
+                </ng-container>
 
-        <ng-container matColumnDef="updateDate">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell">Modifié le</th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell">
-                {{element.updatedate | date: 'dd MMMM yyyy':'':'fr'}}
-            </td>
-        </ng-container>
+                <ng-container matColumnDef="articleDescription">
+                    <th mat-header-cell *matHeaderCellDef class="article-table-cell description-column">Description</th>
+                    <td mat-cell *matCellDef="let element" class="article-table-cell description-column">
+                        {{element.merchandise?.article?.description}}</td>
+                </ng-container>
 
-        <ng-container matColumnDef="site">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell">Site</th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell">
-                {{element.site.address}}
-            </td>
-        </ng-container>
+                <ng-container matColumnDef="packageReference">
+                    <th mat-header-cell *matHeaderCellDef class="article-table-cell">Référence Paquet</th>
+                    <td mat-cell *matCellDef="let element" class="article-table-cell">
+                        {{element.merchandise?.packagereference?.trim() ? element.merchandise.packagereference :
+                        'Standard'}}
+                    </td>
+                </ng-container>
 
-        <ng-container matColumnDef="quantity">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell">Quantité</th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell">
-                {{element.quantity}} {{element.merchandise.article.unit}}
-            </td>
-        </ng-container>
+                <ng-container matColumnDef="merchandiseDescription">
+                    <th mat-header-cell *matHeaderCellDef class="article-table-cell">Libellé</th>
+                    <td mat-cell *matCellDef="let element" class="article-table-cell">
+                        {{element.merchandise?.description?.trim() ? element.merchandise.description : '**'}}
+                    </td>
+                </ng-container>
 
-        <ng-container matColumnDef="updatedBy">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell">Modifié par</th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell">{{element.appuser.person.firstname}}
-                {{element.appuser.person.lastname}}</td>
-        </ng-container>
+                <ng-container matColumnDef="updateDate">
+                    <th mat-header-cell *matHeaderCellDef class="article-table-cell">Modifié le</th>
+                    <td mat-cell *matCellDef="let element" class="article-table-cell">
+                        {{element.updatedate | date: 'dd MMMM yyyy':'':'fr'}}
+                    </td>
+                </ng-container>
 
-        <!-- Action Column -->
-        <!-- <ng-container matColumnDef="action">
-            <th mat-header-cell *matHeaderCellDef> action </th>
-            <td mat-cell style="white-space: pre-line" *matCellDef="let element">
-            </td>
-        </ng-container> -->
+                <ng-container matColumnDef="site">
+                    <th mat-header-cell *matHeaderCellDef class="article-table-cell">Site</th>
+                    <td mat-cell *matCellDef="let element" class="article-table-cell">
+                        {{element.site?.address}}
+                    </td>
+                </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedStockColumns"></tr>
-        <tr mat-row *matRowDef="let element; columns: displayedStockColumns;"></tr>
+                <ng-container matColumnDef="quantity">
+                    <th mat-header-cell *matHeaderCellDef class="article-table-cell">Quantité</th>
+                    <td mat-cell *matCellDef="let element" class="article-table-cell">
+                        {{element.quantity}} {{element.merchandise?.article?.unit}}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="updatedBy">
+                    <th mat-header-cell *matHeaderCellDef class="article-table-cell">Modifié par</th>
+                    <td mat-cell *matCellDef="let element" class="article-table-cell">
+                        {{element.appuser?.person?.firstname}}
+                        {{element.appuser?.person?.lastname}}</td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedStockColumns"></tr>
+                <tr mat-row *matRowDef="let element; columns: displayedStockColumns;"></tr>
 
 
-        <!-- Row shown when there is no matching data. -->
-        <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" colspan="4">Cet Article n'existe pas en stock"{{input.value}}"</td>
-        </tr>
-    </table>
-    <mat-paginator [pageSizeOptions]="[5, 10, 20]"></mat-paginator>
+                <!-- Row shown when there is no matching data. -->
+                <tr class="mat-row" *matNoDataRow>
+                    <td class="mat-cell" colspan="8">Aucune donnée correspondant au filtre "{{input.value}}"</td>
+                </tr>
+            </table>
+            <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
 
+        </div>
+    </div>
 </div>
