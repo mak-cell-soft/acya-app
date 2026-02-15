@@ -8,6 +8,13 @@ import { Router } from '@angular/router';
 import { DocumentService } from '../../../../services/components/document.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
+import { PaymentModalComponent } from '../../../../dashboard/modals/payment-modal/payment-modal.component';
+import { DocumentConversionModalComponent } from '../list-customer-documents/document-conversion-modal/document-conversion-modal.component';
+import { PaymentService } from '../../../../services/components/payment.service';
+import { AuthenticationService } from '../../../../services/components/authentication.service';
+import { Payment } from '../../../../models/components/payment';
+import { ElementRef } from '@angular/core';
+import { getSharedPrintStyles } from '../../../../utils/print-styles.util';
 
 @Component({
     selector: 'app-list-customer-invoices',
@@ -20,6 +27,8 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
     docService = inject(DocumentService);
     dialog = inject(MatDialog);
     toastr = inject(ToastrService);
+    paymentService = inject(PaymentService);
+    authService = inject(AuthenticationService);
 
     // Filters
     filterClient: string = '';
@@ -39,6 +48,9 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
     invoiceCount: number = 0;
 
     @ViewChild(MatPaginator) paginator!: MatPaginator;
+    @ViewChild('printTemplate', { read: ElementRef }) printTemplate!: ElementRef;
+
+    selectedDocumentForPrint: Document | null = null;
 
     // Enums for Template
     DocStatus = DocStatus;
@@ -175,4 +187,120 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
             default: return { text: 'Non Payé', color: '#d84315', bgColor: '#fbe9e7' };
         }
     }
+
+    // New Actions
+    openPaymentModal(doc: Document) {
+        const modalData = {
+            documentId: doc.id,
+            documentNumber: doc.docnumber,
+            totalAmount: doc.total_net_ttc,
+            remainingAmount: doc.total_net_ttc,
+            ownerFullName: doc.counterpart?.name || (doc.counterpart?.firstname + ' ' + doc.counterpart?.lastname) || '',
+            porterName: doc.counterpart?.name || (doc.counterpart?.firstname + ' ' + doc.counterpart?.lastname) || '',
+            porterId: doc.counterpart?.id || 0,
+            billingStatus: doc.billingstatus,
+            documentType: doc.type
+        };
+
+        const dialogRef = this.dialog.open(PaymentModalComponent, {
+            width: '600px',
+            disableClose: true,
+            data: modalData
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+                this.onPaymentSubmit(result, doc);
+            }
+        });
+    }
+
+    onPaymentSubmit(paymentResult: any, doc: Document) {
+        const payment = new Payment();
+        payment.documentid = doc.id;
+        payment.customerid = doc.counterpart.id;
+        payment.paymentdate = paymentResult.date;
+        payment.amount = paymentResult.amount;
+        payment.paymentmethod = paymentResult.method;
+
+        if (paymentResult.details) {
+            if (paymentResult.method === 'ESPECE') {
+                payment.notes = paymentResult.details.notes || '';
+            } else if (paymentResult.method === 'VIREMENT' || paymentResult.method === 'CARTE') {
+                payment.reference = paymentResult.details.reference || '';
+                payment.notes = paymentResult.details.notes || '';
+            } else {
+                payment.reference = paymentResult.details.number || '';
+                payment.notes = JSON.stringify(paymentResult.details);
+            }
+        }
+
+        payment.createdat = new Date();
+        payment.createdby = this.authService.getUserDetail()?.fullname || '';
+        payment.updatedat = new Date();
+        payment.updatedbyid = Number(this.authService.getUserDetail()?.id) || 0;
+
+        this.paymentService.Add(payment).subscribe({
+            next: (res) => {
+                this.toastr.success('Paiement effectué avec succès');
+                this.fetchInvoices();
+            },
+            error: (err) => {
+                console.error('Error saving payment', err);
+                this.toastr.error('Erreur lors de l\'enregistrement du paiement');
+            }
+        });
+    }
+
+    onModify(doc: Document) {
+        console.log('Modify:', doc);
+        // Implement modify logic or navigate to edit page
+    }
+
+    onConvert(doc: Document) {
+        const dialogRef = this.dialog.open(DocumentConversionModalComponent, {
+            width: '600px',
+            disableClose: true,
+            data: { documents: [doc] }
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+            if (result === true) {
+                this.fetchInvoices();
+            }
+        });
+    }
+
+    onPrint(doc: Document) {
+        this.selectedDocumentForPrint = doc;
+        setTimeout(() => {
+            const printWindow = window.open('', '_blank', 'width=800,height=600');
+            if (!printWindow) {
+                this.toastr.error('Impossible d\'ouvrir la fenêtre d\'impression. Veuillez autoriser les popups.');
+                return;
+            }
+
+            const printContent = this.printTemplate.nativeElement.innerHTML;
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Facture - ${doc.docnumber}</title>
+                    <style>${getSharedPrintStyles()}</style>
+                </head>
+                <body>
+                    ${printContent}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.onload = () => {
+                setTimeout(() => {
+                    printWindow.print();
+                }, 500);
+            };
+        }, 100);
+    }
+
 }

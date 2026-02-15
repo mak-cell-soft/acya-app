@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { Document } from '../../components/document';
+import { DocTypes_FR, Document, DocumentTypes } from '../../components/document';
 import { numberToFrenchWords } from '../../../utils/number-to-words.util';
 
 @Component({
@@ -147,5 +147,25 @@ export class DeliveryNotePrintComponent implements OnInit {
      */
     getAccountNumber(): string {
         return this.document?.counterpart?.id?.toString() || '';
+    }
+
+    getDocType(): string {
+        if (!this.document?.type) return '';
+
+        switch (Number(this.document.type)) {
+            case DocumentTypes.supplierOrder: return DocTypes_FR.supplierOrder;
+            case DocumentTypes.supplierReceipt: return DocTypes_FR.supplierReceipt;
+            case DocumentTypes.supplierInvoice: return DocTypes_FR.supplierInvoice;
+            case DocumentTypes.customerOrder: return DocTypes_FR.customerOrder;
+            case DocumentTypes.customerDeliveryNote: return DocTypes_FR.customerDeliveryNote;
+            case DocumentTypes.customerInvoice: return DocTypes_FR.customerInvoice;
+            case DocumentTypes.stockTransfer: return DocTypes_FR.stockTransfer;
+            default: return '';
+        }
+    }
+
+    getDocNumberLabel(): string {
+        if (!this.document?.type) return 'N° DOC';
+        return Number(this.document.type) === DocumentTypes.customerInvoice ? 'N° BL/FAC' : 'N° BL';
     }
 }

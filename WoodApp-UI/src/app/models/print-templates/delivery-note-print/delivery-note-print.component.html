@@ -36,8 +36,8 @@
     <!-- Document Title and Client Info -->
     <div class="document-header">
         <div class="document-title-section">
-            <h2 class="document-title">BON DE LIVRAISON</h2>
-            <h3 class="document-subtitle">CREDIT</h3>
+            <h2 class="document-title">{{ getDocType() | uppercase }}</h2>
+            <!-- <h3 class="document-subtitle">CREDIT</h3> -->
         </div>
 
         <div class="client-info">
@@ -63,7 +63,7 @@
             <span class="detail-value">{{ formatDate(document?.creationdate) }}</span>
         </div>
         <div class="detail-item">
-            <span class="detail-label">N° BL</span>
+            <span class="detail-label">{{ getDocNumberLabel() }}</span>
             <span class="detail-value">{{ document?.docnumber }}</span>
         </div>
         <div class="detail-item">

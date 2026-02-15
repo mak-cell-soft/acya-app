@@ -167,13 +167,37 @@
                 </td>
             </ng-container>
 
-            <!-- Actions Column: Only Details -->
+            <!-- Action Column -->
             <ng-container matColumnDef="action">
-                <th mat-header-cell *matHeaderCellDef>Actions</th>
-                <td mat-cell *matCellDef="let element">
-                    <button mat-icon-button color="primary" (click)="onDetail(element)" matTooltip="Détail">
-                        <mat-icon>visibility</mat-icon>
-                    </button>
+                <th mat-header-cell *matHeaderCellDef> Actions </th>
+                <td mat-cell style="white-space: pre-line" *matCellDef="let element">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button mat-icon-button color="primary" matTooltip="Paiement"
+                            (click)="openPaymentModal(element)">
+                            <mat-icon>payment</mat-icon>
+                        </button>
+                        <button mat-icon-button color="primary" (click)="onDetail(element)" matTooltip="Détail">
+                            <mat-icon>visibility</mat-icon>
+                        </button>
+                        <button mat-icon-button color="primary" [matMenuTriggerFor]="menu" aria-label="Actions">
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #menu="matMenu">
+                            <button mat-menu-item (click)="onModify(element)">
+                                <mat-icon>edit</mat-icon>
+                                <span>Modifier</span>
+                            </button>
+                            <button mat-menu-item (click)="onConvert(element)">
+                                <mat-icon>transform</mat-icon>
+                                <span>Convertir</span>
+                            </button>
+
+                            <button mat-menu-item (click)="onPrint(element)">
+                                <mat-icon>print</mat-icon>
+                                <span>Imprimer</span>
+                            </button>
+                        </mat-menu>
+                    </div>
                 </td>
             </ng-container>
 
@@ -189,3 +213,8 @@
         </div>
     </div>
 </mat-card>
+
+<!-- Hidden print template -->
+<div style="display: none;">
+    <app-delivery-note-print #printTemplate [document]="selectedDocumentForPrint"></app-delivery-note-print>
+</div>
