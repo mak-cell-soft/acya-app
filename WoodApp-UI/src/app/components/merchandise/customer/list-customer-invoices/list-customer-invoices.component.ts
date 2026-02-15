@@ -257,20 +257,6 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
         // Implement modify logic or navigate to edit page
     }
 
-    onConvert(doc: Document) {
-        const dialogRef = this.dialog.open(DocumentConversionModalComponent, {
-            width: '600px',
-            disableClose: true,
-            data: { documents: [doc] }
-        });
-
-        dialogRef.afterClosed().subscribe(result => {
-            if (result === true) {
-                this.fetchInvoices();
-            }
-        });
-    }
-
     onPrint(doc: Document) {
         this.selectedDocumentForPrint = doc;
         setTimeout(() => {
