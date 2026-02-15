@@ -1,390 +1,390 @@
-.card-details {
-    margin: 10px;
-    padding: 20px;
+:host {
+    display: block;
+    padding: 24px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
 }
 
-.calendar-card {
-    width: 300px;
-    background: rgb(207, 227, 235);
+.main-container {
+    width: 100%;
+    margin: 0 auto;
 }
 
-.head-doc {
+.header-container {
     display: flex;
-    align-items: flex-start;
-    padding: 10px;
-}
-
-.left-section,
-.right-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.right-section {
-    margin-left: 20px;
-}
-
-.date-picker-container {
-    display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
+    margin-bottom: 24px;
+    background: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
 }
 
-.customer-description {
-    font-size: 0.9em;
-    color: cornflowerblue;
+.header-text h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
 }
 
-mat-select {
-    margin-top: 8px;
+mat-card {
+    border-radius: 12px !important;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+    margin-bottom: 24px;
+    padding: 24px;
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+    gap: 32px;
+    align-items: start;
+}
+
+.vertical-separator {
+    background-color: #e9ecef;
+    width: 1px;
+    align-self: stretch;
+}
+
+.customer-details {
+    margin-top: 16px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.customer-details .detail-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.customer-details .detail-item mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #3f51b5;
+}
+
+
+.meta-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.meta-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.meta-card .meta-row {
+    display: flex;
+    gap: 16px;
+}
+
+.meta-card .meta-row>*,
+.meta-card .meta-row mat-form-field {
+    flex: 1;
     width: 100%;
 }
 
-.article-description {
-    font-size: 0.8em;
-    color: cadetblue;
-    display: inline;
-}
-
-.stock-description {
-    font-size: 0.8em;
-    color: brown;
-}
-
-.quantity-description {
-    font-size: 8px;
-    color: green;
-}
-
-/* Add this to your component's CSS */
-.quantity-container {
-    display: flex;
-    align-items: center;
-    min-width: 200px;
-    /* Ensure minimum width */
-
-    .quantity-input {
-        flex: 1;
-        min-width: 20px;
-        /* Minimum width for input */
-        margin-right: 2px;
-    }
-
-    .icon-group {
-        display: flex;
-        align-items: center;
-        gap: 0px;
-        flex-shrink: 0;
-        /* Prevent shrinking */
-    }
-
-    .wood-length-button,
-    .stock-info-button {
-        width: 32px;
-        /* Slightly larger for better touch */
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        mat-icon {
-            font-size: 18px;
-            width: 18px;
-            height: 18px;
-            line-height: 18px;
-        }
-    }
-
-    .wood-length-button {
-        color: #5D4037;
-
-        &:hover {
-            background-color: #D7CCC8;
-        }
-    }
-
-    .stock-info-button {
-        color: #1976D2;
-    }
-
-    .wood-lengths-badge {
-        background-color: #5D4037;
-        color: white;
-        border-radius: 12px;
-        padding: 0 6px;
-        font-size: 11px;
-        height: 18px;
-        line-height: 18px;
-    }
-}
-
-/* Adjust table cell padding if needed */
-.mat-cell {
-    padding: 0 4px !important;
-}
-
-.quantity-description {
-    font-size: 0.75rem;
-    color: rgba(0, 0, 0, 0.54);
-    margin-top: 4px;
+.tax-form mat-form-field {
+    width: 100%;
 }
 
 .full-width {
     width: 100%;
-    margin-bottom: 15px;
 }
 
-.vertical-separator {
-    width: 1px;
-    background-color: #4F709C;
-    height: 100%;
-    margin: 0 5px;
+.hidden-select {
+    display: none;
 }
 
-.inputs-container {
-    display: flex;
-    flex-grow: 1;
-    flex-wrap: wrap;
-    gap: 5px;
-    align-items: center;
-    justify-content: space-around;
-    height: 300px;
-    /* Matches the height of the date picker */
-}
-
-.provider-choice {
-    display: block;
-    /* grid-template-columns: 1fr 1fr; Two inputs per row */
-    gap: 5px;
-    /* Adds space between inputs */
-    width: 100%;
-    margin-bottom: 15px;
-}
-
-mat-form-field {
-    width: 100%;
-    height: 100%;
-}
-
-.customer-info {
-    margin-top: 10px;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-}
-
-.customer-info mat-card {
-    padding: 15px;
-    background-color: #f4f6f8;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    margin-bottom: 20px;
-    /* margin-top: 15px; */
-}
-
-.customer-info h3 {
-    margin-bottom: 10px;
-    font-size: 1.2em;
-    color: #333;
-}
-
-.customer-info p {
-    margin: 5px 0;
-    font-size: 13px;
-    color: #555;
-}
-
-mat-error {
-    font-size: 12px;
-    color: red;
-}
-
-.blue-icon {
-    color: blue;
-}
-
-.red-icon {
-    color: red;
-}
-
-.green-icon {
-    color: green;
-}
-
-.add-button {
-    display: flex;
-    cursor: pointer;
-}
-
-.add-button button {
-    width: 25%;
-}
-
-.summary-container {
-    display: flex;
-    flex-direction: column;
-    width: 50%;
-    /* Occupy half the width */
-    margin-left: auto;
-    /* Push to the right side */
-    padding-top: 20px;
-}
-
-.summary-row {
+/* Merchandise Table Styling */
+.merchandise-card .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid #d0d0d0;
-    /* Optional separator for rows */
+    margin-bottom: 20px;
 }
 
-.summary-label {
-    font-weight: bold;
-    color: #333;
-    /* Darker label text */
-    flex: 1;
-    /* Takes the first column */
-}
-
-.summary-value {
-    flex: 1;
-    /* Takes the second column */
-    text-align: right;
-    /* Align values to the right */
-    color: #000;
-    /* Ensure value contrast */
+.merchandise-card .card-header h3 {
+    margin: 0;
+    font-weight: 600;
 }
 
 .add-merchandise-button {
     margin-top: 15px;
 }
 
-.control-button {
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table th.mat-header-cell {
+    background: #f8f9fa;
+    color: #4F709C;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+    padding: 16px 8px;
+}
+
+table td.mat-cell {
+    padding: 12px 8px !important;
+    border-bottom: 1px solid #eee;
+}
+
+.article-cell {
     display: flex;
-    justify-content: flex-end;
-    /* Align items to the end (left) */
-    margin-right: 12px;
-    margin-top: 35px;
-    align-items: center;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 250px;
 }
 
-.control-button button {
-    margin-right: 10px;
-    /* Add space between buttons */
+
+.article-cell input {
+    font-weight: 500;
 }
 
-/* Optional: Remove the right margin for the last button */
-.control-button button:last-child {
-    margin-right: 0;
+.article-cell .desc-text {
+    font-size: 0.75rem;
+    color: #adb5bd;
 }
 
-.quantity-description {
-    font-size: 12px;
-    color: green;
-    /* margin-top: 4px; */
+.article-cell .variant-select {
+    font-size: 0.8rem;
+    color: #3f51b5;
 }
 
-.error-hint {
-    color: #f44336;
-    /* Red color for error messages */
-    font-size: 12px;
-    margin-top: 4px;
+.number-input {
+    width: 80px;
+    text-align: right;
+    padding: 4px;
+    border-bottom: 1px dashed #dee2e6;
 }
 
-input[disabled] {
-    background-color: #f5f5f5;
-    /* Light gray background for disabled inputs */
-    cursor: not-allowed;
-    /* Change cursor to indicate the input is disabled */
+.number-input:focus {
+    border-bottom: 2px solid #3f51b5;
 }
 
-/*
-Added for merchandise selections
-*/
-/* Selected value display */
-/* .selected-merchandise {
+.quantity-cell {
     display: flex;
     align-items: center;
     gap: 8px;
-} */
-
-/* Make the select field match your design system */
-.mat-select-value-text {
-    display: flex;
-    align-items: center;
 }
 
-/* Optional: Add a little chip-like style to the selected value */
+.quantity-cell .badge {
+    background: #e9ecef;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    color: #495057;
+}
+
+.tva-text {
+    font-weight: 500;
+    color: #495057;
+}
+
+/* Footer & Summary */
+.footer-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr 400px;
+    gap: 24px;
+    align-items: start;
+}
+
+.payment-card .payment-info {
+    margin-top: 16px;
+    padding: 12px;
+    background: #e8f5e9;
+    border-radius: 8px;
+    color: #2e7d32;
+    font-size: 0.9rem;
+}
+
+.meta-card {
+    background: white;
+}
+
+.summary-card .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.summary-card .summary-row .label {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.summary-card .summary-row .value {
+    font-weight: 700;
+    color: #212529;
+    font-size: 1.1rem;
+}
+
+.summary-card .summary-row.editable-ttc {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.summary-card .summary-row.editable-ttc .label {
+    color: #3f51b5;
+    font-weight: 700;
+}
+
+.summary-card .summary-row.editable-ttc .ttc-input {
+    width: 150px;
+}
+
+.summary-card .summary-row.editable-ttc .ttc-input input {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #3f51b5;
+    text-align: right;
+}
+
+.summary-card .discount-warning {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #d32f2f;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 8px;
+    background: #ffebee;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.summary-card .action-buttons {
+    margin-top: 32px;
+}
+
+.summary-card .action-buttons button {
+    width: 100%;
+    height: 56px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+@media (max-width: 1200px) {
+    .footer-section {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 1024px) {
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .vertical-separator {
+        display: none;
+    }
+
+    .footer-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Enhanced Merchandise Table Styles */
+.article-description {
+    font-size: 0.8em;
+    color: #6c757d;
+    display: inline-block;
+}
+
 .selected-merchandise {
     background-color: #e3f2fd;
-    padding: 4px 8px;
+    padding: 4px 12px;
     border-radius: 16px;
     display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
 }
 
 .selected-package-ref {
-    font-weight: 500;
-    color: #2c3e50;
+    font-weight: 600;
+    color: #1a73e8;
 }
 
 .selected-stock-quantity {
-    color: #7f8c8d;
-    font-size: 0.9em;
+    color: #5f6368;
 }
 
-/* Merchandise select dropdown */
 .merchandise-select {
     margin-top: 8px;
     width: 100%;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-    border: 1px solid #e0e0e0;
+    background-color: #fafafa;
+    border-radius: 8px;
+    border: 1px solid #dadce0;
 }
 
-/* Option styling */
 .merchandise-option {
-    padding: 8px 16px;
-    border-bottom: 1px solid #f0f0f0;
-    transition: background-color 0.2s;
-}
-
-.merchandise-option:hover {
-    background-color: #f5f5f5;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f3f4;
 }
 
 .merchandise-option .option-content {
     display: flex;
-    flex-direction: row;
-    gap: 10px;
+    flex-direction: column;
+    gap: 4px;
 }
 
-/* Package reference styling */
 .package-ref {
     display: flex;
     align-items: center;
-    font-weight: 500;
-    color: #2c3e50;
+    font-weight: 600;
+    color: #3c4043;
     font-size: 0.9rem;
 }
 
 .package-icon {
-    color: #3498db;
+    color: #1a73e8;
     font-size: 18px;
     height: 18px;
     width: 18px;
     margin-right: 8px;
 }
 
-/* Stock info styling */
 .stock-info {
     display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
+    align-items: center;
+    gap: 16px;
     font-size: 0.8rem;
-    color: #7f8c8d;
+    color: #70757a;
 }
 
 .stock-quantity {
@@ -393,48 +393,70 @@ Added for merchandise selections
 }
 
 .stock-icon {
-    color: #27ae60;
+    color: #34a853;
     font-size: 16px;
     height: 16px;
     width: 16px;
     margin-right: 6px;
 }
 
-/* Description styling */
 .description {
     display: flex;
     align-items: center;
-    max-width: 100%;
+    max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .description-icon {
-    color: #f39c12;
+    color: #fbbc04;
     font-size: 16px;
     height: 16px;
     width: 16px;
     margin-right: 6px;
 }
 
-/* Selected value styling */
-.mat-select-value {
-    color: #2c3e50;
-    font-weight: 500;
+.quantity-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 180px;
 }
 
-/* Dropdown panel styling */
-.mat-select-panel {
-    max-height: 300px !important;
-    border-radius: 4px !important;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+.quantity-input {
+    flex: 1;
 }
 
-/* Responsive adjustments */
-@media (max-width: 600px) {
-    .stock-info {
-        flex-direction: column;
-        gap: 4px;
-    }
+.icon-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.wood-length-button,
+.stock-info-button {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wood-length-button {
+    color: #795548;
+}
+
+.stock-info-button {
+    color: #1a73e8;
+}
+
+.wood-lengths-badge {
+    background-color: #5d4037;
+    color: white;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
 }

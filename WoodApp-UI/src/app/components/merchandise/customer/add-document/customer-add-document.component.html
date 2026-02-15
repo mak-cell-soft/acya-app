@@ -1,78 +1,107 @@
-<mat-card class="card-details">
-    <h6>Ajouter un bon de Livraison</h6>
-    <mat-card class="card-details">
-        <div class="head-doc">
-            <!-- Left Section: Customer Select -->
-            <div class="left-section">
-                <mat-form-field appearance="outline">
-                    <div class="add-button">
-                        <input matInput [formControl]="searchCustomerControl" placeholder="recherche Client"
-                            autocomplete="off" (input)="applyCustomerFilter()" (focus)="openCustomerDropdown()" />
-                        <button mat-raised-button color="primary" (click)="addCustomer()">
-                            <mat-icon>settings</mat-icon>
-                            Ajouter
-                        </button>
+<div class="main-container">
+    <div class="header-container">
+        <div class="header-text">
+            <h2>Ajouter un bon de Livraison</h2>
+        </div>
+        <div class="header-buttons">
+            <button mat-flat-button color="warn" routerLink="/home/customerdelivery">
+                <mat-icon>arrow_back</mat-icon> Retour
+            </button>
+        </div>
+    </div>
+
+    <!-- Document Info Card -->
+    <mat-card class="document-info-card">
+        <div class="info-grid">
+            <!-- Customer Section -->
+            <div class="info-section customer-section">
+                <div class="section-title">Informations Client</div>
+                <div class="search-row" style="display: flex; align-items: center; gap: 8px;">
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Client</mat-label>
+                        <input matInput [formControl]="searchCustomerControl" placeholder="Rechercher un client..."
+                            autocomplete="off" (input)="applyCustomerFilter()" (focus)="openCustomerDropdown()">
+                        <mat-icon matSuffix>search</mat-icon>
+                        <mat-select #customerSelect (selectionChange)="onOptionCustomerSelected($event.value)"
+                            class="hidden-select">
+                            <mat-option *ngFor="let item of filteredCustomers" [value]="item.id">
+                                {{ item.name || (item.firstname + ' ' + item.lastname) }}
+                                <div class="customer-description" *ngIf="item.description"> / &nbsp;{{ item.description
+                                    }}</div>
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <button mat-raised-button color="primary" (click)="addCustomer()"
+                        style="height: 56px; margin-bottom: 22px;">
+                        <mat-icon>settings</mat-icon>
+                    </button>
+                </div>
+
+                <div *ngIf="selectedCustomer && selectedCustomer.id" class="customer-details">
+                    <div class="detail-item">
+                        <mat-icon>person</mat-icon>
+                        <span>{{ selectedCustomer.firstname }} {{ selectedCustomer.lastname }}</span>
                     </div>
-                    <mat-select #customerSelect (selectionChange)="onOptionCustomerSelected($event.value)">
-                        <mat-option *ngFor="let item of filteredCustomers" [value]="item.id">
-                            {{ item.name }} {{item.firstname}} {{ item.lastname}}
-                            <div class="customer-description" *ngIf="item.description"> / &nbsp;{{ item.description }}
-                            </div>
-                        </mat-option>
-                    </mat-select>
-                </mat-form-field>
-                <div *ngIf="selectedCustomer" class="customer-info">
-                    <mat-card>
-                        <p><strong>Responsable :</strong> {{ selectedCustomer.firstname }} {{ selectedCustomer.lastname
-                            }}</p>
-                        <p><strong>Adresse :</strong> {{ selectedCustomer.address }}</p>
-                        <p><strong>Mobile :</strong> {{ selectedCustomer.phonenumberone }}</p>
-                        <p><strong>Matricule :</strong> {{ selectedCustomer.phonenumberone }}</p>
-                    </mat-card>
+                    <div class="detail-item" *ngIf="selectedCustomer.address">
+                        <mat-icon>location_on</mat-icon>
+                        <span>{{ selectedCustomer.address }}</span>
+                    </div>
+                    <div class="detail-item" *ngIf="selectedCustomer.phonenumberone">
+                        <mat-icon>phone</mat-icon>
+                        <span>{{ selectedCustomer.phonenumberone }}</span>
+                    </div>
                 </div>
             </div>
-
-            <!-- Separator -->
             <div class="vertical-separator"></div>
 
-            <!-- Right Section: Date Picker and Transporter Select -->
-            <div class="right-section">
-                <mat-form-field appearance="outline">
-                    <mat-label>Date</mat-label>
-                    <input matInput [matDatepicker]="picker" [(ngModel)]="selectedDate" disabled>
-                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-                    <mat-datepicker #picker></mat-datepicker>
-                </mat-form-field>
+            <!-- Section Transporteur -->
+            <div class="info-section transporter-section">
+                <div class="section-title">Informations Transporteur</div>
+                <div class="search-row" style="display: flex; align-items: center; gap: 8px;">
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Transporteur</mat-label>
+                        <input matInput [formControl]="searchTransporterControl"
+                            placeholder="Rechercher un transporteur..." autocomplete="off"
+                            (input)="applyTransporterFilter($event)" (focus)="openDropdownTransporters()">
+                        <mat-icon matSuffix>search</mat-icon>
+                        <mat-select #transporterSelect (selectionChange)="onOptionTransporterSelected($event.value)"
+                            class="hidden-select">
+                            <mat-option *ngFor="let item of filteredTransporters" [value]="item.id">
+                                {{ item.firstname }} {{ item.lastname }}
+                                <div class="customer-description" *ngIf="item.car?.serialnumber"></div>
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <button mat-raised-button color="primary" (click)="addTransporter(); $event.stopPropagation()"
+                        style="height: 56px; margin-bottom: 22px;">
+                        <mat-icon>add</mat-icon>
+                    </button>
+                </div>
 
-                <mat-form-field appearance="outline">
-                    <div class="add-button">
-                        <input matInput [formControl]="searchTransporterControl" placeholder="recherche Transporteur"
-                            autocomplete="off" (input)="applyTransporterFilter($event)"
-                            (focus)="openDropdownTransporters()" />
-                        <button mat-raised-button color="primary" (click)="addTransporter(); $event.stopPropagation()">
-                            <mat-icon>add</mat-icon>
-                            Ajouter
-                        </button>
+                <div *ngIf="selectedTransporter && selectedTransporter.id" class="customer-details">
+                    <div class="detail-item">
+                        <mat-icon>person</mat-icon>
+                        <span>{{ selectedTransporter.firstname }} {{ selectedTransporter.lastname }}</span>
                     </div>
-                    <mat-select #transporterSelect (selectionChange)="onOptionTransporterSelected($event.value)">
-                        <mat-option *ngFor="let item of filteredTransporters" [value]="item.id">
-                            {{item.firstname}} {{ item.lastname}}
-                            <div class="customer-description" *ngIf="item.car?.serialnumber"></div>
-                        </mat-option>
-                    </mat-select>
-                </mat-form-field>
-                <div *ngIf="selectedTransporter" class="customer-info">
-                    <mat-card>
-                        <p><strong>Conducteur :</strong> {{ selectedTransporter.firstname }} {{
-                            selectedTransporter.lastname }}</p>
-                        <p><strong>Véhicule :</strong> {{ selectedTransporter.car?.serialnumber }}</p>
-                    </mat-card>
+                    <div class="detail-item" *ngIf="selectedTransporter.car?.serialnumber">
+                        <mat-icon>local_shipping</mat-icon>
+                        <span>{{ selectedTransporter.car.serialnumber }}</span>
+                    </div>
                 </div>
             </div>
         </div>
     </mat-card>
-    <mat-card class="card-details">
-        <div class="table-container mat-elevation-z8">
+
+    <!-- Merchandise Table Card -->
+    <mat-card class="merchandise-card">
+        <div class="card-header">
+            <h3>Lignes de Document</h3>
+            <button mat-raised-button color="primary" class="add-merchandise-button" (click)="addRow()">
+                <mat-icon>add</mat-icon> Ajouter un Article
+            </button>
+        </div>
+
+        <div class="table-wrapper mat-elevation-z8">
             <table mat-table [dataSource]="dataMerchand" class="mat-elevation-z8">
                 <!-- Index Column -->
                 <ng-container matColumnDef="index">
@@ -84,66 +113,69 @@
                 <ng-container matColumnDef="article">
                     <th mat-header-cell *matHeaderCellDef> Article </th>
                     <td mat-cell *matCellDef="let element">
-                        <input matInput [(ngModel)]="element.articleSearchInput" placeholder="Recherche article"
-                            autocomplete="off" (input)="applyArticleFilter($event, element)"
-                            (focus)="openArticleDropdown(element)" />
-                        <mat-select #articleSelect [(ngModel)]="element.selectedArticle"
-                            (selectionChange)="onArticleChange(element, element.selectedArticle)"
-                            placeholder="Choisir de la liste">
-                            <mat-option
-                                *ngFor="let article of element.filteredArticles || filteredArticles; trackBy: trackByArticleId"
-                                [value]="article">
-                                {{ article.reference }}
-                                <div class="article-description" *ngIf="article.description"> / &nbsp; {{
-                                    article.description }}</div>
-                            </mat-option>
-                        </mat-select>
+                        <div class="article-cell">
+                            <input matInput [(ngModel)]="element.articleSearchInput" placeholder="Recherche article"
+                                autocomplete="off" (input)="applyArticleFilter($event, element)"
+                                (focus)="openArticleDropdown(element)" />
+                            <mat-select #articleSelect [(ngModel)]="element.selectedArticle"
+                                (selectionChange)="onArticleChange(element, element.selectedArticle)"
+                                placeholder="Choisir de la liste">
+                                <mat-option
+                                    *ngFor="let article of element.filteredArticles || filteredArticles; trackBy: trackByArticleId"
+                                    [value]="article">
+                                    {{ article.reference }}
+                                    <div class="article-description" *ngIf="article.description"> / &nbsp; {{
+                                        article.description }}</div>
+                                </mat-option>
+                            </mat-select>
 
-                        <!-- Merchandise selection dropdown -->
-                        <mat-select
-                            *ngIf="element.selectedArticle && getMatchingStocks(element.selectedArticle.id).length > 1"
-                            [(ngModel)]="element.selectedStock" (selectionChange)="onMerchandiseChange(element)"
-                            placeholder="Sélectionner une référence" class="merchandise-select">
-                            <mat-select-trigger>
-                                <div class="selected-merchandise">
-                                    <span class="selected-package-ref">
-                                        Réf. Paq. {{ element.selectedStock?.packageReference || 'Standard' }}
-                                    </span>
-                                    <span *ngIf="element.selectedStock?.stockQuantity !== undefined"
-                                        class="selected-stock-quantity">
-                                        ({{ element.selectedStock?.stockQuantity | number:'1.2-3' }})
-                                    </span>
-                                </div>
-                            </mat-select-trigger>
-
-                            <mat-option *ngFor="let stock of getMatchingStocks(element.selectedArticle.id)"
-                                [value]="stock" class="merchandise-option">
-                                <div class="option-content">
-                                    <div class="package-ref">
-                                        <mat-icon class="package-icon">inventory_2</mat-icon>
-                                        Référence Paquet : {{ stock.packageReference || 'Standard' }}
-                                    </div>
-                                    <div class="stock-info">
-                                        <span class="stock-quantity">
-                                            <mat-icon class="stock-icon">warehouse</mat-icon>
-                                            {{ stock.stockQuantity | number:'1.2-3' }}
+                            <!-- Merchandise selection dropdown -->
+                            <mat-select
+                                *ngIf="element.selectedArticle && getMatchingStocks(element.selectedArticle.id).length > 1"
+                                [(ngModel)]="element.selectedStock" (selectionChange)="onMerchandiseChange(element)"
+                                placeholder="Sélectionner une référence" class="merchandise-select">
+                                <mat-select-trigger>
+                                    <div class="selected-merchandise">
+                                        <span class="selected-package-ref">
+                                            Réf. Paq. {{ element.selectedStock?.packageReference || 'Standard' }}
                                         </span>
-                                        <span *ngIf="stock.MerchandiseDescription" class="description">
-                                            <mat-icon class="description-icon">description</mat-icon>
-                                            {{ stock.MerchandiseDescription }}
+                                        <span *ngIf="element.selectedStock?.stockQuantity !== undefined"
+                                            class="selected-stock-quantity">
+                                            ({{ element.selectedStock?.stockQuantity | number:'1.2-3' }})
                                         </span>
                                     </div>
-                                </div>
-                            </mat-option>
-                        </mat-select>
+                                </mat-select-trigger>
+
+                                <mat-option *ngFor="let stock of getMatchingStocks(element.selectedArticle.id)"
+                                    [value]="stock" class="merchandise-option">
+                                    <div class="option-content">
+                                        <div class="package-ref">
+                                            <mat-icon class="package-icon">inventory_2</mat-icon>
+                                            Référence Paquet : {{ stock.packageReference || 'Standard' }}
+                                        </div>
+                                        <div class="stock-info">
+                                            <span class="stock-quantity">
+                                                <mat-icon class="stock-icon">warehouse</mat-icon>
+                                                {{ stock.stockQuantity | number:'1.2-3' }}
+                                            </span>
+                                            <span *ngIf="stock.MerchandiseDescription" class="description">
+                                                <mat-icon class="description-icon">description</mat-icon>
+                                                {{ stock.MerchandiseDescription }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </mat-option>
+                            </mat-select>
+                        </div>
                     </td>
                 </ng-container>
+
                 <!-- Sell Price Column -->
                 <ng-container matColumnDef="sellPrice">
                     <th mat-header-cell *matHeaderCellDef> PU. HT </th>
                     <td mat-cell *matCellDef="let element">
                         <input matInput [(ngModel)]="element.unit_price_ht" type="number"
-                            (input)="updateTotals(element)">
+                            (input)="updateTotals(element)" class="number-input">
                     </td>
                 </ng-container>
 
@@ -153,7 +185,7 @@
                     <td mat-cell *matCellDef="let element">
                         <div class="quantity-container">
                             <input matInput [(ngModel)]="element.quantity" type="number" (input)="updateTotals(element)"
-                                [disabled]="shouldDisableQuantityInput(element)" class="quantity-input">
+                                [disabled]="shouldDisableQuantityInput(element)" class="quantity-input number-input">
 
                             <div class="icon-group">
                                 <!-- Wood length button -->
@@ -182,10 +214,10 @@
 
                 <!-- Discount Column -->
                 <ng-container matColumnDef="discount">
-                    <th mat-header-cell *matHeaderCellDef> Remise (%) </th>
+                    <th mat-header-cell *matHeaderCellDef> Remise % </th>
                     <td mat-cell *matCellDef="let element">
                         <input matInput [(ngModel)]="element.selldiscountpercentage" type="number"
-                            (input)="updateTotals(element)">
+                            (input)="updateTotals(element)" class="number-input">
                     </td>
                 </ng-container>
 
@@ -202,13 +234,13 @@
                     </td>
                 </ng-container>
 
-                <!-- Total Without Tax Column -->
+                <!-- Total HT Column -->
                 <ng-container matColumnDef="totalWithoutTva">
                     <th mat-header-cell *matHeaderCellDef> Net HT </th>
                     <td mat-cell *matCellDef="let element">{{ element.sellcostprice_net_ht | number:'1.3-3' }}</td>
                 </ng-container>
 
-                <!-- Total With Tax Column -->
+                <!-- Total TTC Column -->
                 <ng-container matColumnDef="totalWithTva">
                     <th mat-header-cell *matHeaderCellDef> Net TTC </th>
                     <td mat-cell *matCellDef="let element">{{ element.totalWithTax | number:'1.3-3' }}</td>
@@ -216,51 +248,66 @@
 
                 <!-- Actions Column -->
                 <ng-container matColumnDef="actions">
-                    <th mat-header-cell *matHeaderCellDef> Actions </th>
+                    <th mat-header-cell *matHeaderCellDef> </th>
                     <td mat-cell *matCellDef="let element">
-                        <!-- <button mat-icon-button class="blue-icon" (click)="editRow(element)"><mat-icon>edit</mat-icon></button> -->
-                        <button mat-icon-button class="red-icon"
-                            (click)="deleteRow(element)"><mat-icon>delete</mat-icon></button>
+                        <button mat-icon-button color="warn" (click)="deleteRow(element)">
+                            <mat-icon>delete</mat-icon>
+                        </button>
                     </td>
                 </ng-container>
 
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
             </table>
-
-            <button mat-raised-button color="primary" class="add-merchandise-button" (click)="addRow()">
-                <mat-icon>
-                    add
-                </mat-icon>
-                Ajouter une marchandise</button>
-
         </div>
-
     </mat-card>
-    <!-- Controls Section -->
-    <div class="summary-container">
-        <div class="summary-row">
-            <span class="summary-label">Total HT Net</span>
-            <span class="summary-value">{{ totalHTNet_doc$ | async | number: '1.3-3' }}</span>
-        </div>
-        <div class="summary-row">
-            <span class="summary-label">Total Remise</span>
-            <span class="summary-value">{{ totalRemise_doc$ | async | number: '1.3-3' }}</span>
-        </div>
-        <div class="summary-row">
-            <span class="summary-label">Total TVA</span>
-            <span class="summary-value">{{ totalTVA_doc$ | async | number: '1.3-3' }}</span>
-        </div>
-        <div class="summary-row">
-            <span class="summary-label">Net TTC</span>
-            <span class="summary-value">{{ netTTC_doc$ | async | number: '1.3-3' }}</span>
-        </div>
-    </div>
 
-    <div class="control-button">
-        <mat-dialog-actions>
-            <button mat-flat-button color="primary" (click)="onSubmit()">{{register_button}}</button>
-            <button mat-flat-button color="warn" routerLink="/home/customerdelivery">{{abort_button}}</button>
-        </mat-dialog-actions>
+    <!-- Summary & Footer -->
+    <div class="footer-section">
+        <div></div>
+
+        <mat-card class="meta-card">
+            <div class="section-title">Détails Document</div>
+            <div class="meta-row">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Date</mat-label>
+                    <input matInput [matDatepicker]="picker" [(ngModel)]="selectedDate" disabled>
+                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-datepicker #picker></mat-datepicker>
+                </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Référence Interne / Client</mat-label>
+                <input matInput [formControl]="$any(form).get('customerReference')" placeholder="Optionnel">
+            </mat-form-field>
+        </mat-card>
+
+        <mat-card class="summary-card">
+            <div class="summary-row">
+                <span class="label">Total HT Net</span>
+                <span class="value">{{ totalHTNet_doc$ | async | number:'1.3-3' }}</span>
+            </div>
+            <div class="summary-row">
+                <span class="label">Total Remise</span>
+                <span class="value">{{ totalRemise_doc$ | async | number:'1.3-3' }}</span>
+            </div>
+            <div class="summary-row">
+                <span class="label">Total TVA</span>
+                <span class="value">{{ totalTVA_doc$ | async | number:'1.3-3' }}</span>
+            </div>
+            <div class="summary-row editable-ttc">
+                <span class="label">Net TTC Final</span>
+                <span class="value" style="font-size: 1.4rem; font-weight: 700; color: #3f51b5;">
+                    {{ netTTC_doc$ | async | number:'1.3-3' }}
+                </span>
+            </div>
+
+            <div class="action-buttons">
+                <button mat-flat-button color="primary" class="btn-save" (click)="onSubmit()">
+                    <mat-icon>save</mat-icon> {{ register_button }}
+                </button>
+            </div>
+        </mat-card>
     </div>
-</mat-card>
+</div>

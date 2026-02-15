@@ -6,6 +6,7 @@ import { DocumentTypes } from '../../models/components/document';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { ChartConfiguration, ChartData, ChartOptions } from 'chart.js';
+import { AuthenticationService } from '../../services/components/authentication.service';
 
 @Component({
   selector: 'app-home-dashboard',
@@ -16,6 +17,7 @@ export class HomeDashboardComponent implements OnInit {
 
   counterpartService = inject(CounterpartService);
   documentService = inject(DocumentService);
+  authService = inject(AuthenticationService);
   router = inject(Router);
 
   // Data for Charts
@@ -57,6 +59,7 @@ export class HomeDashboardComponent implements OnInit {
 
   ngOnInit() {
     this.loadDashboardData();
+    this.userName = this.authService.getUserDetail()?.fullname || 'Utilisateur';
   }
 
   loadDashboardData() {

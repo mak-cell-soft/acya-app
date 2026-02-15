@@ -1,0 +1,225 @@
+<div class="delivery-note-container">
+    <!-- Header Section -->
+    <div class="header">
+        <!-- Left: Company Info -->
+        <div class="company-info">
+            <h2 class="company-name">{{ companyInfo.name }}</h2>
+            <p class="company-details">{{ companyInfo.nameFr }}</p>
+            <p class="company-details">{{ companyInfo.address }}</p>
+            <p class="company-details" style="white-space: pre-line;">{{ companyInfo.contact }}</p>
+            <p class="company-details">{{ companyInfo.ccb }}</p>
+            <p class="company-details">{{ companyInfo.email }}</p>
+            <p class="company-details">{{ companyInfo.registration }}</p>
+            <p class="company-details">{{ companyInfo.phone }}</p>
+        </div>
+
+        <!-- Center: Logo and Location -->
+        <div class="center-section">
+            <div class="logo">
+                <h1 class="logo-text">COTUB</h1>
+            </div>
+            <div class="location">
+                <p style="white-space: pre-line;">{{ companyInfo.location }}</p>
+            </div>
+        </div>
+
+        <!-- Right: Arabic Info and Original Label -->
+        <div class="arabic-info">
+            <p class="arabic-text">{{ companyInfo.arabicName }}</p>
+            <p class="arabic-text">{{ companyInfo.arabicCapital }}</p>
+            <p class="arabic-details">مقرها الاجتماعي: طريق تونس كلم 0.5 صفاقس</p>
+            <p class="arabic-details">تونس، المنطقة الصناعية الشرقية 2035</p>
+            <h3 class="original-label">ORIGINAL CLIENT</h3>
+        </div>
+    </div>
+
+    <!-- Document Title and Client Info -->
+    <div class="document-header">
+        <div class="document-title-section">
+            <h2 class="document-title">BON DE LIVRAISON</h2>
+            <h3 class="document-subtitle">CREDIT</h3>
+        </div>
+
+        <div class="client-info">
+            <div class="info-row">
+                <span class="label">Client:</span>
+                <span class="value">{{ getClientName() }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Adresse:</span>
+                <span class="value">{{ getClientAddress() }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Details -->
+    <div class="document-details">
+        <div class="detail-item">
+            <span class="detail-label">DATE</span>
+            <span class="detail-value">{{ formatDate(document?.creationdate) }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">N° BL</span>
+            <span class="detail-value">{{ document?.docnumber }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">N° COMPTE</span>
+            <span class="detail-value">{{ getAccountNumber() }}</span>
+        </div>
+    </div>
+
+    <!-- Barcode -->
+    <div class="barcode-section">
+        <svg class="barcode">
+            <!-- Simple barcode representation - replace with actual barcode library if needed -->
+            <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+                font-family="'Libre Barcode 128', monospace" font-size="40">
+                {{ barcodeValue }}
+            </text>
+        </svg>
+    </div>
+
+    <!-- Region and TVA Code -->
+    <div class="region-info">
+        <div class="region-item">
+            <span class="region-value">{{ getGovernorate() }}</span>
+        </div>
+        <div class="tva-item">
+            <span class="tva-label">Code TVA:</span>
+            <span class="tva-value">{{ getTvaCode() }}</span>
+        </div>
+    </div>
+
+    <!-- Items Table -->
+    <div class="items-table-container">
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th class="col-code">CODE PRODUIT</th>
+                    <th class="col-designation">DESIGNATIONS</th>
+                    <th class="col-unit">U</th>
+                    <th class="col-qty">QTE</th>
+                    <th class="col-price">P.U.H.T</th>
+                    <th class="col-tva">TVA</th>
+                    <th class="col-rm">RM</th>
+                    <th class="col-total">MONTANT HT</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let merchandise of document?.merchandises" class="item-row">
+                    <td class="col-code">{{ merchandise?.article?.code }}</td>
+                    <td class="col-designation">{{ merchandise?.article?.designation }}</td>
+                    <td class="col-unit">{{ merchandise?.article?.unit || 'PCS' }}</td>
+                    <td class="col-qty">{{ formatNumber(merchandise?.quantity) }}</td>
+                    <td class="col-price">{{ formatNumber(merchandise?.unit_price_ht) }}</td>
+                    <td class="col-tva">{{ merchandise?.article?.tva || 0 }}</td>
+                    <td class="col-rm">{{ formatNumber(merchandise?.discount_percentage) }}</td>
+                    <td class="col-total">{{ formatNumber(merchandise?.cost_net_ht) }}</td>
+                </tr>
+                <!-- Empty rows for spacing -->
+                <tr *ngFor="let i of [1,2,3,4,5,6,7,8]" class="empty-row">
+                    <td colspan="8">&nbsp;</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer Section -->
+    <div class="footer-section">
+        <!-- Tax Breakdown Tables -->
+        <div class="tax-tables">
+            <!-- Left Tax Table -->
+            <table class="tax-table">
+                <thead>
+                    <tr>
+                        <th>Taxe</th>
+                        <th>Base</th>
+                        <th>%</th>
+                        <th>Valeur</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let tva of getTvaBreakdown()">
+                        <td>TVA</td>
+                        <td>{{ formatNumber(tva.base) }}</td>
+                        <td>{{ tva.percentage }}</td>
+                        <td>{{ formatNumber(tva.value) }}</td>
+                    </tr>
+                    <tr *ngIf="getTvaBreakdown().length === 0">
+                        <td colspan="4">&nbsp;</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Right Tax Table (empty in template) -->
+            <table class="tax-table">
+                <thead>
+                    <tr>
+                        <th>Taxe</th>
+                        <th>Base</th>
+                        <th>%</th>
+                        <th>Valeur</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="4">&nbsp;</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Amount in Words -->
+        <div class="amount-words">
+            <span class="words-label">ARRETE LA PRESENTE A LA SOMME DE :</span>
+            <p class="words-value">{{ amountInWords }}</p>
+        </div>
+
+        <!-- Totals Column -->
+        <div class="totals-column">
+            <div class="total-row">
+                <span class="total-label">TOTAL H.T.V.A</span>
+                <span class="total-value">{{ formatNumber(document?.total_ht_net_doc) }}</span>
+            </div>
+            <div class="total-row">
+                <span class="total-label">TOTAL TVA</span>
+                <span class="total-value">{{ formatNumber(document?.total_tva_doc) }}</span>
+            </div>
+            <div class="total-row total-ttc">
+                <span class="total-label">TOTAL TTC</span>
+                <span class="total-value">{{ formatNumber(document?.total_net_ttc) }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Signature Section -->
+    <div class="signature-section">
+        <div class="signature-box">
+            <span class="signature-label">SIGN. CLIENT</span>
+            <div class="signature-area"></div>
+        </div>
+        <div class="signature-box">
+            <span class="signature-label">N° CAMION</span>
+            <div class="signature-area"></div>
+        </div>
+        <div class="signature-box">
+            <span class="signature-label">NOM CHAUFFEUR</span>
+            <div class="signature-area"></div>
+            <span class="cin-label">C.I.N :</span>
+        </div>
+        <div class="signature-box">
+            <span class="signature-label">CONTROL BL</span>
+            <div class="signature-area"></div>
+        </div>
+        <div class="signature-box">
+            <span class="signature-label">CONTROL SORTIE</span>
+            <div class="signature-area"></div>
+        </div>
+    </div>
+
+    <!-- Footer Legal Text -->
+    <div class="footer-legal">
+        <p class="legal-text">{{ companyInfo.footer }}</p>
+        <p class="agency-info">{{ companyInfo.agencyInfo }}</p>
+    </div>
+</div>
