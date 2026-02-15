@@ -1,4 +1,5 @@
 export const BUTTON_HOME = 'Accueil';
+export const BUTTON_ADMINISTRATION = 'Administration';
 
 // SELL MENU
 export const MENU_SELL = 'Vente';
