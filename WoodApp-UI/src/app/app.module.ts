@@ -93,6 +93,7 @@ import { DocumentConversionModalComponent } from './components/merchandise/custo
 import { ListCustomerInvoicesComponent } from './components/merchandise/customer/list-customer-invoices/list-customer-invoices.component';
 import { AddInvoiceComponent } from './components/merchandise/customer/add-invoice/add-invoice.component';
 import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { DeliveryNotePrintComponent } from './models/print-templates/delivery-note-print/delivery-note-print.component';
 
 @NgModule({
   declarations: [
@@ -141,7 +142,8 @@ import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2
     DocumentDetailModalComponent,
     DocumentConversionModalComponent,
     ListCustomerInvoicesComponent,
-    AddInvoiceComponent
+    AddInvoiceComponent,
+    DeliveryNotePrintComponent 
   ],
   imports: [
     BrowserModule,

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ViewChild, AfterViewInit, TemplateRef } from '@angular/core';
+import { Component, inject, OnInit, ViewChild, AfterViewInit, TemplateRef, ElementRef } from '@angular/core';
 import { PaymentModalComponent } from '../../../../dashboard/modals/payment-modal/payment-modal.component';
 import { DocumentConversionModalComponent } from './document-conversion-modal/document-conversion-modal.component';
 import { DocumentDetailModalComponent } from './document-detail-modal/document-detail-modal.component';
@@ -17,6 +17,7 @@ import { AuthenticationService } from '../../../../services/components/authentic
 import { Payment } from '../../../../models/components/payment';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
+
 
 
 
@@ -68,6 +69,9 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
   selection = new SelectionModel<any>(true, []); // true = allow multiple selections
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild('printTemplate', { read: ElementRef }) printTemplate!: ElementRef;
+
+  selectedDocumentForPrint: Document | null = null;
 
   ngAfterViewInit() {
     this.allCustomerDeliveryNotes.paginator = this.paginator;
@@ -494,410 +498,57 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
     });
   }
 
-  onDownload(doc: Document) {
-    console.log('Download:', doc);
-    // Implement download logic
-  }
+
 
   onPrint(doc: Document) {
     console.log('Print:', doc);
 
-    // Create a new window for printing
-    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    // Set the document for the hidden print template
+    this.selectedDocumentForPrint = doc;
 
-    if (!printWindow) {
-      this.toastr.error('Impossible d\'ouvrir la fenêtre d\'impression. Veuillez autoriser les popups.');
-      return;
-    }
+    // Small delay to ensure Angular updates the input and renders the template
+    setTimeout(() => {
+      // Create a new window for printing
+      const printWindow = window.open('', '_blank', 'width=800,height=600');
 
-    // Generate the print HTML
-    const printContent = this.generatePrintHTML(doc);
-
-    // Write content to the new window
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-
-    // Wait for content to load, then print
-    printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.print();
-        // Optionally close after printing
-        // printWindow.close();
-      }, 500);
-    };
-  }
-
-  /**
-   * Generate complete HTML for print window including the delivery note template
-   */
-  private generatePrintHTML(doc: Document): string {
-    const companyInfo = {
-      name: 'COMPTOIR TUNISIEN DE BATIMENT',
-      nameFr: 'S.A. au Capital de 14.625.000 DT',
-      arabicName: 'المصرف التونسي للبناء',
-      arabicCapital: 'شركة خفية الإسم رأس مالها 14.625.000',
-      address: 'Siège Social: Rte de Tunis km 0.5 - 3002 Sfax',
-      contact: 'Tél.: 74 235 225 - Fax.: 74 235 363\nTél.: 74 487 555 - Fax.: 74 487 544',
-      ccb: 'CCB: BT SFAX 05 700 0000 19 3020 45 391',
-      email: 'E-mail: commercial@cotub.com.tn',
-      registration: 'Z.I CHARGUIA | 2035 Tunis',
-      phone: 'Tél: 71 807 655-Fax :71 794 974',
-      location: 'TUNIS\nBORJ TOUIL',
-      footer: 'Ce bon de livraison doit être signé pour réalisation ou la marchandise livrée est de de la société ne peut garantir la décoloration de la marchandise et de l\'aspect extérieur.',
-      agencyInfo: 'Agence: Charguia | Tunis - Tél : 71 807 655/ Borj Touil Ariana - Tél : 71 780 903 R.C. : B 177791996 Code en Douane :220.111.8 TVA :0023755 C/A/M000'
-    };
-
-    const clientName = doc.counterpart?.name || `${doc.counterpart?.firstname || ''} ${doc.counterpart?.lastname || ''}`.trim();
-    const clientAddress = doc.counterpart?.address || '';
-    const tvaCode = doc.counterpart?.taxregistrationnumber || '';
-    const gouvernorate = doc.counterpart?.gouvernorate || '';
-    const accountNumber = doc.counterpart?.id?.toString() || '';
-    const formattedDate = this.formatDateForPrint(doc.creationdate);
-    const amountInWords = this.numberToFrenchWords(doc.total_net_ttc);
-    const tvaBreakdown = this.getTvaBreakdownForPrint(doc);
-
-    // Generate merchandise rows
-    let merchandiseRows = '';
-    doc.merchandises?.forEach(merch => {
-      merchandiseRows += `
-        <tr class="item-row">
-          <td class="col-code">${merch.article?.reference || ''}</td>
-          <td class="col-designation">${merch.article?.description || ''}</td>
-          <td class="col-unit">${merch.article?.unit || 'PCS'}</td>
-          <td class="col-qty">${this.formatNumberForPrint(merch.quantity)}</td>
-          <td class="col-price">${this.formatNumberForPrint(merch.unit_price_ht)}</td>
-          <td class="col-tva">${merch.article?.tva?.value || 0}</td>
-          <td class="col-rm">${this.formatNumberForPrint(merch.discount_percentage)}</td>
-          <td class="col-total">${this.formatNumberForPrint(merch.cost_net_ht)}</td>
-        </tr>
-      `;
-    });
-
-    // Add empty rows for spacing
-    for (let i = 0; i < 8; i++) {
-      merchandiseRows += '<tr class="empty-row"><td colspan="8">&nbsp;</td></tr>';
-    }
-
-    // Generate TVA breakdown rows
-    let tvaRows = '';
-    tvaBreakdown.forEach(tva => {
-      tvaRows += `
-        <tr>
-          <td>TVA</td>
-          <td>${this.formatNumberForPrint(tva.base)}</td>
-          <td>${tva.percentage}</td>
-          <td>${this.formatNumberForPrint(tva.value)}</td>
-        </tr>
-      `;
-    });
-    if (tvaBreakdown.length === 0) {
-      tvaRows = '<tr><td colspan="4">&nbsp;</td></tr>';
-    }
-
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Bon de Livraison - ${doc.docnumber}</title>
-        <style>${this.getPrintStyles()}</style>
-      </head>
-      <body>
-        <div class="delivery-note-container">
-          <!-- Header Section -->
-          <div class="header">
-            <div class="company-info">
-              <h2 class="company-name">${companyInfo.name}</h2>
-              <p class="company-details">${companyInfo.nameFr}</p>
-              <p class="company-details">${companyInfo.address}</p>
-              <p class="company-details" style="white-space: pre-line;">${companyInfo.contact}</p>
-              <p class="company-details">${companyInfo.ccb}</p>
-              <p class="company-details">${companyInfo.email}</p>
-              <p class="company-details">${companyInfo.registration}</p>
-              <p class="company-details">${companyInfo.phone}</p>
-            </div>
-            <div class="center-section">
-              <div class="logo">
-                <h1 class="logo-text">COTUB</h1>
-              </div>
-              <div class="location">
-                <p style="white-space: pre-line;">${companyInfo.location}</p>
-              </div>
-            </div>
-            <div class="arabic-info">
-              <p class="arabic-text">${companyInfo.arabicName}</p>
-              <p class="arabic-text">${companyInfo.arabicCapital}</p>
-              <p class="arabic-details">مقرها الاجتماعي: طريق تونس كلم 0.5 صفاقس</p>
-              <p class="arabic-details">تونس، المنطقة الصناعية الشرقية 2035</p>
-              <h3 class="original-label">ORIGINAL CLIENT</h3>
-            </div>
-          </div>
-
-          <!-- Document Title and Client Info -->
-          <div class="document-header">
-            <div class="document-title-section">
-              <h2 class="document-title">BON DE LIVRAISON</h2>
-              <h3 class="document-subtitle">CREDIT</h3>
-            </div>
-            <div class="client-info">
-              <div class="info-row">
-                <span class="label">Client:</span>
-                <span class="value">${clientName}</span>
-              </div>
-              <div class="info-row">
-                <span class="label">Adresse:</span>
-                <span class="value">${clientAddress}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Document Details -->
-          <div class="document-details">
-            <div class="detail-item">
-              <span class="detail-label">DATE</span>
-              <span class="detail-value">${formattedDate}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">N° BL</span>
-              <span class="detail-value">${doc.docnumber}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">N° COMPTE</span>
-              <span class="detail-value">${accountNumber}</span>
-            </div>
-          </div>
-
-          <!-- Barcode -->
-          <div class="barcode-section">
-            <div class="barcode-text">${doc.docnumber}</div>
-          </div>
-
-          <!-- Region and TVA Code -->
-          <div class="region-info">
-            <div class="region-item">
-              <span class="region-value">${gouvernorate}</span>
-            </div>
-            <div class="tva-item">
-              <span class="tva-label">Code TVA:</span>
-              <span class="tva-value">${tvaCode}</span>
-            </div>
-          </div>
-
-          <!-- Items Table -->
-          <div class="items-table-container">
-            <table class="items-table">
-              <thead>
-                <tr>
-                  <th class="col-code">CODE PRODUIT</th>
-                  <th class="col-designation">DESIGNATIONS</th>
-                  <th class="col-unit">U</th>
-                  <th class="col-qty">QTE</th>
-                  <th class="col-price">P.U.H.T</th>
-                  <th class="col-tva">TVA</th>
-                  <th class="col-rm">RM</th>
-                  <th class="col-total">MONTANT HT</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${merchandiseRows}
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Footer Section -->
-          <div class="footer-section">
-            <div class="tax-tables">
-              <table class="tax-table">
-                <thead>
-                  <tr>
-                    <th>Taxe</th>
-                    <th>Base</th>
-                    <th>%</th>
-                    <th>Valeur</th>
-                  </tr>
-                </thead>
-                <tbody>${tvaRows}</tbody>
-              </table>
-              <table class="tax-table">
-                <thead>
-                  <tr>
-                    <th>Taxe</th>
-                    <th>Base</th>
-                    <th>%</th>
-                    <th>Valeur</th>
-                  </tr>
-                </thead>
-                <tbody><tr><td colspan="4">&nbsp;</td></tr></tbody>
-              </table>
-            </div>
-            <div class="amount-words">
-              <span class="words-label">ARRETE LA PRESENTE A LA SOMME DE :</span>
-              <p class="words-value">${amountInWords}</p>
-            </div>
-            <div class="totals-column">
-              <div class="total-row">
-                <span class="total-label">TOTAL H.T.V.A</span>
-                <span class="total-value">${this.formatNumberForPrint(doc.total_ht_net_doc)}</span>
-              </div>
-              <div class="total-row">
-                <span class="total-label">TOTAL TVA</span>
-                <span class="total-value">${this.formatNumberForPrint(doc.total_tva_doc)}</span>
-              </div>
-              <div class="total-row total-ttc">
-                <span class="total-label">TOTAL TTC</span>
-                <span class="total-value">${this.formatNumberForPrint(doc.total_net_ttc)}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Signature Section -->
-          <div class="signature-section">
-            <div class="signature-box">
-              <span class="signature-label">SIGN. CLIENT</span>
-              <div class="signature-area"></div>
-            </div>
-            <div class="signature-box">
-              <span class="signature-label">N° CAMION</span>
-              <div class="signature-area"></div>
-            </div>
-            <div class="signature-box">
-              <span class="signature-label">NOM CHAUFFEUR</span>
-              <div class="signature-area"></div>
-              <span class="cin-label">C.I.N :</span>
-            </div>
-            <div class="signature-box">
-              <span class="signature-label">CONTROL BL</span>
-              <div class="signature-area"></div>
-            </div>
-            <div class="signature-box">
-              <span class="signature-label">CONTROL SORTIE</span>
-              <div class="signature-area"></div>
-            </div>
-          </div>
-
-          <!-- Footer Legal Text -->
-          <div class="footer-legal">
-            <p class="legal-text">${companyInfo.footer}</p>
-            <p class="agency-info">${companyInfo.agencyInfo}</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-  }
-
-  private formatDateForPrint(date: Date | string | undefined): string {
-    if (!date) return '';
-    const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = String(d.getFullYear()).slice(-2);
-    return `${day}/${month}/${year}`;
-  }
-
-  private formatNumberForPrint(value: number | undefined): string {
-    if (value === undefined || value === null) return '0,000';
-    return value.toFixed(3).replace('.', ',');
-  }
-
-  private getTvaBreakdownForPrint(doc: Document): Array<{ base: number; percentage: number; value: number }> {
-    const breakdown: { [key: number]: { base: number; value: number } } = {};
-
-    doc.merchandises?.forEach(merch => {
-      const tvaRate = merch.article?.tva?.value || 0;
-      const base = merch.cost_net_ht || 0;
-      const tvaValue = merch.tva_value || 0;
-
-      if (!breakdown[Number(tvaRate)]) {
-        breakdown[Number(tvaRate)] = { base: 0, value: 0 };
+      if (!printWindow) {
+        this.toastr.error('Impossible d\'ouvrir la fenêtre d\'impression. Veuillez autoriser les popups.');
+        return;
       }
 
-      breakdown[Number(tvaRate)].base += base;
-      breakdown[Number(tvaRate)].value += tvaValue;
-    });
+      // Get the rendered HTML from our hidden component
+      const printContent = this.printTemplate.nativeElement.innerHTML;
 
-    return Object.keys(breakdown).map(rate => {
-      const numRate = Number(rate);
-      return {
-        base: breakdown[numRate].base,
-        percentage: numRate,
-        value: breakdown[numRate].value
+      // Write content to the new window wrapping it in HTML structure with styles
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Bon de Livraison - ${doc.docnumber}</title>
+          <style>${this.getPrintStyles()}</style>
+        </head>
+        <body>
+          ${printContent}
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+
+      // Wait for content to load, then print
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+        }, 500);
       };
-    });
+    }, 100);
   }
 
-  private numberToFrenchWords(amount: number): string {
-    const units = ['', 'UN', 'DEUX', 'TROIS', 'QUATRE', 'CINQ', 'SIX', 'SEPT', 'HUIT', 'NEUF'];
-    const teens = ['DIX', 'ONZE', 'DOUZE', 'TREIZE', 'QUATORZE', 'QUINZE', 'SEIZE', 'DIX-SEPT', 'DIX-HUIT', 'DIX-NEUF'];
-    const tens = ['', '', 'VINGT', 'TRENTE', 'QUARANTE', 'CINQUANTE', 'SOIXANTE', 'SOIXANTE-DIX', 'QUATRE-VINGT', 'QUATRE-VINGT-DIX'];
 
-    const dinars = Math.floor(amount);
-    const millimes = Math.round((amount - dinars) * 1000);
-
-    let result = '';
-
-    if (dinars === 0) {
-      result = 'ZERO DINAR';
-    } else {
-      const thousands = Math.floor(dinars / 1000);
-      const remainder = dinars % 1000;
-
-      if (thousands > 0) {
-        if (thousands === 1) {
-          result += 'MILLE ';
-        } else {
-          result += this.convertHundreds(thousands, units, teens, tens) + ' MILLE ';
-        }
-      }
-
-      if (remainder > 0) {
-        result += this.convertHundreds(remainder, units, teens, tens) + ' ';
-      }
-
-      result += dinars > 1 ? 'DINARS' : 'DINAR';
-    }
-
-    if (millimes > 0) {
-      result += ' ' + this.convertHundreds(millimes, units, teens, tens) + ' MILLIMES';
-    }
-
-    return result.trim();
-  }
-
-  private convertHundreds(num: number, units: string[], teens: string[], tens: string[]): string {
-    let result = '';
-    const hundredsDigit = Math.floor(num / 100);
-    const remainder = num % 100;
-
-    if (hundredsDigit > 0) {
-      if (hundredsDigit === 1) {
-        result += 'CENT ';
-      } else {
-        result += units[hundredsDigit] + ' CENT ';
-      }
-    }
-
-    if (remainder >= 10 && remainder < 20) {
-      result += teens[remainder - 10];
-    } else {
-      const tensDigit = Math.floor(remainder / 10);
-      const unitsDigit = remainder % 10;
-
-      if (tensDigit > 0) {
-        result += tens[tensDigit];
-        if (unitsDigit > 0) {
-          result += ' ' + units[unitsDigit];
-        }
-      } else if (unitsDigit > 0) {
-        result += units[unitsDigit];
-      }
-    }
-
-    return result.trim();
-  }
 
   private getPrintStyles(): string {
     return `
+      @import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+128&display=swap');
       /* Print Styles for COTUB Delivery Note */
       * {
         box-sizing: border-box;

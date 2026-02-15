@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Document } from '../../components/document';
+import { numberToFrenchWords } from '../../../utils/number-to-words.util';
 
 @Component({
     selector: 'app-delivery-note-print',
@@ -7,23 +8,33 @@ import { Document } from '../../components/document';
     styleUrls: ['./delivery-note-print.component.css']
 })
 export class DeliveryNotePrintComponent implements OnInit {
-    @Input() document!: Document;
+    private _document: Document | null = null;
+    @Input() set document(value: Document | null) {
+        this._document = value;
+        if (value) {
+            this.generateBarcode();
+            this.calculateAmountInWords();
+        }
+    }
+    get document(): Document | null {
+        return this._document;
+    }
 
     // Company information - COTUB
     companyInfo = {
-        name: 'COMPTOIR TUNISIEN DE BATIMENT',
-        nameFr: 'S.A. au Capital de 14.625.000 DT',
-        arabicName: 'المصرف التونسي للبناء',
-        arabicCapital: 'شركة خفية الإسم رأس مالها 14.625.000',
-        address: 'Siège Social: Rte de Tunis km 0.5 - 3002 Sfax',
-        contact: 'Tél.: 74 235 225 - Fax.: 74 235 363\nTél.: 74 487 555 - Fax.: 74 487 544',
-        ccb: 'CCB: BT SFAX 05 700 0000 19 3020 45 391',
-        email: 'E-mail: commercial@cotub.com.tn',
-        registration: 'Z.I CHARGUIA | 2035 Tunis',
-        phone: 'Tél: 71 807 655-Fax :71 794 974',
-        location: 'TUNIS\nBORJ TOUIL',
+        name: 'Société Commerciale du Fer et du Bois',
+        nameFr: 'S.A. au Capital de 20.000 DT',
+        arabicName: 'الشركة التجارية للحديد و الخشب',
+        arabicCapital: 'شركة خفية الإسم رأس مالها20.000',
+        address: 'Siège Social: Rte de Raoued Km 4 - 2080 Ariana',
+        contact: 'Tél.: 98 360 569 | 99 218 866 ',
+        ccb: 'CCB: BNA Raoued 03 023 151 0115 004089 24',
+        email: 'E-mail: socofeb.deco@gmail.com',
+        registration: 'Route de Raoued Km 4 - 2080 Ariana',
+        phone: 'Tél: 98 360 569 | 99 218 866',
+        location: 'ARIANA Cité el ghazela',
         footer: 'Ce bon de livraison doit être signé pour réalisation ou la marchandise livrée est de de la société ne peut garantir la décoloration de la marchandise et de l\'aspect extérieur. Toutefois la garantie est limitée aux éventuels défauts que si la feuille est dans le délai d\'un an à par surcpaquage/désemballage selon un délai évenu tel que les agressions climatiques, et présent en un transport ou qui ne résultent pas lesdits problèmes Ni quittes pour les agression climatiques.',
-        agencyInfo: 'Agence: Charguia | Tunis - Tél : 71 807 655/ Borj Touil Ariana - Tél : 71 780 903 R.C. : B 177791996 Code en Douane :220.111.8 TVA :0023755 C/A/M000'
+        agencyInfo: 'Agence: Cité el ghazela - Tél : 99 218 760 / Sidi Amor - Tél : 99 218 762 R.C. 456545185151P : TVA :0040863P A/M/M000'
     };
 
     // Generated data
@@ -40,7 +51,7 @@ export class DeliveryNotePrintComponent implements OnInit {
      */
     generateBarcode(): void {
         // Simple barcode generation - can be enhanced with actual barcode library
-        this.barcodeValue = this.document.docnumber || '';
+        this.barcodeValue = this.document?.docnumber || '';
     }
 
     /**
@@ -69,88 +80,7 @@ export class DeliveryNotePrintComponent implements OnInit {
      */
     calculateAmountInWords(): void {
         const amount = this.document?.total_net_ttc || 0;
-        this.amountInWords = this.numberToFrenchWords(amount);
-    }
-
-    /**
-     * Convert number to French words (Tunisian Dinar format)
-     */
-    private numberToFrenchWords(amount: number): string {
-        const units = ['', 'UN', 'DEUX', 'TROIS', 'QUATRE', 'CINQ', 'SIX', 'SEPT', 'HUIT', 'NEUF'];
-        const teens = ['DIX', 'ONZE', 'DOUZE', 'TREIZE', 'QUATORZE', 'QUINZE', 'SEIZE', 'DIX-SEPT', 'DIX-HUIT', 'DIX-NEUF'];
-        const tens = ['', '', 'VINGT', 'TRENTE', 'QUARANTE', 'CINQUANTE', 'SOIXANTE', 'SOIXANTE-DIX', 'QUATRE-VINGT', 'QUATRE-VINGT-DIX'];
-        const hundreds = ['', 'CENT', 'DEUX CENT', 'TROIS CENT', 'QUATRE CENT', 'CINQ CENT', 'SIX CENT', 'SEPT CENT', 'HUIT CENT', 'NEUF CENT'];
-
-        const dinars = Math.floor(amount);
-        const millimes = Math.round((amount - dinars) * 1000);
-
-        let result = '';
-
-        // Convert dinars
-        if (dinars === 0) {
-            result = 'ZERO DINAR';
-        } else {
-            // Thousands
-            const thousands = Math.floor(dinars / 1000);
-            const remainder = dinars % 1000;
-
-            if (thousands > 0) {
-                if (thousands === 1) {
-                    result += 'MILLE ';
-                } else {
-                    result += this.convertHundreds(thousands) + ' MILLE ';
-                }
-            }
-
-            if (remainder > 0) {
-                result += this.convertHundreds(remainder) + ' ';
-            }
-
-            result += dinars > 1 ? 'DINARS' : 'DINAR';
-        }
-
-        // Convert millimes
-        if (millimes > 0) {
-            result += ' ' + this.convertHundreds(millimes) + ' MILLIMES';
-        }
-
-        return result.trim();
-    }
-
-    private convertHundreds(num: number): string {
-        const units = ['', 'UN', 'DEUX', 'TROIS', 'QUATRE', 'CINQ', 'SIX', 'SEPT', 'HUIT', 'NEUF'];
-        const teens = ['DIX', 'ONZE', 'DOUZE', 'TREIZE', 'QUATORZE', 'QUINZE', 'SEIZE', 'DIX-SEPT', 'DIX-HUIT', 'DIX-NEUF'];
-        const tens = ['', '', 'VINGT', 'TRENTE', 'QUARANTE', 'CINQUANTE', 'SOIXANTE', 'SOIXANTE-DIX', 'QUATRE-VINGT', 'QUATRE-VINGT-DIX'];
-
-        let result = '';
-        const hundredsDigit = Math.floor(num / 100);
-        const remainder = num % 100;
-
-        if (hundredsDigit > 0) {
-            if (hundredsDigit === 1) {
-                result += 'CENT ';
-            } else {
-                result += units[hundredsDigit] + ' CENT ';
-            }
-        }
-
-        if (remainder >= 10 && remainder < 20) {
-            result += teens[remainder - 10];
-        } else {
-            const tensDigit = Math.floor(remainder / 10);
-            const unitsDigit = remainder % 10;
-
-            if (tensDigit > 0) {
-                result += tens[tensDigit];
-                if (unitsDigit > 0) {
-                    result += ' ' + units[unitsDigit];
-                }
-            } else if (unitsDigit > 0) {
-                result += units[unitsDigit];
-            }
-        }
-
-        return result.trim();
+        this.amountInWords = numberToFrenchWords(amount);
     }
 
     /**

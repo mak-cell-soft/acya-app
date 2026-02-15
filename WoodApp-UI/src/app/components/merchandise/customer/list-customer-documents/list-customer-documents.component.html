@@ -229,10 +229,7 @@
                                 <mat-icon>transform</mat-icon>
                                 <span>Convertir</span>
                             </button>
-                            <button mat-menu-item (click)="onDownload(element)">
-                                <mat-icon>download</mat-icon>
-                                <span>Télécharger</span>
-                            </button>
+
                             <button mat-menu-item (click)="onPrint(element)">
                                 <mat-icon>print</mat-icon>
                                 <span>Imprimer</span>
@@ -254,3 +251,8 @@
         </div>
     </div>
 </mat-card>
+
+<!-- Hidden print template -->
+<div style="display: none;">
+    <app-delivery-note-print #printTemplate [document]="selectedDocumentForPrint"></app-delivery-note-print>
+</div>

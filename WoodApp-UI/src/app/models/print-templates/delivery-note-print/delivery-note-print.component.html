@@ -16,7 +16,7 @@
         <!-- Center: Logo and Location -->
         <div class="center-section">
             <div class="logo">
-                <h1 class="logo-text">COTUB</h1>
+                <h1 class="logo-text">SOCOFEB</h1>
             </div>
             <div class="location">
                 <p style="white-space: pre-line;">{{ companyInfo.location }}</p>
@@ -27,8 +27,8 @@
         <div class="arabic-info">
             <p class="arabic-text">{{ companyInfo.arabicName }}</p>
             <p class="arabic-text">{{ companyInfo.arabicCapital }}</p>
-            <p class="arabic-details">مقرها الاجتماعي: طريق تونس كلم 0.5 صفاقس</p>
-            <p class="arabic-details">تونس، المنطقة الصناعية الشرقية 2035</p>
+            <p class="arabic-details">مقرها الاجتماعي: طريق رواد كلم 4 اريانة</p>
+            <!--<p class="arabic-details">تونس، المنطقة الصناعية الشرقية 2035</p> -->
             <h3 class="original-label">ORIGINAL CLIENT</h3>
         </div>
     </div>
@@ -48,6 +48,10 @@
             <div class="info-row">
                 <span class="label">Adresse:</span>
                 <span class="value">{{ getClientAddress() }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Code TVA:</span>
+                <span class="value">{{ getTvaCode() }}</span>
             </div>
         </div>
     </div>
@@ -69,25 +73,25 @@
     </div>
 
     <!-- Barcode -->
-    <div class="barcode-section">
-        <svg class="barcode">
-            <!-- Simple barcode representation - replace with actual barcode library if needed -->
-            <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+    <!-- <div class="barcode-section">
+        <svg class="barcode"> -->
+    <!-- Simple barcode representation - replace with actual barcode library if needed -->
+    <!-- <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
                 font-family="'Libre Barcode 128', monospace" font-size="40">
                 {{ barcodeValue }}
             </text>
         </svg>
-    </div>
+    </div> -->
 
     <!-- Region and TVA Code -->
     <div class="region-info">
-        <div class="region-item">
+        <!-- <div class="region-item">
             <span class="region-value">{{ getGovernorate() }}</span>
-        </div>
-        <div class="tva-item">
+        </div> -->
+        <!-- <div class="tva-item">
             <span class="tva-label">Code TVA:</span>
             <span class="tva-value">{{ getTvaCode() }}</span>
-        </div>
+        </div> -->
     </div>
 
     <!-- Items Table -->
@@ -95,9 +99,9 @@
         <table class="items-table">
             <thead>
                 <tr>
-                    <th class="col-code">CODE PRODUIT</th>
+                    <th class="col-code">CODE ARTICLE</th>
                     <th class="col-designation">DESIGNATIONS</th>
-                    <th class="col-unit">U</th>
+                    <th class="col-unit">UN</th>
                     <th class="col-qty">QTE</th>
                     <th class="col-price">P.U.H.T</th>
                     <th class="col-tva">TVA</th>
@@ -107,8 +111,8 @@
             </thead>
             <tbody>
                 <tr *ngFor="let merchandise of document?.merchandises" class="item-row">
-                    <td class="col-code">{{ merchandise?.article?.code }}</td>
-                    <td class="col-designation">{{ merchandise?.article?.designation }}</td>
+                    <td class="col-code">{{ merchandise?.article?.reference }}</td>
+                    <td class="col-designation">{{ merchandise?.article?.description }}</td>
                     <td class="col-unit">{{ merchandise?.article?.unit || 'PCS' }}</td>
                     <td class="col-qty">{{ formatNumber(merchandise?.quantity) }}</td>
                     <td class="col-price">{{ formatNumber(merchandise?.unit_price_ht) }}</td>
@@ -117,7 +121,7 @@
                     <td class="col-total">{{ formatNumber(merchandise?.cost_net_ht) }}</td>
                 </tr>
                 <!-- Empty rows for spacing -->
-                <tr *ngFor="let i of [1,2,3,4,5,6,7,8]" class="empty-row">
+                <tr *ngFor="let i of [1,2,3,4,5,6,7]" class="empty-row">
                     <td colspan="8">&nbsp;</td>
                 </tr>
             </tbody>
