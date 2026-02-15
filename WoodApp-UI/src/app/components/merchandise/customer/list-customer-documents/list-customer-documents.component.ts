@@ -18,6 +18,7 @@ import { Payment } from '../../../../models/components/payment';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
 import { getSharedPrintStyles } from '../../../../utils/print-styles.util';
+import { getStatusInfo, getBillingStatusInfo, getMonthIndex } from '../../../../utils/document-utils';
 
 
 
@@ -126,7 +127,7 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
     this.selectedMonth = month;
     console.log('Month selected:', month);
 
-    const monthIndex = this.getMonthKey(month);
+    const monthIndex = getMonthIndex(month, this.months);
     this.currentDate = new Date(this.currentYear, monthIndex, 1);
 
     this.updateMonthHeader();
@@ -138,11 +139,7 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
   }
 
   getMonthKey(monthName: string): number {
-    return Number(
-      Object.keys(this.months).find(key =>
-        this.months[key as unknown as keyof typeof Months_FR] === monthName
-      ) || 1
-    ) - 1; // Month index is 0-11
+    return getMonthIndex(monthName, this.months);
   }
 
   getMonthValues(): string[] {
@@ -322,40 +319,10 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
   //#endregion
   //#region table effects
   DocStatus = DocStatus;
-  getStatusInfo(status: DocStatus): { text: string, color: string } {
-    switch (status) {
-      case DocStatus.Delivered:
-        return { text: DocStatus_FR.Delivered, color: '#4CAF50' }; // Green
-      case DocStatus.Abandoned:
-        return { text: DocStatus_FR.Abandoned, color: '#F44336' }; // Red
-      case DocStatus.Created:
-        return { text: DocStatus_FR.Created, color: '#2196F3' }; // Blue
-      case DocStatus.Deleted:
-        return { text: DocStatus_FR.Deleted, color: '#9E9E9E' }; // Grey
-      case DocStatus.NotDelivered:
-        return { text: DocStatus_FR.NotDelivered, color: '#FF9800' }; // Orange
-      case DocStatus.NotConfirmed:
-        return { text: DocStatus_FR.NotConfirmed, color: '#FFC107' }; // Amber
-      case DocStatus.Confirmed:
-        return { text: DocStatus_FR.Confirmed, color: '#4CAF50' }; // Green
-      default:
-        return { text: 'Inconnu', color: '#9E9E9E' };
-    }
-  }
+  getStatusInfo = getStatusInfo;
 
   BillingStatus = BillingStatus;
-  getBillingStatusInfo(status: BillingStatus): { text: string, color: string } {
-    switch (status) {
-      case BillingStatus.NotBilled:
-        return { text: 'Non Payé', color: '#FF5722' }; // Deep Orange
-      case BillingStatus.Billed:
-        return { text: 'Payé', color: '#4CAF50' }; // Green
-      case BillingStatus.PartiallyBilled:
-        return { text: 'Partiellement Payé', color: '#FFC107' }; // Amber
-      default:
-        return { text: 'Non Payé', color: '#FF5722' };
-    }
-  }
+  getBillingStatusInfo = getBillingStatusInfo;
 
   //#region Payment Modal
   // Payment Modal

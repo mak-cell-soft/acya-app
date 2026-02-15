@@ -161,12 +161,12 @@
                 <th mat-header-cell *matHeaderCellDef class="article-table-cell">Etat</th>
                 <td mat-cell *matCellDef="let element" class="article-table-cell">
                     <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
-                        <span class="status-badge" [ngClass]="'status-' + DocStatus[element.docstatus].toLowerCase()">
+                        <span class="status-badge" [style.color]="getStatusInfo(element.docstatus).color"
+                            [style.backgroundColor]="getStatusInfo(element.docstatus).bgColor">
                             {{getStatusInfo(element.docstatus).text}}
                         </span>
-                        <span class="status-badge"
-                            [style.background-color]="getBillingStatusInfo(element.billingstatus).color"
-                            style="color: white; font-size: 0.8em; padding: 2px 6px;">
+                        <span class="status-badge" [style.color]="getBillingStatusInfo(element.billingstatus).color"
+                            [style.backgroundColor]="getBillingStatusInfo(element.billingstatus).bgColor">
                             {{getBillingStatusInfo(element.billingstatus).text}}
                         </span>
                     </div>

@@ -15,6 +15,7 @@ import { AuthenticationService } from '../../../../services/components/authentic
 import { Payment } from '../../../../models/components/payment';
 import { ElementRef } from '@angular/core';
 import { getSharedPrintStyles } from '../../../../utils/print-styles.util';
+import { getStatusInfo, getBillingStatusInfo, isSameDay } from '../../../../utils/document-utils';
 
 @Component({
     selector: 'app-list-customer-invoices',
@@ -92,7 +93,7 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
                 this.allCustomerInvoices.data = filteredData;
                 // Filter by Date (Single Date)
                 if (this.filterDate && !this.filterStartDate && !this.filterEndDate) {
-                    filteredData = filteredData.filter(d => this.isSameDay(new Date(d.updatedate), this.filterDate!));
+                    filteredData = filteredData.filter(d => isSameDay(d.updatedate, this.filterDate!));
                     // Note: using updatedate as per reference (or creationdate?) Reference uses updatedate in table display.
                 }
 
@@ -129,16 +130,7 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
         });
     }
 
-    isSameDay(d1: Date, d2: Date): boolean {
-        return d1.getFullYear() === d2.getFullYear() &&
-            d1.getMonth() === d2.getMonth() &&
-            d1.getDate() === d2.getDate();
-    }
-
     onFilterChange() {
-        // Re-fetch or Re-filter?
-        // If we fetched everything, we could just filter local data, but the `fetchInvoices` logic above fetches freshly.
-        // This is safer for data consistency.
         this.fetchInvoices();
     }
 
@@ -166,27 +158,8 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
     }
 
     // Helpers for Status
-    getStatusInfo(status: DocStatus): { text: string, color: string, bgColor: string } {
-        switch (status) {
-            case DocStatus.Delivered: return { text: DocStatus_FR.Delivered, color: '#2e7d32', bgColor: '#e8f5e9' };
-            case DocStatus.Abandoned: return { text: DocStatus_FR.Abandoned, color: '#c62828', bgColor: '#ffebee' };
-            case DocStatus.Created: return { text: DocStatus_FR.Created, color: '#1565c0', bgColor: '#e3f2fd' };
-            case DocStatus.Deleted: return { text: DocStatus_FR.Deleted, color: '#37474f', bgColor: '#eceff1' };
-            case DocStatus.NotDelivered: return { text: DocStatus_FR.NotDelivered, color: '#ef6c00', bgColor: '#fff3e0' };
-            case DocStatus.NotConfirmed: return { text: DocStatus_FR.NotConfirmed, color: '#f9a825', bgColor: '#fffde7' };
-            case DocStatus.Confirmed: return { text: DocStatus_FR.Confirmed, color: '#2e7d32', bgColor: '#e8f5e9' };
-            default: return { text: 'Inconnu', color: '#37474f', bgColor: '#eceff1' };
-        }
-    }
-
-    getBillingStatusInfo(status: BillingStatus): { text: string, color: string, bgColor: string } {
-        switch (status) {
-            case BillingStatus.NotBilled: return { text: 'Non Payé', color: '#d84315', bgColor: '#fbe9e7' };
-            case BillingStatus.Billed: return { text: 'Payé', color: '#2e7d32', bgColor: '#e8f5e9' };
-            case BillingStatus.PartiallyBilled: return { text: 'Partiellement Payé', color: '#f9a825', bgColor: '#fffde7' };
-            default: return { text: 'Non Payé', color: '#d84315', bgColor: '#fbe9e7' };
-        }
-    }
+    getStatusInfo = getStatusInfo;
+    getBillingStatusInfo = getBillingStatusInfo;
 
     // New Actions
     openPaymentModal(doc: Document) {

@@ -212,7 +212,6 @@ input {
 .status-badge {
     padding: 4px 8px;
     border-radius: 12px;
-    color: white;
     font-size: 12px;
     font-weight: 500;
     display: inline-block;
@@ -226,33 +225,6 @@ input {
     color: green;
 }
 
-.status-delivered {
-    background-color: #4CAF50;
-}
-
-.status-abandoned {
-    background-color: #F44336;
-}
-
-.status-created {
-    background-color: #2196F3;
-}
-
-.status-deleted {
-    background-color: #9E9E9E;
-}
-
-.status-not-delivered {
-    background-color: #FF9800;
-}
-
-.status-not-confirmed {
-    background-color: #FFC107;
-}
-
-.status-confirmed {
-    background-color: #4CAF50;
-}
 
 /* Reference column styling */
 .reference-cell {
@@ -392,7 +364,6 @@ Added Now
 .status-badge {
     padding: 6px 12px;
     border-radius: 16px;
-    color: white;
     font-size: 12px;
     font-weight: 500;
     display: inline-block;
@@ -400,33 +371,6 @@ Added Now
     text-align: center;
 }
 
-.status-delivered {
-    background-color: #4CAF50;
-}
-
-.status-abandoned {
-    background-color: #F44336;
-}
-
-.status-created {
-    background-color: #2196F3;
-}
-
-.status-deleted {
-    background-color: #9E9E9E;
-}
-
-.status-not-delivered {
-    background-color: #FF9800;
-}
-
-.status-not-confirmed {
-    background-color: #FFC107;
-}
-
-.status-confirmed {
-    background-color: #4CAF50;
-}
 
 /* Action Column */
 .mat-column-action {
