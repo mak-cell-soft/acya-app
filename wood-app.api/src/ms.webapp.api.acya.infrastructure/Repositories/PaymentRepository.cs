@@ -117,14 +117,14 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
             return await context.Payments
                 .Include(p => p.Customer)
                 .Include(p => p.Document)
-                    .ThenInclude(d => d.ChildDocuments)
-                        .ThenInclude(cd => cd.ChildDocument)
+                    .ThenInclude(d => d!.ChildDocuments)
+                        .ThenInclude(cd => cd!.ChildDocument)
                 .Include(p => p.Document)
-                    .ThenInclude(d => d.ParentDocuments)
-                        .ThenInclude(pd => pd.ParentDocument)
+                    .ThenInclude(d => d!.ParentDocuments)
+                        .ThenInclude(pd => pd!.ParentDocument)
                 .Where(p => !p.IsDeleted)
                 .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value.Date == dateOnly)
-                .Where(p => p.Document.SalesSiteId == salesSiteId)
+                .Where(p => p.Document!.SalesSiteId == salesSiteId)
                 .OrderByDescending(p => p.CreatedAt)
                 .Select(p => new DashboardPaymentDto
                 {

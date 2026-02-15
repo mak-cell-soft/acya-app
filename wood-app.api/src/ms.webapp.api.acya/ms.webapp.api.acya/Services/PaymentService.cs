@@ -83,7 +83,7 @@ namespace ms.webapp.api.acya.api.Services
 
             // Fetch generic user name if needed or let DB handle UpdatedById relation
             var user = await _appUserRepository.Get(createdById);
-            string createdByName = user != null ? user.Login : "Unknown";
+            string createdByName = user != null ? user.Login! : "Unknown";
 
             var payment = new Payment
             {
