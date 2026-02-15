@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs;
 using ms.webapp.api.acya.core.Interfaces;
@@ -20,7 +21,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                 .FirstOrDefaultAsync(p => p.Id == paymentId && !p.IsDeleted);
         }
 
-        public async Task<IEnumerable<Payment>> GetAllAsync()
+        public new async Task<IEnumerable<Payment>> GetAllAsync()
         {
             return await context.Payments
                 .Where(p => !p.IsDeleted)
@@ -133,16 +134,16 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                     PaymentMethod = p.PaymentMethod,
                     Reference = p.Reference,
                     Notes = p.Notes,
-                    CustomerName = p.Customer.Fullname,
-                    InvoiceNumber = p.Document.Type == DocumentTypes.customerInvoice 
+                    CustomerName = p.Customer!.Fullname,
+                    InvoiceNumber = p.Document!.Type == DocumentTypes.customerInvoice 
                         ? p.Document.DocNumber 
-                        : (p.Document.ChildDocuments.FirstOrDefault(cd => cd.ChildDocument.Type == DocumentTypes.customerInvoice) != null 
-                            ? p.Document.ChildDocuments.FirstOrDefault(cd => cd.ChildDocument.Type == DocumentTypes.customerInvoice).ChildDocument.DocNumber 
+                        : (p.Document!.ChildDocuments.FirstOrDefault(cd => cd.ChildDocument!.Type == DocumentTypes.customerInvoice) != null 
+                            ? p.Document!.ChildDocuments.FirstOrDefault(cd => cd.ChildDocument!.Type == DocumentTypes.customerInvoice)!.ChildDocument!.DocNumber 
                             : null),
-                    DeliveryNoteNumber = p.Document.Type == DocumentTypes.customerDeliveryNote 
+                    DeliveryNoteNumber = p.Document!.Type == DocumentTypes.customerDeliveryNote 
                         ? p.Document.DocNumber 
-                        : (p.Document.ParentDocuments.FirstOrDefault(pd => pd.ParentDocument.Type == DocumentTypes.customerDeliveryNote) != null 
-                            ? p.Document.ParentDocuments.FirstOrDefault(pd => pd.ParentDocument.Type == DocumentTypes.customerDeliveryNote).ParentDocument.DocNumber 
+                        : (p.Document!.ParentDocuments.FirstOrDefault(pd => pd.ParentDocument!.Type == DocumentTypes.customerDeliveryNote) != null 
+                            ? p.Document!.ParentDocuments.FirstOrDefault(pd => pd.ParentDocument!.Type == DocumentTypes.customerDeliveryNote)!.ParentDocument!.DocNumber 
                             : null),
                     CreatedAt = p.CreatedAt ?? DateTime.MinValue
                 })
