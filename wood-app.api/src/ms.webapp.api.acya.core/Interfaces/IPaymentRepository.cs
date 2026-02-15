@@ -21,5 +21,6 @@ namespace ms.webapp.api.acya.core.Interfaces
         Task<decimal> GetTotalByDocumentIdAsync(int documentId);
         Task<bool> ExistsAsync(int paymentId);
         Task<bool> DeleteAsync(int paymentId);
+        Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int salesSiteId);
     }
 }

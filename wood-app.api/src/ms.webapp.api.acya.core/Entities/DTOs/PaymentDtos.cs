@@ -59,4 +59,17 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public int PageSize { get; set; }
         public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
     }
+    public class DashboardPaymentDto
+    {
+        public int PaymentId { get; set; }
+        public decimal Amount { get; set; }
+        public DateTime PaymentDate { get; set; }
+        public string? PaymentMethod { get; set; }
+        public string? Reference { get; set; }
+        public string? Notes { get; set; }
+        public string? CustomerName { get; set; }
+        public string? InvoiceNumber { get; set; }
+        public string? DeliveryNoteNumber { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
 }

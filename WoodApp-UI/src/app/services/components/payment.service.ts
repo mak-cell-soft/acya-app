@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { Payment } from '../../models/components/payment';
+import { Payment, DashboardPaymentDto } from '../../models/components/payment';
 import { Observable } from 'rxjs';
+import { HttpParams } from '@angular/common/http';
 
 @Injectable({
     providedIn: 'root'
@@ -39,5 +40,14 @@ export class PaymentService {
      */
     Delete(id: number): Observable<any> {
         return this.http.delete(this.baseUrl + 'Payments/' + id);
+    }
+
+    /**
+     * Get Payments for Dashboard
+     */
+    GetDashboardPayments(date: Date): Observable<DashboardPaymentDto[]> {
+        const dateStr = date.toISOString().split('T')[0];
+        let params = new HttpParams().set('date', dateStr);
+        return this.http.get<DashboardPaymentDto[]>(this.baseUrl + 'Payments/dashboard', { params });
     }
 }

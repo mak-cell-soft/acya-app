@@ -79,4 +79,111 @@
             </mat-card-content>
         </mat-card>
     </div>
+
+    <!-- Payment Section -->
+    <div class="payment-section" *ngIf="!loading">
+        <div class="divider-line"></div>
+
+        <div class="section-header">
+            <div class="title-group">
+                <mat-icon color="primary">account_balance_wallet</mat-icon>
+                <h2 class="section-title">Aperçu des Règlements</h2>
+            </div>
+            <div class="date-selector">
+                <mat-form-field appearance="outline" class="density-compact">
+                    <mat-label>Filtrer par date</mat-label>
+                    <input matInput [matDatepicker]="picker" [value]="selectedDate" (dateChange)="onDateChange($event)">
+                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-datepicker #picker></mat-datepicker>
+                </mat-form-field>
+            </div>
+        </div>
+
+        <!-- Payment Method Summary Cards -->
+        <div class="summary-cards" *ngIf="paymentMethodTotals.length > 0">
+            <mat-card *ngFor="let total of paymentMethodTotals" class="summary-card"
+                [style.border-top]="'4px solid ' + total.color">
+                <mat-card-content>
+                    <div class="summary-info">
+                        <div class="icon-box" [style.background-color]="total.color + '15'">
+                            <mat-icon [style.color]="total.color">{{ total.icon }}</mat-icon>
+                        </div>
+                        <div class="summary-text">
+                            <span class="method-name">{{ total.method }}</span>
+                            <span class="method-total">{{ total.total | number:'1.3-3' }} <small>TND</small></span>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+
+        <!-- Payment List -->
+        <mat-card class="payment-list-container">
+            <div *ngIf="paymentsLoading" class="loading-overlay">
+                <mat-spinner diameter="40"></mat-spinner>
+            </div>
+
+            <div *ngIf="!paymentsLoading && payments.length === 0" class="empty-state">
+                <div class="empty-icon-circle">
+                    <mat-icon>payments</mat-icon>
+                </div>
+                <p>Aucun règlement trouvé pour le {{ selectedDate | date:'dd/MM/yyyy' }}.</p>
+            </div>
+
+            <div class="table-responsive" *ngIf="!paymentsLoading && payments.length > 0">
+                <table mat-table [dataSource]="payments" class="w-full h-full">
+                    <!-- Time Column -->
+                    <ng-container matColumnDef="time">
+                        <th mat-header-cell *matHeaderCellDef> Heure </th>
+                        <td mat-cell *matCellDef="let p" class="time-cell">
+                            <mat-icon class="sub-icon">access_time</mat-icon>
+                            {{ p.createdAt | date:'HH:mm' }}
+                        </td>
+                    </ng-container>
+
+                    <!-- Customer Column -->
+                    <ng-container matColumnDef="customer">
+                        <th mat-header-cell *matHeaderCellDef> Client </th>
+                        <td mat-cell *matCellDef="let p" class="customer-cell"> {{ p.customerName }} </td>
+                    </ng-container>
+
+                    <!-- Amount Column -->
+                    <ng-container matColumnDef="amount">
+                        <th mat-header-cell *matHeaderCellDef> Montant </th>
+                        <td mat-cell *matCellDef="let p" class="amount-cell"> {{ p.amount | number:'1.3-3' }} <span
+                                class="currency">TND</span> </td>
+                    </ng-container>
+
+                    <!-- Method Column -->
+                    <ng-container matColumnDef="method">
+                        <th mat-header-cell *matHeaderCellDef> Mode </th>
+                        <td mat-cell *matCellDef="let p">
+                            <span class="method-badge" [ngClass]="getPaymentMethodColor(p.paymentMethod)">
+                                {{ p.paymentMethod }}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Docs Column -->
+                    <ng-container matColumnDef="documents">
+                        <th mat-header-cell *matHeaderCellDef> Documents Liés </th>
+                        <td mat-cell *matCellDef="let p">
+                            <div class="doc-links">
+                                <span *ngIf="p.invoiceNumber" class="doc-badge invoice" matTooltip="Facture">
+                                    <mat-icon>description</mat-icon> {{ p.invoiceNumber }}
+                                </span>
+                                <span *ngIf="p.deliveryNoteNumber" class="doc-badge dn" matTooltip="Bon de Livraison">
+                                    <mat-icon>local_shipping</mat-icon> {{ p.deliveryNoteNumber }}
+                                </span>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="['time', 'customer', 'amount', 'method', 'documents']"></tr>
+                    <tr mat-row *matRowDef="let row; columns: ['time', 'customer', 'amount', 'method', 'documents'];">
+                    </tr>
+                </table>
+            </div>
+        </mat-card>
+    </div>
 </div>

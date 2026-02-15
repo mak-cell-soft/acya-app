@@ -14,3 +14,16 @@ export class Payment {
     updatedbyid: number = 0;
     isdeleted: boolean = false;
 }
+
+export interface DashboardPaymentDto {
+    paymentId: number;
+    amount: number;
+    paymentDate: Date;
+    paymentMethod: string;
+    reference: string;
+    notes: string;
+    customerName: string;
+    invoiceNumber: string;
+    deliveryNoteNumber: string;
+    createdAt: Date;
+}

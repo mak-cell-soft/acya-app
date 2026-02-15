@@ -7,6 +7,10 @@ import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { ChartConfiguration, ChartData, ChartOptions } from 'chart.js';
 import { AuthenticationService } from '../../services/components/authentication.service';
+import { PaymentService } from '../../services/components/payment.service';
+import { DashboardPaymentDto } from '../../models/components/payment';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-home-dashboard',
@@ -18,7 +22,13 @@ export class HomeDashboardComponent implements OnInit {
   counterpartService = inject(CounterpartService);
   documentService = inject(DocumentService);
   authService = inject(AuthenticationService);
+  paymentService = inject(PaymentService);
   router = inject(Router);
+
+  selectedDate: Date = new Date();
+  payments: DashboardPaymentDto[] = [];
+  paymentMethodTotals: { method: string, total: number, icon: string, color: string }[] = [];
+  paymentsLoading: boolean = false;
 
   // Data for Charts
   countsChartData: ChartData<'doughnut'> = {
@@ -59,7 +69,67 @@ export class HomeDashboardComponent implements OnInit {
 
   ngOnInit() {
     this.loadDashboardData();
+    this.loadDashboardPayments();
     this.userName = this.authService.getUserDetail()?.fullname || 'Utilisateur';
+  }
+
+  loadDashboardPayments() {
+    this.paymentsLoading = true;
+    this.paymentService.GetDashboardPayments(this.selectedDate).subscribe({
+      next: (payments) => {
+        this.payments = payments;
+        this.calculatePaymentTotals();
+        this.paymentsLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading payments', err);
+        this.paymentsLoading = false;
+      }
+    });
+  }
+
+  onDateChange(event: any) {
+    const dateInput = event.target.value;
+    if (dateInput) {
+      this.selectedDate = new Date(dateInput);
+      this.loadDashboardPayments();
+    }
+  }
+
+  calculatePaymentTotals() {
+    const totals: { [key: string]: number } = {};
+    const methodConfigs: { [key: string]: { icon: string, color: string } } = {
+      'CASH': { icon: 'payments', color: '#66BB6A' }, // Green
+      'ESPECE': { icon: 'payments', color: '#66BB6A' },
+      'CHEQUE': { icon: 'contactless', color: '#FFA726' }, // Orange
+      'VIREMENT': { icon: 'account_balance', color: '#42A5F5' }, // Blue
+      'CARTE': { icon: 'credit_card', color: '#9575CD' }, // Purple
+      'TRAITE': { icon: 'assignment', color: '#EF5350' } // Red
+    };
+
+    this.payments.forEach(p => {
+      const method = (p.paymentMethod || 'AUTRE').toUpperCase();
+      totals[method] = (totals[method] || 0) + p.amount;
+    });
+
+    this.paymentMethodTotals = Object.keys(totals).map(method => ({
+      method: method,
+      total: totals[method],
+      icon: methodConfigs[method]?.icon || 'pi pi-wallet',
+      color: methodConfigs[method]?.color || '#78909C'
+    }));
+  }
+
+  getPaymentMethodColor(method: string): string {
+    const colors: { [key: string]: string } = {
+      'CASH': 'green',
+      'ESPECE': 'green',
+      'CHEQUE': 'orange',
+      'VIREMENT': 'blue',
+      'CARTE': 'purple',
+      'TRAITE': 'red'
+    };
+    return colors[(method || '').toUpperCase()] || 'gray';
   }
 
   loadDashboardData() {

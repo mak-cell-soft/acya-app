@@ -76,6 +76,9 @@ namespace ms.webapp.api.acya.core.Entities
     //public ICollection<DocumentDocumentRelationship> ParentDocuments { get; set; } = new List<DocumentDocumentRelationship>();
 
     [JsonIgnore]
+    public ICollection<DocumentDocumentRelationship> ParentDocuments { get; set; } = new List<DocumentDocumentRelationship>();
+
+    [JsonIgnore]
     public ICollection<DocumentDocumentRelationship> ChildDocuments { get; set; } = new List<DocumentDocumentRelationship>();
 
     public Document()

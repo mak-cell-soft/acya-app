@@ -21,7 +21,13 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
             entity.HasOne(e => e.ParentDocument)
                   .WithMany(d => d.ChildDocuments)
                   .HasForeignKey(e => e.ParentDocumentId)
-                  .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure relationship to the child document
+            entity.HasOne(e => e.ChildDocument)
+                  .WithMany(d => d.ParentDocuments)
+                  .HasForeignKey(e => e.ChildDocumentId)
+                  .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

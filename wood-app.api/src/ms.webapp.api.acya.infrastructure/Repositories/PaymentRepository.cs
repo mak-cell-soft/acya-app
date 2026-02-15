@@ -109,5 +109,44 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
             context.Payments.Update(payment);
             return await context.SaveChangesAsync() > 0;
         }
+        public async Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int salesSiteId)
+        {
+            var dateOnly = date.Date;
+
+            return await context.Payments
+                .Include(p => p.Customer)
+                .Include(p => p.Document)
+                    .ThenInclude(d => d.ChildDocuments)
+                        .ThenInclude(cd => cd.ChildDocument)
+                .Include(p => p.Document)
+                    .ThenInclude(d => d.ParentDocuments)
+                        .ThenInclude(pd => pd.ParentDocument)
+                .Where(p => !p.IsDeleted)
+                .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value.Date == dateOnly)
+                .Where(p => p.Document.SalesSiteId == salesSiteId)
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new DashboardPaymentDto
+                {
+                    PaymentId = p.Id,
+                    Amount = p.Amount ?? 0,
+                    PaymentDate = p.PaymentDate ?? DateTime.MinValue,
+                    PaymentMethod = p.PaymentMethod,
+                    Reference = p.Reference,
+                    Notes = p.Notes,
+                    CustomerName = p.Customer.Fullname,
+                    InvoiceNumber = p.Document.Type == DocumentTypes.customerInvoice 
+                        ? p.Document.DocNumber 
+                        : (p.Document.ChildDocuments.FirstOrDefault(cd => cd.ChildDocument.Type == DocumentTypes.customerInvoice) != null 
+                            ? p.Document.ChildDocuments.FirstOrDefault(cd => cd.ChildDocument.Type == DocumentTypes.customerInvoice).ChildDocument.DocNumber 
+                            : null),
+                    DeliveryNoteNumber = p.Document.Type == DocumentTypes.customerDeliveryNote 
+                        ? p.Document.DocNumber 
+                        : (p.Document.ParentDocuments.FirstOrDefault(pd => pd.ParentDocument.Type == DocumentTypes.customerDeliveryNote) != null 
+                            ? p.Document.ParentDocuments.FirstOrDefault(pd => pd.ParentDocument.Type == DocumentTypes.customerDeliveryNote).ParentDocument.DocNumber 
+                            : null),
+                    CreatedAt = p.CreatedAt ?? DateTime.MinValue
+                })
+                .ToListAsync();
+        }
     }
 }

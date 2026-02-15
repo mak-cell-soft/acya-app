@@ -167,6 +167,15 @@ namespace ms.webapp.api.acya.api.Services
             return await _paymentRepository.DeleteAsync(paymentId);
         }
 
+        public async Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int userId)
+        {
+            var user = await _appUserRepository.Get(userId);
+            if (user == null || !user.IdSalesSite.HasValue)
+                return new List<DashboardPaymentDto>();
+
+            return await _paymentRepository.GetDashboardPaymentsAsync(date, user.IdSalesSite.Value);
+        }
+
         private PaymentDto MapToDto(Payment payment)
         {
             return new PaymentDto

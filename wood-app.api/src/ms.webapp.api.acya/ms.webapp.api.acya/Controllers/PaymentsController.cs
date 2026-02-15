@@ -168,5 +168,23 @@ namespace ms.webapp.api.acya.api.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        [HttpGet("dashboard")]
+        public async Task<ActionResult<IEnumerable<DashboardPaymentDto>>> GetDashboardPayments([FromQuery] DateTime date)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (userId == 0) return Unauthorized("Invalid User ID in token");
+
+                var payments = await _paymentService.GetDashboardPaymentsAsync(date, userId);
+                return Ok(payments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting dashboard payments for date {Date}", date);
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }
