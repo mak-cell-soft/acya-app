@@ -477,6 +477,8 @@ export class AddInvoiceComponent implements OnInit {
             deliveryNoteDocNumbers: []
         };
 
+        console.log("Facture à enregistrer : ", doc);
+
         this.docService.Add(doc).subscribe({
             next: (response) => {
                 const docRef = response.docRef;
@@ -518,8 +520,10 @@ export class AddInvoiceComponent implements OnInit {
     private transformMerchandToMerchandise(dataMerchand: MatTableDataSource<Merchand>): Merchandise[] {
         return dataMerchand.data.map(merchand => {
             const m = new Merchandise();
+            // Map the properties from Merchand to Merchandise
             m.article = merchand.selectedArticle || new Article();
             m.unit_price_ht = merchand.unit_price_ht;
+            m.cost_ht = merchand.merchandise_cost_ht;
             m.quantity = merchand.quantity;
             m.lisoflengths = merchand.listLengths;
             m.discount_percentage = merchand.selldiscountpercentage;
@@ -527,10 +531,20 @@ export class AddInvoiceComponent implements OnInit {
             m.cost_net_ht = merchand.sellcostprice_net_ht;
             m.tva_value = merchand.sellcostprice_taxValue;
             m.cost_ttc = merchand.totalWithTax;
-            m.id = 0;
+
+            // Set default values for other required properties
+            m.id = merchand.selectedStock?.merchandiseId || 0; // Assuming this is a new merchandise
+            m.packagereference = merchand.selectedStock?.packageReference || '';
+            m.description = merchand.selectedStock?.MerchandiseDescription || '';
             m.creationdate = new Date();
             m.updatedate = new Date();
-            m.updatedbyid = Number(this.userconnected?.id);
+            m.updatedbyid = Number(this.userconnected?.id) || 0;
+            m.documentid = 0;
+            m.isinvoicible = merchand.selectedStock?.isInvoicible || true;
+            m.allownegativstock = merchand.selectedStock?.allowNegativeStock || false;
+            m.ismergedwith = merchand.selectedStock?.isMergedWith || false;
+            m.isdeleted = false;
+
             return m;
         });
     }
