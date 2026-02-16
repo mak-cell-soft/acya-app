@@ -174,10 +174,21 @@ namespace ms.webapp.api.acya.api.Controllers
         {
             try
             {
+                // Log the received date with full details
+                _logger.LogInformation("Dashboard Payments Request - Received date: {Date}, Kind: {Kind}, UTC: {UTC}, Local: {Local}", 
+                    date, date.Kind, date.ToUniversalTime(), date.ToLocalTime());
+
                 var userId = appuserid ?? GetCurrentUserId();
                 if (userId == 0) return Unauthorized("Invalid User ID");
 
+                _logger.LogInformation("Dashboard Payments Request - UserId: {UserId}, Date.Year: {Year}, Date.Month: {Month}, Date.Day: {Day}", 
+                    userId, date.Year, date.Month, date.Day);
+
                 var payments = await _paymentService.GetDashboardPaymentsAsync(date, userId);
+                
+                _logger.LogInformation("Dashboard Payments Response - Returned {Count} payments for date {Date}", 
+                    payments.Count(), date.ToShortDateString());
+
                 return Ok(payments);
             }
             catch (Exception ex)

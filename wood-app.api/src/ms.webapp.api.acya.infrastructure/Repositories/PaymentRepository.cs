@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs;
@@ -8,10 +9,12 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 {
     public class PaymentRepository : CoreRepository<Payment, WoodAppContext>, IPaymentRepository
     {
-        public PaymentRepository(WoodAppContext context) : base(context)
-        {
-        }
+        private readonly ILogger<PaymentRepository> _logger;
 
+        public PaymentRepository(WoodAppContext context, ILogger<PaymentRepository> logger) : base(context)
+        {
+            _logger = logger;
+        }
         public async Task<Payment?> GetByIdAsync(int paymentId)
         {
             return await context.Payments
@@ -116,7 +119,10 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
             int month = date.Month;
             int day = date.Day;
 
-            return await context.Payments
+            _logger.LogInformation("GetDashboardPaymentsAsync - Input date: {Date}, Year: {Year}, Month: {Month}, Day: {Day}, SalesSiteId: {SiteId}", 
+                date, year, month, day, salesSiteId);
+
+            var result = await context.Payments
                 .AsNoTracking()
                 .Include(p => p.Customer)
                 .Include(p => p.Document)
@@ -154,6 +160,10 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                     CreatedAt = p.CreatedAt ?? DateTime.MinValue
                 })
                 .ToListAsync();
+
+            _logger.LogInformation("GetDashboardPaymentsAsync - Returned {Count} payments", result.Count());
+
+            return result;
         }
     }
 }
