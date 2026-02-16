@@ -170,24 +170,27 @@ namespace ms.webapp.api.acya.api.Controllers
         }
 
         [HttpGet("dashboard")]
-        public async Task<ActionResult<IEnumerable<DashboardPaymentDto>>> GetDashboardPayments([FromQuery] DateTime date, [FromQuery] int? appuserid)
+        public async Task<ActionResult<IEnumerable<DashboardPaymentDto>>> GetDashboardPayments([FromQuery] string date, [FromQuery] int? appuserid)
         {
             try
             {
+                // Parse the date string explicitly to avoid timezone conversion issues
+                if (!DateTime.TryParse(date, out DateTime parsedDate))
+                {
+                    return BadRequest("Invalid date format. Expected format: YYYY-MM-DD");
+                }
+
                 // Log the received date with full details
-                _logger.LogInformation("Dashboard Payments Request - Received date: {Date}, Kind: {Kind}, UTC: {UTC}, Local: {Local}", 
-                    date, date.Kind, date.ToUniversalTime(), date.ToLocalTime());
+                _logger.LogInformation("Dashboard Payments Request - Received date string: {DateString}, Parsed: {Date}, Year: {Year}, Month: {Month}, Day: {Day}", 
+                    date, parsedDate, parsedDate.Year, parsedDate.Month, parsedDate.Day);
 
                 var userId = appuserid ?? GetCurrentUserId();
                 if (userId == 0) return Unauthorized("Invalid User ID");
 
-                _logger.LogInformation("Dashboard Payments Request - UserId: {UserId}, Date.Year: {Year}, Date.Month: {Month}, Date.Day: {Day}", 
-                    userId, date.Year, date.Month, date.Day);
-
-                var payments = await _paymentService.GetDashboardPaymentsAsync(date, userId);
+                var payments = await _paymentService.GetDashboardPaymentsAsync(parsedDate, userId);
                 
                 _logger.LogInformation("Dashboard Payments Response - Returned {Count} payments for date {Date}", 
-                    payments.Count(), date.ToShortDateString());
+                    payments.Count(), parsedDate.ToShortDateString());
 
                 return Ok(payments);
             }
