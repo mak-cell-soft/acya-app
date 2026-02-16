@@ -112,6 +112,10 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         }
         public async Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int salesSiteId)
         {
+            int year = date.Year;
+            int month = date.Month;
+            int day = date.Day;
+
             return await context.Payments
                 .AsNoTracking()
                 .Include(p => p.Customer)
@@ -122,8 +126,11 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                     .ThenInclude(d => d!.ParentDocuments)
                         .ThenInclude(pd => pd!.ParentDocument)
                 .Where(p => !p.IsDeleted)
-                .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value.Date == date.Date)
-                .Where(p => p.Document!.SalesSiteId == salesSiteId)
+                .Where(p => p.PaymentDate.HasValue && 
+                            p.PaymentDate.Value.Year == year && 
+                            p.PaymentDate.Value.Month == month && 
+                            p.PaymentDate.Value.Day == day)
+                .Where(p => p.Document != null && p.Document.SalesSiteId == salesSiteId)
                 .OrderByDescending(p => p.CreatedAt)
                 .Select(p => new DashboardPaymentDto
                 {
