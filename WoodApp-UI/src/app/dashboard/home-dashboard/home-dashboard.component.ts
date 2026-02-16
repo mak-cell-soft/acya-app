@@ -92,9 +92,9 @@ export class HomeDashboardComponent implements OnInit {
   }
 
   onDateChange(event: any) {
-    const dateInput = event.target.value;
-    if (dateInput) {
-      this.selectedDate = new Date(dateInput);
+    // MatDatepickerInputEvent provides the date in event.value, not event.target.value
+    if (event.value) {
+      this.selectedDate = event.value;
       this.loadDashboardPayments();
     }
   }
