@@ -45,9 +45,12 @@ export class PaymentService {
     /**
      * Get Payments for Dashboard
      */
-    GetDashboardPayments(date: Date): Observable<DashboardPaymentDto[]> {
+    GetDashboardPayments(date: Date, appUserId?: number): Observable<DashboardPaymentDto[]> {
         const dateStr = date.toISOString().split('T')[0];
         let params = new HttpParams().set('date', dateStr);
+        if (appUserId) {
+            params = params.set('appuserid', appUserId.toString());
+        }
         return this.http.get<DashboardPaymentDto[]>(this.baseUrl + 'Payments/dashboard', { params });
     }
 }

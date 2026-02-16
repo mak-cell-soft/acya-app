@@ -75,7 +75,10 @@ export class HomeDashboardComponent implements OnInit {
 
   loadDashboardPayments() {
     this.paymentsLoading = true;
-    this.paymentService.GetDashboardPayments(this.selectedDate).subscribe({
+    const user = this.authService.getUserDetail();
+    const appUserId = user && user.id ? parseInt(user.id) : undefined;
+
+    this.paymentService.GetDashboardPayments(this.selectedDate, appUserId).subscribe({
       next: (payments) => {
         this.payments = payments;
         this.calculatePaymentTotals();
