@@ -180,18 +180,10 @@ namespace ms.webapp.api.acya.api.Controllers
                     return BadRequest("Invalid date format. Expected format: YYYY-MM-DD");
                 }
 
-                // Log the received date with full details
-                _logger.LogInformation("Dashboard Payments Request - Received date string: {DateString}, Parsed: {Date}, Year: {Year}, Month: {Month}, Day: {Day}", 
-                    date, parsedDate, parsedDate.Year, parsedDate.Month, parsedDate.Day);
-
                 var userId = appuserid ?? GetCurrentUserId();
                 if (userId == 0) return Unauthorized("Invalid User ID");
 
                 var payments = await _paymentService.GetDashboardPaymentsAsync(parsedDate, userId);
-                
-                _logger.LogInformation("Dashboard Payments Response - Returned {Count} payments for date {Date}", 
-                    payments.Count(), parsedDate.ToShortDateString());
-
                 return Ok(payments);
             }
             catch (Exception ex)
