@@ -38,6 +38,12 @@ namespace ms.webapp.api.acya.api.Services
 
         #region Transactional Operations
 
+        /**
+         * Initiate a stock transfer
+         * @param dto The transfer data
+         * @param autoConfirm Whether to auto-confirm the transfer
+         * @returns The result of the initiation
+         */
         public async Task<StockTransferResult> InitiateTransferAsync(StockTransferDto dto, bool autoConfirm = false)
         {
             // 1. Validation
@@ -241,6 +247,12 @@ namespace ms.webapp.api.acya.api.Services
             }
         }
 
+        /**
+         * Confirm a stock transfer
+         * @param transferId The ID of the transfer to confirm
+         * @param confirmedByUserId The ID of the user confirming the transfer
+         * @returns The result of the confirmation
+         */
         public async Task<StockTransferResult> ConfirmTransferAsync(int transferId, int confirmedByUserId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -287,6 +299,13 @@ namespace ms.webapp.api.acya.api.Services
             }
         }
 
+        /**
+         * Reject a stock transfer
+         * @param transferId The ID of the transfer to reject
+         * @param rejectedByUserId The ID of the user rejecting the transfer
+         * @param reason The reason for rejecting the transfer
+         * @returns The result of the rejection
+         */
         public async Task<StockTransferResult> RejectTransferAsync(int transferId, int rejectedByUserId, string reason)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -350,6 +369,12 @@ namespace ms.webapp.api.acya.api.Services
             }
         }
 
+        /**
+         * Update a stock transfer
+         * @param transferId The ID of the transfer to update
+         * @param request The update request
+         * @returns The result of the update
+         */
         public async Task<StockTransferResult> UpdateTransferAsync(int transferId, UpdateTransferRequest request)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -444,6 +469,10 @@ namespace ms.webapp.api.acya.api.Services
             }
         }
 
+        /**
+         * Handle a stock transaction
+         * @param transaction The stock transaction
+         */
         public async Task HandleTransactionAsync(Stock transaction)
         {
             await _repository.HandleTransaction(transaction);
