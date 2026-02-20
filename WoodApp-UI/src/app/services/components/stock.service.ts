@@ -103,12 +103,13 @@ export class StockService {
   //   });
   // }
 
-  confirmTransfer(transferId: number, comment: string): Observable<ConfirmTransferResponse> {
+  confirmTransfer(transferId: number, confirmationCode: string, comment: string): Observable<ConfirmTransferResponse> {
     const userId = this.authService.getUserDetail()?.id;
     return this.http.post<ConfirmTransferResponse>(
       `${this.baseUrl}Stock/confirm-transfer/${transferId}`,
       {
         confirmedByUserId: userId,
+        confirmationCode,
         comment
       }
     );

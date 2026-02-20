@@ -1,0 +1,21 @@
+<h2 mat-dialog-title class="dialog-title">Entrer le code de confirmation</h2>
+
+<div mat-dialog-content class="dialog-content">
+    <p>Veuillez entrer le code de confirmation pour ce transfert.</p>
+
+    <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Code de confirmation</mat-label>
+        <input matInput type="text" inputmode="numeric" pattern="[0-9]*" [(ngModel)]="confirmationCode" #codeInput
+            (keyup.enter)="onConfirm()" placeholder="Enter digits only" [disabled]="loading" required>
+        <mat-hint *ngIf="errorMessage" class="error-text">{{ errorMessage }}</mat-hint>
+    </mat-form-field>
+</div>
+
+<mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()" [disabled]="loading">Annuler</button>
+    <button mat-flat-button color="primary" (click)="onConfirm()" [disabled]="loading || !confirmationCode"
+        class="confirm-button">
+        <mat-spinner *ngIf="loading" diameter="20" class="inline-spinner"></mat-spinner>
+        <span *ngIf="!loading">Confirmer</span>
+    </button>
+</mat-dialog-actions>

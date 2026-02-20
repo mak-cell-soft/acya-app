@@ -1,9 +1,10 @@
 import { Component, inject, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { StockService } from '../../../services/components/stock.service';
 import { StockTransferDetails, StockTransferInfo } from '../../../models/components/stock_transfert';
 import { ListOfLength } from '../../../models/components/listoflength';
 import { ToastrService } from 'ngx-toastr';
+import { TransferConfirmCodeDialogComponent } from '../transfer-confirm-code-dialog/transfer-confirm-code-dialog.component';
 
 @Component({
   selector: 'app-transfer-confirmation',
@@ -15,6 +16,7 @@ export class TransferConfirmationComponent implements OnInit {
   stockTransferService = inject(StockService);
   toastr = inject(ToastrService);
   loading: boolean = false;
+  private dialog = inject(MatDialog);
 
   // Common data (same for all items)
   commonData: any = {};
@@ -79,25 +81,18 @@ export class TransferConfirmationComponent implements OnInit {
       .join(', ');
   }
 
-  // onConfirm(): void {
-  //   this.stockTransferService.confirmTransfer(this.data.id, this.comment).subscribe(() => {
-  //     this.dialogRef.close(true);
-  //   });
-  // }
-
   onConfirm(): void {
-    this.stockTransferService.confirmTransfer(this.data.id, this.comment).subscribe({
-      next: (response) => {
-        this.toastr.success(
-          `Transfer confirmé avec succés`,
-          'Confirmation'
-        );
+    const dialogRef = this.dialog.open(TransferConfirmCodeDialogComponent, {
+      width: '400px',
+      data: {
+        transferId: this.data.id,
+        comment: this.comment
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
         this.dialogRef.close(true);
-      },
-      error: (error) => {
-        const errorMessage = error.error?.Message || error.error || 'An error occurred while confirming the transfer';
-        this.toastr.error(errorMessage, 'Confirmation Failed');
-        console.error('Transfer confirmation error:', error);
       }
     });
   }

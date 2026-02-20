@@ -94,6 +94,7 @@ import { ListCustomerInvoicesComponent } from './components/merchandise/customer
 import { AddInvoiceComponent } from './components/merchandise/customer/add-invoice/add-invoice.component';
 import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { DeliveryNotePrintComponent } from './models/print-templates/delivery-note-print/delivery-note-print.component';
+import { TransferConfirmCodeDialogComponent } from './components/stock/transfer-confirm-code-dialog/transfer-confirm-code-dialog.component';
 
 @NgModule({
   declarations: [
@@ -136,6 +137,7 @@ import { DeliveryNotePrintComponent } from './models/print-templates/delivery-no
     StockTransferListComponent,
     TransferDetailsDialogComponent,
     TransferConfirmationComponent,
+    TransferConfirmCodeDialogComponent,
     PaymentModalComponent,
     ChequePaymentFormComponent,
     TraitePaymentFormComponent,
@@ -143,7 +145,7 @@ import { DeliveryNotePrintComponent } from './models/print-templates/delivery-no
     DocumentConversionModalComponent,
     ListCustomerInvoicesComponent,
     AddInvoiceComponent,
-    DeliveryNotePrintComponent 
+    DeliveryNotePrintComponent
   ],
   imports: [
     BrowserModule,

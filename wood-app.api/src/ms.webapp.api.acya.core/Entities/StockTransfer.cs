@@ -33,6 +33,7 @@ namespace ms.webapp.api.acya.core.Entities
     public int? ConfirmedById { get; set; }
     public DateTime? ConfirmationDate { get; set; }
     public string? RejectionReason { get; set; }
+    public string? ConfirmationCode { get; set; }
   }
 
 

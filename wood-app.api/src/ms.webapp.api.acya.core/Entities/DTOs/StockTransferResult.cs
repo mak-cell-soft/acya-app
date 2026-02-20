@@ -9,8 +9,9 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public string? ExitDocumentNumber { get; set; }
         public string? ReceiptDocumentNumber { get; set; }
         public string? Status { get; set; }
+        public string? ConfirmationCode { get; set; }
 
-        public static StockTransferResult Ok(string message, int transferId, string reference, string exitDoc, string receiptDoc, string status)
+        public static StockTransferResult Ok(string message, int transferId, string reference, string exitDoc, string receiptDoc, string status, string? confirmationCode = null)
         {
             return new StockTransferResult
             {
@@ -20,7 +21,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
                 TransferRef = reference,
                 ExitDocumentNumber = exitDoc,
                 ReceiptDocumentNumber = receiptDoc,
-                Status = status
+                Status = status,
+                ConfirmationCode = confirmationCode
             };
         }
 

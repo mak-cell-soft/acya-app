@@ -30,6 +30,9 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
             entity.Property(e => e.ConfirmedById).HasColumnName("confirmedbyid");
             entity.Property(e => e.ConfirmationDate).HasColumnName("confirmationdate");
             entity.Property(e => e.RejectionReason).HasColumnName("rejectionreason");
+            entity.Property(e => e.ConfirmationCode)
+                  .HasColumnName("confirmationcode")
+                  .HasMaxLength(10);
             // Relationships
             entity.HasOne(e => e.ExitDocument)
                   .WithMany()

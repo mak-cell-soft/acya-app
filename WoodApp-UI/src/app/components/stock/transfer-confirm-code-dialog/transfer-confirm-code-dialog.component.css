@@ -1,0 +1,32 @@
+.dialog-title {
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.dialog-content {
+    min-width: 300px;
+    padding-top: 10px;
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.error-text {
+    color: #f44336;
+    font-weight: 500;
+}
+
+.confirm-button {
+    min-width: 100px;
+}
+
+.inline-spinner {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+.mat-mdc-dialog-actions {
+    padding: 16px 0 8px 0 !important;
+}

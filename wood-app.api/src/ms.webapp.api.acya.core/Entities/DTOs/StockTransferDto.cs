@@ -81,6 +81,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? OriginSite { get; set; }
     public int ItemsCount { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public string? confirmationCode { get; set; }
 
     // Additional flexible data
     public object? AdditionalData { get; set; }

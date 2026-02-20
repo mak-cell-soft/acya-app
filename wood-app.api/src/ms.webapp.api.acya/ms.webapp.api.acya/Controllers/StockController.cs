@@ -174,14 +174,15 @@ namespace ms.webapp.api.acya.api.Controllers
     [HttpPost("transfers/{transferId}/confirm")]
     public async Task<ActionResult> ConfirmTransfer(int transferId, [FromBody] ConfirmTransferRequest request)
     {
-       var result = await _stockService.ConfirmTransferAsync(transferId, request.ConfirmedByUserId);
+       var result = await _stockService.ConfirmTransferAsync(transferId, request.ConfirmedByUserId, request.ConfirmationCode, request.Comment);
        if (!result.Success) return BadRequest(result.Message);
 
        return Ok(new
        {
          Message = result.Message,
          ExitDocNumber = result.ExitDocumentNumber,
-         ReceiptDocNumber = result.ReceiptDocumentNumber
+         ReceiptDocNumber = result.ReceiptDocumentNumber,
+         ConfirmationCode = result.ConfirmationCode
        });
     }
 
@@ -195,6 +196,12 @@ namespace ms.webapp.api.acya.api.Controllers
        return Ok(new { Message = result.Message });
     }
 
+    /***
+     * @description Update a transfer
+     * @param transferId
+     * @param request
+     * @returns updated transfer
+     */
     [HttpPut("transfers/{transferId}")]
     public async Task<ActionResult> UpdateTransfer(int transferId, [FromBody] UpdateTransferRequest request)
     {
@@ -211,6 +218,11 @@ namespace ms.webapp.api.acya.api.Controllers
         });
     }
 
+    /***
+     * @description Get missed notifications for a user
+     * @param userId
+     * @returns missed notifications
+     */
     [HttpGet("notifications/missed")]
     public async Task<ActionResult> GetMissedNotifications(int userId)
     {
@@ -264,6 +276,31 @@ namespace ms.webapp.api.acya.api.Controllers
       {
         _logger.LogError(ex, "Error retrieving missed notifications for user {UserId}", userId);
         return StatusCode(500, $"An error occurred while retrieving notifications: {ex.Message}");
+      }
+    }
+
+    /***
+     * @description Get confirmation code for a transfer
+     * @param transferId
+     * @returns confirmation code
+     */
+    [HttpGet("confirmation-code/{transferId}")]
+    public async Task<ActionResult> GetConfirmationCode(int transferId)
+    {
+      try
+      {
+        var transfer = await _context.StockTransfers
+            .FirstOrDefaultAsync(t => t.Id == transferId);
+        if (transfer == null)
+        {
+          return NotFound("Transfer not found");
+        }
+        return Ok(transfer.ConfirmationCode);
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Error retrieving confirmation code for transfer {TransferId}", transferId);
+        return StatusCode(500, $"An error occurred while retrieving confirmation code: {ex.Message}");
       }
     }
   }

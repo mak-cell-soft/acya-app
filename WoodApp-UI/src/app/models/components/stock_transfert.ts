@@ -68,4 +68,5 @@ export interface ConfirmTransferResponse {
     Message: string;
     ExitDocNumber: string;
     ReceiptDocNumber: string;
+    ConfirmationCode: string;
 }

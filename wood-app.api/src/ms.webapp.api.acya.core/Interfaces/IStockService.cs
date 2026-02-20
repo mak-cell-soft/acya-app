@@ -7,7 +7,7 @@ namespace ms.webapp.api.acya.core.Interfaces
     {
         // Transactional Operations
         Task<StockTransferResult> InitiateTransferAsync(StockTransferDto dto, bool autoConfirm = false);
-        Task<StockTransferResult> ConfirmTransferAsync(int transferId, int confirmedByUserId);
+        Task<StockTransferResult> ConfirmTransferAsync(int transferId, int confirmedByUserId, string? confirmationCode = null, string? comment = null);
         Task<StockTransferResult> RejectTransferAsync(int transferId, int rejectedByUserId, string reason);
         Task<StockTransferResult> UpdateTransferAsync(int transferId, UpdateTransferRequest request);
         

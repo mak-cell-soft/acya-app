@@ -135,6 +135,9 @@ namespace ms.webapp.api.acya.api.Services
                     IsDeleted = false
                 };
 
+                // Generate a random 4-digit PIN code (e.g., "0123")
+                string generatedPin = new Random().Next(0, 10000).ToString("D4");
+
                 var transferRelationship = new StockTransfer
                 {
                     ExitDocument = exitDoc,
@@ -146,7 +149,8 @@ namespace ms.webapp.api.acya.api.Services
                     CreatedById = dto.updatedById,
                     Status = autoConfirm ? TransferStatus.Confirmed : TransferStatus.Pending,
                     ConfirmedById = autoConfirm ? dto.updatedById : null,
-                    ConfirmationDate = autoConfirm ? DateTime.UtcNow : null
+                    ConfirmationDate = autoConfirm ? DateTime.UtcNow : null,
+                    ConfirmationCode = generatedPin
                 };
 
                 // Add Items
@@ -217,7 +221,8 @@ namespace ms.webapp.api.acya.api.Services
                         transferRelationship.Reference!,
                         exitDoc.DocNumber!,
                         receiptDoc.DocNumber!,
-                        "Confirmed"
+                        "Confirmed",
+                        generatedPin
                     );
                 }
                 else
@@ -235,7 +240,8 @@ namespace ms.webapp.api.acya.api.Services
                         transferRelationship.Reference!,
                         exitDoc.DocNumber!,
                         receiptDoc.DocNumber!,
-                        "PendingConfirmation"
+                        "PendingConfirmation",
+                        generatedPin
                     );
                 }
             }
@@ -253,7 +259,7 @@ namespace ms.webapp.api.acya.api.Services
          * @param confirmedByUserId The ID of the user confirming the transfer
          * @returns The result of the confirmation
          */
-        public async Task<StockTransferResult> ConfirmTransferAsync(int transferId, int confirmedByUserId)
+        public async Task<StockTransferResult> ConfirmTransferAsync(int transferId, int confirmedByUserId, string? confirmationCode = null, string? comment = null)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -265,9 +271,19 @@ namespace ms.webapp.api.acya.api.Services
 
                 if (transfer == null) return StockTransferResult.Fail("Transfer not found or already processed");
 
+                // Validate confirmation code if provided (or if expected)
+                if (!string.IsNullOrEmpty(transfer.ConfirmationCode) && transfer.ConfirmationCode != confirmationCode)
+                {
+                    return StockTransferResult.Fail("Incorrect code, please try again");
+                }
+
                 transfer.Status = TransferStatus.Confirmed;
                 transfer.ConfirmedById = confirmedByUserId;
                 transfer.ConfirmationDate = DateTime.UtcNow;
+                if (!string.IsNullOrEmpty(comment))
+                {
+                    transfer.Notes = string.IsNullOrEmpty(transfer.Notes) ? comment : $"{transfer.Notes} | Confirmation Note: {comment}";
+                }
 
                 // Update stock for receipt side
                 await _docRepository.updateListOfIdsListOfLengths(transfer.ReceiptDocument!);
@@ -288,7 +304,8 @@ namespace ms.webapp.api.acya.api.Services
                     transfer.Reference!,
                     transfer.ExitDocument!.DocNumber!,
                     transfer.ReceiptDocument!.DocNumber!,
-                    "Confirmed"
+                    "Confirmed",
+                    transfer.ConfirmationCode
                 );
             }
             catch (Exception ex)
@@ -459,7 +476,7 @@ namespace ms.webapp.api.acya.api.Services
                 
                 await SendTransferNotificationAsync(destinationSite!, originSite!, transfer, request.MerchandisesItems?.Length ?? 0, transfer.ExitDocument!.DocNumber!, transfer.ReceiptDocument!.DocNumber!);
 
-                return StockTransferResult.Ok("Transfer updated successfully", transfer.Id, transfer.Reference ?? "", transfer.ExitDocument.DocNumber!, transfer.ReceiptDocument.DocNumber!, "Pending");
+                return StockTransferResult.Ok("Transfer updated successfully", transfer.Id, transfer.Reference ?? "", transfer.ExitDocument.DocNumber!, transfer.ReceiptDocument.DocNumber!, "Pending", transfer.ConfirmationCode);
             }
             catch (Exception ex)
             {

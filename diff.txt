@@ -1,0 +1,152 @@
+diff --git a/WoodApp-UI/src/app/models/components/stock_transfert.ts b/WoodApp-UI/src/app/models/components/stock_transfert.ts
+index 1608b0c..43326e2 100644
+--- a/WoodApp-UI/src/app/models/components/stock_transfert.ts
++++ b/WoodApp-UI/src/app/models/components/stock_transfert.ts
+@@ -68,4 +68,5 @@ export interface ConfirmTransferResponse {
+     Message: string;
+     ExitDocNumber: string;
+     ReceiptDocNumber: string;
++    ConfirmationCode: string;
+ }
+\ No newline at end of file
+diff --git a/wood-app.api/src/ms.webapp.api.acya.core/Entities/DTOs/StockTransferDto.cs b/wood-app.api/src/ms.webapp.api.acya.core/Entities/DTOs/StockTransferDto.cs
+index 06d50ac..849f9df 100644
+--- a/wood-app.api/src/ms.webapp.api.acya.core/Entities/DTOs/StockTransferDto.cs
++++ b/wood-app.api/src/ms.webapp.api.acya.core/Entities/DTOs/StockTransferDto.cs
+@@ -81,6 +81,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
+     public string? OriginSite { get; set; }
+     public int ItemsCount { get; set; }
+     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
++    public string? confirmationCode { get; set; }
+ 
+     // Additional flexible data
+     public object? AdditionalData { get; set; }
+diff --git a/wood-app.api/src/ms.webapp.api.acya.core/Entities/StockTransfer.cs b/wood-app.api/src/ms.webapp.api.acya.core/Entities/StockTransfer.cs
+index 47db4c8..d0097b7 100644
+--- a/wood-app.api/src/ms.webapp.api.acya.core/Entities/StockTransfer.cs
++++ b/wood-app.api/src/ms.webapp.api.acya.core/Entities/StockTransfer.cs
+@@ -33,6 +33,7 @@ namespace ms.webapp.api.acya.core.Entities
+     public int? ConfirmedById { get; set; }
+     public DateTime? ConfirmationDate { get; set; }
+     public string? RejectionReason { get; set; }
++    public string? confirmationCode { get; set; }
+   }
+ 
+ 
+diff --git a/wood-app.api/src/ms.webapp.api.acya.infrastructure/Configurations/Documents/StockTransferConfiguration.cs b/wood-app.api/src/ms.webapp.api.acya.infrastructure/Configurations/Documents/StockTransferConfiguration.cs
+index bbfac60..bfb233d 100644
+--- a/wood-app.api/src/ms.webapp.api.acya.infrastructure/Configurations/Documents/StockTransferConfiguration.cs
++++ b/wood-app.api/src/ms.webapp.api.acya.infrastructure/Configurations/Documents/StockTransferConfiguration.cs
+@@ -30,6 +30,7 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
+             entity.Property(e => e.ConfirmedById).HasColumnName("confirmedbyid");
+             entity.Property(e => e.ConfirmationDate).HasColumnName("confirmationdate");
+             entity.Property(e => e.RejectionReason).HasColumnName("rejectionreason");
++            entity.Property(e => e.confirmationCode).HasColumnName("confirmationcode");
+             // Relationships
+             entity.HasOne(e => e.ExitDocument)
+                   .WithMany()
+diff --git a/wood-app.api/src/ms.webapp.api.acya/ms.webapp.api.acya/Controllers/StockController.cs b/wood-app.api/src/ms.webapp.api.acya/ms.webapp.api.acya/Controllers/StockController.cs
+index 27bd1ea..a606e78 100644
+--- a/wood-app.api/src/ms.webapp.api.acya/ms.webapp.api.acya/Controllers/StockController.cs
++++ b/wood-app.api/src/ms.webapp.api.acya/ms.webapp.api.acya/Controllers/StockController.cs
+@@ -181,7 +181,8 @@ namespace ms.webapp.api.acya.api.Controllers
+        {
+          Message = result.Message,
+          ExitDocNumber = result.ExitDocumentNumber,
+-         ReceiptDocNumber = result.ReceiptDocumentNumber
++         ReceiptDocNumber = result.ReceiptDocumentNumber,
++         ConfirmationCode = result.ConfirmationCode
+        });
+     }
+ 
+@@ -195,6 +196,12 @@ namespace ms.webapp.api.acya.api.Controllers
+        return Ok(new { Message = result.Message });
+     }
+ 
++    /***
++     * @description Update a transfer
++     * @param transferId
++     * @param request
++     * @returns updated transfer
++     */
+     [HttpPut("transfers/{transferId}")]
+     public async Task<ActionResult> UpdateTransfer(int transferId, [FromBody] UpdateTransferRequest request)
+     {
+@@ -211,6 +218,11 @@ namespace ms.webapp.api.acya.api.Controllers
+         });
+     }
+ 
++    /***
++     * @description Get missed notifications for a user
++     * @param userId
++     * @returns missed notifications
++     */
+     [HttpGet("notifications/missed")]
+     public async Task<ActionResult> GetMissedNotifications(int userId)
+     {
+@@ -266,6 +278,31 @@ namespace ms.webapp.api.acya.api.Controllers
+         return StatusCode(500, $"An error occurred while retrieving notifications: {ex.Message}");
+       }
+     }
++
++    /***
++     * @description Get confirmation code for a transfer
++     * @param transferId
++     * @returns confirmation code
++     */
++    [HttpGet("confirmation-code/{transferId}")]
++    public async Task<ActionResult> GetConfirmationCode(int transferId)
++    {
++      try
++      {
++        var transfer = await _context.StockTransfers
++            .FirstOrDefaultAsync(t => t.Id == transferId);
++        if (transfer == null)
++        {
++          return NotFound("Transfer not found");
++        }
++        return Ok(transfer.ConfirmationCode);
++      }
++      catch (Exception ex)
++      {
++        _logger.LogError(ex, "Error retrieving confirmation code for transfer {TransferId}", transferId);
++        return StatusCode(500, $"An error occurred while retrieving confirmation code: {ex.Message}");
++      }
++    }
+   }
+ 
+ }
+diff --git a/wood-app.api/src/ms.webapp.api.acya/ms.webapp.api.acya/Services/StockService.cs b/wood-app.api/src/ms.webapp.api.acya/ms.webapp.api.acya/Services/StockService.cs
+index a5b5161..3fc1041 100644
+--- a/wood-app.api/src/ms.webapp.api.acya/ms.webapp.api.acya/Services/StockService.cs
++++ b/wood-app.api/src/ms.webapp.api.acya/ms.webapp.api.acya/Services/StockService.cs
+@@ -118,7 +118,8 @@ namespace ms.webapp.api.acya.api.Services
+                     UpdatedById = dto.updatedById,
+                     DocStatus = DocStatus.Completed,
+                     SalesSiteId = dto.originSiteId,
+-                    IsDeleted = false
++                    IsDeleted = false,
++                    confirmationCode = dto.confirmationCode
+                 };
+ 
+                 var receiptDoc = new Document
+@@ -132,7 +133,8 @@ namespace ms.webapp.api.acya.api.Services
+                     UpdatedById = dto.updatedById,
+                     DocStatus = DocStatus.Completed,
+                     SalesSiteId = dto.destinationSiteId,
+-                    IsDeleted = false
++                    IsDeleted = false,
++                    confirmationCode = dto.confirmationCode
+                 };
+ 
+                 var transferRelationship = new StockTransfer
+@@ -146,7 +148,8 @@ namespace ms.webapp.api.acya.api.Services
+                     CreatedById = dto.updatedById,
+                     Status = autoConfirm ? TransferStatus.Confirmed : TransferStatus.Pending,
+                     ConfirmedById = autoConfirm ? dto.updatedById : null,
+-                    ConfirmationDate = autoConfirm ? DateTime.UtcNow : null
++                    ConfirmationDate = autoConfirm ? DateTime.UtcNow : null,
++                    confirmationCode = dto.confirmationCode
+                 };
+ 
+                 // Add Items
