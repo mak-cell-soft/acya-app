@@ -1,102 +1,135 @@
-<h4>Liste des Bons de Transfert</h4>
-<!-- Add this progress bar at the top of the page -->
-<mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
-<div class="search">
-    <div class="search-bar-container">
-        <button mat-icon-button>
-            <mat-icon>
-                search
-            </mat-icon>
-        </button>
-        <input (keyup)="applyFilter($event)" placeholder="Rechercher dans les Transferts" #input />
-    </div>
-    <div class="button-container">
-        <mat-dialog-actions>
-            <button mat-flat-button color="primary" [routerLink]="['add']">
-                <mat-icon>
-                    add
-                </mat-icon>
-                Ajouter
+<div class="main-container">
+    <div class="header-container">
+        <div class="header-text">
+            <h2>Liste des Bons de Transfert</h2>
+        </div>
+        <div class="header-buttons">
+            <button mat-flat-button color="warn" routerLink="/home/dashboard" style="margin-right: 8px;">
+                <mat-icon>arrow_back</mat-icon> Retour
             </button>
-        </mat-dialog-actions>
+            <button mat-flat-button color="primary" [routerLink]="['add']">
+                <mat-icon>add</mat-icon> Nouveau Transfert
+            </button>
+        </div>
     </div>
-</div>
 
-<!-- Transfer List Table -->
-<div class="table-container mat-elevation-z8">
-    <table mat-table [dataSource]="allTransfersStock" matSort class="transfer-table">
-        <!-- Doc Sortie Column -->
-        <ng-container matColumnDef="docSortie" >
-            <th mat-header-cell *matHeaderCellDef class="transfer-table-cell">Réf. Doc. Sortie</th>
-            <td mat-cell *matCellDef="let transfer" class="transfer-table-cell">{{transfer.docSortie}}</td>
-        </ng-container>
+    <mat-progress-bar *ngIf="loading" mode="indeterminate" class="loading-bar"></mat-progress-bar>
 
-        <!-- Doc Reception Column -->
-        <ng-container matColumnDef="docReception">
-            <th mat-header-cell *matHeaderCellDef class="transfer-table-cell">Réf. Doc. Réception</th>
-            <td mat-cell *matCellDef="let transfer" class="transfer-table-cell">{{transfer.docReception}}</td>
-        </ng-container>
+    <mat-card class="table-card">
+        <div class="search-container">
+            <div class="search-bar-container">
+                <mat-icon>search</mat-icon>
+                <input (keyup)="applyFilter($event)" placeholder="Rechercher par référence, origine, destination..."
+                    #input />
+            </div>
+        </div>
 
-        <!-- Origin Column -->
-        <ng-container matColumnDef="origine">
-            <th mat-header-cell *matHeaderCellDef class="transfer-table-cell">Origine</th>
-            <td mat-cell *matCellDef="let transfer" class="transfer-table-cell">{{transfer.origine}}</td>
-        </ng-container>
+        <div class="table-wrapper">
+            <table mat-table [dataSource]="allTransfersStock" matSort matSortActive="transferDate" matSortDirection="desc" class="transfer-table">
+                <!-- Doc Sortie Column -->
+                <ng-container matColumnDef="docSortie">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Réf. Sortie</th>
+                    <td mat-cell *matCellDef="let transfer">{{transfer.docSortie}}</td>
+                </ng-container>
 
-        <!-- Destination Column -->
-        <ng-container matColumnDef="destination">
-            <th mat-header-cell *matHeaderCellDef class="transfer-table-cell">Destination</th>
-            <td mat-cell *matCellDef="let transfer" class="transfer-table-cell">{{transfer.destination}}</td>
-        </ng-container>
+                <!-- Doc Reception Column -->
+                <ng-container matColumnDef="docReception">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Réf. Réception</th>
+                    <td mat-cell *matCellDef="let transfer">{{transfer.docReception}}</td>
+                </ng-container>
 
-        <!-- Date Column -->
-        <ng-container matColumnDef="transferDate">
-            <th mat-header-cell *matHeaderCellDef class="transfer-table-cell">Date</th>
-            <td mat-cell *matCellDef="let transfer" class="transfer-table-cell">
-                {{transfer.transferDate | date:'dd/MM/yyyy'}}
-            </td>
-        </ng-container>
+                <!-- Origin Column -->
+                <ng-container matColumnDef="origine">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Origine</th>
+                    <td mat-cell *matCellDef="let transfer">
+                        <div class="location-cell">
+                            <mat-icon class="location-icon origin">location_on</mat-icon>
+                            <span>{{transfer.origine}}</span>
+                        </div>
+                    </td>
+                </ng-container>
 
-        <!-- Transporter Column -->
-        <ng-container matColumnDef="transporter">
-            <th mat-header-cell *matHeaderCellDef class="transfer-table-cell">Transporteur</th>
-            <td mat-cell *matCellDef="let transfer" class="transfer-table-cell">{{transfer.transporter}}</td>
-        </ng-container>
+                <!-- Destination Column -->
+                <ng-container matColumnDef="destination">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Destination</th>
+                    <td mat-cell *matCellDef="let transfer">
+                        <div class="location-cell">
+                            <mat-icon class="location-icon destination">flag</mat-icon>
+                            <span>{{transfer.destination}}</span>
+                        </div>
+                    </td>
+                </ng-container>
 
-        <!-- Package Reference Column -->
-        <ng-container matColumnDef="status" >
-            <th mat-header-cell *matHeaderCellDef class="transfer-table-cell">Etat</th>
-            <td mat-cell *matCellDef="let transfer" class="transfer-table-cell">
-                <span class="status-badge" [ngClass]="'status-' + TransferStatus[transfer.status].toLowerCase()">
-                    {{getStatusInfo(transfer.status).text}}
-                </span>
+                <!-- Date Column -->
+                <ng-container matColumnDef="transferDate">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+                    <td mat-cell *matCellDef="let transfer">
+                        {{transfer.transferDate | date:'dd/MM/yyyy HH:mm'}}
+                    </td>
+                </ng-container>
 
-            </td>
-        </ng-container>
+                <!-- Transporter Column -->
+                <ng-container matColumnDef="transporter">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Transporteur</th>
+                    <td mat-cell *matCellDef="let transfer">
+                        <div class="transporter-cell" *ngIf="transfer.transporter">
+                            <mat-icon>local_shipping</mat-icon>
+                            <span>{{transfer.transporter}}</span>
+                        </div>
+                    </td>
+                </ng-container>
 
-        <!-- Action Column -->
-        <ng-container matColumnDef="action">
-            <th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let transfer">
-                <button mat-icon-button class="green-icon" color="primary" (click)="viewDetails(transfer)">
-                    <mat-icon>visibility</mat-icon>
-                </button>
-                <button mat-icon-button class="red-icon" color="warn" (click)="deleteTransfer(transfer)">
-                    <mat-icon>delete</mat-icon>
-                </button>
-            </td>
-        </ng-container>
+                <!-- Status Column -->
+                <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>État</th>
+                    <td mat-cell *matCellDef="let transfer">
+                        <span class="status-badge"
+                            [ngClass]="'status-' + TransferStatus[transfer.status].toLowerCase()">
+                            {{getStatusInfo(transfer.status).text}}
+                        </span>
+                    </td>
+                </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedStockTransferColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedStockTransferColumns;"></tr>
+                <!-- Action Column -->
+                <ng-container matColumnDef="action">
+                    <th mat-header-cell *matHeaderCellDef>Actions</th>
+                    <td mat-cell *matCellDef="let transfer">
+                        <div class="action-buttons">
+                            <button mat-icon-button color="primary" (click)="viewDetails(transfer)"
+                                matTooltip="Détails">
+                                <mat-icon>visibility</mat-icon>
+                            </button>
+                            <button mat-icon-button color="accent" (click)="onPrint(transfer)" matTooltip="Imprimer">
+                                <mat-icon>print</mat-icon>
+                            </button>
+                            <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Menu d'actions">
+                                <mat-icon>more_vert</mat-icon>
+                            </button>
+                            <mat-menu #menu="matMenu">
+                                <button mat-menu-item (click)="deleteTransfer(transfer)" class="delete-menu-item">
+                                    <mat-icon color="warn">delete</mat-icon>
+                                    <span>Supprimer le Transfert</span>
+                                </button>
+                            </mat-menu>
+                        </div>
+                    </td>
+                </ng-container>
 
-        <!-- Row shown when there is no matching data. -->
-        <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" colspan="8">
-                Aucun transfert trouvé "{{input.value}}"
-            </td>
-        </tr>
-    </table>
+                <tr mat-header-row *matHeaderRowDef="displayedStockTransferColumns; sticky: true"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedStockTransferColumns;"></tr>
 
-    <mat-paginator [pageSizeOptions]="[5, 10, 20, 50, 100]"></mat-paginator>
+                <!-- Row shown when there is no matching data. -->
+                <tr class="mat-row" *matNoDataRow>
+                    <td class="mat-cell" colspan="8">
+                        <div class="no-data-message">
+                            Aucun transfert trouvé pour "{{input.value}}"
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <mat-paginator [pageSizeOptions]="[10, 20, 50, 100]" showFirstLastButtons
+            aria-label="Sélectionner la page"></mat-paginator>
+    </mat-card>
 </div>

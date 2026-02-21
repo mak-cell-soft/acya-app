@@ -84,10 +84,22 @@ export class StockTransferListComponent {
     this.loading = true;
     this.stockTransferService.getStockTransfers().subscribe({
       next: (transfers) => {
-        this.allTransfersStock.data = transfers;
-        console.log("All Transfers : ", transfers);
-        this.allTransfersStock.paginator = this.PaginationStockTransfer;
-        this.allTransfersStock.sort = this.sort;
+        // Sort by date descending (recent first)
+        const sortedTransfers = transfers.sort((a, b) => {
+          const dateA = new Date(a.transferDate).getTime();
+          const dateB = new Date(b.transferDate).getTime();
+          return dateB - dateA;
+        });
+
+        this.allTransfersStock.data = sortedTransfers;
+        console.log("All Transfers (Sorted) : ", sortedTransfers);
+
+        // Use a small timeout to ensure ViewChild references are ready if data loads extremely fast
+        setTimeout(() => {
+          this.allTransfersStock.paginator = this.PaginationStockTransfer;
+          this.allTransfersStock.sort = this.sort;
+        });
+
         this.loading = false;
       },
       error: (err) => {
@@ -122,6 +134,10 @@ export class StockTransferListComponent {
 
   deleteTransfer(transfer: StockTransferInfo): void {
 
+  }
+
+  onPrint(transfer: StockTransferInfo): void {
+    // Logic for printing to be implemented
   }
 
   //#region Effet Tableau

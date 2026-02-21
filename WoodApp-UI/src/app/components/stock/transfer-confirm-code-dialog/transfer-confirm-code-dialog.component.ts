@@ -44,7 +44,7 @@ export class TransferConfirmCodeDialogComponent implements AfterViewInit {
                 },
                 error: (error) => {
                     this.loading = false;
-                    this.errorMessage = error.error?.Message || error.error || 'Code incorrect, veuillez réessayer';
+                    this.errorMessage = 'Code incorrect, veuillez réessayer';
                     this.confirmationCode = '';
                     this.codeInput.nativeElement.focus();
                     console.error('Transfer confirmation error:', error);

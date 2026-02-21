@@ -316,6 +316,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
      */
     public async Task<IEnumerable<StockTransferInfoDto>> GetStockTransfersInfos()
     {
+      var lastMonth = DateTime.Now.AddMonths(-1);
       var query = from st in context.StockTransfers
                   join docexit in context.Documents on st.ExitDocumentId equals docexit.Id
                   join docreceipt in context.Documents on st.ReceiptDocumentId equals docreceipt.Id
@@ -323,6 +324,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                   join ssreceipt in context.SalesSites on docreceipt.SalesSiteId equals ssreceipt.Id
                   join tr in context.Transporters on st.TransporterId equals tr.Id
                   join merexit in context.DocumentMerchandises on docexit.Id equals merexit.DocumentId
+                  where st.TransferDate > lastMonth
                   select new StockTransferInfoDto
                   {
                     Id = st.Id,
@@ -341,22 +343,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       var groupedQuery = query
           .GroupBy(x => new { x.DocSortie, x.DocReception })
           .Select(g => g.First());
-
-      return await groupedQuery.ToListAsync();
-
-      /*
-       * Some Enhancement if you want
-       * 
-          // To get the most recent transfer for each document pair:
-           var groupedQuery = query
-          .GroupBy(x => new { x.DocSortie, x.DocReception })
-          .Select(g => g.OrderByDescending(x => x.TransferDate).First());
-
-          // Or to get the one with the highest ID:
-          var groupedQuery = query
-          .GroupBy(x => new { x.DocSortie, x.DocReception })
-          .Select(g => g.OrderByDescending(x => x.Id).First());
-       */
+       return await groupedQuery.ToListAsync();
     }
 
     public async Task<IEnumerable<StockTransferDetailsDto>> GetStockTransfersInfosDetails(string? originDoc = null, string? receipt_Doc = null)
