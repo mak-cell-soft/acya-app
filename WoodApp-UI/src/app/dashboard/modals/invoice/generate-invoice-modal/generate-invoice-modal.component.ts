@@ -214,7 +214,8 @@ export class GenerateInvoiceModalComponent implements OnInit, AfterViewInit {
       regulationid: 0,
       editing: false,
       docstatus: DocStatus.Created,
-      billingstatus: BillingStatus.NotBilled
+      billingstatus: BillingStatus.NotBilled,
+      isservice: false
     }
     return newInvoice;
   }

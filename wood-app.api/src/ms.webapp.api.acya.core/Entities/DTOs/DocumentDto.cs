@@ -62,6 +62,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public bool editing { get; set; } = false;
     public DocStatus docstatus { get; set; }
     public BillingStatus billingstatus { get; set; }
+    public bool isservice { get; set; }
 
     public ICollection<DocumentDto>? childdocuments { get; set; } = new List<DocumentDto>();
     public List<string>? deliveryNoteDocNumbers { get; set; }
@@ -94,6 +95,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       total_discount_doc = entity.TotalCostDiscountDoc;
       docstatus = entity.DocStatus;
       billingstatus = entity.BillingStatus;
+      isservice = entity.Isservice;
       isdeleted = entity.IsDeleted;
       if(entity.Taxes != null)
       {

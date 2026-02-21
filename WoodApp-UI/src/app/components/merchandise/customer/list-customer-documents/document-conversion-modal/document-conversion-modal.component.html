@@ -57,9 +57,27 @@
             </form>
         </div>
 
-        <p><strong>Montant Total TTC:</strong> {{ (isBatchMode ? totalTTC : documents[0].total_net_ttc) | number:'1.3-3'
-            }}
-            TND</p>
+        <div class="service-section">
+            <mat-checkbox [(ngModel)]="isservice" (change)="onServiceChange($event.checked)">
+                Est une facture de service
+            </mat-checkbox>
+        </div>
+
+        <div class="ttc-display" *ngIf="!isservice">
+            <p><strong>Montant Total TTC:</strong> {{ (isBatchMode ? totalTTC : documents[0].total_net_ttc) |
+                number:'1.3-3' }} TND</p>
+        </div>
+
+        <div class="ttc-edit" *ngIf="isservice">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Montant Total TTC (Saisie manuelle)</mat-label>
+                <input type="number" matInput [ngModel]="totalTTC" (ngModelChange)="onTtcChange($event)">
+                <span matSuffix>TND</span>
+            </mat-form-field>
+            <p class="discount-hint" *ngIf="totalDiscount_doc > totalDiscountFromDocs">
+                Remise supplémentaire: {{ (totalDiscount_doc - totalDiscountFromDocs) | number:'1.3-3' }} TND
+            </p>
+        </div>
     </div>
 
     <mat-divider></mat-divider>

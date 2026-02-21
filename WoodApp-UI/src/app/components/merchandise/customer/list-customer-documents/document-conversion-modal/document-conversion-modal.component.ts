@@ -49,6 +49,10 @@ export class DocumentConversionModalComponent implements OnInit {
     totalTVA: number = 0;
     totalDiscount: number = 0;
 
+    isservice: boolean = false;
+    originalTotalTTC: number = 0;
+    totalDiscountFromDocs: number = 0;
+
     constructor(
         public dialogRef: MatDialogRef<DocumentConversionModalComponent>,
         @Inject(MAT_DIALOG_DATA) public data: DocumentConversionModalData,
@@ -128,22 +132,45 @@ export class DocumentConversionModalComponent implements OnInit {
     calculateTotals() {
         this.totalHTNet_doc = this.documents.reduce((sum, doc) => sum + doc.total_ht_net_doc, 0);
         this.totalTVA_doc = this.documents.reduce((sum, doc) => sum + doc.total_tva_doc, 0);
-        this.totalDiscount_doc = this.documents.reduce((sum, doc) => sum + doc.total_discount_doc, 0);
+        this.totalDiscountFromDocs = this.documents.reduce((sum, doc) => sum + (doc.total_discount_doc || 0), 0);
 
         // Base TTC from documents
         let baseTTC = this.documents.reduce((sum, doc) => sum + doc.total_net_ttc, 0);
+        let taxValue = 0;
 
         if (this.isBatchMode && this.taxeForm) {
             const selectedTaxId = this.taxeForm.get('selectedTaxe')?.value;
             const selectedTax = this.appvariablesTaxes.find(t => t.id === selectedTaxId);
-            const taxValue = selectedTax ? parseFloat(selectedTax.value) : 0; // Assuming value is the amount to add, per reference implementation logic
-            // NOTE: Reference implementation adds tax value directly to TTC. 
-            // "const netTTC = data.reduce(...) + taxValue;"
-            // This implies the tax is a fixed stamp duty or similar added to the final invoice total, not a percentage.
+            taxValue = selectedTax ? parseFloat(selectedTax.value) : 0;
+        }
 
-            this.totalTTC = baseTTC + taxValue;
+        this.originalTotalTTC = baseTTC + taxValue;
+
+        if (!this.isservice) {
+            this.totalTTC = this.originalTotalTTC;
+            this.totalDiscount_doc = this.totalDiscountFromDocs;
         } else {
-            this.totalTTC = baseTTC;
+            // If it's already service, we only update totalTTC if it's 0 (initial load)
+            if (this.totalTTC === 0) {
+                this.totalTTC = this.originalTotalTTC;
+                this.totalDiscount_doc = this.totalDiscountFromDocs;
+            }
+        }
+    }
+
+    onTtcChange(newTtc: number) {
+        if (this.isservice) {
+            this.totalTTC = newTtc;
+            const extraDiscount = this.originalTotalTTC - newTtc;
+            this.totalDiscount_doc = this.totalDiscountFromDocs + extraDiscount;
+        }
+    }
+
+    onServiceChange(checked: boolean) {
+        this.isservice = checked;
+        if (!checked) {
+            this.totalTTC = this.originalTotalTTC;
+            this.totalDiscount_doc = this.totalDiscountFromDocs;
         }
     }
 
@@ -168,8 +195,8 @@ export class DocumentConversionModalComponent implements OnInit {
         const modalData = {
             documentId: doc.id,
             documentNumber: doc.docnumber,
-            totalAmount: doc.total_net_ttc,
-            remainingAmount: doc.total_net_ttc,
+            totalAmount: this.totalTTC,
+            remainingAmount: this.totalTTC,
             ownerFullName: doc.counterpart?.name || doc.counterpart?.firstname + ' ' + doc.counterpart?.lastname || '',
             porterName: doc.counterpart?.name || doc.counterpart?.firstname + ' ' + doc.counterpart?.lastname || '',
             porterId: doc.counterpart?.id || 0,
@@ -268,14 +295,13 @@ export class DocumentConversionModalComponent implements OnInit {
         newInvoice.creationdate = new Date();
         newInvoice.updatedate = new Date();
         newInvoice.docstatus = DocStatus.Confirmed;
+        newInvoice.isservice = this.isservice;
 
-        // Use calculated totals for batch mode
-        if (this.isBatchMode) {
-            newInvoice.total_ht_net_doc = this.totalHTNet_doc;
-            newInvoice.total_net_ttc = this.totalTTC;
-            newInvoice.total_tva_doc = this.totalTVA_doc;
-            newInvoice.total_discount_doc = this.totalDiscount_doc;
-        }
+        // Use calculated totals (handles both batch and service manual edits)
+        newInvoice.total_ht_net_doc = this.totalHTNet_doc;
+        newInvoice.total_net_ttc = this.totalTTC;
+        newInvoice.total_tva_doc = this.totalTVA_doc;
+        newInvoice.total_discount_doc = this.totalDiscount_doc;
 
         // Collect all document IDs for the invoice relationship
         const docChildrenIds = this.documents.map(doc => doc.id);

@@ -54,6 +54,7 @@ export class Document {
     editing: boolean = false;
     docstatus!: DocStatus;
     billingstatus: BillingStatus = 1;
+    isservice: boolean = false;
     deliveryNoteDocNumbers?: string[] = [];
     transporter?: any;
 }

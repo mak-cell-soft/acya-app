@@ -68,6 +68,7 @@ namespace ms.webapp.api.acya.core.Entities
 
     public DocStatus DocStatus { get; set; }
     public BillingStatus BillingStatus { get; set; }
+    public bool Isservice { get; set; }
 
     /**
     * Navigation property for Document Document Relationship
@@ -113,7 +114,9 @@ namespace ms.webapp.api.acya.core.Entities
       TotalCostTvaDoc = dto.total_tva_doc;
       /**
        */
+      DocStatus = dto.docstatus;
       BillingStatus = dto.billingstatus;
+      Isservice = dto.isservice;
       IsDeleted = dto.isdeleted;
       //ChildDocuments = dto.childdocuments!.Select(cd => new DocumentDocumentRelationship
       //{

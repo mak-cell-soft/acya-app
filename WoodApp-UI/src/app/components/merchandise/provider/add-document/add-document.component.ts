@@ -690,6 +690,7 @@ export class AddDocumentComponent implements OnInit, CanComponentDeactivate {
           appuser: _user,
           editing: false,
           docstatus: 3,
+          isservice: false,
           billingstatus: BillingStatus.NotBilled
         };
 

@@ -129,3 +129,19 @@ mat-spinner {
   border: 1px solid #bbdefb;
   white-space: nowrap;
 }
+
+.service-section {
+  margin: 16px 0 8px 0;
+}
+
+.ttc-edit {
+  margin-top: 8px;
+}
+
+.discount-hint {
+  font-size: 0.85rem;
+  color: #ff9800;
+  font-weight: 500;
+  margin-top: -12px;
+  margin-bottom: 8px;
+}

@@ -474,6 +474,7 @@ export class AddInvoiceComponent implements OnInit {
             editing: false,
             docstatus: DocStatus.Created,
             billingstatus: this.pendingPayment ? BillingStatus.Billed : BillingStatus.NotBilled,
+            isservice: false,
             deliveryNoteDocNumbers: []
         };
 
