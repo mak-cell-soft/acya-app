@@ -1,0 +1,24 @@
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px 0;
+    min-width: 600px;
+}
+
+.row {
+    display: flex;
+    gap: 16px;
+}
+
+.row mat-form-field {
+    flex: 1;
+}
+
+.full-width {
+    width: 100%;
+}
+
+textarea {
+    min-height: 60px;
+}

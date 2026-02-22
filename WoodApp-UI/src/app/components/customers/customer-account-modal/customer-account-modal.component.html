@@ -1,0 +1,80 @@
+<h2 mat-dialog-title>État de Compte: {{data.customer.firstname}} {{data.customer.lastname}}</h2>
+<mat-dialog-content>
+    <div *ngIf="loading" class="spinner-container">
+        <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <div *ngIf="!loading && statement" class="account-container">
+        <div class="summary-cards">
+            <mat-card class="balance-card">
+                <mat-card-header>
+                    <mat-card-subtitle>Solde Actuel</mat-card-subtitle>
+                    <mat-card-title [class.negative]="statement.closingBalance < 0">
+                        {{statement.closingBalance | number:'1.3-3'}} TND
+                    </mat-card-title>
+                </mat-card-header>
+            </mat-card>
+            <mat-card class="stat-card">
+                <mat-card-subtitle>Débit Période</mat-card-subtitle>
+                <mat-card-title class="debit">{{statement.totalDebit | number:'1.3-3'}}</mat-card-title>
+            </mat-card>
+            <mat-card class="stat-card">
+                <mat-card-subtitle>Crédit Période</mat-card-subtitle>
+                <mat-card-title class="credit">{{statement.totalCredit | number:'1.3-3'}}</mat-card-title>
+            </mat-card>
+        </div>
+
+        <div class="filter-row">
+            <mat-form-field appearance="outline">
+                <mat-label>Période</mat-label>
+                <mat-date-range-input [rangePicker]="picker">
+                    <input matStartDate [(ngModel)]="startDate" placeholder="Début">
+                    <input matEndDate [(ngModel)]="endDate" placeholder="Fin">
+                </mat-date-range-input>
+                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-date-range-picker #picker></mat-date-range-picker>
+            </mat-form-field>
+            <button mat-raised-button color="primary" (click)="loadStatement()">Actualiser</button>
+        </div>
+
+        <div *ngIf="statement.transactions.length > 0; else noMovements">
+            <table class="ledger-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Débit</th>
+                        <th>Crédit</th>
+                        <th>Solde Progressif</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="opening-row">
+                        <td colspan="5">Solde avant période</td>
+                        <td class="amount">{{statement.balanceBeforePeriod | number:'1.3-3'}}</td>
+                    </tr>
+                    <tr *ngFor="let entry of statement.transactions">
+                        <td>{{entry.transactionDate | date:'dd/MM/yyyy'}}</td>
+                        <td>{{entry.type}}</td>
+                        <td>{{entry.description}}</td>
+                        <td class="amount debit">{{entry.debit > 0 ? (entry.debit | number:'1.3-3') : ''}}</td>
+                        <td class="amount credit">{{entry.credit > 0 ? (entry.credit | number:'1.3-3') : ''}}</td>
+                        <td class="amount bold">{{entry.runningBalance | number:'1.3-3'}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <ng-template #noMovements>
+            <div class="no-data-container">
+                <mat-icon>history_toggle_off</mat-icon>
+                <p>Aucun mouvement de compte trouvé pour cette période.</p>
+                <small>Les transactions (factures, paiements) s'afficheront ici au fur et à mesure.</small>
+            </div>
+        </ng-template>
+    </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-button (click)="onClose()">Fermer</button>
+</mat-dialog-actions>

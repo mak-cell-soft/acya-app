@@ -15,6 +15,9 @@ import { Router } from '@angular/router';
 import { MatSort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
 import { CustomerBatchConversionModalComponent } from '../../merchandise/customer/list-customer-documents/customer-batch-conversion-modal/customer-batch-conversion-modal.component';
+import { CustomerDetailsModalComponent } from '../customer-details-modal/customer-details-modal.component';
+import { CustomerEditModalComponent } from '../customer-edit-modal/customer-edit-modal.component';
+import { CustomerAccountModalComponent } from '../customer-account-modal/customer-account-modal.component';
 
 export enum CounterPartType {
   customer = 'Client Régulier',
@@ -44,11 +47,7 @@ export class ListCustomersComponent implements OnInit {
   dialog = inject(MatDialog);
 
   allCustomers: MatTableDataSource<CounterPart> = new MatTableDataSource<CounterPart>();
-  displayedProvidersColumns: string[] = ['fullname', 'type', 'address', 'mfcode', 'cin', 'updatedate', 'mobileone', 'action'];
-
-
-  columnsToDisplayWithExpand = [...this.displayedProvidersColumns, 'expand'];
-  expandedElement: CounterPart | null = null;
+  displayedColumns: string[] = ['fullname', 'type', 'address', 'mfcode', 'cin', 'updatedate', 'mobileone', 'action'];
 
   loading: boolean = false; // Track loading state
   selectedCustomer!: CounterPart | null;
@@ -114,206 +113,36 @@ export class ListCustomersComponent implements OnInit {
     });
   }
 
-  //#region  Edit Customer
-  // editCustomer(customer: CounterPart) {
-  //   customer.editing = true;
-  //   console.log('IS SOCIETY BOOLEAN : ', this.isSociety);
-  //   /**
-  //    * Test if the customer is already a Customer
-  //    */
-  //   if (this.isPrefixValid(customer.prefix)) {
-  //     this.selectedCustomer = customer;
-  //     this.isSociety = false;
-  //     this.createCustomerForm();
-  //     this.customerPatchValues(this.selectedCustomer);
-  //   }
-  //   /**
-  //    * Else the Customer is a Society  
-  //    */
-  //   else {
-  //     this.selectedCustomer = customer;
-  //     this.isSociety = true;
-  //     console.log('IS SOCIETY BOOLEAN : ', this.isSociety);
-  //     this.createSocietyForm();
-  //     this.societyPatchValues(this.selectedCustomer);
-  //   }
-  // }
-  editCustomer(customer: CounterPart) {
-    customer.editing = true;
-    this.selectedCustomer = customer;
-
-    // Loop through all Customers and set editing to false except for the selected one
-    this.allCustomers.data.forEach(_customer => {
-      _customer.editing = (_customer.id === customer.id); // Only the selected customer will have editing = true
-    });
-
-    // Determine if the customer is a society
-    this.isSociety = this.isPrefixValid(customer.prefix);
-    console.log("Is SOCIETY :", this.isSociety);
-
-    // Dynamically create the form
-    if (this.isSocietyPrefix(customer.prefix)) {
-      this.createSocietyForm();
-      this.societyPatchValues(this.selectedCustomer);
-    } else {
-      this.isSociety = false;
-      this.createCustomerForm();
-      this.customerPatchValues(this.selectedCustomer);
-    }
-  }
-
-  isPrefixValid(prefix: string): boolean {
-    const isInSocietyPrefixes = SocietyPrefixes_FR.some(item => item.id === prefix);
-    const isInCustomerPrefixes = CustomerPrefixes_FR.some(item => item.id === prefix);
-    return isInSocietyPrefixes || isInCustomerPrefixes;
-  }
-
-  isSocietyPrefix(prefix: string): boolean {
-    return SocietyPrefixes_FR.some(item => item.id === prefix);
-  }
-
-  //#endregion
-
-  //#region Society Form
-  societyPatchValues(customer: CounterPart) {
-    this.selectedCustomerForm.patchValue({
-      selectedprefix: customer.prefix,
-      type: customer.type,
-      name: customer.name,
-      description: customer.description,
-      firstname: customer.firstname,
-      lastname: customer.lastname,
-      phonenumberone: customer.phonenumberone,
-      phonenumbertwo: customer.phonenumbertwo,
-      maximumdiscount: customer.maximumdiscount,
-      maximumsalesbar: customer.maximumsalesbar,
-      cin: customer.identitycardnumber,
-      mfcode: customer.taxregistrationnumber,
-      patentecode: customer.patentecode,
-      activity: Number(customer.jobtitle),
-      email: customer.email,
-      gouvernorate: Number(customer.gouvernorate),
-      bank: customer.bankname,
-      notes: customer.notes,
-      bankaccount: customer.bankaccountnumber,
-      address: customer.address,
-      istypeboth: customer.type == CounterPartType_FR.both ? true : false
+  onDetail(customer: CounterPart): void {
+    this.dialog.open(CustomerDetailsModalComponent, {
+      width: '600px',
+      data: { customer }
     });
   }
 
-  createSocietyForm() {
-    this.selectedCustomerForm = this.fb.group({
-      selectedprefix: [this.selectedCustomer?.prefix || '', Validators.required],
-      firstname: [this.selectedCustomer?.firstname || '', Validators.required],
-      lastname: [this.selectedCustomer?.lastname || '', Validators.required],
-      name: [this.selectedCustomer?.name || '', Validators.required],
-      description: [this.selectedCustomer?.description || '', Validators.required],
-      type: [''],
-      // firstname: [''],
-      // lastname: [''],
-      // name: [''],
-      // description: [''],
-      phonenumberone: [''],
-      phonenumbertwo: [''],
-      maximumdiscount: [''],
-      maximumsalesbar: [''],
-      address: [''],
-      gouvernorate: [''],
-      cin: [''],
-      mfcode: [''],
-      patentecode: [''],
-      activity: [''],
-      email: [''],
-      bank: [''],
-      bankaccount: [''],
-      notes: [''],
-      istypeboth: ['']
+  onEdit(customer: CounterPart): void {
+    const dialogRef = this.dialog.open(CustomerEditModalComponent, {
+      width: '700px',
+      data: { customer }
     });
-  }
-  //#endregion
 
-  //#region Customer Form
-  customerPatchValues(customer: CounterPart) {
-    this.selectedCustomerForm.patchValue({
-      selectedprefix: customer.prefix,
-      type: customer.type,
-      name: customer.name,
-      description: customer.description,
-      firstname: customer.firstname,
-      lastname: customer.lastname,
-      phonenumberone: customer.phonenumberone,
-      phonenumbertwo: customer.phonenumbertwo,
-      maximumdiscount: customer.maximumdiscount,
-      maximumsalesbar: customer.maximumsalesbar,
-      cin: customer.identitycardnumber,
-      mfcode: customer.taxregistrationnumber,
-      patentecode: customer.patentecode,
-      activity: Number(customer.jobtitle),
-      email: customer.email,
-      gouvernorate: Number(customer.gouvernorate),
-      bank: customer.bankname,
-      notes: customer.notes,
-      bankaccount: customer.bankaccountnumber,
-      address: customer.address,
-      istypeboth: false
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.getCustomers();
+      }
     });
   }
 
-  createCustomerForm() {
-    this.selectedCustomerForm = this.fb.group({
-      selectedprefix: [this.selectedCustomer?.prefix || '', Validators.required],
-      firstname: [this.selectedCustomer?.firstname || '', Validators.required],
-      lastname: [this.selectedCustomer?.lastname || '', Validators.required],
-      type: [''],
-      //firstname: [''],
-      //lastname: [''],
-      name: [],
-      description: [''],
-      phonenumberone: [''],
-      phonenumbertwo: [''],
-      maximumdiscount: [''],
-      maximumsalesbar: [''],
-      address: [''],
-      gouvernorate: [''],
-      cin: [''],
-      mfcode: [''],
-      patentecode: [''],
-      activity: [''],
-      email: [''],
-      bank: [''],
-      bankaccount: [''],
-      notes: [''],
-      istypeboth: ['']
+  onShowAccount(customer: CounterPart): void {
+    this.dialog.open(CustomerAccountModalComponent, {
+      width: '90vw',
+      maxWidth: '1200px',
+      data: { customer }
     });
   }
-  //#endregion
 
-  saveEditedCustomer() {
-    // this.selectedCustomerForm.valueChanges.subscribe((value) => {
-    //   this.selectedCustomer = value;
-    // });
-    this.selectedCustomerForm.reset();
-    this.getCustomers();
-    this.toastr.success('Client modifié avec succès');
-  }
-
-  getCounterPartType(type: string): string {
-    const mapping: { [key: string]: CounterPartType } = {
-      Customer: CounterPartType.customer,
-      Supplier: CounterPartType.supplier,
-      Both: CounterPartType.both
-    };
-    return mapping[type] || '** Non Connue **';
-  }
-
-  getCounterPartJobTitleValue(_k: string): string {
-    const key = Number(_k); // Convert the key from string to number
-    // Create a mapping from the array for quick lookup
-    const mapping = CounterPartActivities_FR.reduce(
-      (acc, activity) => ({ ...acc, [activity.key]: activity.value }),
-      {} as { [key: number]: string }
-    );
-    return mapping[key] || '** Non Connue **'; // Fallback to 'Unknown' if key not found
+  onReturn(): void {
+    this.router.navigate(['/dashboard']);
   }
 
   onUpperCase(event: Event, controlName: string): void {

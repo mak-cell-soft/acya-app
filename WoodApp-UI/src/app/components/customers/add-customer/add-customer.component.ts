@@ -95,6 +95,7 @@ export class AddCustomerComponent implements OnInit {
       bank: [''],
       bankaccount: [''],
       notes: [''],
+      openingbalance: [0],
       isTypeBoth: ['']
     },
       //{ validators: atLeastOneRequiredValidator('mfcode', 'patentecode') } // Apply Society validator here
@@ -123,6 +124,7 @@ export class AddCustomerComponent implements OnInit {
         bankaccount: [''],
         address: ['', Validators.required],
         gouvernorate: [this.gouvernorate?.[0]?.key || null],
+        openingbalance: [0],
         isTypeBoth: ['']
       },
       { validators: atLeastOneRequiredValidator('cin', 'mfcode', 'patentecode') }
@@ -206,6 +208,7 @@ export class AddCustomerComponent implements OnInit {
         bankaccountnumber: formValues.bankaccount,
         isactive: true,
         isdeleted: false,
+        openingbalance: Number(formValues.openingbalance) || 0,
 
         updatedbyid: Number(this.userconnected?.id),
         appuser: new AppUser(),
@@ -245,6 +248,7 @@ export class AddCustomerComponent implements OnInit {
         bankaccountnumber: formValues.bankaccount,
         isactive: true,
         isdeleted: false,
+        openingbalance: Number(formValues.openingbalance) || 0,
 
         updatedbyid: Number(this.userconnected?.id),
         appuser: new AppUser(),

@@ -1,0 +1,98 @@
+.spinner-container {
+    display: flex;
+    justify-content: center;
+    padding: 40px;
+}
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.balance-card {
+    background-color: #f5f5f5;
+}
+
+.stat-card {
+    padding: 10px;
+}
+
+.negative {
+    color: #f44336;
+}
+
+.debit {
+    color: #2196f3;
+}
+
+.credit {
+    color: #4caf50;
+}
+
+.filter-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.ledger-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.ledger-table th {
+    text-align: left;
+    background-color: #f8f9fa;
+    padding: 12px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.ledger-table td {
+    padding: 12px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.opening-row {
+    background-color: #fcfcfc;
+    font-style: italic;
+}
+
+.amount {
+    text-align: right;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.no-data-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    color: #5f6368;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px dashed #dee2e6;
+    margin-top: 20px;
+}
+
+.no-data-container mat-icon {
+    font-size: 48px;
+    height: 48px;
+    width: 48px;
+    margin-bottom: 16px;
+    color: #bdc1c6;
+}
+
+.no-data-container p {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    font-weight: 500;
+}

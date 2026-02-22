@@ -96,6 +96,9 @@ import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2
 import { DeliveryNotePrintComponent } from './models/print-templates/delivery-note-print/delivery-note-print.component';
 import { TransferConfirmCodeDialogComponent } from './components/stock/transfer-confirm-code-dialog/transfer-confirm-code-dialog.component';
 import { CustomerBatchConversionModalComponent } from './components/merchandise/customer/list-customer-documents/customer-batch-conversion-modal/customer-batch-conversion-modal.component';
+import { CustomerDetailsModalComponent } from './components/customers/customer-details-modal/customer-details-modal.component';
+import { CustomerEditModalComponent } from './components/customers/customer-edit-modal/customer-edit-modal.component';
+import { CustomerAccountModalComponent } from './components/customers/customer-account-modal/customer-account-modal.component';
 
 @NgModule({
   declarations: [
@@ -147,7 +150,10 @@ import { CustomerBatchConversionModalComponent } from './components/merchandise/
     ListCustomerInvoicesComponent,
     AddInvoiceComponent,
     DeliveryNotePrintComponent,
-    CustomerBatchConversionModalComponent
+    CustomerBatchConversionModalComponent,
+    CustomerDetailsModalComponent,
+    CustomerEditModalComponent,
+    CustomerAccountModalComponent
   ],
   imports: [
     BrowserModule,

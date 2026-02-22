@@ -70,6 +70,7 @@ export class AddProviderComponent implements OnInit {
       representedBySurname: ['', Validators.required],
       bank: ['', Validators.required],
       bankAccountNumber: ['', Validators.required],
+      openingbalance: [0],
       isTypeBoth: ['']
     });
   }
@@ -129,6 +130,7 @@ export class AddProviderComponent implements OnInit {
         updatedate: new Date(),
         isactive: true,
         isdeleted: false,
+        openingbalance: Number(formValues.openingbalance) || 0,
 
         updatedbyid: Number(this.userconnected?.id),
         appuser: new AppUser(),

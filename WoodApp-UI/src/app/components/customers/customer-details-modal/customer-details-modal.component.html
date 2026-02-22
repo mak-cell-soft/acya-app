@@ -1,0 +1,47 @@
+<h2 mat-dialog-title>Détails du Client: {{getFullName()}}</h2>
+<mat-dialog-content class="mat-typography">
+    <div class="details-grid">
+        <div class="detail-item">
+            <strong>Nom complet:</strong> {{getFullName()}}
+        </div>
+        <div class="detail-item">
+            <strong>Email:</strong> {{data.customer.email || 'Non Saisie'}}
+        </div>
+        <div class="detail-item">
+            <strong>Mobile 1:</strong> {{data.customer.phonenumberone || '--'}}
+        </div>
+        <div class="detail-item">
+            <strong>Mobile 2:</strong> {{data.customer.phonenumbertwo || '--'}}
+        </div>
+        <div class="detail-item">
+            <strong>Adresse:</strong> {{data.customer.address}}
+        </div>
+        <div class="detail-item">
+            <strong>Gouvernorat:</strong> {{data.customer.gouvernorate}}
+        </div>
+        <div class="detail-item">
+            <strong>Matricule Fiscal:</strong> {{data.customer.taxregistrationnumber || 'Non Saisie'}}
+        </div>
+        <div class="detail-item">
+            <strong>CIN:</strong> {{data.customer.identitycardnumber || 'Non Saisie'}}
+        </div>
+        <div class="detail-item">
+            <strong>Activité:</strong> {{getCounterPartJobTitleValue(data.customer.jobtitle)}}
+        </div>
+        <div class="detail-item">
+            <strong>Date de création:</strong> {{data.customer.creationdate | date: 'dd-MM-yyyy'}}
+        </div>
+        <div class="detail-item">
+            <strong>Banque:</strong> {{data.customer.bankname || '--'}}
+        </div>
+        <div class="detail-item">
+            <strong>RIB:</strong> {{data.customer.bankaccountnumber || '--'}}
+        </div>
+        <div class="detail-item full-width" *ngIf="data.customer.notes">
+            <strong>Notes:</strong> {{data.customer.notes}}
+        </div>
+    </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-button (click)="onClose()">Fermer</button>
+</mat-dialog-actions>

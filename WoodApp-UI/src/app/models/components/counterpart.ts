@@ -68,6 +68,11 @@ export class CounterPart {
      */
     editing: boolean = false;
     /**
+     * Account Balance Fields
+     */
+    openingbalance: number = 0;
+
+    /**
      * Check if the Customer is also a Supplier
      */
     isTypeBoth: boolean = false;

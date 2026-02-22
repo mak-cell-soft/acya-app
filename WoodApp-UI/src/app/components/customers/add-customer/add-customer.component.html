@@ -111,13 +111,20 @@
                             </div>
                             <div class="half-width-wrapper">
                                 <mat-form-field class="half-width">
+                                    <mat-label>Solde Initial (Ouverture)</mat-label>
+                                    <input matInput type="number" formControlName="openingbalance">
+                                    <mat-icon matSuffix>account_balance</mat-icon>
+                                </mat-form-field>
+                                <mat-form-field class="half-width">
                                     <mat-label>Adresse</mat-label>
                                     <input matInput formControlName="address">
                                     <mat-icon matSuffix>check</mat-icon>
                                 </mat-form-field>
+                            </div>
+                            <div class="half-width-wrapper">
                                 <mat-form-field class="half-width">
                                     <mat-label>Guouvernorat</mat-label>
-                                    <mat-select formControlName="gouvernorate" isableRipple>
+                                    <mat-select formControlName="gouvernorate" disableRipple>
                                         <mat-option *ngFor="let gov of gouvernorate"
                                             [value]="gov.key">{{gov.value}}</mat-option>
                                     </mat-select>
@@ -149,7 +156,8 @@
                         <mat-card class="card-details">
                             <div>
                                 <h5>Transporteur</h5>
-                                <table mat-table [dataSource]="transporters" class="mat-elevation-z8 mt-3">
+                                <table mat-table [dataSource]="transporters" class="mat-elevation-z8 mt-3"
+                                    *ngIf="transporters.length">
                                     <ng-container matColumnDef="number">
                                         <th mat-header-cell *matHeaderCellDef>#</th>
                                         <td mat-cell *matCellDef="let element; let i=index">{{ i + 1 }}</td>
@@ -297,10 +305,17 @@
                             </div>
                             <div class="half-width-wrapper">
                                 <mat-form-field class="half-width">
+                                    <mat-label>Solde Initial (Ouverture)</mat-label>
+                                    <input matInput type="number" formControlName="openingbalance" defaultValue="0">
+                                    <mat-icon matSuffix>account_balance</mat-icon>
+                                </mat-form-field>
+                                <mat-form-field class="half-width">
                                     <mat-label>Adresse</mat-label>
                                     <input matInput formControlName="address">
                                     <mat-icon matSuffix>check</mat-icon>
                                 </mat-form-field>
+                            </div>
+                            <div class="half-width-wrapper">
                                 <mat-form-field class="half-width">
                                     <mat-label>Guouvernorat</mat-label>
                                     <mat-select formControlName="gouvernorate" disableRipple>
@@ -308,12 +323,12 @@
                                             [value]="gov.key">{{gov.value}}</mat-option>
                                     </mat-select>
                                 </mat-form-field>
+                                <mat-form-field class="half-width">
+                                    <mat-label>Notes</mat-label>
+                                    <input matInput formControlName="notes">
+                                    <mat-icon matSuffix>description</mat-icon>
+                                </mat-form-field>
                             </div>
-                            <mat-form-field class="full-width">
-                                <mat-label>Notes</mat-label>
-                                <input matInput formControlName="notes">
-                                <mat-icon matSuffix>description</mat-icon>
-                            </mat-form-field>
                         </mat-card>
                         <mat-card class="card-details">
                             <div class="half-width-wrapper">
@@ -345,7 +360,8 @@
                         <mat-card class="card-details">
                             <div>
                                 <h5>Transporteur</h5>
-                                <table mat-table [dataSource]="transporters" class="mat-elevation-z8 mt-3">
+                                <table mat-table [dataSource]="transporters" class="mat-elevation-z8 mt-3"
+                                    *ngIf="transporters.length">
                                     <ng-container matColumnDef="number">
                                         <th mat-header-cell *matHeaderCellDef>#</th>
                                         <td mat-cell *matCellDef="let element; let i=index">{{ i + 1 }}</td>
@@ -393,9 +409,5 @@
         </div>
 
     </mat-card>
-
-
-
-
 
 </div>

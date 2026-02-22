@@ -1,310 +1,118 @@
-<h4>Liste des Clients</h4>
-<!-- Add this progress bar at the top of the page -->
+<mat-toolbar color="primary" class="header-toolbar">
+    <button mat-icon-button (click)="onReturn()" matTooltip="Retour">
+        <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span>Gestion des Clients</span>
+    <span class="customer-count-badge">{{allCustomers.data.length}}</span>
+    <span class="spacer"></span>
+    <button mat-raised-button color="accent" (click)="onBatchConvertForCustomer()" style="margin-right: 8px;">
+        <mat-icon>transform</mat-icon>
+        Convertir BL
+    </button>
+    <button mat-raised-button class="add-button" routerLink="add">
+        <mat-icon>add</mat-icon>
+        Ajouter un Client
+    </button>
+</mat-toolbar>
+
 <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
-<div class="search">
-    <div class="search-bar-container">
-        <button mat-icon-button>
-            <mat-icon>
-                search
-            </mat-icon>
-        </button>
-        <input (keyup)="applyFilter($event)" placeholder="Rechercher dans les clients" #input />
-    </div>
-    <div class="button-container">
-        <mat-dialog-actions>
-            <button mat-flat-button color="accent" (click)="onBatchConvertForCustomer()" style="margin-right: 8px;">
-                <mat-icon>transform</mat-icon>
-                Convertir BL
-            </button>
-            <button mat-flat-button color="primary" routerLink="add">
-                <mat-icon>
-                    add
-                </mat-icon>
-                Ajouter
-            </button>
-        </mat-dialog-actions>
-    </div>
-</div>
 
-<!-- Table List Customers -->
-<div class="table-container mat-elevation-z8">
-    <table mat-table [dataSource]="allCustomers" matSort class="article-table" *ngIf="allCustomers.data?.length"
-        multiTemplateDataRows>
-
-        <ng-container matColumnDef="fullname">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell prefix-column">
-                Nom complet </th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell prefix-column">{{getFullName(element)}}
-            </td>
-        </ng-container>
-
-        <ng-container matColumnDef="type">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell name-column">
-                Type </th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell name-column">
-                {{getCounterPartType(element.type)}}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="address">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell description-column">
-                Adresse
-            </th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell description-column">{{element.address}}
-            </td>
-        </ng-container>
-
-        <ng-container matColumnDef="mfcode">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell description-column">
-                Matricule Fiscal
-            </th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell description-column">{{
-                element.mfcode?.trim() ? element.mfcode : '** Non Saisie **' }}
-            </td>
-        </ng-container>
-
-        <ng-container matColumnDef="cin">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
-                CIN N° </th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell">
-                {{element.identitycardnumber?.trim() ? element.identitycardnumber : '** Non Saisie **' }}
-            </td>
-        </ng-container>
-
-        <ng-container matColumnDef="updatedate">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell phone-column">
-                Mis à jour le
-            </th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell phone-column">
-                {{element.updatedate | date: 'dd-MM-yyyy'}}
-            </td>
-        </ng-container>
-
-        <ng-container matColumnDef="mobileone">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell"> Mobile
-            </th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell">{{element.phonenumberone}}
-            </td>
-        </ng-container>
-
-        <!-- Action Column -->
-        <ng-container matColumnDef="action">
-            <th mat-header-cell *matHeaderCellDef> Actions </th>
-            <td mat-cell style="white-space: pre-line" *matCellDef="let element">
-                <mat-icon class="blue-icon">display_settings</mat-icon>
-                <mat-icon class="red-icon" *ngIf="element.editing"
-                    (click)="cancelEditCustomer(element)">cancel</mat-icon>
-                <mat-icon class="green-icon" *ngIf="!element.editing" (click)="editCustomer(element)">edit</mat-icon>
-                <mat-icon class="red-icon" (click)="deleteCustomer(element)">delete</mat-icon>
-            </td>
-        </ng-container>
-
-        <!-- Expanded Element-->
-        <ng-container matColumnDef="expand">
-            <th mat-header-cell *matHeaderCellDef aria-label="row actions">&nbsp;</th>
-            <td mat-cell *matCellDef="let element">
-                <button mat-icon-button aria-label="expand row"
-                    (click)="(expandedElement = expandedElement === element ? null : element); $event.stopPropagation()">
-                    <mat-icon>{{expandedElement === element ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
-                </button>
-            </td>
-        </ng-container>
-
-        <!-- Expanded Content Column - Detail row for additional properties -->
-        <ng-container matColumnDef="expandedDetail">
-            <td mat-cell *matCellDef="let element" [attr.colspan]="columnsToDisplayWithExpand.length-1">
-                <div class="example-element-detail"
-                    [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
-                    <!-- Display the desired additional fields from Counter Part model -->
-                    <div><strong>email : &nbsp;</strong> {{
-                        element.email?.trim() ? element.email : '** Non Saisie **' }} &nbsp;&nbsp;</div>
-                    <div><strong>Mobile 2 : &nbsp;</strong> {{element.phonenumbertwo || '--'}} &nbsp;&nbsp;</div>
-                    <div><strong>Date de création : &nbsp;</strong> {{ element.creationdate | date: 'dd-MM-yyyy' }}
-                        &nbsp;&nbsp;</div>
-                    <div>
-                        <strong>Activité : &nbsp;</strong>
-                        {{ getCounterPartJobTitleValue(element.jobtitle) }}
-                    </div>
-                </div>
-            </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="columnsToDisplayWithExpand"></tr>
-        <tr mat-row *matRowDef="let element; columns: columnsToDisplayWithExpand;" class="example-element-row"
-            [class.example-expanded-row]="expandedElement === element"
-            (click)="expandedElement = expandedElement === element ? null : element">
-        </tr>
-        <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="example-detail-row"></tr>
-        <!-- <tr mat-header-row *matHeaderRowDef="displayedProvidersColumns"></tr>
-        <tr mat-row *matRowDef="let element; columns: displayedProvidersColumns;"></tr> -->
-
-
-        <!-- Row shown when there is no matching data. -->
-        <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" colspan="4">Ce Client n'existe pas "{{input.value}}"</td>
-        </tr>
-    </table>
-    <mat-paginator [pageSizeOptions]="[5,10, 25, 50, 100]" aria-label="Selectionner les clients"></mat-paginator>
-</div>
-<div *ngIf="selectedCustomer">
-    <mat-card class="card-details" [formGroup]="selectedCustomerForm">
-        <mat-dialog-content>
-            <!-- End Society -->
-            <div class="square-width-wrapper">
-                <mat-form-field class="square-width">
-                    <mat-label>Type</mat-label>
-                    <mat-select formControlName="selectedprefix" disableRipple>
-                        <mat-option *ngFor="let prefix of allPrefixes" [value]="prefix.id">
-                            {{ prefix.id }} - {{ prefix.name }}
-                        </mat-option>
-                    </mat-select>
-                </mat-form-field>
-
-                <!-- Common Fields -->
-                <mat-form-field class="square-width">
-                    <mat-label>Prénom</mat-label>
-                    <input matInput formControlName="firstname">
-                    <mat-icon matSuffix>check</mat-icon>
-                </mat-form-field>
-                <mat-form-field class="square-width">
-                    <mat-label>Nom</mat-label>
-                    <input matInput formControlName="lastname">
-                    <mat-icon matSuffix>check</mat-icon>
-                </mat-form-field>
-            </div>
-            <!-- Society-specific Fields -->
-            <div *ngIf="isSociety" class="half-width-wrapper">
-                <mat-form-field class="half-width">
-                    <mat-label>Nom</mat-label>
-                    <input matInput formControlName="name">
-                    <mat-icon matSuffix>check</mat-icon>
-                </mat-form-field>
-                <mat-form-field class="half-width">
-                    <mat-label>Description</mat-label>
-                    <input matInput formControlName="description">
-                    <mat-icon matSuffix>check</mat-icon>
-                </mat-form-field>
-            </div>
-
-
-            <div class="half-width-wrapper">
-                <mat-form-field class="half-width">
-                    <mat-label>Identité Nationale N°</mat-label>
-                    <input matInput formControlName="cin">
-                    <mat-icon matSuffix>check</mat-icon>
-                    <mat-error *ngIf="selectedCustomerForm.get('cin')?.hasError('numeric')">
-                        La CIN doit contenir uniquement des chiffres.
-                    </mat-error>
-                </mat-form-field>
-                <mat-form-field class="half-width">
-                    <mat-label>Email</mat-label>
-                    <input matInput formControlName="email">
-                    <mat-icon matSuffix>email</mat-icon>
-                </mat-form-field>
-            </div>
-            <div class="half-width-wrapper">
-                <mat-form-field class="half-width">
-                    <mat-label>Téléphone 1</mat-label>
-                    <input matInput formControlName="phonenumberone">
-                    <mat-icon matSuffix>phone_android</mat-icon>
-                </mat-form-field>
-                <mat-form-field class="half-width">
-                    <mat-label>Téléphone 2</mat-label>
-                    <input matInput formControlName="phonenumbertwo">
-                    <mat-icon matSuffix>phone_android</mat-icon>
-                </mat-form-field>
-            </div>
-            <div class="half-width-wrapper">
-                <mat-form-field class="half-width">
-                    <mat-label>Activité</mat-label>
-                    <mat-select formControlName="activity" disableRipple>
-                        <mat-option *ngFor="let activ of societyActivities"
-                            [value]="activ.key">{{activ.value}}</mat-option>
-                    </mat-select>
-                </mat-form-field>
-                <mat-form-field class="half-width">
-                    <mat-label>Notes</mat-label>
-                    <input matInput formControlName="notes">
-                    <mat-icon matSuffix>description</mat-icon>
-                </mat-form-field>
-            </div>
-        </mat-dialog-content>
-        <mat-dialog-content>
-
-            <div class="half-width-wrapper">
-                <mat-form-field class="half-width">
-                    <mat-label>Matricule Fiscal</mat-label>
-                    <input matInput formControlName="mfcode" (input)="onUpperCase($event, 'mfcode')">
-                    <mat-icon matSuffix>check</mat-icon>
-                    <mat-error *ngIf="selectedCustomerForm.get('mfcode')?.hasError('uppercaseAlphanumeric')">
-                        Le Matricule Fiscal doit contenir des chiffres et des lettres en Majuscule.
-                    </mat-error>
-                </mat-form-field>
-                <mat-form-field class="half-width">
-                    <mat-label>Patente</mat-label>
-                    <input matInput formControlName="patentecode" (input)="onUpperCase($event, 'patentecode')">
-                    <mat-icon matSuffix>check</mat-icon>
-                    <mat-error *ngIf="selectedCustomerForm.get('patentecode')?.hasError('uppercaseAlphanumeric')">
-                        La Patente doit contenir des chiffres et des lettres en Majuscule.
-                    </mat-error>
-                </mat-form-field>
-            </div>
-            <div class="half-width-wrapper">
-                <mat-form-field class="half-width">
-                    <mat-label>Remise Maximale</mat-label>
-                    <input matInput type="number" formControlName="maximumdiscount">
-                    <mat-icon matSuffix>check</mat-icon>
-                </mat-form-field>
-                <mat-form-field class="half-width">
-                    <mat-label>Encours Total</mat-label>
-                    <input matInput type="number" formControlName="maximumsalesbar">
-                    <mat-icon matSuffix>check</mat-icon>
-                </mat-form-field>
-            </div>
-            <div class="half-width-wrapper">
-                <mat-form-field class="half-width">
-                    <mat-label>Adresse</mat-label>
-                    <input matInput formControlName="address">
-                    <mat-icon matSuffix>check</mat-icon>
-                </mat-form-field>
-                <mat-form-field class="half-width">
-                    <mat-label>Guouvernorat</mat-label>
-                    <mat-select formControlName="gouvernorate" disableRipple>
-                        <mat-option *ngFor="let gov of gouvernorate" [value]="gov.key">{{gov.value}}</mat-option>
-                    </mat-select>
-                </mat-form-field>
-            </div>
-
-
-            <div class="half-width-wrapper">
-                <mat-form-field class="half-width">
-                    <mat-label>Banque</mat-label>
-                    <mat-select formControlName="bank" disableRipple>
-                        <mat-option *ngFor="let bank of allBanks" [value]="bank.key">{{bank.key}}
-                            - {{bank.value}}</mat-option>
-                    </mat-select>
-                </mat-form-field>
-                <mat-form-field class="half-width">
-                    <mat-label>RIB Bancaire</mat-label>
-                    <input matInput formControlName="bankaccount">
-                    <mat-icon matSuffix>check</mat-icon>
-                </mat-form-field>
-            </div>
-            <div>
-                <mat-slide-toggle formControlName="istypeboth" labelPosition="after">
-                    <h6>Est un Client Fornisseur</h6>
-                </mat-slide-toggle>
-            </div>
-
-        </mat-dialog-content>
-        <div class="control-button">
-            <mat-dialog-actions>
-                <button mat-flat-button color="primary" (click)="saveEditedCustomer()"><mat-icon>
-                        edit
-                    </mat-icon>
-                    {{update_button}}</button>
-                <!-- <button mat-flat-button color="warn" (click)="cancelEditArticleButton()">{{abort_button}}</button> -->
-            </mat-dialog-actions>
+<div class="main-container">
+    <mat-card class="content-card">
+        <div class="search-row">
+            <mat-form-field appearance="outline" class="search-field">
+                <mat-label>Rechercher un client</mat-label>
+                <input matInput (keyup)="applyFilter($event)" placeholder="Nom, CIN, MF..." #input>
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
         </div>
+
+        <div class="table-scroll-container">
+            <table mat-table [dataSource]="allCustomers" matSort class="w-100">
+
+                <ng-container matColumnDef="fullname">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                        <mat-icon class="header-icon">person</mat-icon> Nom complet
+                    </th>
+                    <td mat-cell *matCellDef="let element"> {{getFullName(element)}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="type">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                        <mat-icon class="header-icon">category</mat-icon> Type
+                    </th>
+                    <td mat-cell *matCellDef="let element"> {{element.type}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="address">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                        <mat-icon class="header-icon">place</mat-icon> Adresse
+                    </th>
+                    <td mat-cell *matCellDef="let element"> {{element.address}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="mfcode">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                        <mat-icon class="header-icon">description</mat-icon> MF
+                    </th>
+                    <td mat-cell *matCellDef="let element"> {{element.taxregistrationnumber || '--'}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="cin">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                        <mat-icon class="header-icon">badge</mat-icon> CIN
+                    </th>
+                    <td mat-cell *matCellDef="let element"> {{element.identitycardnumber || '--'}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="updatedate">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                        <mat-icon class="header-icon">update</mat-icon> Modif.
+                    </th>
+                    <td mat-cell *matCellDef="let element"> {{element.updatedate | date: 'dd/MM/yyyy'}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="mobileone">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <mat-icon class="header-icon">phone</mat-icon> Téléphone
+                    </th>
+                    <td mat-cell *matCellDef="let element"> {{element.phonenumberone}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="action">
+                    <th mat-header-cell *matHeaderCellDef class="text-center">
+                        <mat-icon class="header-icon">settings</mat-icon> Actions
+                    </th>
+                    <td mat-cell *matCellDef="let element" class="text-center action-buttons">
+                        <button mat-icon-button class="btn-detail" (click)="onDetail(element)" matTooltip="Détails">
+                            <mat-icon>visibility</mat-icon>
+                        </button>
+                        <button mat-icon-button class="btn-edit" (click)="onEdit(element)" matTooltip="Modifier">
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button class="btn-account" (click)="onShowAccount(element)"
+                            matTooltip="État de Compte">
+                            <mat-icon>account_balance</mat-icon>
+                        </button>
+                        <button mat-icon-button class="btn-delete" (click)="deleteCustomer(element)"
+                            matTooltip="Supprimer">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+                <tr class="mat-row" *matNoDataRow>
+                    <td class="mat-cell" colspan="8" class="text-center p-4">
+                        Aucun client trouvé pour : "{{input.value}}"
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
     </mat-card>
 </div>
+
 <router-outlet></router-outlet>
