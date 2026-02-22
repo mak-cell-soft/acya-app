@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, ViewChild, AfterViewInit, TemplateRef, ElementRef } from '@angular/core';
 import { PaymentModalComponent } from '../../../../dashboard/modals/payment-modal/payment-modal.component';
 import { DocumentConversionModalComponent } from './document-conversion-modal/document-conversion-modal.component';
+import { CustomerBatchConversionModalComponent } from './customer-batch-conversion-modal/customer-batch-conversion-modal.component';
 import { DocumentDetailModalComponent } from './document-detail-modal/document-detail-modal.component';
 import { Months_FR } from '../../../../shared/constants/list_of_constants';
 import { MatTableDataSource } from '@angular/material/table';
@@ -461,6 +462,23 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
       if (result === true) {
         // Refresh list and clear selection
         this.selection.clear();
+        this.getAllCustomerDeliveryNotesDocumentsFiltered(this.typefiltered);
+      }
+    });
+  }
+
+  onBatchConvertForCustomer(): void {
+    const dialogRef = this.dialog.open(CustomerBatchConversionModalComponent, {
+      width: '95vw',
+      maxWidth: '1600px',
+      maxHeight: '95vh',
+      disableClose: true,
+      panelClass: 'full-screen-modal'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        // Refresh list
         this.getAllCustomerDeliveryNotesDocumentsFiltered(this.typefiltered);
       }
     });

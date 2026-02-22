@@ -13,6 +13,8 @@ import { BANKS_TN } from '../../../shared/constants/modals/bank_modal';
 import { AuthenticationService } from '../../../services/components/authentication.service';
 import { Router } from '@angular/router';
 import { MatSort } from '@angular/material/sort';
+import { MatDialog } from '@angular/material/dialog';
+import { CustomerBatchConversionModalComponent } from '../../merchandise/customer/list-customer-documents/customer-batch-conversion-modal/customer-batch-conversion-modal.component';
 
 export enum CounterPartType {
   customer = 'Client Régulier',
@@ -39,6 +41,7 @@ export class ListCustomersComponent implements OnInit {
   counterPartService = inject(CounterpartService);
   authService = inject(AuthenticationService);
   router = inject(Router);
+  dialog = inject(MatDialog);
 
   allCustomers: MatTableDataSource<CounterPart> = new MatTableDataSource<CounterPart>();
   displayedProvidersColumns: string[] = ['fullname', 'type', 'address', 'mfcode', 'cin', 'updatedate', 'mobileone', 'action'];
@@ -331,7 +334,20 @@ export class ListCustomersComponent implements OnInit {
     return `${element.prefix} - ${element.name}`;
   }
 
+  onBatchConvertForCustomer(): void {
+    const dialogRef = this.dialog.open(CustomerBatchConversionModalComponent, {
+      width: '95vw',
+      maxWidth: '1600px',
+      maxHeight: '95vh',
+      disableClose: true,
+      panelClass: 'full-screen-modal'
+    });
 
-
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.getCustomers();
+      }
+    });
+  }
 
 }

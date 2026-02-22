@@ -3,7 +3,7 @@
     <mat-icon class="custom-icon" *ngIf="!sidenav.opened">menu</mat-icon>
     <mat-icon class="custom-icon" *ngIf="sidenav.opened">close</mat-icon>
   </button>
-  Gestion Commerciale
+  Bonjour {{nameOfConnectedUser}}
 
   @if (isLoggedIn()) {
   <div *ngIf="authService.getUserDetail() as userDetail" class="user-info">

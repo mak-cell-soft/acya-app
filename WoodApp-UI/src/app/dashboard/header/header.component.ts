@@ -20,11 +20,12 @@ export class HeaderComponent implements OnInit, AfterViewInit {
   notificationService = inject(NotificationService);
 
   SalesSite: string = '';
+  nameOfConnectedUser: string = '';
   connectionCheckInterval: any;
 
   ngOnInit(): void {
     this.getConnectedUserSalesSite();
-
+    this.getConnectedUserName();
     // Initialize connection but don't trigger retry immediately
     if (!this.notificationService.isConnected()) {
       this.notificationService.startConnection();
@@ -47,6 +48,12 @@ export class HeaderComponent implements OnInit, AfterViewInit {
         console.error('Failed to fetch missed notifications:', err);
       }
     });
+  }
+
+  getConnectedUserName() {
+    if (this.isLoggedIn()) {
+      this.nameOfConnectedUser = this.authService.getUserDetail()?.fullname || 'Utilisateur';
+    }
   }
 
   ngAfterViewInit(): void {

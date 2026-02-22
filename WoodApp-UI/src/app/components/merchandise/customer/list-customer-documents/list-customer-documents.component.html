@@ -15,6 +15,12 @@
             Convertir plusieurs ({{ selection.selected.length }})
         </button>
         <mat-divider [vertical]="true"></mat-divider>
+        <button mat-raised-button style="background-color: #3b82f6; color: white;"
+            (click)="onBatchConvertForCustomer()">
+            <mat-icon>person</mat-icon>
+            Convertir pour un Client
+        </button>
+        <mat-divider [vertical]="true"></mat-divider>
         <button mat-raised-button color="primary" (click)="onExport()">Exporter</button>
         <mat-divider [vertical]="true"></mat-divider>
         <button mat-flat-button color="accent" (click)="onAddNewDocument()">

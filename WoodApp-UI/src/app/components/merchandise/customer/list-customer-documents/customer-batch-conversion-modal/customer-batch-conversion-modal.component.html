@@ -1,0 +1,173 @@
+<div class="modal-header">
+    <h2>Convertir pour un Client</h2>
+    <button mat-icon-button (click)="onCancel()">
+        <mat-icon>close</mat-icon>
+    </button>
+</div>
+
+<div class="modal-content">
+    <div class="selection-section">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Rechercher un Client</mat-label>
+            <input type="text" matInput [formControl]="searchCustomerControl" [matAutocomplete]="auto"
+                placeholder="Nom, Prénom ou Raison Sociale">
+            <button mat-icon-button matSuffix *ngIf="selectedCustomer || searchCustomerControl.value"
+                (click)="clearCustomerSelection($event)" matTooltip="Effacer la sélection">
+                <mat-icon>close</mat-icon>
+            </button>
+            <mat-icon matSuffix *ngIf="!selectedCustomer && !searchCustomerControl.value">search</mat-icon>
+            <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayCustomer"
+                (optionSelected)="onCustomerSelected($event.option.value)">
+                <mat-option *ngFor="let item of filteredCustomers" [value]="item">
+                    <div class="customer-option">
+                        <mat-icon>account_circle</mat-icon>
+                        <div class="customer-info">
+                            <span class="customer-name">{{ item.name || (item.firstname + ' ' + item.lastname) }}</span>
+                            <small class="customer-desc" *ngIf="item.description">{{ item.description }}</small>
+                        </div>
+                    </div>
+                </mat-option>
+            </mat-autocomplete>
+        </mat-form-field>
+
+        <div class="date-range-container">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Période</mat-label>
+                <mat-date-range-input [formGroup]="dateRangeForm" [rangePicker]="picker">
+                    <input matStartDate formControlName="start" placeholder="Date de début">
+                    <input matEndDate formControlName="end" placeholder="Date de fin">
+                </mat-date-range-input>
+                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-date-range-picker #picker></mat-date-range-picker>
+            </mat-form-field>
+        </div>
+    </div>
+
+    <div *ngIf="selectedCustomer" class="results-section">
+        <div class="section-title">
+            <h3>Bons de Livraison non facturés</h3>
+            <span class="badge" *ngIf="!isLoading">{{ deliveryNotes.length }} trouvé(s)</span>
+        </div>
+
+        <div class="table-wrapper">
+            <div *ngIf="isLoading" class="loading-overlay">
+                <mat-spinner diameter="40"></mat-spinner>
+            </div>
+
+            <table mat-table [dataSource]="deliveryNotes" class="docs-table" *ngIf="deliveryNotes.length > 0">
+                <!-- Checkbox Column -->
+                <ng-container matColumnDef="select">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <mat-checkbox (change)="$event ? masterToggle() : null"
+                            [checked]="selection.hasValue() && isAllSelected()"
+                            [indeterminate]="selection.hasValue() && !isAllSelected()">
+                        </mat-checkbox>
+                    </th>
+                    <td mat-cell *matCellDef="let row">
+                        <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? toggleRow(row) : null"
+                            [checked]="selection.isSelected(row)">
+                        </mat-checkbox>
+                    </td>
+                </ng-container>
+
+                <!-- Reference Column -->
+                <ng-container matColumnDef="reference">
+                    <th mat-header-cell *matHeaderCellDef>Référence</th>
+                    <td mat-cell *matCellDef="let element"> {{element.docnumber}} </td>
+                </ng-container>
+
+                <!-- Date Column -->
+                <ng-container matColumnDef="date">
+                    <th mat-header-cell *matHeaderCellDef>Date</th>
+                    <td mat-cell *matCellDef="let element"> {{element.updatedate | date:'dd/MM/yyyy'}} </td>
+                </ng-container>
+
+                <!-- TTC Column -->
+                <ng-container matColumnDef="ttc">
+                    <th mat-header-cell *matHeaderCellDef>Montant TTC</th>
+                    <td mat-cell *matCellDef="let element"> {{element.total_net_ttc | number:'1.3-3'}} TND </td>
+                </ng-container>
+
+                <!-- Action Column -->
+                <ng-container matColumnDef="action">
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat-cell *matCellDef="let element">
+                        <button mat-icon-button color="primary" (click)="viewDetails(element)" matTooltip="Détails">
+                            <mat-icon>visibility</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="['select', 'reference', 'date', 'ttc', 'action']"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['select', 'reference', 'date', 'ttc', 'action'];"
+                    (click)="toggleRow(row)">
+                </tr>
+            </table>
+
+            <div class="no-docs" *ngIf="!isLoading && deliveryNotes.length === 0">
+                <mat-icon>info_outline</mat-icon>
+                <p>Aucun bon de livraison trouvé pour ce client sur cette période.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary-container" *ngIf="selection.selected.length > 0">
+        <div class="batch-summary">
+            <div class="section-title">
+                <h3>Options de facturation</h3>
+                <div class="customer-info-badge" *ngIf="selectedCustomer">
+                    <mat-icon>account_circle</mat-icon>
+                    <span>{{ selectedCustomer.name || (selectedCustomer.firstname + ' ' + selectedCustomer.lastname)
+                        }}</span>
+                </div>
+            </div>
+
+            <form [formGroup]="taxeForm">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Taxe de la facture (Droit de timbre)</mat-label>
+                    <mat-select formControlName="selectedTaxe">
+                        <mat-option *ngFor="let taxe of appvariablesTaxes" [value]="taxe.id">
+                            {{ taxe.value }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </form>
+
+            <div class="info-note">
+                <mat-icon>info</mat-icon>
+                <span>Les documents sélectionnés seront regroupés dans une seule facture.</span>
+            </div>
+        </div>
+
+        <div class="totals-display">
+            <div class="total-row">
+                <span>Nombre de documents :</span>
+                <span>{{ selection.selected.length }}</span>
+            </div>
+            <div class="total-row">
+                <span>Total Hors Taxe :</span>
+                <span>{{ totalHTNet_doc | number:'1.3-3' }} TND</span>
+            </div>
+            <div class="total-row">
+                <span>Total TVA :</span>
+                <span>{{ totalTVA_doc | number:'1.3-3' }} TND</span>
+            </div>
+            <div class="total-row highlight">
+                <span>Total TTC :</span>
+                <span>{{ totalTTC | number:'1.3-3' }} TND</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-actions">
+    <button mat-button (click)="onCancel()" class="btn-cancel">Annuler</button>
+    <button mat-raised-button color="primary" (click)="onConvert()" class="btn-convert"
+        [disabled]="isConverting || selection.selected.length === 0 || taxeForm.invalid">
+        <mat-icon *ngIf="!isConverting">transform</mat-icon>
+        <mat-spinner *ngIf="isConverting" diameter="20"></mat-spinner>
+        <span *ngIf="!isConverting">Générer la Facture</span>
+        <span *ngIf="isConverting">Génération...</span>
+        <span *ngIf="!isConverting" class="selection-count">{{ selection.selected.length }}</span>
+    </button>
+</div>
