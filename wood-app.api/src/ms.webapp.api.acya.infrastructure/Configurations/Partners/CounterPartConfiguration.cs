@@ -37,6 +37,7 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Partners
             entity.Property(e => e.IsDeleted).HasColumnName("isdeleted");
             entity.Property(e => e.UpdatedById).HasColumnName("updatedby");
             entity.Property(e => e.TransporterId).HasColumnName("transporterid");
+            entity.Property(e => e.OpeningBalance).HasColumnName("openingbalance");
 
             entity.HasOne(e => e.AppUsers)
                .WithMany()
