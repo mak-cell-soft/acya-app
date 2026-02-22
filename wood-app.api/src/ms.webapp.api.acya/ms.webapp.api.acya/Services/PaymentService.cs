@@ -13,17 +13,20 @@ namespace ms.webapp.api.acya.api.Services
         private readonly DocumentRepository _documentRepository;
         private readonly CounterPartRepository _customerRepository;
         private readonly AppUserRepository _appUserRepository; // Added to fetch user name
+        private readonly IAccountService _accountService;
 
         public PaymentService(
             IPaymentRepository paymentRepository,
             DocumentRepository documentRepository,
             CounterPartRepository customerRepository,
-            AppUserRepository appUserRepository)
+            AppUserRepository appUserRepository,
+            IAccountService accountService)
         {
             _paymentRepository = paymentRepository;
             _documentRepository = documentRepository;
             _customerRepository = customerRepository;
             _appUserRepository = appUserRepository;
+            _accountService = accountService;
         }
 
         public async Task<PaymentDto> GetByIdAsync(int paymentId)
@@ -111,6 +114,14 @@ namespace ms.webapp.api.acya.api.Services
                 document.BillingStatus = (BillingStatus)2; 
             }
             await _documentRepository.Update(document);
+            
+            // Integrate Ledger Entry
+            await _accountService.AddLedgerEntryAsync(
+                createDto.CustomerId, 
+                "Payment", 
+                createDto.Amount, 
+                createdPayment.Id, 
+                $"Payment for document {document.DocNumber}");
                         
             createdPayment.Document = document;
             createdPayment.Customer = customer; 

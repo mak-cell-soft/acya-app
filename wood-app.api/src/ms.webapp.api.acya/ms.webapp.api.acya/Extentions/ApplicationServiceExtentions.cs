@@ -51,6 +51,7 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<TransporterRepository>();
       services.AddScoped<VehicleRepository>();
       services.AddScoped<IStockService, StockService>();
+      services.AddScoped<IAccountService, AccountService>();
       services.AddScoped<IPaymentRepository, PaymentRepository>();
       services.AddScoped<IPaymentService, PaymentService>();
       

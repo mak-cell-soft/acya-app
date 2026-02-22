@@ -41,6 +41,7 @@ namespace ms.webapp.api.acya.core.Entities
     public string? Gouvernorate { get; set; }
 
     public double? MaximumDiscount { get; set; }
+    public decimal? OpeningBalance { get; set; }
     public double? MaximumSalesBar { get; set; }
     public string? Notes { get; set; }
 
@@ -124,6 +125,7 @@ namespace ms.webapp.api.acya.core.Entities
       Address = dto.address;
       Gouvernorate = dto.gouvernorate;
       MaximumDiscount = dto.maximumdiscount;
+      OpeningBalance = dto.openingbalance;
       MaximumSalesBar = dto.maximumsalesbar;
       Notes = dto.notes;
       PhoneNumberOne = dto.phonenumberone;

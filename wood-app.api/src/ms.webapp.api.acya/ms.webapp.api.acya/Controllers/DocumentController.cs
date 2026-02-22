@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ms.webapp.api.acya.api.Controllers;
 using ms.webapp.api.acya.common;
+using ms.webapp.api.acya.api.Interfaces;
 using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs;
 using ms.webapp.api.acya.core.Entities.DTOs.Config;
@@ -18,12 +19,14 @@ namespace ms.webapp.api.acya.api.Controllers
     private readonly MerchandiseRepository _merchandiseRepository;
     private readonly StockRepository _stockRepository;
     private readonly WoodAppContext _context;
-    public DocumentController(DocumentRepository repository, MerchandiseRepository merchandiseRepository, StockRepository stockRepository, WoodAppContext context)
+    private readonly IAccountService _accountService;
+    public DocumentController(DocumentRepository repository, MerchandiseRepository merchandiseRepository, StockRepository stockRepository, WoodAppContext context, IAccountService accountService)
     {
       _repository = repository;
       _merchandiseRepository = merchandiseRepository;
       _stockRepository = stockRepository;
       _context = context;
+      _accountService = accountService;
     }
 
     //[HttpGet]
@@ -582,6 +585,17 @@ namespace ms.webapp.api.acya.api.Controllers
           #endregion
 
           await _context.SaveChangesAsync();
+          
+          // Integrate Ledger Entry if it's an Invoice or Delivery Note
+          if (doc.Type == DocumentTypes.customerInvoice || doc.Type == DocumentTypes.customerDeliveryNote || doc.Type == DocumentTypes.supplierInvoice)
+          {
+              await _accountService.AddLedgerEntryAsync(
+                  doc.CounterPartId, 
+                  "Invoice", 
+                  (decimal)doc.TotalCostNetTTCDoc, 
+                  doc.Id, 
+                  $"Movement for document {doc.DocNumber}");
+          }
           
 
           // Post-commit operations
