@@ -1,0 +1,47 @@
+<h2 mat-dialog-title>Détails du Fournisseur: {{getFullName()}}</h2>
+<mat-dialog-content class="mat-typography">
+    <div class="details-grid">
+        <div class="detail-item">
+            <strong>Nom complet:</strong> {{getFullName()}}
+        </div>
+        <div class="detail-item">
+            <strong>Email:</strong> {{data.supplier.email || 'Non Saisie'}}
+        </div>
+        <div class="detail-item">
+            <strong>Mobile 1:</strong> {{data.supplier.phonenumberone || '--'}}
+        </div>
+        <div class="detail-item">
+            <strong>Mobile 2:</strong> {{data.supplier.phonenumbertwo || '--'}}
+        </div>
+        <div class="detail-item">
+            <strong>Adresse:</strong> {{data.supplier.address || '--'}}
+        </div>
+        <div class="detail-item">
+            <strong>Description:</strong> {{data.supplier.description || '--'}}
+        </div>
+        <div class="detail-item">
+            <strong>Matricule Fiscal:</strong> {{data.supplier.taxregistrationnumber || 'Non Saisie'}}
+        </div>
+        <div class="detail-item">
+            <strong>Responsable:</strong> {{data.supplier.firstname}} {{data.supplier.lastname}}
+        </div>
+        <div class="detail-item">
+            <strong>Catégorie:</strong> {{getSupplierCategoryValue(data.supplier.jobtitle)}}
+        </div>
+        <div class="detail-item">
+            <strong>Date de création:</strong> {{data.supplier.creationdate | date: 'dd-MM-yyyy'}}
+        </div>
+        <div class="detail-item">
+            <strong>Banque:</strong> {{data.supplier.bankname || '--'}}
+        </div>
+        <div class="detail-item">
+            <strong>RIB:</strong> {{data.supplier.bankaccountnumber || '--'}}
+        </div>
+        <div class="detail-item full-width" *ngIf="data.supplier.notes">
+            <strong>Notes:</strong> {{data.supplier.notes}}
+        </div>
+    </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-button (click)="onClose()">Fermer</button>
+</mat-dialog-actions>

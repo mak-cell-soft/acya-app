@@ -99,6 +99,8 @@ import { CustomerBatchConversionModalComponent } from './components/merchandise/
 import { CustomerDetailsModalComponent } from './components/customers/customer-details-modal/customer-details-modal.component';
 import { CustomerEditModalComponent } from './components/customers/customer-edit-modal/customer-edit-modal.component';
 import { CustomerAccountModalComponent } from './components/customers/customer-account-modal/customer-account-modal.component';
+import { ProviderEditModalComponent } from './components/providers/provider-edit-modal/provider-edit-modal.component';
+import { ProviderDetailsModalComponent } from './components/providers/provider-details-modal/provider-details-modal.component';
 
 @NgModule({
   declarations: [
@@ -153,7 +155,9 @@ import { CustomerAccountModalComponent } from './components/customers/customer-a
     CustomerBatchConversionModalComponent,
     CustomerDetailsModalComponent,
     CustomerEditModalComponent,
-    CustomerAccountModalComponent
+    CustomerAccountModalComponent,
+    ProviderEditModalComponent,
+    ProviderDetailsModalComponent
   ],
   imports: [
     BrowserModule,

@@ -22,6 +22,7 @@ export class HeaderComponent implements OnInit, AfterViewInit {
   SalesSite: string = '';
   nameOfConnectedUser: string = '';
   connectionCheckInterval: any;
+  date: Date = new Date();
 
   ngOnInit(): void {
     this.getConnectedUserSalesSite();

@@ -115,14 +115,16 @@ export class ListCustomersComponent implements OnInit {
 
   onDetail(customer: CounterPart): void {
     this.dialog.open(CustomerDetailsModalComponent, {
-      width: '600px',
+      width: '800px',
+      maxHeight: '90vh',
       data: { customer }
     });
   }
 
   onEdit(customer: CounterPart): void {
     const dialogRef = this.dialog.open(CustomerEditModalComponent, {
-      width: '700px',
+      width: '900px',
+      maxWidth: '90vw',
       data: { customer }
     });
 

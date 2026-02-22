@@ -1,0 +1,106 @@
+<h2 mat-dialog-title>Modifier le Fournisseur</h2>
+<mat-dialog-content [formGroup]="providerForm">
+    <div class="modal-form-container">
+        <!-- Prefix and Name row -->
+        <div class="row-flex">
+            <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Préfixe</mat-label>
+                <mat-select formControlName="prefix">
+                    <mat-option *ngFor="let prefix of allPrefixes" [value]="prefix.id">{{prefix.id}} -
+                        {{prefix.name}}</mat-option>
+                </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="flex-3">
+                <mat-label>Nom</mat-label>
+                <input matInput formControlName="name" placeholder="Nom du Fournisseur">
+            </mat-form-field>
+        </div>
+
+        <!-- Tax Registration and Email row -->
+        <div class="row-flex">
+            <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Matricule Fiscal</mat-label>
+                <input matInput formControlName="taxRegistration"
+                    placeholder="7 chiffres, 1 lettre, /lettre/lettre/, 3 chiffres">
+                <mat-error *ngIf="providerForm.get('taxRegistration')?.hasError('invalidMatriculeFiscal')">
+                    Format Invalide
+                </mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Email</mat-label>
+                <input matInput formControlName="email" placeholder="Email">
+                <mat-error *ngIf="providerForm.get('email')?.hasError('email')">
+                    Email Invalide
+                </mat-error>
+            </mat-form-field>
+        </div>
+
+        <!-- Description and Address -->
+        <div class="row-flex">
+            <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Description</mat-label>
+                <input matInput formControlName="description" placeholder="Description">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Adresse</mat-label>
+                <input matInput formControlName="address" placeholder="Adresse">
+            </mat-form-field>
+        </div>
+
+        <!-- Responsible Person row -->
+        <div class="row-flex">
+            <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Prénom responsable</mat-label>
+                <input matInput formControlName="representedBySurname" placeholder="Prénom">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Nom responsable</mat-label>
+                <input matInput formControlName="representedByName" placeholder="Nom">
+            </mat-form-field>
+        </div>
+
+        <!-- Phones row -->
+        <div class="row-flex">
+            <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Téléphone 1</mat-label>
+                <input matInput formControlName="phoneOne" placeholder="Téléphone 1">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Téléphone 2</mat-label>
+                <input matInput formControlName="phoneTwo" placeholder="Téléphone 2">
+            </mat-form-field>
+        </div>
+
+        <!-- Category and Bank row -->
+        <div class="row-flex">
+            <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Catégorie</mat-label>
+                <mat-select formControlName="category">
+                    <mat-option *ngFor="let cat of allProvidersCategories" [value]="cat.id">{{cat.value}}</mat-option>
+                </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Banque</mat-label>
+                <mat-select formControlName="bank">
+                    <mat-option *ngFor="let bank of allBanks" [value]="bank.key">{{bank.key}} - {{ bank.value
+                        }}</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <!-- RIB row -->
+        <div class="row-flex">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>RIB Bancaire</mat-label>
+                <input matInput formControlName="bankAccountNumber" placeholder="Compte Courant">
+            </mat-form-field>
+        </div>
+    </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Annuler</button>
+    <button mat-raised-button color="primary" (click)="onSave()">
+        <mat-icon>update</mat-icon>
+        {{update_button}}
+    </button>
+</mat-dialog-actions>

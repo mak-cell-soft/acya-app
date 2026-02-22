@@ -1,266 +1,115 @@
-<h4>Liste des Fournisseurs</h4>
-<!-- Add this progress bar at the top of the page -->
+<mat-toolbar color="primary" class="header-toolbar">
+    <button mat-icon-button (click)="onReturn()" matTooltip="Retour">
+        <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span>Gestion des Fournisseurs</span>
+    <span class="customer-count-badge">{{allSuppliers.data.length}}</span>
+    <span class="spacer"></span>
+    <button mat-raised-button class="add-button" [routerLink]="['add']">
+        <mat-icon>add</mat-icon>
+        Ajouter un Fournisseur
+    </button>
+</mat-toolbar>
+
 <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
-<div class="search">
-    <div class="search-bar-container">
-        <button mat-icon-button>
-            <mat-icon>
-                search
-            </mat-icon>
-        </button>
-        <input (keyup)="applyFilter($event)" placeholder="Rechercher dans les fournisseurs" #input />
-    </div>
-    <div class="button-container">
-        <mat-dialog-actions>
-            <button mat-flat-button color="primary" [routerLink]="['add']">
-                <mat-icon>
-                    add
-                </mat-icon>
-                Ajouter
-            </button>
-        </mat-dialog-actions>
-    </div>
-</div>
 
-<!-- Table List Providers -->
-<div class="table-container mat-elevation-z8">
-    <table mat-table [dataSource]="allSuppliers" matSort class="article-table" *ngIf="allSuppliers.data?.length"
-        multiTemplateDataRows>
-
-        <ng-container matColumnDef="prefix">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell prefix-column">
-                {{mat_header_cell_provider_prefix}} </th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell prefix-column">{{element.prefix}}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell name-column">
-                {{mat_header_cell_provider_name}} </th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell name-column">{{element.name}}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="responsable">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
-                {{mat_header_cell_provider_responsable}} </th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell">{{element.firstname}} {{element.lastname}}
-            </td>
-        </ng-container>
-
-        <ng-container matColumnDef="description">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell description-column">
-                {{mat_header_cell_provider_description}}
-            </th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell description-column">{{element.description}}
-            </td>
-        </ng-container>
-
-        <ng-container matColumnDef="taxregistration">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell">
-                {{mat_header_cell_provider_matricule_fiscal}} </th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell">
-                {{element.taxregistrationnumber}}
-            </td>
-        </ng-container>
-
-        <ng-container matColumnDef="phoneone">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell phone-column">
-                {{mat_header_cell_provider_phone_one}}
-            </th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell phone-column">
-                {{element.phonenumberone}}
-            </td>
-        </ng-container>
-
-        <ng-container matColumnDef="phonetwo">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell phone-column">
-                {{mat_header_cell_provider_phone_two}}
-            </th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell phone-column">
-                {{element.phonenumbertwo}}
-            </td>
-        </ng-container>
-
-        <ng-container matColumnDef="email">
-            <th mat-header-cell *matHeaderCellDef class="article-table-cell"> {{mat_header_cell_provider_phone_email}}
-            </th>
-            <td mat-cell *matCellDef="let element" class="article-table-cell">
-                {{element.email?.trim() ? element.email : '** Non saisie **'}}
-            </td>
-        </ng-container>
-
-        <!-- Action Column -->
-        <ng-container matColumnDef="action">
-            <th mat-header-cell *matHeaderCellDef> action </th>
-            <td mat-cell style="white-space: pre-line" *matCellDef="let element">
-                <mat-icon class="blue-icon">display_settings</mat-icon>
-                <mat-icon class="red-icon" *ngIf="element.editing"
-                    (click)="cancelEditSupplier(element)">cancel</mat-icon>
-                <mat-icon class="green-icon" *ngIf="!element.editing" (click)="editProvider(element)">edit</mat-icon>
-                <mat-icon class="red-icon" (click)="deleteSupplier(element)">delete</mat-icon>
-
-
-            </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedProvidersColumns"></tr>
-        <tr mat-row *matRowDef="let element; columns: displayedProvidersColumns;"></tr>
-
-
-        <!-- Row shown when there is no matching data. -->
-        <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" colspan="4">Ce Fournisseur n'existe pas "{{input.value}}"</td>
-        </tr>
-    </table>
-    <mat-paginator [pageSizeOptions]="[5, 10, 20]"></mat-paginator>
-
-</div>
-
-<!-- Edit Provider -->
-<div *ngIf="selectedSupplier">
-    <mat-card class="card-details" [formGroup]="selectedProviderForm">
-        <div>
-            <mat-dialog-content>
-                <h6>{{general_information_provider}}</h6>
-                <div class="square-width-wrapper">
-                    <!-- Préfixe -->
-                    <mat-form-field class="square-width">
-                        <mat-label>Préfixe</mat-label>
-                        <mat-select formControlName="prefix">
-                            <mat-option *ngFor="let prefix of allPrefixes" [value]="prefix.id">{{prefix.id}} -
-                                {{prefix.name}}</mat-option>
-                        </mat-select>
-                        <mat-icon matSuffix>check</mat-icon>
-                    </mat-form-field>
-                    <!-- Nom Fournisseur -->
-                    <mat-form-field class="square-width">
-                        <mat-label>Nom</mat-label>
-                        <input type="text" matInput formControlName="name" placeholder="Nom du Fournisseur" />
-                        <mat-icon matSuffix>spatial-audio-off</mat-icon>
-                    </mat-form-field>
-                    <!-- matricule fiscal -->
-                    <mat-form-field class="square-width">
-                        <mat-label>Matricule Fiscal</mat-label>
-                        <input type="text" matInput formControlName="taxRegistration"
-                            placeholder="Exemple : 1234567A /B/M/ 000" />
-                        <mat-icon matSuffix>description</mat-icon>
-
-                        <!-- Error message for invalid Matricule Fiscal format -->
-                        <mat-error
-                            *ngIf="selectedProviderForm.get('provideTaxRegistraion')?.hasError('invalidMatriculeFiscal')">
-                            Matricule Fiscal Invalide. Format souhaité : 7 chiffres, 1 lettre, /lettre/lettre/, 3
-                            chiffres.
-                        </mat-error>
-                    </mat-form-field>
-
-                </div>
-                <!-- Description Nom-->
-                <div class="half-width-wrapper">
-                    <mat-form-field class="half-width">
-                        <mat-label>Description</mat-label>
-                        <input type="text" matInput formControlName="description"
-                            placeholder="Nom complet du Fournisseur" />
-                        <mat-icon matSuffix>description</mat-icon>
-                    </mat-form-field>
-                    <!--Email-->
-                    <mat-form-field class="half-width">
-                        <mat-label>Email</mat-label>
-                        <input type="text" matInput formControlName="email" placeholder="Email" />
-                        <mat-icon matSuffix>email</mat-icon>
-
-                        <!-- Error message for invalid email -->
-                        <mat-error
-                            *ngIf="selectedProviderForm.get('providerEmail')?.hasError('email') && selectedProviderForm.get('providerEmail')?.touched">
-                            This is not a valid email address
-                        </mat-error>
-
-                        <!-- Error message for required field -->
-                        <mat-error
-                            *ngIf="selectedProviderForm.get('providerEmail')?.hasError('required') && selectedProviderForm.get('providerEmail')?.touched">
-                            Email is required
-                        </mat-error>
-                    </mat-form-field>
-
-                </div>
-
-                <div class="half-width-wrapper">
-                    <!-- Adresse -->
-                    <mat-form-field class="half-width">
-                        <mat-label>Adresse</mat-label>
-                        <input type="text" matInput formControlName="address" placeholder="Adresse" />
-                        <mat-icon matSuffix>check</mat-icon>
-                    </mat-form-field>
-                    <!-- Catégorie -->
-                    <mat-form-field class="half-width">
-                        <mat-label>Catégorie</mat-label>
-                        <mat-select formControlName="category">
-                            <mat-option *ngFor="let cat of allProvidersCategories"
-                                [value]="cat.id">{{cat.value}}</mat-option>
-                        </mat-select>
-                        <mat-icon matSuffix>check</mat-icon>
-                    </mat-form-field>
-                </div>
-
-
-                <div class="half-width-wrapper">
-                    <!-- Nom responsable -->
-                    <mat-form-field class="half-width">
-                        <mat-label>Prénom responsable</mat-label>
-                        <input type="text" matInput formControlName="representedBySurname"
-                            placeholder="Prénom du responsable" />
-                        <mat-icon matSuffix>check</mat-icon>
-                    </mat-form-field>
-                    <!-- Prénom responsable -->
-                    <mat-form-field class="half-width">
-                        <mat-label>Nom responsable</mat-label>
-                        <input type="text" matInput formControlName="representedByName"
-                            placeholder="Nom du responsable" />
-                        <mat-icon matSuffix>check</mat-icon>
-                    </mat-form-field>
-                </div>
-
-                <div class="half-width-wrapper">
-                    <!-- Téléphone 1 -->
-                    <mat-form-field class="half-width">
-                        <mat-label>Téléphone 1</mat-label>
-                        <input type="text" matInput formControlName="phoneOne" placeholder="Mobile 1" />
-                        <mat-icon matSuffix>phone_android</mat-icon>
-                    </mat-form-field>
-                    <!-- Téléphone 2 -->
-                    <mat-form-field class="half-width">
-                        <mat-label>Téléphone 2</mat-label>
-                        <input type="text" matInput formControlName="phoneTwo" placeholder="Mobile 2" />
-                        <mat-icon matSuffix>phone_android</mat-icon>
-                    </mat-form-field>
-                </div>
-
-                <div class="half-width-wrapper">
-                    <!-- Banque -->
-                    <mat-form-field class="half-width">
-                        <mat-label>Banque</mat-label>
-                        <mat-select formControlName="bank">
-                            <mat-option *ngFor="let bank of allBanks" [value]="bank.key">{{bank.key}} - {{ bank.value
-                                }}</mat-option>
-                        </mat-select>
-                        <mat-icon matSuffix>check</mat-icon>
-                    </mat-form-field>
-                    <!-- compte Banquaire -->
-                    <mat-form-field class="half-width">
-                        <mat-label>RIB Bancaire</mat-label>
-                        <input type="text" matInput formControlName="bankAccountNumber" placeholder="Compte Courant" />
-                        <mat-icon matSuffix>check</mat-icon>
-                    </mat-form-field>
-                </div>
-            </mat-dialog-content>
+<div class="main-container">
+    <mat-card class="content-card">
+        <div class="search-row">
+            <mat-form-field appearance="outline" class="search-field">
+                <mat-label>Rechercher un fournisseur</mat-label>
+                <input matInput (keyup)="applyFilter($event)" placeholder="Nom, MF, Email..." #input>
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
         </div>
 
-        <div class="control-button">
-            <mat-dialog-actions>
-                <button mat-flat-button color="primary" (click)="updateProvider()">
-                    <mat-icon>
-                        update
-                    </mat-icon>
-                    {{update_button}}</button>
-            </mat-dialog-actions>
+        <div class="table-scroll-container">
+            <table mat-table [dataSource]="allSuppliers" matSort class="w-100">
+
+                <ng-container matColumnDef="prefix">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                        <mat-icon class="header-icon">business</mat-icon> Sté
+                    </th>
+                    <td mat-cell *matCellDef="let element"> {{element.prefix}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="name">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                        <mat-icon class="header-icon">person</mat-icon> Nom
+                    </th>
+                    <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="responsable">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                        <mat-icon class="header-icon">account_circle</mat-icon> Responsable
+                    </th>
+                    <td mat-cell *matCellDef="let element"> {{element.firstname}} {{element.lastname}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="description">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                        <mat-icon class="header-icon">info</mat-icon> Description
+                    </th>
+                    <td mat-cell *matCellDef="let element"> {{element.description}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="taxregistration">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                        <mat-icon class="header-icon">description</mat-icon> MF
+                    </th>
+                    <td mat-cell *matCellDef="let element"> {{element.taxregistrationnumber || '--'}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="phoneone">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                        <mat-icon class="header-icon">phone</mat-icon> Téléphone 1
+                    </th>
+                    <td mat-cell *matCellDef="let element"> {{element.phonenumberone}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="phonetwo">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                        <mat-icon class="header-icon">phone_android</mat-icon> Téléphone 2
+                    </th>
+                    <td mat-cell *matCellDef="let element"> {{element.phonenumbertwo}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="email">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                        <mat-icon class="header-icon">email</mat-icon> Email
+                    </th>
+                    <td mat-cell *matCellDef="let element"> {{element.email?.trim() ? element.email : '--'}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="action">
+                    <th mat-header-cell *matHeaderCellDef class="text-center">
+                        <mat-icon class="header-icon">settings</mat-icon> Actions
+                    </th>
+                    <td mat-cell *matCellDef="let element" class="text-center action-buttons">
+                        <button mat-icon-button class="btn-detail" (click)="onDetail(element)" matTooltip="Détails">
+                            <mat-icon>visibility</mat-icon>
+                        </button>
+                        <button mat-icon-button class="btn-edit" (click)="editProvider(element)" matTooltip="Modifier">
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button class="btn-delete" (click)="deleteSupplier(element)"
+                            matTooltip="Supprimer">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedProvidersColumns; sticky: true"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedProvidersColumns;"></tr>
+
+                <tr class="mat-row" *matNoDataRow>
+                    <td class="mat-cell" colspan="9" class="text-center p-4">
+                        Aucun fournisseur trouvé pour : "{{input.value}}"
+                    </td>
+                </tr>
+            </table>
         </div>
+        <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
     </mat-card>
 </div>
