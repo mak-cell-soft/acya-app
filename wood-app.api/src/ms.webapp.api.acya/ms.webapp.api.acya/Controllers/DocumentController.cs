@@ -282,7 +282,7 @@ namespace ms.webapp.api.acya.api.Controllers
       return Ok(documentDtos);
     }
 
-
+    #region Add Document
     [HttpPost]
     public async Task<ActionResult> Add(DocumentDto dto)
     {
@@ -585,7 +585,7 @@ namespace ms.webapp.api.acya.api.Controllers
           #endregion
 
           await _context.SaveChangesAsync();
-          
+          #region Ledger Entry
           // Integrate Ledger Entry if it's an Invoice or Delivery Note
           if (doc.Type == DocumentTypes.customerInvoice || doc.Type == DocumentTypes.customerDeliveryNote || doc.Type == DocumentTypes.supplierInvoice)
           {
@@ -596,7 +596,7 @@ namespace ms.webapp.api.acya.api.Controllers
                   doc.Id, 
                   $"Movement for document {doc.DocNumber}");
           }
-          
+          #endregion
 
           // Post-commit operations
           await _repository.updateListOfIdsListOfLengths(doc);
@@ -614,6 +614,7 @@ namespace ms.webapp.api.acya.api.Controllers
         }
       }
     }
+    #endregion
 
     /**
      * Invoice is a list of added Reciept supplier Documents

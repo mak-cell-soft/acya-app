@@ -217,6 +217,7 @@ export class DocumentConversionModalComponent implements OnInit {
         });
     }
 
+    //#region Save Payment
     savePayment(paymentResult: any) {
         const doc = this.documents[0];
         const payment = new Payment();
@@ -256,7 +257,9 @@ export class DocumentConversionModalComponent implements OnInit {
             }
         });
     }
+    //#endregion
 
+    //#region Convert
     onConvert() {
         this.isConverting = true;
 
@@ -327,6 +330,7 @@ export class DocumentConversionModalComponent implements OnInit {
             }
         });
     }
+    //#endregion
 
     onCancel() {
         this.dialogRef.close(false);
