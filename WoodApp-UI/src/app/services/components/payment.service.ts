@@ -58,4 +58,16 @@ export class PaymentService {
         }
         return this.http.get<DashboardPaymentDto[]>(this.baseUrl + 'Payments/dashboard', { params });
     }
+
+    /**
+     * Links an existing payment (originally against a delivery note) to the newly created invoice.
+     * DocumentId on the payment row is updated to reference the invoice instead of the delivery note.
+     * Called after delivery-note → invoice conversion when isService === false.
+     */
+    LinkToInvoice(paymentId: number, invoiceId: number): Observable<void> {
+        return this.http.patch<void>(
+            `${this.baseUrl}Payments/${paymentId}/link-invoice/${invoiceId}`,
+            {}
+        );
+    }
 }

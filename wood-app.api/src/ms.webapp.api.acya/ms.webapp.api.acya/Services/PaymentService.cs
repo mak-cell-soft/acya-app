@@ -178,6 +178,20 @@ namespace ms.webapp.api.acya.api.Services
             return await _paymentRepository.DeleteAsync(paymentId);
         }
 
+        public async Task<bool> LinkPaymentToInvoiceAsync(int paymentId, int newInvoiceId)
+        {
+            var payment = await _paymentRepository.GetByIdAsync(paymentId);
+            if (payment == null || payment.IsDeleted)
+                return false;
+
+            // Swap the document reference from delivery note → new invoice
+            payment.DocumentId = newInvoiceId;
+            payment.UpdatedAt  = DateTime.UtcNow;
+
+            await _paymentRepository.Update(payment);
+            return true;
+        }
+
         public async Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int userId)
         {
             var user = await _appUserRepository.Get(userId);

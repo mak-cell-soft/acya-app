@@ -315,11 +315,38 @@ export class DocumentConversionModalComponent implements OnInit {
         };
 
         this.docService.CreateInvoice(invoiceModel).subscribe({
-            next: () => {
+            next: (createdInvoice) => {
                 const message = this.isBatchMode
                     ? `Conversion de ${this.documents.length} documents réussie`
                     : 'Conversion réussie';
                 this.toastr.success(message);
+
+                // --- Edge case: isService === false + existing billed payment on the delivery note ---
+                // When the delivery note had a payment (billingstatus !== 1), and the invoice is NOT
+                // a service invoice, rebind that payment's DocumentId to the new invoice.
+                if (!this.isservice && createdInvoice?.id) {
+                    const newInvoiceId = createdInvoice.id;
+                    // Check all source delivery note documents for a linked payment
+                    const sourceDoc = this.documents.find(doc => doc.billingstatus !== 1);
+                    if (sourceDoc) {
+                        this.paymentService.GetByDocumentId(sourceDoc.id).subscribe({
+                            next: (payments) => {
+                                if (payments && payments.length > 0) {
+                                    // Take the first (most relevant) payment for this delivery note
+                                    const payment = payments[0];
+                                    this.paymentService.LinkToInvoice(payment.id, newInvoiceId).subscribe({
+                                        next: () => console.log(`Payment ${payment.id} linked to invoice ${newInvoiceId}`),
+                                        error: (err) => console.warn('Could not link payment to invoice:', err)
+                                    });
+                                } else {
+                                    console.log('No existing payment found on source document — skipping link.');
+                                }
+                            },
+                            error: (err) => console.warn('Could not fetch payments for source document:', err)
+                        });
+                    }
+                }
+
                 // Close modal and return true to refresh list
                 this.dialogRef.close(true);
             },

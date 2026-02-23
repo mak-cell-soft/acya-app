@@ -78,10 +78,10 @@ export class DocumentService {
   /**
    * invoiceToGenerate : the target Document with some informations like Type
    * docChlidrenIds : Ids of children Documents to store the relation and calculate some Costs
-   * 
+   * Returns the created invoice object (including its generated ID).
    */
-  CreateInvoice(model: GenerateInvoice) {
-    return this.http.post(this.baseUrl + 'Document/createinvoice', model);
+  CreateInvoice(model: GenerateInvoice): Observable<{ id: number }> {
+    return this.http.post<{ id: number }>(this.baseUrl + 'Document/createinvoice', model);
   }
 
   /**

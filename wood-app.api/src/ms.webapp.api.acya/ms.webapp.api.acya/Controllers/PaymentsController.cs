@@ -192,5 +192,32 @@ namespace ms.webapp.api.acya.api.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        /// <summary>
+        /// Links an existing payment (originally tied to a delivery note) to the newly created invoice.
+        /// Called after delivery-note → invoice conversion when isService === false.
+        /// Simply updates DocumentId on the payment row to reference the invoice instead of the delivery note.
+        /// </summary>
+        [HttpPatch("{paymentId}/link-invoice/{invoiceId}")]
+        public async Task<ActionResult> LinkToInvoice(int paymentId, int invoiceId)
+        {
+            try
+            {
+                var result = await _paymentService.LinkPaymentToInvoiceAsync(paymentId, invoiceId);
+                if (!result)
+                {
+                    _logger.LogWarning("LinkToInvoice: payment {PaymentId} not found or already deleted.", paymentId);
+                    return NotFound($"Payment {paymentId} not found.");
+                }
+
+                _logger.LogInformation("Payment {PaymentId} successfully linked to invoice {InvoiceId}.", paymentId, invoiceId);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error linking payment {PaymentId} to invoice {InvoiceId}", paymentId, invoiceId);
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }

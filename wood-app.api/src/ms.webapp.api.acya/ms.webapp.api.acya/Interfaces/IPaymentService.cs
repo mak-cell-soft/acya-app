@@ -14,5 +14,11 @@ namespace ms.webapp.api.acya.api.Interfaces
         Task<PaymentDto> UpdateAsync(UpdatePaymentDto updateDto, int updatedById);
         Task<bool> DeleteAsync(int paymentId, int deletedById);
         Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int userId);
+
+        /// <summary>
+        /// Reassigns an existing payment's DocumentId to the new invoice ID.
+        /// Used after delivery-note → invoice conversion when isService === false.
+        /// </summary>
+        Task<bool> LinkPaymentToInvoiceAsync(int paymentId, int newInvoiceId);
     }
 }
