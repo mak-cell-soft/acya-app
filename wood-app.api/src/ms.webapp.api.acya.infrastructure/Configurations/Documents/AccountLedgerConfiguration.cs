@@ -8,6 +8,7 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
     {
         public void Configure(EntityTypeBuilder<AccountLedger> entity)
         {
+            // Added Recently
             entity.ToTable("tbl_account_ledger");
 
             entity.HasKey(e => e.Id);
