@@ -1,6 +1,7 @@
 
 export class Payment {
     id: number = 0;
+    paymentId: number = 0; // Added to match backend DTO
     documentid: number = 0;
     customerid: number = 0;
     paymentdate!: Date;
@@ -14,6 +15,7 @@ export class Payment {
     updatedbyid: number = 0;
     isdeleted: boolean = false;
 }
+
 
 export interface DashboardPaymentDto {
     paymentId: number;

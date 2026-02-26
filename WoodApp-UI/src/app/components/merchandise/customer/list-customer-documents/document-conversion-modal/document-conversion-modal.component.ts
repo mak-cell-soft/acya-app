@@ -329,15 +329,17 @@ export class DocumentConversionModalComponent implements OnInit {
                     // Check all source delivery note documents for a linked payment
                     const sourceDoc = this.documents.find(doc => doc.billingstatus !== 1);
                     if (sourceDoc) {
+                        console.log("sourceDoc to send to paymentService to update Invoice DocumentId", sourceDoc);
                         this.paymentService.GetByDocumentId(sourceDoc.id).subscribe({
                             next: (payments) => {
                                 if (payments && payments.length > 0) {
                                     // Take the first (most relevant) payment for this delivery note
                                     const payment = payments[0];
-                                    this.paymentService.LinkToInvoice(payment.id, newInvoiceId).subscribe({
-                                        next: () => console.log(`Payment ${payment.id} linked to invoice ${newInvoiceId}`),
+                                    this.paymentService.LinkToInvoice(payment.paymentId, newInvoiceId).subscribe({
+                                        next: () => console.log(`Payment ${payment.paymentId} linked to invoice ${newInvoiceId}`),
                                         error: (err) => console.warn('Could not link payment to invoice:', err)
                                     });
+
                                 } else {
                                     console.log('No existing payment found on source document — skipping link.');
                                 }

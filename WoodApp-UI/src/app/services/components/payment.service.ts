@@ -65,6 +65,8 @@ export class PaymentService {
      * Called after delivery-note → invoice conversion when isService === false.
      */
     LinkToInvoice(paymentId: number, invoiceId: number): Observable<void> {
+        console.log("In service LinkToInvoice paymentId", paymentId);
+        console.log("In service LinkToInvoice invoiceId", invoiceId);
         return this.http.patch<void>(
             `${this.baseUrl}Payments/${paymentId}/link-invoice/${invoiceId}`,
             {}
