@@ -17,10 +17,12 @@ export class AccountingService {
     }
 
     getStatement(counterpartId: number, startDate: Date, endDate: Date): Observable<AccountStatement> {
-        let params = new HttpParams()
-            .set('startDate', startDate.toISOString())
-            .set('endDate', endDate.toISOString());
+        const formatDate = (d: Date): string =>
+            `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
+        let params = new HttpParams()
+            .set('startDate', formatDate(startDate))
+            .set('endDate', formatDate(endDate));
         return this.http.get<AccountStatement>(`${this.baseUrl}Accounting/statement/${counterpartId}`, { params });
     }
 }

@@ -20,7 +20,11 @@ export class CustomerAccountModalComponent implements OnInit {
         @Inject(MAT_DIALOG_DATA) public data: { customer: CounterPart },
         private accountingService: AccountingService
     ) {
-        this.startDate.setMonth(this.startDate.getMonth() - 1); // Default to last month
+        const today = new Date();
+        this.endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        this.startDate = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+        console.log("account customer", this.data.customer);
+        console.log("start date", this.startDate, "end date", this.endDate);
     }
 
     ngOnInit(): void {
