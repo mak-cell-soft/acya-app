@@ -25,5 +25,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public decimal Credit { get; set; }
         public string? Description { get; set; }
         public decimal RunningBalance { get; set; }
+        public bool IsPaid { get; set; }
+        public List<string> RelatedDeliveryNoteRefs { get; set; } = new List<string>();
     }
 }

@@ -3,6 +3,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { CounterPart } from '../../../models/components/counterpart';
 import { AccountingService } from '../../../services/components/accounting.service';
 import { AccountStatement } from '../../../models/components/ledger';
+import { DocTypes_FR } from '../../../models/components/document';
 
 @Component({
     selector: 'app-customer-account-modal',
@@ -14,6 +15,7 @@ export class CustomerAccountModalComponent implements OnInit {
     loading = true;
     startDate: Date = new Date();
     endDate: Date = new Date();
+    docTypes_FR = DocTypes_FR;
 
     constructor(
         public dialogRef: MatDialogRef<CustomerAccountModalComponent>,
@@ -52,5 +54,11 @@ export class CustomerAccountModalComponent implements OnInit {
 
     formatDate(date: any): string {
         return new Date(date).toLocaleDateString('fr-FR');
+    }
+
+    getDocTypeLabel(type: string): string {
+        const key = type as keyof typeof DocTypes_FR;
+        const normalizedKey = (type.charAt(0).toLowerCase() + type.slice(1)) as keyof typeof DocTypes_FR;
+        return this.docTypes_FR[key] || this.docTypes_FR[normalizedKey] || type;
     }
 }

@@ -36,9 +36,9 @@ namespace ms.webapp.api.acya.api.Services
             // Logic for Debit/Credit based on CounterPartType and Transaction Type
             if (counterpart.Type == CounterPartType.Customer)
             {
-                // Invoices/Debit adjustments increase debt (Debit)
+                // Invoices/Delivery Notes/Debit adjustments increase debt (Debit)
                 // Payments/Returns decrease debt (Credit)
-                if (type == "Invoice" || (type == "Adjustment" && amount > 0))
+                if (type == "Invoice" || type == "customerInvoice" || type == "customerDeliveryNote" || (type == "Adjustment" && amount > 0))
                 {
                     entry.Debit = Math.Abs(amount);
                     entry.Credit = 0;
@@ -53,7 +53,7 @@ namespace ms.webapp.api.acya.api.Services
             {
                 // Supplier Invoices increase what we owe (Credit)
                 // Payments to supplier decrease what we owe (Debit)
-                if (type == "Invoice" || (type == "Adjustment" && amount < 0))
+                if (type == "Invoice" || type == "supplierInvoice" || (type == "Adjustment" && amount < 0))
                 {
                     entry.Credit = Math.Abs(amount);
                     entry.Debit = 0;
@@ -94,6 +94,12 @@ namespace ms.webapp.api.acya.api.Services
 
         public async Task<AccountStatementDto> GetStatementAsync(int counterpartId, DateTime startDate, DateTime endDate)
         {
+            // Ensure end date covers the full day
+            if (endDate.TimeOfDay == TimeSpan.Zero)
+            {
+                endDate = endDate.Date.AddDays(1).AddTicks(-1);
+            }
+
             var counterpart = await _context.CounterParts.FindAsync(counterpartId);
             if (counterpart == null) throw new ArgumentException("Counterpart not found");
 
@@ -114,6 +120,20 @@ namespace ms.webapp.api.acya.api.Services
 
             var periodEntries = allEntries.Where(l => l.TransactionDate >= startDate && l.TransactionDate <= endDate).ToList();
             
+            // Fetch related documents to check paid status and link delivery notes
+            var docTypes = new[] { "CustomerInvoice", "customerInvoice", "customerDeliveryNote", "Invoice", "supplierInvoice" };
+            var docIds = periodEntries
+                .Where(e => e.RelatedId.HasValue && docTypes.Contains(e.Type))
+                .Select(e => e.RelatedId!.Value)
+                .Distinct()
+                .ToList();
+
+            var relatedDocs = await _context.Documents
+                .Include(d => d.ChildDocuments)
+                    .ThenInclude(cd => cd.ChildDocument)
+                .Where(d => docIds.Contains(d.Id))
+                .ToDictionaryAsync(d => d.Id);
+
             var result = new AccountStatementDto
             {
                 CounterPartId = counterpartId,
@@ -131,7 +151,7 @@ namespace ms.webapp.api.acya.api.Services
                 else
                     currentRunningBalance += (entry.Credit - entry.Debit);
 
-                result.Transactions.Add(new LedgerEntryDto
+                var transactionDto = new LedgerEntryDto
                 {
                     Id = entry.Id,
                     TransactionDate = entry.TransactionDate,
@@ -141,7 +161,24 @@ namespace ms.webapp.api.acya.api.Services
                     Credit = entry.Credit,
                     Description = entry.Description,
                     RunningBalance = currentRunningBalance
-                });
+                };
+
+                if (entry.RelatedId.HasValue && relatedDocs.TryGetValue(entry.RelatedId.Value, out var doc))
+                {
+                    // A document is considered paid if its status is Billed (fully paid)
+                    transactionDto.IsPaid = doc.BillingStatus == BillingStatus.Billed;
+
+                    // If it's an invoice, add related delivery note references
+                    if (doc.Type == DocumentTypes.customerInvoice && doc.ChildDocuments != null)
+                    {
+                        transactionDto.RelatedDeliveryNoteRefs = doc.ChildDocuments
+                            .Where(cd => cd.ChildDocument != null)
+                            .Select(cd => cd.ChildDocument!.DocNumber ?? "")
+                            .ToList();
+                    }
+                }
+
+                result.Transactions.Add(transactionDto);
             }
 
             result.TotalDebit = periodEntries.Sum(l => l.Debit);

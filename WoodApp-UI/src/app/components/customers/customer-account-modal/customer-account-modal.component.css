@@ -91,6 +91,23 @@
     color: #bdc1c6;
 }
 
+.unpaid-document {
+    color: #f44336;
+}
+
+.unpaid-document td {
+    color: inherit;
+}
+
+.related-notes {
+    color: #666;
+    margin-top: 4px;
+}
+
+.type-label {
+    font-weight: 500;
+}
+
 .no-data-container p {
     font-size: 1.1rem;
     margin-bottom: 8px;

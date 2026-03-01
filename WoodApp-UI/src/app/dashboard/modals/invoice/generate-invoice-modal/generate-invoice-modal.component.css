@@ -1,157 +1,176 @@
-/* Main Modal Layout */
-.card-details {
-    padding: 24px;
-    margin: 0;
-    box-shadow: none;
-    /* Remove default shadow if inside dialog */
-    background-color: #fff;
-    border-radius: 8px;
-    overflow: hidden;
-    /* Ensure content doesn't overflow rounded corners */
+.modal-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
 }
 
-h6 {
-    font-size: 1.25rem;
-    font-weight: 500;
-    color: #333;
-    margin-bottom: 16px;
+.dialog-header {
+    padding: 24px 24px 16px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+}
+
+h2[mat-dialog-title] {
+    margin: 0 !important;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
 }
 
-/* Row Count */
-.row-count {
-    margin-bottom: 20px;
-    font-size: 14px;
-    color: #666;
-    font-style: italic;
-    background-color: #f5f5f5;
-    padding: 8px 12px;
-    border-radius: 4px;
-    display: inline-block;
+h2[mat-dialog-title] mat-icon {
+    color: #3f51b5;
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
 }
 
-/* Form Fields */
-.form-container {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 20px;
-    align-items: flex-start;
+.header-subtitle {
+    margin-top: 8px;
 }
 
-.full-width {
-    width: 100%;
+.badge {
+    background: #e8f0fe;
+    color: #1967d2;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
 }
 
-mat-form-field {
-    width: 100%;
+.modal-content {
+    padding: 24px !important;
+    margin: 0;
 }
 
-/* Table Container */
-.table-container {
-    max-height: 400px;
-    overflow: auto;
-    border-radius: 4px;
-    border: 1px solid #e0e0e0;
+.invoice-form {
     margin-bottom: 24px;
 }
 
-table.mat-table {
+.section-divider {
+    margin: 16px 0 24px;
+}
+
+.table-wrapper {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 32px;
+}
+
+table.modern-modal-table {
     width: 100%;
 }
 
-.mat-header-cell {
-    background-color: #f8f9fa;
-    color: #424242;
+.modern-modal-table th {
+    background: #f8f9fa;
+    color: #555;
     font-weight: 600;
-    font-size: 13px;
-    padding: 12px 8px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    padding: 12px;
 }
 
-.mat-cell {
-    font-size: 13px;
-    padding: 8px;
-    color: #333;
+.modern-modal-table td {
+    padding: 12px;
+    font-size: 0.9rem;
 }
 
-.no-data-message {
-    padding: 24px;
-    text-align: center;
-    color: #757575;
-    font-style: italic;
-    background: #f9f9f9;
+.bold-cell {
+    font-weight: 600;
+    color: #1a1a1a;
 }
 
-/* Summary Section */
-.summary-container {
-    background-color: #f8fbfd;
-    border: 1px solid #e1eff7;
-    border-radius: 8px;
-    padding: 20px;
+.price-cell {
+    font-weight: 700;
+    color: #2e7d32;
+}
+
+/* Summary Grid */
+.invoice-summary-grid {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+
+.summary-details {
+    width: 100%;
     max-width: 400px;
-    margin-left: auto;
-    /* Right align */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    background: #fcfcfc;
+    border: 1px solid #efefef;
+    border-radius: 12px;
+    padding: 20px;
 }
 
-.summary-row {
+.summary-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px dashed #dae1e7;
-    font-size: 14px;
+    padding: 10px 0;
 }
 
-.summary-row:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-    margin-top: 8px;
-    padding-top: 12px;
-    border-top: 2px solid #3f51b5;
-    /* Highlight total */
+.summary-item .label {
+    color: #666;
+    font-size: 0.9rem;
 }
 
-.summary-label {
-    color: #555;
-    font-weight: 500;
-}
-
-.summary-value {
+.summary-item .value {
     font-weight: 600;
-    color: #222;
-    text-align: right;
+    color: #1a1a1a;
 }
 
-.summary-row:last-child .summary-label,
-.summary-row:last-child .summary-value {
-    font-size: 16px;
+.summary-item .value.negative {
+    color: #d32f2f;
+}
+
+.summary-item.highlight {
+    background: #f0f4ff;
+    margin: 8px -20px;
+    padding: 8px 20px;
+}
+
+.inline-select {
+    width: 120px;
+}
+
+.inline-select ::ng-deep .mat-mdc-text-field-wrapper {
+    background-color: transparent !important;
+}
+
+.summary-item.total {
+    margin-top: 12px;
+    padding-top: 12px;
+}
+
+.summary-item.total .label {
     font-weight: 700;
+    color: #1a1a1a;
+    font-size: 1rem;
+}
+
+.summary-item.total .value {
+    font-size: 1.4rem;
+    font-weight: 800;
     color: #3f51b5;
 }
 
-mat-select.summary-value {
-    width: 120px;
-    text-align: right;
+.modal-actions {
+    padding: 16px 24px !important;
+    border-top: 1px solid #eee;
+    background: #fafafa;
 }
 
-/* Action Buttons */
-.control-button {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    padding: 16px 24px;
-    background-color: #f5f5f5;
-    border-top: 1px solid #e0e0e0;
-    border-radius: 0 0 8px 8px;
-    margin: 0 -24px -24px -24px;
-    /* Stretch to edges of dialog */
+.modal-actions button {
+    border-radius: 8px;
+    padding: 0 24px;
 }
 
-button[mat-flat-button] {
-    min-width: 100px;
-    line-height: 36px;
+.spinner-btn {
+    margin-right: 8px;
+    display: inline-block;
 }
 
 /* Loading Overlay */
@@ -159,35 +178,19 @@ button[mat-flat-button] {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.7);
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 100;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
-    flex-direction: column;
     gap: 16px;
+    border-radius: 8px;
 }
 
 .loading-text {
-    font-weight: 500;
+    font-weight: 600;
     color: #3f51b5;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    .summary-container {
-        max-width: 100%;
-        margin-top: 16px;
-    }
-
-    .table-container {
-        overflow-x: auto;
-    }
-
-    .article-table {
-        min-width: 600px;
-        /* Force scroll on small screens */
-    }
 }

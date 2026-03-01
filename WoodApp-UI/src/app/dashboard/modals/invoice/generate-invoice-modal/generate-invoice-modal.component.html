@@ -1,163 +1,126 @@
-<!-- Loading Overlay -->
-<div class="loading-overlay" *ngIf="loading">
-    <mat-spinner diameter="50"></mat-spinner>
-    <div class="loading-text">Création de la facture en cours...</div>
-</div>
-
-<mat-card class="card-details" [formGroup]="taxeForm">
-    <h6>
-        <mat-icon>receipt_long</mat-icon>
-        Facturation BL Fournisseur : {{getSupplierName()}}
-    </h6>
-
-    <!-- Row count display -->
-    <div class="row-count">
-        {{Number_of_Rows}} : {{ allSelectedDocs.data.length || 0 }} documents sélectionnés
+<div class="modal-wrapper">
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" *ngIf="loading">
+        <mat-spinner diameter="50"></mat-spinner>
+        <div class="loading-text">Génération de la facture...</div>
     </div>
 
-    <!-- Form Section -->
-    <div class="form-container">
-        <mat-form-field class="full-width" appearance="outline">
-            <mat-label>Référence Facture Fournisseur</mat-label>
-            <input type="text" matInput formControlName="supplierReference" placeholder="Ex: FACT2024-001" required />
-            <mat-icon matSuffix>confirmation_number</mat-icon>
-            <mat-error *ngIf="taxeForm.get('supplierReference')?.hasError('required')">
-                La référence est requise
-            </mat-error>
-        </mat-form-field>
+    <div class="dialog-header">
+        <h2 mat-dialog-title>
+            <mat-icon>receipt_long</mat-icon>
+            Générer Facture : {{getSupplierName()}}
+        </h2>
+        <div class="header-subtitle">
+            <span class="badge">{{ allSelectedDocs.data.length }} documents sélectionnés</span>
+        </div>
     </div>
 
-    <!-- Table Section -->
-    <div class="table-container mat-elevation-z2">
-        <table mat-table [dataSource]="allSelectedDocs" matSort class="article-table"
-            *ngIf="allSelectedDocs.data.length; else noData" multiTemplateDataRows>
+    <mat-dialog-content class="modal-content">
+        <!-- Form Section -->
+        <div class="invoice-form" [formGroup]="taxeForm">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Référence Facture Fournisseur</mat-label>
+                <input matInput formControlName="supplierReference" placeholder="Ex: FACT-2024-X" required>
+                <mat-icon matSuffix>tag</mat-icon>
+                <mat-hint>Référence du document physique reçu</mat-hint>
+                <mat-error *ngIf="taxeForm.get('supplierReference')?.invalid">La référence est obligatoire</mat-error>
+            </mat-form-field>
+        </div>
 
-            <!-- Index Column -->
-            <ng-container matColumnDef="count">
-                <th mat-header-cell *matHeaderCellDef class="mat-header-cell"> # </th>
-                <td mat-cell *matCellDef="let element" class="mat-cell">
-                    {{ element.customIndex }}
-                </td>
-            </ng-container>
+        <mat-divider class="section-divider"></mat-divider>
 
-            <!-- Doc Number Column -->
-            <ng-container matColumnDef="number">
-                <th mat-header-cell *matHeaderCellDef class="mat-header-cell">
-                    {{mat_header_cell_doc_number}}
-                </th>
-                <td mat-cell *matCellDef="let element" class="mat-cell">{{element.docnumber}}</td>
-            </ng-container>
+        <!-- Table Section -->
+        <div class="table-wrapper mat-elevation-z1">
+            <table mat-table [dataSource]="allSelectedDocs" matSort class="modern-modal-table">
 
-            <!-- Supplier Ref Column -->
-            <ng-container matColumnDef="supplierreference">
-                <th mat-header-cell *matHeaderCellDef class="mat-header-cell">
-                    {{mat_header_cell_doc_supplierReference}}
-                </th>
-                <td mat-cell *matCellDef="let element" class="mat-cell">
-                    {{element.supplierReference || '-'}}
-                </td>
-            </ng-container>
+                <ng-container matColumnDef="count">
+                    <th mat-header-cell *matHeaderCellDef> # </th>
+                    <td mat-cell *matCellDef="let element">{{ element.customIndex }}</td>
+                </ng-container>
 
-            <!-- Total HT Column -->
-            <ng-container matColumnDef="TotalHTNet">
-                <th mat-header-cell *matHeaderCellDef class="mat-header-cell">
-                    {{mat_header_cell_doc_TotalHTNet}}
-                </th>
-                <td mat-cell *matCellDef="let element" class="mat-cell">
-                    {{element.total_ht_net_doc | number:'1.3-3'}}
-                </td>
-            </ng-container>
+                <ng-container matColumnDef="number">
+                    <th mat-header-cell *matHeaderCellDef>{{mat_header_cell_doc_number}}</th>
+                    <td mat-cell *matCellDef="let element" class="bold-cell">{{element.docnumber}}</td>
+                </ng-container>
 
-            <!-- Discount Column -->
-            <ng-container matColumnDef="TotalDiscountDoc">
-                <th mat-header-cell *matHeaderCellDef class="mat-header-cell">
-                    {{mat_header_cell_doc_TotalDiscountDoc}}
-                </th>
-                <td mat-cell *matCellDef="let element" class="mat-cell">
-                    {{element.total_discount_doc | number:'1.3-3'}}
-                </td>
-            </ng-container>
+                <ng-container matColumnDef="supplierreference">
+                    <th mat-header-cell *matHeaderCellDef>Réf. Fournisseur</th>
+                    <td mat-cell *matCellDef="let element">{{element.supplierReference || '-'}}</td>
+                </ng-container>
 
-            <!-- TVA Column -->
-            <ng-container matColumnDef="TotalTVADoc">
-                <th mat-header-cell *matHeaderCellDef class="mat-header-cell">
-                    {{mat_header_cell_doc_TotalTVADoc}}
-                </th>
-                <td mat-cell *matCellDef="let element" class="mat-cell">
-                    {{element.total_tva_doc | number:'1.3-3'}}
-                </td>
-            </ng-container>
+                <ng-container matColumnDef="TotalHTNet">
+                    <th mat-header-cell *matHeaderCellDef>Total HT</th>
+                    <td mat-cell *matCellDef="let element">{{element.total_ht_net_doc | number:'1.3-3'}}</td>
+                </ng-container>
 
-            <!-- Total TTC Column -->
-            <ng-container matColumnDef="TotalNetTTC">
-                <th mat-header-cell *matHeaderCellDef class="mat-header-cell">
-                    {{mat_header_cell_doc_TotalNetTTC}}
-                </th>
-                <td mat-cell *matCellDef="let element" class="mat-cell">
-                    <strong>{{element.total_net_ttc | number:'1.3-3'}}</strong>
-                </td>
-            </ng-container>
+                <ng-container matColumnDef="TotalDiscountDoc">
+                    <th mat-header-cell *matHeaderCellDef>Remise</th>
+                    <td mat-cell *matCellDef="let element">{{element.total_discount_doc | number:'1.3-3'}}</td>
+                </ng-container>
 
-            <!-- Date Column -->
-            <ng-container matColumnDef="EditedBy">
-                <th mat-header-cell *matHeaderCellDef class="mat-header-cell">
-                    {{mat_header_cell_doc_UpdatedDate}}
-                </th>
-                <td mat-cell *matCellDef="let element" class="mat-cell">
-                    {{element.updatedate | date: 'dd/MM/yyyy'}}
-                </td>
-            </ng-container>
+                <ng-container matColumnDef="TotalTVADoc">
+                    <th mat-header-cell *matHeaderCellDef>TVA</th>
+                    <td mat-cell *matCellDef="let element">{{element.total_tva_doc | number:'1.3-3'}}</td>
+                </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="displayedDocumentsColumns; sticky: true"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedDocumentsColumns;"></tr>
-        </table>
+                <ng-container matColumnDef="TotalNetTTC">
+                    <th mat-header-cell *matHeaderCellDef>Total TTC</th>
+                    <td mat-cell *matCellDef="let element" class="price-cell">{{element.total_net_ttc | number:'1.3-3'}}
+                    </td>
+                </ng-container>
 
-        <ng-template #noData>
-            <div class="no-data-message">
-                Aucun Bon de réception n'a été selectionné.
+                <ng-container matColumnDef="EditedBy">
+                    <th mat-header-cell *matHeaderCellDef>Date</th>
+                    <td mat-cell *matCellDef="let element">{{element.updatedate | date: 'dd/MM/yyyy'}}</td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedDocumentsColumns; sticky: true"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedDocumentsColumns;"></tr>
+            </table>
+
+            <mat-paginator [pageSizeOptions]="[5, 10]" showFirstLastButtons></mat-paginator>
+        </div>
+
+        <!-- Professional Summary Section -->
+        <div class="invoice-summary-grid" [formGroup]="taxeForm">
+            <div class="summary-details">
+                <div class="summary-item">
+                    <span class="label">Sous-total HT</span>
+                    <span class="value">{{ totalHTNet_invoice_doc$ | async | number: '1.3-3' }} TND</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Total Remises</span>
+                    <span class="value negative">-{{ totalRemise_invoice_doc$ | async | number: '1.3-3' }} TND</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Total TVA</span>
+                    <span class="value">{{ totalTVA_invoice_doc$ | async | number: '1.3-3' }} TND</span>
+                </div>
+                <div class="summary-item highlight">
+                    <span class="label">Timbre / Taxe</span>
+                    <mat-form-field appearance="fill" class="inline-select">
+                        <mat-select formControlName="selectedTaxe">
+                            <mat-option *ngFor="let taxe of appvariablesTaxes" [value]="taxe.id">
+                                {{ taxe.value }} TND
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <mat-divider></mat-divider>
+                <div class="summary-item total">
+                    <span class="label">NET À PAYER TTC</span>
+                    <span class="value">{{ netTTC_invoice_doc$ | async | number: '1.3-3' }} TND</span>
+                </div>
             </div>
-        </ng-template>
+        </div>
+    </mat-dialog-content>
 
-        <mat-paginator [pageSizeOptions]="[5, 10, 25]" aria-label="Selectionner les documents"
-            showFirstLastButtons></mat-paginator>
-    </div>
-
-    <!-- Summary Section -->
-    <div class="summary-container">
-        <div class="summary-row">
-            <span class="summary-label">Total HT Net</span>
-            <span class="summary-value">{{ totalHTNet_invoice_doc$ | async | number: '1.3-3' }}</span>
-        </div>
-        <div class="summary-row">
-            <span class="summary-label">Total Remise</span>
-            <span class="summary-value">{{ totalRemise_invoice_doc$ | async | number: '1.3-3' }}</span>
-        </div>
-        <div class="summary-row">
-            <span class="summary-label">Total TVA</span>
-            <span class="summary-value">{{ totalTVA_invoice_doc$ | async | number: '1.3-3' }}</span>
-        </div>
-        <div class="summary-row">
-            <span class="summary-label">Timbre / Taxe (TND)</span>
-            <mat-select formControlName="selectedTaxe" disableRipple class="summary-value">
-                <mat-option *ngFor="let taxe of appvariablesTaxes" [value]="taxe.id">
-                    {{ taxe.value }}
-                </mat-option>
-            </mat-select>
-        </div>
-        <div class="summary-row">
-            <span class="summary-label">Net TTC Total</span>
-            <span class="summary-value">{{ netTTC_invoice_doc$ | async | number: '1.3-3' }}</span>
-        </div>
-    </div>
-
-    <!-- Footer Actions -->
-    <div class="control-button">
-        <button mat-stroked-button color="warn" (click)="onCancel()" [disabled]="loading">
-            Annuler
+    <mat-dialog-actions align="end" class="modal-actions">
+        <button mat-button (click)="onCancel()" [disabled]="loading">Annuler</button>
+        <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="taxeForm.invalid || loading">
+            <mat-icon *ngIf="!loading">save</mat-icon>
+            <mat-spinner diameter="20" *ngIf="loading" class="spinner-btn"></mat-spinner>
+            {{ loading ? 'Enregistrement...' : 'Confirmer la Facture' }}
         </button>
-        <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="taxeForm.invalid || loading">
-            <span *ngIf="!loading">Enregistrer la Facture</span>
-            <span *ngIf="loading">Traitement...</span>
-        </button>
-    </div>
-</mat-card>
+    </mat-dialog-actions>
+</div>

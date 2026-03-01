@@ -54,9 +54,16 @@
                         <td colspan="5">Solde avant période</td>
                         <td class="amount">{{statement.balanceBeforePeriod | number:'1.3-3'}}</td>
                     </tr>
-                    <tr *ngFor="let entry of statement.transactions">
+                    <tr *ngFor="let entry of statement.transactions"
+                        [class.unpaid-document]="!entry.isPaid && (entry.type === 'customerInvoice' || entry.type === 'customerDeliveryNote' || entry.type === 'CustomerInvoice')">
                         <td>{{entry.transactionDate | date:'dd/MM/yyyy'}}</td>
-                        <td>{{entry.type}}</td>
+                        <td>
+                            <span class="type-label">{{ getDocTypeLabel(entry.type) }}</span>
+                            <div *ngIf="entry.relatedDeliveryNoteRefs && entry.relatedDeliveryNoteRefs.length > 0"
+                                class="related-notes">
+                                <small>BL: {{ entry.relatedDeliveryNoteRefs.join(', ') }}</small>
+                            </div>
+                        </td>
                         <td>{{entry.description}}</td>
                         <td class="amount debit">{{entry.debit > 0 ? (entry.debit | number:'1.3-3') : ''}}</td>
                         <td class="amount credit">{{entry.credit > 0 ? (entry.credit | number:'1.3-3') : ''}}</td>
@@ -75,6 +82,7 @@
         </ng-template>
     </div>
 </mat-dialog-content>
+<p></p>
 <mat-dialog-actions align="end">
     <button mat-button (click)="onClose()">Fermer</button>
 </mat-dialog-actions>

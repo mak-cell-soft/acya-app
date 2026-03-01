@@ -665,6 +665,7 @@ export class CustomerAddDocumentComponent {
         editing: false,
         docstatus: 3,
         isservice: false,
+        isPaid: false,
         billingstatus: BillingStatus.NotBilled,
         deliveryNoteDocNumbers: []
       };

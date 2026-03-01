@@ -1,324 +1,408 @@
-.card-details {
-    margin: 10px;
-    padding: 20px;
+:host {
+    display: block;
+    background-color: #f4f7f9;
+    min-height: 100vh;
+    padding-bottom: 40px;
+}
+
+/* Header & Container */
+.header-container {
+    background: white;
+    margin-bottom: 24px;
+    padding: 0;
+    height: 72px;
+}
+
+.header-text h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.spacer {
+    flex: 1 1 auto;
+}
+
+.page-content {
+    padding: 0;
+    width: 100%;
+    margin: 0;
+}
+
+/* Section Cards */
+.section-card {
+    border-radius: 12px !important;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.section-card mat-card-header {
+    padding: 20px 24px;
+    background: #fafafa;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.section-card mat-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.section-card mat-card-content {
+    padding: 24px !important;
+}
+
+/* Top Section Layout */
+.top-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    width: 100%;
+}
+
+@media (max-width: 1200px) {
+    .top-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* General Info Card */
+.info-grid {
+    display: flex;
+    gap: 32px;
+}
+
+.date-picker-column {
+    flex: 0 0 300px;
 }
 
 .calendar-card {
-    width: 300px;
-    background: rgb(207, 227, 235);
-}
-
-.head-doc {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-}
-
-.date-picker-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.vertical-separator {
-    width: 1px;
-    background-color: #ddd;
-    height: 100%;
-    margin: 0 20px;
-}
-
-.inputs-container {
-    display: flex;
-    flex-grow: 1;
-    flex-wrap: wrap;
-    gap: 5px;
-    align-items: center;
-    justify-content: space-around;
-    height: 300px;
-    /* Matches the height of the date picker */
-}
-
-.provider-choice {
-    display: block;
-    /* grid-template-columns: 1fr 1fr; Two inputs per row */
-    gap: 5px;
-    /* Adds space between inputs */
-    width: 100%;
-    margin-bottom: 15px;
-}
-
-mat-form-field {
-    width: 100%;
-    height: 100%;
-}
-
-.provider-info {
-    margin-top: 0px;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-}
-
-.provider-info mat-card {
-    padding: 15px;
-    background-color: #f4f6f8;
+    background: #f8f9fa;
+    border: 1px solid #eef0f2;
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    margin-bottom: 20px;
-    /* margin-top: 15px; */
-}
-
-.provider-info h3 {
-    margin-bottom: 10px;
-    font-size: 1.2em;
-    color: #333;
-}
-
-.provider-info p {
-    margin: 5px 0;
-    font-size: 13px;
-    color: #555;
-}
-
-mat-error {
-    font-size: 12px;
-    color: red;
-}
-
-.blue-icon {
-    color: blue;
-}
-
-.red-icon {
-    color: red;
-}
-
-.green-icon {
-    color: green;
-}
-
-.full-width {
-    width: 100%;
-}
-
-.full-width {
-    width: 100%;
-    margin-bottom: 1px;
-}
-
-.article-description {
-    font-size: 0.9em;
-    color: gray;
-}
-
-.mat-form-field {
-    position: relative;
-}
-
-.mat-select-panel {
-    max-height: 15px;
-    /* Adjust as needed */
-    /* overflow-y: auto; */
-}
-
-.half-width-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    /* Adds space between the form fields */
-}
-
-/*
-* Generate Reference CSS
-*/
-.generate-reference {
-    display: flex;
-    align-items: center;
-    /* Aligns the input and button vertically */
-    gap: 10px;
-    /* Adds space between the input and button */
-}
-
-.generate-reference input {
-    flex: 1;
-    /* Takes up the remaining space (70%) */
-}
-
-/* .generate-reference button {
-    display: flex;
-    align-items: center;
-    gap: 8px; /* Space between icon and text/spinner 
-  } */
-  
-  /* .generate-reference mat-spinner {
-    margin: 0; /* Remove default margin *
-  } */
-
-.generate-reference button {
-    width: 30%;
-    /* Button takes 30% of the width */
-    height: 100%;
-    /* Matches the height of the input */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    /* Adds space between the icon and text */
-    padding: 0 10px;
-    /* Adds padding inside the button */
-    background-color: #007bff;
-    /* Example button color */
-    color: white;
-    /* Text color */
-    border: none;
-    /* Removes default border */
-    border-radius: 4px;
-    /* Rounded corners */
-    cursor: pointer;
-    /* Changes cursor to pointer on hover */
-}
-
-.generate-reference button:hover {
-    background-color: #0056b3;
-    /* Darker shade on hover */
-}
-
-.half-width {
-    width: calc(50% - 10px);
-    /* Adjust width to account for the gap */
-    margin-bottom: 5px;
 }
 
 .date-display {
-    color: cornflowerblue;
-    font-weight: bold;
-    font-size: 16px;
-    margin-top: 10px;
-}
-
-.add-lengths {
-    scale: 1.2;
-    cursor: pointer;
-}
-
-.quantity-hint {
-    color: #ff9800;
-    /* Orange color for info */
-    font-style: italic;
-}
-
-mat-slide-toggle.my-slide {
-    --mdc-switch-selected-handle-color: lightgreen;
-    --mdc-switch-selected-pressed-handle-color: lightgreen;
-    --mdc-switch-selected-pressed-state-layer-color: green;
-    --mdc-switch-selected-hover-state-layer-color: lightgreen;
-    --mdc-switch-selected-hover-handle-color: lightgreen;
-    --mdc-switch-selected-focus-state-layer-color: lightgreen;
-    --mdc-switch-selected-focus-handle-color: lightgreen;
-    --mdc-switch-selected-track-color: green;
-    --mdc-switch-selected-pressed-track-color: green;
-    --mdc-switch-selected-hover-track-color: green;
-    --mdc-switch-selected-focus-track-color: green;
-}
-
-.legths {
+    margin-top: 16px;
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    align-items: center;
+    gap: 8px;
+    color: #3f51b5;
+    font-weight: 600;
+    font-size: 1rem;
 }
 
-.mat-form-length {
+.form-column {
     flex: 1;
-    /* Default to full width */
-    transition: flex 0.3s ease;
-    /* Smooth transition */
-}
-
-.has-button .mat-form-length {
-    flex: 0 0 58%;
-    /* Adjust width when the button is visible */
-}
-
-.button-length {
-    flex: 0 0 40%;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.button-merchandise {
-    margin-top: 10px;
-    flex: 0 0 40%;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-input[readonly] {
-    background-color: #f5f5f5;
-    cursor: not-allowed;
-}
-
-.summary-container {
     display: flex;
     flex-direction: column;
-    width: 50%;
-    /* Occupy half the width */
-    margin-left: auto;
-    /* Push to the right side */
-    padding-top: 20px;
+    gap: 16px;
 }
 
-.summary-row {
+.supplier-preview-card {
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 8px;
+    padding: 16px;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.supplier-info-item {
+    display: flex;
     align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid #d0d0d0;
-    /* Optional separator for rows */
+    gap: 10px;
+    font-size: 0.9rem;
+    color: #1976d2;
 }
 
-.summary-label {
-    font-weight: bold;
-    color: #333;
-    /* Darker label text */
+.supplier-info-item mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+/* Entry Form Card */
+.entry-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.form-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.flex-1 {
     flex: 1;
-    /* Takes the first column */
 }
 
-.summary-value {
-    flex: 1;
-    /* Takes the second column */
-    text-align: right;
-    /* Align values to the right */
-    color: #000;
-    /* Ensure value contrast */
+.flex-2 {
+    flex: 2;
 }
 
-.control-button {
+.full-width {
+    width: 100%;
+}
+
+.quantity-group,
+.ref-gen-group {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.length-btn {
+    height: 56px;
+    border-radius: 4px;
+}
+
+/* Calculation Display Row */
+.calculation-row {
+    background: #f1f8e9;
+    border: 1px solid #c5e1a5;
+    border-radius: 8px;
+    padding: 16px;
+    justify-content: space-around;
+}
+
+.calc-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.calc-item label {
+    font-size: 0.75rem;
+    color: #558b2f;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.calc-value {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #33691e;
+}
+
+.calc-item.highlight .calc-value {
+    color: #2e7d32;
+    font-size: 1.3rem;
+}
+
+.toggles {
+    padding: 8px 0;
+    gap: 32px;
+}
+
+.add-article-btn {
+    padding: 0 32px;
+    height: 48px;
+    font-weight: 600;
+    border-radius: 24px;
+}
+
+/* Table Card */
+.table-container {
+    max-height: 500px;
+    overflow: auto;
+    border-radius: 8px;
+    border: 1px solid #f0f0f0;
+}
+
+table.modern-table {
+    width: 100%;
+}
+
+.mat-header-cell {
+    background: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    padding: 16px;
+}
+
+.mat-cell {
+    padding: 16px;
+    font-size: 0.9rem;
+}
+
+.article-cell {
+    display: flex;
+    flex-direction: column;
+}
+
+.art-ref {
+    font-weight: 700;
+    color: #3f51b5;
+}
+
+.art-desc {
+    color: #666;
+    font-size: 0.8rem;
+}
+
+.bold-text {
+    font-weight: 700;
+}
+
+.price-text {
+    font-weight: 700;
+    color: #2e7d32;
+}
+
+.discount-badge {
+    background: #fff3e0;
+    color: #e65100;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.row-actions {
     display: flex;
     justify-content: flex-end;
-    /* Align items to the end (left) */
-    margin-right: 12px;
-    margin-top: 35px;
+}
+
+.no-data {
+    text-align: center;
+    padding: 60px !important;
+    color: #999;
+}
+
+.no-data mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+}
+
+/* Footer Summary */
+.document-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 32px;
+}
+
+.final-summary-card {
+    width: 100%;
+    max-width: 450px;
+    background: #fcfcfc;
+    border: 1px solid #efefef;
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    font-size: 0.95rem;
+}
+
+.summary-line .label {
+    color: #666;
+}
+
+.summary-line .value {
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.summary-line .value.negative {
+    color: #d32f2f;
+}
+
+.summary-line.total {
+    margin-top: 12px;
+    padding-top: 16px;
+}
+
+.summary-line.total .label {
+    font-weight: 700;
+    color: #1a1a1a;
+    font-size: 1.1rem;
+}
+
+.summary-line.total .value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #3f51b5;
+}
+
+.form-final-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #eee;
+}
+
+.xl-btn {
+    padding: 0 40px;
+    height: 56px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 28px;
+}
+
+/* Menu Customization */
+.modern-menu {
+    border-radius: 8px !important;
+    padding: 8px 0;
+}
+
+.menu-info-item {
+    padding: 8px 16px;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 0.85rem;
+}
+
+.menu-info-item .label {
+    color: #666;
+}
+
+.menu-info-item .val {
+    font-weight: 600;
+}
+
+.menu-info-item .val.highlight {
+    color: #3f51b5;
+}
+
+.menu-check-item {
+    padding: 8px 16px;
+    display: flex;
     align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
 }
 
-.control-button button {
-    margin-right: 10px;
-    /* Add space between buttons */
+.menu-check-item mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
 }
 
-/* Optional: Remove the right margin for the last button */
-.control-button button:last-child {
-    margin-right: 0;
+/* Article Dropdown Styling */
+.opt-ref {
+    font-weight: 700;
+    color: #3f51b5;
 }
 
-mat-checkbox[disabled] {
-    pointer-events: none;
-    opacity: 1;
-    /* Keep the same appearance */
+.opt-desc {
+    color: #666;
+    font-size: 0.9rem;
 }

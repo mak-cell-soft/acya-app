@@ -7,6 +7,8 @@ export interface LedgerEntry {
     credit: number;
     description?: string;
     runningBalance: number;
+    isPaid?: boolean;
+    relatedDeliveryNoteRefs?: string[];
 }
 
 export interface AccountStatement {

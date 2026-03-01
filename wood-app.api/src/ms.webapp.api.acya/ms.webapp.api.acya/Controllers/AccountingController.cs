@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace ms.webapp.api.acya.api.Controllers
 {
-    [Authorize]
     public class AccountingController : BaseApiController
     {
         private readonly IAccountService _accountService;

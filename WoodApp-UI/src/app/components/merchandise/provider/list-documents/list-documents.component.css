@@ -1,351 +1,365 @@
-.search {
-    display: flex;
-    align-items: center;
-    width: 100%;
+/* Main Container Spacing */
+:host {
+    display: block;
+    padding: 24px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
 }
 
-.search-bar-container {
-    flex-grow: 1;
-    padding: 0px 56px 0px 8px;
-    background: #eaf1fb;
-    border-radius: 32px;
+/* Header Styling */
+.header-container {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    margin-right: 15px;
+    margin-bottom: 24px;
+    background: white;
+    padding: 16px 24px;
+    border-radius: 12px;
 }
 
-input {
+.header-text h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    letter-spacing: -0.5px;
+}
+
+.spacer {
+    flex: 1 1 auto;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.header-buttons mat-divider {
+    height: 32px;
+    margin: 0 8px;
+}
+
+.error-msg-header {
+    margin: 0 24px 16px;
+    color: #d32f2f;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Common Card Styling */
+mat-card {
+    border-radius: 12px !important;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+/* Filter Card */
+.filter-card {
+    background: white;
+}
+
+.filter-card mat-card-header {
+    padding: 16px 24px 0 24px;
+}
+
+.filter-card mat-card-title {
     font-size: 1.1rem;
-    outline: none;
-    border: none;
-    background: inherit;
-    min-width: 352px;
-    flex-grow: 1;
+    font-weight: 600;
+    color: #444;
 }
 
+.filter-content {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 16px 24px 24px 24px;
+}
 
+.search-field {
+    flex: 2;
+    min-width: 300px;
+}
 
-.button-container {
+mat-form-field {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filter-options {
     display: flex;
     align-items: center;
+    padding: 0 8px;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+/* Action Card */
+.action-card {
+    background-color: #e3f2fd;
+    border: 1px solid #bbdefb;
+}
+
+.action-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px !important;
+}
+
+.selection-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #1976d2;
+}
+
+.btn-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.error-msg {
+    margin: 0;
+    color: #d32f2f;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Table Card */
+.table-card {
+    background: white;
+}
+
+.row-count-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid #f1f3f5;
+    background: #f8f9fa;
+}
+
+.count-badge {
+    background: #4F709C;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
 }
 
 .table-container {
-    margin-top: 15px;
+    position: relative;
+    overflow: auto;
+}
+
+table.modern-table {
+    width: 100%;
+}
+
+.mat-header-cell {
+    background: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mat-cell {
+    padding: 12px;
+    color: #444;
+}
+
+.bold-text {
+    font-weight: 600;
+    color: #212529;
+}
+
+.ref-text {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.price-text {
+    font-weight: 700;
+    color: #2e7d32;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85rem;
+}
+
+.tiny-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: #999;
+}
+
+/* Status Badges */
+.status-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    width: fit-content;
+}
+
+.status-badge mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+}
+
+.status-badge.invoiced {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-badge.pending {
+    background: #fff3e0;
+    color: #ef6c00;
+}
+
+.type-badge {
+    padding: 2px 8px;
+    background: #f1f3f5;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: #495057;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+/* Expandable Rows */
+.element-row:not(.expanded-row):hover {
+    background: #f8f9fa;
     cursor: pointer;
 }
 
-.article-table {
-    table-layout: fixed;
-    width: 100%;
-    border-collapse: collapse;
+.element-row:not(.expanded-row):active {
+    background: #ebebeb;
 }
 
-.date-picker-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.article-table-cell {
-    border: 1px 1px #dddddd;
-    text-align: center;
-    padding: 3px;
-}
-
-.icon-center {
-    display: flex;
-    justify-content: center;
-    /* Centers horizontally */
-    align-items: center;
-    /* Centers vertically */
-}
-
-.reference-column {
-    width: 30%;
-}
-
-
-table {
-    width: 100%;
-}
-
-.mat-mdc-form-field {
-    font-size: 14px;
-    width: 100%;
-}
-
-td,
-th {
-    width: 25%;
-}
-
-tr.example-detail-row {
-    height: 0;
-}
-
-tr.example-element-row:not(.example-expanded-row):hover {
-    background: whitesmoke;
-}
-
-tr.example-element-row:not(.example-expanded-row):active {
-    background: #efefef;
-}
-
-.example-element-row td {
+.element-row td {
     border-bottom-width: 0;
 }
 
-.example-element-detail {
+/* Detail View */
+.detail-container {
     overflow: hidden;
+    background: #fafafa;
+    border-top: 1px solid #eee;
+}
+
+.detail-header {
     display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 24px 8px;
+    color: #555;
+    font-weight: 600;
 }
 
-.example-element-diagram {
-    min-width: 80px;
-    border: 2px solid black;
-    padding: 8px;
-    font-weight: lighter;
-    margin: 8px 0;
-    height: 104px;
-}
-
-.example-element-symbol {
-    font-weight: bold;
-    font-size: 40px;
-    line-height: normal;
-}
-
-.example-element-description {
-    padding: 16px;
-}
-
-.example-element-description-attribution {
-    opacity: 0.5;
-}
-
-.card-details {
-    margin: 20px;
-    padding: 20px;
-}
-
-.devide-width {
-    width: 32%;
-    /* Adjust width to account for the gap */
-    margin-bottom: 15px;
-}
-
-
-
-.full-width {
-    width: 100%;
-    margin-bottom: 15px;
-}
-
-.half-width-wrapper {
-    display: flex;
-    flex-wrap: wrap;
+.detail-content {
+    padding: 8px 24px 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 16px;
-    /* Adds space between the form fields */
 }
 
-.action-document-buttons {
+.merchandise-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.m-header {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 10px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
-    align-items: center;
-    /* Ensures vertical centering */
+    justify-content: space-between;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #f5f5f5;
+    padding-bottom: 4px;
 }
 
-.control-button-filter {
-    display: flex;
-    justify-content: flex-start;
-    /* Align to the left */
-    align-items: center;
-    /* Center vertically */
-    margin: 12px;
-    /* Adjust margin for spacing */
-    height: 50px;
-    /* Adjust this based on the button size */
-}
-
-.control-button-filter button {
-    margin: auto;
-    /* Ensure even spacing */
-    padding: 10px 20px;
-    /* Adjust button padding */
-    margin-right: 10px;
-}
-
-/* Optional: Remove the right margin for the last button */
-.control-button-filter button:last-child {
-    margin-right: 0;
-}
-
-.control-button-filter p {
-    margin: 10px;
-    padding: 5px 0;
-    text-align: center;
-}
-
-.control-button-filter span {
-    display: inline-block;
-    font-size: 14px;
-    font-weight: bold;
-    color: #d9534f;
-    /* Bootstrap danger red */
-    /*background-color: #f8d7da;  Light red background */
-    padding: 5px 10px;
-    /* border-radius: 5px;
-    border: 1px solid #d9534f; */
-}
-
-.invoice_docs {
-    background-color: #213555;
-    color: white;
-}
-
-.invoice_button {
-    background-color: #4F709C;
-    color: white;
-}
-
-.control-button {
-    display: flex;
-    justify-content: flex-end;
-    /* Align items to the end (left) */
-    margin-right: 12px;
-    margin-top: 18px;
-    align-items: center;
-}
-
-.control-button button {
-    margin-right: 10px;
-    /* Add space between buttons */
-}
-
-/*Optional: Remove the right margin for the last button */
-.control-button button:last-child {
-    margin-right: 0;
-}
-
-.reset {
-    background-color: #f44336;
-    color: white;
-}
-
-.filter {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.full-width {
-    width: 100%;
-    margin-bottom: 15px;
-}
-
-.blue-icon {
-    color: blue;
-}
-
-.red-icon {
-    color: red;
-}
-
-.green-icon {
-    color: green;
-}
-
-
-/* Merchandise Details */
-
-.merchandise-number {
-    font-weight: normal;
+.m-index {
     color: #1caa92;
-    margin-bottom: 8px;
-    /* Add spacing if needed */
+    font-weight: bold;
 }
 
-.merchandise-element-detail {
-    display: block;
-    /* padding: 16px; */
-    background-color: #f9f9f9;
-    /* border: 1px solid #ddd;
-    border-radius: 4px; */
-    overflow: hidden;
-    margin-top: 8px;
+.m-ref {
+    font-size: 0.85rem;
+    color: #666;
 }
 
-.merchandise-detail {
-    display: flex;
-    margin-bottom: 16px;
-    margin-right: 16px;
-}
-
-.merchandise-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    /* Space between items */
-}
-
-.merchandise-item {
-    flex: 1 1 200px;
-    /* Flex-grow, flex-shrink, and flex-basis */
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: #fff;
-}
-
-h6 {
-    margin-bottom: 8px;
-    font-size: 16px;
+.m-desc {
+    font-size: 0.9rem;
+    margin: 4px 0 12px;
     color: #333;
 }
 
-/* Filter Section*/
-/* .filter-container {
+.m-stats {
     display: flex;
-    /* border: 1px solid #ccc;
-    
-    width: 100%;
-} */
+    justify-content: space-between;
+    gap: 8px;
+}
 
-.filter-container {
+.m-stat {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 40px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
+    flex-direction: column;
 }
 
-.filter-container mat-radio-group:last-child {
-    margin-left: 20px;
+.m-stat .label {
+    font-size: 0.7rem;
+    color: #999;
+    text-transform: uppercase;
 }
 
-.filter-buttons button {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
+.m-stat .value {
+    font-weight: 600;
+    font-size: 0.9rem;
 }
 
-.mat-mdc-radio-button~.mat-mdc-radio-button {
-    margin-left: 16px;
+.m-stat.highlight .value {
+    color: #3f51b5;
 }
 
+.no-data {
+    text-align: center;
+    padding: 40px !important;
+    color: #999;
+}
+
+.no-data mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+}
+
+/* Checkbox Column */
 .checkbox-width {
-    width: 45px;
-}
-
-.row-count {
-    margin-bottom: 16px;
-    font-size: 18px;
-    font-weight: normal;
-    color: #4F709C;
+    width: 48px;
+    padding-left: 16px !important;
 }

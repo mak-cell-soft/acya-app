@@ -591,7 +591,7 @@ namespace ms.webapp.api.acya.api.Controllers
           {
               await _accountService.AddLedgerEntryAsync(
                   doc.CounterPartId, 
-                  "Invoice", 
+                  doc.Type.ToString(), 
                   (decimal)doc.TotalCostNetTTCDoc, 
                   doc.Id, 
                   $"Movement for document {doc.DocNumber}");
