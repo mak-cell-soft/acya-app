@@ -83,6 +83,7 @@ export class ListArticleComponent implements AfterViewInit {
   update_button: string = UPDATE_BUTTON;
   abort_button: string = ABORT_BUTTON;
   add_button: string = ADD_BUTTON;
+  general_informations_label: string = GENERAL_INFORMATIONS;
   //#endregion
 
   //#region Declarations
@@ -120,6 +121,12 @@ export class ListArticleComponent implements AfterViewInit {
   quantityUnit!: QuantityUnits; // This will hold the selected value
   categories: Category[] = [];
   filteredSubCategories: SubCategory[] = [];
+
+  // Filter properties
+  categoryFilterValue: number | null = null;
+  subcategoryFilterValue: number | null = null;
+  searchFilterValue: string = '';
+  filteredSubCategoriesForFilter: SubCategory[] = [];
   //#endregion
 
   @ViewChild(MatPaginator) paginatorArticles!: MatPaginator;
@@ -137,6 +144,7 @@ export class ListArticleComponent implements AfterViewInit {
   ngAfterViewInit() {
     this.allArticles.paginator = this.paginatorArticles;
     this.allArticles.sort = this.sort;
+    this.setFilterPredicate(); // Setup multi-column filter
     this.getAllArticles();
     this.getAllCategories();
     this.getAllThickness();
@@ -145,172 +153,68 @@ export class ListArticleComponent implements AfterViewInit {
     this.getAllLength();
   }
 
-  editArticle(article: Article): void {
-    this.isArticleToEdit = true;
-    this.selectedArticle = article;
+  setFilterPredicate() {
+    this.allArticles.filterPredicate = (data: Article, filter: string) => {
+      const searchTerms = JSON.parse(filter);
 
-    // Test if the expanded element is Wood to display width, thickness and lengths
-    if (this.expandedElement?.categoryid === 1) {
-      this.woodId === 1;
+      const searchStr = `${data.reference} ${data.description}`.toLowerCase();
+      const matchSearch = searchStr.includes(searchTerms.search.toLowerCase());
+
+      const matchCategory = searchTerms.category ? data.categoryid === searchTerms.category : true;
+      const matchSubCategory = searchTerms.subcategory ? data.subcategoryid === searchTerms.subcategory : true;
+
+      return matchSearch && matchCategory && matchSubCategory;
+    };
+  }
+
+  triggerFilter() {
+    const filterObject = {
+      search: this.searchFilterValue,
+      category: this.categoryFilterValue,
+      subcategory: this.subcategoryFilterValue
+    };
+    this.allArticles.filter = JSON.stringify(filterObject);
+
+    if (this.paginatorArticles) {
+      this.paginatorArticles.firstPage();
     }
+  }
 
-    // Loop through all articles and set editing to false except for the selected one
-    this.allArticles.data.forEach(art => {
-      art.editing = (art.id === article.id); // Only the selected article will have editing = true
-    });
+  onCategoryFilterChange(categoryId: any) {
+    this.categoryFilterValue = categoryId;
+    this.subcategoryFilterValue = null; // Reset subcat when cat changes
 
-    // Create or reset the form
-    this.createForm();
-
-    // if article is Wood Dimensions config
-    var _thickness!: any;
-    var _width!: any;
-    if (article.iswood) {
-      this.woodId === 1;
-      _thickness = article.thickness?.id;
-      _width = article.width?.id;
-      this.initializeLengths(article);
+    if (categoryId) {
+      const selected = this.categories.find(c => c.id === categoryId);
+      this.filteredSubCategoriesForFilter = selected ? selected.firstchildren : [];
     } else {
-      _thickness = null;
-      _width = null;
+      this.filteredSubCategoriesForFilter = [];
     }
 
-    // Patch the form with the selected article's values
-    this.selectedArticleForm.patchValue({
-      articlecode: article.reference,
-      description: article.description,
-      selectedCategory: article.category?.id || '',
-      selectedSubCategory: this.onCategoryChange(article.category?.id || 1),
-      selectedThickness: _thickness,
-      selectedWidth: _width,
-      // selectedPriceTTC: this.selectedArticle.sellprice_ttc ? this.selectedArticle.sellprice_ttc.toFixed(3) : '0.000',
-      selectedPriceTTC: this.selectedArticle.sellprice_ttc && !isNaN(Number(this.selectedArticle.sellprice_ttc))
-        ? Number(this.selectedArticle.sellprice_ttc).toFixed(3)
-        : '0.000',
+    this.triggerFilter();
+  }
 
-      selectedTva: article.tvaid,
-      quantityUnit: Object.values(QuantityUnits).find(unit => unit.startsWith(article.unit?.substring(0, 3))),
-      calculatedPriceHT: article.sellprice_ht,
-      minquantity: article.minquantity,
-      profitpercentage: article.profitmarginpercentage
+  onSubCategoryFilterChange(subCategoryId: any) {
+    this.subcategoryFilterValue = subCategoryId;
+    this.triggerFilter();
+  }
+
+  OpenDialogAddArticle(article?: Article): void {
+    const dialogRef = this.dialog.open(AddArticleComponent, {
+      width: '1000px',
+      maxWidth: '95vw',
+      data: article ? { article: article } : null
     });
 
-    // Manually trigger category change to update subcategories
-    this.onCategoryChange(article.category?.id ?? 0);
-
-    // After the subcategory list is updated, patch the selected subcategory value
-    this.selectedArticleForm.patchValue({
-      selectedSubCategory: article.subcategory?.id || ''
-    });
-
-  }
-
-  // Method to calculate 'calculatedPriceHT'
-  CalculatePriceTTC_HT(): void {
-    const selectedPriceTTC = this.selectedArticleForm.get('selectedPriceTTC')?.value;
-    const selectedTvaId = this.selectedArticleForm.get('selectedTva')?.value;
-
-    if (selectedPriceTTC != null && selectedTvaId != null) {
-      const selectedTva = this.appvariablesTVA.find(tva => tva.id === selectedTvaId);
-
-      if (selectedTva && selectedTva.value != null) {
-        const calculatedPriceHT = selectedPriceTTC / (1 + (parseFloat(selectedTva.value)) / 100);
-        this.selectedArticleForm.get('calculatedPriceHT')?.setValue(calculatedPriceHT.toFixed(3), { emitEvent: false });
-      }
-    }
-  }
-
-  confirmBeforeSaveEdit(article: Article): Article | null {
-    if (article != null) {
-      // Check if the article is a wood item but the unit is not 'M3'
-      let _u = this.selectedArticleForm.get('quantityUnit')?.value;
-      if (article.iswood && _u !== QuantityUnits.m3) {
-        this.toastr.warning("Unit does not match the selected category.");
-        return null; // Exit early and stop the procedure
-      }
-
-      // Rest of the mapping logic
-      if (this.selectedArticleForm.valid) {
-        const formValues = this.selectedArticleForm.value;
-        article.id = this.selectedArticle!.id || 0;
-        article.updatedby = 1; // Example hard-coded user, should be dynamic
-
-        // Map article fields from the form
-        article.reference = formValues.articlecode;
-        article.description = formValues.description;
-        article.sellprice_ttc = formValues.selectedPriceTTC;
-        article.sellprice_ht = formValues.calculatedPriceHT;
-        article.minquantity = formValues.minquantity;
-        article.profitmarginpercentage = formValues.profitpercentage;
-        article.updatedate = new Date();
-
-        article.unit = this.selectedArticleForm.get('quantityUnit')?.value.substring(0, 3);
-        article.lengths = this.selectedLengths || null;
-        article.lastpurchaseprice_ttc = 0;
-
-        // Map related entities
-        article.categoryid = this.categories.find(category => category.id === formValues.selectedCategory)?.id || 0;
-        article.subcategoryid = this.filteredSubCategories.find(subcategory => subcategory.id === formValues.selectedSubCategory)?.id || 0;
-        article.thicknessid = this.appvariablesThikness.find(thickness => thickness.id === formValues.selectedThickness)?.id || null;
-        article.widthid = this.appvariablesWidth.find(width => width.id === formValues.selectedWidth)?.id || null;
-        article.tvaid = this.appvariablesTVA.find(tva => tva.id === formValues.selectedTva)?.id || 0;
-
-        // Check if it's a wood product
-        article.iswood = this.woodId === 1;
-      }
-      console.log("Article Updated Sended : " + article);
-      return article; // Return the valid article
-    }
-    return null;
-  }
-
-  saveArticle(): void {
-    let article = this.selectedArticle as Article;
-    let _article = this.confirmBeforeSaveEdit(article);
-
-    if (!_article) {
-      // Exit if the article validation failed (i.e., if _article is null)
-      return;
-    }
-
-
-
-    // Dispatch the updateArticle action with the article data
-    // this.store.dispatch(ArticleActions.updateArticle({ id: article.id, article: _article }));
-
-    this.articleService.Put(article.id, _article).subscribe({
-      next: (response) => {
-        console.log("Updated Article RESPONSE : ", response);
-        this.toastr.success(response.reference, 'Mis à jour');
-        this.getAllArticles();
-      },
-      error: (error) => {
-        console.error('Error Updating Articles:', error);
-        const errorMessage = error.error?.message || 'Erreure lors de la mise à jour'; // Default message if no specific error message
-        this.toastr.warning(errorMessage, 'Erreur');
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
         this.getAllArticles();
       }
     });
-
-
-    // Reset the selectedArticle and editing states
-    this.isArticleToEdit = false;
-    this.selectedArticle = null;
   }
 
-  cancelEditArticle(article: Article) {
-    this.isArticleToEdit = false;
-    this.selectedArticle = null;
-
-    // Create a new object with editing set to false
-    this.allArticles.data = this.allArticles.data.map(art =>
-      art.id === article.id ? { ...art, editing: false } : art
-    );
-  }
-
-  cancelEditArticleButton() {
-    this.isArticleToEdit = false;
-    this.selectedArticle = null;
+  editArticle(element: Article) {
+    this.OpenDialogAddArticle(element);
   }
 
   deleteArticle(article: Article) {
@@ -322,120 +226,28 @@ export class ListArticleComponent implements AfterViewInit {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        console.log('Item deleted:', item);
         this.articleService.Delete(article.id).subscribe({
           next: () => {
             this.allArticles.data = this.allArticles.data.filter(p => p.id !== article.id);
-            this.toastr.success('Article deleted successfully');
+            this.toastr.success('Article supprimé avec succès');
           },
-          error: () => this.toastr.error('Error deleting Article')
+          error: () => this.toastr.error('Erreur lors de la suppression')
         });
-      } else {
-        console.log('Deletion canceled');
-        this.toastr.info("Suppression annulé");
       }
     });
-
   }
 
   applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.allArticles.filter = filterValue.trim().toLowerCase();
-
-    if (this.paginatorArticles) {
-      this.paginatorArticles.firstPage();
-    }
+    this.searchFilterValue = (event.target as HTMLInputElement).value;
+    this.triggerFilter();
   }
 
-  OpenDialogAddArticle() {
-    const dialogRef = this.matDialog.open(AddArticleComponent, {
-      width: '800px'
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
-      // Handle the result here
-    });
-  }
-
-  createForm() {
-    this.selectedArticleForm = this.fb.group({
-      articlecode: ['', Validators.required],
-      description: ['', Validators.required],
-      selectedCategory: ['', Validators.required],
-      selectedSubCategory: ['', Validators.required],
-      selectedThickness: [''],
-      selectedWidth: [''],
-      selectedLengths: [''],
-      selectedPriceTTC: ['', Validators.required],
-      selectedTva: ['', Validators.required],
-      calculatedPriceHT: [{ value: '' }],
-      quantityUnit: ['', Validators.required],
-      minquantity: ['', Validators.required],
-      profitpercentage: ['']
-    });
-
-    // Call the method whenever 'selectedPriceTTC' or 'selectedTva' changes
-    this.selectedArticleForm.valueChanges.subscribe(() => {
-      this.CalculatePriceTTC_HT();
-    });
-  }
-
-  onCategoryChange(categoryId: number) {
-    const selectedCategory = this.categories.find(category => category.id === categoryId);
-    this.filteredSubCategories = selectedCategory ? selectedCategory.firstchildren : [];
-    console.log("SELECTED CATEGORY = ", selectedCategory);
-
-    // Set woodId
-    this.woodId = selectedCategory ? selectedCategory.id : 0;
-    this.selectedSubCategory = null; // Reset the selected subcategory
-
-    // Check if woodId is 1
-    if (this.woodId === 1) {
-      // Auto-select m3, make it readonly, and disable the select
-      this.quantityUnits = Object.values(QuantityUnits);
-      this.selectedArticleForm.get('quantityUnit')?.setValue(QuantityUnits.m3);
-      this.isQuantityUnitDisabled = false;  // Enable the <mat-select>
-    } else {
-      // Enable the field and filter out m3 from the options
-      this.selectedArticleForm.get('quantityUnit')?.enable();
-      this.quantityUnits = Object.values(QuantityUnits).filter(unit => unit !== QuantityUnits.m3);
-      this.isQuantityUnitDisabled = false;  // Enable the <mat-select>
-    }
-  }
-
-  isLengthSelected(length: string): boolean {
-    return this.selectedLengthNames.includes(length);
-  }
-
-  onLengthSelectionChange(event: any, length: string): void {
-    if (event.checked) {
-      this.selectedLengthNames.push(length);
-    } else {
-      this.selectedLengthNames = this.selectedLengthNames.filter(item => item !== length);
-    }
-
-    // Update selectedLengths string with the format [3.3, 3.6, 5.4]
-    this.selectedLengths = `[${this.selectedLengthNames.join(', ')}]`;
-    console.log("SELECTED LENGTHS : ", this.selectedLengths);
-  }
-
-  initializeLengths(article: any): void {
-    if (article.lengths && typeof article.lengths === 'string') {
-      // Remove the brackets and split the string by ',' to get individual lengths
-      this.selectedLengthNames = article.lengths
-        .replace('[', '')  // Remove starting bracket
-        .replace(']', '')  // Remove ending bracket
-        .split(',')        // Split by comma
-        .map((length: string) => length.trim());  // Trim spaces around each length
-    } else {
-      // If no lengths or incorrect format, initialize as empty array
-      this.selectedLengthNames = [];
-    }
-
-    // Update the formatted string for display (optional)
-    this.selectedLengths = this.selectedLengthNames.join(', ');
-    // console.log("===============  Initialized Lengths: ", this.selectedLengths);  // This should now print just the lengths
-    // console.log("===============  Initialized Lengths: ", this.appvariablesLength);  // This should now print just the lengths
+  resetFilters() {
+    this.searchFilterValue = '';
+    this.categoryFilterValue = null;
+    this.subcategoryFilterValue = null;
+    this.filteredSubCategoriesForFilter = [];
+    this.triggerFilter();
   }
 
   //#region Get All Data for filtering

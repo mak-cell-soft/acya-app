@@ -1,76 +1,138 @@
-.card-details {
-    margin: 20px;
-    padding: 20px;
-}
-
-.half-width {
-    width: calc(50% - 10px);
-    /* Adjust width to account for the gap */
-    margin-bottom: 15px;
-}
-
-.full-width {
-    width: 100%;
-    margin-bottom: 15px;
-}
-
-.half-width-wrapper {
+.modal-header {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    /* Adds space between the form fields */
-}
-
-.form-content {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    /* Adjust the gap value as needed */
-    padding: 15px;
-}
-
-.form-content-price {
-    display: inline-flex;
-    flex-wrap: wrap;
-    gap: 40px;
-    /* Adjust the gap value as needed */
-    padding: 15px;
-}
-
-.form-field-price {
-    min-width: 40px;
-}
-
-/* mat-form-field{
-    font-weight: 400;
-    font-size: x-large;
-} */
-
-.form-field {
-    min-width: 49%;
-    /* Minimum width to ensure proper wrapping */
-}
-
-.control-button {
-    display: flex;
-    justify-content: flex-end;
-    /* Align items to the end (left) */
-    margin-right: 12px;
-    margin-top: 12px;
     align-items: center;
+    gap: 12px;
+    padding: 24px 32px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
 }
 
-.control-button button {
-    margin-right: 10px;
-    /* Add space between buttons */
+.modal-header mat-icon {
+    font-size: 28px;
+    height: 28px;
+    width: 28px;
+    color: #0ea5e9;
 }
 
-/* Optional: Remove the right margin for the last button */
-.control-button button:last-child {
-    margin-right: 0;
+.modal-header span {
+    font-weight: 700;
+    color: #1a1a1a;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
 }
 
-.full-width {
-    width: 100%;
-    margin-bottom: 15px;
+.modal-content {
+    padding: 32px !important;
+    max-height: 75vh;
+}
+
+.form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.section-title {
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+.flex-2 {
+    flex: 2;
+}
+
+.highlight-section {
+    background: #f0f9ff;
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid rgba(14, 165, 233, 0.1);
+    box-shadow: inset 0 2px 4px 0 rgba(14, 165, 233, 0.05);
+}
+
+.field-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 16px;
+}
+
+.chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.length-checkbox {
+    background: white;
+    padding: 4px 12px 4px 8px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.length-checkbox:hover {
+    border-color: #0ea5e9;
+    background: #f0f9ff;
+    transform: translateY(-1px);
+}
+
+.readonly-input {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #0369a1;
+}
+
+.modal-footer {
+    padding: 20px 32px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    gap: 16px;
+}
+
+.save-btn {
+    padding: 0 32px;
+    height: 44px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    border-radius: 8px;
+}
+
+::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+}
+
+@media (max-width: 768px) {
+
+    .modal-header,
+    .modal-content,
+    .modal-footer {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
 }

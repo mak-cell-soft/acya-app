@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, OnInit } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
+import { AfterViewInit, Component, Inject, OnInit, Optional } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Category, SubCategory } from '../../../models/configuration/category';
 import { CategoryService } from '../../../services/configuration/category.service';
 import { AppVariableService } from '../../../services/configuration/app-variable.service';
@@ -86,22 +86,34 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
   quantityUnit!: QuantityUnits; // This will hold the selected value
 
   articleForm!: FormGroup;
+  isEditMode: boolean = false;
 
   constructor(
+    @Optional() public dialogRef: MatDialogRef<AddArticleComponent>,
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: { article: Article },
     private categoryService: CategoryService,
     private appvarService: AppVariableService,
     private articleService: ArticleService,
     private toastr: ToastrService,
     private fb: FormBuilder,
     private router: Router
-  ) { }
+  ) {
+    if (this.data && this.data.article) {
+      this.isEditMode = true;
+    }
+  }
 
   onNoClick(): void {
-    //this.dialogRef.close();
+    if (this.dialogRef) {
+      this.dialogRef.close();
+    }
   }
 
   ngOnInit(): void {
     this.createForm();
+    if (this.isEditMode) {
+      this.patchForm();
+    }
   }
 
 
@@ -234,20 +246,58 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
     const selectedCategory = this.categories.find(category => category.id === categoryId);
     this.filteredSubCategories = selectedCategory ? selectedCategory.firstchildren : [];
     console.log("SELECTED CATEGORY = ", selectedCategory);
-    this.woodId === selectedCategory!.id;
+    this.woodId = selectedCategory?.id || 0;
     this.selectedSubCategory = null; // Reset the selected subcategory
 
     // Check if woodId is 1
     if (this.woodId === 1) {
-      // Auto-select m3 and make the field readonly
       this.articleForm.get('quantityUnit')?.setValue(QuantityUnits.m3);
-      this.articleForm.get('quantityUnit')?.disable(); // Make it readonly
+      this.articleForm.get('quantityUnit')?.disable();
     } else {
-      // Enable the field and filter out m3 from the options
       this.articleForm.get('quantityUnit')?.enable();
       this.quantityUnits = Object.values(QuantityUnits).filter(unit => unit !== QuantityUnits.m3);
     }
+  }
 
+  patchForm() {
+    const article = this.data.article;
+    this.woodId = article.category?.id || 0;
+
+    this.articleForm.patchValue({
+      articlecode: article.reference,
+      description: article.description,
+      selectedCategory: article.category?.id,
+      selectedSubCategory: article.subcategory?.id,
+      selectedThikness: article.thickness?.id,
+      selectedWidth: article.width?.id,
+      selectedPriceTTC: article.sellprice_ttc,
+      selectedTva: article.tvaid,
+      calculatedPriceHT: article.sellprice_ht,
+      quantityUnit: Object.values(QuantityUnits).find(unit => unit.startsWith(article.unit?.substring(0, 3))),
+      minquantity: article.minquantity,
+      profitpercentage: article.profitmarginpercentage
+    });
+
+    if (article.iswood) {
+      this.initializeLengths(article);
+    }
+
+    this.onCategoryChange(this.woodId);
+    // Re-patch subcategory because onCategoryChange might reset it
+    this.articleForm.get('selectedSubCategory')?.setValue(article.subcategory?.id);
+  }
+
+  initializeLengths(article: Article): void {
+    if (article.lengths && typeof article.lengths === 'string') {
+      this.selectedLengthNames = article.lengths
+        .replace('[', '')
+        .replace(']', '')
+        .split(',')
+        .map((length: string) => length.trim());
+    } else {
+      this.selectedLengthNames = [];
+    }
+    this.selectedLengths = article.lengths || '';
   }
 
   applyValidators(): void {
@@ -300,8 +350,12 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
       // Determine if it's a wood product
       article.iswood = this.woodId === 1;
 
-      // Now send the article object
-      this.addArticle(article);
+      if (this.isEditMode) {
+        article.id = this.data.article.id;
+        this.updateArticle(article);
+      } else {
+        this.addArticle(article);
+      }
     } else {
       this.toastr.warning("Valider les champs de saisie d\'abord !");
     }
@@ -312,8 +366,12 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
       console.log("ARTICLE TO SEND : ", article);
       this.articleService.AddArticle(article).subscribe({
         next: (response) => {
-          this.toastr.success('Successfully added article: ' + response.reference);
-          this.router.navigateByUrl('home/articles');
+          this.toastr.success('Article ajouté avec succès: ' + response.reference);
+          if (this.dialogRef) {
+            this.dialogRef.close(true);
+          } else {
+            this.router.navigateByUrl('home/articles');
+          }
         },
         error: (error) => {
           if (error.status === 409) {
@@ -337,6 +395,21 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
     } else {
       this.toastr.warning('Warning: Article is missing.');
     }
+  }
+
+  updateArticle(article: Article): void {
+    this.articleService.Put(article.id, article).subscribe({
+      next: (response) => {
+        this.toastr.success('Article mis à jour avec succès');
+        if (this.dialogRef) {
+          this.dialogRef.close(true);
+        }
+      },
+      error: (error) => {
+        this.toastr.error('Erreur lors de la mise à jour');
+        console.error(error);
+      }
+    });
   }
 
   getAllLengths() {
