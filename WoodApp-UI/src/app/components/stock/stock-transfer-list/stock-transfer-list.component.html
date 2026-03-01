@@ -4,10 +4,7 @@
             <h2>Liste des Bons de Transfert</h2>
         </div>
         <div class="header-buttons">
-            <button mat-flat-button color="warn" routerLink="/home/dashboard" style="margin-right: 8px;">
-                <mat-icon>arrow_back</mat-icon> Retour
-            </button>
-            <button mat-flat-button color="primary" [routerLink]="['add']">
+            <button mat-raised-button color="primary" (click)="openAddTransferDialog()">
                 <mat-icon>add</mat-icon> Nouveau Transfert
             </button>
         </div>
@@ -25,7 +22,8 @@
         </div>
 
         <div class="table-wrapper">
-            <table mat-table [dataSource]="allTransfersStock" matSort matSortActive="transferDate" matSortDirection="desc" class="transfer-table">
+            <table mat-table [dataSource]="allTransfersStock" matSort matSortActive="transferDate"
+                matSortDirection="desc" class="transfer-table">
                 <!-- Doc Sortie Column -->
                 <ng-container matColumnDef="docSortie">
                     <th mat-header-cell *matHeaderCellDef mat-sort-header>Réf. Sortie</th>

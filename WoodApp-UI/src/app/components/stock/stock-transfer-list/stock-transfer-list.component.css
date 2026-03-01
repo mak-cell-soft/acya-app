@@ -198,3 +198,15 @@ mat-paginator {
     border-top: 1px solid #f1f3f5;
     margin-top: 8px;
 }
+
+::ng-deep .modern-dialog .mat-mdc-dialog-container {
+    padding: 0 !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+::ng-deep .modern-dialog .mat-mdc-dialog-surface {
+    border-radius: 12px !important;
+    overflow: hidden !important;
+}

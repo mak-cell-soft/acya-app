@@ -1,307 +1,241 @@
-.card-details {
-    margin: 20px;
-    padding: 20px;
-}
-
-.reset {
-    background-color: #f44336;
-    color: white;
-}
-
-.filter {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.half-width {
-    width: calc(50% - 10px);
-    /* Adjust width to account for the gap */
-    margin-bottom: 15px;
-}
-
-.full-width {
-    width: 100%;
-    margin-bottom: 15px;
-}
-
-.half-width-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    /* Adds space between the form fields */
-}
-
-.control-button {
-    display: flex;
-    justify-content: flex-end;
-    /* Align items to the end (left) */
-    margin-right: 12px;
-    margin-top: 18px;
-    align-items: center;
-}
-
-.control-button button {
-    margin-right: 10px;
-    /* Add space between buttons */
-}
-
-/*Optional: Remove the right margin for the last button */
-.control-button button:last-child {
-    margin-right: 0;
-}
-
-.add-button {
-    display: flex;
-    cursor: pointer;
-}
-
-.add-button button {
-    width: 10%;
-}
-
-mat-select {
-    margin-top: 8px;
-    width: 100%;
-}
-
-.article-description {
-    font-size: 0.8em;
-    color: cadetblue;
-    display: inline;
-}
-
-.summary-container {
-    display: flex;
-    flex-direction: column;
-    width: 50%;
-    /* Occupy half the width */
-    margin-left: auto;
-    margin-right: 20px;
-    /* Push to the right side */
-    padding-top: 20px;
-}
-
-.summary-row {
+/* Modal Structure */
+.modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid #d0d0d0;
-    /* Optional separator for rows */
+    padding: 16px 24px;
+    background: #ffffff;
+    color: #1e293b;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 12px 12px 0 0;
 }
 
-.summary-label {
-    font-weight: bold;
-    color: #333;
-    /* Darker label text */
-    flex: 1;
-    /* Takes the first column */
-}
-
-.summary-value {
-    flex: 1;
-    /* Takes the second column */
-    text-align: right;
-    /* Align values to the right */
-    color: #000;
-    /* Ensure value contrast */
-}
-
-.add-merchandise-button {
-    margin-top: 15px;
-}
-
-.control-button {
+.modal-header h2 {
     display: flex;
-    justify-content: flex-end;
-    /* Align items to the end (left) */
-    margin-right: 12px;
-    margin-top: 35px;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.modal-header mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+    color: #3b82f6;
+    /* Accent color for the icon */
+}
+
+.close-button {
+    color: #64748b;
+    transition: all 0.2s ease;
+}
+
+.close-button:hover {
+    color: #ef4444;
+    background-color: #fef2f2;
+}
+
+.modal-content {
+    padding: 24px !important;
+    background-color: #f8fafc;
+}
+
+.modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+    background: white;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
 }
 
-.control-button button {
-    margin-right: 10px;
-    /* Add space between buttons */
+/* Section Cards */
+.card-details {
+    margin: 0 0 24px 0 !important;
+    padding: 24px;
+    border-radius: 12px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* Optional: Remove the right margin for the last button */
-.control-button button:last-child {
-    margin-right: 0;
+/* Form Layout */
+.filter-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
 }
 
-/* .quantity-description {
-    font-size: 12px;
-    color: green;
-    /* margin-top: 4px; 
-} */
-
-.quantity-description {
-    font-size: 0.75rem;
-    color: rgba(0, 0, 0, 0.54);
-    margin-top: 4px;
+.full-width {
+    grid-column: span 2;
 }
 
-.error-hint {
-    color: #f44336;
-    /* Red color for error messages */
-    font-size: 12px;
-    margin-top: 4px;
+.half-width-wrapper {
+    display: contents;
 }
 
-.error-message {
-    color: #f44336;
-    /* Material red color */
-    font-size: 12px;
-    margin-top: -10px;
-    margin-bottom: 10px;
-}
-
-input[disabled] {
-    background-color: #f5f5f5;
-    /* Light gray background for disabled inputs */
-    cursor: not-allowed;
-    /* Change cursor to indicate the input is disabled */
-}
-
-/* Merchandise select dropdown */
-.merchandise-select {
-    margin-top: 8px;
-    width: 100%;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-    border: 1px solid #e0e0e0;
-}
-
-/* Option styling */
-.merchandise-option {
-    padding: 8px 16px;
-    border-bottom: 1px solid #f0f0f0;
-    transition: background-color 0.2s;
-}
-
-.merchandise-option:hover {
-    background-color: #f5f5f5;
-}
-
-.merchandise-option .option-content {
+/* Custom Input Group for Transporter */
+.add-button {
     display: flex;
-    flex-direction: row;
-    gap: 10px;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
 }
 
-.red-icon {
-    color: red;
+.add-button input {
+    flex: 1;
 }
 
-/* Add this to your component's CSS */
+/* Table Enhancements */
+.table-container {
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+table {
+    width: 100%;
+}
+
+th.mat-header-cell {
+    background-color: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: 12px 16px !important;
+}
+
+td.mat-cell {
+    padding: 12px 16px !important;
+    color: #1e293b;
+}
+
+.merchandise-select {
+    margin-top: 4px;
+    font-size: 0.85rem;
+}
+
+.selected-merchandise {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* Quantity Input Styling */
 .quantity-container {
     display: flex;
     align-items: center;
-    min-width: 200px;
-    /* Ensure minimum width */
-
-    .quantity-input {
-        flex: 1;
-        min-width: 20px;
-        /* Minimum width for input */
-        margin-right: 2px;
-    }
-
-    .icon-group {
-        display: flex;
-        align-items: center;
-        gap: 0px;
-        flex-shrink: 0;
-        /* Prevent shrinking */
-    }
-
-    .wood-length-button,
-    .stock-info-button {
-        width: 32px;
-        /* Slightly larger for better touch */
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        mat-icon {
-            font-size: 18px;
-            width: 18px;
-            height: 18px;
-            line-height: 18px;
-        }
-    }
-
-    .wood-length-button {
-        color: #5D4037;
-
-        &:hover {
-            background-color: #D7CCC8;
-        }
-    }
-
-    .stock-info-button {
-        color: #1976D2;
-    }
-
-    .wood-lengths-badge {
-        background-color: #5D4037;
-        color: white;
-        border-radius: 12px;
-        padding: 0 6px;
-        font-size: 11px;
-        height: 18px;
-        line-height: 18px;
-    }
+    gap: 8px;
+    background: #f1f5f9;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
 }
 
-/* Adjust table cell padding if needed */
-.mat-cell {
-    padding: 0 4px !important;
+.quantity-input {
+    width: 60px !important;
+    font-weight: 600;
+    text-align: center;
 }
 
-.disabled-button {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-.selected-package-ref {
-    font-weight: 500;
-    color: #2c3e50;
-}
-
-.selected-stock-quantity {
-    color: #7f8c8d;
-    font-size: 0.9em;
-}
-
-/* Package reference styling */
-.package-ref {
+.icon-group {
     display: flex;
     align-items: center;
-    font-weight: 500;
-    color: #2c3e50;
-    font-size: 0.9rem;
+    gap: 4px;
 }
 
-.package-icon {
-    color: #3498db;
-    font-size: 18px;
-    height: 18px;
-    width: 18px;
-    margin-right: 8px;
-}
-
-.stock-quantity {
+/* Summary Panel */
+.summary-container {
     display: flex;
-    align-items: center;
+    gap: 32px;
 }
 
-.stock-icon {
-    color: #27ae60;
-    font-size: 16px;
-    height: 16px;
-    width: 16px;
-    margin-right: 6px;
+.summary-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.summary-item .label {
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.summary-item .value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.summary-item.main .label {
+    color: #3b82f6;
+}
+
+.summary-item.main .value {
+    font-size: 1.5rem;
+    color: #2563eb;
+}
+
+/* Actions */
+.mat-dialog-actions {
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 12px;
+}
+
+.cancel-btn {
+    color: #64748b;
+}
+
+.submit-btn {
+    padding: 0 24px !important;
+    height: 48px !important;
+    font-weight: 600 !important;
+}
+
+.add-merchandise-button {
+    margin: 16px 0;
+    width: 100%;
+    border-style: dashed !important;
+    border-width: 2px !important;
+    background: #f8fafc !important;
+    color: #64748b !important;
+    height: 48px;
+}
+
+.add-merchandise-button:hover {
+    background: #f1f5f9 !important;
+    color: #1e293b !important;
+}
+
+/* Icons Colors */
+.origin {
+    color: #f97316;
+}
+
+.destination {
+    color: #06b6d4;
+}
+
+.red-icon {
+    color: #ef4444;
+}
+
+@media (max-width: 768px) {
+    .filter-container {
+        grid-template-columns: 1fr;
+    }
+
+    .full-width {
+        grid-column: span 1;
+    }
+
+    .summary-container {
+        flex-direction: column;
+        gap: 12px;
+    }
 }

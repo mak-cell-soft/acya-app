@@ -6,6 +6,8 @@ import { AuthenticationService } from '../../../services/components/authenticati
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { TransfertStockComponent } from '../stock-transfer/transfert-stock.component';
 
 interface CategoryGroup {
   categoryName: string;
@@ -25,6 +27,7 @@ export class StockListComponent implements OnInit, AfterViewInit {
   stockService = inject(StockService);
   authService = inject(AuthenticationService);
   router = inject(Router);
+  dialog = inject(MatDialog);
 
   categoryGroups: CategoryGroup[] = [];
   displayedStockColumns: string[] = ['articleReference', 'articleDescription', 'packageReference', 'merchandiseDescription', 'updateDate', 'site', 'quantity', 'updatedBy'];
@@ -146,7 +149,18 @@ export class StockListComponent implements OnInit, AfterViewInit {
     this.router.navigateByUrl('home/stock/mouvement');
   }
   onDisplayStockExit() {
-    this.router.navigateByUrl('home/stock/transferinfo/add');
+    const dialogRef = this.dialog.open(TransfertStockComponent, {
+      width: '1200px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      panelClass: 'modern-dialog'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.getAll(); // Refresh stock list if transfer was successful
+      }
+    });
   }
 }
 

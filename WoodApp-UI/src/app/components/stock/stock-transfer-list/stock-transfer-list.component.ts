@@ -11,6 +11,7 @@ import { AuthenticationService } from '../../../services/components/authenticati
 import { StockService } from '../../../services/components/stock.service';
 import { TransferDetailsDialogComponent } from '../transfer-details-dialog/transfer-details-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { TransfertStockComponent } from '../stock-transfer/transfert-stock.component';
 
 @Component({
   selector: 'app-stock-transfer-list',
@@ -129,6 +130,21 @@ export class StockTransferListComponent {
       maxHeight: '90vh',
       data: details, // Assuming you want the first match
       panelClass: 'transfer-details-dialog'
+    });
+  }
+
+  openAddTransferDialog(): void {
+    const dialogRef = this.dialog.open(TransfertStockComponent, {
+      width: '1200px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      panelClass: 'modern-dialog'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadStockTransfers();
+      }
     });
   }
 

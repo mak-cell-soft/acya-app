@@ -8,7 +8,8 @@ import { TransporterService } from '../../../services/components/transporter.ser
 import { Transporter, Vehicle } from '../../../models/components/customer';
 import { ToastrService } from 'ngx-toastr';
 import { MatSelect } from '@angular/material/select';
-import { MatDialog } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { Optional, Inject } from '@angular/core';
 import { AddTransporterModalComponent } from '../../../dashboard/modals/add-transporter-modal/add-transporter-modal.component';
 import { Merchand, Merchandise } from '../../../models/components/merchandise';
 import { MatTableDataSource } from '@angular/material/table';
@@ -46,6 +47,11 @@ export class TransfertStockComponent implements OnInit {
   appuserService = inject(AppuserService);
   router = inject(Router);
   notificationService = inject(NotificationService);
+
+  constructor(
+    @Optional() public dialogRef: MatDialogRef<TransfertStockComponent>,
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: any
+  ) { }
 
   stockExitForm!: FormGroup;
   loading: boolean = false;
@@ -170,11 +176,10 @@ export class TransfertStockComponent implements OnInit {
   createForm() {
     const today = new Date();
     this.stockExitForm = this.fb.group({
-      FromSiteStock: ['', Validators.required], // Remove hardcoded value
+      FromSiteStock: ['', Validators.required],
       ToSiteStock: ['', Validators.required],
-      selectedArticle: ['', Validators.required],
-      stockDate: [today],
-      transporterControl: ['', Validators.required], // Remove default value
+      stockDate: [today, Validators.required],
+      transporterControl: ['', Validators.required],
       description: ['']
     },
       { validators: this.differentSitesValidator }
@@ -185,19 +190,8 @@ export class TransfertStockComponent implements OnInit {
     this.filteredArticles = this.allArticles;
     this.filteredTransporters = this.allTransporters;
 
-    // Add form validation for the add button
-    this.stockExitForm.valueChanges.subscribe(() => {
-      this.updateFormValidity();
-    });
   }
 
-  // Add this new method
-  updateFormValidity() {
-    const requiredFieldsFilled =
-      this.stockExitForm.get('ToSiteStock')?.valid &&
-      this.stockExitForm.get('transporterControl')?.valid;
-    this.stockExitForm.setErrors(requiredFieldsFilled ? null : { requiredFields: true });
-  }
 
 
   onSiteChange(siteId: number): void {
@@ -346,9 +340,9 @@ export class TransfertStockComponent implements OnInit {
     if (transporter) {
       this.selectedTransporter = transporter;
       console.log("Transporter Selected : ", this.selectedTransporter);
-      // this.stockExitForm.patchValue({
-      //   transporterControl: `${transporter.firstname} ${transporter.lastname}`
-      // });
+      this.stockExitForm.patchValue({
+        transporterControl: `${transporter.firstname} ${transporter.lastname}`
+      });
     }
   }
 
@@ -868,12 +862,10 @@ export class TransfertStockComponent implements OnInit {
         console.log('Transfer Process:', response);
         this.toastr.success(`Processus Transfert. En attente de Confirmation`);
 
-        // Optionally navigate only after ensuring SignalR is connected
-        if (this.notificationService.isConnected()) {
-          this.router.navigateByUrl('/home/stock/transferinfo');
+        // Close dialog if opened as modal, otherwise navigate
+        if (this.dialogRef) {
+          this.dialogRef.close(true);
         } else {
-          // Handle case when SignalR isn't connected
-          this.toastr.warning('Transfer initiated but real-time updates may be delayed');
           this.router.navigateByUrl('/home/stock/transferinfo');
         }
 
@@ -888,6 +880,14 @@ export class TransfertStockComponent implements OnInit {
         this.toastr.error(errorMsg);
       }
     });
+  }
+
+  onAbort() {
+    if (this.dialogRef) {
+      this.dialogRef.close(false);
+    } else {
+      this.router.navigateByUrl('/home/stock/transferinfo');
+    }
   }
   //#endregion
 }
