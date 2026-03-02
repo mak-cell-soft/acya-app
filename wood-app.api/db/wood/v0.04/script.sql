@@ -17,8 +17,8 @@ CREATE TABLE tbl_list_of_lengths_history (
     lengthappvarid INTEGER,
     numberofpieces INTEGER,
     quantity DECIMAL(10,4),
-    FOREIGN KEY (historyid) REFERENCES tbl_quantity_mouvement_history(id) ON DELETE CASCADE,
-    FOREIGN KEY (lengthappvarid) REFERENCES tbl_app_var_length(id) ON DELETE SET NULL
+    FOREIGN KEY (historyid) REFERENCES tbl_quantity_mouvements(id) ON DELETE CASCADE,
+    FOREIGN KEY (lengthappvarid) REFERENCES tbl_appvariable(id) ON DELETE SET NULL
 );
 
 -- Indexes for better performance

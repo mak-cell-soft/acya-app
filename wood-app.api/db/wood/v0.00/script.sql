@@ -6,6 +6,65 @@ CREATE TABLE IF NOT EXISTS tbl_app_health (
     iscr BOOLEAN
 );
 
+-- ============================================================================================
+-- ============================================================================================
+-- ============================================================================================
+
+-- Create Tables Enterprise
+CREATE TABLE IF NOT EXISTS tbl_enterprise (
+    id SERIAL NOT NULL PRIMARY KEY,
+    name TEXT,
+    description TEXT,
+    email TEXT,
+    phone TEXT,
+    mobileone TEXT,
+    mobiletwo TEXT,
+    enterpriseguid UUID,
+    capital TEXT,
+    matriculefiscal TEXT,
+    commercialregister TEXT,
+    siegeaddress TEXT,
+    devise TEXT,
+    nameresponsable TEXT,
+    surnameresponsable TEXT,
+    positionresponsable TEXT,
+    issalingwood BOOLEAN
+);
+
+-- ============================================================================================
+-- ============================================================================================
+-- ============================================================================================
+
+-- Create Tables sales_sites
+
+CREATE TABLE IF NOT EXISTS tbl_sales_sites (
+    id SERIAL NOT NULL PRIMARY KEY,
+    isforsale BOOLEAN,
+    gouvernorate TEXT,
+    address TEXT,
+    codepost TEXT,
+    isdeleted BOOLEAN,
+    enterpriseid INTEGER -- Foreign key to link with tbl_enterprise
+);
+
+-- Add foreign key dependency if it does not already exist.
+ -- tbl_sales_sites > tbl_enterprise
+DO
+$$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'fk_tbl_sales_sites_tbl_enterprise'
+    )
+    THEN
+        ALTER TABLE tbl_sales_sites
+        ADD CONSTRAINT fk_tbl_sales_sites_tbl_enterprise
+        FOREIGN KEY (enterpriseid) REFERENCES tbl_enterprise (id);
+    END IF;
+END
+$$;
+
 -- Create Table Person and User 
 -- A User is just a person who uses the app of the enterprise
 -- tbl_person
@@ -42,7 +101,7 @@ CREATE TABLE IF NOT EXISTS tbl_app_user (
     passwordsalt BYTEA,
     idsalessite INTEGER,
     idperson INTEGER,
-    enterpriseid INTEGER,
+    enterpriseid INTEGER
 );
 
 -- Add foreign key dependency if it does not already exist.
@@ -438,66 +497,6 @@ BEGIN
 END
 $$;
 
--- ============================================================================================
--- ============================================================================================
--- ============================================================================================
-
--- Create Tables Enterprise
-CREATE TABLE IF NOT EXISTS tbl_enterprise (
-    id SERIAL NOT NULL PRIMARY KEY,
-    name TEXT,
-    description TEXT,
-    email TEXT,
-    phone TEXT,
-    mobileone TEXT,
-    mobiletwo TEXT,
-    enterpriseguid UUID,
-    capital TEXT,
-    matriculefiscal TEXT,
-    commercialregister TEXT,
-    siegeaddress TEXT,
-    devise TEXT,
-    nameresponsable TEXT,
-    surnameresponsable TEXT,
-    positionresponsable TEXT,
-    issalingwood BOOLEAN
-);
-
-
-
--- ============================================================================================
--- ============================================================================================
--- ============================================================================================
-
--- Create Tables sales_sites
-
-CREATE TABLE IF NOT EXISTS tbl_sales_sites (
-    id SERIAL NOT NULL PRIMARY KEY,
-    isforsale BOOLEAN,
-    gouvernorate TEXT,
-    address TEXT,
-    codepost TEXT,
-    isdeleted BOOLEAN,
-    enterpriseid INTEGER -- Foreign key to link with tbl_enterprise
-);
-
--- Add foreign key dependency if it does not already exist.
- -- tbl_sales_sites > tbl_enterprise
-DO
-$$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1
-        FROM pg_constraint
-        WHERE conname = 'fk_tbl_sales_sites_tbl_enterprise'
-    )
-    THEN
-        ALTER TABLE tbl_sales_sites
-        ADD CONSTRAINT fk_tbl_sales_sites_tbl_enterprise
-        FOREIGN KEY (enterpriseid) REFERENCES tbl_enterprise (id);
-    END IF;
-END
-$$;
 
 -- ============================================================================================
 -- ============================================================================================
@@ -532,7 +531,7 @@ CREATE TABLE IF NOT EXISTS tbl_counter_part (
     bankaccountnumber TEXT,
     isactive BOOLEAN,
     isdeleted BOOLEAN,
-    updatedby INTEGER -- Foreign key to link with tbl_appuser
+    updatedby INTEGER, -- Foreign key to link with tbl_appuser
     transporterid INTEGER -- Foreign key to link with tbl_transporter
 );
 

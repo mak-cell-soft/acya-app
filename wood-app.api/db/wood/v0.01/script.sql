@@ -343,7 +343,7 @@ BEGIN
     THEN
         ALTER TABLE tbl_list_of_lengths
         ADD CONSTRAINT tbl_list_of_lengths_tbl_appvariable
-        FOREIGN KEY (lengthid) REFERENCES tbl_appvariable (id) ON DELETE SET NULL;
+        FOREIGN KEY (lengthappvarid) REFERENCES tbl_appvariable (id) ON DELETE SET NULL;
     END IF;
 END
 $$;
