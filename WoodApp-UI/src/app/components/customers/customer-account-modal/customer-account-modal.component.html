@@ -50,11 +50,11 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="opening-row">
+                    <tr class="opening-row" *ngIf="currentPage === 1">
                         <td colspan="5">Solde avant période</td>
                         <td class="amount">{{statement.balanceBeforePeriod | number:'1.3-3'}}</td>
                     </tr>
-                    <tr *ngFor="let entry of statement.transactions"
+                    <tr *ngFor="let entry of pagedTransactions"
                         [class.unpaid-document]="!entry.isPaid && (entry.type === 'customerInvoice' || entry.type === 'customerDeliveryNote' || entry.type === 'CustomerInvoice')">
                         <td>{{entry.transactionDate | date:'dd/MM/yyyy'}}</td>
                         <td>
@@ -71,6 +71,25 @@
                     </tr>
                 </tbody>
             </table>
+
+            <div class="pagination-controls" *ngIf="totalPages > 1">
+                <button mat-icon-button [disabled]="currentPage === 1" (click)="goToPage(1)" matTooltip="Première page">
+                    <mat-icon>first_page</mat-icon>
+                </button>
+                <button mat-icon-button [disabled]="currentPage === 1" (click)="changePage(-1)"
+                    matTooltip="Page précédente">
+                    <mat-icon>chevron_left</mat-icon>
+                </button>
+                <span>Page {{currentPage}} sur {{totalPages}}</span>
+                <button mat-icon-button [disabled]="currentPage === totalPages" (click)="changePage(1)"
+                    matTooltip="Page suivante">
+                    <mat-icon>chevron_right</mat-icon>
+                </button>
+                <button mat-icon-button [disabled]="currentPage === totalPages" (click)="goToPage(totalPages)"
+                    matTooltip="Dernière page">
+                    <mat-icon>last_page</mat-icon>
+                </button>
+            </div>
         </div>
 
         <ng-template #noMovements>

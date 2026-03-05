@@ -2,7 +2,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { CounterPart } from '../../../models/components/counterpart';
 import { AccountingService } from '../../../services/components/accounting.service';
-import { AccountStatement } from '../../../models/components/ledger';
+import { AccountStatement, LedgerEntry } from '../../../models/components/ledger';
 import { DocTypes_FR } from '../../../models/components/document';
 
 @Component({
@@ -16,6 +16,8 @@ export class CustomerAccountModalComponent implements OnInit {
     startDate: Date = new Date();
     endDate: Date = new Date();
     docTypes_FR = DocTypes_FR;
+    pageSize = 10;
+    currentPage = 1;
 
     constructor(
         public dialogRef: MatDialogRef<CustomerAccountModalComponent>,
@@ -40,6 +42,7 @@ export class CustomerAccountModalComponent implements OnInit {
                 next: (res) => {
                     this.statement = res;
                     this.loading = false;
+                    this.currentPage = 1;
                 },
                 error: (err) => {
                     console.error(err);
@@ -60,5 +63,29 @@ export class CustomerAccountModalComponent implements OnInit {
         const key = type as keyof typeof DocTypes_FR;
         const normalizedKey = (type.charAt(0).toLowerCase() + type.slice(1)) as keyof typeof DocTypes_FR;
         return this.docTypes_FR[key] || this.docTypes_FR[normalizedKey] || type;
+    }
+
+    get pagedTransactions(): LedgerEntry[] {
+        if (!this.statement?.transactions) return [];
+        const startIndex = (this.currentPage - 1) * this.pageSize;
+        return this.statement.transactions.slice(startIndex, startIndex + this.pageSize);
+    }
+
+    get totalPages(): number {
+        if (!this.statement?.transactions) return 0;
+        return Math.ceil(this.statement.transactions.length / this.pageSize);
+    }
+
+    changePage(delta: number): void {
+        const newPage = this.currentPage + delta;
+        if (newPage >= 1 && newPage <= this.totalPages) {
+            this.currentPage = newPage;
+        }
+    }
+
+    goToPage(page: number): void {
+        if (page >= 1 && page <= this.totalPages) {
+            this.currentPage = page;
+        }
     }
 }
