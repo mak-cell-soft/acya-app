@@ -64,7 +64,7 @@ import { MatSort } from '@angular/material/sort';
 @Component({
   selector: 'app-configuration',
   templateUrl: './configuration.component.html',
-  styleUrl: './configuration.component.css'
+  styleUrl: './configuration.component.scss'
 })
 export class ConfigurationComponent implements AfterViewInit, OnInit {
 

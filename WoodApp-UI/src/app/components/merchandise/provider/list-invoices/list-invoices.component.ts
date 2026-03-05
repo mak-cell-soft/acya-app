@@ -11,6 +11,7 @@ import { ToastrService } from 'ngx-toastr';
 import { AuthenticationService } from '../../../../services/components/authentication.service';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { DocumentsRelationship } from '../../../../models/components/documentsrelationship';
+import { getStatusInfo, getBillingStatusInfo, isSameDay } from '../../../../utils/document-utils';
 
 @Component({
   selector: 'app-list-invoices',
@@ -37,12 +38,23 @@ export class ListInvoicesComponent implements AfterViewInit, OnInit {
   selectedDocument!: Document | null;
   invoiceSettings: boolean = false;
 
+  // Filters
+  filterSupplier: string = '';
+  filterDate: Date | null = new Date(); // Default to today
+  filterStartDate?: Date;
+  filterEndDate?: Date;
+
   allInvoices: MatTableDataSource<DocumentsRelationship> = new MatTableDataSource<DocumentsRelationship>();
-  displayedInvoicessColumns: string[] = ['number', 'type', 'counterpart', 'supplierreference', 'TotalHTNet',
-    'TotalDiscountDoc', 'TotalTVADoc', 'TotalNetTTC', 'LastModified', 'EditedBy', 'action'];
+  displayedInvoicessColumns: string[] = ['number', 'LastModified', 'counterpart', 'supplierreference', 'amount', 'status', 'site', 'action'];
   columnsToDisplayWithExpand = [...this.displayedInvoicessColumns, 'expand'];
 
   expandedElement: Document | null = null;
+
+  // Summary
+  totalHt: number = 0;
+  totalTva: number = 0;
+  totalTtc: number = 0;
+  invoiceCount: number = 0;
 
   @ViewChild(MatPaginator) PaginationInvoices!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -65,8 +77,7 @@ export class ListInvoicesComponent implements AfterViewInit, OnInit {
 
   ngOnInit(): void {
     if (this.authService.isLoggedIn()) {
-      this.getAllInvoicesWithChildren();
-      
+      this.fetchInvoices();
     }
   }
 
@@ -122,26 +133,67 @@ export class ListInvoicesComponent implements AfterViewInit, OnInit {
   //   });
   // }
 
-  getAllInvoicesWithChildren() {
-    this.allInvoices.data = [];
+  fetchInvoices() {
+    this.loading = true;
     this.docService.GetParentsWithChildren().subscribe({
       next: (response: DocumentsRelationship[]) => {
-        // Handle the data here
-        console.log('Documents Relationship Data received:', response);
-        // Sort the documents by docnumber in descending order
-        const sortedDocuments = response.sort((a, b) => {
-          const docNumberA = a.ParentDocument?.docnumber ?? ''; // Fallback to empty string if null/undefined
-          const docNumberB = b.ParentDocument?.docnumber ?? ''; // Fallback to empty string if null/undefined
-          return docNumberB.localeCompare(docNumberA); // Sort in descending order
+        let filteredData = response;
+
+        // Ensure we are only dealing with provider invoices (ParentDocument.type === DocumentTypes.supplierInvoice)
+        filteredData = filteredData.filter(d => d.ParentDocument?.type === DocumentTypes.supplierInvoice);
+
+        // Filter by Date (Single Date)
+        if (this.filterDate && !this.filterStartDate && !this.filterEndDate) {
+          filteredData = filteredData.filter(d => d.ParentDocument && isSameDay(d.ParentDocument.updatedate, this.filterDate!));
+        }
+
+        // Filter by Date Range
+        if (this.filterStartDate && this.filterEndDate) {
+          filteredData = filteredData.filter(d => {
+            if (!d.ParentDocument) return false;
+            const docDate = new Date(d.ParentDocument.updatedate);
+            return docDate >= this.filterStartDate! && docDate <= this.filterEndDate!;
+          });
+        }
+
+        // Filter by Supplier (Counterpart)
+        if (this.filterSupplier) {
+          const search = this.filterSupplier.toLowerCase();
+          filteredData = filteredData.filter(d =>
+            d.ParentDocument?.counterpart?.name?.toLowerCase().includes(search) ||
+            d.ParentDocument?.counterpart?.firstname?.toLowerCase().includes(search) ||
+            d.ParentDocument?.counterpart?.lastname?.toLowerCase().includes(search)
+          );
+        }
+
+        // Sort descending by document number
+        filteredData.sort((a, b) => {
+          const docNumberA = a.ParentDocument?.docnumber ?? '';
+          const docNumberB = b.ParentDocument?.docnumber ?? '';
+          return docNumberB.localeCompare(docNumberA);
         });
 
-        // Assign the sorted data to the property in your component
-        this.allInvoices.data = sortedDocuments;
+        this.allInvoices.data = filteredData;
+        this.updateSummary();
+        this.loading = false;
       },
       error: (error) => {
-        console.log(error)
+        console.error(error);
+        this.toastr.error('Erreur lors du chargement des factures');
+        this.loading = false;
       }
     });
+  }
+
+  onFilterChange() {
+    this.fetchInvoices();
+  }
+
+  updateSummary() {
+    this.invoiceCount = this.allInvoices.data.length;
+    this.totalHt = this.allInvoices.data.reduce((acc, curr) => acc + (curr.ParentDocument?.total_ht_net_doc || 0), 0);
+    this.totalTva = this.allInvoices.data.reduce((acc, curr) => acc + (curr.ParentDocument?.total_tva_doc || 0), 0);
+    this.totalTtc = this.totalHt + this.totalTva;
   }
 
   deleteDocument(element: Document) {
@@ -153,28 +205,32 @@ export class ListInvoicesComponent implements AfterViewInit, OnInit {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        console.log('Item deleted:', item);
         this.docService.Delete(element.id).subscribe({
           next: () => {
             this.allInvoices.data = this.allInvoices.data.filter(p => p.ParentDocumentId !== element.id);
-            this.toastr.success('Supplier deleted successfully');
+            this.updateSummary();
+            this.toastr.success('Facture supprimée avec succès');
           },
-          error: () => this.toastr.error('Error deleting Supplier')
+          error: () => this.toastr.error('Erreur lors de la suppression de la facture')
         });
-      } else {
-        this.toastr.info("Suppression anuulé");
-        console.log('Deletion canceled');
       }
     });
   }
 
+  // Helpers for Status
+  getStatusInfo = getStatusInfo;
+  getBillingStatusInfo = getBillingStatusInfo;
+
   displaySettings() {
-    if(this.invoiceSettings){
-      this.invoiceSettings = false;
-    } else {
-      this.invoiceSettings = true;
-    }
-    
+    this.invoiceSettings = !this.invoiceSettings;
+  }
+
+  onExport() {
+    // Implement export if needed
+  }
+
+  onAddNew() {
+    // Implement navigation to add invoice
   }
 
 }

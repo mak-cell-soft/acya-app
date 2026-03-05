@@ -1,349 +1,392 @@
-.search-bar-container {
-    flex-grow: 1;
-    padding: 0px 56px 0px 8px;
-    background: #eaf1fb;
-    border-radius: 32px;
-    display: flex;
-    align-items: center;
-    margin-right: 15px;
+/* Main Container Spacing */
+:host {
+    display: block;
+    padding: 24px;
+    background-color: #f0f2f5;
+    min-height: 100vh;
 }
 
-input {
+/* Header Styling - Provider Theme (Deep Slate/Blue) */
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    background: #2c3e50;
+    /* Darker header for provider */
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.header-text h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.5px;
+}
+
+.spacer {
+    flex: 1 1 auto;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.header-buttons button {
+    border-radius: 8px;
+    padding: 0 16px;
+    font-weight: 500;
+    text-transform: none;
+}
+
+/* Common Card Styling */
+mat-card {
+    border-radius: 12px !important;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+/* Filter Card */
+.filter-card {
+    background: white;
+}
+
+.filter-card mat-card-header {
+    padding: 24px 24px 0 24px;
+    border-bottom: 1px solid #f1f3f5;
+    margin-bottom: 16px;
+}
+
+.filter-card mat-card-title {
     font-size: 1.1rem;
-    outline: none;
-    border: none;
-    background: inherit;
-    min-width: 352px;
-    flex-grow: 1;
+    font-weight: 600;
+    color: #2c3e50;
 }
 
-.search {
+.filter-content {
     display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
     align-items: center;
-    width: 100%;
+    padding: 16px 24px 24px 24px;
 }
 
-.button-container {
+mat-form-field {
+    min-width: 240px;
+    flex: 1;
+}
+
+/* Summary Card - Dashboard Style */
+.summary-card {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+.summary-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 0 !important;
+}
+
+.summary-item {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s ease;
+}
+
+.summary-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.summary-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
+    justify-content: center;
+}
+
+.summary-icon-wrapper mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+}
+
+/* Provider Theme Icons */
+.provider-theme-icon-ht {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.provider-theme-icon-tva {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.provider-theme-icon-ttc {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.provider-theme-icon-count {
+    background: #e0f2fe;
+    color: #075985;
+}
+
+.summary-data {
+    display: flex;
+    flex-direction: column;
+}
+
+.summary-item .label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.summary-item .value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.provider-total-ttc {
+    color: #166534 !important;
+}
+
+/* Table Card */
+.table-card {
+    background: white;
 }
 
 .table-container {
-    margin-top: 15px;
-    cursor: pointer;
+    position: relative;
+    border-radius: 0 0 12px 12px;
 }
-
-.article-table {
-    table-layout: fixed;
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.date-picker-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.article-table-cell {
-    border: 1px 1px #dddddd;
-    text-align: center;
-    padding: 3px;
-}
-
-.icon-center {
-    display: flex;
-    justify-content: center;
-    /* Centers horizontally */
-    align-items: center;
-    /* Centers vertically */
-}
-
-.reference-column {
-    width: 30%;
-}
-
 
 table {
     width: 100%;
 }
 
-.mat-mdc-form-field {
-    font-size: 14px;
-    width: 100%;
+th.mat-header-cell {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e2e8f0;
 }
 
-td,
-th {
-    width: 25%;
-}
-
-tr.example-detail-row {
-    height: 0;
+td.mat-cell {
+    padding: 16px;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
 }
 
 tr.example-element-row:not(.example-expanded-row):hover {
-    background: whitesmoke;
+    background-color: #f8fafc;
 }
 
-tr.example-element-row:not(.example-expanded-row):active {
-    background: #efefef;
+tr.example-element-row:active {
+    background-color: #f1f5f9;
 }
 
 .example-element-row td {
     border-bottom-width: 0;
 }
 
-.example-element-detail {
+/* Expanded Detail Section */
+.merchandise-element-detail {
     overflow: hidden;
+    background: #f8fafc;
+    padding: 24px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.detail-header {
     display: flex;
-}
-
-.example-element-diagram {
-    min-width: 80px;
-    border: 2px solid black;
-    padding: 8px;
-    font-weight: lighter;
-    margin: 8px 0;
-    height: 104px;
-}
-
-.example-element-symbol {
-    font-weight: bold;
-    font-size: 40px;
-    line-height: normal;
-}
-
-.example-element-description {
-    padding: 16px;
-}
-
-.example-element-description-attribution {
-    opacity: 0.5;
-}
-
-.card-details {
-    margin: 20px;
-    padding: 20px;
-}
-
-.devide-width {
-    width: 32%;
-    /* Adjust width to account for the gap */
-    margin-bottom: 15px;
-}
-
-
-
-.full-width {
-    width: 100%;
-    margin-bottom: 15px;
-}
-
-.half-width-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    /* Adds space between the form fields */
-}
-
-.action-document-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 10px;
-    border-radius: 10px;
-    border: 0.5px solid #ccc;
     align-items: center;
-    /* Ensures vertical centering */
+    gap: 8px;
+    margin-bottom: 16px;
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.detail-header mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+}
+
+.reception-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.reception-item {
+    background: white;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    transition: all 0.2s;
+}
+
+.reception-item:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.reception-badge {
+    background: #e2e8f0;
+    color: #475569;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.reception-info {
+    flex: 2;
+}
+
+.reception-info .main {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.reception-info .sub {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.reception-financials {
+    flex: 1;
+    text-align: right;
+}
+
+.reception-financials div {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.reception-financials .sub {
+    font-weight: normal;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.reception-date {
+    flex: 1;
+    font-size: 0.85rem;
+    color: #475569;
+    text-align: right;
+}
+
+.no-children {
+    text-align: center;
+    padding: 24px;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* Icons */
+.green-icon {
+    color: #10b981;
+}
+
+.red-icon {
+    color: #ef4444;
+}
+
+/* No Data & Loading */
+.no-data-message {
+    padding: 48px;
+    text-align: center;
+    color: #94a3b8;
+}
+
+.no-data-message mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Additional Settings */
+.card-details {
+    background: white;
+}
+
+.card-details mat-card-title {
+    font-size: 1rem;
+    color: #475569;
 }
 
 .control-button-filter {
     display: flex;
-    justify-content: flex-start;
-    /* Align to the left */
+    gap: 12px;
     align-items: center;
-    /* Center vertically */
-    margin: 12px;
-    /* Adjust margin for spacing */
-    height: 50px;
-    /* Adjust this based on the button size */
+    padding: 8px 0;
 }
 
-.control-button-filter button {
-    margin: auto;
-    /* Ensure even spacing */
-    padding: 10px 20px;
-    /* Adjust button padding */
-    margin-right: 10px;
+.error-msg {
+    color: #ef4444;
+    font-weight: 600;
+    font-size: 0.9rem;
 }
 
-/* Optional: Remove the right margin for the last button */
-.control-button-filter button:last-child {
-    margin-right: 0;
-}
+/* Responsive */
+@media (max-width: 992px) {
+    .reception-item {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
 
-.control-button-filter p {
-    margin: 10px;
-    padding: 5px 0;
-    text-align: center;
-}
-
-.control-button-filter span {
-    display: inline-block;
-    font-size: 14px;
-    font-weight: bold;
-    color: #d9534f;
-    /* Bootstrap danger red */
-    /*background-color: #f8d7da;  Light red background */
-    padding: 5px 10px;
-    /* border-radius: 5px;
-    border: 1px solid #d9534f; */
-}
-
-.invoice_docs {
-    background-color: #E5D283;
-    color: gray;
-}
-
-.invoice_button {
-    background-color: #4F709C;
-    color: white;
-}
-
-.control-button {
-    display: flex;
-    justify-content: flex-end;
-    /* Align items to the end (left) */
-    margin-right: 12px;
-    margin-top: 18px;
-    align-items: center;
-}
-
-.control-button button {
-    margin-right: 10px;
-    /* Add space between buttons */
-}
-
-/*Optional: Remove the right margin for the last button */
-.control-button button:last-child {
-    margin-right: 0;
-}
-
-.reset {
-    background-color: #f44336;
-    color: white;
-}
-
-.filter {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.full-width {
-    width: 100%;
-    margin-bottom: 15px;
-}
-
-.blue-icon {
-    color: blue;
-}
-
-.red-icon {
-    color: red;
-}
-
-.green-icon {
-    color: green;
-}
-
-
-/* Merchandise Details */
-
-.merchandise-number {
-    font-weight: normal;
-    color: #1caa92;
-    margin-bottom: 8px;
-    /* Add spacing if needed */
-}
-
-.merchandise-element-detail {
-    display: block;
-    /* padding: 16px; */
-    background-color: #f9f9f9;
-    /* border: 1px solid #ddd;
-    border-radius: 4px; */
-    overflow: hidden;
-    margin-top: 8px;
-}
-
-.merchandise-detail {
-    display: flex;
-    margin-bottom: 16px;
-    margin-right: 16px;
-}
-
-.merchandise-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    /* Space between items */
-}
-
-.merchandise-item {
-    flex: 1 1 200px;
-    /* Flex-grow, flex-shrink, and flex-basis */
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: #fff;
-}
-
-h6 {
-    margin-bottom: 8px;
-    font-size: 16px;
-    color: #333;
-}
-
-/* Filter Section*/
-/* .filter-container {
-    display: flex;
-    /* border: 1px solid #ccc;
-    
-    width: 100%;
-} */
-
-.filter-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 40px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-}
-
-.filter-container mat-radio-group:last-child {
-    margin-left: 20px;
-}
-
-.filter-buttons button {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-}
-
-.mat-mdc-radio-button~.mat-mdc-radio-button {
-    margin-left: 16px;
-}
-
-.checkbox-width {
-    width: 45px;
-}
-
-.row-count {
-    margin-bottom: 16px;
-    font-size: 18px;
-    font-weight: normal;
-    color: #4F709C;
+    .reception-financials,
+    .reception-date {
+        text-align: left;
+    }
 }
