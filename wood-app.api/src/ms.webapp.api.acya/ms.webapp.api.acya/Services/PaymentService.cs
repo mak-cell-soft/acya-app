@@ -3,6 +3,7 @@ using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs;
 using ms.webapp.api.acya.core.Interfaces;
+using ms.webapp.api.acya.infrastructure;
 using ms.webapp.api.acya.infrastructure.Repositories;
 
 namespace ms.webapp.api.acya.api.Services
@@ -14,19 +15,22 @@ namespace ms.webapp.api.acya.api.Services
         private readonly CounterPartRepository _customerRepository;
         private readonly AppUserRepository _appUserRepository; // Added to fetch user name
         private readonly IAccountService _accountService;
+        private readonly WoodAppContext _context;
 
         public PaymentService(
             IPaymentRepository paymentRepository,
             DocumentRepository documentRepository,
             CounterPartRepository customerRepository,
             AppUserRepository appUserRepository,
-            IAccountService accountService)
+            IAccountService accountService,
+            WoodAppContext context)
         {
             _paymentRepository = paymentRepository;
             _documentRepository = documentRepository;
             _customerRepository = customerRepository;
             _appUserRepository = appUserRepository;
             _accountService = accountService;
+            _context = context;
         }
 
         public async Task<PaymentDto> GetByIdAsync(int paymentId)
@@ -73,7 +77,7 @@ namespace ms.webapp.api.acya.api.Services
                 throw new ArgumentException("Invalid or deleted customer.");
 
             // Validate Document
-            var document = await _documentRepository.Get(createDto.DocumentId);
+            var document = await _documentRepository.GetWithRelationshipsAsync(createDto.DocumentId);
             if (document == null || document.IsDeleted)
                 throw new ArgumentException("Invalid or deleted document.");
 
@@ -88,46 +92,62 @@ namespace ms.webapp.api.acya.api.Services
             var user = await _appUserRepository.Get(createdById);
             string createdByName = user != null ? user.Login! : "Unknown";
 
-            var payment = new Payment
+            using (var transaction = await _context.Database.BeginTransactionAsync())
             {
-                DocumentId = createDto.DocumentId,
-                CustomerId = createDto.CustomerId,
-                PaymentDate = createDto.PaymentDate,
-                Amount = createDto.Amount,
-                PaymentMethod = createDto.PaymentMethod,
-                Reference = createDto.Reference,
-                Notes = createDto.Notes,
-                
-                // New logic: UpdatedById is the FK, CreatedBy is text
-                UpdatedById = createdById,
-                CreatedBy = createdByName, 
-                CreatedAt = DateTime.UtcNow,
-                IsDeleted = false
-            };
-
-            var createdPayment = await _paymentRepository.Add(payment);
-
-            // Update document billing status
-            if (createDto.Amount < remainingBalance) {
-                document.BillingStatus = (BillingStatus)3; 
-            } else {
-                document.BillingStatus = (BillingStatus)2; 
-            }
-            await _documentRepository.Update(document);
-            
-            // Integrate Ledger Entry
-            await _accountService.AddLedgerEntryAsync(
-                createDto.CustomerId, 
-                "Payment", 
-                createDto.Amount, 
-                createdPayment.Id, 
-                $"Payment for document {document.DocNumber}");
+                try
+                {
+                    var payment = new Payment
+                    {
+                        DocumentId = createDto.DocumentId,
+                        CustomerId = createDto.CustomerId,
+                        PaymentDate = createDto.PaymentDate,
+                        Amount = createDto.Amount,
+                        PaymentMethod = createDto.PaymentMethod,
+                        Reference = createDto.Reference,
+                        Notes = createDto.Notes,
                         
-            createdPayment.Document = document;
-            createdPayment.Customer = customer; 
-            createdPayment.AppUser = user;
-            
-            return MapToDto(createdPayment);
+                        // New logic: UpdatedById is the FK, CreatedBy is text
+                        UpdatedById = createdById,
+                        CreatedBy = createdByName, 
+                        CreatedAt = DateTime.UtcNow,
+                        IsDeleted = false
+                    };
+
+                    var createdPayment = await _paymentRepository.Add(payment);
+
+                    // Update document billing status
+                    if (createDto.Amount < remainingBalance) {
+                        document.BillingStatus = (BillingStatus)3; 
+                    } else {
+                        document.BillingStatus = (BillingStatus)2; 
+                    }
+                    await _documentRepository.Update(document);
+                    
+                    // Integrate Ledger Entry
+                    await _accountService.AddLedgerEntryAsync(
+                        createDto.CustomerId, 
+                        "Payment", 
+                        createDto.Amount, 
+                        createdPayment.Id, 
+                        $"Payment for document {document.DocNumber}");
+
+                    // Sync Account Ledger for converted delivery notes if applicable
+                    await SyncLedgerForInvoiceAsync(document);
+                                
+                    await transaction.CommitAsync();
+
+                    createdPayment.Document = document;
+                    createdPayment.Customer = customer; 
+                    createdPayment.AppUser = user;
+                    
+                    return MapToDto(createdPayment);
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
         }
 
         public async Task<PaymentDto> UpdateAsync(UpdatePaymentDto updateDto, int updatedById)
@@ -184,12 +204,55 @@ namespace ms.webapp.api.acya.api.Services
             if (payment == null || payment.IsDeleted)
                 return false;
 
-            // Swap the document reference from delivery note → new invoice
-            payment.DocumentId = newInvoiceId;
-            payment.UpdatedAt  = DateTime.UtcNow;
+            var document = await _documentRepository.GetWithRelationshipsAsync(newInvoiceId);
+            if (document == null || document.IsDeleted)
+                return false;
 
-            await _paymentRepository.Update(payment);
-            return true;
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    // Swap the document reference from delivery note → new invoice
+                    payment.DocumentId = newInvoiceId;
+                    payment.UpdatedAt  = DateTime.UtcNow;
+
+                    await _paymentRepository.Update(payment);
+
+                    // Sync Account Ledger for converted delivery notes if applicable
+                    await SyncLedgerForInvoiceAsync(document);
+
+                    await transaction.CommitAsync();
+                    return true;
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    return false;
+                }
+            }
+        }
+
+        private async Task SyncLedgerForInvoiceAsync(Document invoice)
+        {
+            if (invoice.Type != DocumentTypes.customerInvoice) return;
+
+            if (invoice.ChildDocuments != null && invoice.ChildDocuments.Any())
+            {
+                foreach (var rel in invoice.ChildDocuments)
+                {
+                    var child = rel.ChildDocument;
+                    if (child != null && child.Type == DocumentTypes.customerDeliveryNote)
+                    {
+                        await _accountService.UpdateLedgerEntryAsync(
+                            child.Id,
+                            "customerDeliveryNote",
+                            invoice.Id,
+                            "customerInvoice",
+                            $"Movement for document {invoice.DocNumber} related to {child.DocNumber}"
+                        );
+                    }
+                }
+            }
         }
 
         public async Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int userId)

@@ -28,6 +28,16 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                            .Where(d => ids.Contains(d.Id))
                            .ToListAsync();
     }
+
+    public async Task<Document?> GetWithRelationshipsAsync(int id)
+    {
+        return await context.Documents
+            .Include(d => d.ChildDocuments)
+                .ThenInclude(cd => cd.ChildDocument)
+            .Include(d => d.ParentDocuments)
+                .ThenInclude(pd => pd.ParentDocument)
+            .FirstOrDefaultAsync(d => d.Id == id);
+    }
     public bool GetDocBySupplierReference(string supplierReference, DocumentTypes type)
     {
       var doc = context.Documents

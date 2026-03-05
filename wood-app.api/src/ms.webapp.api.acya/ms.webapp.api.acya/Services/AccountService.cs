@@ -69,6 +69,25 @@ namespace ms.webapp.api.acya.api.Services
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdateLedgerEntryAsync(int oldRelatedId, string oldType, int newRelatedId, string newType, string newDescription)
+        {
+            var entries = await _context.AccountLedgers
+                .Where(l => l.RelatedId == oldRelatedId && l.Type == oldType)
+                .ToListAsync();
+
+            if (!entries.Any()) return;
+
+            foreach (var entry in entries)
+            {
+                entry.RelatedId = newRelatedId;
+                entry.Type = newType;
+                entry.Description = newDescription;
+                entry.UpdatedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<decimal> GetCurrentBalanceAsync(int counterpartId)
         {
             var counterpart = await _context.CounterParts.FindAsync(counterpartId);
