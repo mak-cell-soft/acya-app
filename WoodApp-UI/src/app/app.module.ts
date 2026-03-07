@@ -102,6 +102,7 @@ import { CustomerAccountModalComponent } from './components/customers/customer-a
 import { ProviderEditModalComponent } from './components/providers/provider-edit-modal/provider-edit-modal.component';
 import { ProviderDetailsModalComponent } from './components/providers/provider-details-modal/provider-details-modal.component';
 import { AdminDashboardComponent } from './dashboard/admin-dashboard/admin-dashboard.component';
+import { EditDocumentModalComponent } from './dashboard/modals/edit-document-modal/edit-document-modal.component';
 
 @NgModule({
   declarations: [
@@ -159,7 +160,8 @@ import { AdminDashboardComponent } from './dashboard/admin-dashboard/admin-dashb
     CustomerAccountModalComponent,
     ProviderEditModalComponent,
     ProviderDetailsModalComponent,
-    AdminDashboardComponent
+    AdminDashboardComponent,
+    EditDocumentModalComponent
   ],
   imports: [
     BrowserModule,

@@ -844,5 +844,97 @@ namespace ms.webapp.api.acya.api.Controllers
       return result;
     }
 
+    [HttpPut("{id}")]
+    public async Task<ActionResult> Update(int id, DocumentDto dto)
+    {
+      if (dto == null || id != dto.id)
+      {
+        return BadRequest("Invalid document data.");
+      }
+
+      using (var transaction = await _context.Database.BeginTransactionAsync())
+      {
+        try
+        {
+          var doc = await _context.Documents
+              .Include(d => d.DocumentMerchandises)
+                  .ThenInclude(dm => dm.Merchandise)
+              .FirstOrDefaultAsync(d => d.Id == id);
+
+          if (doc == null)
+          {
+            return NotFound("Document not found.");
+          }
+
+          if (doc.IsInvoiced)
+          {
+            return BadRequest("Cannot edit an invoiced document.");
+          }
+
+          // Update basic fields
+          doc.SupplierReference = dto.supplierReference;
+          doc.Description = dto.description;
+          doc.UpdateDate = DateTime.UtcNow;
+          doc.UpdatedById = dto.updatedbyid;
+          doc.TotalCostHTNetDoc = dto.total_ht_net_doc;
+          doc.TotalCostNetTTCDoc = dto.total_net_ttc;
+          doc.TotalCostDiscountDoc = dto.total_discount_doc;
+          doc.TotalCostTvaDoc = dto.total_tva_doc;
+
+          // Process Merchandises
+          // Remove existing DocumentMerchandises (they will be re-added from the DTO)
+          _context.DocumentMerchandises.RemoveRange(doc.DocumentMerchandises);
+
+          foreach (var merchDto in dto.merchandises)
+          {
+            Merchandise? merchandise;
+            if (merchDto.id > 0)
+            {
+              merchandise = await _context.Merchandises.FindAsync(merchDto.id);
+              if (merchandise != null)
+              {
+                merchandise.UpdateFromDto(merchDto);
+                _context.Entry(merchandise).State = EntityState.Modified;
+              }
+            }
+            else
+            {
+              merchandise = new Merchandise(merchDto);
+              _context.Merchandises.Add(merchandise);
+            }
+
+            if (merchandise != null)
+            {
+              var docMerchandise = new DocumentMerchandise
+              {
+                Document = doc,
+                Merchandise = merchandise,
+                Quantity = merchDto.quantity,
+                UnitPriceHT = merchDto.unit_price_ht,
+                CostHT = merchDto.cost_ht,
+                CostDiscountValue = merchDto.cost_discount_value,
+                CostNetHT = merchDto.cost_net_ht,
+                CostTTC = merchDto.cost_ttc,
+                DiscountPercentage = merchDto.discount_percentage,
+                CreationDate = DateTime.UtcNow,
+                UpdateDate = DateTime.UtcNow
+              };
+
+              _context.DocumentMerchandises.Add(docMerchandise);
+            }
+          }
+
+          await _context.SaveChangesAsync();
+          await transaction.CommitAsync();
+
+          return Ok(new { message = "Document updated successfully" });
+        }
+        catch (Exception ex)
+        {
+          await transaction.RollbackAsync();
+          return StatusCode(500, $"An error occurred: {ex.Message}");
+        }
+      }
+    }
   }
 }

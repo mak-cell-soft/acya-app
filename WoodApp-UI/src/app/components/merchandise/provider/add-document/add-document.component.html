@@ -133,18 +133,18 @@
                 <div class="form-row calculation-row">
                     <div class="calc-item">
                         <label>Total Brut HT</label>
-                        <span class="calc-value">{{ merchandiseForm.get('merchandise_cost_ht')?.value | number:'1.3-3'
-                            }}</span>
+                        <span class="calc-value">{{ (merchandiseForm.get('merchandise_cost_ht')?.value || 0) |
+                            number:'1.3-3' }}</span>
                     </div>
                     <div class="calc-item">
-                        <label>Montant TVA</label>
-                        <span class="calc-value">{{ merchandiseForm.get('sellcostprice_taxValue')?.value |
+                        <label>Montant Remise</label>
+                        <span class="calc-value">{{ (merchandiseForm.get('sellcostprice_discountValue')?.value || 0) |
                             number:'1.3-3' }}</span>
                     </div>
                     <div class="calc-item highlight">
                         <label>Total Net HT</label>
-                        <span class="calc-value">{{ merchandiseForm.get('sellcostprice_net_ht')?.value | number:'1.3-3'
-                            }}</span>
+                        <span class="calc-value">{{ (merchandiseForm.get('sellcostprice_net_ht')?.value || 0) |
+                            number:'1.3-3' }}</span>
                     </div>
                 </div>
 

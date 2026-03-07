@@ -16,6 +16,7 @@ import { CounterPartType_FR, TrueFalseTranslate_FR } from '../../../../shared/co
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { SelectionModel } from '@angular/cdk/collections';
 import { GenerateInvoiceModalComponent } from '../../../../dashboard/modals/invoice/generate-invoice-modal/generate-invoice-modal.component';
+import { EditDocumentModalComponent } from '../../../../dashboard/modals/edit-document-modal/edit-document-modal.component';
 
 @Component({
   selector: 'app-list-documents',
@@ -287,13 +288,19 @@ export class ListDocumentsComponent implements OnInit, AfterViewInit {
     }
   }
 
-  cancelEditDocument(element: Document) {
-    element.editing = false;
-    this.selectedDocument = null;
-  }
-
   editDocument(doc: Document) {
-    doc.editing = true;
+    const dialogRef = this.dialog.open(EditDocumentModalComponent, {
+      width: '1100px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      data: { document: doc }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.getAllDocumentsByType();
+      }
+    });
   }
 
   onSupplierChange(supplier: any): void {

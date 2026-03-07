@@ -92,4 +92,8 @@ export class DocumentService {
   GetParentsWithChildren(): Observable<DocumentsRelationship[]> {
     return this.http.get<DocumentsRelationship[]>(this.baseUrl + 'Document/ParentsWithChildren');
   }
+
+  Update(id: number, model: Document): Observable<any> {
+    return this.http.put<any>(this.baseUrl + 'Document/' + id, model);
+  }
 }
