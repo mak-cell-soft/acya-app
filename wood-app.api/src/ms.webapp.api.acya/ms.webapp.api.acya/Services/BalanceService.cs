@@ -59,7 +59,7 @@ namespace ms.webapp.api.acya.api.Services
                 lastTx = lastTxType,
                 lastTxDate = txDate
             };
-            string jsonName = JsonSerializer.Serialize(metadata);
+            string jsonName = $"{counterpartId}|" + JsonSerializer.Serialize(metadata);
 
             if (existingVar != null)
             {
@@ -118,7 +118,14 @@ namespace ms.webapp.api.acya.api.Services
 
                 try
                 {
-                    var metadata = JsonSerializer.Deserialize<JsonElement>(v.Name);
+                    string jsonPart = v.Name;
+                    int pipeIndex = v.Name.IndexOf('|');
+                    if (pipeIndex >= 0)
+                    {
+                        jsonPart = v.Name.Substring(pipeIndex + 1);
+                    }
+
+                    var metadata = JsonSerializer.Deserialize<JsonElement>(jsonPart);
                     result.Add(new BalanceEntryDto
                     {
                         Id = metadata.GetProperty("id").GetInt32(),
