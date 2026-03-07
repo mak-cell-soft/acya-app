@@ -1,0 +1,87 @@
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Tableau de Bord Administration</h2>
+        <button mat-raised-button color="primary" (click)="refresh()" [disabled]="loading">
+            <mat-icon *ngIf="!loading">refresh</mat-icon>
+            <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+            Actualiser les soldes
+        </button>
+    </div>
+    <p></p>
+    <!-- Summary Chart Card -->
+    <mat-card class="mb-4">
+        <mat-card-header>
+            <mat-card-title>Analyse des Soldes</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <div style="display: block; height: 300px;">
+                <canvas baseChart [data]="barChartData" [options]="barChartOptions" [type]="barChartType">
+                </canvas>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- Data Tables -->
+    <mat-card>
+        <mat-tab-group (selectedTabChange)="switchTab($any($event).index === 0 ? 'customers' : 'suppliers')">
+            <mat-tab label="Soldes Clients">
+                <table class="table table-hover mt-3" *ngIf="customerBalances.length > 0">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th class="text-end">Solde Clôture (TND)</th>
+                            <th>Dernière Transaction</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of customerBalances">
+                            <td>{{ item.label }}</td>
+                            <td class="text-end fw-bold" [class.text-danger]="item.closingBalance > 0">
+                                {{ item.closingBalance | number:'1.2-2' }}
+                            </td>
+                            <td>
+                                <span class="badge" [class.bg-info]="item.lastTransaction === 'payment'"
+                                    [class.bg-warning]="item.lastTransaction === 'mouvement'">
+                                    {{ item.lastTransaction }}
+                                </span>
+                            </td>
+                            <td>{{ item.dateOfLastTransaction | date:'dd/MM/yyyy HH:mm' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div *ngIf="customerBalances.length === 0" class="p-4 text-center text-muted">
+                    Aucun solde trouvé. Cliquez sur Actualiser.
+                </div>
+            </mat-tab>
+
+            <mat-tab label="Soldes Fournisseurs">
+                <table class="table table-hover mt-3" *ngIf="supplierBalances.length > 0">
+                    <thead>
+                        <tr>
+                            <th>Fournisseur</th>
+                            <th class="text-end">Solde Clôture (TND)</th>
+                            <th>Dernière Transaction</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of supplierBalances">
+                            <td>{{ item.label }}</td>
+                            <td class="text-end fw-bold" [class.text-success]="item.closingBalance < 0">
+                                {{ item.closingBalance | number:'1.2-2' }}
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ item.lastTransaction }}</span>
+                            </td>
+                            <td>{{ item.dateOfLastTransaction | date:'dd/MM/yyyy HH:mm' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div *ngIf="supplierBalances.length === 0" class="p-4 text-center text-muted">
+                    Aucun solde trouvé. Cliquez sur Actualiser.
+                </div>
+            </mat-tab>
+        </mat-tab-group>
+    </mat-card>
+</div>

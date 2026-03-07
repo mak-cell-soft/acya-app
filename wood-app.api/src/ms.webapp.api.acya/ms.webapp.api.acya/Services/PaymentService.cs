@@ -15,6 +15,7 @@ namespace ms.webapp.api.acya.api.Services
         private readonly CounterPartRepository _customerRepository;
         private readonly AppUserRepository _appUserRepository; // Added to fetch user name
         private readonly IAccountService _accountService;
+        private readonly IBalanceService _balanceService;
         private readonly WoodAppContext _context;
 
         public PaymentService(
@@ -23,6 +24,7 @@ namespace ms.webapp.api.acya.api.Services
             CounterPartRepository customerRepository,
             AppUserRepository appUserRepository,
             IAccountService accountService,
+            IBalanceService balanceService,
             WoodAppContext context)
         {
             _paymentRepository = paymentRepository;
@@ -30,6 +32,7 @@ namespace ms.webapp.api.acya.api.Services
             _customerRepository = customerRepository;
             _appUserRepository = appUserRepository;
             _accountService = accountService;
+            _balanceService = balanceService;
             _context = context;
         }
 
@@ -136,6 +139,9 @@ namespace ms.webapp.api.acya.api.Services
                                 
                     await transaction.CommitAsync();
 
+                    // Update persistent balance after transaction success
+                    await _balanceService.UpdateCustomerBalanceAsync(createDto.CustomerId, "payment", DateTime.UtcNow);
+
                     createdPayment.Document = document;
                     createdPayment.Customer = customer; 
                     createdPayment.AppUser = user;
@@ -182,6 +188,9 @@ namespace ms.webapp.api.acya.api.Services
 
             var updatedPayment = await _paymentRepository.Update(payment);
             
+            // Update persistent balance
+            await _balanceService.UpdateCustomerBalanceAsync(payment.CustomerId, "payment", DateTime.UtcNow);
+
             // Re-fetch or attach user for mapping if needed
             // For now mapping uses what's available
             
@@ -195,7 +204,12 @@ namespace ms.webapp.api.acya.api.Services
 
             payment.UpdatedById = deletedById;
             
-            return await _paymentRepository.DeleteAsync(paymentId);
+            var result = await _paymentRepository.DeleteAsync(paymentId);
+            if (result)
+            {
+                await _balanceService.UpdateCustomerBalanceAsync(payment.CustomerId, "payment", DateTime.UtcNow);
+            }
+            return result;
         }
 
         public async Task<bool> LinkPaymentToInvoiceAsync(int paymentId, int newInvoiceId)
@@ -222,6 +236,10 @@ namespace ms.webapp.api.acya.api.Services
                     await SyncLedgerForInvoiceAsync(document);
 
                     await transaction.CommitAsync();
+
+                    // Update persistent balance
+                    await _balanceService.UpdateCustomerBalanceAsync(payment.CustomerId, "payment", DateTime.UtcNow);
+
                     return true;
                 }
                 catch (Exception)

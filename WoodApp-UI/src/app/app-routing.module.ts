@@ -26,6 +26,7 @@ import { TransfertStockComponent } from './components/stock/stock-transfer/trans
 import { StockTransferListComponent } from './components/stock/stock-transfer-list/stock-transfer-list.component';
 import { ListCustomerInvoicesComponent } from './components/merchandise/customer/list-customer-invoices/list-customer-invoices.component';
 import { AddInvoiceComponent } from './components/merchandise/customer/add-invoice/add-invoice.component';
+import { AdminDashboardComponent } from './dashboard/admin-dashboard/admin-dashboard.component';
 
 const routes: Routes = [
   {
@@ -119,7 +120,13 @@ const routes: Routes = [
       { path: 'stock', component: StockListComponent },
       { path: 'stock/mouvement', component: StockMouvementComponent },
       { path: 'stock/transferinfo/add', component: TransfertStockComponent },
-      { path: 'stock/transferinfo', component: StockTransferListComponent }
+      { path: 'stock/transferinfo', component: StockTransferListComponent },
+      {
+        path: 'admin-dashboard',
+        component: AdminDashboardComponent,
+        canActivate: [roleGuard],
+        data: { roles: ['Admin'] }
+      }
     ]
   }
 ];

@@ -1,0 +1,26 @@
+.container {
+    max-width: 1200px;
+}
+
+mat-card {
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+}
+
+.text-end {
+    text-align: right;
+}
+
+.fw-bold {
+    font-weight: 600;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    border-top: none;
+}
+
+.badge {
+    text-transform: capitalize;
+}

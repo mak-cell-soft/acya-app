@@ -25,6 +25,13 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                           .Where(av => av.isDeleted== false)
                           .ToListAsync();
       return res;
-    } 
+    }
+
+    public async Task<AppVariable?> GetByNatureAndExternalIdAsync(string nature, int externalId)
+    {
+      string prefix = $"{externalId}|";
+      return await context.AppVariables
+          .FirstOrDefaultAsync(av => av.Nature == nature && av.Name!.StartsWith(prefix) && av.isDeleted == false);
+    }
   }
 }

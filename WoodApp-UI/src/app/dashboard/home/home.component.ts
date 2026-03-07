@@ -5,6 +5,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { delay, filter } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { BUTTON_ADMINISTRATION, BUTTON_HOME, MENU_ACCOUNTING, MENU_ARTICLES, MENU_CLIENT, MENU_HELP, MENU_PROVIDER, MENU_PURCHASE, MENU_SELL, MENU_STOCK, MENU_SUB_BON_SORTIE, MENU_SUB_INVETORY, MENU_SUB_PURCHASE_BC, MENU_SUB_PURCHASE_BR, MENU_SUB_PURCHASE_FACT, MENU_SUB_SELL_BC, MENU_SUB_SELL_BL, MENU_SUB_SELL_DEVIS, MENU_SUB_SELL_FACT, MENU_SUB_STOCK_LIST, MENU_SUB_STOCK_MANAGE } from '../../shared/constants/components/home';
+import { AuthenticationService } from '../../services/components/authentication.service';
 
 @UntilDestroy()
 @Component({
@@ -79,7 +80,11 @@ export class HomeComponent implements AfterViewInit {
   //   this.isReceptionOpen = !this.isReceptionOpen;
   // }
 
-  constructor(private observer: BreakpointObserver, private router: Router) { }
+  constructor(private observer: BreakpointObserver, private router: Router, private authService: AuthenticationService) { }
+
+  get isAdmin(): boolean {
+    return this.authService.getRole() === 'Admin';
+  }
 
   ngAfterViewInit() {
     this.observer

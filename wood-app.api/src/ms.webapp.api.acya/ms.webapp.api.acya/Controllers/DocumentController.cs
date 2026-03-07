@@ -20,13 +20,15 @@ namespace ms.webapp.api.acya.api.Controllers
     private readonly StockRepository _stockRepository;
     private readonly WoodAppContext _context;
     private readonly IAccountService _accountService;
-    public DocumentController(DocumentRepository repository, MerchandiseRepository merchandiseRepository, StockRepository stockRepository, WoodAppContext context, IAccountService accountService)
+    private readonly IBalanceService _balanceService;
+    public DocumentController(DocumentRepository repository, MerchandiseRepository merchandiseRepository, StockRepository stockRepository, WoodAppContext context, IAccountService accountService, IBalanceService balanceService)
     {
       _repository = repository;
       _merchandiseRepository = merchandiseRepository;
       _stockRepository = stockRepository;
       _context = context;
       _accountService = accountService;
+      _balanceService = balanceService;
     }
 
     //[HttpGet]
@@ -604,6 +606,15 @@ namespace ms.webapp.api.acya.api.Controllers
 
           await transaction.CommitAsync();
 
+          // Update persistent balance
+          if (doc.CounterPartId > 0)
+          {
+              if (doc.CounterPart?.Type == CounterPartType.Customer)
+                  await _balanceService.UpdateCustomerBalanceAsync(doc.CounterPartId, "mouvement", DateTime.UtcNow);
+              else
+                  await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId, "mouvement", DateTime.UtcNow);
+          }
+
           return Ok(new { docRef = doc.DocNumber, message = "Document added successfully" });
         }
         catch (Exception ex)
@@ -771,15 +782,24 @@ namespace ms.webapp.api.acya.api.Controllers
       try
       {
         await _repository.SaveChanges();
+
+        // Update persistent balance
+        if (invoice.CounterPartId > 0)
+        {
+          if (invoice.CounterPart?.Type == CounterPartType.Customer)
+            await _balanceService.UpdateCustomerBalanceAsync(invoice.CounterPartId, "mouvement", DateTime.UtcNow);
+          else
+            await _balanceService.UpdateSupplierBalanceAsync(invoice.CounterPartId, "mouvement", DateTime.UtcNow);
+        }
+
+        // Return the created invoice with a 201 Created status
+        return CreatedAtAction(nameof(GetInvoiceById), new { id = invoice.Id }, invoice);
       }
       catch (Exception ex)
       {
         // Log the error (if needed)
         return StatusCode(500, "An error occurred while saving the invoice and relationships. " + ex.Message);
       }
-
-      // Return the created invoice with a 201 Created status
-      return CreatedAtAction(nameof(GetInvoiceById), new { id = invoice.Id }, invoice);
     }
 
     // Example method to get an invoice by ID (used in CreatedAtAction)
