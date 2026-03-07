@@ -55,7 +55,7 @@ namespace ms.webapp.api.acya.api.Services
             var metadata = new
             {
                 id = counterpartId,
-                label = counterpart.Fullname,
+                label = (counterpart.Type == CounterPartType.Supplier || counterpart.Type == CounterPartType.Both) ? counterpart.Name : counterpart.Fullname,
                 lastTx = lastTxType,
                 lastTxDate = txDate
             };
