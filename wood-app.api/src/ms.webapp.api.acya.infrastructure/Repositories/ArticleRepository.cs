@@ -48,7 +48,9 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
           .Include(a => a.Thicknesses)
           .Include(a => a.Widths)
           .Include(a => a.FirstChildren)
-          .Where(a => a.Id! == id)
+          .Include(a => a.Parents)
+          .Include(a => a.TVAs)
+          .Where(a => a.Id == id)
           .SingleOrDefaultAsync();
 
       return article;

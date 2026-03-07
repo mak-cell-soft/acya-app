@@ -1,4 +1,6 @@
 import { AfterViewInit, Component, Inject, OnInit, Optional } from '@angular/core';
+import { forkJoin } from 'rxjs';
+
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Category, SubCategory } from '../../../models/configuration/category';
 import { CategoryService } from '../../../services/configuration/category.service';
@@ -111,18 +113,67 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.createForm();
-    if (this.isEditMode) {
-      this.patchForm();
-    }
+    this.loadInitialData();
   }
 
+  loadInitialData() {
+    forkJoin({
+      categories: this.categoryService.GetAll(),
+      tvas: this.appvarService.GetAll('Tva'),
+      widths: this.appvarService.GetAll('width'),
+      thicknesses: this.appvarService.GetAll('thickness'),
+      lengths: this.appvarService.GetAll('Length')
+    }).subscribe({
+      next: (results) => {
+        // Process categories
+        this.categories = results.categories.map(category => ({
+          ...category,
+          firstchildren: category.firstchildren || []
+        }));
+
+        // Process TVAs
+        this.appvariablesTVA = results.tvas;
+
+        // Process Widths
+        results.widths.sort((a: any, b: any) => parseFloat(b.name) - parseFloat(a.name));
+        this.appvariablesWidth = results.widths;
+
+        // Process Thicknesses
+        results.thicknesses.sort((a: any, b: any) => parseFloat(b.name) - parseFloat(a.name));
+        this.appvariablesThikness = results.thicknesses;
+
+        // Process Lengths
+        results.lengths.sort((a: any, b: any) => parseFloat(b.value) - parseFloat(a.value));
+        this.appvariablesLength = results.lengths;
+
+        if (this.isEditMode) {
+          this.patchForm();
+        }
+      },
+      error: (error) => {
+        console.error('Error loading initial data:', error);
+        this.toastr.error('Erreur lors du chargement des données initiales');
+      }
+    });
+  }
 
   ngAfterViewInit(): void {
-    this.getAllCategories();
-    this.getAllTva();
-    this.getAllWidth();
-    this.getAllThickness();
-    this.getAllLengths();
+    // Moved data loading to ngOnInit via loadInitialData()
+  }
+
+  updateArticle(article: Article): void {
+    this.articleService.Put(article.id, article).subscribe({
+      next: (response) => {
+        this.toastr.success('Article mis à jour avec succès');
+        if (this.dialogRef) {
+          this.dialogRef.close(true);
+        }
+      },
+      error: (error) => {
+        this.toastr.error('Erreur lors de la mise à jour');
+        console.error(error);
+      }
+    });
   }
 
   createForm() {
@@ -131,14 +182,14 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
       description: ['', Validators.required],
       selectedCategory: ['', Validators.required],
       selectedSubCategory: ['', Validators.required],
-      selectedThikness: [''],
-      selectedWidth: [''],
+      selectedThikness: [null],
+      selectedWidth: [null],
       selectedLengths: [''],
       selectedPriceTTC: ['', Validators.required],
       selectedTva: ['', Validators.required],
       calculatedPriceHT: [{ value: '' }],
       quantityUnit: ['', Validators.required],
-      minquantity: ['', Validators.required],
+      minquantity: [0, Validators.required],
       profitpercentage: ['']
     });
 
@@ -153,11 +204,18 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
   }
 
   onLengthSelectionChange(event: any, length: string): void {
-    if (event.checked) {
-      this.selectedLengthNames.push(length);
+    const isChecked = event.checked;
+
+    if (isChecked) {
+      if (!this.selectedLengthNames.includes(length)) {
+        this.selectedLengthNames.push(length);
+      }
     } else {
       this.selectedLengthNames = this.selectedLengthNames.filter(item => item !== length);
     }
+
+    // Sort length names numerically for consistency
+    this.selectedLengthNames.sort((a, b) => parseFloat(a) - parseFloat(b));
 
     // Update selectedLengths string with the format [3.3, 3.6, 5.4]
     this.selectedLengths = `[${this.selectedLengthNames.join(', ')}]`;
@@ -179,77 +237,20 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
     }
   }
 
-
-  /**
-  * On récupère toutes les Categories du BackEnd
-  */
-  getAllCategories() {
-    this.categoryService.GetAll().subscribe({
-      next: (response) => {
-        this.categories = response.map(category => ({
-          ...category,
-          firstchildren: category.firstchildren || []
-        }));
-      },
-      error: (error) => {
-        console.error('Error fetching categories:', error);
-        // Optionally display an error message
-      }
-    });
-  }
-
-  getAllTva() {
-    this.appvarService.GetAll('Tva').subscribe({
-      next: (response: AppVariable[]) => {
-        this.appvariablesTVA = response
-        console.log("getAllTva() Method : ", this.appvariablesTVA);
-      },
-      // error: (error) => {
-      //   //console.error('Error fetching categories:', error);
-      //   this.toastr.error(this.load_taxes_error);
-      // }
-    });
-  }
-
-  getAllWidth() {
-    this.appvarService.GetAll('width').subscribe({
-      next: (response: AppVariable[]) => {
-        // Sort the response array by the 'value' property in descending order
-        response.sort((a, b) => parseFloat(b.name) - parseFloat(a.name));
-        console.log('PARSING AND SORTING RESPONSE WIDTH', response);
-        this.appvariablesWidth = response;
-        console.log("getAllWIDTH() Method : ", this.appvariablesWidth);
-      },
-      // error: (error) => {
-      //   //console.error('Error fetching categories:', error);
-      //   this.toastr.error(this.load_taxes_error);
-      // }
-    });
-  }
-
-  getAllThickness() {
-    this.appvarService.GetAll('thickness').subscribe({
-      next: (response: AppVariable[]) => {
-        // Sort the response array by the 'value' property in descending order
-        response.sort((a, b) => parseFloat(b.name) - parseFloat(a.name));
-        this.appvariablesThikness = response;
-        console.log("getAllTHICKNESS() Method : ", this.appvariablesThikness);
-      },
-      // error: (error) => {
-      //   //console.error('Error fetching categories:', error);
-      //   this.toastr.error(this.load_taxes_error);
-      // }
-    });
-  }
-
-  onCategoryChange(categoryId: number) {
+  onCategoryChange(categoryId: number, patchSubCategory?: number | null) {
     const selectedCategory = this.categories.find(category => category.id === categoryId);
     this.filteredSubCategories = selectedCategory ? selectedCategory.firstchildren : [];
     console.log("SELECTED CATEGORY = ", selectedCategory);
     this.woodId = selectedCategory?.id || 0;
-    this.selectedSubCategory = null; // Reset the selected subcategory
 
-    // Check if woodId is 1
+    // Only reset if we're not patching
+    if (patchSubCategory === undefined) {
+      this.articleForm.get('selectedSubCategory')?.setValue(null);
+    } else if (patchSubCategory) {
+      this.articleForm.get('selectedSubCategory')?.setValue(patchSubCategory);
+    }
+
+    // Specific logic for Wood (Category ID 1)
     if (this.woodId === 1) {
       this.articleForm.get('quantityUnit')?.setValue(QuantityUnits.m3);
       this.articleForm.get('quantityUnit')?.disable();
@@ -261,30 +262,34 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
 
   patchForm() {
     const article = this.data.article;
-    this.woodId = article.category?.id || 0;
+    this.woodId = article.category?.id || article.categoryid || 0;
+
+    // Use current quantity units
+    this.quantityUnits = Object.values(QuantityUnits);
 
     this.articleForm.patchValue({
       articlecode: article.reference,
       description: article.description,
-      selectedCategory: article.category?.id,
-      selectedSubCategory: article.subcategory?.id,
-      selectedThikness: article.thickness?.id,
-      selectedWidth: article.width?.id,
+      selectedCategory: this.woodId,
+      selectedThikness: article.thickness?.id || article.thicknessid,
+      selectedWidth: article.width?.id || article.widthid,
       selectedPriceTTC: article.sellprice_ttc,
       selectedTva: article.tvaid,
       calculatedPriceHT: article.sellprice_ht,
-      quantityUnit: Object.values(QuantityUnits).find(unit => unit.startsWith(article.unit?.substring(0, 3))),
+      quantityUnit: Object.values(QuantityUnits).find(unit => {
+        const articleUnit = article.unit?.substring(0, 3).toLowerCase();
+        return unit.toLowerCase().startsWith(articleUnit || '');
+      }),
       minquantity: article.minquantity,
       profitpercentage: article.profitmarginpercentage
-    });
+    }, { emitEvent: false });
 
     if (article.iswood) {
       this.initializeLengths(article);
     }
 
-    this.onCategoryChange(this.woodId);
-    // Re-patch subcategory because onCategoryChange might reset it
-    this.articleForm.get('selectedSubCategory')?.setValue(article.subcategory?.id);
+    // Call onCategoryChange to populate subcategories and then patch the subcategory value
+    this.onCategoryChange(this.woodId, article.subcategory?.id || article.subcategoryid);
   }
 
   initializeLengths(article: Article): void {
@@ -334,11 +339,11 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
       article.lastpurchaseprice_ttc = 0;
 
       // Map related entities (category, thickness, width, tva)
-      article.categoryid = this.categories.find(category => category.id === formValues.selectedCategory)?.id || 0;
-      article.subcategoryid = this.filteredSubCategories.find(subcategory => subcategory.id === formValues.selectedSubCategory)?.id || 0;
-      article.thicknessid = this.appvariablesThikness.find(thickness => thickness.id === formValues.selectedThikness)?.id || null;
-      article.widthid = this.appvariablesWidth.find(width => width.id === formValues.selectedWidth)?.id || null;
-      article.tvaid = this.appvariablesTVA.find(tva => tva.id === formValues.selectedTva)?.id || 0;
+      article.categoryid = formValues.selectedCategory || 0;
+      article.subcategoryid = formValues.selectedSubCategory || 0;
+      article.thicknessid = formValues.selectedThikness || null;
+      article.widthid = formValues.selectedWidth || null;
+      article.tvaid = formValues.selectedTva || 0;
 
       // Set related entities to null for now
       article.category = null;
@@ -397,35 +402,5 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
     }
   }
 
-  updateArticle(article: Article): void {
-    this.articleService.Put(article.id, article).subscribe({
-      next: (response) => {
-        this.toastr.success('Article mis à jour avec succès');
-        if (this.dialogRef) {
-          this.dialogRef.close(true);
-        }
-      },
-      error: (error) => {
-        this.toastr.error('Erreur lors de la mise à jour');
-        console.error(error);
-      }
-    });
-  }
-
-  getAllLengths() {
-    this.appvarService.GetAll('Length').subscribe({
-      next: (response: AppVariable[]) => {
-        // Sort the response array by the 'value' property in descending order
-        response.sort((a, b) => parseFloat(b.value) - parseFloat(a.value));
-        this.appvariablesLength = response
-
-        //this.toastr.success(this.load_tva_success);
-      },
-      // error: (error) => {
-      //   //console.error('Error fetching categories:', error);
-      //   this.toastr.error(this.load_taxes_error);
-      // }
-    });
-  }
-
 }
+
