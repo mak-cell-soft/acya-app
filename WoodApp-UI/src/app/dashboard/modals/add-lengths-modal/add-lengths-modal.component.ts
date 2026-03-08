@@ -56,6 +56,8 @@ export class AddLengthsModalComponent implements OnInit {
    */
   AvailableStockExpand: string[] = [...this.displayedLengthsColumns, 'available'];
   ExpandedElement: ListOfLength | null = null;
+  allThicknesses: AppVariable[] = [];
+  allWidths: AppVariable[] = [];
 
   /**
    * Prévoir pour la liste des Longueurs en input une méthode back-end qui retourne la liste objets AppVariable
@@ -80,15 +82,24 @@ export class AddLengthsModalComponent implements OnInit {
     this.availableStock_inputdata = this.data.availableStock;
 
     console.log('Article a voir : article_inputdata', this.article_inputdata);
+    console.log('Thickness object:', this.article_inputdata.thickness);
+    console.log('Width object:', this.article_inputdata.width);
     console.log('Merchand a voir : merchand_inputdata', this.merchand_inputdata);
     console.log('Stock restant: availableStock_inputdata', this.availableStock_inputdata);
     this.createForm();
+
+    // Load variable lists as fallbacks
+    this.appvarService.GetAll('thickness').subscribe(res => this.allThicknesses = res);
+    this.appvarService.GetAll('width').subscribe(res => {
+      this.allWidths = res;
+      this.patchFormValues(); // Re-patch once we have fallbacks
+    });
+
     this.patchFormValues();
     // La liste de tous le Longueurs de la base
     this.getAll().subscribe(filteredVariables => {
       this.filteredLengths = filteredVariables;
       console.log('FITERED : ', this.filteredLengths);
-
       // Initialize table after filtered lengths are set
       this.initializeTableData();
     });
@@ -106,10 +117,32 @@ export class AddLengthsModalComponent implements OnInit {
   }
 
   patchFormValues() {
+    // Get values safely - with fallbacks to finding objects by ID in pre-loaded lists
+    let thicknessObj = this.article_inputdata.thickness;
+    if (!thicknessObj && this.article_inputdata.thicknessid) {
+      thicknessObj = this.allThicknesses.find(t => t.id === this.article_inputdata.thicknessid);
+    }
+
+    let widthObj = this.article_inputdata.width;
+    if (!widthObj && this.article_inputdata.widthid) {
+      widthObj = this.allWidths.find(w => w.id === this.article_inputdata.widthid);
+    }
+
+    const thickness = thicknessObj?.value || thicknessObj?.name || '';
+    const width = widthObj?.value || widthObj?.name || '';
+
+    console.log('Patching thickness:', thickness, 'using ID fallback:', !!(!thicknessObj && this.article_inputdata.thicknessid));
+    console.log('Patching width:', width, 'using ID fallback:', !!(!widthObj && this.article_inputdata.widthid));
+
     this.lengthsForm.patchValue({
-      thickness: this.article_inputdata.thickness.value || '',
-      width: this.article_inputdata.width.value || '',
+      thickness: thickness,
+      width: width,
     });
+
+    // Trigger recalculation if already initialized
+    if (this.lengths && this.lengths.length > 0) {
+      this.lengths.forEach(l => this.updateQuantity(l));
+    }
   }
   //#endregion
 
@@ -149,23 +182,27 @@ export class AddLengthsModalComponent implements OnInit {
    */
   getAll(): Observable<AppVariable[]> {
     let selectedArticle = this.article_inputdata;
-    const lengths = selectedArticle.lengths ?? ""; // Ensure lengths is not null or undefined
-    console.log('Les Longueurs de larticle : ', lengths);
+    let rawLengths: string = selectedArticle.lengths ?? '';
 
-    const lengthsArray = lengths.split(", ").map((length: string) => length.trim());
-    console.log('Les Longueurs transformé en un tableau : ', lengthsArray);
+    // Strip surrounding brackets if present: "[240, 270, 300]" -> "240, 270, 300"
+    rawLengths = rawLengths.trim().replace(/^\[|\]$/g, '');
+
+    const lengthsArray = rawLengths
+      .split(',')
+      .map((s: string) => s.trim())
+      .filter((s: string) => s.length > 0);
+
+    console.log('Lengths array parsed:', lengthsArray);
 
     return this.appvarService.GetAll('Length').pipe(
       map((response: AppVariable[]) => {
-        console.log('RESPONSE', response);
-        // Filter and sort the response array
         return response
           .filter(appVar => lengthsArray.includes(appVar.name))
           .sort((a, b) => parseFloat(b.value) - parseFloat(a.value));
       }),
       catchError((err) => {
         console.error('Failed to fetch lengths', err);
-        return of([]); // Return an empty array in case of error
+        return of([]);
       })
     );
   }
@@ -182,23 +219,41 @@ export class AddLengthsModalComponent implements OnInit {
       listOfLength.nbpieces = 0;
       listOfLength.quantity = 0;
       listOfLength.availablePieces = 0;
+
+      // If we have existing lengths (editing mode), populate the pieces
+      if (this.data.lengths && Array.isArray(this.data.lengths)) {
+        const existing = this.data.lengths.find((l: ListOfLength) => l.length.id === filteredItem.id);
+        if (existing) {
+          listOfLength.nbpieces = existing.nbpieces;
+          // We'll recalculate quantity below
+        }
+      }
+
       return listOfLength;
     });
 
-    console.log('Initialized lengths (defaults):', this.lengths);
-    console.log('Available stock input data (raw):', this.availableStock_inputdata);
-    // Then update availablePieces based on stock data
-    this.lengths.forEach(listOfLength => {
-      const matchingStock = this.availableStock_inputdata.find(
-        (stock: StockItem) => stock.lengthName === listOfLength.length.name
-      );
+    console.log('Initialized lengths:', this.lengths);
 
-      if (matchingStock) {
-        listOfLength.availablePieces = matchingStock.remainingPieces;
-      }
+    // Update availablePieces based on stock data
+    if (this.availableStock_inputdata && Array.isArray(this.availableStock_inputdata)) {
+      this.lengths.forEach(listOfLength => {
+        const matchingStock = this.availableStock_inputdata.find(
+          (stock: StockItem) => stock.lengthName === listOfLength.length.name
+        );
+
+        if (matchingStock) {
+          listOfLength.availablePieces = matchingStock.remainingPieces;
+        }
+      });
+    }
+
+    // Recalculate all quantities and total
+    this.totalQuantity = 0;
+    this.lengths.forEach(l => {
+      this.updateQuantity(l);
     });
-
-    console.log('Final lengths with available stock:', this.lengths);
+    console.log('Final lengths with totals:', this.lengths);
+    console.log('Calculated Total Quantity:', this.totalQuantity);
   }
 
 
@@ -208,21 +263,20 @@ export class AddLengthsModalComponent implements OnInit {
    * @param element ListOfLength
    */
   updateQuantity(element: ListOfLength): void {
-    // Parse thickness and width values
-    const thicknessValue = parseFloat(this.lengthsForm.get('thickness')?.value.replace(',', '.') || '0');
-    const widthValue = parseFloat(this.lengthsForm.get('width')?.value.replace(',', '.') || '0');
+    // Parse thickness and width values - ensuring they are strings before replace
+    const rawThickness = this.lengthsForm.get('thickness')?.value?.toString() || '0';
+    const rawWidth = this.lengthsForm.get('width')?.value?.toString() || '0';
+
+    const thicknessValue = parseFloat(rawThickness.replace(',', '.')) || 0;
+    const widthValue = parseFloat(rawWidth.replace(',', '.')) || 0;
+
+    const rawLen = element.length.value?.toString() || '0';
+    const lengthValue = parseFloat(rawLen.replace(',', '.')) || 0;
 
     // Calculate the quantity for the current element
-    element.quantity =
-      element.nbpieces *
-      parseFloat(element.length.value.replace(',', '.') || '0') *
-      thicknessValue *
-      widthValue;
+    element.quantity = (element.nbpieces || 0) * lengthValue * thicknessValue * widthValue;
 
     // Recalculate the total quantity
-    /**
-     * Uses Array.prototype.reduce() to iterate through the lengths array and calculate the total quantity by summing up all the quantity values.
-     */
     this.totalQuantity = this.lengths.reduce((sum, item) => sum + (item.quantity || 0), 0);
   }
 

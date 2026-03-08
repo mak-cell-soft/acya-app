@@ -65,6 +65,7 @@ export class EditDocumentModalComponent implements OnInit {
     totalTVA_doc$ = new BehaviorSubject<number>(0);
     netTTC_doc$ = new BehaviorSubject<number>(0);
 
+    editingMerchandise: Merchandise | null = null;
     isLoading = false;
 
     constructor(
@@ -147,8 +148,12 @@ export class EditDocumentModalComponent implements OnInit {
 
     onOptionSelected(articleId: number) {
         this.searchControl.setValue('');
+        // Find existing article from pre-loaded list to ensure we have thickness/width objects
         const article = this.articles.find(a => a.id === articleId);
         if (article) {
+            console.log('Hydrated article for selection:', article);
+            console.log('Thickness present:', !!article.thickness);
+            console.log('Width present:', !!article.width);
             this.selectedArticle = article;
             this.selectedArticle.tva = this.TVAs.find(t => t.id === article.tvaid) || null;
             this.merchandiseForm.get('tva')?.setValue(article.tvaid);
@@ -162,11 +167,9 @@ export class EditDocumentModalComponent implements OnInit {
             let qtity = this.isArticleTypeWood ? this.responseFromModalTotQuantity : (this.merchandiseForm.get('quantity')?.value || 0);
             let list_lengths = this.isArticleTypeWood ? this.responseFromModalLengths : [];
 
-            const newM: Merchandise = {
-                id: 0,
+            const merchData: Partial<Merchandise> = {
                 packagereference: this.merchandiseForm.get('reference')?.value || 'Standard',
                 description: this.merchandiseForm.get('description')?.value || '',
-                creationdate: new Date(),
                 updatedate: new Date(),
                 updatedbyid: Number(this.userconnected?.id),
                 unit_price_ht: this.merchandiseForm.get('unit_price_ht')?.value || 0,
@@ -177,17 +180,34 @@ export class EditDocumentModalComponent implements OnInit {
                 cost_net_ht: this.merchandiseForm.get('sellcostprice_net_ht')?.value || 0,
                 tva_value: this.merchandiseForm.get('sellcostprice_taxValue')?.value || 0,
                 cost_ttc: this.merchandiseForm.get('totalWithTax')?.value || 0,
-                documentid: this.document.id,
                 isinvoicible: this.merchandiseForm.get('isinvoicible')?.value || false,
                 allownegativstock: this.merchandiseForm.get('allownegativstock')?.value || false,
                 article: this.selectedArticle,
                 lisoflengths: list_lengths,
-                ismergedwith: false,
-                idmergedmerchandise: 0,
-                isdeleted: false
             };
 
-            this.merchandisDocument.data = [...this.merchandisDocument.data, newM];
+            if (this.editingMerchandise) {
+                // Update existing
+                const index = this.merchandisDocument.data.indexOf(this.editingMerchandise);
+                if (index > -1) {
+                    const updatedList = [...this.merchandisDocument.data];
+                    updatedList[index] = { ...this.editingMerchandise, ...merchData };
+                    this.merchandisDocument.data = updatedList;
+                }
+                this.editingMerchandise = null;
+            } else {
+                // Add new
+                const newM: Merchandise = {
+                    ...(merchData as Merchandise),
+                    id: 0,
+                    creationdate: new Date(),
+                    documentid: this.document.id,
+                    ismergedwith: false,
+                    idmergedmerchandise: 0,
+                    isdeleted: false
+                };
+                this.merchandisDocument.data = [...this.merchandisDocument.data, newM];
+            }
             this.resetMerchandiseForm();
         } else {
             this.toastr.info('Veuillez remplir tous les champs de la marchandise');
@@ -203,9 +223,18 @@ export class EditDocumentModalComponent implements OnInit {
         });
         this.searchControl.setValue('');
         this.isArticleTypeWood = false;
+        this.responseFromModalLengths = [];
+        this.responseFromModalTotQuantity = 0;
+        this.editingMerchandise = null;
+        this.selectedArticle = undefined!;
+        this.merchandiseForm.get('tva')?.enable();
     }
 
     deleteRow(element: Merchandise) {
+        if (this.editingMerchandise === element) {
+            this.editingMerchandise = null;
+            this.resetMerchandiseForm();
+        }
         const dialogRef = this.dialog.open(ConfirmDeleteModalComponent, {
             width: '400px',
             data: { item: { id: element.article.reference, name: element.article.description } }
@@ -215,6 +244,38 @@ export class EditDocumentModalComponent implements OnInit {
                 this.merchandisDocument.data = this.merchandisDocument.data.filter(m => m !== element);
             }
         });
+    }
+
+    editRow(element: Merchandise) {
+        this.editingMerchandise = element;
+        // Find existing article from pre-loaded list to ensure we have thickness/width objects
+        this.selectedArticle = this.articles.find(a => a.id === element.article.id) || element.article;
+        this.isArticleTypeWood = this.selectedArticle.iswood;
+
+        if (this.isArticleTypeWood) {
+            this.responseFromModalLengths = element.lisoflengths;
+            this.responseFromModalTotQuantity = element.quantity;
+        }
+
+        this.merchandiseForm.patchValue({
+            unit_price_ht: element.unit_price_ht,
+            merchandise_cost_ht: element.cost_ht,
+            quantity: element.quantity,
+            tva: element.article.tvaid,
+            selldiscountpercentage: element.discount_percentage,
+            sellcostprice_discountValue: element.cost_discount_value,
+            sellcostprice_net_ht: element.cost_net_ht,
+            sellcostprice_taxValue: element.tva_value,
+            totalWithTax: element.cost_ttc,
+            reference: element.packagereference,
+            description: element.description,
+            isinvoicible: element.isinvoicible,
+            allownegativstock: element.allownegativstock
+        });
+
+        // Search control setup
+        this.searchControl.setValue(element.article.reference);
+        this.merchandiseForm.get('tva')?.disable();
     }
 
     calculateTotals(data: Merchandise[]) {
@@ -263,7 +324,10 @@ export class EditDocumentModalComponent implements OnInit {
     openAddQuantityModal(article: Article) {
         const dialogRef = this.dialog.open(AddLengthsModalComponent, {
             width: '800px',
-            data: { article }
+            data: {
+                article,
+                lengths: this.responseFromModalLengths
+            }
         });
         dialogRef.afterClosed().subscribe(res => {
             if (res) {
