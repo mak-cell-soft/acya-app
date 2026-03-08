@@ -88,11 +88,7 @@ namespace ms.webapp.api.acya.core.Entities
       if (dto.article != null)
       {
         ArticleId = dto.article.id ?? 0;
-        if (Articles == null)
-        {
-          Articles = new Article();
-        }
-        //Articles.UpdateFromDto(dto.article); // Not strictly needed if we just want the ID
+        Articles = null;
       }
       else
       {

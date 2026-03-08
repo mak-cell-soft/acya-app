@@ -903,6 +903,9 @@ namespace ms.webapp.api.acya.api.Controllers
           var doc = await _context.Documents
               .Include(d => d.DocumentMerchandises)
                   .ThenInclude(dm => dm.Merchandise)
+              .Include(d => d.DocumentMerchandises)
+                  .ThenInclude(dm => dm.QuantityMovements)
+                      .ThenInclude(qm => qm!.ListOfLengths)
               .FirstOrDefaultAsync(d => d.Id == id);
 
           if (doc == null)
@@ -963,6 +966,49 @@ namespace ms.webapp.api.acya.api.Controllers
                 CreationDate = DateTime.UtcNow,
                 UpdateDate = DateTime.UtcNow
               };
+
+              // Handle QuantityMovement if lengths exist
+              if (merchDto.lisoflengths != null && merchDto.lisoflengths.Any())
+              {
+                var newQtyMovement = new QuantityMovement
+                {
+                  Quantity = merchDto.quantity,
+                  LengthIds = string.Join(",", merchDto.lisoflengths.Select(l => l.length?.id)),
+                  CreationDate = DateTime.UtcNow,
+                  UpdateDate = DateTime.UtcNow,
+                  DocumentMerchandise = docMerchandise
+                };
+
+                foreach (var lengthDto in merchDto.lisoflengths)
+                {
+                  var newLength = new ListOfLength
+                  {
+                    NumberOfPieces = lengthDto.nbpieces!,
+                    Quantity = lengthDto.quantity,
+                    QuantityMovements = newQtyMovement
+                  };
+
+                  if (lengthDto.length != null && lengthDto.length.id > 0)
+                  {
+                    newLength.AppVarLength = await _context.AppVariables.FindAsync(lengthDto.length.id);
+                    _context.Entry(newLength.AppVarLength!).State = EntityState.Unchanged;
+                  }
+
+                  if (newLength.NumberOfPieces > 0)
+                  {
+                    newQtyMovement.ListOfLengths.Add(newLength);
+                  }
+                }
+
+                docMerchandise.QuantityMovements = newQtyMovement;
+              }
+
+              // Ensure the merchandise is properly attached
+              if (_context.Entry(merchandise).State == EntityState.Detached)
+              {
+                _context.Merchandises.Attach(merchandise);
+                _context.Entry(merchandise).State = EntityState.Unchanged;
+              }
 
               _context.DocumentMerchandises.Add(docMerchandise);
             }

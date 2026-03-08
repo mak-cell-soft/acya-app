@@ -490,8 +490,18 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   }
 
 
-  deleteTaxe(index: number): void {
-    //this.taxes.splice(index, 1);
+  deleteTaxe(appvar: AppVariable): void {
+    if (confirm('Voulez-vous vraiment supprimer cette taxe ?')) {
+      this.appvarService.Delete(appvar.id).subscribe({
+        next: () => {
+          this.toastr.success('Taxe supprimée avec succès');
+          this.getAllTaxes();
+        },
+        error: (error: any) => {
+          this.toastr.error('Erreur lors de la suppression de la taxe');
+        }
+      });
+    }
   }
 
   editTaxe(appvar: AppVariable): void {
@@ -517,7 +527,7 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
           appvar.editing = false;
           this.toastr.success(this.update_bank_success);
         },
-        error: (error) => {
+        error: (error: any) => {
           this.toastr.error(this.update_bank_error);
           // Handle the error, e.g., display a message to the user.
         }
@@ -571,7 +581,7 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
           appvar.editing = false;
           this.toastr.success(this.update_bank_success);
         },
-        error: (error) => {
+        error: (error: any) => {
           this.toastr.error(this.update_bank_error);
           // Handle the error, e.g., display a message to the user.
         }
@@ -636,16 +646,34 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
     });
   }
 
-  deleteDimension(index: number): void {
-    //this.tva.splice(index, 1);
+  deleteDimension(appvar: AppVariable): void {
+    if (confirm('Voulez-vous vraiment supprimer cette dimension ?')) {
+      this.appvarService.Delete(appvar.id).subscribe({
+        next: () => {
+          this.toastr.success('Dimension supprimée avec succès');
+          this.getAllDimensions();
+        },
+        error: (error: any) => {
+          this.toastr.error('Erreur lors de la suppression de la dimension');
+        }
+      });
+    }
   }
 
   editDimension(appvar: AppVariable): void {
-    appvar.editing = true;
+    const updatedAppvar = { ...appvar, editing: true };
+    const index = this.appvariablesDimension.data.findIndex(item => item.id === appvar.id);
+    const updatedData = [...this.appvariablesDimension.data];
+    updatedData[index] = updatedAppvar;
+    this.appvariablesDimension.data = updatedData;
   }
 
   cancelEditDimension(appvar: AppVariable): void {
-    appvar.editing = false;
+    const updatedAppvar = { ...appvar, editing: false };
+    const index = this.appvariablesDimension.data.findIndex(item => item.id === appvar.id);
+    const updatedData = [...this.appvariablesDimension.data];
+    updatedData[index] = updatedAppvar;
+    this.appvariablesDimension.data = updatedData;
   }
 
   saveDimension(appvar: AppVariable): void {
@@ -658,10 +686,14 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
     this.appvarService.Put(appvar.id, appvar).pipe(
       tap({
         next: (updateAppVar) => {
-          appvar.editing = false;
+          const updatedAppvar = { ...appvar, editing: false };
+          const index = this.appvariablesDimension.data.findIndex(item => item.id === appvar.id);
+          const updatedData = [...this.appvariablesDimension.data];
+          updatedData[index] = updatedAppvar;
+          this.appvariablesDimension.data = updatedData;
           this.toastr.success(this.update_bank_success);
         },
-        error: (error) => {
+        error: (error: any) => {
           this.toastr.error(this.update_bank_error);
           // Handle the error, e.g., display a message to the user.
         }
@@ -672,8 +704,18 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   //#endregion
 
   //#region Length
-  deleteLength(index: number): void {
-    //this.tva.splice(index, 1);
+  deleteLength(appvar: AppVariable): void {
+    if (confirm('Voulez-vous vraiment supprimer cette longueur ?')) {
+      this.appvarService.Delete(appvar.id).subscribe({
+        next: () => {
+          this.toastr.success('Longueur supprimée avec succès');
+          this.getAllLength();
+        },
+        error: (error: any) => {
+          this.toastr.error('Erreur lors de la suppression de la longueur');
+        }
+      });
+    }
   }
 
   // editLength(appvar: AppVariable): void {
@@ -696,10 +738,27 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   }
 
   cancelEditLength(appvar: AppVariable): void {
-    appvar.editing = false;
+    const updatedAppvar = { ...appvar, editing: false };
+    const index = this.appvariablesLength.data.findIndex(item => item.id === appvar.id);
+    const updatedData = [...this.appvariablesLength.data];
+    updatedData[index] = updatedAppvar;
+    this.appvariablesLength.data = updatedData;
   }
 
   saveLength(appvar: AppVariable): void {
+    this.appvarService.Put(appvar.id, appvar).subscribe({
+      next: (updateAppVar) => {
+        const updatedAppvar = { ...appvar, editing: false };
+        const index = this.appvariablesLength.data.findIndex(item => item.id === appvar.id);
+        const updatedData = [...this.appvariablesLength.data];
+        updatedData[index] = updatedAppvar;
+        this.appvariablesLength.data = updatedData;
+        this.toastr.success(this.update_bank_success);
+      },
+      error: (error: any) => {
+        this.toastr.error(this.update_bank_error);
+      }
+    });
   }
 
   // getAllLength() {

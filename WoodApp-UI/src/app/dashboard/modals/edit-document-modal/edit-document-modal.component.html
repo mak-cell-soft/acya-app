@@ -46,7 +46,7 @@
                     <input matInput [formControl]="searchControl" placeholder="Référence ou désignation..."
                         (input)="applyFilter($event)" />
                     <mat-icon matSuffix>search</mat-icon>
-                    <mat-select #articleSelect (selectionChange)="onOptionSelected($event.value)" class="hidden">
+                    <mat-select #articleSelect (selectionChange)="onOptionSelected($event.value)" class="show-select">
                         <mat-option *ngFor="let item of filteredArticles" [value]="item.id">
                             {{ item.reference }} - {{ item.description }}
                         </mat-option>
@@ -105,10 +105,15 @@
             </div>
 
             <div class="form-row">
-                <mat-form-field appearance="outline" class="flex-1">
+                <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Référence Colis</mat-label>
-                    <input matInput formControlName="reference">
+                    <input matInput formControlName="reference" [required]="isArticleTypeWood">
                 </mat-form-field>
+                <button mat-icon-button color="primary" matTooltip="Générer référence"
+                    (click)="generateMerchandReference()" [disabled]="isLoading">
+                    <mat-icon *ngIf="!isLoading">autorenew</mat-icon>
+                    <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+                </button>
                 <mat-form-field appearance="outline" class="flex-2">
                     <mat-label>Description / Note</mat-label>
                     <input matInput formControlName="description">

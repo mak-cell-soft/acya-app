@@ -46,4 +46,8 @@ export class AppVariableService {
   GetAll(nature: string) {
     return this.http.get<AppVariable[]>(this.baseUrl + 'AppVariable/getall/' + nature);
   }
+
+  Delete(id: number) {
+    return this.http.delete(this.baseUrl + 'AppVariable/' + id);
+  }
 }

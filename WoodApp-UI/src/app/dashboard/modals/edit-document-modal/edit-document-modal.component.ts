@@ -19,6 +19,7 @@ import { AppVariableService } from '../../../services/configuration/app-variable
 import { AuthenticationService } from '../../../services/components/authentication.service';
 import { ConfirmDeleteModalComponent } from '../confirm-delete-modal/confirm-delete-modal.component';
 import { AddLengthsModalComponent } from '../add-lengths-modal/add-lengths-modal.component';
+import { MerchandiseService } from '../../../services/components/merchandise.service';
 
 @Component({
     selector: 'app-edit-document-modal',
@@ -33,6 +34,7 @@ export class EditDocumentModalComponent implements OnInit {
     docService = inject(DocumentService);
     authService = inject(AuthenticationService);
     toastr = inject(ToastrService);
+    merchandiseService = inject(MerchandiseService);
     dialog = inject(MatDialog);
     decimalPipe = inject(DecimalPipe);
 
@@ -331,9 +333,10 @@ export class EditDocumentModalComponent implements OnInit {
         });
         dialogRef.afterClosed().subscribe(res => {
             if (res) {
+                const formattedQty = Number(res.totalQuantity.toFixed(3));
                 this.responseFromModalLengths = res.lengths;
-                this.responseFromModalTotQuantity = res.totalQuantity;
-                this.merchandiseForm.patchValue({ quantity: res.totalQuantity });
+                this.responseFromModalTotQuantity = formattedQty;
+                this.merchandiseForm.patchValue({ quantity: formattedQty });
             }
         });
     }
@@ -370,4 +373,24 @@ export class EditDocumentModalComponent implements OnInit {
     onCancel() {
         this.dialogRef.close();
     }
+
+     generateMerchandReference() {
+    if (this.selectedArticle != null) {
+      this.isLoading = true; // Start loading
+      this.merchandiseService.getMerchandiseReferenceAsString(this.selectedArticle.id).subscribe({
+        next: (response: string) => {
+          this.merchandiseForm.get('reference')?.setValue(response);
+          this.isLoading = false; // Stop loading
+        },
+        error: (err) => {
+          console.error('Error fetching merchandise reference:', err);
+          this.toastr.error('Failed to generate reference. Please try again.');
+          this.isLoading = false; // Stop loading
+        }
+      });
+    } else {
+      this.toastr.info("Selectionner un Article d\'abord");
+    }
+  }
+
 }
