@@ -166,3 +166,27 @@
     margin-top: 8px;
     width: 100%;
 }
+
+/* Custom Text highlighting for modal tables */
+.price-text {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.highlight-price {
+    color: #0d47a1 !important;
+    font-weight: 800;
+    background: #e3f2fd;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.qty-text {
+    font-weight: 700;
+    color: #d35400;
+}
+
+.discount-text {
+    color: #c0392b;
+    font-weight: 600;
+}

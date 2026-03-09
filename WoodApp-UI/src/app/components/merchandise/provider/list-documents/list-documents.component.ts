@@ -290,8 +290,8 @@ export class ListDocumentsComponent implements OnInit, AfterViewInit {
 
   editDocument(doc: Document) {
     const dialogRef = this.dialog.open(EditDocumentModalComponent, {
-      width: '1100px',
-      maxWidth: '95vw',
+      width: '1400px',
+      maxWidth: '98vw',
       maxHeight: '90vh',
       data: { document: doc }
     });

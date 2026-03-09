@@ -178,6 +178,10 @@ namespace ms.webapp.api.acya.api.Controllers
             .Select(dm => new MerchandiseDto
             {
               id = dm.MerchandiseId,
+              packagereference = dm.Merchandise?.PackageReference,
+              description = dm.Merchandise?.Description,
+              isinvoicible = dm.Merchandise?.IsInvoicible ?? false,
+              allownegativstock = dm.Merchandise?.AllowNegativStock ?? false,
               quantity = dm.Quantity,
               unit_price_ht = dm.UnitPriceHT,
               cost_ht = dm.CostHT,
@@ -300,6 +304,10 @@ namespace ms.webapp.api.acya.api.Controllers
             .Select(dm => new MerchandiseDto
             {
               id = dm.MerchandiseId,
+              packagereference = dm.Merchandise?.PackageReference,
+              description = dm.Merchandise?.Description,
+              isinvoicible = dm.Merchandise?.IsInvoicible ?? false,
+              allownegativstock = dm.Merchandise?.AllowNegativStock ?? false,
               quantity = dm.Quantity,
               unit_price_ht = dm.UnitPriceHT,
               cost_ht = dm.CostHT,

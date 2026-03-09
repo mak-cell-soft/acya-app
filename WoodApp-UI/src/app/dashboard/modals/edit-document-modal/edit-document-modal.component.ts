@@ -62,6 +62,7 @@ export class EditDocumentModalComponent implements OnInit {
     userconnected = this.authService.getUserDetail();
 
     // Totals
+    totalBrutHT_doc$ = new BehaviorSubject<number>(0);
     totalHTNet_doc$ = new BehaviorSubject<number>(0);
     totalRemise_doc$ = new BehaviorSubject<number>(0);
     totalTVA_doc$ = new BehaviorSubject<number>(0);
@@ -107,7 +108,7 @@ export class EditDocumentModalComponent implements OnInit {
             sellcostprice_net_ht: ['', Validators.required],
             sellcostprice_taxValue: ['', Validators.required],
             totalWithTax: ['', Validators.required],
-            reference: [''],
+            packagereference: [''],
             description: [''],
             isinvoicible: [true],
             allownegativstock: [false]
@@ -170,7 +171,7 @@ export class EditDocumentModalComponent implements OnInit {
             let list_lengths = this.isArticleTypeWood ? this.responseFromModalLengths : [];
 
             const merchData: Partial<Merchandise> = {
-                packagereference: this.merchandiseForm.get('reference')?.value || 'Standard',
+                packagereference: this.merchandiseForm.get('packagereference')?.value || 'Standard',
                 description: this.merchandiseForm.get('description')?.value || '',
                 updatedate: new Date(),
                 updatedbyid: Number(this.userconnected?.id),
@@ -197,6 +198,7 @@ export class EditDocumentModalComponent implements OnInit {
                     this.merchandisDocument.data = updatedList;
                 }
                 this.editingMerchandise = null;
+                console.log("updated", this.merchandisDocument.data);
             } else {
                 // Add new
                 const newM: Merchandise = {
@@ -209,6 +211,7 @@ export class EditDocumentModalComponent implements OnInit {
                     isdeleted: false
                 };
                 this.merchandisDocument.data = [...this.merchandisDocument.data, newM];
+                console.log("added", this.merchandisDocument.data);
             }
             this.resetMerchandiseForm();
         } else {
@@ -224,6 +227,9 @@ export class EditDocumentModalComponent implements OnInit {
             sellcostprice_discountValue: 0
         });
         this.searchControl.setValue('');
+        if (this.articleSelect) {
+            this.articleSelect.value = null;
+        }
         this.isArticleTypeWood = false;
         this.responseFromModalLengths = [];
         this.responseFromModalTotQuantity = 0;
@@ -254,6 +260,7 @@ export class EditDocumentModalComponent implements OnInit {
         this.selectedArticle = this.articles.find(a => a.id === element.article.id) || element.article;
         this.isArticleTypeWood = this.selectedArticle.iswood;
 
+        console.log("element", element);
         if (this.isArticleTypeWood) {
             this.responseFromModalLengths = element.lisoflengths;
             this.responseFromModalTotQuantity = element.quantity;
@@ -269,7 +276,7 @@ export class EditDocumentModalComponent implements OnInit {
             sellcostprice_net_ht: element.cost_net_ht,
             sellcostprice_taxValue: element.tva_value,
             totalWithTax: element.cost_ttc,
-            reference: element.packagereference,
+            packagereference: element.packagereference,
             description: element.description,
             isinvoicible: element.isinvoicible,
             allownegativstock: element.allownegativstock
@@ -277,15 +284,23 @@ export class EditDocumentModalComponent implements OnInit {
 
         // Search control setup
         this.searchControl.setValue(element.article.reference);
+        if (this.articleSelect) {
+            this.articleSelect.value = element.article.id;
+        }
         this.merchandiseForm.get('tva')?.disable();
     }
 
     calculateTotals(data: Merchandise[]) {
+        const totalBrutHT = data.reduce((sum, item) => sum + item.cost_ht, 0);
         const totalHTNet = data.reduce((sum, item) => sum + item.cost_net_ht, 0);
         const totalRemise = data.reduce((sum, item) => sum + item.cost_discount_value, 0);
-        const totalTVA = data.reduce((sum, item) => sum + item.tva_value, 0);
+        const totalTVA = data.reduce((sum, item) => {
+            const tva = item.tva_value > 0 ? item.tva_value : (item.cost_ttc - item.cost_net_ht);
+            return sum + tva;
+        }, 0);
         const netTTC = data.reduce((sum, item) => sum + item.cost_ttc, 0);
 
+        this.totalBrutHT_doc$.next(totalBrutHT);
         this.totalHTNet_doc$.next(totalHTNet);
         this.totalRemise_doc$.next(totalRemise);
         this.totalTVA_doc$.next(totalTVA);
@@ -374,23 +389,23 @@ export class EditDocumentModalComponent implements OnInit {
         this.dialogRef.close();
     }
 
-     generateMerchandReference() {
-    if (this.selectedArticle != null) {
-      this.isLoading = true; // Start loading
-      this.merchandiseService.getMerchandiseReferenceAsString(this.selectedArticle.id).subscribe({
-        next: (response: string) => {
-          this.merchandiseForm.get('reference')?.setValue(response);
-          this.isLoading = false; // Stop loading
-        },
-        error: (err) => {
-          console.error('Error fetching merchandise reference:', err);
-          this.toastr.error('Failed to generate reference. Please try again.');
-          this.isLoading = false; // Stop loading
+    generateMerchandReference() {
+        if (this.selectedArticle != null) {
+            this.isLoading = true; // Start loading
+            this.merchandiseService.getMerchandiseReferenceAsString(this.selectedArticle.id).subscribe({
+                next: (response: string) => {
+                    this.merchandiseForm.get('packagereference')?.setValue(response);
+                    this.isLoading = false; // Stop loading
+                },
+                error: (err) => {
+                    console.error('Error fetching merchandise reference:', err);
+                    this.toastr.error('Failed to generate reference. Please try again.');
+                    this.isLoading = false; // Stop loading
+                }
+            });
+        } else {
+            this.toastr.info("Selectionner un Article d\'abord");
         }
-      });
-    } else {
-      this.toastr.info("Selectionner un Article d\'abord");
     }
-  }
 
 }
