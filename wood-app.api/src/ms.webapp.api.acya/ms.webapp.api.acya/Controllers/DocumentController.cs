@@ -943,7 +943,7 @@ namespace ms.webapp.api.acya.api.Controllers
           foreach (var merchDto in dto.merchandises!)
           {
             // Ensure child items have updatedbyid set from parent if they don't have it
-            if (merchDto.updatedbyid == 0 || merchDto.updatedbyid == null)
+            if (merchDto.updatedbyid == 0)
             {
                 merchDto.updatedbyid = dto.updatedbyid;
             }
