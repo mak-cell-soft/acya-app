@@ -637,7 +637,7 @@ namespace ms.webapp.api.acya.api.Controllers
           {
               await _accountService.AddLedgerEntryAsync(
                   doc.CounterPartId, 
-                  doc.Type.ToString(), 
+                  doc.Type.ToString()!, 
                   (decimal)doc.TotalCostNetTTCDoc, 
                   doc.Id, 
                   $"Movement for document {doc.DocNumber}");
@@ -932,7 +932,7 @@ namespace ms.webapp.api.acya.api.Controllers
           // Remove existing DocumentMerchandises (they will be re-added from the DTO)
           _context.DocumentMerchandises.RemoveRange(doc.DocumentMerchandises);
 
-          foreach (var merchDto in dto.merchandises)
+          foreach (var merchDto in dto.merchandises!)
           {
             Merchandise? merchandise;
             if (merchDto.id > 0)
