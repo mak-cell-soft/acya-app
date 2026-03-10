@@ -12,7 +12,7 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Organization
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Nature).HasColumnName("nature");
             entity.Property(e => e.Name).HasColumnName("name");
-            entity.Property(e => e.Value).HasColumnName("value");
+            entity.Property(e => e.Value).HasColumnName("value").HasColumnType("numeric(19,4)");
             entity.Property(e => e.isDefault).HasColumnName("isdefault");
             entity.Property(e => e.isActive).HasColumnName("isactive");
             entity.Property(e => e.isEditable).HasColumnName("iseditable");

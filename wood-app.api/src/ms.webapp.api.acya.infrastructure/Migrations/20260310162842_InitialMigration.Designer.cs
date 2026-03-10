@@ -12,8 +12,8 @@ using ms.webapp.api.acya.infrastructure;
 namespace ms.webapp.api.acya.infrastructure.Migrations
 {
     [DbContext(typeof(WoodAppContext))]
-    [Migration("20251213193617_RefactorDbContextAndConcurrency")]
-    partial class RefactorDbContextAndConcurrency
+    [Migration("20260310162842_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,6 +38,59 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                     b.HasIndex("MerchandisesId");
 
                     b.ToTable("DocumentMerchandise");
+                });
+
+            modelBuilder.Entity("ms.webapp.api.acya.core.Entities.AccountLedger", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CounterPartId")
+                        .HasColumnType("integer")
+                        .HasColumnName("counterpartid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("createdat");
+
+                    b.Property<decimal>("Credit")
+                        .HasColumnType("numeric")
+                        .HasColumnName("credit");
+
+                    b.Property<decimal>("Debit")
+                        .HasColumnType("numeric")
+                        .HasColumnName("debit");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<int?>("RelatedId")
+                        .HasColumnType("integer")
+                        .HasColumnName("relatedid");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("transactiondate");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("type");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updatedat");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CounterPartId");
+
+                    b.ToTable("tbl_account_ledger", (string)null);
                 });
 
             modelBuilder.Entity("ms.webapp.api.acya.core.Entities.AppUser", b =>
@@ -112,7 +165,7 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                         .HasColumnName("nature");
 
                     b.Property<double?>("Value")
-                        .HasColumnType("double precision")
+                        .HasColumnType("numeric(19,4)")
                         .HasColumnName("value");
 
                     b.Property<bool?>("isActive")
@@ -407,6 +460,10 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("notes");
 
+                    b.Property<decimal?>("OpeningBalance")
+                        .HasColumnType("numeric")
+                        .HasColumnName("openingbalance");
+
                     b.Property<string>("PatenteCode")
                         .HasColumnType("text")
                         .HasColumnName("patentecode");
@@ -461,6 +518,10 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("BillingStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("billingstatus");
+
                     b.Property<int>("CounterPartId")
                         .HasColumnType("integer")
                         .HasColumnName("counterpartid");
@@ -495,6 +556,10 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("isinvoiced");
 
+                    b.Property<bool>("Isservice")
+                        .HasColumnType("boolean")
+                        .HasColumnName("isservice");
+
                     b.Property<int>("SalesSiteId")
                         .HasColumnType("integer")
                         .HasColumnName("salessiteid");
@@ -512,19 +577,19 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                         .HasColumnName("taxeid");
 
                     b.Property<double>("TotalCostDiscountDoc")
-                        .HasColumnType("double precision")
+                        .HasColumnType("numeric(19,4)")
                         .HasColumnName("totalcostdiscount");
 
                     b.Property<double>("TotalCostHTNetDoc")
-                        .HasColumnType("double precision")
+                        .HasColumnType("numeric(19,4)")
                         .HasColumnName("totalcostpriceht");
 
                     b.Property<double>("TotalCostNetTTCDoc")
-                        .HasColumnType("double precision")
+                        .HasColumnType("numeric(19,4)")
                         .HasColumnName("totalcostpricettc");
 
                     b.Property<double>("TotalCostTvaDoc")
-                        .HasColumnType("double precision")
+                        .HasColumnType("numeric(19,4)")
                         .HasColumnName("totalcosttva");
 
                     b.Property<int?>("Type")
@@ -585,19 +650,19 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<double>("CostDiscountValue")
-                        .HasColumnType("double precision")
+                        .HasColumnType("numeric(19,4)")
                         .HasColumnName("cost_discount_value");
 
                     b.Property<double>("CostHT")
-                        .HasColumnType("double precision")
+                        .HasColumnType("numeric(19,4)")
                         .HasColumnName("cost_ht");
 
                     b.Property<double>("CostNetHT")
-                        .HasColumnType("double precision")
+                        .HasColumnType("numeric(19,4)")
                         .HasColumnName("cost_net_ht");
 
                     b.Property<double>("CostTTC")
-                        .HasColumnType("double precision")
+                        .HasColumnType("numeric(19,4)")
                         .HasColumnName("cost_ttc");
 
                     b.Property<DateTime?>("CreationDate")
@@ -605,7 +670,7 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                         .HasColumnName("creation_date");
 
                     b.Property<double>("DiscountPercentage")
-                        .HasColumnType("double precision")
+                        .HasColumnType("numeric(5,2)")
                         .HasColumnName("discount_percentage");
 
                     b.Property<int>("DocumentId")
@@ -617,15 +682,15 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                         .HasColumnName("merchandiseid");
 
                     b.Property<double>("Quantity")
-                        .HasColumnType("double precision")
+                        .HasColumnType("numeric(19,4)")
                         .HasColumnName("quantity");
 
                     b.Property<double>("TvaValue")
-                        .HasColumnType("double precision")
+                        .HasColumnType("numeric(19,4)")
                         .HasColumnName("tva_value");
 
                     b.Property<double>("UnitPriceHT")
-                        .HasColumnType("double precision")
+                        .HasColumnType("numeric(19,4)")
                         .HasColumnName("unitprice_ht");
 
                     b.Property<DateTime?>("UpdateDate")
@@ -816,6 +881,76 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                     b.HasIndex("UpdatedById");
 
                     b.ToTable("tbl_merchandise", (string)null);
+                });
+
+            modelBuilder.Entity("ms.webapp.api.acya.core.Entities.Payment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("Amount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("createdat");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("createdby");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("integer")
+                        .HasColumnName("customerid");
+
+                    b.Property<int>("DocumentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("documentid");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("isdeleted");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<DateTime?>("PaymentDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("paymentdate");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasColumnType("text")
+                        .HasColumnName("paymentmethod");
+
+                    b.Property<string>("Reference")
+                        .HasColumnType("text")
+                        .HasColumnName("reference");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updatedat");
+
+                    b.Property<int?>("UpdatedById")
+                        .HasColumnType("integer")
+                        .HasColumnName("updatedbyid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("DocumentId");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.ToTable("tbl_payments", (string)null);
                 });
 
             modelBuilder.Entity("ms.webapp.api.acya.core.Entities.PendingNotification", b =>
@@ -1380,6 +1515,11 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ConfirmationCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("confirmationcode");
+
                     b.Property<DateTime?>("ConfirmationDate")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("confirmationdate");
@@ -1565,6 +1705,17 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ms.webapp.api.acya.core.Entities.AccountLedger", b =>
+                {
+                    b.HasOne("ms.webapp.api.acya.core.Entities.CounterPart", "CounterPart")
+                        .WithMany()
+                        .HasForeignKey("CounterPartId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CounterPart");
+                });
+
             modelBuilder.Entity("ms.webapp.api.acya.core.Entities.AppUser", b =>
                 {
                     b.HasOne("ms.webapp.api.acya.core.Entities.Enterprise", "Enterprise")
@@ -1701,9 +1852,9 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
             modelBuilder.Entity("ms.webapp.api.acya.core.Entities.DocumentDocumentRelationship", b =>
                 {
                     b.HasOne("ms.webapp.api.acya.core.Entities.Document", "ChildDocument")
-                        .WithMany()
+                        .WithMany("ParentDocuments")
                         .HasForeignKey("ChildDocumentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ms.webapp.api.acya.core.Entities.Document", "ParentDocument")
@@ -1762,6 +1913,35 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                     b.Navigation("AppUsers");
 
                     b.Navigation("Articles");
+                });
+
+            modelBuilder.Entity("ms.webapp.api.acya.core.Entities.Payment", b =>
+                {
+                    b.HasOne("ms.webapp.api.acya.core.Entities.CounterPart", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tbl_payments_tbl_counter_part");
+
+                    b.HasOne("ms.webapp.api.acya.core.Entities.Document", "Document")
+                        .WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tbl_payments_tbl_document");
+
+                    b.HasOne("ms.webapp.api.acya.core.Entities.AppUser", "AppUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_tbl_payments_tbl_app_user");
+
+                    b.Navigation("AppUser");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Document");
                 });
 
             modelBuilder.Entity("ms.webapp.api.acya.core.Entities.Product.Article", b =>
@@ -1956,6 +2136,8 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                     b.Navigation("ChildDocuments");
 
                     b.Navigation("DocumentMerchandises");
+
+                    b.Navigation("ParentDocuments");
                 });
 
             modelBuilder.Entity("ms.webapp.api.acya.core.Entities.DocumentMerchandise", b =>

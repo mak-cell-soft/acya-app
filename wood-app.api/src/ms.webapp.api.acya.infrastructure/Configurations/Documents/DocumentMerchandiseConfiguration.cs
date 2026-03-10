@@ -17,14 +17,14 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
             // Moved properties
             entity.Property(e => e.CreationDate).HasColumnName("creation_date");
             entity.Property(e => e.UpdateDate).HasColumnName("update_date");
-            entity.Property(e => e.Quantity).HasColumnName("quantity");
-            entity.Property(e => e.UnitPriceHT).HasColumnName("unitprice_ht");
-            entity.Property(e => e.CostHT).HasColumnName("cost_ht");
-            entity.Property(e => e.DiscountPercentage).HasColumnName("discount_percentage");
-            entity.Property(e => e.CostNetHT).HasColumnName("cost_net_ht");
-            entity.Property(e => e.CostDiscountValue).HasColumnName("cost_discount_value");
-            entity.Property(e => e.TvaValue).HasColumnName("tva_value");
-            entity.Property(e => e.CostTTC).HasColumnName("cost_ttc");
+            entity.Property(e => e.Quantity).HasColumnName("quantity").HasColumnType("numeric(19,4)");
+            entity.Property(e => e.UnitPriceHT).HasColumnName("unitprice_ht").HasColumnType("numeric(19,4)");
+            entity.Property(e => e.CostHT).HasColumnName("cost_ht").HasColumnType("numeric(19,4)");
+            entity.Property(e => e.DiscountPercentage).HasColumnName("discount_percentage").HasColumnType("numeric(5,2)");
+            entity.Property(e => e.CostNetHT).HasColumnName("cost_net_ht").HasColumnType("numeric(19,4)");
+            entity.Property(e => e.CostDiscountValue).HasColumnName("cost_discount_value").HasColumnType("numeric(19,4)");
+            entity.Property(e => e.TvaValue).HasColumnName("tva_value").HasColumnType("numeric(19,4)");
+            entity.Property(e => e.CostTTC).HasColumnName("cost_ttc").HasColumnType("numeric(19,4)");
 
             // Foreign keys
             entity.Property(e => e.DocumentId).HasColumnName("documentid");

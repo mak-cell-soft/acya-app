@@ -34,3 +34,33 @@ CREATE INDEX idx_ledger_counterpart_date ON tbl_account_ledger(counterpartid, tr
 COMMENT ON COLUMN tbl_account_ledger.type IS 'Type of transaction: OpeningBalance, Invoice, Payment, Adjustment, etc.';
 COMMENT ON COLUMN tbl_account_ledger.debit IS 'Debit increases Customer balance or decreases Supplier balance.';
 COMMENT ON COLUMN tbl_account_ledger.credit IS 'Credit decreases Customer balance or increases Supplier balance.';
+
+
+-- 1. Update Precision for balances and variables
+ALTER TABLE tbl_appvariable ALTER COLUMN "value" TYPE numeric(19, 4);
+
+-- 2. Update Precision for document totals (to avoid similar errors)
+ALTER TABLE tbl_document ALTER COLUMN totalcostpriceht TYPE numeric(19, 4);
+ALTER TABLE tbl_document ALTER COLUMN totalcostpricettc TYPE numeric(19, 4);
+ALTER TABLE tbl_document ALTER COLUMN totalcosttva TYPE numeric(19, 4);
+ALTER TABLE tbl_document ALTER COLUMN totalcostdiscount TYPE numeric(19, 4);
+
+-- 3. Update Precision for merchandise item costs
+ALTER TABLE tbl_document_merchandise ALTER COLUMN unitprice_ht TYPE numeric(19, 4);
+ALTER TABLE tbl_document_merchandise ALTER COLUMN cost_ht TYPE numeric(19, 4);
+ALTER TABLE tbl_document_merchandise ALTER COLUMN cost_net_ht TYPE numeric(19, 4);
+ALTER TABLE tbl_document_merchandise ALTER COLUMN cost_ttc TYPE numeric(19, 4);
+ALTER TABLE tbl_document_merchandise ALTER COLUMN tva_value TYPE numeric(19, 4);
+ALTER TABLE tbl_document_merchandise ALTER COLUMN cost_discount_value TYPE numeric(19, 4);
+ALTER TABLE tbl_document_merchandise ALTER COLUMN quantity TYPE numeric(19, 4);
+ALTER TABLE tbl_document_merchandise ALTER COLUMN discount_percentage TYPE numeric(5, 2);
+
+-- Stock (Optional but recommended for consistency)
+ALTER TABLE tbl_stock ALTER COLUMN quantity TYPE numeric(19, 4);
+ALTER TABLE tbl_quantity_mouvements ALTER COLUMN quantity TYPE numeric(19, 4);
+ALTER TABLE tbl_list_of_lengths ALTER COLUMN quantity TYPE numeric(19, 4);
+
+-- Link this database state to Entity Framework
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20260310162842_InitialMigration', '7.0.20')
+ON CONFLICT ("MigrationId") DO NOTHING;

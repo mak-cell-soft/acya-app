@@ -25,10 +25,10 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
             entity.Property(e => e.BillingStatus).HasColumnName("billingstatus");
             entity.Property(e => e.Isservice).HasColumnName("isservice");
             // Cost Doc Details
-            entity.Property(e => e.TotalCostHTNetDoc).HasColumnName("totalcostpriceht");
-            entity.Property(e => e.TotalCostNetTTCDoc).HasColumnName("totalcostpricettc");
-            entity.Property(e => e.TotalCostTvaDoc).HasColumnName("totalcosttva");
-            entity.Property(e => e.TotalCostDiscountDoc).HasColumnName("totalcostdiscount");
+            entity.Property(e => e.TotalCostHTNetDoc).HasColumnName("totalcostpriceht").HasColumnType("numeric(19,4)");
+            entity.Property(e => e.TotalCostNetTTCDoc).HasColumnName("totalcostpricettc").HasColumnType("numeric(19,4)");
+            entity.Property(e => e.TotalCostTvaDoc).HasColumnName("totalcosttva").HasColumnType("numeric(19,4)");
+            entity.Property(e => e.TotalCostDiscountDoc).HasColumnName("totalcostdiscount").HasColumnType("numeric(19,4)");
             // End Cost Doc Details
             entity.Property(e => e.HoldingTaxId).HasColumnName("holdingtaxid");
             entity.Property(e => e.TaxeId).HasColumnName("taxeid");

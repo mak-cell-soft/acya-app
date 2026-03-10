@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ms.webapp.api.acya.infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class RefactorDbContextAndConcurrency : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -35,7 +35,7 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     nature = table.Column<string>(type: "text", nullable: true),
                     name = table.Column<string>(type: "text", nullable: true),
-                    value = table.Column<double>(type: "double precision", nullable: true),
+                    value = table.Column<double>(type: "numeric(19,4)", nullable: true),
                     isactive = table.Column<bool>(type: "boolean", nullable: true),
                     isdefault = table.Column<bool>(type: "boolean", nullable: true),
                     iseditable = table.Column<bool>(type: "boolean", nullable: true),
@@ -320,6 +320,7 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                     address = table.Column<string>(type: "text", nullable: true),
                     gouvernorate = table.Column<string>(type: "text", nullable: true),
                     maximumdiscount = table.Column<double>(type: "double precision", nullable: true),
+                    openingbalance = table.Column<decimal>(type: "numeric", nullable: true),
                     maximumsalesbar = table.Column<double>(type: "double precision", nullable: true),
                     notes = table.Column<string>(type: "text", nullable: true),
                     phonenumberone = table.Column<string>(type: "text", nullable: true),
@@ -413,6 +414,33 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "tbl_account_ledger",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    counterpartid = table.Column<int>(type: "integer", nullable: false),
+                    transactiondate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    type = table.Column<string>(type: "text", nullable: false),
+                    relatedid = table.Column<int>(type: "integer", nullable: true),
+                    debit = table.Column<decimal>(type: "numeric", nullable: false),
+                    credit = table.Column<decimal>(type: "numeric", nullable: false),
+                    description = table.Column<string>(type: "text", nullable: true),
+                    createdat = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    updatedat = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_tbl_account_ledger", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_tbl_account_ledger_tbl_counter_part_counterpartid",
+                        column: x => x.counterpartid,
+                        principalTable: "tbl_counter_part",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "tbl_document",
                 columns: table => new
                 {
@@ -427,17 +455,19 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                     updatedate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     isinvoiced = table.Column<bool>(type: "boolean", nullable: false),
                     withholdingtax = table.Column<bool>(type: "boolean", nullable: false),
-                    totalcostpriceht = table.Column<double>(type: "double precision", nullable: false),
-                    totalcostpricettc = table.Column<double>(type: "double precision", nullable: false),
-                    totalcosttva = table.Column<double>(type: "double precision", nullable: false),
-                    totalcostdiscount = table.Column<double>(type: "double precision", nullable: false),
+                    totalcostpriceht = table.Column<double>(type: "numeric(19,4)", nullable: false),
+                    totalcostpricettc = table.Column<double>(type: "numeric(19,4)", nullable: false),
+                    totalcosttva = table.Column<double>(type: "numeric(19,4)", nullable: false),
+                    totalcostdiscount = table.Column<double>(type: "numeric(19,4)", nullable: false),
                     holdingtaxid = table.Column<int>(type: "integer", nullable: true),
                     taxeid = table.Column<int>(type: "integer", nullable: true),
                     updatedbyid = table.Column<int>(type: "integer", nullable: true),
                     counterpartid = table.Column<int>(type: "integer", nullable: false),
                     isdeleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     salessiteid = table.Column<int>(type: "integer", nullable: false),
-                    docstatus = table.Column<int>(type: "integer", nullable: false)
+                    docstatus = table.Column<int>(type: "integer", nullable: false),
+                    billingstatus = table.Column<int>(type: "integer", nullable: false),
+                    isservice = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -518,10 +548,52 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                         column: x => x.child_document_id,
                         principalTable: "tbl_document",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_tbl_document_document_relationship_tbl_document_parent_docu~",
                         column: x => x.parent_document_id,
+                        principalTable: "tbl_document",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "tbl_payments",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    documentid = table.Column<int>(type: "integer", nullable: false),
+                    customerid = table.Column<int>(type: "integer", nullable: false),
+                    paymentdate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    amount = table.Column<decimal>(type: "numeric", nullable: true),
+                    paymentmethod = table.Column<string>(type: "text", nullable: true),
+                    reference = table.Column<string>(type: "text", nullable: true),
+                    notes = table.Column<string>(type: "text", nullable: true),
+                    createdat = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    createdby = table.Column<string>(type: "text", nullable: true),
+                    updatedat = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    updatedbyid = table.Column<int>(type: "integer", nullable: true),
+                    isdeleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_tbl_payments", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_tbl_payments_tbl_app_user",
+                        column: x => x.updatedbyid,
+                        principalTable: "tbl_app_user",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_tbl_payments_tbl_counter_part",
+                        column: x => x.customerid,
+                        principalTable: "tbl_counter_part",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_tbl_payments_tbl_document",
+                        column: x => x.documentid,
                         principalTable: "tbl_document",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
@@ -544,7 +616,8 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                     status = table.Column<int>(type: "integer", nullable: false),
                     confirmedbyid = table.Column<int>(type: "integer", nullable: true),
                     confirmationdate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    rejectionreason = table.Column<string>(type: "text", nullable: true)
+                    rejectionreason = table.Column<string>(type: "text", nullable: true),
+                    confirmationcode = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -741,14 +814,14 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     creation_date = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     update_date = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    quantity = table.Column<double>(type: "double precision", nullable: false),
-                    unitprice_ht = table.Column<double>(type: "double precision", nullable: false),
-                    cost_ht = table.Column<double>(type: "double precision", nullable: false),
-                    discount_percentage = table.Column<double>(type: "double precision", nullable: false),
-                    cost_net_ht = table.Column<double>(type: "double precision", nullable: false),
-                    cost_discount_value = table.Column<double>(type: "double precision", nullable: false),
-                    tva_value = table.Column<double>(type: "double precision", nullable: false),
-                    cost_ttc = table.Column<double>(type: "double precision", nullable: false),
+                    quantity = table.Column<double>(type: "numeric(19,4)", nullable: false),
+                    unitprice_ht = table.Column<double>(type: "numeric(19,4)", nullable: false),
+                    cost_ht = table.Column<double>(type: "numeric(19,4)", nullable: false),
+                    discount_percentage = table.Column<double>(type: "numeric(5,2)", nullable: false),
+                    cost_net_ht = table.Column<double>(type: "numeric(19,4)", nullable: false),
+                    cost_discount_value = table.Column<double>(type: "numeric(19,4)", nullable: false),
+                    tva_value = table.Column<double>(type: "numeric(19,4)", nullable: false),
+                    cost_ttc = table.Column<double>(type: "numeric(19,4)", nullable: false),
                     documentid = table.Column<int>(type: "integer", nullable: false),
                     merchandiseid = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -867,6 +940,11 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                 name: "IX_HoldingTax_AppUsersId",
                 table: "HoldingTax",
                 column: "AppUsersId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_tbl_account_ledger_counterpartid",
+                table: "tbl_account_ledger",
+                column: "counterpartid");
 
             migrationBuilder.CreateIndex(
                 name: "IX_tbl_app_user_enterpriseid",
@@ -1011,6 +1089,21 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                 column: "idappuser");
 
             migrationBuilder.CreateIndex(
+                name: "IX_tbl_payments_customerid",
+                table: "tbl_payments",
+                column: "customerid");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_tbl_payments_documentid",
+                table: "tbl_payments",
+                column: "documentid");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_tbl_payments_updatedbyid",
+                table: "tbl_payments",
+                column: "updatedbyid");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_tbl_pending_notification_targetgroup_status",
                 table: "tbl_pending_notification",
                 columns: new[] { "targetgroup", "status" });
@@ -1100,6 +1193,9 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                 name: "DocumentMerchandise");
 
             migrationBuilder.DropTable(
+                name: "tbl_account_ledger");
+
+            migrationBuilder.DropTable(
                 name: "tbl_app_health");
 
             migrationBuilder.DropTable(
@@ -1110,6 +1206,9 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "tbl_list_of_lengths");
+
+            migrationBuilder.DropTable(
+                name: "tbl_payments");
 
             migrationBuilder.DropTable(
                 name: "tbl_pending_notification");
