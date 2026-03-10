@@ -999,7 +999,7 @@ namespace ms.webapp.api.acya.api.Controllers
 
           #region Post Commit Operations (Same as Add)
           // Update Ledger Entry (Delete old and Add new to handle amount changes)
-          if (doc.Type == DocumentTypes.customerInvoice || doc.Type == DocumentTypes.customerDeliveryNote || doc.Type == DocumentTypes.supplierInvoice)
+          if (doc.Type == DocumentTypes.customerInvoice || doc.Type == DocumentTypes.customerDeliveryNote || doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt)
           {
               string docTypeStr = doc.Type.ToString()!;
               await _accountService.DeleteLedgerEntryAsync(doc.Id, docTypeStr);

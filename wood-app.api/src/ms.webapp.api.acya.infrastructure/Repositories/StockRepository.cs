@@ -103,7 +103,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
     /**
      * Desription : Détermine s'il s'agit d'une première insertion du stock ou une mise à jour. 
      * */
-    public async Task HandleTransaction(Stock transaction)
+    public async Task HandleTransaction(Stock transaction, bool bypassNegativeCheck = false)
     {
       if (transaction == null)
       {
@@ -140,7 +140,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       }
       else
       {
-        await UpdateStock(stock, transaction);
+        await UpdateStock(stock, transaction, bypassNegativeCheck);
       }
     }
 
@@ -164,7 +164,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
     #endregion
 
     #region Update Transaction (Stock)
-    private async Task UpdateStock(Stock existingStock, Stock transaction)
+    private async Task UpdateStock(Stock existingStock, Stock transaction, bool bypassNegativeCheck = false)
     {
       const int MaxRetries = 3;
       for (int i = 0; i < MaxRetries; i++)
@@ -177,7 +177,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
           }
           else if (transaction.Type == TransactionType.Retrieve)
           {
-            if (existingStock.Quantity < transaction.Quantity &&
+            if (!bypassNegativeCheck && 
+                existingStock.Quantity < transaction.Quantity &&
                 transaction.Merchandises != null &&
                 !transaction.Merchandises.AllowNegativStock)
             {
@@ -185,6 +186,15 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
             }
 
             existingStock.Quantity -= transaction.Quantity;
+          }
+
+          // Final safety check: if we are NOT bypassing, ensure result is not negative if not allowed
+          if (!bypassNegativeCheck && 
+              existingStock.Quantity < 0 && 
+              transaction.Merchandises != null && 
+              !transaction.Merchandises.AllowNegativStock)
+          {
+            throw new InvalidOperationException("Insufficient stock - operation would result in negative quantity");
           }
 
           existingStock.UpdateDate = DateTime.UtcNow;

@@ -132,7 +132,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                 AppUsers = appuser
             };
 
-            await _stockRepository.HandleTransaction(stockTransaction);
+            await _stockRepository.HandleTransaction(stockTransaction, true);
         }
         return true;
     }
