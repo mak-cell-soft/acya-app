@@ -31,62 +31,6 @@ namespace ms.webapp.api.acya.api.Controllers
       _balanceService = balanceService;
     }
 
-    //[HttpGet]
-    //public async Task<ActionResult<IEnumerable<DocumentDto>>> GetAll()
-    //{
-    //  var all = await _context.Documents
-    //    .Include(d => d.CounterPart) // Include CounterPart
-    //    .Include(d => d.SalesSite)   // Include SalesSite
-    //                                 //.Include(d => d.HoldingTaxes) // Include HoldingTax
-    //                                 //.Include(d => d.Taxes)        // Include Taxes
-    //    .Include(d => d.AppUsers)    // Include AppUser
-    //      .ThenInclude(p => p!.Persons)
-    //    .Include(d => d.Merchandises) // Include Merchandises
-    //      .ThenInclude(m => m.Articles)
-    //    .ToListAsync();
-    //  var allDtos = all.Select(d => new DocumentDto(d)).ToList();
-    //  return Ok(allDtos);
-    //}
-
-    //[HttpGet("_type")]
-    //public async Task<ActionResult<IEnumerable<DocumentDto>>> LastGetByType(DocumentTypes _type)
-    //{
-    //  var all = await _context.Documents
-    //    .Include(d => d.CounterPart) // Include CounterPart
-    //    .Include(d => d.SalesSite)   // Include SalesSite
-    //                                 //.Include(d => d.HoldingTaxes) // Include HoldingTax
-    //                                 //.Include(d => d.Taxes)        // Include Taxes
-    //    .Include(d => d.AppUsers)    // Include AppUser
-    //      .ThenInclude(p => p!.Persons)
-    //    .Include(d => d.Merchandises) // Include Merchandises
-    //      .ThenInclude(m => m.Articles)
-    //    .Where(d => d.Type == _type)
-    //    .ToListAsync();
-    //  var allDtos = all.Select(d => new DocumentDto(d)).ToList();
-    //  return Ok(allDtos);
-    //}
-
-    //[HttpGet("_type")]
-    //public async Task<ActionResult<IEnumerable<DocumentMerchandise>>> Last2GetByType(DocumentTypes _type)
-    //{
-    //  var all = await _context.DocumentMerchandises
-    //    .Include(d => d.Document) // Include Document
-    //    .Include(d => d.Document!.CounterPart)
-    //    .Include(d => d.Document!.SalesSite)
-    //    .Include(d => d.Document!.AppUsers)
-    //    .Include(d => d.Document!.AppUsers!.Persons)
-    //                                 //.Include(d => d.HoldingTaxes) // Include HoldingTax
-    //                                 //.Include(d => d.Taxes)        // Include Taxes
-    //    .Include(d => d.Merchandise)
-    //    .Include(d => d.Merchandise!.Articles)
-    //    .Include(d => d.QuantityMovements)
-    //    .Include(d => d.QuantityMovements!.ListOfLengths)
-    //    .Where(d => d.Document!.Type == _type)
-    //    .ToListAsync();
-    //  //var allDtos = all.Select(d => new DocumentDto(d)).ToList();
-    //  return Ok(all);
-    //}
-
     [HttpGet("_type")]
     public async Task<ActionResult<IEnumerable<DocumentDto>>> GetByType(DocumentTypes _type)
     {
@@ -639,9 +583,10 @@ namespace ms.webapp.api.acya.api.Controllers
           #endregion
 
           await _context.SaveChangesAsync();
+
           #region Ledger Entry
           // Integrate Ledger Entry if it's an Invoice or Delivery Note
-          if (doc.Type == DocumentTypes.customerInvoice || doc.Type == DocumentTypes.customerDeliveryNote || doc.Type == DocumentTypes.supplierInvoice)
+          if (doc.Type == DocumentTypes.customerInvoice || doc.Type == DocumentTypes.customerDeliveryNote || doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt)
           {
               await _accountService.AddLedgerEntryAsync(
                   doc.CounterPartId, 
@@ -661,10 +606,11 @@ namespace ms.webapp.api.acya.api.Controllers
           // Update persistent balance
           if (doc.CounterPartId > 0)
           {
+              string lastTxType = doc.Type.ToString()!;
               if (doc.CounterPart?.Type == CounterPartType.Customer)
-                  await _balanceService.UpdateCustomerBalanceAsync(doc.CounterPartId, "mouvement", DateTime.UtcNow);
+                  await _balanceService.UpdateCustomerBalanceAsync(doc.CounterPartId, lastTxType, DateTime.UtcNow);
               else
-                  await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId, "mouvement", DateTime.UtcNow);
+                  await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId, lastTxType, DateTime.UtcNow);
           }
 
           return Ok(new { docRef = doc.DocNumber, message = "Document added successfully" });
@@ -679,6 +625,7 @@ namespace ms.webapp.api.acya.api.Controllers
     }
     #endregion
 
+    #region Create Invoice
     /**
      * Invoice is a list of added Reciept supplier Documents
      * takes the list of Ids of created Reciept Documents
@@ -853,7 +800,9 @@ namespace ms.webapp.api.acya.api.Controllers
         return StatusCode(500, "An error occurred while saving the invoice and relationships. " + ex.Message);
       }
     }
+    #endregion
 
+    #region Get Invoice by ID
     // Example method to get an invoice by ID (used in CreatedAtAction)
     [HttpGet("{id}")]
     public async Task<ActionResult<Document>> GetInvoiceById(int id)
@@ -865,8 +814,9 @@ namespace ms.webapp.api.acya.api.Controllers
       }
       return Ok(invoice);
     }
+    #endregion
 
-
+    #region Get All Invoices with Their Reciepts (Children)
     /**
      * Get All Invoices with Their Reciepts (Children).
      */
@@ -892,10 +842,15 @@ namespace ms.webapp.api.acya.api.Controllers
             ChildDocuments = g.Select(c => new DocumentDto(c.ChildDocument!)).ToList()
           })
           .ToList();
-
+      
       return result;
     }
+    #endregion
 
+    #region Update Document
+    /**
+     * Update Document.
+     */
     [HttpPut("{id}")]
     public async Task<ActionResult> Update(int id, DocumentDto dto)
     {
@@ -904,11 +859,19 @@ namespace ms.webapp.api.acya.api.Controllers
         return BadRequest("Invalid document data.");
       }
 
+      var appUser = await _context.AppUsers.FindAsync(dto.updatedbyid);
+      if (appUser == null)
+      {
+        return BadRequest("Invalid updatedbyid: The specified user does not exist.");
+      }
+
       using (var transaction = await _context.Database.BeginTransactionAsync())
       {
         try
         {
           var doc = await _context.Documents
+              .Include(d => d.CounterPart)
+              .Include(d => d.SalesSite)
               .Include(d => d.DocumentMerchandises)
                   .ThenInclude(dm => dm.Merchandise)
               .Include(d => d.DocumentMerchandises)
@@ -926,6 +889,9 @@ namespace ms.webapp.api.acya.api.Controllers
             return BadRequest("Cannot edit an invoiced document.");
           }
 
+          // Revert old stock impact before replacing merchandises
+          await _repository.revertStockByMerchandises(doc, appUser);
+
           // Update basic fields
           doc.SupplierReference = dto.supplierReference;
           doc.Description = dto.description;
@@ -939,6 +905,7 @@ namespace ms.webapp.api.acya.api.Controllers
           // Process Merchandises
           // Remove existing DocumentMerchandises (they will be re-added from the DTO)
           _context.DocumentMerchandises.RemoveRange(doc.DocumentMerchandises);
+          doc.DocumentMerchandises.Clear(); // Ensure collection is cleared to avoid duplicates during processing
 
           foreach (var merchDto in dto.merchandises!)
           {
@@ -1029,7 +996,37 @@ namespace ms.webapp.api.acya.api.Controllers
           }
 
           await _context.SaveChangesAsync();
+
+          #region Post Commit Operations (Same as Add)
+          // Update Ledger Entry (Delete old and Add new to handle amount changes)
+          if (doc.Type == DocumentTypes.customerInvoice || doc.Type == DocumentTypes.customerDeliveryNote || doc.Type == DocumentTypes.supplierInvoice)
+          {
+              string docTypeStr = doc.Type.ToString()!;
+              await _accountService.DeleteLedgerEntryAsync(doc.Id, docTypeStr);
+              await _accountService.AddLedgerEntryAsync(
+                  doc.CounterPartId, 
+                  docTypeStr, 
+                  (decimal)doc.TotalCostNetTTCDoc, 
+                  doc.Id, 
+                  $"Updated movement for document {doc.DocNumber}");
+          }
+
+          // Update Stock and Length IDs
+          await _repository.updateListOfIdsListOfLengths(doc);
+          await _repository.updateStockByMerchandises(doc);
+          #endregion
+
           await transaction.CommitAsync();
+
+          // Update persistent balance
+          if (doc.CounterPartId > 0)
+          {
+              string lastTxType = doc.Type.ToString()!;
+              if (doc.CounterPart?.Type == CounterPartType.Customer)
+                  await _balanceService.UpdateCustomerBalanceAsync(doc.CounterPartId, lastTxType, DateTime.UtcNow);
+              else
+                  await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId, lastTxType, DateTime.UtcNow);
+          }
 
           return Ok(new { message = "Document updated successfully" });
         }
@@ -1040,5 +1037,6 @@ namespace ms.webapp.api.acya.api.Controllers
         }
       }
     }
+    #endregion
   }
 }

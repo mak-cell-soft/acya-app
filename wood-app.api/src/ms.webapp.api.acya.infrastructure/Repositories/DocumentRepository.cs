@@ -103,6 +103,41 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
     }
 
     /**
+    * Revert Stock by Merchandises.
+    */
+    public async Task<bool> revertStockByMerchandises(Document document, AppUser? appuser = null)
+    {
+        if (document?.DocumentMerchandises?.Any() != true)
+            return true;
+
+        if (appuser == null)
+        {
+            var idAppUser = document.UpdatedById;
+            appuser = await context.AppUsers.FindAsync(idAppUser);
+        }
+        
+        // Get the transaction type for the document and then invert it
+        var originalType = Helpers.GetTransactionType((DocumentTypes)document.Type!);
+        var reverseType = originalType == TransactionType.Add ? TransactionType.Retrieve : TransactionType.Add;
+
+        foreach (var merchandise in document.DocumentMerchandises)
+        {
+            var stockTransaction = new Stock
+            {
+                Id = 0,
+                Quantity = merchandise.Quantity,
+                Type = reverseType,
+                Merchandises = merchandise.Merchandise,
+                SalesSites = document.SalesSite,
+                AppUsers = appuser
+            };
+
+            await _stockRepository.HandleTransaction(stockTransaction);
+        }
+        return true;
+    }
+
+    /**
     * Update List Of Lengths Ids (string) by Ids of Saved Lenghts
     * with condition Number of Pieces > 0
     */

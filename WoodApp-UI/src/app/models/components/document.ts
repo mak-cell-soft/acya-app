@@ -74,7 +74,9 @@ export enum DocumentTypes {
     customerOrder = 4, // Commande Client
     customerDeliveryNote = 5, // Bon de Livraison Client
     customerInvoice = 6, // Facture Client
-    stockTransfer = 7
+    stockTransfer = 7, // Transfert stock
+    supplierInvoiceReturn = 8, // Retour Fournisseur
+    customerInvoiceReturn = 9 // Retour Client
 }
 
 export enum DocTypes_FR {
@@ -84,7 +86,9 @@ export enum DocTypes_FR {
     customerOrder = 'Commande Client',
     customerDeliveryNote = 'Bon de Livraison',
     customerInvoice = 'Facture Client',
-    stockTransfer = 'Transfert stock'
+    stockTransfer = 'Transfert stock',
+    supplierInvoiceReturn = 'Retour Fournisseur',
+    customerInvoiceReturn = 'Retour Client'
 }
 
 export enum DocStatus {

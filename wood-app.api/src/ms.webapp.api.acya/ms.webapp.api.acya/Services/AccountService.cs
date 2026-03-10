@@ -69,6 +69,19 @@ namespace ms.webapp.api.acya.api.Services
             await _context.SaveChangesAsync();
         }
 
+        public async Task DeleteLedgerEntryAsync(int relatedId, string type)
+        {
+            var entries = await _context.AccountLedgers
+                .Where(l => l.RelatedId == relatedId && l.Type == type)
+                .ToListAsync();
+
+            if (entries.Any())
+            {
+                _context.AccountLedgers.RemoveRange(entries);
+                await _context.SaveChangesAsync();
+            }
+        }
+
         public async Task UpdateLedgerEntryAsync(int oldRelatedId, string oldType, int newRelatedId, string newType, string newDescription)
         {
             var entries = await _context.AccountLedgers
