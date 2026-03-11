@@ -9,10 +9,14 @@ import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { TransfertStockComponent } from '../stock-transfer/transfert-stock.component';
 
+interface UnitTotal {
+  unit: string;
+  totalQuantity: number;
+}
+
 interface CategoryGroup {
   categoryName: string;
-  totalQuantity: number;
-  unit: string;
+  unitTotals: UnitTotal[];
   dataSource: MatTableDataSource<Stock>;
   id: string;
 }
@@ -116,15 +120,21 @@ export class StockListComponent implements OnInit, AfterViewInit {
             return searchStr.indexOf(filter) != -1;
           };
 
-          const totalQuantity = stocks.reduce((sum, stock) => sum + stock.quantity, 0);
+          // Calculate totals by unit
+          const unitTotalsMap: { [unit: string]: number } = {};
+          stocks.forEach(stock => {
+            const unit = stock.merchandise?.article?.unit || 'U';
+            unitTotalsMap[unit] = (unitTotalsMap[unit] || 0) + stock.quantity;
+          });
 
-          // Get unit from the first item in the group, defaulting to empty string if not found
-          const unit = stocks.length > 0 ? (stocks[0].merchandise?.article?.unit || '') : '';
+          const unitTotals: UnitTotal[] = Object.keys(unitTotalsMap).map(unit => ({
+            unit: unit,
+            totalQuantity: unitTotalsMap[unit]
+          }));
 
           return {
             categoryName: category,
-            totalQuantity: totalQuantity,
-            unit: unit,
+            unitTotals: unitTotals,
             dataSource: dataSource,
             id: 'category-' + index
           };

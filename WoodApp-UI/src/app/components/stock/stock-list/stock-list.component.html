@@ -28,7 +28,12 @@
         <div *ngFor="let group of categoryGroups" class="shortcut-card" (click)="scrollToCategory(group.id)" matRipple>
             <div class="shortcut-content">
                 <span class="shortcut-name">{{group.categoryName}}</span>
-                <span class="shortcut-badge">{{group.totalQuantity | number:'1.3-3'}} {{group.unit}}</span>
+                <div class="badge-container">
+                    <span class="shortcut-badge" *ngFor="let total of group.unitTotals">
+                        {{ total.unit === 'M3' ? (total.totalQuantity | number:'1.3-3') : (total.totalQuantity |
+                        number:'1.0-3') }} {{total.unit}}
+                    </span>
+                </div>
             </div>
         </div>
     </div>
