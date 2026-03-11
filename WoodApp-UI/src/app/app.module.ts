@@ -103,6 +103,10 @@ import { ProviderEditModalComponent } from './components/providers/provider-edit
 import { ProviderDetailsModalComponent } from './components/providers/provider-details-modal/provider-details-modal.component';
 import { AdminDashboardComponent } from './dashboard/admin-dashboard/admin-dashboard.component';
 import { EditDocumentModalComponent } from './dashboard/modals/edit-document-modal/edit-document-modal.component';
+import { LeaveManagementModalComponent } from './dashboard/modals/leave-management-modal/leave-management-modal.component';
+import { PayslipModalComponent } from './dashboard/modals/payslip-modal/payslip-modal.component';
+import { AdvanceManagementModalComponent } from './dashboard/modals/advance-management-modal/advance-management-modal.component';
+import { MatChipsModule } from '@angular/material/chips';
 
 @NgModule({
   declarations: [
@@ -161,7 +165,10 @@ import { EditDocumentModalComponent } from './dashboard/modals/edit-document-mod
     ProviderEditModalComponent,
     ProviderDetailsModalComponent,
     AdminDashboardComponent,
-    EditDocumentModalComponent
+    EditDocumentModalComponent,
+    LeaveManagementModalComponent,
+    PayslipModalComponent,
+    AdvanceManagementModalComponent
   ],
   imports: [
     BrowserModule,
@@ -191,6 +198,7 @@ import { EditDocumentModalComponent } from './dashboard/modals/edit-document-mod
     MatIconModule,
     MatDividerModule,
     MatRadioModule,
+    MatChipsModule,
     FormsModule,
     MatTooltipModule,
     ReactiveFormsModule,

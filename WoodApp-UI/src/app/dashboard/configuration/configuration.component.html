@@ -666,12 +666,17 @@
                                 <td mat-cell *matCellDef="let element">
                                     <div class="action-buttons">
                                         <mat-icon *ngIf="!element.editing" class="green-icon"
-                                            (click)="editEmployee(element)">edit</mat-icon>
+                                            (click)="editEmployee(element)" matTooltip="Modifier">edit</mat-icon>
                                         <mat-icon *ngIf="element.editing" class="blue-icon"
-                                            (click)="saveEmployee(element)">save</mat-icon>
+                                            (click)="saveEmployee(element)" matTooltip="Enregistrer">save</mat-icon>
                                         <mat-icon *ngIf="element.editing" class="red-icon"
-                                            (click)="cancelEditEmployee(element)">cancel</mat-icon>
-                                        <mat-icon class="red-icon" (click)="deleteEmployee(element)">delete</mat-icon>
+                                            (click)="cancelEditEmployee(element)" matTooltip="Annuler">cancel</mat-icon>
+                                        <mat-icon class="red-icon" (click)="deleteEmployee(element)" matTooltip="Supprimer">delete</mat-icon>
+
+                                        <!-- New Action Buttons -->
+                                        <mat-icon class="blue-icon" (click)="openLeavesModal(element)" matTooltip="Gestion des Congés">event_available</mat-icon>
+                                        <mat-icon class="green-icon" (click)="openPayslipsModal(element)" matTooltip="Fiches de Paie">payments</mat-icon>
+                                        <mat-icon class="orange-icon" (click)="openAdvancesModal(element)" matTooltip="Gestion des Avances">request_quote</mat-icon>
                                     </div>
                                 </td>
                             </ng-container>

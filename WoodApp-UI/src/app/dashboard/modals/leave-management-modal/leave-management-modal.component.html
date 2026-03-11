@@ -1,0 +1,106 @@
+<h2 mat-dialog-title>Gestion des Congés - {{ data.employeeName }}</h2>
+<mat-dialog-content class="mat-typography">
+  <mat-card class="mb-3">
+    <mat-card-header>
+      <mat-card-title>Nouvelle Demande</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="leaveForm" (ngSubmit)="onSubmit()" class="form-grid mt-2">
+        <mat-form-field appearance="outline">
+          <mat-label>Type de congé</mat-label>
+          <mat-select formControlName="leavetype">
+            <mat-option *ngFor="let type of leaveTypes" [value]="type">{{ type }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Date de début</mat-label>
+          <input matInput [matDatepicker]="pickerStart" formControlName="startdate" (dateChange)="calculateDuration()">
+          <mat-datepicker-toggle matSuffix [for]="pickerStart"></mat-datepicker-toggle>
+          <mat-datepicker #pickerStart></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Date de fin</mat-label>
+          <input matInput [matDatepicker]="pickerEnd" formControlName="enddate" (dateChange)="calculateDuration()">
+          <mat-datepicker-toggle matSuffix [for]="pickerEnd"></mat-datepicker-toggle>
+          <mat-datepicker #pickerEnd></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Durée (jours)</mat-label>
+          <input matInput type="number" formControlName="durationdays">
+        </mat-form-field>
+
+        <div class="form-actions">
+          <button mat-raised-button color="primary" type="submit" [disabled]="leaveForm.invalid">
+            <mat-icon>add</mat-icon> Soumettre
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="header-with-filter">
+    <h4>Historique des congés</h4>
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Rechercher</mat-label>
+      <input matInput (keyup)="applyFilter($event)" placeholder="ex. Congé Payé, Approved...">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  <div class="table-container mat-elevation-z2">
+    <table mat-table [dataSource]="leaves" class="w-100">
+      <ng-container matColumnDef="type">
+        <th mat-header-cell *matHeaderCellDef> Type </th>
+        <td mat-cell *matCellDef="let leave"> {{leave.leavetype}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="start">
+        <th mat-header-cell *matHeaderCellDef> Début </th>
+        <td mat-cell *matCellDef="let leave"> {{leave.startdate | date:'dd/MM/yyyy'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="end">
+        <th mat-header-cell *matHeaderCellDef> Fin </th>
+        <td mat-cell *matCellDef="let leave"> {{leave.enddate | date:'dd/MM/yyyy'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="duration">
+        <th mat-header-cell *matHeaderCellDef> Jours </th>
+        <td mat-cell *matCellDef="let leave"> {{leave.durationdays}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef> Statut </th>
+        <td mat-cell *matCellDef="let leave">
+          <mat-chip-listbox>
+            <mat-chip [color]="leave.status === 'Approved' ? 'primary' : (leave.status === 'Rejected' ? 'warn' : '')" highlighted>
+              {{leave.status}}
+            </mat-chip>
+          </mat-chip-listbox>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef> Actions </th>
+        <td mat-cell *matCellDef="let leave">
+          <button mat-icon-button color="primary" *ngIf="leave.status === 'Pending'" (click)="updateStatus(leave, 'Approved')" matTooltip="Approuver">
+            <mat-icon>check_circle</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" *ngIf="leave.status === 'Pending'" (click)="updateStatus(leave, 'Rejected')" matTooltip="Refuser">
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+    <div *ngIf="leaves.data.length === 0" class="p-3 text-center">Aucun congé enregistré.</div>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onClose()">Fermer</button>
+</mat-dialog-actions>

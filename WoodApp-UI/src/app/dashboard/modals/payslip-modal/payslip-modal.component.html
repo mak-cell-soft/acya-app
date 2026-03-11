@@ -1,0 +1,105 @@
+<h2 mat-dialog-title>Fiches de Paie - {{ data.employeeName }}</h2>
+<mat-dialog-content class="mat-typography">
+  <mat-card class="mb-3">
+    <mat-card-header>
+      <mat-card-title>Générer une Fiche de Paie</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="payslipForm" (ngSubmit)="onSubmit()" class="form-grid mt-2">
+        <mat-form-field appearance="outline">
+          <mat-label>Mois</mat-label>
+          <mat-select formControlName="periodmonth">
+            <mat-option *ngFor="let m of months" [value]="m.id">{{ m.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Année</mat-label>
+          <mat-select formControlName="periodyear">
+            <mat-option *ngFor="let y of years" [value]="y">{{ y }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Salaire de Base</mat-label>
+          <input matInput type="number" formControlName="basesalary" (input)="calculateNet()">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Primes/Bonus</mat-label>
+          <input matInput type="number" formControlName="bonuses" (input)="calculateNet()">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Déductions</mat-label>
+          <input matInput type="number" formControlName="deductions" (input)="calculateNet()">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Salaire Net</mat-label>
+          <input matInput type="number" formControlName="netsalary">
+        </mat-form-field>
+
+        <div class="form-actions">
+          <button mat-raised-button color="accent" type="submit" [disabled]="payslipForm.invalid">
+            <mat-icon>receipt</mat-icon> Générer
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="header-with-filter">
+    <h4>Historique des fiches de paie</h4>
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Rechercher</mat-label>
+      <input matInput (keyup)="applyFilter($event)" placeholder="ex. Janvier, 2024...">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  <div class="table-container mat-elevation-z2">
+    <table mat-table [dataSource]="payslips" class="w-100">
+      <ng-container matColumnDef="period">
+        <th mat-header-cell *matHeaderCellDef> Période </th>
+        <td mat-cell *matCellDef="let p"> {{getMonthName(p.periodmonth)}} {{p.periodyear}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="base">
+        <th mat-header-cell *matHeaderCellDef> Base </th>
+        <td mat-cell *matCellDef="let p"> {{p.basesalary | number:'1.3-3'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="bonuses">
+        <th mat-header-cell *matHeaderCellDef> Primes </th>
+        <td mat-cell *matCellDef="let p"> {{p.bonuses | number:'1.3-3'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="deductions">
+        <th mat-header-cell *matHeaderCellDef> Déduct. </th>
+        <td mat-cell *matCellDef="let p"> {{p.deductions | number:'1.3-3'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="net">
+        <th mat-header-cell *matHeaderCellDef> Net </th>
+        <td mat-cell *matCellDef="let p"> <strong>{{p.netsalary | number:'1.3-3'}}</strong> </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef> Actions </th>
+        <td mat-cell *matCellDef="let p">
+          <button mat-icon-button color="primary" (click)="downloadPdf(p)" matTooltip="Télécharger PDF">
+            <mat-icon>picture_as_pdf</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+    <div *ngIf="payslips.data.length === 0" class="p-3 text-center">Aucune fiche de paie générée.</div>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onClose()">Fermer</button>
+</mat-dialog-actions>

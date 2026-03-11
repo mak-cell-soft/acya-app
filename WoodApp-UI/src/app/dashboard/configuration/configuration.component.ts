@@ -60,6 +60,9 @@ import { Router } from '@angular/router';
 import { SalessitesService } from '../../services/components/salessites.service';
 import { AppuserService } from '../../services/components/appuser.service';
 import { MatSort } from '@angular/material/sort';
+import { LeaveManagementModalComponent } from '../modals/leave-management-modal/leave-management-modal.component';
+import { PayslipModalComponent } from '../modals/payslip-modal/payslip-modal.component';
+import { AdvanceManagementModalComponent } from '../modals/advance-management-modal/advance-management-modal.component';
 
 @Component({
   selector: 'app-configuration',
@@ -1186,6 +1189,36 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
 
   deleteEmployee(element: Person) {
 
+  }
+
+  openLeavesModal(element: Person): void {
+    this.dialog.open(LeaveManagementModalComponent, {
+      width: '900px',
+      data: {
+        employeeId: element.id,
+        employeeName: `${element.firstname} ${element.lastname}`
+      }
+    });
+  }
+
+  openPayslipsModal(element: Person): void {
+    this.dialog.open(PayslipModalComponent, {
+      width: '900px',
+      data: {
+        employeeId: element.id,
+        employeeName: `${element.firstname} ${element.lastname}`
+      }
+    });
+  }
+
+  openAdvancesModal(element: Person): void {
+    this.dialog.open(AdvanceManagementModalComponent, {
+      width: '900px',
+      data: {
+        employeeId: element.id,
+        employeeName: `${element.firstname} ${element.lastname}`
+      }
+    });
   }
 
 

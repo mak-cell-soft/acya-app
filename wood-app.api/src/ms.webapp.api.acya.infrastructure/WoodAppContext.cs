@@ -58,7 +58,10 @@ namespace ms.webapp.api.acya.infrastructure
 
     public DbSet<PendingNotification> PendingNotifications { get; set; }
     public DbSet<Payment> Payments { get; set; }
-    public DbSet<AccountLedger> AccountLedgers { get; set; }
+    public virtual DbSet<AccountLedger> AccountLedgers { get; set; }
+    public virtual DbSet<EmployeeLeave> EmployeeLeaves { get; set; }
+    public virtual DbSet<EmployeePayslip> EmployeePayslips { get; set; }
+    public virtual DbSet<EmployeeAdvance> EmployeeAdvances { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
