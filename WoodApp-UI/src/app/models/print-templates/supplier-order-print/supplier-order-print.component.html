@@ -1,0 +1,80 @@
+<div class="print-container">
+    <div class="header">
+        <div class="company-section">
+            <h2 class="company-name">{{ companyInfo.name }}</h2>
+            <p>{{ companyInfo.nameFr }}</p>
+            <p>{{ companyInfo.address }}</p>
+            <p>{{ companyInfo.contact }}</p>
+            <p>{{ companyInfo.email }}</p>
+            <p>{{ companyInfo.registration }}</p>
+        </div>
+        <div class="doc-title-section">
+            <h1 class="doc-title">{{ getDocType() }}</h1>
+            <div class="doc-meta">
+                <p><strong>N°:</strong> {{ document.docnumber }}</p>
+                <p><strong>Date:</strong> {{ formatDate(document.creationdate) }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="address-section">
+        <div class="supplier-box">
+            <h3>FOURNISSEUR:</h3>
+            <p class="supplier-name">{{ document.counterpart.name }}</p>
+            <p>{{ document.counterpart.address }}</p>
+            <p>Tél: {{ document.counterpart.phonenumberone }}</p>
+        </div>
+    </div>
+
+    <div class="items-section">
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Réf. Article</th>
+                    <th>Désignation</th>
+                    <th>Qté</th>
+                    <th>Unité</th>
+                    <th>P.U. HT</th>
+                    <th>Total HT</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let m of document.merchandises">
+                    <td>{{ m.article.reference }}</td>
+                    <td>{{ m.description || m.article.description }}</td>
+                    <td>{{ formatNumber(m.quantity) }}</td>
+                    <td>{{ m.article.unit }}</td>
+                    <td>{{ formatNumber(m.unit_price_ht) }}</td>
+                    <td>{{ formatNumber(m.cost_ht) }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer-summary">
+        <div class="amount-words">
+            <p><strong>Arrêté la présente commande à la somme de:</strong></p>
+            <p class="words-text">{{ amountInWords }}</p>
+        </div>
+        <div class="totals-box">
+            <div class="total-line">
+                <span>Total H.T.</span>
+                <span>{{ formatNumber(document.total_ht_net_doc) }}</span>
+            </div>
+            <div class="total-line">
+                <span>Total T.V.A.</span>
+                <span>{{ formatNumber(document.total_tva_doc) }}</span>
+            </div>
+            <div class="total-line grand-total">
+                <span>TOTAL T.T.C.</span>
+                <span>{{ formatNumber(document.total_net_ttc) }} TND</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="signatures">
+        <div class="sig-box">
+            <p>Cachet et Signature</p>
+        </div>
+    </div>
+</div>

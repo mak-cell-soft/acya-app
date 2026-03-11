@@ -99,7 +99,10 @@ export enum DocStatus {
     NotDelivered = 5,
     NotConfirmed = 6,
     Confirmed = 7,
-    Completed = 8
+    Completed = 8,
+    Pending = 9,
+    Sent = 10,
+    PartiallyDelivered = 11
 }
 
 
@@ -110,7 +113,10 @@ export enum DocStatus_FR {
     Deleted = 'Supprimé',
     NotDelivered = 'non Livré',
     NotConfirmed = 'Non Confirmé',
-    Confirmed = 'Confirmé'
+    Confirmed = 'Confirmé',
+    Pending = 'En attente',
+    Sent = 'Envoyé',
+    PartiallyDelivered = 'Partiellement livré'
 }
 
 export enum BillingStatus {

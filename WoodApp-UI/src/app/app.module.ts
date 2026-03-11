@@ -107,6 +107,9 @@ import { LeaveManagementModalComponent } from './dashboard/modals/leave-manageme
 import { PayslipModalComponent } from './dashboard/modals/payslip-modal/payslip-modal.component';
 import { AdvanceManagementModalComponent } from './dashboard/modals/advance-management-modal/advance-management-modal.component';
 import { MatChipsModule } from '@angular/material/chips';
+import { AddSupplierOrderComponent } from './components/merchandise/provider/supplier-order/add-supplier-order/add-supplier-order.component';
+import { ListSupplierOrderComponent } from './components/merchandise/provider/supplier-order/list-supplier-order/list-supplier-order.component';
+import { SupplierOrderPrintComponent } from './models/print-templates/supplier-order-print/supplier-order-print.component';
 
 @NgModule({
   declarations: [
@@ -168,7 +171,10 @@ import { MatChipsModule } from '@angular/material/chips';
     EditDocumentModalComponent,
     LeaveManagementModalComponent,
     PayslipModalComponent,
-    AdvanceManagementModalComponent
+    AdvanceManagementModalComponent,
+    AddSupplierOrderComponent,
+    ListSupplierOrderComponent,
+    SupplierOrderPrintComponent
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,40 @@
+:host {
+    display: block;
+    background-color: #f4f7f9;
+    min-height: 100vh;
+}
+
+.header-container {
+    background: white;
+    margin-bottom: 24px;
+    padding: 0 16px;
+    height: 72px;
+}
+
+.header-text {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.filter-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge-pending { background: #fff3e0; color: #e65100; }
+.badge-sent { background: #e3f2fd; color: #1976d2; }
+.badge-partial { background: #f3e5f5; color: #7b1fa2; }
+.badge-delivered { background: #e8f5e9; color: #2e7d32; }
+
+.modern-table {
+    width: 100%;
+}

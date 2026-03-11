@@ -739,7 +739,7 @@
                                 </td>
                             </ng-container>
 
-                            <ng-container matColumnDef="creationdate">
+                            <!-- <ng-container matColumnDef="creationdate">
                                 <th mat-header-cell *matHeaderCellDef> Crée le </th>
                                 <td mat-cell *matCellDef="let element">{{element.person.creationdate | date:
                                     'dd-MM-yyyy'}}</td>
@@ -749,7 +749,7 @@
                                 <th mat-header-cell *matHeaderCellDef> Modifié le </th>
                                 <td mat-cell *matCellDef="let element">{{element.person.updatedate | date:
                                     'dd-MM-yyyy'}}</td>
-                            </ng-container>
+                            </ng-container> -->
 
                             <ng-container matColumnDef="action">
                                 <th mat-header-cell *matHeaderCellDef> Action </th>
@@ -762,6 +762,13 @@
                                         <mat-icon *ngIf="element.editing" class="red-icon"
                                             (click)="cancelEditAppUser(element)">cancel</mat-icon>
                                         <mat-icon class="red-icon" (click)="deleteAppUser(element)">delete</mat-icon>
+                                        <!-- New Action Buttons -->
+                                        <mat-icon class="blue-icon" (click)="openLeavesModal(element)"
+                                            matTooltip="Gestion des Congés">event_available</mat-icon>
+                                        <mat-icon class="green-icon" (click)="openPayslipsModal(element)"
+                                            matTooltip="Fiches de Paie">payments</mat-icon>
+                                        <mat-icon class="orange-icon" (click)="openAdvancesModal(element)"
+                                            matTooltip="Gestion des Avances">request_quote</mat-icon>
                                     </div>
                                 </td>
                             </ng-container>

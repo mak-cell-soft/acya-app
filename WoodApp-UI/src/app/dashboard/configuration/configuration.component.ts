@@ -247,7 +247,7 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   displayedEmployeesColumns: string[] = ['fullname', 'cin', 'idcnss', 'role', 'hiredate', 'creationdate', 'action'];
 
   allAppUsers: MatTableDataSource<AppUser> = new MatTableDataSource<AppUser>();
-  displayedAppUsersColumns: string[] = ['fullname', 'cin', 'email', 'login', 'role', 'hiredate', 'creationdate', 'updatedate', 'action', 'permissions', 'defaultsite'];
+  displayedAppUsersColumns: string[] = ['fullname', 'cin', 'email', 'login', 'role', 'hiredate', 'action', 'permissions', 'defaultsite'];
 
   displayedColumnsTaxes: string[] = ['name', 'context', 'value', 'applied'];
   displayedColumnsTVA: string[] = ['value', 'action'];
@@ -318,34 +318,6 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   //#endregion
 
   //#region Enterprise
-
-  // getAllBanksAccounts() {
-  //   this.bankService.GetAll().subscribe({
-  //     next: (response) => {
-  //       this.bankAccounts = response
-  //       //console.log("getBanksAccounts() Method : ", this.bankAccounts);
-  //       this.toastr.success(this.load_bank_success);
-  //     },
-
-  // createEnterpriseForm() {
-  //   this.enterpriseForm = this.fb.group({
-  //     name: [{ value: this.enterpriseData.name, disabled: true }, Validators.required],
-  //     address: [{ value: this.enterpriseData.description, disabled: true }, Validators.required],
-  //     email: [{ value: this.enterpriseData.email, disabled: true }, Validators.required],
-  //     phone: [{ value: this.enterpriseData.phone, disabled: true }, Validators.required],
-  //     mobileOne: [{ value: this.enterpriseData.mobileOne, disabled: true }, Validators.required],
-  //     mobileTwo: [{ value: this.enterpriseData.mobileTwo, disabled: true }, Validators.required],
-  //     matriculeFiscal: [{ value: this.enterpriseData.matriculeFiscal, disabled: true }, Validators.required],
-  //     devise: [{ value: this.enterpriseData.devise, disabled: true }],
-  //     nameResponsable: [{ value: this.enterpriseData.nameResponsable, disabled: true }, Validators.required],
-  //     surnameResponsable: [{ value: this.enterpriseData.surnameResponsable, disabled: true }, Validators.required],
-  //     positionResponsable: [{ value: this.enterpriseData.positionResponsable, disabled: true }, Validators.required],
-  //     siegeAddress: [{ value: this.enterpriseData.siegeAddress, disabled: true }, Validators.required],
-  //     commercialRegister: [{ value: this.enterpriseData.commercialregister, disabled: true }, Validators.required],
-  //     capital: [{ value: this.enterpriseData.capital, disabled: true }, Validators.required],
-  //   });
-  // }
-
   createEnterpriseForm() {
     this.enterpriseForm = this.fb.group({
       name: ['', Validators.required],
@@ -1191,32 +1163,35 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
 
   }
 
-  openLeavesModal(element: Person): void {
+  openLeavesModal(element: any): void {
+    const person = element.person ? element.person : element;
     this.dialog.open(LeaveManagementModalComponent, {
       width: '900px',
       data: {
-        employeeId: element.id,
-        employeeName: `${element.firstname} ${element.lastname}`
+        employeeId: person.id,
+        employeeName: `${person.firstname} ${person.lastname}`
       }
     });
   }
 
-  openPayslipsModal(element: Person): void {
+  openPayslipsModal(element: any): void {
+    const person = element.person ? element.person : element;
     this.dialog.open(PayslipModalComponent, {
       width: '900px',
       data: {
-        employeeId: element.id,
-        employeeName: `${element.firstname} ${element.lastname}`
+        employeeId: person.id,
+        employeeName: `${person.firstname} ${person.lastname}`
       }
     });
   }
 
-  openAdvancesModal(element: Person): void {
+  openAdvancesModal(element: any): void {
+    const person = element.person ? element.person : element;
     this.dialog.open(AdvanceManagementModalComponent, {
       width: '900px',
       data: {
-        employeeId: element.id,
-        employeeName: `${element.firstname} ${element.lastname}`
+        employeeId: person.id,
+        employeeName: `${person.firstname} ${person.lastname}`
       }
     });
   }

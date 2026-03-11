@@ -18,6 +18,8 @@ import { AddCustomerComponent } from './components/customers/add-customer/add-cu
 import { CanDeactivateGuard } from './guards/can-deactivate.guard';
 import { ListDocumentsComponent } from './components/merchandise/provider/list-documents/list-documents.component';
 import { ListInvoicesComponent } from './components/merchandise/provider/list-invoices/list-invoices.component';
+import { AddSupplierOrderComponent } from './components/merchandise/provider/supplier-order/add-supplier-order/add-supplier-order.component';
+import { ListSupplierOrderComponent } from './components/merchandise/provider/supplier-order/list-supplier-order/list-supplier-order.component';
 import { CustomerAddDocumentComponent } from './components/merchandise/customer/add-document/customer-add-document.component';
 import { ListCustomerDocumentsComponent } from './components/merchandise/customer/list-customer-documents/list-customer-documents.component';
 import { StockListComponent } from './components/stock/stock-list/stock-list.component';
@@ -107,6 +109,8 @@ const routes: Routes = [
       { path: 'customerinvoices', component: ListCustomerInvoicesComponent },
       { path: 'customerinvoices/add', component: AddInvoiceComponent },
       { path: 'customerdelivery/add', component: CustomerAddDocumentComponent },
+      { path: 'supplierorder/add', component: AddSupplierOrderComponent },
+      { path: 'supplierorder/list', component: ListSupplierOrderComponent },
       { path: 'customers', component: ListCustomersComponent },
       {
         path: 'customers/add',

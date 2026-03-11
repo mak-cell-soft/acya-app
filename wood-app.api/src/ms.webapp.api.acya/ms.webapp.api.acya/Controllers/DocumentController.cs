@@ -599,7 +599,12 @@ namespace ms.webapp.api.acya.api.Controllers
 
           // Post-commit operations
           await _repository.updateListOfIdsListOfLengths(doc);
-          await _repository.updateStockByMerchandises(doc);
+          
+          // supplierOrder: no stock movement
+          if (doc.Type != DocumentTypes.supplierOrder)
+          {
+              await _repository.updateStockByMerchandises(doc);
+          }
 
           await transaction.CommitAsync();
 

@@ -59,7 +59,10 @@
     <div *ngIf="isPurchaseMenuOpen" class="submenu">
       <!-- Bon de Commande -->
       <button mat-button class="submenu-button">
-        <span>{{menu_sub_purchase_bc}}</span>
+        <div class="button-links">
+          <span routerLink="supplierorder/list">{{menu_sub_purchase_bc}}</span>
+          <mat-icon routerLink="supplierorder/add">add</mat-icon>
+        </div>
       </button>
       <!-- Bon de Réception -->
       <button mat-button class="submenu-button">
