@@ -1,0 +1,498 @@
+[
+  {
+    "file": "app.component.ts",
+    "name": "app",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\app.component.ts"
+  },
+  {
+    "file": "auth-web-app/web-app.component.ts",
+    "name": "web-app",
+    "smart": "Dumb",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\auth-web-app\\web-app.component.ts"
+  },
+  {
+    "file": "authentication/sign-in.component.ts",
+    "name": "sign-in",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\authentication\\sign-in.component.ts"
+  },
+  {
+    "file": "components/articles/add-article/add-article.component.ts",
+    "name": "add-article",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\articles\\add-article\\add-article.component.ts"
+  },
+  {
+    "file": "components/articles/list-article/list-article.component.ts",
+    "name": "list-article",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\articles\\list-article\\list-article.component.ts"
+  },
+  {
+    "file": "components/customers/add-customer/add-customer.component.ts",
+    "name": "add-customer",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\customers\\add-customer\\add-customer.component.ts"
+  },
+  {
+    "file": "components/customers/customer-account-modal/customer-account-modal.component.ts",
+    "name": "customer-account-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\customers\\customer-account-modal\\customer-account-modal.component.ts"
+  },
+  {
+    "file": "components/customers/customer-details-modal/customer-details-modal.component.ts",
+    "name": "customer-details-modal",
+    "smart": "Dumb",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\customers\\customer-details-modal\\customer-details-modal.component.ts"
+  },
+  {
+    "file": "components/customers/customer-edit-modal/customer-edit-modal.component.ts",
+    "name": "customer-edit-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\customers\\customer-edit-modal\\customer-edit-modal.component.ts"
+  },
+  {
+    "file": "components/customers/list-customers/list-customers.component.ts",
+    "name": "list-customers",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\customers\\list-customers\\list-customers.component.ts"
+  },
+  {
+    "file": "components/merchandise/customer/add-document/customer-add-document.component.ts",
+    "name": "customer-add-document",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\merchandise\\customer\\add-document\\customer-add-document.component.ts"
+  },
+  {
+    "file": "components/merchandise/customer/add-invoice/add-invoice.component.ts",
+    "name": "add-invoice",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\merchandise\\customer\\add-invoice\\add-invoice.component.ts"
+  },
+  {
+    "file": "components/merchandise/customer/list-customer-documents/customer-batch-conversion-modal/customer-batch-conversion-modal.component.ts",
+    "name": "customer-batch-conversion-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\merchandise\\customer\\list-customer-documents\\customer-batch-conversion-modal\\customer-batch-conversion-modal.component.ts"
+  },
+  {
+    "file": "components/merchandise/customer/list-customer-documents/document-conversion-modal/document-conversion-modal.component.ts",
+    "name": "document-conversion-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\merchandise\\customer\\list-customer-documents\\document-conversion-modal\\document-conversion-modal.component.ts"
+  },
+  {
+    "file": "components/merchandise/customer/list-customer-documents/document-detail-modal/document-detail-modal.component.ts",
+    "name": "document-detail-modal",
+    "smart": "Dumb",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\merchandise\\customer\\list-customer-documents\\document-detail-modal\\document-detail-modal.component.ts"
+  },
+  {
+    "file": "components/merchandise/customer/list-customer-documents/list-customer-documents.component.ts",
+    "name": "list-customer-documents",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\merchandise\\customer\\list-customer-documents\\list-customer-documents.component.ts"
+  },
+  {
+    "file": "components/merchandise/customer/list-customer-invoices/list-customer-invoices.component.ts",
+    "name": "list-customer-invoices",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\merchandise\\customer\\list-customer-invoices\\list-customer-invoices.component.ts"
+  },
+  {
+    "file": "components/merchandise/provider/add-document/add-document.component.ts",
+    "name": "add-document",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\merchandise\\provider\\add-document\\add-document.component.ts"
+  },
+  {
+    "file": "components/merchandise/provider/list-documents/list-documents.component.ts",
+    "name": "list-documents",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\merchandise\\provider\\list-documents\\list-documents.component.ts"
+  },
+  {
+    "file": "components/merchandise/provider/list-invoices/list-invoices.component.ts",
+    "name": "list-invoices",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\merchandise\\provider\\list-invoices\\list-invoices.component.ts"
+  },
+  {
+    "file": "components/merchandise/provider/supplier-order/add-supplier-order/add-supplier-order.component.ts",
+    "name": "add-supplier-order",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\merchandise\\provider\\supplier-order\\add-supplier-order\\add-supplier-order.component.ts"
+  },
+  {
+    "file": "components/merchandise/provider/supplier-order/list-supplier-order/list-supplier-order.component.ts",
+    "name": "list-supplier-order",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\merchandise\\provider\\supplier-order\\list-supplier-order\\list-supplier-order.component.ts"
+  },
+  {
+    "file": "components/providers/add-provider/add-provider.component.ts",
+    "name": "add-provider",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\providers\\add-provider\\add-provider.component.ts"
+  },
+  {
+    "file": "components/providers/list-provider/list-provider.component.ts",
+    "name": "list-provider",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\providers\\list-provider\\list-provider.component.ts"
+  },
+  {
+    "file": "components/providers/provider-details-modal/provider-details-modal.component.ts",
+    "name": "provider-details-modal",
+    "smart": "Dumb",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\providers\\provider-details-modal\\provider-details-modal.component.ts"
+  },
+  {
+    "file": "components/providers/provider-edit-modal/provider-edit-modal.component.ts",
+    "name": "provider-edit-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\providers\\provider-edit-modal\\provider-edit-modal.component.ts"
+  },
+  {
+    "file": "components/stock/stock-inventory/stock-inventory.component.ts",
+    "name": "stock-inventory",
+    "smart": "Dumb",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\stock\\stock-inventory\\stock-inventory.component.ts"
+  },
+  {
+    "file": "components/stock/stock-list/stock-list.component.ts",
+    "name": "stock-list",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\stock\\stock-list\\stock-list.component.ts"
+  },
+  {
+    "file": "components/stock/stock-mouvement/stock-mouvement.component.ts",
+    "name": "stock-mouvement",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\stock\\stock-mouvement\\stock-mouvement.component.ts"
+  },
+  {
+    "file": "components/stock/stock-transfer/transfert-stock.component.ts",
+    "name": "transfert-stock",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\stock\\stock-transfer\\transfert-stock.component.ts"
+  },
+  {
+    "file": "components/stock/stock-transfer-list/stock-transfer-list.component.ts",
+    "name": "stock-transfer-list",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\stock\\stock-transfer-list\\stock-transfer-list.component.ts"
+  },
+  {
+    "file": "components/stock/transfer-confirm-code-dialog/transfer-confirm-code-dialog.component.ts",
+    "name": "transfer-confirm-code-dialog",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\stock\\transfer-confirm-code-dialog\\transfer-confirm-code-dialog.component.ts"
+  },
+  {
+    "file": "components/stock/transfer-confirmation/transfer-confirmation.component.ts",
+    "name": "transfer-confirmation",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\stock\\transfer-confirmation\\transfer-confirmation.component.ts"
+  },
+  {
+    "file": "components/stock/transfer-details-dialog/transfer-details-dialog.component.ts",
+    "name": "transfer-details-dialog",
+    "smart": "Dumb",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\components\\stock\\transfer-details-dialog\\transfer-details-dialog.component.ts"
+  },
+  {
+    "file": "dashboard/admin-dashboard/admin-dashboard.component.ts",
+    "name": "admin-dashboard",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\admin-dashboard\\admin-dashboard.component.ts"
+  },
+  {
+    "file": "dashboard/configuration/configuration.component.ts",
+    "name": "configuration",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\configuration\\configuration.component.ts"
+  },
+  {
+    "file": "dashboard/footer/footer.component.ts",
+    "name": "footer",
+    "smart": "Dumb",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\footer\\footer.component.ts"
+  },
+  {
+    "file": "dashboard/header/header.component.ts",
+    "name": "header",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\header\\header.component.ts"
+  },
+  {
+    "file": "dashboard/home/home.component.ts",
+    "name": "home",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\home\\home.component.ts"
+  },
+  {
+    "file": "dashboard/home-dashboard/home-dashboard.component.ts",
+    "name": "home-dashboard",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\home-dashboard\\home-dashboard.component.ts"
+  },
+  {
+    "file": "dashboard/modals/add-app-variable-modal/app-variable-modal.component.ts",
+    "name": "app-variable-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\add-app-variable-modal\\app-variable-modal.component.ts"
+  },
+  {
+    "file": "dashboard/modals/add-bank-modal/add-bank-modal.component.ts",
+    "name": "add-bank-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\add-bank-modal\\add-bank-modal.component.ts"
+  },
+  {
+    "file": "dashboard/modals/add-categories-modal/add-categories-modal.component.ts",
+    "name": "add-categories-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\add-categories-modal\\add-categories-modal.component.ts"
+  },
+  {
+    "file": "dashboard/modals/add-employees-modal/add-employees-modal.component.ts",
+    "name": "add-employees-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\add-employees-modal\\add-employees-modal.component.ts"
+  },
+  {
+    "file": "dashboard/modals/add-lengths-modal/add-lengths-modal.component.ts",
+    "name": "add-lengths-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\add-lengths-modal\\add-lengths-modal.component.ts"
+  },
+  {
+    "file": "dashboard/modals/add-sales-site-modal/add-sales-site-modal.component.ts",
+    "name": "add-sales-site-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\add-sales-site-modal\\add-sales-site-modal.component.ts"
+  },
+  {
+    "file": "dashboard/modals/add-sub-categories-modal/add-sub-categories-modal.component.ts",
+    "name": "add-sub-categories-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\add-sub-categories-modal\\add-sub-categories-modal.component.ts"
+  },
+  {
+    "file": "dashboard/modals/add-transporter-modal/add-transporter-modal.component.ts",
+    "name": "add-transporter-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\add-transporter-modal\\add-transporter-modal.component.ts"
+  },
+  {
+    "file": "dashboard/modals/advance-management-modal/advance-management-modal.component.ts",
+    "name": "advance-management-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\advance-management-modal\\advance-management-modal.component.ts"
+  },
+  {
+    "file": "dashboard/modals/confirm-delete-modal/confirm-delete-modal.component.ts",
+    "name": "confirm-delete-modal",
+    "smart": "Dumb",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\confirm-delete-modal\\confirm-delete-modal.component.ts"
+  },
+  {
+    "file": "dashboard/modals/edit-document-modal/edit-document-modal.component.ts",
+    "name": "edit-document-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\edit-document-modal\\edit-document-modal.component.ts"
+  },
+  {
+    "file": "dashboard/modals/invoice/generate-invoice-modal/generate-invoice-modal.component.ts",
+    "name": "generate-invoice-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\invoice\\generate-invoice-modal\\generate-invoice-modal.component.ts"
+  },
+  {
+    "file": "dashboard/modals/leave-management-modal/leave-management-modal.component.ts",
+    "name": "leave-management-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\leave-management-modal\\leave-management-modal.component.ts"
+  },
+  {
+    "file": "dashboard/modals/payment-modal/payment-forms/cheque-payment-form/cheque-payment-form.component.ts",
+    "name": "cheque-payment-form",
+    "smart": "Dumb",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\payment-modal\\payment-forms\\cheque-payment-form\\cheque-payment-form.component.ts"
+  },
+  {
+    "file": "dashboard/modals/payment-modal/payment-forms/traite-payment-form/traite-payment-form.component.ts",
+    "name": "traite-payment-form",
+    "smart": "Dumb",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\payment-modal\\payment-forms\\traite-payment-form\\traite-payment-form.component.ts"
+  },
+  {
+    "file": "dashboard/modals/payment-modal/payment-modal.component.ts",
+    "name": "payment-modal",
+    "smart": "Dumb",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\payment-modal\\payment-modal.component.ts"
+  },
+  {
+    "file": "dashboard/modals/payslip-modal/payslip-modal.component.ts",
+    "name": "payslip-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\payslip-modal\\payslip-modal.component.ts"
+  },
+  {
+    "file": "dashboard/modals/permissions-modal/permissions-modal.component.ts",
+    "name": "permissions-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\permissions-modal\\permissions-modal.component.ts"
+  },
+  {
+    "file": "dashboard/modals/sales-site-modal/sales-site-modal.component.ts",
+    "name": "sales-site-modal",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\dashboard\\modals\\sales-site-modal\\sales-site-modal.component.ts"
+  },
+  {
+    "file": "enterprise/enterprise.component.ts",
+    "name": "enterprise",
+    "smart": "Smart",
+    "standalone": false,
+    "routed": true,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\enterprise\\enterprise.component.ts"
+  },
+  {
+    "file": "models/print-templates/delivery-note-print/delivery-note-print.component.ts",
+    "name": "delivery-note-print",
+    "smart": "Dumb",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\models\\print-templates\\delivery-note-print\\delivery-note-print.component.ts"
+  },
+  {
+    "file": "models/print-templates/supplier-order-print/supplier-order-print.component.ts",
+    "name": "supplier-order-print",
+    "smart": "Dumb",
+    "standalone": false,
+    "routed": false,
+    "path": "C:\\Users\\amine\\source\\repos\\acya.app\\acya-app\\WoodApp-UI\\src\\app\\models\\print-templates\\supplier-order-print\\supplier-order-print.component.ts"
+  }
+]
