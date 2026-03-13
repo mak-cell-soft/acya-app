@@ -1,138 +1,162 @@
 <app-header [sidenav]="sidenav"></app-header>
-<mat-sidenav-container>
-  <mat-sidenav #sidenav="matSidenav">
-    <img class="avatar mat-elevation-z8" src="https://gravatar.com/avatar" />
-    <h4 class="name">SOCOFEB</h4>
-    <p class="designation">Vente Bois et Dérivés</p>
+<mat-sidenav-container class="dashboard-container" autosize>
+  <mat-sidenav #sidenav="matSidenav" [class.collapsed]="isCollapsed" class="modern-sidebar">
+    <div class="sidebar-header" [class.mini]="isCollapsed">
+      <img class="avatar mat-elevation-z4" src="https://gravatar.com/avatar" />
+      <div class="user-info" *ngIf="!isCollapsed">
+        <h4 class="name">SOCOFEB</h4>
+        <p class="designation">Vente Bois et Dérivés</p>
+      </div>
+    </div>
+    
     <mat-divider></mat-divider>
-    <!-- Dashboard Administration -->
-    <button *ngIf="isAdmin" mat-button class="menu-button" routerLink="admin-dashboard">
-      <mat-icon>admin_panel_settings</mat-icon>
-      <span>{{button_administration}}</span>
-    </button>
-    <mat-divider></mat-divider>
-    <button mat-button class="menu-button" routerLink="dashboard">
-      <mat-icon>home</mat-icon>
-      <span>{{button_home}}</span>
-    </button>
+    
+    <div class="nav-content">
+      <!-- Administration -->
+      <button mat-button class="menu-item" *ngIf="isAdmin" routerLink="admin-dashboard" routerLinkActive="active-route"
+              [matTooltip]="isCollapsed ? button_administration : ''" matTooltipPosition="right">
+        <mat-icon>admin_panel_settings</mat-icon>
+        <span class="menu-text" *ngIf="!isCollapsed">{{button_administration}}</span>
+      </button>
 
-    <!-- Vente -->
-    <button mat-button class="menu-button" (click)="toggleVenteMenu()">
-      <mat-icon>store</mat-icon>
-      <span>{{menu_sell}}</span>
-      <span class="spacer"></span>
-      <mat-icon>{{isVenteMenuOpen ? 'expand_less' : 'expand_more'}}</mat-icon>
-    </button>
-    <!-- submenu Vente -->
-    <div *ngIf="isVenteMenuOpen" class="submenu" routerLinkActive="active">
-      <button mat-button class="submenu-button">
-        <span>{{menu_sub_sell_devis}}</span>
+      <!-- Home -->
+      <button mat-button class="menu-item" routerLink="dashboard" routerLinkActive="active-route"
+              [matTooltip]="isCollapsed ? button_home : ''" matTooltipPosition="right">
+        <mat-icon>home</mat-icon>
+        <span class="menu-text" *ngIf="!isCollapsed">{{button_home}}</span>
       </button>
-      <button mat-button class="submenu-button" routerLinkActive="active">
-        <span>{{menu_sub_sell_bc}}</span>
+
+      <!-- Vente -->
+      <button mat-button class="menu-item" (click)="toggleVenteMenu()" [class.expanded]="isVenteMenuOpen"
+              [matTooltip]="isCollapsed ? menu_sell : ''" matTooltipPosition="right">
+        <mat-icon>store</mat-icon>
+        <span class="menu-text" *ngIf="!isCollapsed">{{menu_sell}}</span>
+        <span class="spacer" *ngIf="!isCollapsed"></span>
+        <mat-icon class="expand-icon" *ngIf="!isCollapsed">{{isVenteMenuOpen ? 'expand_less' : 'expand_more'}}</mat-icon>
       </button>
-      <button mat-button class="submenu-button" routerLinkActive="active">
-        <div class="button-links">
-          <span routerLink="customerdelivery">{{menu_sub_sell_bl}}</span>
-          <mat-icon routerLink="customerdelivery/add">add</mat-icon>
+      <div class="submenu" [class.open]="isVenteMenuOpen" *ngIf="!isCollapsed">
+        <a class="sub-menu-item" routerLink="devis" routerLinkActive="active-sub">
+          <span>{{menu_sub_sell_devis}}</span>
+        </a>
+        <a class="sub-menu-item" routerLink="bc" routerLinkActive="active-sub">
+          <span>{{menu_sub_sell_bc}}</span>
+        </a>
+        <div class="sub-menu-row">
+          <a class="sub-menu-item flex-item" routerLink="customerdelivery" routerLinkActive="active-sub">
+            <span>{{menu_sub_sell_bl}}</span>
+          </a>
+          <button mat-icon-button class="add-btn" routerLink="customerdelivery/add"><mat-icon>add_circle_outline</mat-icon></button>
         </div>
-        <span></span>
-      </button>
-      <button mat-button class="submenu-button" routerLinkActive="active">
-        <div class="button-links">
-          <span routerLink="customerinvoices">{{menu_sub_sell_fact}}</span>
-          <mat-icon routerLink="customerinvoices/add">add</mat-icon>
+        <div class="sub-menu-row">
+          <a class="sub-menu-item flex-item" routerLink="customerinvoices" routerLinkActive="active-sub">
+            <span>{{menu_sub_sell_fact}}</span>
+          </a>
+          <button mat-icon-button class="add-btn" routerLink="customerinvoices/add"><mat-icon>add_circle_outline</mat-icon></button>
         </div>
+        <a class="sub-menu-item" routerLink="stock/exit" routerLinkActive="active-sub">
+          <span>{{menu_sub_sell_bon_sortie}}</span>
+        </a>
+      </div>
+
+      <!-- Achat -->
+      <button mat-button class="menu-item" (click)="toggleAchatMenu()" [class.expanded]="isPurchaseMenuOpen"
+              [matTooltip]="isCollapsed ? menu_purchase : ''" matTooltipPosition="right">
+        <mat-icon>shopping_cart</mat-icon>
+        <span class="menu-text" *ngIf="!isCollapsed">{{menu_purchase}}</span>
+        <span class="spacer" *ngIf="!isCollapsed"></span>
+        <mat-icon class="expand-icon" *ngIf="!isCollapsed">{{isPurchaseMenuOpen ? 'expand_less' : 'expand_more'}}</mat-icon>
       </button>
-      <button mat-button class="submenu-button" routerLinkActive="active">
-        <span routerLink="stock/exit">{{menu_sub_sell_bon_sortie}}</span>
+      <div class="submenu" [class.open]="isPurchaseMenuOpen" *ngIf="!isCollapsed">
+        <div class="sub-menu-row">
+          <a class="sub-menu-item flex-item" routerLink="supplierorder/list" routerLinkActive="active-sub">
+            <span>{{menu_sub_purchase_bc}}</span>
+          </a>
+          <button mat-icon-button class="add-btn" routerLink="supplierorder/add"><mat-icon>add_circle_outline</mat-icon></button>
+        </div>
+        <div class="sub-menu-row">
+          <a class="sub-menu-item flex-item" routerLink="reception/list" routerLinkActive="active-sub">
+            <span>{{menu_sub_purchase_br}}</span>
+          </a>
+          <button mat-icon-button class="add-btn" routerLink="reception"><mat-icon>add_circle_outline</mat-icon></button>
+        </div>
+        <a class="sub-menu-item" routerLink="sinvoices" routerLinkActive="active-sub">
+          <span>{{menu_sub_purchase_fact}}</span>
+        </a>
+      </div>
+
+      <!-- Client -->
+      <button mat-button class="menu-item" routerLink="customers" routerLinkActive="active-route"
+              [matTooltip]="isCollapsed ? menu_client : ''" matTooltipPosition="right">
+        <mat-icon>group</mat-icon>
+        <span class="menu-text" *ngIf="!isCollapsed">{{menu_client}}</span>
+      </button>
+
+      <!-- Fournisseur -->
+      <button mat-button class="menu-item" routerLink="providers" routerLinkActive="active-route"
+              [matTooltip]="isCollapsed ? menu_provider : ''" matTooltipPosition="right">
+        <mat-icon>view_in_ar</mat-icon>
+        <span class="menu-text" *ngIf="!isCollapsed">{{menu_provider}}</span>
+      </button>
+
+      <!-- Articles -->
+      <button mat-button class="menu-item" routerLink="articles" routerLinkActive="active-route"
+              [matTooltip]="isCollapsed ? menu_articles : ''" matTooltipPosition="right">
+        <mat-icon>article</mat-icon>
+        <span class="menu-text" *ngIf="!isCollapsed">{{menu_articles}}</span>
+      </button>
+
+      <!-- Stock -->
+      <button mat-button class="menu-item" (click)="toggleStockMenu()" [class.expanded]="isStockMenuOpen"
+              [matTooltip]="isCollapsed ? menu_stock : ''" matTooltipPosition="right">
+        <mat-icon>inventory</mat-icon>
+        <span class="menu-text" *ngIf="!isCollapsed">{{menu_stock}}</span>
+        <span class="spacer" *ngIf="!isCollapsed"></span>
+        <mat-icon class="expand-icon" *ngIf="!isCollapsed">{{isStockMenuOpen ? 'expand_less' : 'expand_more'}}</mat-icon>
+      </button>
+      <div class="submenu" [class.open]="isStockMenuOpen" *ngIf="!isCollapsed">
+        <a class="sub-menu-item" routerLink="stock" routerLinkActive="active-sub">
+          <span>{{menu_sub_stock_manage}}</span>
+        </a>
+        <a class="sub-menu-item" routerLink="stock/transferinfo" routerLinkActive="active-sub">
+          <span>{{menu_sub_stock_list}}</span>
+        </a>
+        <div class="sub-menu-row">
+          <a class="sub-menu-item flex-item" routerLink="inventory/list" routerLinkActive="active-sub">
+            <span>{{menu_sub_inventory}}</span>
+          </a>
+          <button mat-icon-button class="add-btn" routerLink="inventory/add"><mat-icon>add_circle_outline</mat-icon></button>
+        </div>
+      </div>
+
+      <!-- Comptabilité -->
+      <button mat-button class="menu-item"
+              [matTooltip]="isCollapsed ? menu_accounting : ''" matTooltipPosition="right">
+        <mat-icon>credit_score</mat-icon>
+        <span class="menu-text" *ngIf="!isCollapsed">{{menu_accounting}}</span>
+      </button>
+      
+      <mat-divider class="my-3"></mat-divider>
+      <!-- Help -->
+      <button mat-button class="menu-item"
+              [matTooltip]="isCollapsed ? menu_help : ''" matTooltipPosition="right">
+        <mat-icon>help</mat-icon>
+        <span class="menu-text" *ngIf="!isCollapsed">{{menu_help}}</span>
       </button>
     </div>
 
-    <!-- Achat -->
-    <button mat-button class="menu-button" (click)="toggleAchatMenu()">
-      <mat-icon>shopping_cart</mat-icon>
-      <span>{{menu_purchase}}</span>
-      <mat-icon>{{isPurchaseMenuOpen ? 'expand_less' : 'expand_more'}}</mat-icon>
-    </button>
-    <!-- submenu Achat -->
-    <div *ngIf="isPurchaseMenuOpen" class="submenu">
-      <!-- Bon de Commande -->
-      <button mat-button class="submenu-button">
-        <div class="button-links">
-          <span routerLink="supplierorder/list">{{menu_sub_purchase_bc}}</span>
-          <mat-icon routerLink="supplierorder/add">add</mat-icon>
-        </div>
-      </button>
-      <!-- Bon de Réception -->
-      <button mat-button class="submenu-button">
-        <div class="button-links">
-          <span routerLink="reception/list">{{menu_sub_purchase_br}}</span>
-          <mat-icon routerLink="reception">add</mat-icon>
-        </div>
-
-      </button>
-
-      <!-- Facture -->
-      <button mat-button class="submenu-button" routerLink="sinvoices">
-        <span>{{menu_sub_purchase_fact}}</span>
+    <!-- Collapse Toggle (Bottom) -->
+    <div class="sidebar-footer">
+      <button mat-icon-button class="collapse-btn" (click)="toggleCollapse()" [matTooltip]="isCollapsed ? 'Agrandir' : 'Réduire'">
+        <mat-icon>{{ isCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
       </button>
     </div>
-
-    <!-- Client -->
-    <button mat-button class="menu-button" routerLink="customers">
-      <mat-icon>group</mat-icon>
-      <span>{{menu_client}}</span>
-    </button>
-
-    <!-- Fournisseur -->
-    <button mat-button class="menu-button" routerLink="providers">
-      <mat-icon>view_in_ar</mat-icon>
-      <span>{{menu_provider}}</span>
-    </button>
-
-    <!-- Articles -->
-    <button mat-button class="menu-button" routerLink="articles">
-      <mat-icon>article</mat-icon>
-      <span>{{menu_articles}}</span>
-    </button>
-
-    <!-- Stock -->
-    <button mat-button class="menu-button" (click)="toggleStockMenu()">
-      <mat-icon>inventory</mat-icon>
-      <span>{{menu_stock}}</span>
-      <mat-icon>{{isStockMenuOpen ? 'expand_less' : 'expand_more'}}</mat-icon>
-    </button>
-    <div *ngIf="isStockMenuOpen" class="submenu">
-      <button mat-button class="submenu-button" routerLinkActive="active">
-        <span routerLink="stock">{{menu_sub_stock_manage}}</span>
-      </button>
-      <button mat-button class="submenu-button" routerLinkActive="active">
-        <span routerLink="stock/transferinfo">{{menu_sub_stock_list}}</span>
-      </button>
-      <button mat-button class="submenu-button">
-        <div class="button-links">
-           <span routerLink="inventory/list">{{menu_sub_inventory}}</span>
-           <mat-icon routerLink="inventory/add">add</mat-icon>
-        </div>
-      </button>
-    </div>
-
-    <!-- Comptabilité -->
-    <button mat-button class="menu-button">
-      <mat-icon>credit_score</mat-icon>
-      <span>{{menu_accounting}}</span>
-    </button>
-
-    <mat-divider></mat-divider>
-    <button mat-button class="menu-button">
-      <mat-icon>help</mat-icon>
-      <span>{{menu_help}}</span>
-    </button>
   </mat-sidenav>
-  <mat-sidenav-content>
-    <div class="content mat-elevation-z4">
+
+  <mat-sidenav-content class="main-content-wrapper">
+    <div class="route-content-box">
+      <!-- Loading bar logic could go here ngx-progressbar if asked, but User prefers router outlet placement -->
       <router-outlet></router-outlet>
     </div>
+    <app-footer></app-footer>
   </mat-sidenav-content>
 </mat-sidenav-container>

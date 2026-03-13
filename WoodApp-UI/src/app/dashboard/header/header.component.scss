@@ -1,0 +1,308 @@
+/* Refined Timber Minimalism - Header */
+
+.modern-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  padding: 0 1rem;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0,0,0,0.02);
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .menu-btn {
+      color: #0B3B24;
+      background: rgba(11, 59, 36, 0.05);
+      border-radius: 8px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba(11, 59, 36, 0.1);
+      }
+    }
+
+    .date-display {
+      display: none;
+      
+      @media (min-width: 768px) {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: 'Lato', sans-serif;
+        color: #666;
+        font-size: 0.9rem;
+        background: rgba(0,0,0,0.03);
+        padding: 6px 12px;
+        border-radius: 20px;
+
+        .date-icon {
+          font-size: 1.1rem;
+          width: 1.1rem;
+          height: 1.1rem;
+          color: #8C6239;
+        }
+      }
+    }
+  }
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    
+    @media (min-width: 768px) {
+      gap: 1rem;
+    }
+
+    .site-chip {
+      display: none;
+      
+      @media (min-width: 1024px) {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(140, 98, 57, 0.1);
+        color: #8C6239;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-family: 'Lato', sans-serif;
+        font-weight: 600;
+        font-size: 0.85rem;
+
+        mat-icon {
+          font-size: 1.2rem;
+          width: 1.2rem;
+          height: 1.2rem;
+        }
+      }
+    }
+
+    .action-btn {
+      color: #555;
+      transition: all 0.2s;
+      
+      &:hover {
+        color: #0B3B24;
+        background: rgba(11, 59, 36, 0.05);
+      }
+
+      .bell-icon {
+        &[matbadgehidden="false"] {
+          animation: bellShake 2.5s infinite;
+        }
+      }
+    }
+
+    .user-profile-btn {
+      display: flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 24px;
+      transition: background 0.2s;
+      height: 48px;
+
+      &:hover {
+        background: rgba(0,0,0,0.03);
+      }
+
+      .avatar-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #0B3B24;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.2rem;
+        margin-right: 8px;
+        @media(max-width: 767px) {
+          margin-right: 0;
+        }
+      }
+
+      .user-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        line-height: 1.2;
+        margin-right: 8px;
+
+        .user-name {
+          font-family: 'Lato', sans-serif;
+          font-weight: 700;
+          font-size: 0.9rem;
+          color: #333;
+        }
+
+        .user-role {
+          font-family: 'Lato', sans-serif;
+          font-size: 0.75rem;
+          color: #8C6239;
+        }
+      }
+
+      .dropdown-icon {
+        color: #999;
+        @media(max-width: 767px) {
+          display: none;
+        }
+      }
+    }
+
+    .hidden-xs {
+      display: none;
+      @media (min-width: 768px) {
+        display: flex;
+      }
+    }
+  }
+}
+
+::ng-deep {
+  .modern-notif-menu {
+    border-radius: 12px !important;
+    min-width: 320px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.12) !important;
+    
+    .notif-header {
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      h3 {
+        margin: 0;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        color: #0B3B24;
+      }
+      
+      .badge {
+        background: #f44336;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: bold;
+      }
+    }
+
+    .empty-state {
+      padding: 32px 20px;
+      text-align: center;
+      color: #999;
+      
+      mat-icon {
+        font-size: 2.5rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        margin-bottom: 8px;
+        opacity: 0.5;
+      }
+      p { margin: 0; }
+    }
+
+    .notification-item {
+      height: auto !important;
+      padding: 12px 20px !important;
+      line-height: normal !important;
+      
+      &:hover {
+        background: rgba(140, 98, 57, 0.05);
+      }
+
+      // Inside layout for mat-menu-item content
+      & > .mat-mdc-menu-item-text {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        width: 100%;
+      }
+
+      .notif-icon-wrapper {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(11, 59, 36, 0.1);
+        color: #0B3B24;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .notification-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        width: 100%;
+        white-space: normal;
+        
+        .notif-title {
+          font-weight: 600;
+          color: #333;
+          margin-bottom: 4px;
+          font-family: 'Lato', sans-serif;
+        }
+
+        .notif-desc {
+          font-size: 0.8rem;
+          color: #777;
+        }
+      }
+    }
+  }
+
+  .modern-profile-menu {
+    border-radius: 12px !important;
+    min-width: 200px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.12) !important;
+
+    .profile-header-sm {
+      padding: 16px 20px;
+      .user-name {
+        font-weight: bold;
+        color: #0B3B24;
+        text-align: center;
+      }
+    }
+
+    .visible-xs {
+      display: none;
+      @media(max-width: 767px) {
+        display: block;
+      }
+    }
+
+    .logout-btn {
+      color: #d32f2f;
+      mat-icon { color: #d32f2f; }
+      
+      &:hover {
+        background: rgba(211, 47, 47, 0.05) !important;
+      }
+    }
+  }
+}
+
+@keyframes bellShake {
+  0%, 100% { transform: rotate(0); }
+  10%, 30%, 50%, 70%, 90% { transform: rotate(-10deg); }
+  20%, 40%, 60%, 80% { transform: rotate(10deg); }
+}

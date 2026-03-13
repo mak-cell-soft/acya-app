@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ASK_FOR_WOOD_SELLEING, MAT_CARD_HEADER_DETAILS, MAT_CARD_HEADER_ENTER_SITES, MAT_CARD_HEADER_ENTERPRISE, MAT_CARD_SETTINGS_CONFIG, MAT_INPUT_ENTERPRISE_DETAILS_PLCHOLDER_ADRESSE, MAT_INPUT_ENTERPRISE_DETAILS_PLCHOLDER_CITY, MAT_INPUT_ENTERPRISE_DETAILS_PLCHOLDER_CODEPOST, MAT_INPUT_ENTERPRISE_DETAILS_PLCHOLDER_DEVISE, MAT_INPUT_ENTERPRISE_DETAILS_PLCHOLDER_MF, MAT_INPUT_ENTERPRISE_DETAILS_PLCHOLDER_POSITION, MAT_INPUT_ENTERPRISE_DETAILS_PLCHOLDER_RESP_NAME, MAT_INPUT_ENTERPRISE_DETAILS_PLCHOLDER_RESP_SURNAME, MAT_INPUT_ENTERPRISE_PLCHOLDER_DESC, MAT_INPUT_ENTERPRISE_PLCHOLDER_EMAIL, MAT_INPUT_ENTERPRISE_PLCHOLDER_MOBILE_1, MAT_INPUT_ENTERPRISE_PLCHOLDER_MOBILE_2, MAT_INPUT_ENTERPRISE_PLCHOLDER_NAME, MAT_INPUT_ENTERPRISE_PLCHOLDER_PHONE, MAT_LABEL_INPUT_ENTERPRISE_DESC, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_ADDRESS, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_CITY, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_CODEPOST, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_DEVISE, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_GOV, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_MF, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_POSITION, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_RESP_NAME, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_RESP_SURNAME, MAT_LABEL_INPUT_ENTERPRISE_FIX_PHONE, MAT_LABEL_INPUT_ENTERPRISE_MAIL, MAT_LABEL_INPUT_ENTERPRISE_MOBILE_1, MAT_LABEL_INPUT_ENTERPRISE_MOBILE_2, MAT_LABEL_INPUT_ENTERPRISE_NAME, MAT_TAB_LABEL_ENTERPRISE, MAT_TAB_LABEL_PARAMS, MAT_TAB_LABEL_SETTINGS } from '../shared/constants/components/config';
 import { MatDialog } from '@angular/material/dialog';
 import { AddSalesSiteModalComponent } from '../dashboard/modals/add-sales-site-modal/add-sales-site-modal.component';
@@ -19,7 +19,8 @@ import { ToastrService } from 'ngx-toastr';
 @Component({
   selector: 'app-enterprise',
   templateUrl: './enterprise.component.html',
-  styleUrl: './enterprise.component.css'
+  styleUrl: './enterprise.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EnterpriseComponent implements OnInit {
 
@@ -297,6 +298,7 @@ export class EnterpriseComponent implements OnInit {
 
   register() {
     this.loading = true;
+    this.cdr.markForCheck();
     let _ent = this.createEnterpriseInstance();
     console.log("FORM VALUES ENTERPRISE BEFORE REGISTER : ", _ent);
     if (_ent != null) {
@@ -308,15 +310,18 @@ export class EnterpriseComponent implements OnInit {
           this.toastr.show("Bon Travail.");
           this.router.navigate(['/login']);
           this.loading = false;
+          this.cdr.markForCheck();
         }, error: (error) => {
           console.error('Error creating enterprise', error);
           this.toastr.error("Impossible de se Connecter au Serveur, Réessayer plus tard");
           this.loading = false;
+          this.cdr.markForCheck();
         }
       });
     } else {
       this.toastr.error("Vérifier les chanps d'abord");
       this.loading = false;
+      this.cdr.markForCheck();
     }
   }
 

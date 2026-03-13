@@ -1,81 +1,94 @@
-<mat-toolbar>
-  <button mat-button *ngIf="sidenav.mode === 'over'" (click)="sidenav.toggle()">
-    <mat-icon class="custom-icon" *ngIf="!sidenav.opened">menu</mat-icon>
-    <mat-icon class="custom-icon" *ngIf="sidenav.opened">close</mat-icon>
-  </button>
-  Utilisateur connecté(e) : {{nameOfConnectedUser}}      le {{date | date:'d MMMM y'}}
-
-  @if (isLoggedIn()) {
-  <div *ngIf="authService.getUserDetail() as userDetail" class="user-info">
-    <!-- Add Notifications to mat-toolbar -->
-    <button mat-icon-button [matMenuTriggerFor]="notificationsMenu" style="scale: 1.2; margin-right: 5px;"
-      [matBadge]="notificationService.getPendingNotifications().length" matBadgeColor="primary">
-      <mat-icon>notifications</mat-icon>
+<mat-toolbar class="modern-header">
+  <!-- Left section: Hamburger & Title -->
+  <div class="header-left">
+    <button mat-icon-button class="menu-btn" *ngIf="sidenav.mode === 'over'" (click)="sidenav.toggle()">
+      <mat-icon *ngIf="!sidenav.opened">menu</mat-icon>
+      <mat-icon *ngIf="sidenav.opened">close_fullscreen</mat-icon>
     </button>
-
-    <!-- <mat-menu #notificationsMenu="matMenu">
-      <div *ngIf="notificationService.getPendingNotifications().length === 0">
-        <button mat-menu-item disabled>Aucune notification</button>
-      </div>
-      <ng-container *ngIf="notificationService.getPendingNotifications().length > 0">
-        <button *ngFor="let notif of notificationService.getPendingNotifications()" mat-menu-item
-          (click)="openTransferConfirmation(notif)" style="width: auto;">
-          <mat-icon>move_to_inbox</mat-icon>
-          <span>Dépôt Origine : {{notif.originSite}} - Doc. N° : {{notif.exitDocNumber}} - ({{notif.itemsCount}} marchandise(s))</span>
-        </button>
-      </ng-container>
-    </mat-menu> -->
-    <mat-menu #notificationsMenu="matMenu">
-      <div *ngIf="notificationService.getPendingNotifications().length === 0">
-        <button mat-menu-item disabled>Aucune notification</button>
-      </div>
-
-      <ng-container *ngIf="notificationService.getPendingNotifications().length > 0">
-        <button *ngFor="let notif of notificationService.getPendingNotifications()" mat-menu-item
-          (click)="openTransferConfirmation(notif)" class="notification-item">
-          <mat-icon class="notification-icon">move_to_inbox</mat-icon>
-          <div class="notification-content">
-            <div class="notification-line">
-              <span class="notification-label">Dépôt Origine:</span>
-              <span class="notification-value">{{notif.originSite}}</span>
-            </div>
-            <div class="notification-line">
-              <span class="notification-label">Doc. Sortie N°:</span>
-              <span class="notification-value">{{notif.exitDocNumber}}</span>
-            </div>
-            <div class="notification-line">
-              <span class="notification-label">Nbre. Articles:</span>
-              <span class="notification-value">{{notif.itemsCount}}</span>
-            </div>
-          </div>
-        </button>
-      </ng-container>
-    </mat-menu>
-    <!-- User Role and Name Area -->
-    <div class="user-info-container">
-      <div class="user-role"><mat-icon matSuffix
-          style="scale: 1.2; margin-right: 5px;">person_pin_circle</mat-icon>{{SalesSite}}</div>
+    <div class="date-display">
+      <mat-icon class="date-icon">calendar_today</mat-icon>
+      {{date | date:'d MMMM y'}}
     </div>
-
-    <!-- Settings Button -->
-    <button mat-icon-button routerLink="config">
-      <mat-icon class="custom-icon">settings</mat-icon>
-    </button>
-
-    <!-- Profile and Logout Menu -->
-    <button mat-icon-button [matMenuTriggerFor]="menu">
-      <mat-icon class="custom-icon">person</mat-icon>
-    </button>
-    <mat-menu #menu="matMenu">
-      <button [routerLink]="['/login', userDetail.id]" mat-menu-item (click)="openProfile()">
-        <mat-icon>account_circle</mat-icon>
-        <span>Profile</span>
-      </button>
-      <button mat-menu-item (click)="logout()">
-        <mat-icon>logout</mat-icon>
-        <span>Déconnexion</span>
-      </button>
-    </mat-menu>
   </div>
-  }
+
+  <span class="spacer"></span>
+
+  <!-- Right section: User actions -->
+  <div class="header-right" *ngIf="isLoggedIn()">
+    <ng-container *ngIf="authService.getUserDetail() as userDetail">
+      
+      <!-- Role / Site info bubble -->
+      <div class="site-chip">
+        <mat-icon>storefront</mat-icon>
+        <span class="site-name">{{SalesSite || 'Chargement...'}}</span>
+      </div>
+
+      <!-- Notification Bell -->
+      <button mat-icon-button class="action-btn" [matMenuTriggerFor]="notificationsMenu">
+        <mat-icon [matBadge]="notificationService.getPendingNotifications().length" 
+                  matBadgeColor="warn" 
+                  [matBadgeHidden]="notificationService.getPendingNotifications().length === 0"
+                  class="bell-icon">notifications</mat-icon>
+      </button>
+      
+      <mat-menu #notificationsMenu="matMenu" class="modern-notif-menu">
+        <div class="notif-header">
+          <h3>Notifications</h3>
+          <span class="badge">{{notificationService.getPendingNotifications().length}}</span>
+        </div>
+        <mat-divider></mat-divider>
+        
+        <div *ngIf="notificationService.getPendingNotifications().length === 0" class="empty-state">
+          <mat-icon>notifications_paused</mat-icon>
+          <p>Aucune notification</p>
+        </div>
+
+        <ng-container *ngIf="notificationService.getPendingNotifications().length > 0">
+          <button *ngFor="let notif of notificationService.getPendingNotifications()" mat-menu-item
+            (click)="openTransferConfirmation(notif)" class="notification-item">
+            <div class="notif-icon-wrapper">
+              <mat-icon>move_to_inbox</mat-icon>
+            </div>
+            <div class="notification-content">
+              <div class="notif-title">Transfert depuis {{notif.originSite}}</div>
+              <div class="notif-desc">Docs: Sortie N° {{notif.exitDocNumber}} - {{notif.itemsCount}} articles</div>
+            </div>
+          </button>
+        </ng-container>
+      </mat-menu>
+
+      <!-- Settings -->
+      <button mat-icon-button class="action-btn hidden-xs" routerLink="config" matTooltip="Paramètres">
+        <mat-icon>settings</mat-icon>
+      </button>
+
+      <!-- User Profile Dropdown -->
+      <button mat-button class="user-profile-btn" [matMenuTriggerFor]="profileMenu">
+        <div class="avatar-circle">
+          {{ nameOfConnectedUser ? nameOfConnectedUser.charAt(0).toUpperCase() : 'U' }}
+        </div>
+        <div class="user-info hidden-xs">
+          <span class="user-name">{{nameOfConnectedUser}}</span>
+          <span class="user-role">{{getRoleTranslated(userDetail.role)}}</span>
+        </div>
+        <mat-icon class="dropdown-icon">expand_more</mat-icon>
+      </button>
+      
+      <mat-menu #profileMenu="matMenu" class="modern-profile-menu">
+        <div class="profile-header-sm visible-xs">
+          <div class="user-name">{{nameOfConnectedUser}}</div>
+        </div>
+        <mat-divider class="visible-xs"></mat-divider>
+        <button mat-menu-item [routerLink]="['/login', userDetail.id]" (click)="openProfile()">
+          <mat-icon>account_circle</mat-icon>
+          <span>Mon Profil</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()" class="logout-btn">
+          <mat-icon>logout</mat-icon>
+          <span>Déconnexion</span>
+        </button>
+      </mat-menu>
+    </ng-container>
+  </div>
 </mat-toolbar>

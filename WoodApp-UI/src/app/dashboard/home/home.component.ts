@@ -11,7 +11,7 @@ import { AuthenticationService } from '../../services/components/authentication.
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  styleUrl: './home.component.css'
+  styleUrl: './home.component.scss'
 })
 export class HomeComponent implements AfterViewInit {
 
@@ -63,6 +63,7 @@ export class HomeComponent implements AfterViewInit {
   isStockMenuOpen = false;
   isPurchaseMenuOpen = false;
   isReceptionOpen = false;
+  isCollapsed = false;
 
   // toggleVenteMenu() {
   //   this.isVenteMenuOpen = !this.isVenteMenuOpen;
@@ -113,6 +114,10 @@ export class HomeComponent implements AfterViewInit {
   }
 
   // Add these to your component class
+  toggleCollapse() {
+    this.isCollapsed = !this.isCollapsed;
+  }
+
   toggleVenteMenu() {
     this.isVenteMenuOpen = !this.isVenteMenuOpen;
     if (this.isVenteMenuOpen) {

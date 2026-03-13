@@ -12,7 +12,7 @@ import { TransferConfirmationComponent } from '../../components/stock/transfer-c
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
-  styleUrl: './header.component.css'
+  styleUrl: './header.component.scss'
 })
 export class HeaderComponent implements OnInit, AfterViewInit {
 
