@@ -60,35 +60,10 @@ namespace ms.webapp.api.acya.core.Entities
       IdMergedMerchandise = dto.idmergedmerchandise;
       UpdatedById = dto.updatedbyid;
       IsDeleted = dto.isdeleted;
-      //if (dto.article != null)
-      //{
-      //  if (Articles == null)
-      //  {
-      //    Articles = new Article();
-      //  }
-      //  Articles.UpdateFromDto(dto.article);
-      //}
-      //else
-      //{
-      //  Articles = null;
-      //}
-
-      //if (dto.lisoflengths != null)
-      //{
-      //  if (QuantityMovements == null)
-      //  {
-      //    QuantityMovements = new QuantityMovement(dto.lisoflengths);
-      //  }
-      //}
-      //else
-      //{
-      //  QuantityMovements = null;
-      //}
 
       if (dto.article != null)
       {
         ArticleId = dto.article.id ?? 0;
-        Articles = null;
       }
       else
       {

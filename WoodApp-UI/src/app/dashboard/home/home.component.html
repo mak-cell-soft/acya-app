@@ -2,7 +2,26 @@
 <mat-sidenav-container class="dashboard-container" autosize>
   <mat-sidenav #sidenav="matSidenav" [class.collapsed]="isCollapsed" class="modern-sidebar">
     <div class="sidebar-header" [class.mini]="isCollapsed">
-      <img class="avatar mat-elevation-z4" src="https://gravatar.com/avatar" />
+      <div class="avatar-container" [matMenuTriggerFor]="avatarMenu" matTooltip="Modifier l'avatar">
+        <img class="avatar mat-elevation-z4" [src]="avatarUrl" alt="Avatar"/>
+        <div class="avatar-overlay">
+          <mat-icon>camera_alt</mat-icon>
+        </div>
+      </div>
+      
+      <mat-menu #avatarMenu="matMenu">
+        <!-- Hidden file input -->
+        <input #fileInput type="file" accept="image/*" hidden (change)="onAvatarFileSelected($event)" />
+        <button mat-menu-item (click)="fileInput.click()">
+          <mat-icon>upload</mat-icon>
+          <span>Changer l'image</span>
+        </button>
+        <button mat-menu-item (click)="resetAvatar()" *ngIf="avatarUrl !== defaultAvatarUrl">
+          <mat-icon>restore</mat-icon>
+          <span>Image par défaut</span>
+        </button>
+      </mat-menu>
+
       <div class="user-info" *ngIf="!isCollapsed">
         <h4 class="name">SOCOFEB</h4>
         <p class="designation">Vente Bois et Dérivés</p>

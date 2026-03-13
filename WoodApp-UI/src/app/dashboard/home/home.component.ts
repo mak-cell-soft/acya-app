@@ -1,5 +1,5 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { MatSidenav } from '@angular/material/sidenav';
 import { NavigationEnd, Router } from '@angular/router';
 import { delay, filter } from 'rxjs';
@@ -13,7 +13,7 @@ import { AuthenticationService } from '../../services/components/authentication.
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent implements AfterViewInit {
+export class HomeComponent implements AfterViewInit, OnInit {
 
 
   //#region Labels Constants
@@ -65,6 +65,9 @@ export class HomeComponent implements AfterViewInit {
   isReceptionOpen = false;
   isCollapsed = false;
 
+  defaultAvatarUrl = '/assets/enterprise-avatar.png';
+  avatarUrl = this.defaultAvatarUrl;
+
   // toggleVenteMenu() {
   //   this.isVenteMenuOpen = !this.isVenteMenuOpen;
   // }
@@ -85,6 +88,15 @@ export class HomeComponent implements AfterViewInit {
 
   get isAdmin(): boolean {
     return this.authService.getRole() === 'Admin';
+  }
+
+  // Called on component initialization.
+  // Intent: Hydrate the avatar state from localStorage so the user sees their uploaded image across sessions.
+  ngOnInit() {
+    const savedAvatar = localStorage.getItem('userAvatar');
+    if (savedAvatar) {
+      this.avatarUrl = savedAvatar;
+    }
   }
 
   ngAfterViewInit() {
@@ -116,6 +128,30 @@ export class HomeComponent implements AfterViewInit {
   // Add these to your component class
   toggleCollapse() {
     this.isCollapsed = !this.isCollapsed;
+  }
+
+  // Triggers when the user selects a file from the hidden file input.
+  // Intent: Read the uploaded file into a base64 Data URL so we can display it immediately 
+  // and persist it in localStorage for returning visits, without requiring a backend upload for now.
+  onAvatarFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.avatarUrl = e.target.result;
+        // Persist the base64 string directly; suitable for small avatar pictures.
+        localStorage.setItem('userAvatar', this.avatarUrl);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // Restores the default beautiful timber aesthetic avatar.
+  // Intent: Give the user an escape hatch if they don't like their uploaded image
+  // and clean up our storage footprint.
+  resetAvatar() {
+    this.avatarUrl = this.defaultAvatarUrl;
+    localStorage.removeItem('userAvatar');
   }
 
   toggleVenteMenu() {
