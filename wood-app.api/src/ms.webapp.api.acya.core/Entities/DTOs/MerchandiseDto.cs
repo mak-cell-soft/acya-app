@@ -13,6 +13,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
      * Inititial quantity will be stored separately
      */
     public double quantity { get; set; }
+    public double stock_quantity { get; set; }
 
     /**
      * Cost Values

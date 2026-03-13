@@ -12,7 +12,8 @@ namespace ms.webapp.api.acya.common
     Completed = 8,
     Pending = 9,
     Sent = 10,
-    PartiallyDelivered = 11
+    PartiallyDelivered = 11,
+    Validated = 12
   }
 
   public enum BillingStatus

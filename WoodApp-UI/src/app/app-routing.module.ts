@@ -29,6 +29,8 @@ import { StockTransferListComponent } from './components/stock/stock-transfer-li
 import { ListCustomerInvoicesComponent } from './components/merchandise/customer/list-customer-invoices/list-customer-invoices.component';
 import { AddInvoiceComponent } from './components/merchandise/customer/add-invoice/add-invoice.component';
 import { AdminDashboardComponent } from './dashboard/admin-dashboard/admin-dashboard.component';
+import { AddInventoryComponent } from './components/inventory/add-inventory/add-inventory.component';
+import { ListInventoryComponent } from './components/inventory/list-inventory/list-inventory.component';
 
 const routes: Routes = [
   {
@@ -130,7 +132,9 @@ const routes: Routes = [
         component: AdminDashboardComponent,
         canActivate: [roleGuard],
         data: { roles: ['Admin'] }
-      }
+      },
+      { path: 'inventory/list', component: ListInventoryComponent },
+      { path: 'inventory/add', component: AddInventoryComponent }
     ]
   }
 ];

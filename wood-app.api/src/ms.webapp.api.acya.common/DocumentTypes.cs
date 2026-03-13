@@ -10,6 +10,7 @@ namespace ms.webapp.api.acya.common
     customerInvoice = 6,
     stockTransfer = 7,
     supplierInvoiceReturn = 8,
-    customerInvoiceReturn = 9
+    customerInvoiceReturn = 9,
+    inventory = 10
   }
 }

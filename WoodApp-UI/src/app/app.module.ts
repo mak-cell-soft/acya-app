@@ -73,6 +73,7 @@ import { ListCustomersComponent } from './components/customers/list-customers/li
 import { CustomerAddDocumentComponent } from './components/merchandise/customer/add-document/customer-add-document.component';
 import { AddTransporterModalComponent } from './dashboard/modals/add-transporter-modal/add-transporter-modal.component';
 import { ConfirmDeleteModalComponent } from './dashboard/modals/confirm-delete-modal/confirm-delete-modal.component';
+import { GenericConfirmationModalComponent } from './dashboard/modals/generic-confirmation-modal/generic-confirmation-modal.component';
 import { AddLengthsModalComponent } from './dashboard/modals/add-lengths-modal/add-lengths-modal.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { GenerateInvoiceModalComponent } from './dashboard/modals/invoice/generate-invoice-modal/generate-invoice-modal.component';
@@ -110,6 +111,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { AddSupplierOrderComponent } from './components/merchandise/provider/supplier-order/add-supplier-order/add-supplier-order.component';
 import { ListSupplierOrderComponent } from './components/merchandise/provider/supplier-order/list-supplier-order/list-supplier-order.component';
 import { SupplierOrderPrintComponent } from './models/print-templates/supplier-order-print/supplier-order-print.component';
+import { AddInventoryComponent } from './components/inventory/add-inventory/add-inventory.component';
+import { ListInventoryComponent } from './components/inventory/list-inventory/list-inventory.component';
 
 @NgModule({
   declarations: [
@@ -140,6 +143,7 @@ import { SupplierOrderPrintComponent } from './models/print-templates/supplier-o
     ListCustomersComponent,
     AddTransporterModalComponent,
     ConfirmDeleteModalComponent,
+    GenericConfirmationModalComponent,
     AddLengthsModalComponent,
     GenerateInvoiceModalComponent,
     ListInvoicesComponent,
@@ -174,7 +178,9 @@ import { SupplierOrderPrintComponent } from './models/print-templates/supplier-o
     AdvanceManagementModalComponent,
     AddSupplierOrderComponent,
     ListSupplierOrderComponent,
-    SupplierOrderPrintComponent
+    SupplierOrderPrintComponent,
+    AddInventoryComponent,
+    ListInventoryComponent
   ],
   imports: [
     BrowserModule,

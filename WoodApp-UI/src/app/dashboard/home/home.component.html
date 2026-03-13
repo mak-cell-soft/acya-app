@@ -111,7 +111,10 @@
         <span routerLink="stock/transferinfo">{{menu_sub_stock_list}}</span>
       </button>
       <button mat-button class="submenu-button">
-        <span>{{menu_sub_inventory}}</span>
+        <div class="button-links">
+           <span routerLink="inventory/list">{{menu_sub_inventory}}</span>
+           <mat-icon routerLink="inventory/add">add</mat-icon>
+        </div>
       </button>
     </div>
 

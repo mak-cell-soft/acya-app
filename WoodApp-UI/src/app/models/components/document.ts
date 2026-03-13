@@ -75,8 +75,8 @@ export enum DocumentTypes {
     customerDeliveryNote = 5, // Bon de Livraison Client
     customerInvoice = 6, // Facture Client
     stockTransfer = 7, // Transfert stock
-    supplierInvoiceReturn = 8, // Retour Fournisseur
-    customerInvoiceReturn = 9 // Retour Client
+    customerInvoiceReturn = 9, // Retour Client
+    inventory = 10
 }
 
 export enum DocTypes_FR {
@@ -87,8 +87,8 @@ export enum DocTypes_FR {
     customerDeliveryNote = 'Bon de Livraison',
     customerInvoice = 'Facture Client',
     stockTransfer = 'Transfert stock',
-    supplierInvoiceReturn = 'Retour Fournisseur',
-    customerInvoiceReturn = 'Retour Client'
+    customerInvoiceReturn = 'Retour Client',
+    inventory = 'Inventaire'
 }
 
 export enum DocStatus {
@@ -102,7 +102,8 @@ export enum DocStatus {
     Completed = 8,
     Pending = 9,
     Sent = 10,
-    PartiallyDelivered = 11
+    PartiallyDelivered = 11,
+    Validated = 12
 }
 
 
@@ -116,7 +117,8 @@ export enum DocStatus_FR {
     Confirmed = 'Confirmé',
     Pending = 'En attente',
     Sent = 'Envoyé',
-    PartiallyDelivered = 'Partiellement livré'
+    PartiallyDelivered = 'Partiellement livré',
+    Validated = 'Validé'
 }
 
 export enum BillingStatus {

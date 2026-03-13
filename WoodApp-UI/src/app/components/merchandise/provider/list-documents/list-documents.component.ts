@@ -142,34 +142,36 @@ export class ListDocumentsComponent implements OnInit, AfterViewInit {
     });
     this.selection.clear(); // Deselect all
     // Reset the table to show all documents
-    this.getAllDocumentsByType(); // Implement this method to fetch all documents
-    this.getSuppliers();
+    this.allDocuments.data = [...this.documents];
   }
 
   // Apply filters
   applyFilters() {
-    // Access the start and end dates from the dateRange object
-    const startDate = this.dateRange.start;
-    const endDate = this.dateRange.end;
-    let filteredDocuments = this.allDocuments.data;
+    let filteredDocuments = [...this.documents];
+
+    // Access values from the reactive form directly
+    const startDate = this.filterForm.get('dateRange.start')?.value;
+    const endDate = this.filterForm.get('dateRange.end')?.value;
+    const selectedSupplier = this.filterForm.get('selectedSupplier')?.value;
+    const isInvoiced = this.filterForm.get('isInvoiced')?.value;
 
     // Filter by date range
-    if (this.startDate && this.endDate) {
+    if (startDate && endDate) {
       filteredDocuments = filteredDocuments.filter(doc => {
         const docDate = new Date(doc.creationdate);
-        return docDate >= this.startDate! && docDate <= this.endDate!;
+        return docDate >= startDate && docDate <= endDate;
       });
     }
 
     // Filter by supplier
-    if (this.selectedSupplier) {
-      console.log('Selected Supplier Id for Filter :', this.selectedSupplier.id)
-      filteredDocuments = filteredDocuments.filter(doc => doc.counterpart.id === this.selectedSupplier!.id);
+    if (selectedSupplier && selectedSupplier.id) {
+      console.log('Selected Supplier Id for Filter :', selectedSupplier.id)
+      filteredDocuments = filteredDocuments.filter(doc => doc.counterpart.id === selectedSupplier.id);
     }
 
     // Filter by invoiced status
-    if (this.filterForm.get('isInvoiced')!.value !== null) {
-      filteredDocuments = filteredDocuments.filter(doc => doc.isinvoiced === this.filterForm.get('isInvoiced')!.value);
+    if (isInvoiced !== null) {
+      filteredDocuments = filteredDocuments.filter(doc => doc.isinvoiced === isInvoiced);
     }
 
     // Update the table data source
@@ -251,9 +253,8 @@ export class ListDocumentsComponent implements OnInit, AfterViewInit {
         const sortedDocuments = response.sort((a, b) => b.docnumber.localeCompare(a.docnumber));
 
         // Assign the sorted data to the property in your component
+        this.documents = sortedDocuments;
         this.allDocuments.data = sortedDocuments;
-        console.log('this.allDocuments.data : ', this.allDocuments.data)
-        //this.allDocuments.data = response; // Assuming you have a property named 'documents' in your component
       },
       error: (error) => {
         console.log(error)
