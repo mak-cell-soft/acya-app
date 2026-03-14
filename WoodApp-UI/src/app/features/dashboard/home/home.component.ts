@@ -157,6 +157,7 @@ export class HomeComponent implements AfterViewInit, OnInit {
   toggleVenteMenu() {
     this.isVenteMenuOpen = !this.isVenteMenuOpen;
     if (this.isVenteMenuOpen) {
+      this.isCollapsed = false; // Ensure sidebar is expanded to show submenu
       this.closeOtherMenus('vente');
     }
   }
@@ -164,6 +165,7 @@ export class HomeComponent implements AfterViewInit, OnInit {
   toggleAchatMenu() {
     this.isPurchaseMenuOpen = !this.isPurchaseMenuOpen;
     if (this.isPurchaseMenuOpen) {
+      this.isCollapsed = false; // Ensure sidebar is expanded to show submenu
       this.closeOtherMenus('achat');
     }
   }
@@ -171,6 +173,7 @@ export class HomeComponent implements AfterViewInit, OnInit {
   toggleStockMenu() {
     this.isStockMenuOpen = !this.isStockMenuOpen;
     if (this.isStockMenuOpen) {
+      this.isCollapsed = false; // Ensure sidebar is expanded to show submenu
       this.closeOtherMenus('stock');
     }
   }

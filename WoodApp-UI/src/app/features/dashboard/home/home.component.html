@@ -54,23 +54,23 @@
         <mat-icon class="expand-icon" *ngIf="!isCollapsed">{{isVenteMenuOpen ? 'expand_less' : 'expand_more'}}</mat-icon>
       </button>
       <div class="submenu" [class.open]="isVenteMenuOpen" *ngIf="!isCollapsed">
-        <a class="sub-menu-item" routerLink="devis" routerLinkActive="active-sub">
+        <a class="sub-menu-item" routerLink="merchandise/devis" routerLinkActive="active-sub">
           <span>{{menu_sub_sell_devis}}</span>
         </a>
-        <a class="sub-menu-item" routerLink="bc" routerLinkActive="active-sub">
+        <a class="sub-menu-item" routerLink="merchandise/bc" routerLinkActive="active-sub">
           <span>{{menu_sub_sell_bc}}</span>
         </a>
         <div class="sub-menu-row">
-          <a class="sub-menu-item flex-item" routerLink="customerdelivery" routerLinkActive="active-sub">
+          <a class="sub-menu-item flex-item" routerLink="merchandise/customerdelivery" routerLinkActive="active-sub">
             <span>{{menu_sub_sell_bl}}</span>
           </a>
-          <button mat-icon-button class="add-btn" routerLink="customerdelivery/add"><mat-icon>add_circle_outline</mat-icon></button>
+          <button mat-icon-button class="add-btn" routerLink="merchandise/customerdelivery/add"><mat-icon>add_circle_outline</mat-icon></button>
         </div>
         <div class="sub-menu-row">
-          <a class="sub-menu-item flex-item" routerLink="customerinvoices" routerLinkActive="active-sub">
+          <a class="sub-menu-item flex-item" routerLink="merchandise/customerinvoices" routerLinkActive="active-sub">
             <span>{{menu_sub_sell_fact}}</span>
           </a>
-          <button mat-icon-button class="add-btn" routerLink="customerinvoices/add"><mat-icon>add_circle_outline</mat-icon></button>
+          <button mat-icon-button class="add-btn" routerLink="merchandise/customerinvoices/add"><mat-icon>add_circle_outline</mat-icon></button>
         </div>
         <a class="sub-menu-item" routerLink="stock/exit" routerLinkActive="active-sub">
           <span>{{menu_sub_sell_bon_sortie}}</span>
@@ -87,18 +87,18 @@
       </button>
       <div class="submenu" [class.open]="isPurchaseMenuOpen" *ngIf="!isCollapsed">
         <div class="sub-menu-row">
-          <a class="sub-menu-item flex-item" routerLink="supplierorder/list" routerLinkActive="active-sub">
+          <a class="sub-menu-item flex-item" routerLink="merchandise/supplierorder/list" routerLinkActive="active-sub">
             <span>{{menu_sub_purchase_bc}}</span>
           </a>
-          <button mat-icon-button class="add-btn" routerLink="supplierorder/add"><mat-icon>add_circle_outline</mat-icon></button>
+          <button mat-icon-button class="add-btn" routerLink="merchandise/supplierorder/add"><mat-icon>add_circle_outline</mat-icon></button>
         </div>
         <div class="sub-menu-row">
-          <a class="sub-menu-item flex-item" routerLink="reception/list" routerLinkActive="active-sub">
+          <a class="sub-menu-item flex-item" routerLink="merchandise/reception/list" routerLinkActive="active-sub">
             <span>{{menu_sub_purchase_br}}</span>
           </a>
-          <button mat-icon-button class="add-btn" routerLink="reception"><mat-icon>add_circle_outline</mat-icon></button>
+          <button mat-icon-button class="add-btn" routerLink="merchandise/reception"><mat-icon>add_circle_outline</mat-icon></button>
         </div>
-        <a class="sub-menu-item" routerLink="sinvoices" routerLinkActive="active-sub">
+        <a class="sub-menu-item" routerLink="merchandise/sinvoices" routerLinkActive="active-sub">
           <span>{{menu_sub_purchase_fact}}</span>
         </a>
       </div>

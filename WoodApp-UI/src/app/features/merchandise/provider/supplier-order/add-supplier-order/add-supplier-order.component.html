@@ -11,7 +11,7 @@
         <button mat-icon-button (click)="sendEmail()" matTooltip="Envoyer par email">
             <mat-icon>email</mat-icon>
         </button>
-        <button mat-stroked-button color="warn" routerLink="/home/supplierorder/list">
+        <button mat-stroked-button color="warn" (click)="router.navigate(['home/merchandise/supplierorder/list'])">
             <mat-icon>close</mat-icon>
             Annuler
         </button>

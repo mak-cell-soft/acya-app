@@ -116,7 +116,7 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
   }
 
   onAddNewDocument() {
-    this.router.navigateByUrl('home/customerdelivery/add')
+    this.router.navigateByUrl('home/merchandise/customerdelivery/add')
   }
 
   //#region Head:months and Year

@@ -150,7 +150,7 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
     }
 
     onAddNew() {
-        this.router.navigateByUrl('home/customerinvoices/add');
+        this.router.navigateByUrl('home/merchandise/customerinvoices/add');
     }
 
     onExport() {

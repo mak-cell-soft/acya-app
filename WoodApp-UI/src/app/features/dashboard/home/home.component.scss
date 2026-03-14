@@ -203,33 +203,29 @@
       max-height: 0;
       overflow: hidden;
       opacity: 0;
-      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
-      margin-left: 14px;
-      border-left: 2px solid rgba(255,255,255,0.1);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-left: 1rem;
+      border-left: 2px solid rgba(140, 98, 57, 0.2); // Warm Timber border
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 2px;
       
       &.open {
         max-height: 500px;
         opacity: 1;
-        margin-top: 4px;
-        margin-bottom: 12px;
-        padding-top: 4px;
-        padding-bottom: 4px;
+        margin-top: 0.5rem;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
       }
 
       .sub-menu-row {
         display: flex;
         align-items: center;
         width: 100%;
-        margin-left: 14px;
+        padding-left: 0.5rem;
 
         .sub-menu-item {
           margin-left: 0;
-        }
-
-        .flex-item {
           flex: 1;
         }
       }
@@ -237,55 +233,70 @@
       .sub-menu-item {
         display: flex;
         align-items: center;
-        width: calc(100% - 14px);
-        margin-left: 14px;
-        border-radius: 6px;
-        height: 40px;
-        padding: 0 12px;
-        color: rgba(255,255,255,0.6);
-        font-size: 0.9rem;
+        padding-left: 0.5rem;
+        border-radius: 0 6px 6px 0;
+        height: 38px;
+        padding: 0 1rem;
+        color: rgba(255,255,255,0.5);
+        font-size: 0.88rem;
         font-family: 'Lato', sans-serif;
         text-decoration: none;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.2s ease;
+        position: relative;
         
-        // Ensure span covers line height cleanly
         span {
           width: 100%;
           line-height: normal;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         &:hover {
           color: white;
           background: rgba(255,255,255,0.05);
+          padding-left: 1.25rem; // Subtle push on hover
         }
 
         &.active-sub {
           color: #8C6239;
-          background: rgba(140, 98, 57, 0.08);
-          font-weight: 700;
+          background: rgba(140, 98, 57, 0.1);
+          font-weight: 600;
+          
+          &::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 25%;
+            height: 50%;
+            width: 3px;
+            background: #8C6239;
+            border-radius: 0 2px 2px 0;
+          }
         }
       }
       
       .add-btn {
         width: 32px;
         height: 32px;
-        margin-right: 8px;
-        color: rgba(255,255,255,0.4);
+        margin: 0 8px;
+        color: rgba(255,255,255,0.3);
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 4px;
+        transition: all 0.2s;
 
         mat-icon {
-          font-size: 1.25rem;
-          width: 1.25rem;
-          height: 1.25rem;
+          font-size: 1.1rem;
+          width: 1.1rem;
+          height: 1.1rem;
         }
 
         &:hover {
-          color: white;
-          background: rgba(255,255,255,0.1);
+          color: #8C6239;
+          background: rgba(140, 98, 57, 0.15);
+          transform: scale(1.1);
         }
       }
     }
