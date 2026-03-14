@@ -5,16 +5,7 @@ import { RouterModule, Routes } from '@angular/router';
 
 import { WebAppComponent } from './auth-web-app/web-app.component';
 import { authGuard } from './guards/auth.guard';
-import { roleGuard } from './guards/role.guard';
 import { EnterpriseComponent } from './enterprise/enterprise.component';
-
-
-
-import { CanDeactivateGuard } from './guards/can-deactivate.guard';
-
-
-
-
 
 
 const routes: Routes = [
