@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { Document, DocumentTypes } from '../../../models/components/document';
+import { Document, DocumentTypes } from '../../components/document';
 import { ToWords } from 'to-words';
 
 @Component({

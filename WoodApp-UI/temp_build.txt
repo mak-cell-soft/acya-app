@@ -1,0 +1,113 @@
+- Building...
+
+Browser bundles        
+Initial chunk files     | Names               |  Raw size | Estimated transfer size
+chunk-5XU5SZCS.js       | -                   | 438.79 kB |                80.10 kB
+chunk-5IL2KU7X.js       | -                   | 290.82 kB |                47.92 kB
+chunk-NO6UA6UX.js       | -                   | 274.51 kB |                78.43 kB
+chunk-LLV6KA5D.js       | -                   | 214.95 kB |                61.65 kB
+chunk-SBCLUF2H.js       | -                   | 106.44 kB |                18.93 kB
+main-2XQEP3P4.js        | main                |  93.04 kB |                16.54 kB
+styles-6BPH6D3U.css     | styles              |  70.93 kB |                 8.41 kB
+chunk-EWMGLN2D.js       | -                   |  63.07 kB |                16.77 kB
+chunk-N6SBKQEJ.js       | -                   |  42.59 kB |                 9.09 kB
+polyfills-A7MJM4D4.js   | polyfills           |  34.13 kB |                11.06 kB
+chunk-MRM3G2D2.js       | -                   |  20.47 kB |                 3.96 kB
+chunk-ERE5L3I6.js       | -                   |  19.66 kB |                 5.37 kB
+chunk-UV2O3Q4H.js       | -                   |  18.43 kB |                 4.03 kB
+chunk-HRZ7LNVA.js       | -                   |  11.68 kB |                 2.40 kB
+chunk-HT6KPPVA.js       | -                   |   8.85 kB |                 2.85 kB
+chunk-WYRFKCGA.js       | -                   |   4.37 kB |                 1.61 kB
+chunk-RM6B47PT.js       | -                   |   2.10 kB |               717 bytes
+chunk-IB7JG2VN.js       | -                   |   1.91 kB |               766 bytes
+chunk-GRNAQGHJ.js       | -                   |   1.90 kB |               797 bytes
+chunk-NDYIFA5Z.js       | -                   |   1.23 kB |               570 bytes
+chunk-IYM5ZDOC.js       | -                   |   1.14 kB |               487 bytes
+chunk-6OY2XMO6.js       | -                   | 594 bytes |               594 bytes
+chunk-XMIJT5HQ.js       | -                   | 514 bytes |               514 bytes
+chunk-QZMSLQDS.js       | -                   | 471 bytes |               471 bytes
+chunk-YOAUFSN2.js       | -                   | 223 bytes |               223 bytes
+
+                        | Initial total       |   1.72 MB |               374.24 kB
+
+Lazy chunk files        | Names               |  Raw size | Estimated transfer size
+chunk-TF36PLWC.js       | merchandise-module  | 368.78 kB |                56.51 kB
+chunk-JIWRAHZR.js       | dashboard-module    | 219.17 kB |                37.24 kB
+chunk-RUOI2Q5M.js       | -                   |  86.66 kB |                20.68 kB
+chunk-HL74VRSC.js       | stock-module        |  70.38 kB |                15.45 kB
+chunk-IM6G42N2.js       | customers-module    |  43.33 kB |                 9.59 kB
+chunk-AHD2ERJC.js       | -                   |  40.72 kB |                 9.80 kB
+chunk-UDBOD3SU.js       | articles-module     |  37.29 kB |                 8.94 kB
+chunk-YCGH5U5V.js       | providers-module    |  32.42 kB |                 7.65 kB
+chunk-OJXKG4DU.js       | inventory-module    |  31.61 kB |                 8.09 kB
+chunk-JXH4VRYW.js       | -                   |  25.92 kB |                 7.06 kB
+chunk-WU73VKCO.js       | auth-module         |  21.34 kB |                 3.64 kB
+chunk-DDZDD3NT.js       | -                   |  12.06 kB |                 3.20 kB
+chunk-33L4GJ55.js       | -                   |  10.96 kB |                 3.45 kB
+chunk-E64DYQUF.js       | -                   |   2.12 kB |               637 bytes
+chunk-EOXQGDJG.js       | -                   |   1.72 kB |               549 bytes
+...and 10 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles         
+Initial chunk files     | Names               |  Raw size
+server.mjs              | server              |   1.11 MB |                        
+chunk-RXCUSCX4.mjs      | -                   | 327.51 kB |                        
+chunk-VG2GQDBC.mjs      | -                   | 290.88 kB |                        
+chunk-3KE2AFWK.mjs      | -                   | 274.62 kB |                        
+polyfills.server.mjs    | polyfills.server    | 268.21 kB |                        
+chunk-KIW2XVZE.mjs      | -                   | 245.08 kB |                        
+chunk-4MDQWSUO.mjs      | -                   | 222.20 kB |                        
+chunk-X74KQXWX.mjs      | -                   | 112.05 kB |                        
+chunk-GOUF2G2E.mjs      | -                   | 106.47 kB |                        
+chunk-EXWQLSUG.mjs      | -                   |  92.19 kB |                        
+chunk-SUO6BG7J.mjs      | -                   |  63.14 kB |                        
+chunk-SZZ4CJMW.mjs      | -                   |  42.62 kB |                        
+chunk-7A3EZ4YK.mjs      | -                   |  20.50 kB |                        
+chunk-LAZK4DRD.mjs      | -                   |  19.69 kB |                        
+chunk-DYQXPM2J.mjs      | -                   |  18.50 kB |                        
+chunk-ETVU6QYT.mjs      | -                   |  11.72 kB |                        
+chunk-RY42VJDS.mjs      | -                   |   8.89 kB |                        
+chunk-GUMTIF7N.mjs      | -                   |   4.44 kB |                        
+chunk-NDYDZJSS.mjs      | -                   |   2.55 kB |                        
+chunk-YPAB3JAE.mjs      | -                   |   2.13 kB |                        
+chunk-SGRY2J27.mjs      | -                   |   1.94 kB |                        
+chunk-F4J646H5.mjs      | -                   |   1.93 kB |                        
+render-utils.server.mjs | render-utils.server |   1.56 kB |                        
+chunk-H35ZNA75.mjs      | -                   |   1.26 kB |                        
+chunk-MJDXOLEQ.mjs      | -                   |   1.17 kB |                        
+main.server.mjs         | main.server         | 816 bytes |                        
+chunk-XWM45JZF.mjs      | -                   | 663 bytes |                        
+chunk-U3SPNWPM.mjs      | -                   | 547 bytes |                        
+chunk-K3XFCKDE.mjs      | -                   | 540 bytes |                        
+chunk-KBIRRX5I.mjs      | -                   | 256 bytes |                        
+
+Lazy chunk files        | Names               |  Raw size
+chunk-O6G5MZ5U.mjs      | merchandise-module  | 368.90 kB |                        
+chunk-FGVQEI43.mjs      | dashboard-module    | 219.30 kB |                        
+chunk-UBCOQA7O.mjs      | -                   |  86.77 kB |                        
+chunk-DJFY2LLR.mjs      | stock-module        |  70.50 kB |                        
+chunk-XLM2ZHQZ.mjs      | customers-module    |  43.45 kB |                        
+chunk-S3VEM5OL.mjs      | -                   |  40.83 kB |                        
+chunk-BLFKQZ7O.mjs      | articles-module     |  37.40 kB |                        
+chunk-RR4TV6K5.mjs      | providers-module    |  32.53 kB |                        
+chunk-O4EPVVCL.mjs      | inventory-module    |  31.72 kB |                        
+chunk-HZ4GAWQO.mjs      | -                   |  26.00 kB |                        
+chunk-GIZ6LKXI.mjs      | auth-module         |  21.44 kB |                        
+chunk-WJ4OYBVO.mjs      | -                   |  12.09 kB |                        
+chunk-44PQKHNF.mjs      | xhr2                |  12.08 kB |                        
+chunk-2DXQT4XG.mjs      | -                   |  11.04 kB |                        
+chunk-GTCK7N67.mjs      | -                   |   2.19 kB |                        
+...and 11 more lazy chunks files. Use "--verbose" to show all the files.
+
+Prerendered 30 static routes.
+Output location: C:\Users\amine\source\repos\acya.app\acya-app\WoodApp-UI\dist\wood-app-ui
+
+Application bundle generation complete. [34.593 seconds]
+
+Ôû▓ [WARNING] Module 'to-words' used by 'src/app/features/merchandise/provider/add-document/add-document.component.ts' is not ESM
+
+  CommonJS or AMD dependencies can cause optimization bailouts.
+  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+
+
