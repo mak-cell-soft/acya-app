@@ -24,45 +24,64 @@ namespace ms.webapp.api.acya.api.Services
 
         public async Task<IEnumerable<StockMovementTimelineDto>> GetTimelineByPackageAsync(string packageNumber, int salesSiteId, DateTime? from = null, DateTime? to = null)
         {
-            return await BuildTimeline(m => m.PackageReference == packageNumber, salesSiteId, from, to);
+            var search = packageNumber?.Trim().ToLower();
+            return await BuildTimeline(m => m.PackageReference != null && m.PackageReference.ToLower() == search, salesSiteId, from, to);
         }
 
         private async Task<IEnumerable<StockMovementTimelineDto>> BuildTimeline(Expression<Func<Merchandise, bool>> merchPredicate, int salesSiteId, DateTime? from, DateTime? to)
         {
-            // First, get all documents for the site and merchandise(s) ordered by date
-            var query = from dm in _context.DocumentMerchandises
-                        join d in _context.Documents on dm.DocumentId equals d.Id
-                        join m in _context.Merchandises.Where(merchPredicate) on dm.MerchandiseId equals m.Id
-                        where d.SalesSiteId == salesSiteId && !d.IsDeleted && !m.IsDeleted
-                        select new
-                        {
-                            dm.DocumentId,
-                            d.CreationDate,
-                            dm.Quantity,
-                            d.StockTransactionType,
-                            d.Type,
-                            d.DocNumber,
-                            d.Description,
-                            m.PackageReference
-                        };
+            // First, identify the merchandises matching the predicate to avoid complex join issues
+            var matchingMerchandiseIds = await _context.Merchandises
+                .Where(merchPredicate)
+                .Where(m => !m.IsDeleted)
+                .Select(m => m.Id)
+                .ToListAsync();
 
-            var movements = await query.OrderBy(x => x.CreationDate).ToListAsync();
+            if (!matchingMerchandiseIds.Any())
+            {
+                return new List<StockMovementTimelineDto>();
+            }
+
+            // Get all documents for the site and matching merchandises ordered by date
+            var movementsQuery = from dm in _context.DocumentMerchandises
+                                 join d in _context.Documents on dm.DocumentId equals d.Id
+                                 join m in _context.Merchandises on dm.MerchandiseId equals m.Id
+                                 where matchingMerchandiseIds.Contains(dm.MerchandiseId) 
+                                       && d.SalesSiteId == salesSiteId 
+                                       && !d.IsDeleted 
+                                       && !m.IsDeleted
+                                 select new
+                                 {
+                                     dm.DocumentId,
+                                     d.CreationDate,
+                                     dm.Quantity,
+                                     d.StockTransactionType,
+                                     d.Type,
+                                     d.DocNumber,
+                                     d.Description,
+                                     m.PackageReference
+                                 };
+
+            var movements = await movementsQuery.OrderBy(x => x.CreationDate).ToListAsync();
 
             var result = new List<StockMovementTimelineDto>();
             double runningTotal = 0;
 
-            // Load transfers and sites in bulk to avoid N+1 if needed, but for a single merchandise's history it's usually manageable.
-            // Still, let's optimize the transfer site lookup.
-            var transferIds = movements.Where(m => m.Type == DocumentTypes.stockTransfer).Select(m => m.DocumentId).ToList();
-            var transfers = await _context.StockTransfers
-                .Include(st => st.ExitDocument).ThenInclude(ed => ed!.SalesSite)
-                .Include(st => st.ReceiptDocument).ThenInclude(rd => rd!.SalesSite)
-                .Where(st => transferIds.Contains(st.ExitDocumentId) || transferIds.Contains(st.ReceiptDocumentId))
-                .ToListAsync();
+            // Resolve transfers in bulk
+            var transferIds = movements.Where(m => m.Type == DocumentTypes.stockTransfer).Select(m => m.DocumentId).Distinct().ToList();
+            var transfers = new List<StockTransfer>();
+            if (transferIds.Any())
+            {
+                transfers = await _context.StockTransfers
+                    .Include(st => st.ExitDocument).ThenInclude(ed => ed!.SalesSite)
+                    .Include(st => st.ReceiptDocument).ThenInclude(rd => rd!.SalesSite)
+                    .Where(st => transferIds.Contains(st.ExitDocumentId) || transferIds.Contains(st.ReceiptDocumentId))
+                    .ToListAsync();
+            }
 
             foreach (var mov in movements)
             {
-                // Calculate signed delta based on StockTransactionType (Add/Retrieve)
+                // Calculate signed delta based on StockTransactionType (Add=1, Retrieve=2)
                 double delta = mov.Quantity;
                 if (mov.StockTransactionType == TransactionType.Retrieve)
                 {
@@ -91,7 +110,7 @@ namespace ms.webapp.api.acya.api.Services
                     Date = mov.CreationDate ?? DateTime.MinValue,
                     QuantityDelta = delta,
                     QuantityAfter = runningTotal,
-                    DocumentType = mov.Type.ToString(),
+                    DocumentType = mov.Type?.ToString() ?? "Unknown",
                     DocumentNumber = mov.DocNumber,
                     Description = mov.Description,
                     PackageNumber = mov.PackageReference,
@@ -100,7 +119,7 @@ namespace ms.webapp.api.acya.api.Services
                 });
             }
 
-            // Apply filters after computing running totals
+            // Apply date filters AFTER computing the running total from history
             IEnumerable<StockMovementTimelineDto> filtered = result;
             if (from.HasValue)
             {
@@ -108,7 +127,9 @@ namespace ms.webapp.api.acya.api.Services
             }
             if (to.HasValue)
             {
-                filtered = filtered.Where(r => r.Date <= to.Value);
+                // Include the full day for 'to' date
+                var toDate = to.Value.Date.AddDays(1).AddTicks(-1);
+                filtered = filtered.Where(r => r.Date <= toDate);
             }
 
             return filtered.OrderByDescending(r => r.Date).ToList();
