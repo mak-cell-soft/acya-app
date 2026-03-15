@@ -1,8 +1,10 @@
-/* 
+/*
    Version: v0.009
    Purpose: Seed initial data for Bois (Natural Wood) and its children
+   (Insert block commented out to avoid FK dependency on tbl_person id=1; table creations are in other version scripts.)
 */
 
+/*
 DO $$
 DECLARE
     v_parent_id INTEGER;
@@ -37,3 +39,4 @@ BEGIN
     END IF;
 
 END $$;
+*/

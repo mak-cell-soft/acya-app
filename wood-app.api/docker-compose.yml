@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: wood-app-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-root}
+      POSTGRES_DB: ${POSTGRES_DB:-wood-app-db}
+      APP_DB: ${APP_DB:-app-db-bo}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db:/docker-entrypoint-initdb.d:ro
+    networks:
+      - wood-app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-wood-app-db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  # .NET Web API Application
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wood-app-api
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__WoodAppContextConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB:-wood-app-db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-root};
+      - ConnectionStrings__AppContextConnection=Host=postgres;Port=5432;Database=${APP_DB:-app-db-bo};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-root};
+      - TokenKey=${TOKEN_KEY:-wood_app_super_secret_unguessable_key_For_FrontEnd_$$&&!_xzawwo9985error,ughjjnp21365_##1}
+      - JWTSettings__securityKey=${TOKEN_KEY:-wood_app_super_secret_unguessable_key_For_FrontEnd_$$&&!_xzawwo9985error,ughjjnp21365_##1}
+      - JWTSettings__ValidAudience=${JWT_AUDIENCE:-http://localhost:4200}
+      - JWTSettings__ValidIssuer=${JWT_ISSUER:-http://localhost:8080/api/}
+      - AllowedOrigins=${ALLOWED_ORIGINS:-http://localhost:4200;https://localhost:4200}
+    ports:
+      - "${API_HTTP_PORT:-8080}:80"
+      - "${API_HTTPS_PORT:-8443}:443"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - wood-app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/api/ApiHealth/HealthCheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # pgAdmin - PostgreSQL dashboard (manage DBs, run SQL, view data)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: wood-app-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@woodapp.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - wood-app-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+networks:
+  wood-app-network:
+    driver: bridge
+    name: wood-app-network
+
+volumes:
+  postgres_data:
+    name: wood-app-postgres-data
+  pgadmin_data:
+    name: wood-app-pgadmin-data
