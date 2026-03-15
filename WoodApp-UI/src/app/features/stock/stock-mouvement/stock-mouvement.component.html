@@ -18,7 +18,7 @@
         <mat-card class="filter-card mat-elevation-z3" @fadeInScale>
             <mat-card-content [formGroup]="filterForm" class="filter-layout">
                 <!-- Group 1: Scope -->
-                <div class="filter-section">
+                <div class="filter-section site-scope">
                     <span class="section-label">Périmètre</span>
                     <mat-form-field appearance="outline" class="full-width">
                         <mat-label>Site de Vente</mat-label>
@@ -32,29 +32,38 @@
 
                 <!-- Group 2: Target -->
                 <div class="filter-section article-search">
-                    <span class="section-label">Marchandise</span>
+                    <span class="section-label">Sélection Article</span>
                     <mat-form-field appearance="outline" class="full-width">
-                        <mat-label>Article / Merchandise</mat-label>
-                        <input type="text" matInput formControlName="merchandise" [matAutocomplete]="auto">
-                        <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayArticle">
+                        <mat-label>Rechercher un Article</mat-label>
+                        <input type="text" matInput formControlName="article" [matAutocomplete]="auto">
+                        <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayArticle.bind(this)">
                             <mat-option *ngFor="let article of filteredArticles$ | async" [value]="article">
-                                <div class="option-content">
-                                    <span class="ref">{{ article.reference }}</span>
-                                    <span class="desc">{{ article.description }}</span>
-                                </div>
+                                <span class="art-ref">{{ article.reference }}</span>
+                                <span class="art-desc"> - {{ article.description }}</span>
                             </mat-option>
                         </mat-autocomplete>
+                        <mat-icon matSuffix>search</mat-icon>
                     </mat-form-field>
-                    
+                </div>
+
+                <div class="filter-section package-selection">
+                    <span class="section-label">Numéro Paquet</span>
                     <mat-form-field appearance="outline" class="full-width">
-                        <mat-label>Numéro Paquet</mat-label>
-                        <input matInput formControlName="packageNumber" placeholder="Ex: PK-2024-001">
-                        <mat-icon matSuffix>Inventory</mat-icon>
+                        <mat-label>Choisir un Paquet</mat-label>
+                        <mat-select formControlName="packageNumber">
+                            <mat-option *ngFor="let pkg of availablePackages()" [value]="pkg">
+                                {{ pkg }}
+                            </mat-option>
+                            <mat-option *ngIf="availablePackages().length === 0" disabled>
+                                Aucun paquet disponible pour cet article
+                            </mat-option>
+                        </mat-select>
+                        <mat-icon matSuffix>inventory_2</mat-icon>
                     </mat-form-field>
                 </div>
 
                 <!-- Group 3: Period -->
-                <div class="filter-section">
+                <div class="filter-section period-picker">
                     <span class="section-label">Période</span>
                     <mat-form-field appearance="outline" class="full-width">
                         <mat-label>Plage de dates</mat-label>
@@ -68,7 +77,7 @@
                 </div>
 
                 <!-- Group 4: Advanced -->
-                <div class="filter-section">
+                <div class="filter-section options-toggle">
                     <span class="section-label">Options</span>
                     <div class="toggle-container">
                         <mat-slide-toggle formControlName="reconciliationToggle" color="primary">

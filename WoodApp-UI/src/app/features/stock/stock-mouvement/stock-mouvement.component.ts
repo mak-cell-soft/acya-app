@@ -7,9 +7,13 @@ import { Observable, combineLatest, of } from 'rxjs';
 import { ArticleService } from '../../../services/components/article.service';
 import { SalessitesService } from '../../../services/components/salessites.service';
 import { StockMovementTimelineService } from '../../../services/components/stock-movement-timeline.service';
+import { MerchandiseService } from '../../../services/components/merchandise.service';
 
 import { Article } from '../../../models/components/article';
 import { Site } from '../../../models/components/sites';
+import { Merchandise } from '../../../models/components/merchandise';
+import { StockQuantity } from '../../../models/components/stock';
+import { StockService } from '../../../services/components/stock.service';
 import { 
   StockMovementTimeline, 
   StockMovementSummary, 
@@ -48,6 +52,7 @@ export class StockMouvementComponent implements OnInit {
   private fb = inject(FormBuilder);
   private articleService = inject(ArticleService);
   private siteService = inject(SalessitesService);
+  private stockService = inject(StockService);
   private movementService = inject(StockMovementTimelineService);
 
   // -- State Signals --
@@ -59,6 +64,8 @@ export class StockMouvementComponent implements OnInit {
   allArticles = signal<Article[]>([]);
   filteredArticles$!: Observable<Article[]>;
   allSites = signal<Site[]>([]);
+  allStocks = signal<StockQuantity[]>([]);
+  availablePackages = signal<string[]>([]);
   
   filterForm!: FormGroup;
   reconciliationVisible = signal<boolean>(false);
@@ -76,7 +83,7 @@ export class StockMouvementComponent implements OnInit {
         start: [null], 
         end: [null]
       }),
-      merchandise: [null],
+      article: [null],
       packageNumber: [''],
       reconciliationToggle: [false]
     });
@@ -84,29 +91,26 @@ export class StockMouvementComponent implements OnInit {
     // Reset and reload when sales site changes
     this.filterForm.get('salesSiteId')?.valueChanges.subscribe(() => {
       this.resetData();
-      if (this.filterForm.get('merchandise')?.value || this.filterForm.get('packageNumber')?.value) {
-        this.applyFilters();
+      const article = this.filterForm.get('article')?.value;
+      if (article) {
+        this.onArticleSelected(article);
       }
     });
 
-    // Link Package Number to Merchandise selection
+    // Link Article selection to Package Numbers
+    this.filterForm.get('article')?.valueChanges.subscribe(article => {
+      this.onArticleSelected(article);
+    });
+
     this.filterForm.get('packageNumber')?.valueChanges.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(pkgNum => {
-      if (pkgNum) {
-        const found = this.allArticles().find(a => a.reference === pkgNum);
-        if (found && this.filterForm.get('merchandise')?.value !== found) {
-          this.filterForm.get('merchandise')?.setValue(found, { emitEvent: false });
+        debounceTime(300),
+        distinctUntilChanged()
+      ).subscribe(pkg => {
+        if (pkg && !this.filterForm.get('article')?.value) {
+            // Optional: try to find article from package if not set
+            // For now just keep it as is
         }
-      }
-    });
-
-    this.filterForm.get('merchandise')?.valueChanges.subscribe(merch => {
-      if (merch && merch.reference && this.filterForm.get('packageNumber')?.value !== merch.reference) {
-         this.filterForm.get('packageNumber')?.setValue(merch.reference, { emitEvent: false });
-      }
-    });
+      });
 
     this.filterForm.get('reconciliationToggle')?.valueChanges.subscribe(val => {
       this.reconciliationVisible.set(val);
@@ -135,8 +139,37 @@ export class StockMouvementComponent implements OnInit {
     });
   }
 
+  private onArticleSelected(article: Article | null): void {
+    if (!article) {
+      this.availablePackages.set([]);
+      this.filterForm.patchValue({ packageNumber: '' });
+      return;
+    }
+
+    const siteId = this.filterForm.get('salesSiteId')?.value;
+    if (!siteId) return;
+
+    // Use stockService to get available packages for this article at this site
+    const site = this.allSites().find(s => s.id === siteId);
+    if (site) {
+      this.stockService.getBySite(site).subscribe((stocks: StockQuantity[]) => {
+        this.allStocks.set(stocks);
+        const pkgs = stocks
+          .filter(s => s.articleId === article.id)
+          .map(s => s.packageReference);
+        
+        this.availablePackages.set(pkgs);
+        if (pkgs.length > 0) {
+          this.filterForm.patchValue({ packageNumber: pkgs[0] });
+        } else {
+          this.filterForm.patchValue({ packageNumber: '' });
+        }
+      });
+    }
+  }
+
   private setupArticleFilter(): void {
-    this.filteredArticles$ = this.filterForm.get('merchandise')!.valueChanges.pipe(
+    this.filteredArticles$ = this.filterForm.get('article')!.valueChanges.pipe(
       startWith(''),
       map(value => typeof value === 'string' ? value : value?.reference),
       map(ref => ref ? this._filterArticles(ref) : this.allArticles().slice(0, 10))
@@ -145,10 +178,10 @@ export class StockMouvementComponent implements OnInit {
 
   private _filterArticles(value: string): Article[] {
     const filterValue = value.toLowerCase();
-    return this.allArticles().filter(article => 
-      article.reference?.toLowerCase().includes(filterValue) || 
-      article.description?.toLowerCase().includes(filterValue)
-    ).slice(0, 50); // Limit results for performance
+    return this.allArticles().filter(a => 
+      a.reference?.toLowerCase().includes(filterValue) || 
+      a.description?.toLowerCase().includes(filterValue)
+    ).slice(0, 50); 
   }
 
   displayArticle(article: Article): string {
@@ -159,31 +192,39 @@ export class StockMouvementComponent implements OnInit {
     if (this.filterForm.invalid) return;
 
     const filters = this.filterForm.value;
-    const selectedMerch = filters.merchandise as Article;
+    const selectedArticle = filters.article as Article;
+    const packageNumber = filters.packageNumber;
     const siteId = filters.salesSiteId;
     const dateStart = filters.dateRange.start;
     const dateEnd = filters.dateRange.end;
 
-    if (!selectedMerch && !filters.packageNumber) {
+    if (!packageNumber && !selectedArticle) {
       return;
     }
 
     this.loading.set(true);
 
-    const movementObservable = filters.packageNumber 
-      ? this.movementService.getTimelineByPackage(filters.packageNumber, siteId, dateStart, dateEnd)
-      : this.movementService.getTimeline(selectedMerch.id!, siteId, dateStart, dateEnd);
+    // Resolve Merchandise ID if possible
+    let resolvedMerchId: number | null = null;
+    if (packageNumber) {
+        const stock = this.allStocks().find(s => s.packageReference === packageNumber);
+        if (stock) resolvedMerchId = stock.merchandiseId;
+    }
+
+    const movementObservable = packageNumber 
+      ? this.movementService.getTimelineByPackage(packageNumber, siteId, dateStart || undefined, dateEnd || undefined)
+      : this.movementService.getTimeline(selectedArticle.id!, siteId, dateStart || undefined, dateEnd || undefined);
 
     movementObservable.subscribe({
       next: (data) => {
         this.timeline.set(data);
         
-        if (selectedMerch) {
-          this.loadSummaryAndReconcile(selectedMerch.id!, siteId);
+        if (resolvedMerchId) {
+            this.loadSummaryAndReconcile(resolvedMerchId, siteId);
         } else if (data.length > 0) {
-            // If we have data from package number search but no merch selected, 
-            // the summary/reconcile can still be fetched if we identify the merch from first record
-            // but for now let's keep it simple.
+            // Fallback: if we only have the package number but couldn't find it in live stocks (e.g. historical only),
+            // the summary call might need the merch ID. In this case, the first movement might point us correctly.
+            // But with the Article -> Package flow, we usually have resolvedMerchId.
         }
         
         this.loading.set(false);
@@ -200,7 +241,7 @@ export class StockMouvementComponent implements OnInit {
   resetFilters(): void {
     this.filterForm.patchValue({
       dateRange: { start: null, end: null },
-      merchandise: null,
+      article: null,
       packageNumber: '',
       reconciliationToggle: false
     });

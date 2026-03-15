@@ -85,16 +85,58 @@ $transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     .filter-layout {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1.5rem;
-      padding: 1.5rem !important;
+      grid-template-columns: repeat(4, 1fr); // Precise 4-column grid for alignment
+      gap: 2rem;
+      padding: 1.75rem !important;
+      align-items: flex-start;
+
+      @media (max-width: 1400px) {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      @media (max-width: 1100px) {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+      }
 
       .filter-section {
-        .section-label { @include section-label; }
+        display: flex;
+        flex-direction: column;
         
+        .section-label { 
+          @include section-label; 
+          margin-bottom: 0.75rem;
+        }
+
+        /* Specific Width Controls */
+        &.site-scope { 
+          grid-column: span 1; 
+        }
+
         &.article-search {
           grid-column: span 2;
-          @media (max-width: 1024px) { grid-column: span 1; }
+          @media (max-width: 1100px) { grid-column: span 1; }
+        }
+
+        &.package-selection {
+          grid-column: span 1;
+        }
+
+        &.period-picker {
+          grid-column: span 2;
+          @media (max-width: 1100px) { grid-column: span 2; }
+          @media (max-width: 600px) { grid-column: span 1; }
+        }
+
+        &.options-toggle {
+          grid-column: span 1;
+          display: flex;
+          align-items: center;
+          height: 100%;
+          padding-top: 1.5rem; // Align with field baseline
         }
       }
 
@@ -103,10 +145,35 @@ $transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         justify-content: flex-end;
         align-items: center;
-        gap: 1rem;
-        padding-top: 1.5rem;
-        border-top: 1px dashed map.get($wood-palette, "light");
+        gap: 1.25rem;
+        padding-top: 2rem;
+        margin-top: 0.5rem;
+        border-top: 1px solid rgba(map.get($wood-palette, "primary"), 0.1);
+        
+        button {
+          padding: 0.5rem 2rem;
+          height: 48px;
+          border-radius: 12px;
+        }
       }
+    }
+  }
+
+  .merch-option {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    gap: 20px;
+    
+    .pkg-ref {
+      font-weight: 700;
+      color: map.get($wood-palette, "primary");
+    }
+    
+    .art-ref {
+      font-size: 0.85rem;
+      color: map.get($wood-palette, "accent");
+      font-family: monospace;
     }
   }
 
