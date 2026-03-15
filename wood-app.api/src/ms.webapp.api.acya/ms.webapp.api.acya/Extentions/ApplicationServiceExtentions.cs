@@ -58,6 +58,7 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<IPaymentRepository, PaymentRepository>();
       services.AddScoped<IPaymentService, PaymentService>();
       services.AddScoped<IBalanceService, BalanceService>();
+      services.AddScoped<IStockMovementService, StockMovementService>();
 
       services.AddDbContext<WoodAppContext>(options =>
       {

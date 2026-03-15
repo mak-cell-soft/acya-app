@@ -1,57 +1,216 @@
-<h4>Fiche de Mouvement Stock</h4>
-<!-- Add this progress bar at the top of the page -->
-<mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
-<div class="search">
-    <div class="search-bar-container">
-        <button mat-icon-button>
-            <mat-icon>
-                search
-            </mat-icon>
+<div class="page-container">
+    <!-- Header -->
+    <mat-toolbar class="timeline-toolbar">
+        <div class="title-group">
+            <mat-icon class="header-icon">timeline</mat-icon>
+            <h1>Historique des Mouvements Stock</h1>
+        </div>
+        <span class="spacer"></span>
+        <button mat-icon-button (click)="applyFilters()" [disabled]="loading()" matTooltip="Actualiser">
+            <mat-icon>refresh</mat-icon>
         </button>
-        <input (keyup)="applyFilter($event)" placeholder="Rechercher dans le mouvement Stock" #input />
+    </mat-toolbar>
+
+    <mat-progress-bar *ngIf="loading()" mode="indeterminate" color="primary"></mat-progress-bar>
+
+    <div class="main-content">
+        <!-- Filters Section -->
+        <mat-card class="filter-card mat-elevation-z3" @fadeInScale>
+            <mat-card-content [formGroup]="filterForm" class="filter-layout">
+                <!-- Group 1: Scope -->
+                <div class="filter-section">
+                    <span class="section-label">Périmètre</span>
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Site de Vente</mat-label>
+                        <mat-select formControlName="salesSiteId">
+                            <mat-option *ngFor="let site of allSites()" [value]="site.id">
+                                {{ site.address }}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+
+                <!-- Group 2: Target -->
+                <div class="filter-section article-search">
+                    <span class="section-label">Marchandise</span>
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Article / Merchandise</mat-label>
+                        <input type="text" matInput formControlName="merchandise" [matAutocomplete]="auto">
+                        <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayArticle">
+                            <mat-option *ngFor="let article of filteredArticles$ | async" [value]="article">
+                                <div class="option-content">
+                                    <span class="ref">{{ article.reference }}</span>
+                                    <span class="desc">{{ article.description }}</span>
+                                </div>
+                            </mat-option>
+                        </mat-autocomplete>
+                    </mat-form-field>
+                    
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Numéro Paquet</mat-label>
+                        <input matInput formControlName="packageNumber" placeholder="Ex: PK-2024-001">
+                        <mat-icon matSuffix>Inventory</mat-icon>
+                    </mat-form-field>
+                </div>
+
+                <!-- Group 3: Period -->
+                <div class="filter-section">
+                    <span class="section-label">Période</span>
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Plage de dates</mat-label>
+                        <mat-date-range-input [rangePicker]="rangePicker" formGroupName="dateRange">
+                            <input matStartDate formControlName="start" placeholder="Début">
+                            <input matEndDate formControlName="end" placeholder="Fin">
+                        </mat-date-range-input>
+                        <mat-datepicker-toggle matIconSuffix [for]="rangePicker"></mat-datepicker-toggle>
+                        <mat-date-range-picker #rangePicker></mat-date-range-picker>
+                    </mat-form-field>
+                </div>
+
+                <!-- Group 4: Advanced -->
+                <div class="filter-section">
+                    <span class="section-label">Options</span>
+                    <div class="toggle-container">
+                        <mat-slide-toggle formControlName="reconciliationToggle" color="primary">
+                            Visualisation Réconciliation
+                        </mat-slide-toggle>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="filter-actions">
+                    <button mat-button color="warn" (click)="resetFilters()">Réinitialiser</button>
+                    <button mat-flat-button color="primary" (click)="applyFilters()" [disabled]="loading()">
+                        <mat-icon>search</mat-icon> Rechercher
+                    </button>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Timeline Section -->
+        <div class="timeline-wrapper" *ngIf="timeline().length > 0; else noData">
+            <!-- Site Sticky Header -->
+            <div class="site-sticky-header mat-elevation-z2">
+                <div class="site-info">
+                    <mat-icon>storefront</mat-icon>
+                    <span class="label">Site:</span>
+                    <span class="value">{{ getSiteAddress(filterForm.get('salesSiteId')?.value) }}</span>
+                </div>
+                <div class="period-info">
+                    <mat-icon>calendar_today</mat-icon>
+                    <span class="label">Période:</span>
+                    <span class="value">
+                        {{ filterForm.get('dateRange.start')?.value | date:'dd MMM yyyy' }} 
+                        <mat-icon class="arrow-icon">arrow_forward</mat-icon> 
+                        {{ filterForm.get('dateRange.end')?.value | date:'dd MMM yyyy' }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="vertical-timeline" [@listAnimation]="timeline().length">
+                <div class="timeline-event" *ngFor="let item of timeline()">
+                    <!-- Date Column -->
+                    <div class="timeline-date">
+                        <span class="day">{{ item.date | date:'dd' }}</span>
+                        <span class="month">{{ item.date | date:'MMM' }}</span>
+                        <span class="year" *ngIf="isNewYear(item.date)">{{ item.date | date:'yyyy' }}</span>
+                    </div>
+
+                    <!-- Marker Column -->
+                    <div class="timeline-marker">
+                        <div class="line"></div>
+                        <div class="dot" [ngClass]="getDotColor(item)">
+                            <mat-icon>{{ getMovementIcon(item) }}</mat-icon>
+                        </div>
+                    </div>
+
+                    <!-- Content Column -->
+                    <div class="timeline-content mat-elevation-z1">
+                        <div class="content-header">
+                            <span class="doc-type-badge" [attr.data-type]="item.documentType">
+                                {{ getDocLabel(item.documentType) }}
+                            </span>
+                            <span class="doc-num">#{{ item.documentNumber }}</span>
+                            <span class="spacer"></span>
+                            <div class="package-badge">
+                                <mat-icon>inventory_2</mat-icon>
+                                <span>{{ item.packageNumber }}</span>
+                            </div>
+                        </div>
+
+                        <div class="content-body">
+                            <div class="delta-box" [ngClass]="item.quantityDelta > 0 ? 'positive' : 'negative'">
+                                <span class="delta-val">{{ item.quantityDelta > 0 ? '+' : '' }}{{ item.quantityDelta | number:'1.3-3' }}</span>
+                                <span class="unit">{{ summary()?.unit || 'Unité' }}</span>
+                            </div>
+
+                            <div class="path-box" *ngIf="item.isTransfer">
+                                <mat-icon>{{ item.quantityDelta > 0 ? 'south_west' : 'north_east' }}</mat-icon>
+                                <span class="label">{{ item.quantityDelta > 0 ? 'ORIGINE' : 'DESTINATION' }}:</span>
+                                <span class="site-link">{{ item.counterpartSiteName }}</span>
+                            </div>
+
+                            <div class="ledger-box">
+                                <div class="step">
+                                    <span class="label">Avant</span>
+                                    <span class="val">{{ (item.quantityAfter - item.quantityDelta) | number:'1.3-3' }}</span>
+                                </div>
+                                <mat-icon class="step-arrow">double_arrow</mat-icon>
+                                <div class="step final">
+                                    <span class="label">Après</span>
+                                    <span class="val">{{ item.quantityAfter | number:'1.3-3' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="content-footer" *ngIf="item.description">
+                            <p class="desc">{{ item.description }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reconciliation Footer -->
+            <div class="reconciliation-footer" *ngIf="reconciliationVisible()" [@fadeInScale]>
+                <div class="reconcile-card" [ngClass]="reconciliation()?.isReconciled ? 'success' : 'warning'">
+                    <div class="status-header">
+                        <mat-icon class="status-icon">{{ reconciliation()?.isReconciled ? 'check_circle' : 'warning' }}</mat-icon>
+                        <h3>Résultat de Réconciliation</h3>
+                    </div>
+                    
+                    <div class="reconcile-stats" *ngIf="reconciliation()">
+                        <div class="stat-entry">
+                            <span class="label">Total Calculé</span>
+                            <span class="value">{{ reconciliation()?.computedQuantity | number:'1.3-3' }}</span>
+                        </div>
+                        <div class="stat-entry">
+                            <span class="label">Stock Actuel</span>
+                            <span class="value">{{ reconciliation()?.stockQuantity | number:'1.3-3' }}</span>
+                        </div>
+                        <div class="stat-entry diff">
+                            <span class="label">Différence</span>
+                            <span class="value">{{ (reconciliation()!.computedQuantity - reconciliation()!.stockQuantity) | number:'1.3-3' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="status-message">
+                        <p>{{ reconciliation()?.isReconciled ? 
+                            'Le solde des mouvements correspond exactement au stock enregistré.' : 
+                            'Une divergence a été détectée entre l\'historique et la valeur actuelle du stock.' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <ng-template #noData>
+            <div class="empty-state" *ngIf="!loading()">
+                <div class="empty-icon-wrapper">
+                    <mat-icon>inventory</mat-icon>
+                </div>
+                <h3>Aucun mouvement trouvé</h3>
+                <p>Ajustez vos filtres ou sélectionnez une autre marchandise pour visualiser son historique.</p>
+                <button mat-stroked-button color="primary" (click)="resetFilters()">Réinitialiser les filtres</button>
+            </div>
+        </ng-template>
     </div>
 </div>
-
-<!-- Filter -->
-<mat-card class="card-details">
-    <div class="filter-container" [formGroup]="filterForm">
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Articles</mat-label>
-            <mat-select placeholder="Choisir parmi la liste" formControlName="selectedArticle"
-                (selectionChange)="onArticleChange($event.value)">
-                <mat-option *ngFor="let article of allArticles" [value]="article">
-                    {{ article.reference }} - {{ article.description }}
-                </mat-option>
-            </mat-select>
-        </mat-form-field>
-        <div class="half-width-wrapper">
-            <mat-form-field appearance="outline" class="half-width">
-                <mat-label>Date de début</mat-label>
-                <input matInput [matDatepicker]="pickerBegin" formControlName="BeginDate">
-                <mat-datepicker-toggle matIconSuffix [for]="pickerBegin"></mat-datepicker-toggle>
-                <mat-datepicker #pickerBegin></mat-datepicker>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="half-width">
-                <mat-label>Date de fin</mat-label>
-                <input matInput [matDatepicker]="pickerEnd" formControlName="EndDate">
-                <mat-datepicker-toggle matIconSuffix [for]="pickerEnd"></mat-datepicker-toggle>
-                <mat-datepicker #pickerEnd></mat-datepicker>
-            </mat-form-field>
-        </div>
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Site de Vente</mat-label>
-            <mat-select placeholder="Choisir parmi la liste" formControlName="selectedSite"
-                (selectionChange)="onSiteChange($event.value)">
-                <mat-option *ngFor="let site of allSites" [value]="site.id">
-                    {{ site.address }}
-                </mat-option>
-            </mat-select>
-        </mat-form-field>
-    </div>
-    <div class="control-button">
-        <mat-dialog-actions>
-            <button mat-flat-button class="reset" (click)="resetFilters()">Réinitialiser</button>
-            <button mat-flat-button class="filter" (click)="applyFilters()">Filtrer</button>
-        </mat-dialog-actions>
-    </div>
-</mat-card>
