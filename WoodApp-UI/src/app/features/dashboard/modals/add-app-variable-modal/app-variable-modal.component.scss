@@ -1,0 +1,64 @@
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+
+  h1 {
+    margin: 0;
+    font-weight: 700;
+  }
+
+  mat-icon {
+    color: #0284c7;
+    font-size: 28px;
+    height: 28px;
+    width: 28px;
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+.half-width-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.slide-toggle-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.control-button {
+  margin-top: 24px;
+  
+  mat-dialog-actions {
+    padding: 0;
+    gap: 12px;
+    justify-content: flex-end;
+    
+    button {
+      border-radius: 8px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      
+      mat-icon {
+        margin-right: 8px;
+      }
+    }
+  }
+}

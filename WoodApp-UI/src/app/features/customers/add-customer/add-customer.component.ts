@@ -27,7 +27,7 @@ export interface _Transporter {
 @Component({
   selector: 'app-add-customer',
   templateUrl: './add-customer.component.html',
-  styleUrl: './add-customer.component.css'
+  styleUrl: './add-customer.component.scss'
 })
 
 export class AddCustomerComponent implements OnInit {
@@ -132,10 +132,11 @@ export class AddCustomerComponent implements OnInit {
   }
 
   onSubmit(counterPartForm: FormGroup) {
-    // if (counterPartForm.invalid) {
-    //   this.toastr.warning("Veuillez remplir tous les champs obligatoires.");
-    //   return;
-    // }
+    if (counterPartForm.invalid) {
+      this.toastr.warning("Veuillez remplir tous les champs obligatoires correctement.", "Validation");
+      counterPartForm.markAllAsTouched();
+      return;
+    }
 
     const counterpart = this.createCounterPartInstance(counterPartForm);
     console.log('CounterPart to submit:', counterpart);
@@ -262,10 +263,9 @@ export class AddCustomerComponent implements OnInit {
 
   openCreateTransporterModal() {
     const dialogRef = this.dialog.open(AddTransporterModalComponent, {
-      width: '950px',
-      height: '400px',
-      maxWidth: '90vw',
-      maxHeight: '90vh',
+      width: '800px',
+      maxWidth: '95vw',
+      panelClass: 'custom-modal-panel'
     });
 
     dialogRef.afterClosed().subscribe(result => {

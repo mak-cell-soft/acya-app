@@ -5,7 +5,7 @@ import { BANKS_TN } from '../../../../../constants/modals/bank_modal';
 @Component({
     selector: 'app-traite-payment-form',
     templateUrl: './traite-payment-form.component.html',
-    styleUrls: ['./traite-payment-form.component.css']
+    styleUrl: './traite-payment-form.component.scss'
 })
 export class TraitePaymentFormComponent implements OnInit {
     @Input() ownerName: string = '';

@@ -1,14 +1,22 @@
-<h2 mat-dialog-title>Gestion des Avances - {{ data.employeeName }}</h2>
+<div class="modal-header">
+  <mat-icon>payments</mat-icon>
+  <h2 mat-dialog-title>Gestion des Avances - {{ data.employeeName }}</h2>
+</div>
+
 <mat-dialog-content class="mat-typography">
-  <mat-card class="mb-3">
+  <mat-card class="mb-4">
     <mat-card-header>
-      <mat-card-title>Nouvelle Demande d'Avance</mat-card-title>
+      <div class="section-title">
+        <mat-icon>add_circle_outline</mat-icon>
+        Nouvelle Demande d'Avance
+      </div>
     </mat-card-header>
     <mat-card-content>
-      <form [formGroup]="advanceForm" (ngSubmit)="onSubmit()" class="form-grid mt-2">
+      <form [formGroup]="advanceForm" (ngSubmit)="onSubmit()" class="form-grid mt-3">
         <mat-form-field appearance="outline">
           <mat-label>Montant</mat-label>
           <input matInput type="number" formControlName="amount">
+          <mat-icon matPrefix>monetization_on</mat-icon>
           <span matSuffix>TND</span>
         </mat-form-field>
 
@@ -22,11 +30,12 @@
         <mat-form-field appearance="outline">
           <mat-label>Modalités de remboursement</mat-label>
           <input matInput formControlName="repaymentschedule" placeholder="ex: 4 mensualités">
+          <mat-icon matPrefix>event_repeat</mat-icon>
         </mat-form-field>
 
-        <div class="form-actions">
+        <div class="d-flex align-items-center justify-content-end" style="height: 56px;">
           <button mat-raised-button color="primary" type="submit" [disabled]="advanceForm.invalid">
-            <mat-icon>monetization_on</mat-icon> Demander
+             Demander
           </button>
         </div>
       </form>
@@ -34,8 +43,11 @@
   </mat-card>
 
   <div class="header-with-filter">
-    <h4>Historique des avances</h4>
-    <mat-form-field appearance="outline" class="filter-field">
+    <div class="section-title">
+      <mat-icon>history</mat-icon>
+      Historique des avances
+    </div>
+    <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
       <mat-label>Rechercher</mat-label>
       <input matInput (keyup)="applyFilter($event)" placeholder="ex. 500, Approved...">
       <mat-icon matSuffix>search</mat-icon>
@@ -90,9 +102,11 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
     </table>
-    <div *ngIf="advances.data.length === 0" class="p-3 text-center">Aucune avance enregistrée.</div>
+    <div *ngIf="advances.data.length === 0" class="p-4 text-center text-muted">Aucune avance enregistrée.</div>
   </div>
 </mat-dialog-content>
+
 <mat-dialog-actions align="end">
-  <button mat-button (click)="onClose()">Fermer</button>
+  <button mat-button color="primary" (click)="onClose()">Fermer</button>
 </mat-dialog-actions>
+

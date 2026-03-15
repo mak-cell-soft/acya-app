@@ -22,7 +22,7 @@ interface StockItem {
 @Component({
   selector: 'app-add-lengths-modal',
   templateUrl: './add-lengths-modal.component.html',
-  styleUrl: './add-lengths-modal.component.css'
+  styleUrl: './add-lengths-modal.component.scss'
 })
 export class AddLengthsModalComponent implements OnInit {
 

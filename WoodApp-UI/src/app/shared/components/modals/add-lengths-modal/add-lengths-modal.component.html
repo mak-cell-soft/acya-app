@@ -1,63 +1,94 @@
-<mat-card class="card-details">
-    <h6>Ajouter les longueurs pour <strong>{{article_inputdata.reference}}</strong></h6>
-    <div class="half-width-wrapper" [formGroup]="lengthsForm">
-        <mat-form-field class="half-width" appearance="outline">
-            <mat-label>Epaisseur</mat-label>
-            <input matInput formControlName="thickness" readonly>
-            <mat-icon matSuffix>height</mat-icon>
-        </mat-form-field>
-        <mat-form-field class="half-width" appearance="outline">
-            <mat-label>Largeur</mat-label>
-            <input matInput formControlName="width" readonly>
-            <mat-icon matSuffix>sync_alt</mat-icon>
-        </mat-form-field>
+<div class="modal-wrapper mat-typography">
+    <div class="modal-header">
+        <div class="header-title">
+            <mat-icon>straighten</mat-icon>
+            <h2>Longueurs pour {{article_inputdata.reference}}</h2>
+        </div>
+        <button mat-icon-button (click)="onAbort()" class="close-btn">
+            <mat-icon>close</mat-icon>
+        </button>
     </div>
 
-    <div>
-        <table mat-table [dataSource]="lengths" class="mat-elevation-z8 mt-3">
-            <ng-container matColumnDef="number">
-                <th mat-header-cell *matHeaderCellDef>#</th>
-                <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
-            </ng-container>
+    <div class="modal-content">
+        <div class="form-section">
+            <div class="section-title">
+                <mat-icon>view_module</mat-icon>
+                <span>Dimensions de base</span>
+            </div>
+            <div class="form-grid" [formGroup]="lengthsForm">
+                <mat-form-field appearance="outline">
+                    <mat-label>Épaisseur</mat-label>
+                    <input matInput formControlName="thickness" readonly>
+                    <mat-icon matPrefix>height</mat-icon>
+                </mat-form-field>
 
-            <ng-container matColumnDef="nbpieces">
-                <th mat-header-cell *matHeaderCellDef>Nombre de Pièces</th>
-                <td mat-cell *matCellDef="let element">
-                    <ng-container>
-                        <input type="number" [(ngModel)]="element.nbpieces" (input)="updateQuantity(element)" />
+                <mat-form-field appearance="outline">
+                    <mat-label>Largeur</mat-label>
+                    <input matInput formControlName="width" readonly>
+                    <mat-icon matPrefix>sync_alt</mat-icon>
+                </mat-form-field>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="section-title">
+                <mat-icon>list</mat-icon>
+                <span>Saisie des Longueurs</span>
+            </div>
+            <div class="table-container">
+                <table mat-table [dataSource]="lengths">
+                    <ng-container matColumnDef="number">
+                        <th mat-header-cell *matHeaderCellDef>#</th>
+                        <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
                     </ng-container>
-                </td>
-            </ng-container>
 
-            <ng-container matColumnDef="length">
-                <th mat-header-cell *matHeaderCellDef>Longueur</th>
-                <td mat-cell *matCellDef="let element">{{ element.length.value }}</td>
-            </ng-container>
+                    <ng-container matColumnDef="nbpieces">
+                        <th mat-header-cell *matHeaderCellDef>Nb Pièces</th>
+                        <td mat-cell *matCellDef="let element">
+                            <input type="number" class="pcs-input" [(ngModel)]="element.nbpieces" (input)="updateQuantity(element)" />
+                        </td>
+                    </ng-container>
 
-            <ng-container matColumnDef="quantity">
-                <th mat-header-cell *matHeaderCellDef>Quantité</th>
-                <td mat-cell *matCellDef="let element">{{ element.quantity | number:'1.3-3'}}</td>
-            </ng-container>
+                    <ng-container matColumnDef="length">
+                        <th mat-header-cell *matHeaderCellDef>Long. (m)</th>
+                        <td mat-cell *matCellDef="let element">{{ element.length.value }}</td>
+                    </ng-container>
 
-            <ng-container matColumnDef="available">
-                <th mat-header-cell *matHeaderCellDef>Disponible (pcs)</th>
-                <td mat-cell *matCellDef="let element">{{ element.availablePieces || 0 }}</td>
-            </ng-container>
+                    <ng-container matColumnDef="quantity">
+                        <th mat-header-cell *matHeaderCellDef>Total (m³)</th>
+                        <td mat-cell *matCellDef="let element" class="font-mono">
+                            {{ element.quantity | number:'1.3-3'}}
+                        </td>
+                    </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="displayedLengthsColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedLengthsColumns;"></tr>
-        </table>
+                    <ng-container matColumnDef="available">
+                        <th mat-header-cell *matHeaderCellDef>Disponibilité</th>
+                        <td mat-cell *matCellDef="let element">
+                            <span class="stock-badge" [class.low-stock]="element.availablePieces < (element.nbpieces || 0)">
+                                {{ element.availablePieces || 0 }} pcs
+                            </span>
+                        </td>
+                    </ng-container>
 
+                    <tr mat-header-row *matHeaderRowDef="displayedLengthsColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedLengthsColumns;"></tr>
+                </table>
+            </div>
+        </div>
     </div>
-    <div class="tot-quantity">
-        <p>
-            Quantité Totale : {{totalQuantity | number:'1.3-3'}} M3
-        </p>
+
+    <div class="modal-actions">
+        <div class="total-label">
+            <span>Quantité Totale:</span>
+            <strong>{{totalQuantity | number:'1.3-3'}} M³</strong>
+        </div>
+        <div class="spacer"></div>
+        <button mat-button color="warn" (click)="onAbort()">
+            {{abort_button}}
+        </button>
+        <button mat-raised-button color="primary" [disabled]="totalQuantity === 0" (click)="onSubmit()">
+            <mat-icon>save</mat-icon>
+            {{register_button}}
+        </button>
     </div>
-</mat-card>
-<div class="control-button">
-    <mat-dialog-actions>
-        <button mat-raised-button color="primary" (click)="onSubmit()">{{register_button}}</button>
-        <button mat-raised-button color="warn" (click)="onAbort()">{{abort_button}}</button>
-    </mat-dialog-actions>
 </div>

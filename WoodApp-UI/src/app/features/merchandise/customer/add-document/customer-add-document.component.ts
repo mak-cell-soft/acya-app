@@ -748,7 +748,7 @@ export class CustomerAddDocumentComponent {
 
         // Free all calculated document fields
         this.freeAllCalculatedDocumentFields();
-        this.router.navigateByUrl('home/customerdelivery');
+        this.router.navigateByUrl('home/merchandise/customerdelivery');
       },
       error: (err) => {
         if (err.status === 409) {

@@ -11,7 +11,7 @@ import { Site } from '../../../../models/components/sites';
 @Component({
   selector: 'app-sales-site-modal',
   templateUrl: './sales-site-modal.component.html',
-  styleUrl: './sales-site-modal.component.css'
+  styleUrl: './sales-site-modal.component.scss'
 })
 export class SalesSiteModalComponent {
 

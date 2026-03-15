@@ -8,7 +8,7 @@ import { MatTableDataSource } from '@angular/material/table';
 @Component({
   selector: 'app-leave-management-modal',
   templateUrl: './leave-management-modal.component.html',
-  styleUrls: ['./leave-management-modal.component.scss']
+  styleUrl: './leave-management-modal.component.scss'
 })
 export class LeaveManagementModalComponent implements OnInit {
   leaveForm: FormGroup;

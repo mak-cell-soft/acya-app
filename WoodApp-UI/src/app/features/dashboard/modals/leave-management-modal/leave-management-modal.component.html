@@ -1,16 +1,24 @@
-<h2 mat-dialog-title>Gestion des Congés - {{ data.employeeName }}</h2>
+<div class="modal-header">
+  <mat-icon>event_busy</mat-icon>
+  <h2 mat-dialog-title>Gestion des Congés - {{ data.employeeName }}</h2>
+</div>
+
 <mat-dialog-content class="mat-typography">
-  <mat-card class="mb-3">
+  <mat-card class="mb-4">
     <mat-card-header>
-      <mat-card-title>Nouvelle Demande</mat-card-title>
+      <div class="section-title">
+        <mat-icon>add_circle_outline</mat-icon>
+        Nouvelle Demande
+      </div>
     </mat-card-header>
     <mat-card-content>
-      <form [formGroup]="leaveForm" (ngSubmit)="onSubmit()" class="form-grid mt-2">
+      <form [formGroup]="leaveForm" (ngSubmit)="onSubmit()" class="form-grid mt-3">
         <mat-form-field appearance="outline">
           <mat-label>Type de congé</mat-label>
           <mat-select formControlName="leavetype">
             <mat-option *ngFor="let type of leaveTypes" [value]="type">{{ type }}</mat-option>
           </mat-select>
+          <mat-icon matPrefix>category</mat-icon>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
@@ -30,11 +38,12 @@
         <mat-form-field appearance="outline">
           <mat-label>Durée (jours)</mat-label>
           <input matInput type="number" formControlName="durationdays">
+          <mat-icon matPrefix>timer</mat-icon>
         </mat-form-field>
 
-        <div class="form-actions">
+        <div class="d-flex align-items-center justify-content-end" style="height: 56px;">
           <button mat-raised-button color="primary" type="submit" [disabled]="leaveForm.invalid">
-            <mat-icon>add</mat-icon> Soumettre
+             Soumettre
           </button>
         </div>
       </form>
@@ -42,8 +51,11 @@
   </mat-card>
 
   <div class="header-with-filter">
-    <h4>Historique des congés</h4>
-    <mat-form-field appearance="outline" class="filter-field">
+    <div class="section-title">
+      <mat-icon>history</mat-icon>
+      Historique des congés
+    </div>
+    <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
       <mat-label>Rechercher</mat-label>
       <input matInput (keyup)="applyFilter($event)" placeholder="ex. Congé Payé, Approved...">
       <mat-icon matSuffix>search</mat-icon>
@@ -98,9 +110,11 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
     </table>
-    <div *ngIf="leaves.data.length === 0" class="p-3 text-center">Aucun congé enregistré.</div>
+    <div *ngIf="leaves.data.length === 0" class="p-4 text-center text-muted">Aucun congé enregistré.</div>
   </div>
 </mat-dialog-content>
+
 <mat-dialog-actions align="end">
-  <button mat-button (click)="onClose()">Fermer</button>
+  <button mat-button color="primary" (click)="onClose()">Fermer</button>
 </mat-dialog-actions>
+

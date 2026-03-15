@@ -1,42 +1,54 @@
-<h1 mat-dialog-title>Attribution des permissions</h1>
-<div mat-dialog-content>
-    <div class="section-title">Gestion des Articles</div>
-    <table mat-table class="mat-elevation-z0 no-borders" [dataSource]="routePermissions">
-        <ng-container matColumnDef="Operation">
-            <th mat-header-cell *matHeaderCellDef class="operation-nature"></th>
-            <td mat-cell *matCellDef="let element" class="operation-nature">
-                Article
-            </td>
-        </ng-container>
-        <ng-container matColumnDef="canRead">
-            <th mat-header-cell *matHeaderCellDef> Lecture </th>
-            <td mat-cell *matCellDef="let element">
-                <mat-slide-toggle [(ngModel)]="element.client">Oui</mat-slide-toggle>
-            </td>
-        </ng-container>
-        <ng-container matColumnDef="canAdd">
-            <th mat-header-cell *matHeaderCellDef> Ajout </th>
-            <td mat-cell *matCellDef="let element">
-                <mat-slide-toggle [(ngModel)]="element.fournisseur">Oui</mat-slide-toggle>
-            </td>
-        </ng-container>
-        <ng-container matColumnDef="canUpdate">
-            <th mat-header-cell *matHeaderCellDef> Modification </th>
-            <td mat-cell *matCellDef="let element">
-                <mat-slide-toggle [(ngModel)]="element.produitEtService">Oui</mat-slide-toggle>
-            </td>
-        </ng-container>
-
-        <ng-container matColumnDef="canDelete">
-            <th mat-header-cell *matHeaderCellDef> Suppression </th>
-            <td mat-cell *matCellDef="let element">
-                <mat-slide-toggle [(ngModel)]="element.produitEtService">Oui</mat-slide-toggle>
-            </td>
-        </ng-container>
-        <!-- Repeat for other columns -->
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
-
-
+<div class="modal-header">
+    <mat-icon>admin_panel_settings</mat-icon>
+    <h1 mat-dialog-title>Attribution des permissions</h1>
 </div>
+
+<mat-dialog-content class="mat-typography">
+    <div class="section-title">Gestion des Articles</div>
+    <div class="table-container mat-elevation-z0">
+        <table mat-table class="no-borders w-100" [dataSource]="routePermissions">
+            <ng-container matColumnDef="Operation">
+                <th mat-header-cell *matHeaderCellDef> Domaine </th>
+                <td mat-cell *matCellDef="let element" class="operation-nature">
+                    Article
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="canRead">
+                <th mat-header-cell *matHeaderCellDef> Lecture </th>
+                <td mat-cell *matCellDef="let element">
+                    <mat-slide-toggle color="primary" [(ngModel)]="element.client">Oui</mat-slide-toggle>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="canAdd">
+                <th mat-header-cell *matHeaderCellDef> Ajout </th>
+                <td mat-cell *matCellDef="let element">
+                    <mat-slide-toggle color="primary" [(ngModel)]="element.fournisseur">Oui</mat-slide-toggle>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="canUpdate">
+                <th mat-header-cell *matHeaderCellDef> Modification </th>
+                <td mat-cell *matCellDef="let element">
+                    <mat-slide-toggle color="primary" [(ngModel)]="element.produitEtService">Oui</mat-slide-toggle>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="canDelete">
+                <th mat-header-cell *matHeaderCellDef> Suppression </th>
+                <td mat-cell *matCellDef="let element">
+                    <mat-slide-toggle color="warn" [(ngModel)]="element.produitEtService">Oui</mat-slide-toggle>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+    </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button color="primary" [mat-dialog-close]="false">Annuler</button>
+    <button mat-raised-button color="primary" [mat-dialog-close]="true">Enregistrer</button>
+</mat-dialog-actions>

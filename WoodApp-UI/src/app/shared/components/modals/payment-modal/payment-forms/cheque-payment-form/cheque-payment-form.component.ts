@@ -5,7 +5,7 @@ import { BANKS_TN } from '../../../../../constants/modals/bank_modal';
 @Component({
     selector: 'app-cheque-payment-form',
     templateUrl: './cheque-payment-form.component.html',
-    styleUrls: ['./cheque-payment-form.component.css']
+    styleUrl: './cheque-payment-form.component.scss'
 })
 export class ChequePaymentFormComponent implements OnInit {
     @Input() ownerName: string = '';

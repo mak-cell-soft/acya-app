@@ -27,7 +27,7 @@ interface BankOption {
 @Component({
   selector: 'app-add-bank-modal',
   templateUrl: './add-bank-modal.component.html',
-  styleUrls: ['./add-bank-modal.component.css']
+  styleUrl: './add-bank-modal.component.scss'
 })
 export class AddBankModalComponent implements OnInit {
 

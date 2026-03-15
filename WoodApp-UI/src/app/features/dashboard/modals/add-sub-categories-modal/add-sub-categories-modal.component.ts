@@ -13,7 +13,7 @@ import { AuthenticationService } from '../../../../services/components/authentic
 @Component({
   selector: 'app-add-sub-categories-modal',
   templateUrl: './add-sub-categories-modal.component.html',
-  styleUrl: './add-sub-categories-modal.component.css'
+  styleUrl: './add-sub-categories-modal.component.scss'
 })
 
 

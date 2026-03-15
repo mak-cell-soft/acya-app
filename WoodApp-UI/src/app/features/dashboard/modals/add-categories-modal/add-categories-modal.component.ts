@@ -13,7 +13,7 @@ import { AuthenticationService } from '../../../../services/components/authentic
 @Component({
   selector: 'app-add-categories-modal',
   templateUrl: './add-categories-modal.component.html',
-  styleUrls: ['./add-categories-modal.component.css']
+  styleUrl: './add-categories-modal.component.scss'
 })
 export class AddCategoriesModalComponent implements OnInit {
 

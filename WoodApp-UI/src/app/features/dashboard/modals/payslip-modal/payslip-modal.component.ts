@@ -8,7 +8,7 @@ import { MatTableDataSource } from '@angular/material/table';
 @Component({
   selector: 'app-payslip-modal',
   templateUrl: './payslip-modal.component.html',
-  styleUrls: ['./payslip-modal.component.scss']
+  styleUrl: './payslip-modal.component.scss'
 })
 export class PayslipModalComponent implements OnInit {
   payslipForm: FormGroup;

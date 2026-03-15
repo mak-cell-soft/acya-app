@@ -22,7 +22,7 @@ import { TransactionType } from '../../../../../models/components/stock';
 @Component({
   selector: 'app-generate-invoice-modal',
   templateUrl: './generate-invoice-modal.component.html',
-  styleUrl: './generate-invoice-modal.component.css'
+  styleUrl: './generate-invoice-modal.component.scss'
 })
 export class GenerateInvoiceModalComponent implements OnInit, AfterViewInit {
 

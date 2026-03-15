@@ -15,7 +15,7 @@ import { addAppVariable } from '../../../../store/actions/appvariable.actions'; 
 @Component({
   selector: 'app-app-variable-modal',
   templateUrl: './app-variable-modal.component.html',
-  styleUrl: './app-variable-modal.component.css'
+  styleUrl: './app-variable-modal.component.scss'
 })
 export class AppVariableModalComponent {
 

@@ -427,7 +427,8 @@ export class AddInvoiceComponent implements OnInit {
         };
 
         const dialogRef = this.dialog.open(PaymentModalComponent, {
-            width: '600px',
+            width: '1200px',
+            maxWidth: '1200px',
             disableClose: true,
             data: modalData
         });
@@ -486,7 +487,7 @@ export class AddInvoiceComponent implements OnInit {
                 const docRef = response.docRef;
                 this.toastr.success(`Facture ${docRef} créée avec succès`);
 
-                this.router.navigateByUrl('home/customerinvoices');
+                this.router.navigateByUrl('home/merchandise/customerinvoices');
             },
             error: (err) => {
                 this.toastr.error('Erreur lors de la création de la facture');

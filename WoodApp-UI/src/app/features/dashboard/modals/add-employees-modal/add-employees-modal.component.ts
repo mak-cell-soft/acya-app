@@ -19,7 +19,7 @@ import { AppuserService } from '../../../../services/components/appuser.service'
 @Component({
   selector: 'app-add-employees-modal',
   templateUrl: './add-employees-modal.component.html',
-  styleUrl: './add-employees-modal.component.css'
+  styleUrl: './add-employees-modal.component.scss'
 })
 export class AddEmployeesModalComponent implements OnInit {
 

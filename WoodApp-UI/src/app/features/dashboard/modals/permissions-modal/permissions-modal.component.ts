@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'app-permissions-modal',
   templateUrl: './permissions-modal.component.html',
-  styleUrl: './permissions-modal.component.css'
+  styleUrl: './permissions-modal.component.scss'
 })
 export class PermissionsModalComponent {
   displayedColumns: string[] = ['Operation', 'canRead', 'canAdd', 'canUpdate', 'canDelete','user'];

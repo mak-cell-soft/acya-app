@@ -8,7 +8,7 @@ import { MatTableDataSource } from '@angular/material/table';
 @Component({
   selector: 'app-advance-management-modal',
   templateUrl: './advance-management-modal.component.html',
-  styleUrls: ['./advance-management-modal.component.scss']
+  styleUrl: './advance-management-modal.component.scss'
 })
 export class AdvanceManagementModalComponent implements OnInit {
   advanceForm: FormGroup;

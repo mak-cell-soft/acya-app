@@ -324,7 +324,7 @@ export class AddSupplierOrderComponent implements OnInit {
       next: (response) => {
         this.toastr.success(`Commande ${response.docRef} créée`);
         this.hasUnsavedChanges = false;
-        this.router.navigateByUrl('home/supplierorder/list');
+        this.router.navigateByUrl('home/merchandise/supplierorder/list');
       },
       error: () => this.toastr.error('Erreur lors de la création')
     });

@@ -1,0 +1,57 @@
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px 24px;
+  background: #f8fafc;
+  
+  h1 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.25rem;
+  }
+
+  mat-icon {
+    color: #0284c7;
+    font-size: 28px;
+    height: 28px;
+    width: 28px;
+  }
+}
+
+.section-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 16px 0 12px;
+  padding: 0 16px;
+}
+
+mat-table {
+  width: 100%;
+  
+  th {
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+  
+  td {
+    padding: 12px 0;
+  }
+}
+
+.no-borders {
+  ::ng-deep .mat-mdc-cell, ::ng-deep .mat-mdc-header-cell {
+    border-bottom: 1px solid #f1f5f9;
+  }
+}
+
+.operation-nature {
+  font-weight: 600;
+  color: #1e293b;
+}

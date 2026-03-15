@@ -1,11 +1,10 @@
 import { Component, HostListener, Inject, inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, NgControl, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { vehiculeMatriculeValidator } from '../../../validators/atLeastOneRequiredValidator';
 import { SeriesOptions_FR } from '../../../constants/list_of_constants';
 import { TransporterService } from '../../../../services/components/transporter.service';
 import { Transporter, Vehicle } from '../../../../models/components/customer';
-
+import { ABORT_BUTTON, REGISTER_BUTTON } from '../../../Text_Buttons';
 
 export interface _Transporter {
   transpSurname: string;
@@ -16,38 +15,27 @@ export interface _Transporter {
 @Component({
   selector: 'app-add-transporter-modal',
   templateUrl: './add-transporter-modal.component.html',
-  styleUrl: './add-transporter-modal.component.css'
+  styleUrl: './add-transporter-modal.component.scss'
 })
 export class AddTransporterModalComponent implements OnInit {
 
   fb = inject(FormBuilder);
   transporterService = inject(TransporterService);
-  // ngControl = inject(NgControl);
 
   transporterForm!: FormGroup;
 
-
+  register_button_text: string = REGISTER_BUTTON;
+  abort_button_text: string = ABORT_BUTTON;
   allSeries = Object.values(SeriesOptions_FR);
-  //#region constructor
-  /**
-   *
-   */
+
   constructor(
     public dialogRef: MatDialogRef<AddTransporterModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any) {
   }
-  //#endregion
-
 
   ngOnInit(): void {
     this.createTransporterForm();
   }
-
-  // @HostListener('input', ['$event.target.value'])
-  // onInput(value: string): void {
-  //   this.ngControl.control?.setValue(value.toUpperCase(), { emitEvent: false });
-  // }
-
 
   createTransporterForm() {
     this.transporterForm = this.fb.group({
@@ -74,32 +62,29 @@ export class AddTransporterModalComponent implements OnInit {
         id: 0,
         firstname: formValue.transpSurname,
         lastname: formValue.transpName,
-        fullname: '',
+        fullname: `${formValue.transpSurname} ${formValue.transpName}`,
         car: vehicle
       };
 
       // Call the Add method from the service
       this.transporterService.Add(transporter).subscribe({
         next: (response) => {
-          // Handle the response if needed
           console.log('Transporter added successfully', response);
-          this.dialogRef.close(transporter); // Pass the transformed data back to the parent
+          this.dialogRef.close(transporter); 
         },
         error: (error) => {
-          // Handle the error if needed
           console.error('Error adding transporter', error);
         }
       });
     }
   }
 
-  // Helper function to get selected series value by ID
   getSelectedSeriesValue(letterId: number | string): string {
     const selectedSeries = this.allSeries.find(series => series.id === letterId);
-    return selectedSeries ? selectedSeries.value : ''; // Adjust this based on your series data structure
+    return selectedSeries ? selectedSeries.value : ''; 
   }
 
   onCancel() {
-    this.dialogRef.close(); // Simply close the modal without returning data
+    this.dialogRef.close(); 
   }
 }

@@ -1,0 +1,94 @@
+.modal-wrapper {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+  min-width: 380px;
+  max-width: 550px;
+}
+
+.modal-header {
+  padding: 16px 20px;
+  background: #f8fafc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e2e8f0;
+
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    mat-icon {
+      font-size: 24px;
+      height: 24px;
+      width: 24px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+  }
+
+  .close-btn {
+    color: #64748b;
+  }
+}
+
+.modal-content {
+  padding: 32px 24px;
+  text-align: center;
+
+  .icon-pulse-wrapper {
+    width: 64px;
+    height: 64px;
+    background: #f0f9ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+
+    mat-icon {
+      font-size: 32px;
+      height: 32px;
+      width: 32px;
+      color: #0ea5e9;
+    }
+  }
+
+  .message-text {
+    font-size: 0.95rem;
+    color: #1e293b;
+    margin-bottom: 8px;
+    line-height: 1.5;
+    font-weight: 500;
+  }
+}
+
+.modal-actions {
+  padding: 16px 24px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+
+  button {
+    min-width: 100px;
+    height: 38px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.85rem;
+  }
+}
+
+// Theme variations
+.theme-warn .icon-pulse-wrapper { background: #fef2f2; mat-icon { color: #ef4444; } }
+.theme-accent .icon-pulse-wrapper { background: #fff7ed; mat-icon { color: #f59e0b; } }

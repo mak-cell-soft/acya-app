@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { PaymentInstrument, PaymentInstrumentType, PaymentState } from '../../../../models/components/document';
 // Adjust path if necessary, assuming shared folder structure exists
 import { BANKS_TN } from '../../../constants/modals/bank_modal';
+import { ABORT_BUTTON, REGISTER_BUTTON } from '../../../Text_Buttons';
 
 export interface PaymentModalData {
     documentId: number;
@@ -20,11 +21,14 @@ export interface PaymentModalData {
 @Component({
     selector: 'app-payment-modal',
     templateUrl: './payment-modal.component.html',
-    styleUrls: ['./payment-modal.component.css']
+    styleUrl: './payment-modal.component.scss'
 })
 export class PaymentModalComponent implements OnInit {
     paymentForm: FormGroup;
     selectedPaymentMethod: 'ESPECE' | 'CHEQUE' | 'TRAITE' | 'VIREMENT' | 'CARTE' = 'ESPECE';
+
+    abort_button_text: string = ABORT_BUTTON;
+    register_button_text: string = REGISTER_BUTTON;
 
     // Payment methods for selection
     paymentMethods = [
@@ -111,5 +115,20 @@ export class PaymentModalComponent implements OnInit {
             return this.traiteFormGroup ? this.traiteFormGroup.valid : false;
         }
         return false;
+    }
+
+    getMethodIcon(method: string): string {
+        switch (method) {
+            case 'ESPECE': return 'payments';
+            case 'CHEQUE': return 'money';
+            case 'TRAITE': return 'description';
+            case 'VIREMENT': return 'account_balance';
+            case 'CARTE': return 'credit_card';
+            default: return 'payment';
+        }
+    }
+
+    isGenericMethod(): boolean {
+        return ['ESPECE', 'VIREMENT', 'CARTE'].includes(this.selectedPaymentMethod);
     }
 }

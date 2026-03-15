@@ -205,7 +205,8 @@ export class DocumentConversionModalComponent implements OnInit {
         };
 
         const dialogRef = this.dialog.open(PaymentModalComponent, {
-            width: '600px',
+            width: '1200px',
+            maxWidth: '1200px',
             disableClose: true,
             data: modalData
         });

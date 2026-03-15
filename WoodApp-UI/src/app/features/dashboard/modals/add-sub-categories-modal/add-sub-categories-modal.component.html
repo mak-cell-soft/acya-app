@@ -1,48 +1,57 @@
-<h1 mat-dialog-title>{{mat_dialog_title_modal_update_sub_categories}}</h1>
-<div mat-dialog-content>
+<div class="modal-header">
+  <mat-icon>category</mat-icon>
+  <h1 mat-dialog-title>{{mat_dialog_title_modal_update_sub_categories}}</h1>
+</div>
+
+<mat-dialog-content class="mat-typography">
   <form [formGroup]="categoryForm">
-    <div class="half-width-wrapper">
-      <mat-form-field class="half-width">
+    <div class="half-width-wrapper mt-3">
+      <mat-form-field appearance="outline">
         <mat-label>{{mat_label_reference}}</mat-label>
         <input matInput formControlName="reference" readonly />
-        <mat-icon matSuffix>code</mat-icon>
+        <mat-icon matPrefix>code</mat-icon>
       </mat-form-field>
-      <mat-form-field class="half-width">
+      <mat-form-field appearance="outline">
         <mat-label>{{mat_label_description}}</mat-label>
         <input matInput formControlName="description" readonly />
-        <mat-icon matSuffix>description</mat-icon>
+        <mat-icon matPrefix>description</mat-icon>
       </mat-form-field>
     </div>
 
-    <div class="half-width-wrapper add-subcategory-wrapper">
-      <button mat-flat-button color="primary" type="button" (click)="addSubcategory()">
-        <mat-icon>add</mat-icon>
+    <div class="add-subcategory-wrapper">
+      <button mat-stroked-button color="primary" type="button" (click)="addSubcategory()">
+        <mat-icon>add_circle</mat-icon>
         {{add_under_category_button}}
       </button>
     </div>
 
     <div formArrayName="subcategories" *ngFor="let subcategory of subcategories.controls; let i=index">
       <div class="square-width-wrapper" [formGroupName]="i">
-        <mat-form-field class="square-width">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>{{mat_label_reference}}</mat-label>
           <input matInput formControlName="subReference" [readonly]="!subcategory.get('subReference')?.enabled" />
-          <mat-icon matSuffix>code</mat-icon>
+          <mat-icon matPrefix>code</mat-icon>
         </mat-form-field>
-        <mat-form-field class="square-width">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>{{mat_label_description}}</mat-label>
           <input matInput formControlName="subDescription" [readonly]="!subcategory.get('subDescription')?.enabled" />
-          <mat-icon matSuffix>description</mat-icon>
+          <mat-icon matPrefix>description</mat-icon>
         </mat-form-field>
-        <button *ngIf="subcategory.get('subReference')?.enabled" mat-icon-button color="warn" class="square-width" type="button" (click)="removeSubcategory(i)">
-          <mat-icon>delete</mat-icon>
+        <button *ngIf="subcategory.get('subReference')?.enabled" mat-icon-button color="warn" type="button" (click)="removeSubcategory(i)" matTooltip="Supprimer">
+          <mat-icon>delete_outline</mat-icon>
         </button>
       </div>
     </div>
   </form>
-</div>
+</mat-dialog-content>
+
 <div class="control-button">
-  <mat-dialog-actions>
-    <button mat-flat-button color="primary" (click)="onSubmit()">{{register_button}}</button>
-    <button mat-flat-button color="warn" (click)="onNoClick()">{{abort_button}}</button>
+  <mat-dialog-actions align="end">
+    <button mat-button color="warn" (click)="onNoClick()">
+      <mat-icon>close</mat-icon> {{abort_button}}
+    </button>
+    <button mat-raised-button color="primary" (click)="onSubmit()">
+      <mat-icon>save</mat-icon> {{register_button}}
+    </button>
   </mat-dialog-actions>
-</div>
+</div>

@@ -12,7 +12,7 @@ import { Site } from '../../../../models/components/sites';
 @Component({
   selector: 'app-add-sales-site-modal',
   templateUrl: './add-sales-site-modal.component.html',
-  styleUrl: './add-sales-site-modal.component.css'
+  styleUrl: './add-sales-site-modal.component.scss'
 })
 export class AddSalesSiteModalComponent implements OnInit {
 

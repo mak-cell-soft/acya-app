@@ -1,19 +1,40 @@
-<h2 mat-dialog-title>Confirmer le site de vente</h2>
-    <mat-dialog-content>
-      <form [formGroup]="siteForm">
-        <mat-form-field class="full-width">
-          <mat-label>Site de vente</mat-label>
-          <mat-select formControlName="salesSite" required>
-            <mat-option *ngFor="let site of allSites" [value]="site.id">
-              {{ site.address }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </form>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close color="warn">Annuler</button>
-      <button mat-raised-button color="primary" 
-              [disabled]="!siteForm.valid" 
-              (click)="confirm()">Confirmer</button>
-    </mat-dialog-actions>
+<div class="modal-wrapper mat-typography">
+    <div class="modal-header">
+        <div class="header-title">
+            <mat-icon>location_on</mat-icon>
+            <h2>Confirmer le site de vente</h2>
+        </div>
+        <button mat-icon-button mat-dialog-close class="close-btn">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <div class="modal-content">
+        <div class="info-alert">
+            <mat-icon>info</mat-icon>
+            <span>Veuillez sélectionner le site de vente pour ce document.</span>
+        </div>
+
+        <form [formGroup]="siteForm">
+            <mat-form-field appearance="outline" class="w-100 mt-4">
+                <mat-label>Site de vente</mat-label>
+                <mat-select formControlName="salesSite" required>
+                    <mat-option *ngFor="let site of allSites" [value]="site.id">
+                        {{ site.address }}
+                    </mat-option>
+                </mat-select>
+                <mat-icon matPrefix>storefront</mat-icon>
+            </mat-form-field>
+        </form>
+    </div>
+
+    <div class="modal-actions">
+        <button mat-button mat-dialog-close color="warn" class="btn-cancel">
+            Annuler
+        </button>
+        <button mat-raised-button color="primary" [disabled]="!siteForm.valid" (click)="confirm()" class="btn-confirm">
+            <mat-icon>check_circle</mat-icon>
+            Confirmer le site
+        </button>
+    </div>
+</div>

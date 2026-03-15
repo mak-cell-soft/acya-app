@@ -757,7 +757,7 @@ export class AddDocumentComponent implements OnInit, CanComponentDeactivate {
 
           // Free all calculated document fields
           this.freeAllCalculatedDocumentFields();
-          this.router.navigateByUrl('home/reception/list');
+          this.router.navigateByUrl('home/merchandise/reception/list');
         },
         error: (err) => {
           if (err.status === 409) {

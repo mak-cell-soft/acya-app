@@ -4,7 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 @Component({
   selector: 'app-confirm-delete-modal',
   templateUrl: './confirm-delete-modal.component.html',
-  styleUrl: './confirm-delete-modal.component.css'
+  styleUrl: './confirm-delete-modal.component.scss'
 })
 export class ConfirmDeleteModalComponent {
   constructor(

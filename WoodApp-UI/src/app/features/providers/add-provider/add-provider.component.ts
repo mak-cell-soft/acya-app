@@ -2,14 +2,11 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { GENERAL_INFORMATION_PROVIDER } from '../../../shared/constants/components/article';
 import { ABORT_BUTTON, REGISTER_BUTTON } from '../../../shared/Text_Buttons';
-import { validateHeaderName } from 'node:http';
 import { BANKS_TN } from '../../../shared/constants/modals/bank_modal';
 import { fiscalMatriculeValidator } from '../../../shared/validators/taxRegistrationValidator';
 import { ToastrService } from 'ngx-toastr';
-import { ProviderService } from '../../../services/components/provider.service';
 import { Router } from '@angular/router';
 import { CounterPartType_FR, Prefix, SupplierCategories_FR, SocietyPrefixes_FR } from '../../../shared/constants/list_of_constants';
-import { Provider } from '../../../models/components/provider';
 import { CounterPart } from '../../../models/components/counterpart';
 import { CounterpartService } from '../../../services/components/counterpart.service';
 import { AuthenticationService } from '../../../services/components/authentication.service';
@@ -22,11 +19,10 @@ export interface _Transporter {
   vehiculematricule: string;
 }
 
-
 @Component({
   selector: 'app-add-provider',
   templateUrl: './add-provider.component.html',
-  styleUrl: './add-provider.component.css'
+  styleUrl: './add-provider.component.scss'
 })
 export class AddProviderComponent implements OnInit {
 
@@ -81,8 +77,15 @@ export class AddProviderComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.supplierForm.invalid) {
+      this.toastr.warning("Veuillez remplir tous les champs obligatoires correctement.", "Validation");
+      this.supplierForm.markAllAsTouched();
+      return;
+    }
     const supplier = this.createCounterPartInstance(this.supplierForm);
-    this.addSupplier(supplier!);
+    if (supplier) {
+      this.addSupplier(supplier);
+    }
   }
 
   createCounterPartInstance(formValues: any): CounterPart | null {

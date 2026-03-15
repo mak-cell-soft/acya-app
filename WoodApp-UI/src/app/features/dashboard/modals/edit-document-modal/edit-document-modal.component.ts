@@ -24,7 +24,7 @@ import { MerchandiseService } from '../../../../services/components/merchandise.
 @Component({
     selector: 'app-edit-document-modal',
     templateUrl: './edit-document-modal.component.html',
-    styleUrl: './edit-document-modal.component.css'
+    styleUrl: './edit-document-modal.component.scss'
 })
 export class EditDocumentModalComponent implements OnInit {
 

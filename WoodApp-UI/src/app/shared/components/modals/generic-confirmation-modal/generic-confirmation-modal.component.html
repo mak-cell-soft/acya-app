@@ -1,0 +1,27 @@
+<div class="modal-wrapper mat-typography" [class]="'theme-' + (data.color || 'primary')">
+    <div class="modal-header">
+        <div class="header-title">
+            <mat-icon>{{ data.icon || 'info' }}</mat-icon>
+            <h2>{{ data.title || 'Confirmation' }}</h2>
+        </div>
+        <button mat-icon-button (click)="cancel()" class="close-btn">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <div class="modal-content text-center">
+        <div class="icon-pulse-wrapper">
+             <mat-icon>{{ data.icon || 'help_outline' }}</mat-icon>
+        </div>
+        <p class="message-text">{{ data.message }}</p>
+    </div>
+
+    <div class="modal-actions">
+        <button mat-button (click)="cancel()" class="btn-cancel">
+            {{ data.cancelText || 'Non' }}
+        </button>
+        <button mat-raised-button [color]="data.color || 'primary'" (click)="confirm()" class="btn-confirm">
+            <mat-icon>check</mat-icon> {{ data.confirmText || 'Oui' }}
+        </button>
+    </div>
+</div>
