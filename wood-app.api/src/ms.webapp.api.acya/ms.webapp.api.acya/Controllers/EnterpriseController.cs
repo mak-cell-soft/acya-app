@@ -66,6 +66,11 @@ namespace ms.webapp.api.acya.api.Controllers
         }
       }
 
+      if (newEnterprise.IsSalingWood == true)
+      {
+        await _repository.ExecuteSeedWoodScript();
+      }
+
       return Ok(new { entId = newEnterprise.Id, message = "Enterprise added successfully" });
     }
 

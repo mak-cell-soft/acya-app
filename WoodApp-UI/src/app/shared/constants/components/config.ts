@@ -77,3 +77,9 @@ export const MAT_HEADER_SELL_BANK_RIB = 'RIB';
 export const MAT_HEADER_SELL_BANK_IBAN = 'IBAN';
 export const MAT_HEADER_SELL_BANK_ACTION = 'Action';
 
+// CARD TRANSPORTER
+export const MAT_CARD_HEADER_TRANSPORTER = 'Liste des Transporteurs';
+export const MAT_HEADER_CELL_TRANSPORTER_NAME = 'Nom & Prénom';
+export const MAT_HEADER_CELL_TRANSPORTER_CAR = 'Véhicule';
+
+

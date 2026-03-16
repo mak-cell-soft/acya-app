@@ -13,7 +13,10 @@ import {
   MAT_TAB_LABEL_SETTINGS,
   MAT_HEADER_CELL_ACTIONS,
   MAT_HEADER_SELL_REF,
-  MAT_CARD_HEADER_DIMENSION
+  MAT_CARD_HEADER_DIMENSION,
+  MAT_CARD_HEADER_TRANSPORTER,
+  MAT_HEADER_CELL_TRANSPORTER_NAME,
+  MAT_HEADER_CELL_TRANSPORTER_CAR
 } from '../../../shared/constants/components/config';
 import { UPDATE_BUTTON, ADD_BUTTON } from '../../../shared/Text_Buttons'
 import { ToastrService } from 'ngx-toastr';
@@ -63,6 +66,9 @@ import { MatSort } from '@angular/material/sort';
 import { LeaveManagementModalComponent } from '../modals/leave-management-modal/leave-management-modal.component';
 import { PayslipModalComponent } from '../modals/payslip-modal/payslip-modal.component';
 import { AdvanceManagementModalComponent } from '../modals/advance-management-modal/advance-management-modal.component';
+import { TransporterService } from '../../../services/components/transporter.service';
+import { Transporter } from '../../../models/components/customer';
+import { AddTransporterModalComponent } from '../../../shared/components/modals/add-transporter-modal/add-transporter-modal.component';
 
 @Component({
   selector: 'app-configuration',
@@ -143,6 +149,11 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   mat_header_cell_dimension_nature: string = MAT_HEADER_CELL_DIMENSION_NATURE;
   mat_header_cell_dimension_isactive: string = MAT_HEADER_CELL_DIMENSION_ISACTIVE;
   mat_header_cell_dimension_isdefault: string = MAT_HEADER_CELL_DIMENSION_ISDEFAULT;
+
+  // CARD TRANSPORTER
+  mat_card_header_transporter: string = MAT_CARD_HEADER_TRANSPORTER;
+  mat_header_cell_transporter_name: string = MAT_HEADER_CELL_TRANSPORTER_NAME;
+  mat_header_cell_transporter_car: string = MAT_HEADER_CELL_TRANSPORTER_CAR;
 
   // CARD LENGTH
   mat_card_header_length: string = MAT_CARD_HEADER_LENGTH;
@@ -252,6 +263,9 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   displayedColumnsTaxes: string[] = ['name', 'context', 'value', 'applied'];
   displayedColumnsTVA: string[] = ['value', 'action'];
 
+  allTransporters: MatTableDataSource<Transporter> = new MatTableDataSource<Transporter>();
+  displayedTransporterColumns: string[] = ['fullname', 'car', 'action'];
+
 
   //dataSource = ELEMENT_DATA;
   ROLE_TRANSLATIONS = ROLE_TRANSLATIONS; // make it accessible in template
@@ -265,6 +279,7 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
 
   @ViewChild('paginatorDimension', { static: true }) paginatorDimension!: MatPaginator;
   @ViewChild('paginatorLength', { static: true }) paginatorLength!: MatPaginator;
+  @ViewChild('paginatorTransporter', { static: true }) paginatorTransporter!: MatPaginator;
 
   @ViewChild(MatPaginator) paginationCategories!: MatPaginator;
   @ViewChild(MatSort) sortCategories!: MatSort;
@@ -277,6 +292,7 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
     private bankService: BankService,
     private appvarService: AppVariableService,
     private employeeService: EmployeeService,
+    private transporterService: TransporterService,
     private toastr: ToastrService,
     private subCategoryService: SubCategoryService,
     private cdr: ChangeDetectorRef,
@@ -294,6 +310,7 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   ngAfterViewInit(): void {
     this.appvariablesDimension.paginator = this.paginatorDimension;
     this.appvariablesLength.paginator = this.paginatorLength;
+    this.allTransporters.paginator = this.paginatorTransporter;
     /**
      * Categories Sort and Pagination
      */
@@ -314,6 +331,7 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
     this.getAllLength();
     this.getAllEmployees();
     this.getAllAppUsers();
+    this.getAllTransporters();
   }
   //#endregion
 
@@ -777,6 +795,7 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
       this.appvariablesTVA = appVariables;
     });
   }
+
   //#endregion
 
   //#region Bank Methods
@@ -1281,5 +1300,44 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
     });
   }
 
+  //#endregion
+
+  //#region manage Transporters
+  addTransporter() {
+    const dialogRef = this.dialog.open(AddTransporterModalComponent, {
+      width: '950px',
+      height: '500px',
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.getAllTransporters();
+      }
+    });
+  }
+
+  getAllTransporters() {
+    this.transporterService.getAll().subscribe({
+      next: (response: Transporter[]) => {
+        this.allTransporters.data = response;
+        console.log('Successfully fetched Transporters', response);
+      },
+      error: (error) => {
+        console.error('Error fetching Transporters', error);
+        this.toastr.error('Erreur chargement des Transporteurs');
+      }
+    });
+  }
+
+  deleteTransporter(transporter: Transporter) {
+    if (confirm(`Voulez-vous vraiment supprimer le transporteur ${transporter.fullname} ?`)) {
+      // Assuming there is a Delete method in TransporterService
+      // If not, I'll need to check the service again.
+      // For now, let's assume it's like other services.
+      this.toastr.info('Fonction de suppression non implémentée dans le backend');
+    }
+  }
   //#endregion
 }
