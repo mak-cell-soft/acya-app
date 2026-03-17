@@ -276,6 +276,16 @@
     margin-bottom: -4px;
 }
 
+.clear-button {
+    color: #94a3b8;
+    transition: all 0.2s ease;
+}
+
+.clear-button:hover {
+    color: #ef4444; /* Alert red for clearing */
+    transform: scale(1.1);
+}
+
 /* Mat Overrides */
 ::ng-deep .mat-mdc-form-field-subscript-wrapper {
     display: none;
@@ -300,3 +310,46 @@
         gap: 24px;
     }
 }
+
+/* Floating Back to Top Button */
+.fab-scroll-top {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #3f51b5; /* Primary Indigo */
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+}
+
+.fab-scroll-top mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+}
+
+.fab-scroll-top:hover {
+    transform: translateY(-8px);
+    background-color: #4c5fd7; /* Lightened primary */
+    box-shadow: 0 12px 24px rgba(63, 81, 181, 0.3);
+}
+
+.fab-scroll-top:active {
+    transform: translateY(-2px);
+}
+
+@media (max-width: 992px) {
+    .fab-scroll-top {
+        bottom: 24px;
+        right: 24px;
+    }
+}

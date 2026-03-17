@@ -1,4 +1,4 @@
-<mat-toolbar class="header-container mat-elevation-z2">
+<mat-toolbar class="header-container mat-elevation-z2" id="list-header">
   <div class="header-text">
     <h2>Gestion des Articles</h2>
   </div>
@@ -19,6 +19,9 @@
         <mat-label>Rechercher...</mat-label>
         <input matInput (keyup)="applyFilter($event)" placeholder="Référence, désignation..."
           [(ngModel)]="searchFilterValue">
+        <button *ngIf="searchFilterValue" matSuffix mat-icon-button aria-label="Clear" (click)="searchFilterValue=''; triggerFilter()" class="clear-button">
+          <mat-icon>close</mat-icon>
+        </button>
       </mat-form-field>
 
       <!-- Category Filter -->
@@ -225,3 +228,8 @@
 
 <!-- Router outlet for adding articles -->
 <router-outlet></router-outlet>
+
+<!-- Floating Back to Top Button -->
+<button class="fab-scroll-top" (click)="scrollToTop()" matTooltip="Retour en haut" aria-label="Retour en haut">
+    <mat-icon>keyboard_arrow_up</mat-icon>
+</button>

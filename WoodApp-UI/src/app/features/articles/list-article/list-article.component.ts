@@ -347,5 +347,17 @@ export class ListArticleComponent implements AfterViewInit {
     });
   }
   //#endregion
+  
+  /**
+   * Smoothly scrolls back to the top of the collection list or the top of the viewport.
+   */
+  scrollToTop(): void {
+    const listHeader = document.getElementById('list-header');
+    if (listHeader) {
+      listHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
 }
 
