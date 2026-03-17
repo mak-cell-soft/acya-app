@@ -1340,4 +1340,38 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
     }
   }
   //#endregion
+
+  /**
+   * Smoothly scrolls to a specific element within the tab content.
+   * @param elementId The ID of the HTML element to scroll to.
+   */
+  scrollTo(elementId: string): void {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+        inline: 'nearest'
+      });
+    }
+  }
+
+  /**
+   * Scrolls the active tab's scrollable container back to the top.
+   */
+  scrollToTop(): void {
+    // Target the navigation container at the top of the active tab
+    const activeTop = document.querySelector('.mat-mdc-tab-body-active .quick-nav-container');
+    if (activeTop) {
+      activeTop.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      // Fallback: search for any visible card or global scroll
+      const activeCard = document.querySelector('.mat-mdc-tab-body-active mat-card');
+      if (activeCard) {
+        activeCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  }
 }

@@ -14,8 +14,24 @@
             </ng-template>
 
             <div class="tab-content">
+                <!-- Quick Navigation -->
+                <div class="quick-nav-container">
+                    <div class="quick-nav-item" (click)="scrollTo('enterprise-info')">
+                        <div class="nav-icon-wrapper"><mat-icon>business</mat-icon></div>
+                        <span class="nav-label">Général</span>
+                    </div>
+                    <div class="quick-nav-item" (click)="scrollTo('enterprise-details')">
+                        <div class="nav-icon-wrapper"><mat-icon>assignment</mat-icon></div>
+                        <span class="nav-label">Détails</span>
+                    </div>
+                    <div class="quick-nav-item" (click)="scrollTo('enterprise-sites')">
+                        <div class="nav-icon-wrapper"><mat-icon>location_city</mat-icon></div>
+                        <span class="nav-label">Sites</span>
+                    </div>
+                </div>
+
                 <!-- Informations générales de l'entreprise -->
-                <mat-card class="card-details" [formGroup]="enterpriseForm" (onclick)="this.getEnterpriseInfos()">
+                <mat-card id="enterprise-info" class="card-details" [formGroup]="enterpriseForm" (onclick)="this.getEnterpriseInfos()">
                     <div>
                         <h3><mat-icon>business</mat-icon>{{mat_card_header_enterprise}}</h3>
                         <div class="company-logo">
@@ -65,7 +81,7 @@
                 </mat-card>
 
                 <!-- Informations détaillées de l'entreprise -->
-                <mat-card class="card-details" [formGroup]="enterpriseForm">
+                <mat-card id="enterprise-details" class="card-details" [formGroup]="enterpriseForm">
                     <div>
                         <h3><mat-icon>assignment</mat-icon>{{mat_card_header_details}}</h3>
                         <mat-form-field class="full-width" appearance="outline">
@@ -138,7 +154,7 @@
                 </mat-card>
 
                 <!-- Sites de l'entreprise -->
-                <mat-card class="card-details">
+                <mat-card id="enterprise-sites" class="card-details">
                     <h4><mat-icon>location_city</mat-icon>{{mat_card_header_enter_sites}}</h4>
                     <div class="table-scroll-container">
                         <table mat-table [dataSource]="allSites" class="w-100" *ngIf="allSites.data.length">
@@ -205,8 +221,36 @@
             </ng-template>
 
             <div class="tab-content">
+                <!-- Quick Navigation -->
+                <div class="quick-nav-container">
+                    <div class="quick-nav-item" (click)="scrollTo('config-categories')">
+                        <div class="nav-icon-wrapper"><mat-icon>category</mat-icon></div>
+                        <span class="nav-label">Catégories</span>
+                    </div>
+                    <div class="quick-nav-item" (click)="scrollTo('config-taxes')">
+                        <div class="nav-icon-wrapper"><mat-icon>receipt_long</mat-icon></div>
+                        <span class="nav-label">Taxes</span>
+                    </div>
+                    <div class="quick-nav-item" (click)="scrollTo('config-tva')">
+                        <div class="nav-icon-wrapper"><mat-icon>percent</mat-icon></div>
+                        <span class="nav-label">TVA</span>
+                    </div>
+                    <div class="quick-nav-item" (click)="scrollTo('config-dimensions')">
+                        <div class="nav-icon-wrapper"><mat-icon>straighten</mat-icon></div>
+                        <span class="nav-label">Dimensions</span>
+                    </div>
+                    <div class="quick-nav-item" (click)="scrollTo('config-lengths')">
+                        <div class="nav-icon-wrapper"><mat-icon>horizontal_rule</mat-icon></div>
+                        <span class="nav-label">Longueurs</span>
+                    </div>
+                    <div class="quick-nav-item" (click)="scrollTo('config-transporters')">
+                        <div class="nav-icon-wrapper"><mat-icon>local_shipping</mat-icon></div>
+                        <span class="nav-label">Transporteurs</span>
+                    </div>
+                </div>
+
                 <!--Catégories-->
-                <mat-card class="card-details">
+                <mat-card id="config-categories" class="card-details">
                     <h5><mat-icon>category</mat-icon>{{mat_card_settings_config}}</h5>
 
                     <div class="table-scroll-container">
@@ -319,7 +363,7 @@
                 </mat-card>
 
                 <!--Taxes-->
-                <mat-card class="card-details">
+                <mat-card id="config-taxes" class="card-details">
                     <h5><mat-icon>receipt_long</mat-icon>{{mat_card_header_taxe}}</h5>
                     <div class="table-scroll-container">
                         <table mat-table [dataSource]="appvariablesTaxes" class="w-100"
@@ -394,7 +438,7 @@
                 </mat-card>
 
                 <!-- TVA -->
-                <mat-card class="card-details">
+                <mat-card id="config-tva" class="card-details">
                     <h5><mat-icon>percent</mat-icon>{{mat_card_header_tva}}</h5>
                     <div class="table-scroll-container">
                         <table mat-table [dataSource]="appvariablesTVA" class="w-100" *ngIf="appvariablesTVA.length">
@@ -468,7 +512,7 @@
                 </mat-card>
 
                 <!-- Dimensions -->
-                <mat-card class="card-details">
+                <mat-card id="config-dimensions" class="card-details">
                     <h5><mat-icon>straighten</mat-icon>{{mat_card_header_dimension}}</h5>
                     <div class="table-scroll-container">
                         <table mat-table [dataSource]="appvariablesDimension" class="w-100"
@@ -542,7 +586,7 @@
                 </mat-card>
 
                 <!-- Longueurs -->
-                <mat-card class="card-details">
+                <mat-card id="config-lengths" class="card-details">
                     <h5><mat-icon>horizontal_rule</mat-icon>{{mat_card_header_length}}</h5>
                     <div class="table-scroll-container">
                         <table mat-table [dataSource]="appvariablesLength" class="w-100"
@@ -610,7 +654,7 @@
                     </div>
                 </mat-card>
                 <!-- Transporteur-->
-                <mat-card class="card-details">
+                <mat-card id="config-transporters" class="card-details">
                     <h5><mat-icon>local_shipping</mat-icon>{{mat_card_header_transporter}}</h5>
                     <div class="table-scroll-container">
                         <table mat-table [dataSource]="allTransporters" class="w-100"
@@ -664,7 +708,19 @@
             </ng-template>
 
             <div class="tab-content">
-                <mat-card class="card-details">
+                <!-- Quick Navigation -->
+                <div class="quick-nav-container">
+                    <div class="quick-nav-item" (click)="scrollTo('emp-list')">
+                        <div class="nav-icon-wrapper"><mat-icon>badge</mat-icon></div>
+                        <span class="nav-label">Employeurs</span>
+                    </div>
+                    <div class="quick-nav-item" (click)="scrollTo('user-list')">
+                        <div class="nav-icon-wrapper"><mat-icon>person_pin</mat-icon></div>
+                        <span class="nav-label">Utilisateurs</span>
+                    </div>
+                </div>
+
+                <mat-card id="emp-list" class="card-details">
                     <h5>
                         <mat-icon>badge</mat-icon>
                         <span [matBadge]="personsCount" matBadgePosition="above after" matBadgeColor="accent">
@@ -740,7 +796,7 @@
                     </div>
                 </mat-card>
 
-                <mat-card class="card-details">
+                <mat-card id="user-list" class="card-details">
                     <h5>
                         <mat-icon>person_pin</mat-icon>
                         <span [matBadge]="usersCount" matBadgePosition="above after" matBadgeColor="accent">
@@ -855,7 +911,15 @@
             </ng-template>
 
             <div class="tab-content">
-                <mat-card class="card-details">
+                <!-- Quick Navigation -->
+                <div class="quick-nav-container">
+                    <div class="quick-nav-item" (click)="scrollTo('bank-list')">
+                        <div class="nav-icon-wrapper"><mat-icon>account_balance</mat-icon></div>
+                        <span class="nav-label">Comptes Bancaires</span>
+                    </div>
+                </div>
+
+                <mat-card id="bank-list" class="card-details">
                     <h5><mat-icon>account_balance_wallet</mat-icon>{{mat_card_bank_account_header}}</h5>
                     <div class="table-scroll-container">
                         <table mat-table [dataSource]="bankAccounts" class="w-100" *ngIf="bankAccounts.length">
@@ -937,4 +1001,9 @@
             </div>
         </mat-tab>
     </mat-tab-group>
+
+    <!-- Floating Back to Top Button -->
+    <button class="fab-scroll-top" (click)="scrollToTop()" matTooltip="Retour en haut" aria-label="Retour en haut">
+        <mat-icon>keyboard_arrow_up</mat-icon>
+    </button>
 </div>

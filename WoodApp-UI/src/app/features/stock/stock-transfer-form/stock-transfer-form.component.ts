@@ -349,7 +349,7 @@ export class StockTransferFormComponent implements OnInit {
   addTransporter() {
     const dialogRef = this.dialog.open(AddTransporterModalComponent, {
       width: '950px',
-      height: '400px',
+      height: '500px',
       maxWidth: '90vw',
       maxHeight: '90vh',
     });
