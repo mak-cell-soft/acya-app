@@ -40,6 +40,8 @@
   }
 
   .close-btn {
+    position: relative;
+    z-index: 10;
     color: rgba(255, 255, 255, 0.6);
     transition: all 0.3s ease;
     &:hover {
@@ -64,9 +66,23 @@
       justify-content: center;
     }
 
+    ::ng-deep .tab-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700 !important;
+      letter-spacing: 0.5px;
+      padding: 0 10px;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+    }
+
     ::ng-deep .mdc-tab__text-label {
       color: var(--text-muted);
-      font-weight: 500;
     }
 
     ::ng-deep .mdc-tab--active .mdc-tab__text-label {
@@ -74,7 +90,7 @@
     }
 
     ::ng-deep .mat-mdc-tab-group-inverted-header .mat-mdc-tab-header {
-        border-top: none;
+      border-top: none;
     }
   }
 }
@@ -88,6 +104,12 @@
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
   }
+}
+
+.security-container {
+  max-width: 650px;
+  margin: 0 auto;
+  padding: 1rem 0;
 }
 
 .full-width {

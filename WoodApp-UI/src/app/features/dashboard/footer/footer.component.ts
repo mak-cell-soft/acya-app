@@ -18,6 +18,7 @@ export class FooterComponent {
     const userId = Number(this.authService.getUserDetail()?.id);
     this.dialog.open(ProfileModalComponent, {
       width: '800px',
+      maxWidth: '800px',
       panelClass: 'premium-modal-panel',
       data: { id: userId },
       autoFocus: false

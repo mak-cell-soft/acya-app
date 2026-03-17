@@ -1,7 +1,7 @@
 <div class="profile-modal-container">
   <div class="modal-header">
     <h2>Mon Profil</h2>
-    <button mat-icon-button (click)="onClose()" class="close-btn">
+    <button mat-icon-button type="button" (click)="onClose()" class="close-btn">
       <mat-icon>close</mat-icon>
     </button>
   </div>
@@ -18,7 +18,13 @@
 
     <mat-tab-group class="profile-tabs" animationDuration="500ms" [(selectedIndex)]="activeTab">
       <!-- Profile Information Tab -->
-      <mat-tab label="Informations">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <div class="tab-label">
+            <mat-icon>account_circle</mat-icon>
+            <span>Informations</span>
+          </div>
+        </ng-template>
         <form [formGroup]="profileForm" (ngSubmit)="onUpdateProfile()" class="form-grid">
           <mat-form-field appearance="outline">
             <mat-label>Identifiant (Login)</mat-label>
@@ -57,7 +63,15 @@
       </mat-tab>
 
       <!-- Security / Password Tab -->
-      <mat-tab label="Sécurité">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <div class="tab-label">
+            <mat-icon>security</mat-icon>
+            <span>Sécurité</span>
+          </div>
+        </ng-template>
+        
+        <div class="security-container">
         <form [formGroup]="passwordForm" (ngSubmit)="onUpdatePassword()" class="form-grid">
           <div class="full-width">
             <p class="password-hint">Pour changer votre mot de passe, veuillez saisir votre mot de passe actuel ainsi que le nouveau.</p>
@@ -88,12 +102,13 @@
             <mat-error *ngIf="passwordForm.errors?.['mismatch']">Les mots de passe ne correspondent pas</mat-error>
           </mat-form-field>
         </form>
-      </mat-tab>
+      </div>
+    </mat-tab>
     </mat-tab-group>
   </div>
 
   <div class="modal-footer">
-    <button mat-button (click)="onClose()" class="btn-cancel">Annuler</button>
+    <button mat-button type="button" (click)="onClose()" class="btn-cancel">Annuler</button>
     
     <!-- Dynamic button based on active tab -->
     <button mat-raised-button 
