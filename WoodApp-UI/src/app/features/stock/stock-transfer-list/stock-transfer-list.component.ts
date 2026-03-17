@@ -11,7 +11,7 @@ import { AuthenticationService } from '../../../services/components/authenticati
 import { StockService } from '../../../services/components/stock.service';
 import { TransferDetailsDialogComponent } from '../transfer-details-dialog/transfer-details-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { TransfertStockComponent } from '../stock-transfer/transfert-stock.component';
+import { StockTransferFormComponent } from '../stock-transfer-form/stock-transfer-form.component';
 
 @Component({
   selector: 'app-stock-transfer-list',
@@ -134,7 +134,7 @@ export class StockTransferListComponent {
   }
 
   openAddTransferDialog(): void {
-    const dialogRef = this.dialog.open(TransfertStockComponent, {
+    const dialogRef = this.dialog.open(StockTransferFormComponent, {
       width: '1200px',
       maxWidth: '95vw',
       maxHeight: '90vh',

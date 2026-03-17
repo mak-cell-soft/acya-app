@@ -26,9 +26,9 @@ import {
  * Uses OnPush (implied by design rules) and Signals for state management.
  */
 @Component({
-  selector: 'app-stock-mouvement',
-  templateUrl: './stock-mouvement.component.html',
-  styleUrl: './stock-mouvement.component.scss',
+  selector: 'app-stock-movement-timeline',
+  templateUrl: './stock-movement-timeline.component.html',
+  styleUrl: './stock-movement-timeline.component.scss',
   animations: [
     trigger('listAnimation', [
       transition('* <=> *', [
@@ -48,7 +48,7 @@ import {
     ])
   ]
 })
-export class StockMouvementComponent implements OnInit {
+export class StockMovementTimelineComponent implements OnInit {
   private fb = inject(FormBuilder);
   private articleService = inject(ArticleService);
   private siteService = inject(SalessitesService);

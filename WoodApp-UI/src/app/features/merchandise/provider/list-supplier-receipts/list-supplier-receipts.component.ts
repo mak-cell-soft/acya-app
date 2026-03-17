@@ -19,9 +19,9 @@ import { GenerateInvoiceModalComponent } from '../../../dashboard/modals/invoice
 import { EditDocumentModalComponent } from '../../../dashboard/modals/edit-document-modal/edit-document-modal.component';
 
 @Component({
-  selector: 'app-list-documents',
-  templateUrl: './list-documents.component.html',
-  styleUrl: './list-documents.component.css',
+  selector: 'app-list-supplier-receipts',
+  templateUrl: './list-supplier-receipts.component.html',
+  styleUrl: './list-supplier-receipts.component.css',
   animations: [
     trigger('detailExpand', [
       state('collapsed,void', style({ height: '0px', minHeight: '0' })),
@@ -30,7 +30,7 @@ import { EditDocumentModalComponent } from '../../../dashboard/modals/edit-docum
     ]),
   ]
 })
-export class ListDocumentsComponent implements OnInit, AfterViewInit {
+export class ListSupplierReceiptsComponent implements OnInit, AfterViewInit {
 
   docService = inject(DocumentService);
   authService = inject(AuthenticationService);

@@ -19,11 +19,11 @@ import { ProviderEditModalComponent } from '../provider-edit-modal/provider-edit
 import { ProviderDetailsModalComponent } from '../provider-details-modal/provider-details-modal.component';
 
 @Component({
-  selector: 'app-list-provider',
-  templateUrl: './list-provider.component.html',
-  styleUrl: './list-provider.component.css'
+  selector: 'app-list-suppliers',
+  templateUrl: './list-suppliers.component.html',
+  styleUrls: ['./list-suppliers.component.css']
 })
-export class ListProviderComponent implements OnInit {
+export class ListSuppliersComponent implements OnInit {
 
   counterPartService = inject(CounterpartService);
   authService = inject(AuthenticationService);

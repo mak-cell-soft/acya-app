@@ -31,7 +31,7 @@ import { combineLatest, forkJoin, Observable, tap } from 'rxjs';
 import { BankService } from '../../../services/configuration/bank.service';
 import { Bank } from '../../../models/configuration/bank';
 import { ERROR_UPDATE_BANK, LOAD_BANK_ERROR, LOAD_BANK_SUCCESS, SUCCESS_UPDATE_BANK } from '../../../shared/constants/modals/bank_modal';
-import { AppVariableModalComponent } from '../modals/add-app-variable-modal/app-variable-modal.component';
+import { AddAppVariableModalComponent } from '../modals/add-app-variable-modal/add-app-variable-modal.component';
 import { AppVariable } from '../../../models/configuration/appvariable';
 import { LOAD_TAXES_ERROR, LOAD_TAXES_SUCCESS, LOAD_TVA_ERROR, LOAD_TVA_SUCCESS, MAT_CARD_HEADER_LENGTH, MAT_HEADER_CELL_DIMENSION_ISACTIVE, MAT_HEADER_CELL_DIMENSION_ISDEFAULT, MAT_HEADER_CELL_DIMENSION_NAME, MAT_HEADER_CELL_DIMENSION_NATURE, MAT_HEADER_CELL_DIMENSION_VALUE, MAT_HEADER_CELL_LENGTH_ISACTIVE, MAT_HEADER_CELL_LENGTH_ISDEFAULT, MAT_HEADER_CELL_LENGTH_NAME, MAT_HEADER_CELL_LENGTH_NATURE, MAT_HEADER_CELL_LENGTH_VALUE, MAT_HEADER_CELL_TAXE_ISACTIVE, MAT_HEADER_CELL_TAXE_ISDEFAULT, MAT_HEADER_CELL_TAXE_ISEDITABLE, MAT_HEADER_CELL_TAXE_NAME, MAT_HEADER_CELL_TAXE_VALUE } from '../../../shared/constants/modals/app_variable_modal';
 import { AppVariableService } from '../../../services/configuration/app-variable.service';
@@ -460,7 +460,7 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
 
   //#region TAXE
   openAddAppVarDialog(nature: string) {
-    const dialogRef = this.dialog.open(AppVariableModalComponent, {
+    const dialogRef = this.dialog.open(AddAppVariableModalComponent, {
       width: '600px',
       height: '400px',
       data: { nature: nature }

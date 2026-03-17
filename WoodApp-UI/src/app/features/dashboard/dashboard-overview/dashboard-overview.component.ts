@@ -13,11 +13,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'app-home-dashboard',
-  templateUrl: './home-dashboard.component.html',
-  styleUrl: './home-dashboard.component.css'
+  selector: 'app-dashboard-overview',
+  templateUrl: './dashboard-overview.component.html',
+  styleUrl: './dashboard-overview.component.css'
 })
-export class HomeDashboardComponent implements OnInit {
+export class DashboardOverviewComponent implements OnInit {
 
   counterpartService = inject(CounterpartService);
   documentService = inject(DocumentService);

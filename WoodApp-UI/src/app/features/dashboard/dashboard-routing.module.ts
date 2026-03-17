@@ -1,22 +1,22 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import { HomeComponent } from './home/home.component';
-import { HomeDashboardComponent } from './home-dashboard/home-dashboard.component';
-import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.component';
+import { DashboardShellComponent } from './dashboard-shell/dashboard-shell.component';
+import { DashboardOverviewComponent } from './dashboard-overview/dashboard-overview.component';
+import { AccountingBalanceDashboardComponent } from './accounting-balance-dashboard/accounting-balance-dashboard.component';
 import { ConfigurationComponent } from './configuration/configuration.component';
 import { roleGuard } from '../../guards/role.guard';
 
 const routes: Routes = [
   {
     path: '',
-    component: HomeComponent,
+    component: DashboardShellComponent,
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: HomeDashboardComponent },
+      { path: 'dashboard', component: DashboardOverviewComponent },
       {
         path: 'admin-dashboard',
-        component: AdminDashboardComponent,
+        component: AccountingBalanceDashboardComponent,
         canActivate: [roleGuard],
         data: { roles: ['Admin'] }
       },

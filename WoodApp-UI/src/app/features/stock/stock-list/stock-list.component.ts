@@ -7,7 +7,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { TransfertStockComponent } from '../stock-transfer/transfert-stock.component';
+import { StockTransferFormComponent } from '../stock-transfer-form/stock-transfer-form.component';
 
 interface UnitTotal {
   unit: string;
@@ -159,7 +159,7 @@ export class StockListComponent implements OnInit, AfterViewInit {
     this.router.navigateByUrl('home/stock/mouvement');
   }
   onDisplayStockExit() {
-    const dialogRef = this.dialog.open(TransfertStockComponent, {
+    const dialogRef = this.dialog.open(StockTransferFormComponent, {
       width: '1200px',
       maxWidth: '95vw',
       maxHeight: '90vh',

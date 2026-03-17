@@ -3,20 +3,20 @@ import { RouterModule, Routes } from '@angular/router';
 
 
 
-import { WebAppComponent } from './auth-web-app/web-app.component';
+import { AuthLandingShellComponent } from './auth-landing-shell/auth-landing-shell.component';
 import { authGuard } from './guards/auth.guard';
-import { EnterpriseComponent } from './enterprise/enterprise.component';
+import { EnterpriseRegistrationComponent } from './enterprise-registration/enterprise-registration.component';
 
 
 const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    component: WebAppComponent,
+    component: AuthLandingShellComponent,
   },
   {
     path: 'register',
-    component: EnterpriseComponent
+    component: EnterpriseRegistrationComponent
   },
   {
     path: 'login',

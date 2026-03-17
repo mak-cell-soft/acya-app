@@ -54,9 +54,9 @@ import { MatBadgeModule } from '@angular/material/badge';
 
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { WebAppComponent } from './auth-web-app/web-app.component';
+import { AuthLandingShellComponent } from './auth-landing-shell/auth-landing-shell.component';
 import { tokenInterceptor } from './interceptor/token.interceptor';
-import { EnterpriseComponent } from './enterprise/enterprise.component';
+import { EnterpriseRegistrationComponent } from './enterprise-registration/enterprise-registration.component';
 
 import { AddTransporterModalComponent } from './shared/components/modals/add-transporter-modal/add-transporter-modal.component';
 import { ConfirmDeleteModalComponent } from './shared/components/modals/confirm-delete-modal/confirm-delete-modal.component';
@@ -89,8 +89,8 @@ import { MatChipsModule } from '@angular/material/chips';
 
 
 
-    WebAppComponent,
-    EnterpriseComponent,
+    AuthLandingShellComponent,
+    EnterpriseRegistrationComponent,
 
     AddTransporterModalComponent,
     ConfirmDeleteModalComponent,

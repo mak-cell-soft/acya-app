@@ -4,8 +4,8 @@ import { CommonModule } from '@angular/common';
 import { StockRoutingModule } from './stock-routing.module';
 
 import { StockListComponent } from './stock-list/stock-list.component';
-import { StockMouvementComponent } from './stock-mouvement/stock-mouvement.component';
-import { TransfertStockComponent } from './stock-transfer/transfert-stock.component';
+import { StockMovementTimelineComponent } from './stock-movement-timeline/stock-movement-timeline.component';
+import { StockTransferFormComponent } from './stock-transfer-form/stock-transfer-form.component';
 import { StockTransferListComponent } from './stock-transfer-list/stock-transfer-list.component';
 import { StockInventoryComponent } from './stock-inventory/stock-inventory.component';
 import { TransferDetailsDialogComponent } from './transfer-details-dialog/transfer-details-dialog.component';
@@ -41,8 +41,8 @@ import { MatRadioModule } from '@angular/material/radio';
 @NgModule({
   declarations: [
     StockListComponent,
-    StockMouvementComponent,
-    TransfertStockComponent,
+    StockMovementTimelineComponent,
+    StockTransferFormComponent,
     StockTransferListComponent,
     StockInventoryComponent,
     TransferDetailsDialogComponent,

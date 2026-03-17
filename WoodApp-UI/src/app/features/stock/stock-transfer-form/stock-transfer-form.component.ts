@@ -30,11 +30,11 @@ import { Router } from '@angular/router';
 import { NotificationService } from '../../../services/components/notification.service';
 
 @Component({
-  selector: 'app-transfert-stock',
-  templateUrl: './transfert-stock.component.html',
-  styleUrl: './transfert-stock.component.css'
+  selector: 'app-stock-transfer-form',
+  templateUrl: './stock-transfer-form.component.html',
+  styleUrl: './stock-transfer-form.component.css'
 })
-export class TransfertStockComponent implements OnInit {
+export class StockTransferFormComponent implements OnInit {
   fb = inject(FormBuilder);
   articleService = inject(ArticleService);
   siteService = inject(SalessitesService);
@@ -49,7 +49,7 @@ export class TransfertStockComponent implements OnInit {
   notificationService = inject(NotificationService);
 
   constructor(
-    @Optional() public dialogRef: MatDialogRef<TransfertStockComponent>,
+    @Optional() public dialogRef: MatDialogRef<StockTransferFormComponent>,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: any
   ) { }
 

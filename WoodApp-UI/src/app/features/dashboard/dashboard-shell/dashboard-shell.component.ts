@@ -9,11 +9,11 @@ import { AuthenticationService } from '../../../services/components/authenticati
 
 @UntilDestroy()
 @Component({
-  selector: 'app-home',
-  templateUrl: './home.component.html',
-  styleUrl: './home.component.scss'
+  selector: 'app-dashboard-shell',
+  templateUrl: './dashboard-shell.component.html',
+  styleUrl: './dashboard-shell.component.scss'
 })
-export class HomeComponent implements AfterViewInit, OnInit {
+export class DashboardShellComponent implements AfterViewInit, OnInit {
 
 
   //#region Labels Constants

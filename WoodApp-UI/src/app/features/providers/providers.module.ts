@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ProvidersRoutingModule } from './providers-routing.module';
 
 import { AddProviderComponent } from './add-provider/add-provider.component';
-import { ListProviderComponent } from './list-provider/list-provider.component';
+import { ListSuppliersComponent } from './list-suppliers/list-suppliers.component';
 import { ProviderDetailsModalComponent } from './provider-details-modal/provider-details-modal.component';
 import { ProviderEditModalComponent } from './provider-edit-modal/provider-edit-modal.component';
 
@@ -31,7 +31,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 @NgModule({
   declarations: [
     AddProviderComponent,
-    ListProviderComponent,
+    ListSuppliersComponent,
     ProviderDetailsModalComponent,
     ProviderEditModalComponent
   ],

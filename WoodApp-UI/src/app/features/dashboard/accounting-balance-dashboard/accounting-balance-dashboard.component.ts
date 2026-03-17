@@ -9,11 +9,11 @@ import { CustomerAccountModalComponent } from '../../customers/customer-account-
 import { CounterPart } from '../../../models/components/counterpart';
 
 @Component({
-    selector: 'app-admin-dashboard',
-    templateUrl: './admin-dashboard.component.html',
-    styleUrls: ['./admin-dashboard.component.css']
+  selector: 'app-accounting-balance-dashboard',
+  templateUrl: './accounting-balance-dashboard.component.html',
+  styleUrls: ['./accounting-balance-dashboard.component.css']
 })
-export class AdminDashboardComponent implements OnInit {
+export class AccountingBalanceDashboardComponent implements OnInit {
     customerBalances: MatTableDataSource<BalanceEntry> = new MatTableDataSource<BalanceEntry>();
     supplierBalances: MatTableDataSource<BalanceEntry> = new MatTableDataSource<BalanceEntry>();
     loading = false;

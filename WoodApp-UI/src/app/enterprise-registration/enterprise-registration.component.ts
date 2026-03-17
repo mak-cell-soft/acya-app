@@ -17,12 +17,12 @@ import { ToastrService } from 'ngx-toastr';
 
 
 @Component({
-  selector: 'app-enterprise',
-  templateUrl: './enterprise.component.html',
-  styleUrl: './enterprise.component.scss',
+  selector: 'app-enterprise-registration',
+  templateUrl: './enterprise-registration.component.html',
+  styleUrl: './enterprise-registration.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EnterpriseComponent implements OnInit {
+export class EnterpriseRegistrationComponent implements OnInit {
 
   dialog = inject(MatDialog);
   fb = inject(FormBuilder);

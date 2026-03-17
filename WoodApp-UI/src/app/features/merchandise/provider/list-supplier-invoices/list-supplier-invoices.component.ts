@@ -14,9 +14,9 @@ import { DocumentsRelationship } from '../../../../models/components/documentsre
 import { getStatusInfo, getBillingStatusInfo, isSameDay } from '../../../../utils/document-utils';
 
 @Component({
-  selector: 'app-list-invoices',
-  templateUrl: './list-invoices.component.html',
-  styleUrl: './list-invoices.component.css',
+  selector: 'app-list-supplier-invoices',
+  templateUrl: './list-supplier-invoices.component.html',
+  styleUrl: './list-supplier-invoices.component.css',
   animations: [
     trigger('detailExpand', [
       state('collapsed,void', style({ height: '0px', minHeight: '0' })),
@@ -25,7 +25,7 @@ import { getStatusInfo, getBillingStatusInfo, isSameDay } from '../../../../util
     ]),
   ]
 })
-export class ListInvoicesComponent implements AfterViewInit, OnInit {
+export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
 
   docService = inject(DocumentService);
   dialog = inject(MatDialog);

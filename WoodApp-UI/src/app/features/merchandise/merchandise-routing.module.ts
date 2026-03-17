@@ -1,9 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import { AddDocumentComponent } from './provider/add-document/add-document.component';
-import { ListDocumentsComponent } from './provider/list-documents/list-documents.component';
-import { ListInvoicesComponent } from './provider/list-invoices/list-invoices.component';
+import { AddSupplierReceiptComponent } from './provider/add-supplier-receipt/add-supplier-receipt.component';
+import { ListSupplierReceiptsComponent } from './provider/list-supplier-receipts/list-supplier-receipts.component';
+import { ListSupplierInvoicesComponent } from './provider/list-supplier-invoices/list-supplier-invoices.component';
 import { CustomerAddDocumentComponent } from './customer/add-document/customer-add-document.component';
 import { ListCustomerDocumentsComponent } from './customer/list-customer-documents/list-customer-documents.component';
 import { ListCustomerInvoicesComponent } from './customer/list-customer-invoices/list-customer-invoices.component';
@@ -17,18 +17,18 @@ import { CanDeactivateGuard } from '../../guards/can-deactivate.guard';
 const routes: Routes = [
   {
     path: 'reception',
-    component: AddDocumentComponent,
+    component: AddSupplierReceiptComponent,
     canDeactivate: [CanDeactivateGuard]
   },
   {
     path: 'reception/list',
-    component: ListDocumentsComponent,
+    component: ListSupplierReceiptsComponent,
     canActivate: [roleGuard],
     data: { roles: ['Admin'] }
   },
   {
     path: 'sinvoices',
-    component: ListInvoicesComponent,
+    component: ListSupplierInvoicesComponent,
     canActivate: [roleGuard],
     data: { roles: ['Admin'] }
   },

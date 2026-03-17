@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 
 import { DashboardRoutingModule } from './dashboard-routing.module';
 
-import { HomeComponent } from './home/home.component';
+import { DashboardShellComponent } from './dashboard-shell/dashboard-shell.component';
 import { HeaderComponent } from './header/header.component';
 import { FooterComponent } from './footer/footer.component';
-import { HomeDashboardComponent } from './home-dashboard/home-dashboard.component';
-import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.component';
+import { DashboardOverviewComponent } from './dashboard-overview/dashboard-overview.component';
+import { AccountingBalanceDashboardComponent } from './accounting-balance-dashboard/accounting-balance-dashboard.component';
 import { ConfigurationComponent } from './configuration/configuration.component';
 
 // Modals
@@ -15,7 +15,7 @@ import { AddBankModalComponent } from './modals/add-bank-modal/add-bank-modal.co
 import { AddSalesSiteModalComponent } from './modals/add-sales-site-modal/add-sales-site-modal.component';
 import { AddCategoriesModalComponent } from './modals/add-categories-modal/add-categories-modal.component';
 import { AddSubCategoriesModalComponent } from './modals/add-sub-categories-modal/add-sub-categories-modal.component';
-import { AppVariableModalComponent } from './modals/add-app-variable-modal/app-variable-modal.component';
+import { AddAppVariableModalComponent } from './modals/add-app-variable-modal/add-app-variable-modal.component';
 import { PermissionsModalComponent } from './modals/permissions-modal/permissions-modal.component';
 import { AddEmployeesModalComponent } from './modals/add-employees-modal/add-employees-modal.component';
 import { GenerateInvoiceModalComponent } from './modals/invoice/generate-invoice-modal/generate-invoice-modal.component';
@@ -54,17 +54,17 @@ import { BaseChartDirective } from 'ng2-charts';
 
 @NgModule({
   declarations: [
-    HomeComponent,
+    DashboardShellComponent,
     HeaderComponent,
     FooterComponent,
-    HomeDashboardComponent,
-    AdminDashboardComponent,
+    DashboardOverviewComponent,
+    AccountingBalanceDashboardComponent,
     ConfigurationComponent,
     AddBankModalComponent,
     AddSalesSiteModalComponent,
     AddCategoriesModalComponent,
     AddSubCategoriesModalComponent,
-    AppVariableModalComponent,
+    AddAppVariableModalComponent,
     PermissionsModalComponent,
     AddEmployeesModalComponent,
     GenerateInvoiceModalComponent,

@@ -1,14 +1,14 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import { ListProviderComponent } from './list-provider/list-provider.component';
+import { ListSuppliersComponent } from './list-suppliers/list-suppliers.component';
 import { AddProviderComponent } from './add-provider/add-provider.component';
 import { roleGuard } from '../../guards/role.guard';
 
 const routes: Routes = [
   {
     path: '',
-    component: ListProviderComponent
+    component: ListSuppliersComponent
   },
   {
     path: 'add',

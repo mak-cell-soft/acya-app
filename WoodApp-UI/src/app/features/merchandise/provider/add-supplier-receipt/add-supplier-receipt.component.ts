@@ -35,11 +35,11 @@ import { firstValueFrom } from 'rxjs';
 import { TransactionType } from '../../../../models/components/stock';
 
 @Component({
-  selector: 'app-add-document',
-  templateUrl: './add-document.component.html',
-  styleUrl: './add-document.component.css'
+  selector: 'app-add-supplier-receipt',
+  templateUrl: './add-supplier-receipt.component.html',
+  styleUrl: './add-supplier-receipt.component.css'
 })
-export class AddDocumentComponent implements OnInit, CanComponentDeactivate {
+export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactivate {
 
   hasUnsavedChanges = false; // Flag for tracking unsaved changes
 

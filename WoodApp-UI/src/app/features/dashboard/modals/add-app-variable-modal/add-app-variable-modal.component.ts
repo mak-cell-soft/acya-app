@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
@@ -13,11 +13,11 @@ import { addAppVariable } from '../../../../store/actions/appvariable.actions'; 
 
 
 @Component({
-  selector: 'app-app-variable-modal',
-  templateUrl: './app-variable-modal.component.html',
-  styleUrl: './app-variable-modal.component.scss'
+  selector: 'app-add-app-variable-modal',
+  templateUrl: './add-app-variable-modal.component.html',
+  styleUrl: './add-app-variable-modal.component.scss'
 })
-export class AppVariableModalComponent {
+export class AddAppVariableModalComponent implements OnInit {
 
   nature!: string;
   natureDimensions!: Nature;
@@ -56,7 +56,7 @@ export class AppVariableModalComponent {
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
-    public dialogRef: MatDialogRef<AppVariableModalComponent>,
+    public dialogRef: MatDialogRef<AddAppVariableModalComponent>,
     private fb: FormBuilder,
     private appvarService: AppVariableService,
     private toastr: ToastrService,
@@ -67,6 +67,8 @@ export class AppVariableModalComponent {
     console.log("NATURE SELECTIONNE : " + this.nature);
     this.initializeLabels();
   }
+
+  ngOnInit(): void { }
 
   onNoClick(): void {
     this.dialogRef.close();
