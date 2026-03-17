@@ -7,13 +7,17 @@ import { map, Observable } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 
 interface CustomJwtPayload {
-  email: string;
-  name: string;
-  nameid: string;
-  role: string;
-  EnterpriseId: string; // Added Recently
-  DefaultSite: string;
-  DefaultSiteId: string;
+  email?: string;
+  name?: string;
+  nameid?: string;
+  'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'?: string;
+  'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'?: string;
+  'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'?: string;
+  role?: string;
+  'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'?: string;
+  EnterpriseId?: string;
+  DefaultSite?: string;
+  DefaultSiteId?: string;
 }
 
 @Injectable({
@@ -93,15 +97,14 @@ export class AuthenticationService {
     //console.log('Decoded Token', decodedToken);
 
     const userDetail = {
-      id: decodedToken.nameid,
-      fullname: decodedToken.name,
-      email: decodedToken.email,
-      role: decodedToken.role,
+      id: decodedToken.nameid || decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'],
+      fullname: decodedToken.name || decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'],
+      email: decodedToken.email || decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'],
+      role: decodedToken.role || decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
       enterpriseId: decodedToken.EnterpriseId,
       defaultSite: decodedToken.DefaultSite,
       defaultSiteId: decodedToken.DefaultSiteId
     };
-    console.log('Connected User Details fullname + Default site: ', userDetail.fullname + '  ' + userDetail.defaultSite);
     return userDetail;
   }
 

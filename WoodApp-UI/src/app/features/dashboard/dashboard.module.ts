@@ -23,6 +23,7 @@ import { EditDocumentModalComponent } from './modals/edit-document-modal/edit-do
 import { LeaveManagementModalComponent } from './modals/leave-management-modal/leave-management-modal.component';
 import { PayslipModalComponent } from './modals/payslip-modal/payslip-modal.component';
 import { AdvanceManagementModalComponent } from './modals/advance-management-modal/advance-management-modal.component';
+import { ProfileModalComponent } from './modals/profile-modal/profile-modal.component';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -70,7 +71,8 @@ import { BaseChartDirective } from 'ng2-charts';
     EditDocumentModalComponent,
     LeaveManagementModalComponent,
     PayslipModalComponent,
-    AdvanceManagementModalComponent
+    AdvanceManagementModalComponent,
+    ProfileModalComponent
   ],
   imports: [
     CommonModule,

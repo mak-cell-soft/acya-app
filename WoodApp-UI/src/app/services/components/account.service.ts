@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { AppUser } from '../../models/components/appuser';
+import { ProfileUpdate, PasswordUpdate } from '../../models/components/Authentication/profile-management';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -22,5 +24,17 @@ export class AccountService {
  */
   RegisterEmployee(model: AppUser) {
     return this.http.post<AppUser>(this.baseUrl + 'Account/register', model);
+  }
+
+  getProfile(id: number): Observable<AppUser> {
+    return this.http.get<AppUser>(this.baseUrl + 'Account/profile/' + id);
+  }
+
+  updateProfile(model: ProfileUpdate): Observable<any> {
+    return this.http.put(this.baseUrl + 'Account/update-profile', model);
+  }
+
+  updatePassword(model: PasswordUpdate): Observable<any> {
+    return this.http.put(this.baseUrl + 'Account/update-password', model);
   }
 }

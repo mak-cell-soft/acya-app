@@ -10,3 +10,9 @@ body {
     font-family: Roboto, "Helvetica Neue", sans-serif;
     --mat-toolbar-container-background-color: ghostwite;
 }
+
+.premium-modal-panel .mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: 12px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  overflow: hidden !important;
+}

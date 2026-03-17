@@ -8,8 +8,10 @@ using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.infrastructure;
 using ms.webapp.api.acya.core.Entities.DTOs.Authentication;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using ms.webapp.api.acya.core.Entities.Dtos;
 using Microsoft.AspNetCore.Authorization;
+using ms.webapp.api.acya.core.Entities.DTOs;
 
 namespace ms.webapp.api.acya.api.Controllers.Authentication
 {
@@ -21,6 +23,86 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
     {
       _context = context;
       _tokenService = tokenService;
+    }
+
+    [Authorize]
+    [HttpGet("profile/{id}")]
+    public async Task<ActionResult<AppUserDto>> GetProfile(int id)
+    {
+      var user = await _context.AppUsers
+        .Include(u => u.Persons)
+        .SingleOrDefaultAsync(u => u.Id == id);
+
+      if (user == null) 
+      {
+        return NotFound();
+      }
+
+      return Ok(new AppUserDto(user));
+    }
+
+    [Authorize]
+    [HttpPut("update-profile")]
+    public async Task<ActionResult> UpdateProfile(ProfileUpdateDto profileUpdateDto)
+    {
+      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+
+      var user = await _context.AppUsers
+        .Include(u => u.Persons)
+        .SingleOrDefaultAsync(u => u.Id == userId);
+
+      if (user == null) return NotFound();
+
+      user.Email = profileUpdateDto.Email?.ToLower();
+      user.Login = profileUpdateDto.Login?.ToLower();
+      
+      if (user.Persons != null)
+      {
+        user.Persons.Firstname = Helpers.CapitalizeFirstLetter(profileUpdateDto.FirstName ?? "");
+        user.Persons.Lastname = profileUpdateDto.LastName?.ToUpper() ?? "";
+        user.Persons.FullName = $"{user.Persons.Firstname} {user.Persons.Lastname}";
+        user.Persons.PhoneNumber = profileUpdateDto.PhoneNumber;
+        user.Persons.Address = profileUpdateDto.Address;
+      }
+
+      await _context.SaveChangesAsync();
+
+      return Ok(new { message = "Profile updated successfully" });
+    }
+    
+    [Authorize]
+    [HttpPut("update-password")]
+    public async Task<ActionResult> UpdatePassword(PasswordUpdateDto passwordUpdateDto)
+    {
+      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+
+      var user = await _context.AppUsers.FindAsync(userId);
+
+      if (user == null) return NotFound();
+
+      if (string.IsNullOrEmpty(passwordUpdateDto.OldPassword) || string.IsNullOrEmpty(passwordUpdateDto.NewPassword))
+      {
+          return BadRequest("Old and new passwords are required");
+      }
+
+      using var hmacOld = new HMACSHA512(user.PasswordSalt!);
+      var computedHash = hmacOld.ComputeHash(Encoding.UTF8.GetBytes(passwordUpdateDto.OldPassword));
+
+      for (int i = 0; i < computedHash.Length; i++)
+      {
+        if (computedHash[i] != user.PasswordHash![i]) 
+        {
+          return BadRequest("Invalid old password");
+        }
+      }
+
+      using var hmacNew = new HMACSHA512();
+      user.PasswordHash = hmacNew.ComputeHash(Encoding.UTF8.GetBytes(passwordUpdateDto.NewPassword));
+      user.PasswordSalt = hmacNew.Key;
+
+      await _context.SaveChangesAsync();
+
+      return Ok(new { message = "Password updated successfully" });
     }
 
     [AllowAnonymous]

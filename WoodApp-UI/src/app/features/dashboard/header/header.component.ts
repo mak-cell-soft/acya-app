@@ -8,6 +8,7 @@ import { AppuserService } from '../../../services/components/appuser.service';
 import { NotificationService } from '../../../services/components/notification.service';
 import { MatDialog } from '@angular/material/dialog';
 import { TransferConfirmationComponent } from '../../stock/transfer-confirmation/transfer-confirmation.component';
+import { ProfileModalComponent } from '../modals/profile-modal/profile-modal.component';
 
 @Component({
   selector: 'app-header',
@@ -145,5 +146,15 @@ export class HeaderComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
+
+  openProfileModal(): void {
+    const userId = Number(this.authService.getUserDetail()?.id);
+    this.dialog.open(ProfileModalComponent, {
+      width: '800px',
+      panelClass: 'premium-modal-panel',
+      data: { id: userId },
+      autoFocus: false
+    });
+  }
 
 }

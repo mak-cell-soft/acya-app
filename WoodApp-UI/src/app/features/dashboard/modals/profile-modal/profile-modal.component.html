@@ -1,0 +1,107 @@
+<div class="profile-modal-container">
+  <div class="modal-header">
+    <h2>Mon Profil</h2>
+    <button mat-icon-button (click)="onClose()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="modal-body">
+    <div *ngIf="!profileForm.value.email && !message" class="loading-overlay">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Chargement de vos informations...</p>
+    </div>
+
+    <div *ngIf="message" [ngClass]="['status-message', messageType]">
+      {{ message }}
+    </div>
+
+    <mat-tab-group class="profile-tabs" animationDuration="500ms" [(selectedIndex)]="activeTab">
+      <!-- Profile Information Tab -->
+      <mat-tab label="Informations">
+        <form [formGroup]="profileForm" (ngSubmit)="onUpdateProfile()" class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Identifiant (Login)</mat-label>
+            <input matInput formControlName="login" placeholder="Ex: aminedoe" readonly>
+            <mat-icon matSuffix>account_circle</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" type="email" placeholder="example@mail.com">
+            <mat-icon matSuffix>email</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Prénom</mat-label>
+            <input matInput formControlName="firstName" placeholder="Votre prénom">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Nom</mat-label>
+            <input matInput formControlName="lastName" placeholder="Votre nom">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Téléphone</mat-label>
+            <input matInput formControlName="phoneNumber" placeholder="Numéro de téléphone">
+            <mat-icon matSuffix>phone</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Adresse</mat-label>
+            <textarea matInput formControlName="address" placeholder="Votre adresse complète" rows="2"></textarea>
+            <mat-icon matSuffix>location_on</mat-icon>
+          </mat-form-field>
+        </form>
+      </mat-tab>
+
+      <!-- Security / Password Tab -->
+      <mat-tab label="Sécurité">
+        <form [formGroup]="passwordForm" (ngSubmit)="onUpdatePassword()" class="form-grid">
+          <div class="full-width">
+            <p class="password-hint">Pour changer votre mot de passe, veuillez saisir votre mot de passe actuel ainsi que le nouveau.</p>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Mot de passe actuel</mat-label>
+            <input matInput [type]="hideOld ? 'password' : 'text'" formControlName="oldPassword">
+            <button mat-icon-button matSuffix (click)="hideOld = !hideOld" [attr.aria-label]="'Hide password'" type="button">
+              <mat-icon>{{hideOld ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Nouveau mot de passe</mat-label>
+            <input matInput [type]="hideNew ? 'password' : 'text'" formControlName="newPassword">
+            <button mat-icon-button matSuffix (click)="hideNew = !hideNew" [attr.aria-label]="'Hide password'" type="button">
+              <mat-icon>{{hideNew ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Confirmer le nouveau mot de passe</mat-label>
+            <input matInput [type]="hideConfirm ? 'password' : 'text'" formControlName="confirmPassword">
+            <button mat-icon-button matSuffix (click)="hideConfirm = !hideConfirm" [attr.aria-label]="'Hide password'" type="button">
+              <mat-icon>{{hideConfirm ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+            <mat-error *ngIf="passwordForm.errors?.['mismatch']">Les mots de passe ne correspondent pas</mat-error>
+          </mat-form-field>
+        </form>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+
+  <div class="modal-footer">
+    <button mat-button (click)="onClose()" class="btn-cancel">Annuler</button>
+    
+    <!-- Dynamic button based on active tab -->
+    <button mat-raised-button 
+            class="btn-save" 
+            [disabled]="isSaving || (activeTab === 0 ? profileForm.invalid : passwordForm.invalid)"
+            (click)="activeTab === 0 ? onUpdateProfile() : onUpdatePassword()">
+      <mat-spinner diameter="20" *ngIf="isSaving" style="display:inline-block; margin-right: 8px;"></mat-spinner>
+      {{ isSaving ? 'Mise à jour...' : 'Enregistrer les modifications' }}
+    </button>
+  </div>
+</div>
