@@ -133,7 +133,7 @@
         <mat-icon class="expand-icon" *ngIf="!isCollapsed">{{isStockMenuOpen ? 'expand_less' : 'expand_more'}}</mat-icon>
       </button>
       <div class="submenu" [class.open]="isStockMenuOpen" *ngIf="!isCollapsed">
-        <a class="sub-menu-item" routerLink="stock" routerLinkActive="active-sub">
+        <a class="sub-menu-item" routerLink="stock" routerLinkActive="active-sub" [routerLinkActiveOptions]="{ exact: true }">
           <span>{{menu_sub_stock_manage}}</span>
         </a>
         <a class="sub-menu-item" routerLink="stock/transferinfo" routerLinkActive="active-sub">
