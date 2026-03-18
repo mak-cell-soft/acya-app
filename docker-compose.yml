@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: wood-app-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-wood-app-db}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./wood-app.api/db:/docker-entrypoint-initdb.d:ro
+    networks:
+      - wood-app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-wood-app-db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  # .NET Web API
+  api:
+    build:
+      context: ./wood-app.api
+      dockerfile: Dockerfile
+    container_name: wood-app-api
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__WoodAppContextConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB:-wood-app-db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-password};
+      - ConnectionStrings__AppContextConnection=Host=postgres;Port=5432;Database=app-db-bo;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-password};
+      - TokenKey=wood_app_super_secret_unguessable_key_For_FrontEnd_$$&&!_xzawwo9985error,ughjjnp21365_##1
+      - JWTSettings__securityKey=wood_app_super_secret_unguessable_key_For_FrontEnd_$$&&!_xzawwo9985error,ughjjnp21365_##1
+      - JWTSettings__ValidAudience=https://acya.site
+      - JWTSettings__ValidIssuer=https://acya.site/api/
+      - AllowedOrigins=https://acya.site,https://www.acya.site
+    ports:
+      - "8080:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - wood-app-network
+
+  # Angular UI (SSR)
+  ui:
+    build:
+      context: ./WoodApp-UI
+      dockerfile: Dockerfile
+    container_name: wood-app-ui
+    restart: unless-stopped
+    environment:
+      - PORT=4000
+      - NODE_ENV=production
+      - API_URL=https://acya.site/api/
+    ports:
+      - "4000:4000"
+    depends_on:
+      - api
+    networks:
+      - wood-app-network
+
+networks:
+  wood-app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
