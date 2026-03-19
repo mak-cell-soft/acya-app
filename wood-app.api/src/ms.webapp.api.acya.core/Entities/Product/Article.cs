@@ -59,14 +59,14 @@ namespace ms.webapp.api.acya.core.Entities.Product
 
     public void UpdateFromDto(ArticleDto dto)
     {
-      Id = (int)dto.id!;
-      Reference = dto.reference!;
+      Id = dto.id ?? 0;
+      Reference = dto.reference ?? string.Empty;
       Description = dto.description;
       IsDeleted = dto.isdeleted;
       IsWood = dto.iswood;
       CreationDate = dto.creationdate;
       UpdateDate = dto.updatedate;
-      UpdatedBy = (int)dto.updatedby!;
+      UpdatedBy = dto.updatedby ?? 0;
       Unit = dto.unit;
       MinQuantity= dto.minquantity;
       SellPriceHT = dto.sellprice_ht;

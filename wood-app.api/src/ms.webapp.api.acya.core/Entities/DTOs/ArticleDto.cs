@@ -54,8 +54,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       updatedate = entity.UpdateDate;
       updatedby = entity.UpdatedBy;
       minquantity = entity.MinQuantity;
-      sellprice_ht = (double)entity.SellPriceHT!;
-      sellprice_ttc = (double)entity.SellPriceTTC!;
+      sellprice_ht = (double)(entity.SellPriceHT ?? 0);
+      sellprice_ttc = (double)(entity.SellPriceTTC ?? 0);
       unit = entity.Unit;
       lengths= entity.Lengths;
       lastpurchaseprice_ttc = (double)entity.LastPurchasePriceTTC;

@@ -35,6 +35,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       }
 
       var merchandises = await context.Merchandises
+          .Include(m => m.Articles)
           .Where(m => ids.Contains(m.Id) && !m.IsDeleted)
           .ToListAsync();
 

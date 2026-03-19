@@ -33,7 +33,7 @@ namespace ms.webapp.api.acya.api.Controllers
 
       if (addedArticle == null)
       {
-        return BadRequest("Failed to add the new article");
+        return BadRequest("Failed to add the new article: SaveChanges returned 0");
       }
 
       // Update the article DTO with the ID from the added article
@@ -42,7 +42,7 @@ namespace ms.webapp.api.acya.api.Controllers
       // Attempt to add the sell price history
       var sellPriceHistory = new SellPriceHistory
       {
-        PriceValue = (double)addedArticle.SellPriceTTC!,
+        PriceValue = (double)(addedArticle.SellPriceTTC ?? 0),
         Description = addedArticle.Description,
         CreationDate = addedArticle.CreationDate,
         UpdateDate = addedArticle.UpdateDate,
@@ -56,7 +56,7 @@ namespace ms.webapp.api.acya.api.Controllers
       // If history is not added, return error
       if (addedSellHistory == null)
       {
-        return NotFound("Failed to add sell price history");
+        return NotFound("Failed to add sell price history: SaveChanges returned 0");
       }
 
       // Update the added article with the history ID and save it back to the repository
@@ -65,7 +65,7 @@ namespace ms.webapp.api.acya.api.Controllers
 
       if (updatedArticle == null)
       {
-        return BadRequest("Failed to update the article with the history ID");
+        return BadRequest("Failed to update the article with the history ID: SaveChanges returned 0");
       }
 
       // Return the created article with its history
