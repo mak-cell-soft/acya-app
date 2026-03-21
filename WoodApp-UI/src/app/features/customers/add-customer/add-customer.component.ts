@@ -139,7 +139,6 @@ export class AddCustomerComponent implements OnInit {
     }
 
     const counterpart = this.createCounterPartInstance(counterPartForm);
-    console.log('CounterPart to submit:', counterpart);
 
     if (counterpart != null) {
       this.counterPartService.Add(counterpart).subscribe({

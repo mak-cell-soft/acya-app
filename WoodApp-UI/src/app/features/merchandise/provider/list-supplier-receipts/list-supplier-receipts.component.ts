@@ -243,6 +243,7 @@ export class ListSupplierReceiptsComponent implements OnInit, AfterViewInit {
   //#endregion
 
   getAllDocumentsByType() {
+    this.loading = true;
     this.allDocuments.data = [];
     this.docService.GetByType(DocumentTypes.supplierReceipt).subscribe({
       next: (response: Document[]) => {
@@ -255,14 +256,17 @@ export class ListSupplierReceiptsComponent implements OnInit, AfterViewInit {
         // Assign the sorted data to the property in your component
         this.documents = sortedDocuments;
         this.allDocuments.data = sortedDocuments;
+        this.loading = false;
       },
       error: (error) => {
         console.log(error)
+        this.loading = false;
       }
     });
   }
 
   getSuppliers(): void {
+    this.loading = true;
     this.counterpartService.GetAll(CounterPartType_FR.supplier).subscribe({
       next: (response: CounterPart[]) => {
         this.allSuppliers = response;
@@ -272,10 +276,12 @@ export class ListSupplierReceiptsComponent implements OnInit, AfterViewInit {
           const firstSupplier = this.allSuppliers[0];
           this.selectedSupplier = firstSupplier;
         }
+        this.loading = false;
       },
       error: (error) => {
         console.error('Error fetching providers', error);
         this.toastr.error('Erreur chargement Fournisseurs');
+        this.loading = false;
       }
     });
   }
@@ -319,12 +325,17 @@ export class ListSupplierReceiptsComponent implements OnInit, AfterViewInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         console.log('Item deleted:', item);
+        this.loading = true;
         this.docService.Delete(element.id).subscribe({
           next: () => {
             this.allDocuments.data = this.allDocuments.data.filter(p => p.id !== element.id);
             this.toastr.success('Supplier deleted successfully');
+            this.loading = false;
           },
-          error: () => this.toastr.error('Error deleting Supplier')
+          error: () => {
+            this.toastr.error('Error deleting Supplier');
+            this.loading = false;
+          }
         });
       } else {
         this.toastr.info("Suppression anuulé");

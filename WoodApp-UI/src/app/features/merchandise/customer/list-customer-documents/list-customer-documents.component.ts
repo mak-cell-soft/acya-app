@@ -30,6 +30,7 @@ import { getStatusInfo, getBillingStatusInfo, getMonthIndex } from '../../../../
   styleUrl: './list-customer-documents.component.css'
 })
 export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
+  isLoading: boolean = false;
 
   router = inject(Router);
   docService = inject(DocumentService);
@@ -272,6 +273,7 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
    * Updated to get documents by type: customerDeliveryNote and month and Year
    */
   getAllCustomerDeliveryNotesDocumentsFiltered(_typefiltered: typeDocsToFilter) {
+    this.isLoading = true;
     this.allCustomerDeliveryNotes.data = [];
     this.docService.GetByTypeDocsFiltered(_typefiltered).subscribe({
       next: (response: Document[]) => {
@@ -285,9 +287,11 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
         this.allCustomerDeliveryNotes.data = sortedDocuments;
         console.log('this.allDocuments.data : ', this.allCustomerDeliveryNotes.data)
         //this.allDocuments.data = response; // Assuming you have a property named 'documents' in your component
+        this.isLoading = false;
       },
       error: (error) => {
         console.log(error)
+        this.isLoading = false;
       }
     });
   }
@@ -298,6 +302,7 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
    * Updated to get documents by type: customerDeliveryNote and month and Year
    */
   getAllCustomerDeliveryNotesDocuments() {
+    this.isLoading = true;
     this.allCustomerDeliveryNotes.data = [];
     this.docService.GetByType(DocumentTypes.customerDeliveryNote).subscribe({
       next: (response: Document[]) => {
@@ -311,9 +316,11 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
         this.allCustomerDeliveryNotes.data = sortedDocuments;
         console.log('this.allDocuments.data : ', this.allCustomerDeliveryNotes.data)
         //this.allDocuments.data = response; // Assuming you have a property named 'documents' in your component
+        this.isLoading = false;
       },
       error: (error) => {
         console.log(error)
+        this.isLoading = false;
       }
     });
   }

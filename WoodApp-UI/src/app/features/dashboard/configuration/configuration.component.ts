@@ -1,5 +1,6 @@
 import { AfterViewInit, ChangeDetectorRef, Component, inject, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 import { AddBankModalComponent } from '../modals/add-bank-modal/add-bank-modal.component';
 import { AddSalesSiteModalComponent } from '../modals/add-sales-site-modal/add-sales-site-modal.component';
 import { AddCategoriesModalComponent } from '../modals/add-categories-modal/add-categories-modal.component';
@@ -321,6 +322,10 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
 
   reloadData() {
     console.log('Reload Data Clicked');
+    this.toastr.info('Actualisation des données en cours...', 'Configuration', {
+      timeOut: 2000,
+      progressBar: true
+    });
 
 
     this.getAllCategories();
@@ -1347,6 +1352,28 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
    */
   scrollTo(elementId: string): void {
     const element = document.getElementById(elementId);
+
+    // Map element IDs to readable French names
+    const sectionNames: { [key: string]: string } = {
+      'enterprise-info': 'Informations Générales',
+      'enterprise-details': 'Détails de l\'Entreprise',
+      'enterprise-sites': 'Sites de l\'Entreprise',
+      'config-categories': 'Catégories',
+      'config-taxes': 'Taxes',
+      'config-tva': 'TVA',
+      'config-dimensions': 'Dimensions',
+      'config-lengths': 'Longueurs',
+      'config-transporters': 'Transporteurs',
+      'emp-list': 'Liste des Employés',
+      'user-list': 'Liste des Utilisateurs'
+    };
+
+    const sectionName = sectionNames[elementId] || elementId;
+    this.toastr.success(`Défilement vers : ${sectionName}`, '', {
+      timeOut: 1500,
+      positionClass: 'toast-bottom-right'
+    });
+
     if (element) {
       element.scrollIntoView({
         behavior: 'smooth',
@@ -1357,9 +1384,52 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   }
 
   /**
+   * Handles tab change events, triggers data loading for the specific tab, and notifies the user.
+   * @param event The MatTabChangeEvent
+   */
+  onTabChange(event: MatTabChangeEvent): void {
+    const tabIndex = event.index;
+    let tabName = '';
+
+    switch (tabIndex) {
+      case 0:
+        tabName = 'Entreprise';
+        this.getEnterpriseInfos();
+        break;
+      case 1:
+        tabName = 'Configuration';
+        this.getAllCategories();
+        this.getAllTaxes();
+        this.getAllTva();
+        this.getAllDimensions();
+        this.getAllLength();
+        this.getAllTransporters();
+        break;
+      case 2:
+        tabName = 'Personnel';
+        this.getAllEmployees();
+        this.getAllAppUsers();
+        break;
+      case 3:
+        tabName = 'Comptes Bancaires';
+        this.getAllBanksAccounts();
+        break;
+      default:
+        tabName = event.tab.textLabel || 'Paramètres';
+    }
+
+    this.toastr.info(`Chargement des données : ${tabName}`, 'Configuration', {
+      timeOut: 2000,
+      progressBar: true,
+      positionClass: 'toast-top-right'
+    });
+  }
+
+  /**
    * Scrolls the active tab's scrollable container back to the top.
    */
   scrollToTop(): void {
+    this.toastr.info('Retour en haut de page', '', { timeOut: 1000 });
     // Target the navigation container at the top of the active tab
     const activeTop = document.querySelector('.mat-mdc-tab-body-active .quick-nav-container');
     if (activeTop) {

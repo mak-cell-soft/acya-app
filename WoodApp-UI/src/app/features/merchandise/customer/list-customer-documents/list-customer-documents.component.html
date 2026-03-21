@@ -98,6 +98,16 @@
 <!-- Table of Customer Delivery Notes -->
 <mat-card class="card-details-doc">
 
+    <div class="loader-wrapper" *ngIf="isLoading">
+        <mat-progress-bar mode="indeterminate" class="custom-progress-bar"></mat-progress-bar>
+        <div class="glass-overlay">
+            <div class="loader-content">
+                <mat-spinner diameter="40"></mat-spinner>
+                <p>Chargement des documents...</p>
+            </div>
+        </div>
+    </div>
+
     <div *ngIf="daysInMonth.length > 0" class="days-container"
         style="width: 100%; display: flex; justify-content: center; align-items: center;">
         <button mat-mini-fab *ngFor="let day of daysInMonth" [color]="day === selectedDay ? 'accent' : ''"

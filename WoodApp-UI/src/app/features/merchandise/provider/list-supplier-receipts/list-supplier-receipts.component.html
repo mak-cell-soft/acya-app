@@ -29,9 +29,6 @@
     </div>
 </mat-toolbar>
 
-<!-- Loading Progress bar at the top -->
-<mat-progress-bar *ngIf="loading" mode="indeterminate" color="primary"></mat-progress-bar>
-
 <!-- Filter Card -->
 <mat-card class="filter-card">
     <mat-card-header>
@@ -82,6 +79,16 @@
 
 <!-- Data Table Card -->
 <mat-card class="table-card">
+    <!-- Premium Loading Overlay -->
+    <div class="loader-wrapper" *ngIf="loading">
+        <mat-progress-bar mode="indeterminate" class="custom-progress-bar"></mat-progress-bar>
+        <div class="glass-overlay">
+            <div class="loader-content">
+                <mat-spinner diameter="40"></mat-spinner>
+                <p>Chargement des documents...</p>
+            </div>
+        </div>
+    </div>
     <div class="row-count-header">
         <span class="count-badge">Total: {{ allDocuments.data.length || 0 }}</span>
     </div>

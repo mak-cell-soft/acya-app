@@ -5,7 +5,7 @@
 </mat-toolbar>
 
 <div class="config-container">
-    <mat-tab-group class="vertical-tabs">
+    <mat-tab-group class="vertical-tabs" (selectedTabChange)="onTabChange($event)">
         <!-- Description de l'entreprise -->
         <mat-tab>
             <ng-template mat-tab-label>

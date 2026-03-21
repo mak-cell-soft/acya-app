@@ -307,7 +307,6 @@ export class AddEmployeesModalComponent implements OnInit {
       // Set isappuser to true
       person.isappuser = true;
     }
-    console.log("_id in function createAppUserInstance(formValues: any, person: Person): ", _id);
     let _password = '';
     if (formValues.password == isNaN) {
       _password = ''
@@ -333,41 +332,6 @@ export class AddEmployeesModalComponent implements OnInit {
       person: person,
     };
   }
-
-  // onSubmit() {
-  //   let formValues: any;
-  //   let person: any;
-  //   if (this.personForm.valid) {
-
-  //     if (this.inputType === 'addPerson' || this.inputType === 'updatePerson') {
-  //       formValues = this.personForm.value;
-  //       person = this.createPersonInstance(formValues);
-  //       //console.log("AFFECTATIONS DE FORMVALUES IN addPerson and updatePerson", formValues);
-  //     } else if (this.inputType === 'addAppUser' || this.inputType === 'updateAppUser') {
-  //       formValues = this.personForm.value;
-  //       person = this.createPersonInstance(formValues);
-  //       formValues = this.userForm.value;
-  //       //console.log("AFFECTATIONS DE FORMVALUES IN addAppUser and updateAppUser", formValues);
-  //     }
-
-  //     //const person = this.createPersonInstance(formValues);
-
-  //     console.log("ON SUBMIT Method : const formvalues :", formValues);
-  //     console.log("ON SUBMIT Method : const person :", person);
-
-  //     if (this.inputType === 'addPerson' || this.inputType === 'addAppUser') {
-  //       console.log("this.handleAddOperation(formValues, person);")
-  //       this.handleAddOperation(formValues, person);
-  //     } else if (this.inputType === 'updatePerson' || this.inputType === 'updateAppUser') {
-  //       console.log("this.handleUpdateOperation(formValues, person);")
-  //       console.log("this.handleUpdateOperation(formValues, person); THE PERSON IS : ", person)
-  //       console.log("this.handleUpdateOperation(formValues, person); THE FORMAVALUES IS : ", formValues)
-  //       this.handleUpdateOperation(formValues, person);
-  //     }
-  //   } else {
-  //     this.toastr.warning("Please validate the input fields first!");
-  //   }
-  // }
 
   /**
    * Try to fix isappuser witch did not work
@@ -406,43 +370,25 @@ export class AddEmployeesModalComponent implements OnInit {
          * Handle the Add an the Update of the AppUser separately
          */
         if (this.inputType === 'addAppUser') {
-          console.log("this.handleAddOperation(formValues, person);")
           this.handleAddOperation(formValues, person);
         } else if (this.inputType === 'updateAppUser') {
           this.handleUpdateOperation(formValues, person);
         }
       }
 
-      //const person = this.createPersonInstance(formValues);
-
-      console.log("ON SUBMIT Method : const formvalues :", formValues);
-      console.log("ON SUBMIT Method : const person :", person);
-
-      // if (this.inputType === 'addPerson' || this.inputType === 'addAppUser') {
-      //   console.log("this.handleAddOperation(formValues, person);")
-      //   this.handleAddOperation(formValues, person);
-      // } else if (this.inputType === 'updatePerson' || this.inputType === 'updateAppUser') {
-      //   console.log("this.handleUpdateOperation(formValues, person);")
-      //   console.log("this.handleUpdateOperation(formValues, person); THE PERSON IS : ", person)
-      //   console.log("this.handleUpdateOperation(formValues, person); THE FORMAVALUES IS : ", formValues)
-      //   this.handleUpdateOperation(formValues, person);
-      // }
     } else {
-      this.toastr.warning("Please validate the input fields first!");
+      this.toastr.warning("Veuillez remplir tous les champs obligatoires correctement.");
     }
   }
 
   handleAddOperation(formValues: any, person: Person) {
-    console.log('person.role:', person.role); // Check the value and type
     const requiresUser = [20, 30, 60].includes(person.role);
-    console.log("handleAddOperation(formValues: any, person: Person) : requiresUser => person.role", person.role);
     const appuser = requiresUser ? this.createAppUserInstance(formValues, person) : null;
 
     this.addEmployeeOrPerson(appuser, person);
   }
 
   handleUpdateOperation(formValues: any, person: Person) {
-    console.log('person.role:', person.role); // Check the value and type
     const requiresUser = person && [20, 30, 60].includes(person.role);
 
     if (requiresUser) {
@@ -452,12 +398,6 @@ export class AddEmployeesModalComponent implements OnInit {
       const person = this.createPersonInstance(formValues);
       this.updateEmployeeOrPerson(null, person);
     }
-
-    // const appuser = requiresUser ? this.createAppUserInstance(formValues, person) : null;
-    // console.log("METHOD handleUpdateOperation");
-    // console.log("METHOD handleUpdateOperation const requireUser : ", requiresUser);
-    // console.log("METHOD handleUpdateOperation const appuser : ", appuser);
-    // this.updateEmployeeOrPerson(appuser, null);
   }
 
   getUserRoles(): Array<{ key: number, value: string }> {
@@ -489,24 +429,21 @@ export class AddEmployeesModalComponent implements OnInit {
 
       this.accountService.RegisterEmployee(userToSend).subscribe({
         next: (response) => {
-          this.toastr.success('Successfully registered user: ' + response.email);
+          this.toastr.success('Utilisateur ' + response.email + ' ajouté avec succès.');
           this.dialogRef.close('addedUser');
         },
         error: (error) => {
-          console.error('Error registering user', error);
-          this.toastr.error('Failed to register user.');
+          this.toastr.error('Erreur lors de l\'ajout de l\'utilisateur.');
         }
       });
     } else {
-      console.log("Sending Person only:", personToSend);
       this.employeeService.AddEmployee(personToSend).subscribe({
         next: (response) => {
-          this.toastr.success('Successfully added person: ' + response.firstname);
+          this.toastr.success('Employer ' + response.firstname + ' ' + response.lastname + ' ajouté avec succès.');
           this.dialogRef.close('addedPerson');
         },
         error: (error) => {
-          console.error('Error adding person', error);
-          this.toastr.error('Failed to add person.');
+          this.toastr.error('Erreur lors de l\'ajout de l\'employer.');
         }
       });
     }
@@ -514,42 +451,33 @@ export class AddEmployeesModalComponent implements OnInit {
 
   updateEmployeeOrPerson(userToUpdate: AppUser | null, personToUpdate: Person | null) {
     if (userToUpdate) {
-      console.log("Updating User with Person:", userToUpdate);
-
       this.appuserService.Put(userToUpdate.id, userToUpdate).subscribe({
         next: (response) => {
-          this.toastr.success('Successfully Updated user: ' + response.email);
+          this.toastr.success('Utilisateur ' + response.email + ' modifié avec succès.');
           this.dialogRef.close('updatedUser');
         },
         error: (error) => {
-          console.error('Error updating user', error);
-          this.toastr.error('Failed to update user.');
+          this.toastr.error('Erreur lors de la modification de l\'utilisateur.');
         }
       });
     } else if (personToUpdate) {
-      console.log("Updating Person only:", personToUpdate);
       this.employeeService.Put(personToUpdate.id, personToUpdate).subscribe({
         next: (response) => {
-          this.toastr.success('Successfully updated person: ' + response.firstname);
+          this.toastr.success('Employer ' + response.firstname + ' ' + response.lastname + ' modifié avec succès.');
           this.dialogRef.close('updatedPerson');
         },
         error: (error) => {
-          console.error('Error adding person', error);
-          this.toastr.error('Failed to update person.');
+          this.toastr.error('Erreur lors de la modification de l\'employer.');
         }
       });
     } else {
-      this.toastr.error('Person and AppUser are Both NULL');
+      this.toastr.error('Erreur lors de la modification de l\'utilisateur ou de l\'employer.');
     }
   }
-
-
 
   onAbort() {
     this.dialogRef.close();
   }
-
-
 
   onRoleSelected() {
     const selectedRole = this.personForm.get('selectedRole')?.value;

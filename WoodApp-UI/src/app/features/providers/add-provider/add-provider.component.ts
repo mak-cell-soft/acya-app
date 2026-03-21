@@ -149,10 +149,9 @@ export class AddProviderComponent implements OnInit {
 
   addSupplier(supplier: CounterPart): void {
     if (supplier) {
-      console.log("Provider TO SEND : ", supplier);
       this.counterPartService.Add(supplier).subscribe({
         next: (response) => {
-          this.toastr.success('Successfully added provider: ' + response.name);
+          this.toastr.success('Fournisseur ' + response.name + ' ajouté avec succès.');
           this.router.navigateByUrl('home/providers');
         },
         error: (error) => {
@@ -164,18 +163,18 @@ export class AddProviderComponent implements OnInit {
             this.toastr.error('Error: Failed to add the article.');
           } else if (error.status === 404) {
             // Not Found: Failure to add price history
-            this.toastr.error('Error: Failed to add sell price history.');
+            this.toastr.error('Error:.' + error.message);
           } else {
             // Generic error handler for other cases
             this.toastr.error('An unexpected error occurred. Please try again later.');
           }
 
           // Log the error for debugging
-          console.error('Error adding Article', error);
+          console.error('Erreur lors de l\'ajout du fournisseur', error);
         }
       });
     } else {
-      this.toastr.warning('Warning: Article is missing.');
+      this.toastr.warning('Erreur: Fournisseur manquant.');
     }
   }
 }
