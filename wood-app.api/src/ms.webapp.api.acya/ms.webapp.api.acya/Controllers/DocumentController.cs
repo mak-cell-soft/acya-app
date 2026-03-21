@@ -37,6 +37,8 @@ namespace ms.webapp.api.acya.api.Controllers
       // Query from Documents instead of DocumentMerchandises
       // This ensures we get the document even if it has no direct merchandise records
       var documents = await _context.Documents
+          .AsNoTracking() // Performance: Disable change tracking for read-only query
+          .AsSplitQuery() // Performance: Avoid cartesian product in complex joins
           .Include(d => d.CounterPart)
           .Include(d => d.SalesSite)
           .Include(d => d.AppUsers)
@@ -159,6 +161,8 @@ namespace ms.webapp.api.acya.api.Controllers
     {
       // Query from Documents instead of DocumentMerchandises
       var documents = await _context.Documents
+          .AsNoTracking() // Performance: Disable change tracking for read-only query
+          .AsSplitQuery() // Performance: Avoid cartesian product in complex joins
           .Include(d => d.CounterPart)
           .Include(d => d.SalesSite)
           .Include(d => d.AppUsers)
