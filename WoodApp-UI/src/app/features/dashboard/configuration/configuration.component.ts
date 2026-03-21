@@ -492,7 +492,6 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
     if (confirm('Voulez-vous vraiment supprimer cette taxe ?')) {
       this.appvarService.Delete(appvar.id).subscribe({
         next: () => {
-          this.toastr.success('Taxe supprimée avec succès');
           this.getAllTaxes();
         },
         error: (error: any) => {
@@ -636,7 +635,6 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
 
         // Assign the combined data to the MatTableDataSource
         this.appvariablesDimension.data = combinedData;
-        console.log("ALL DIMENSIONS ARE : ", this.appvariablesDimension.data);
         this.appvariablesDimension.paginator = this.paginatorDimension; // Set paginator after data is set
       } else {
         console.error('Error: One of the responses is undefined.');
@@ -759,23 +757,6 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
     });
   }
 
-  // getAllLength() {
-  //   this.appvarService.GetAll('Length').subscribe({
-  //     next: (response: AppVariable[]) => {
-  //       // Sort the response array by the 'value' property in descending order
-  //       response.sort((a, b) => parseFloat(b.value) - parseFloat(a.value));
-
-  //       this.appvariablesLength.data = response
-  //       this.appvariablesLength.paginator = this.paginatorLength; // Set paginator after data is set
-
-  //       //this.toastr.success(this.load_tva_success);
-  //     },
-  //     // error: (error) => {
-  //     //   //console.error('Error fetching categories:', error);
-  //     //   this.toastr.error(this.load_taxes_error);
-  //     // }
-  //   });
-  // }
   getAllLength(): void {
     // Dispatch the action to load Length data
     this.store.dispatch(loadAppVariables({ nature: 'Length' }));
@@ -788,8 +769,6 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
       // Set the sorted data to the MatTableDataSource
       this.appvariablesLength.data = lengthResponse;
       this.appvariablesLength.paginator = this.paginatorLength; // Set paginator after data is set
-
-      console.log("getAllLength() Method: ", this.appvariablesLength.data);
     });
   }
 
@@ -802,21 +781,6 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   }
 
   //#endregion
-
-  //#region Bank Methods
-  // getAllBanksAccounts() {
-  //   this.bankService.GetAll().subscribe({
-  //     next: (response) => {
-  //       this.bankAccounts = response
-  //       //console.log("getBanksAccounts() Method : ", this.bankAccounts);
-  //       this.toastr.success(this.load_bank_success);
-  //     },
-  //     // error: (error) => {
-  //     //   //console.error('Error fetching categories:', error);
-  //     //   this.toastr.error(this.load_bank_error);
-  //     // }
-  //   });
-  // }
 
   getAllBanksAccounts() {
     // this.store.dispatch(loadBanks());
