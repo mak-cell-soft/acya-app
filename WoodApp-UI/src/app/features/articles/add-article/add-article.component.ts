@@ -189,15 +189,26 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
       selectedTva: ['', Validators.required],
       calculatedPriceHT: [{ value: '' }],
       quantityUnit: ['', Validators.required],
-      minquantity: [0, Validators.required],
-      profitpercentage: ['']
+      minquantity: [0, [Validators.required, Validators.min(0)]],
+      profitpercentage: [0, [Validators.required, percentageValidator()]]
     });
 
     // Call the method whenever 'selectedPriceTTC' or 'selectedTva' changes
     this.articleForm.valueChanges.subscribe(() => {
       this.CalculatePriceTTC_HT();
     });
+
+    // Strip '%' from profitpercentage if present
+    this.profitControl?.valueChanges.subscribe(value => {
+      if (value && typeof value === 'string' && value.includes('%')) {
+        const cleanedValue = value.replace(/%/g, '').trim();
+        this.profitControl?.setValue(cleanedValue, { emitEvent: false });
+      }
+    });
   }
+
+  get f() { return this.articleForm.controls; }
+  get profitControl() { return this.articleForm.get('profitpercentage'); }
 
   isLengthSelected(length: string): boolean {
     return this.selectedLengthNames.includes(length);
@@ -305,19 +316,12 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
     this.selectedLengths = article.lengths || '';
   }
 
-  applyValidators(): void {
-    this.articleForm.get('profitpercentage')!.setValidators([
-      Validators.required,
-      percentageValidator()
-    ]);
-  }
 
 
   onSubmit() {
-    this.applyValidators();
-    const article = new Article();
     if (this.articleForm.valid) {
-      const formValues = this.articleForm.value;
+      const article = new Article();
+      const formValues = this.articleForm.getRawValue(); // Use getRawValue to include disabled fields if needed
 
       article.id = 0; // Assuming it will be initialized in BackEnd
       article.updatedby = 1; // Hard-coded, this should be dynamic if needed
@@ -330,7 +334,10 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
       article.sellprice_ttc = formValues.selectedPriceTTC;
       article.sellprice_ht = formValues.calculatedPriceHT;
       article.minquantity = formValues.minquantity;
-      article.profitmarginpercentage = formValues.profitpercentage;
+      
+      // Clean up profitpercentage to be a number (strip '%' if user bypassed the listener somehow)
+      const rawProfit = formValues.profitpercentage?.toString().replace(/%/g, '').trim();
+      article.profitmarginpercentage = parseFloat(rawProfit) || 0;
 
       article.unit = this.articleForm.get('quantityUnit')?.value.substring(0, 3);
 
@@ -362,7 +369,8 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
         this.addArticle(article);
       }
     } else {
-      this.toastr.warning("Valider les champs de saisie d\'abord !");
+      this.articleForm.markAllAsTouched();
+      this.toastr.warning("Veuillez corriger les erreurs dans le formulaire !");
     }
   }
 

@@ -3,8 +3,12 @@ import { AbstractControl, ValidatorFn } from '@angular/forms';
 export function percentageValidator(): ValidatorFn {
     return (control: AbstractControl): { [key: string]: any } | null => {
         const value = control.value;
-        const valid = /^[1-9]\d*%$/.test(value); // Checks if the value is a natural number followed by '%'
-        return valid ? null : { 'percentage': { value: control.value } };
+        if (value === null || value === undefined || value === '') return null;
+        
+        const valueStr = value.toString().trim();
+        // Allow pure digits OR digits with a single % at the end. Can be decimal.
+        const valid = /^[0-9]+(\.[0-9]+)?%?$/.test(valueStr);
+        return valid ? null : { 'percentage': true };
     };
 }
 

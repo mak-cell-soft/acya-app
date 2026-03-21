@@ -13,11 +13,13 @@
                     <mat-label>{{ code_article }}</mat-label>
                     <input matInput formControlName="articlecode" placeholder="Ex: RF163100...">
                     <mat-icon matSuffix>qr_code</mat-icon>
+                    <mat-error *ngIf="f['articlecode'].errors?.['required']">Code article requis</mat-error>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="flex-2">
                     <mat-label>{{ description_label }}</mat-label>
                     <input matInput formControlName="description" placeholder="Ex: Bois Rouge Finlandais...">
+                    <mat-error *ngIf="f['description'].errors?.['required']">Description requise</mat-error>
                 </mat-form-field>
             </div>
 
@@ -29,6 +31,7 @@
                             {{ category.description }}
                         </mat-option>
                     </mat-select>
+                    <mat-error *ngIf="f['selectedCategory'].errors?.['required']">Catégorie requise</mat-error>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="flex-1">
@@ -38,6 +41,7 @@
                             {{ subcategory.description }}
                         </mat-option>
                     </mat-select>
+                    <mat-error *ngIf="f['selectedSubCategory'].errors?.['required']">Sous-catégorie requise</mat-error>
                 </mat-form-field>
             </div>
         </div>
@@ -84,6 +88,7 @@
                     <mat-label>{{ price_label }} TTC</mat-label>
                     <input type="number" formControlName="selectedPriceTTC" matInput>
                     <span matSuffix>TND</span>
+                    <mat-error *ngIf="f['selectedPriceTTC'].errors?.['required']">Prix TTC requis</mat-error>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="flex-1">
@@ -93,6 +98,7 @@
                             {{ tva.value }}
                         </mat-option>
                     </mat-select>
+                    <mat-error *ngIf="f['selectedTva'].errors?.['required']">TVA requise</mat-error>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="flex-1">
@@ -107,16 +113,21 @@
                     <mat-select formControlName="quantityUnit">
                         <mat-option *ngFor="let unit of quantityUnits" [value]="unit">{{ unit }}</mat-option>
                     </mat-select>
+                    <mat-error *ngIf="f['quantityUnit'].errors?.['required']">Unité requise</mat-error>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="flex-1">
                     <mat-label>{{ min_quantity }}</mat-label>
                     <input formControlName="minquantity" type="number" matInput>
+                    <mat-error *ngIf="f['minquantity'].errors?.['required']">Quantité minimale requise</mat-error>
+                    <mat-error *ngIf="f['minquantity'].errors?.['min']">Min 0</mat-error>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="flex-1">
                     <mat-label>{{ min_profit_percentage }} (%)</mat-label>
-                    <input formControlName="profitpercentage" type="number" matInput>
+                    <input formControlName="profitpercentage" type="text" matInput>
+                    <mat-error *ngIf="f['profitpercentage'].errors?.['required']">Marge (%) requise</mat-error>
+                    <mat-error *ngIf="f['profitpercentage'].errors?.['percentage']">Format invalide (Ex: 20 ou 20%)</mat-error>
                 </mat-form-field>
             </div>
         </div>
