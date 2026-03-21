@@ -111,10 +111,24 @@ export class ListSupplierReceiptsComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     if (this.authService.isLoggedIn()) {
-      this.getAllDocumentsByType();
-      this.getSuppliers();
       this.createForm();
+      this.loadInitialData();
     }
+  }
+
+  /**
+   * Loads all initial data required for the component
+   */
+  loadInitialData(): void {
+    this.loading = true;
+    
+    // Use parallel execution but wait for both to finish if possible, 
+    // or just manage the loading flag carefully.
+    // Here we'll call them and let the individual methods manage loading 
+    // but with a check or by using a single loading sequence.
+    
+    this.getSuppliers();
+    this.getAllDocumentsByType();
   }
 
   ngAfterViewInit() {
@@ -247,9 +261,6 @@ export class ListSupplierReceiptsComponent implements OnInit, AfterViewInit {
     this.allDocuments.data = [];
     this.docService.GetByType(DocumentTypes.supplierReceipt).subscribe({
       next: (response: Document[]) => {
-        // Handle the data here
-        // console.log('Data received:', response);
-        // You can assign the data to a property in your component if needed
         // Sort the documents by docnumber in descending order
         const sortedDocuments = response.sort((a, b) => b.docnumber.localeCompare(a.docnumber));
 
@@ -259,29 +270,26 @@ export class ListSupplierReceiptsComponent implements OnInit, AfterViewInit {
         this.loading = false;
       },
       error: (error) => {
-        console.log(error)
+        console.error('Error fetching documents', error);
         this.loading = false;
       }
     });
   }
 
   getSuppliers(): void {
-    this.loading = true;
+    // We keep loading = true handled by main initial load if possible, 
+    // but individual calls can still handle their own error states.
     this.counterpartService.GetAll(CounterPartType_FR.supplier).subscribe({
       next: (response: CounterPart[]) => {
         this.allSuppliers = response;
-
-        // Set the first supplier after the data is fetched
         if (this.allSuppliers.length > 0) {
           const firstSupplier = this.allSuppliers[0];
           this.selectedSupplier = firstSupplier;
         }
-        this.loading = false;
       },
       error: (error) => {
         console.error('Error fetching providers', error);
         this.toastr.error('Erreur chargement Fournisseurs');
-        this.loading = false;
       }
     });
   }

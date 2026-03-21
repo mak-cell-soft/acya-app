@@ -95,7 +95,7 @@
 
     <div class="table-container mat-elevation-z0">
         <table mat-table (click)="clearErrorMessage()" [dataSource]="allDocuments" matSort class="modern-table"
-            *ngIf="allDocuments.data.length" multiTemplateDataRows>
+            multiTemplateDataRows>
 
             <!-- Selection Checkbox Column -->
             <ng-container matColumnDef="select">
@@ -274,5 +274,11 @@
 
         <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons
             aria-label="Sélectionner les documents"></mat-paginator>
+
+        <!-- Fallback for empty data when not loading -->
+        <div *ngIf="!loading && !allDocuments.data.length" class="no-data">
+            <mat-icon>inventory_2</mat-icon>
+            <p>Aucun document trouvé.</p>
+        </div>
     </div>
 </mat-card>
