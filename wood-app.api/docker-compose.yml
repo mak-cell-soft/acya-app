@@ -34,7 +34,7 @@ services:
     container_name: wood-app-api
     restart: unless-stopped
     environment:
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+      - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
       - ConnectionStrings__WoodAppContextConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB:-wood-app-db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-root};
       - ConnectionStrings__AppContextConnection=Host=postgres;Port=5432;Database=${APP_DB:-app-db-bo};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-root};

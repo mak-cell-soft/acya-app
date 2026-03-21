@@ -22,8 +22,9 @@ COPY ["src/ms.webapp.api.acya.common/ms.webapp.api.acya.common.csproj", "ms.weba
 # Restore dependencies
 RUN dotnet restore "ms.webapp.api.acya/ms.webapp.api.acya/ms.webapp.api.acya.csproj"
 
-# Copy all source files
+# Copy all source files and db directory
 COPY src/ .
+COPY db/ ./db/
 
 # Build the application
 WORKDIR "/src/ms.webapp.api.acya/ms.webapp.api.acya"
@@ -37,8 +38,9 @@ RUN dotnet publish "ms.webapp.api.acya.csproj" -c Release -o /app/publish /p:Use
 FROM base AS final
 WORKDIR /app
 
-# Copy published application
+# Copy published application and database scripts
 COPY --from=publish /app/publish .
+COPY db/ ./db/
 
 # Set environment variables
 ENV ASPNETCORE_URLS=http://+:80
