@@ -23,7 +23,6 @@ import { UPDATE_BUTTON, ADD_BUTTON } from '../../../shared/Text_Buttons'
 import { ToastrService } from 'ngx-toastr';
 import { CategoryService } from '../../../services/configuration/category.service';
 import { Category, SubCategory } from '../../../models/configuration/category';
-import { LOAD_CATEGORIES_SUCCESS } from '../../../shared/constants/toastr/msg_success';
 import { LOAD_CATEGORIES_ERROR } from '../../../shared/constants/toastr/msg_error';
 import { SubCategoryService } from '../../../services/configuration/sub-category.service';
 import { AddSubCategoriesModalComponent } from '../modals/add-sub-categories-modal/add-sub-categories-modal.component';
@@ -192,7 +191,6 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   //#endregion
 
   //#region toastr
-  load_categories_success: string = LOAD_CATEGORIES_SUCCESS;
   load_categories_error: string = LOAD_CATEGORIES_ERROR;
 
   load_taxes_success: string = LOAD_TAXES_SUCCESS;
@@ -953,21 +951,12 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   getAllCategories() {
     this.categoryService.GetAll().subscribe({
       next: (response) => {
-        // this.categories = response.map(category => ({
-        //   ...category,
-        //   firstchildren: category.firstchildren || []
         this.allCategories.data = response.map(category => ({
           ...category,
           firstchildren: category.firstchildren || []
         }));
-        // Select the first category by default
-        // if (this.categories.length > 0) {
-        //   this.selectCategory(this.categories[0]);
-        //   this.toastr.success(this.load_categories_success);
-        // }
         if (this.allCategories.data.length > 0) {
           this.selectCategory(this.allCategories.data[0]);
-          this.toastr.success(this.load_categories_success);
         }
         console.log("getCategories() Method : ", this.allCategories.data);
       },

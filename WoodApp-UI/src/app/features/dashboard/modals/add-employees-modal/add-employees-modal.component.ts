@@ -131,7 +131,7 @@ export class AddEmployeesModalComponent implements OnInit {
       birthtown: ['', Validators.required],
       hiredate: ['', Validators.required],
       firedate: [''],
-      selectedRole: [''],
+      selectedRole: ['', Validators.required],
       bankname: [''],
       bankaccount: [''],
       phonenumber: ['', Validators.required]
@@ -221,14 +221,14 @@ export class AddEmployeesModalComponent implements OnInit {
   // }
 
   listenForRoleChanges() {
-    const selectedRole = this.personForm.get('selectedRole')?.value;
-    if ([20, 30, 60].includes(selectedRole)) {
-      this.userRoleSelected = true;
-      this.scrollToElement('#userDetailsCard', -100); // Adjust offset as needed
-    } else {
-      // If no specific role is selected, you can reset user-specific form fields here (optional)
-      this.personForm.reset();
-    }
+    this.personForm.get('selectedRole')?.valueChanges.subscribe((selectedRole: any) => {
+      if ([20, 30, 60].includes(Number(selectedRole))) {
+        this.userRoleSelected = true;
+        this.scrollToElement('#userDetailsCard', -100);
+      } else {
+        this.userRoleSelected = false;
+      }
+    });
   }
 
 
@@ -308,7 +308,7 @@ export class AddEmployeesModalComponent implements OnInit {
       person.isappuser = true;
     }
     let _password = '';
-    if (formValues.password == isNaN) {
+    if (!formValues.password) {
       _password = ''
     } else {
       _password = formValues.password;
@@ -339,7 +339,11 @@ export class AddEmployeesModalComponent implements OnInit {
   onSubmit() {
     let formValues: any;
     let person: any;
-    if (this.personForm.valid) {
+    
+    // Check personForm validity and userForm validity if userRoleSelected is true
+    const isUserFormValid = !this.userRoleSelected || (this.userForm && this.userForm.valid);
+
+    if (this.personForm.valid && isUserFormValid) {
 
       if (this.inputType === 'addPerson' || this.inputType === 'updatePerson') {
         /**
@@ -429,7 +433,7 @@ export class AddEmployeesModalComponent implements OnInit {
 
       this.accountService.RegisterEmployee(userToSend).subscribe({
         next: (response) => {
-          this.toastr.success('Utilisateur ' + response.email + ' ajouté avec succès.');
+          this.toastr.success('Utilisateur ' + response.fullname + ' ajouté avec succès.');
           this.dialogRef.close('addedUser');
         },
         error: (error) => {
