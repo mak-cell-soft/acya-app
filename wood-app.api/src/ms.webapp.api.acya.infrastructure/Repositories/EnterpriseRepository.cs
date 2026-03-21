@@ -29,20 +29,19 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       return entDto;
     }
   
-    public async Task ExecuteSeedWoodScript()
+    public async Task ExecuteSeedWoodScript(int appUserId)
     {
-      // Check if this is the first enterprise created in the system
+      // Only execute for the very first enterprise
       var enterpriseCount = await context.Enterprises.CountAsync();
       if (enterpriseCount != 1)
       {
-          // Only execute for the very first enterprise
           return;
       }
 
       var fileName = "seed_natural_wood.sql.template";
       var scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "db", "wood", "v0.10", fileName);
       
-      // If not found in BaseDirectory (common during development), try searching up for the 'db' folder
+      // If not found in BaseDirectory (common during development), walk up looking for the 'db' folder
       if (!File.Exists(scriptPath))
       {
           var currentDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -59,6 +58,12 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       if (File.Exists(scriptPath))
       {
         var sql = await File.ReadAllTextAsync(scriptPath);
+
+        // NOTE: Replace the {{APP_USER_ID}} placeholder with the real AppUser ID.
+        // We cannot trust the PostgreSQL sequence to always start at 1 — any prior
+        // rolled-back or deleted inserts will have already incremented it.
+        sql = sql.Replace("{{APP_USER_ID}}", appUserId.ToString());
+
         await context.Database.ExecuteSqlRawAsync(sql);
       }
       else

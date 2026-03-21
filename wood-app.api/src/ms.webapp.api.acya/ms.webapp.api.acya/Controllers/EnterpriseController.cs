@@ -52,23 +52,31 @@ namespace ms.webapp.api.acya.api.Controllers
         }
       }
 
+      // Track the real AppUser ID to use in the seed script.
+      // NOTE: We CANNOT assume this will be 1 — PostgreSQL sequences increment even
+      // on rolled-back transactions, so after any prior failed attempt the first
+      // successful insert may get id = 2, 3, etc.
+      int seedAppUserId = 0;
+
       if (dto.user != null)
       {
         var userDto = dto.user.MoveToAppUserDto();
         var user = new AppUser(userDto);
         user.EnterpriseId = newEnterprise.Id;
 
-       if (await _userRepository.Add(user) != null)
+        if (await _userRepository.Add(user) != null)
         {
-          var _id = user.Id;
-          user.Persons!.UpdadatedById = _id;
+          // Capture the real auto-generated ID assigned by the DB
+          seedAppUserId = user.Id;
+          user.Persons!.UpdadatedById = seedAppUserId;
           await _userRepository.Update(user);
         }
       }
 
       if (newEnterprise.IsSalingWood == true)
       {
-        await _repository.ExecuteSeedWoodScript();
+        // Pass the real AppUser ID so the seed script uses the correct foreign key
+        await _repository.ExecuteSeedWoodScript(seedAppUserId);
       }
 
       return Ok(new { entId = newEnterprise.Id, message = "Enterprise added successfully" });

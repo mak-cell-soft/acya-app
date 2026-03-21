@@ -1,5 +1,8 @@
 -- Purpose: Seed initial data for Natural Wood and its categories
 -- This script is executed when a new enterprise is created with 'IsSalingWood' property set to true.
+-- NOTE: {{APP_USER_ID}} is a C# placeholder replaced at runtime with the real AppUser ID.
+--       Do NOT hardcode 1 here; PostgreSQL sequences are never guaranteed to start at 1
+--       after any prior (even rolled-back) inserts.
 
 DO $$
 DECLARE
@@ -10,7 +13,7 @@ BEGIN
     
     IF v_parent_id IS NULL THEN
         INSERT INTO tbl_parent (reference, description, creationdate, updatedate, isdeleted, idappuser)
-        VALUES ('Bois', 'Bois Naturel', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, 1)
+        VALUES ('Bois', 'Bois Naturel', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, {{APP_USER_ID}})
         RETURNING id INTO v_parent_id;
     END IF;
 
@@ -19,19 +22,19 @@ BEGIN
     -- BD (Bois Dûr)
     IF NOT EXISTS (SELECT 1 FROM tbl_first_child WHERE reference = 'BD' AND idparent = v_parent_id) THEN
         INSERT INTO tbl_first_child (reference, description, creationdate, updatedate, isdeleted, idappuser, idparent)
-        VALUES ('BD', 'Bois Dûr', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, 1, v_parent_id);
+        VALUES ('BD', 'Bois Dûr', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, {{APP_USER_ID}}, v_parent_id);
     END IF;
 
     -- BB (Bois Blanc)
     IF NOT EXISTS (SELECT 1 FROM tbl_first_child WHERE reference = 'BB' AND idparent = v_parent_id) THEN
         INSERT INTO tbl_first_child (reference, description, creationdate, updatedate, isdeleted, idappuser, idparent)
-        VALUES ('BB', 'Bois Blanc', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, 1, v_parent_id);
+        VALUES ('BB', 'Bois Blanc', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, {{APP_USER_ID}}, v_parent_id);
     END IF;
 
     -- BR (Bois Rouge)
     IF NOT EXISTS (SELECT 1 FROM tbl_first_child WHERE reference = 'BR' AND idparent = v_parent_id) THEN
         INSERT INTO tbl_first_child (reference, description, creationdate, updatedate, isdeleted, idappuser, idparent)
-        VALUES ('BR', 'Bois Rouge', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, 1, v_parent_id);
+        VALUES ('BR', 'Bois Rouge', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, {{APP_USER_ID}}, v_parent_id);
     END IF;
 
 END $$;
