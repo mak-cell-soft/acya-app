@@ -242,6 +242,7 @@ export class EnterpriseRegistrationComponent implements OnInit {
     ent.name = formValues.name;
     ent.description = formValues.description;
     ent.email = formValues.email;
+    ent.guid = crypto.randomUUID();
     ent.matriculeFiscal = formValues.matriculeFiscal;
     ent.phone = formValues.phone;
     ent.mobileOne = formValues.mobileOne;

@@ -150,16 +150,30 @@ export class AddEmployeesModalComponent implements OnInit {
     this.getEnterpriseInfos();
   }
 
+  /**
+   * Converts a raw value (ISO string or Date) to a valid Date for mat-datepicker.
+   * Returns null if:
+   *   - the value is falsy (null, undefined, empty string)
+   *   - the resulting year is outside the plausible range [1900, 9000)
+   *     (guards against 0001-01-01 sentinel values left by a previous bug)
+   */
+  private toValidDate(value: any): Date | null {
+    if (!value) return null;
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return null;
+    const year = d.getFullYear();
+    // Year outside a sensible human range → treat as "not set"
+    if (year < 1900 || year >= 9000) return null;
+    return d;
+  }
+
   patchFormValues() {
-    const infinityDate = new Date('9999-12-31T23:59:59.999Z');
     if (this.inputType === 'updatePerson') {
       this.personForm.patchValue({
         firstname: this.inputdata.firstname || '',
         lastname: this.inputdata.lastname || '',
-        // birthdate: this.inputdata.birthdate && this.inputdata.birthdate !== infinityDate.toISOString()
-        //   ? new Date(this.inputdata.birthdate)
-        //   : null,
-        birthdate: this.inputdata.birthdate || '',
+        // Use toValidDate to guard against corrupted 0001-01-01 sentinel values
+        birthdate: this.toValidDate(this.inputdata.birthdate),
         bankname: this.inputdata.bankname || '',
         birthtown: Number(this.inputdata.birthtown) || '',
         bankaccount: this.inputdata.bankaccount || '',
@@ -167,24 +181,18 @@ export class AddEmployeesModalComponent implements OnInit {
         address: this.inputdata.address || '',
         cin: this.inputdata.cin || '',
         idcnss: this.inputdata.idcnss || '',
-        // hiredate: this.inputdata.hiredate && this.inputdata.hiredate !== infinityDate.toISOString()
-        //   ? new Date(this.inputdata.hiredate)
-        //   : null,
-        hiredate: this.inputdata.hiredate || '',
-        // firedate: this.inputdata.firedate && this.inputdata.firedate !== infinityDate.toISOString()
-        //   ? new Date(this.inputdata.firedate)
-        //   : null,
-        firedate: this.inputdata.firedate || '',
+        hiredate: this.toValidDate(this.inputdata.hiredate),
+        firedate: this.toValidDate(this.inputdata.firedate),
         selectedRole: this.inputdata.role || ''
       });
     } else if (this.inputType === 'updateAppUser') {
+      // NOTE: After JSON.parse(JSON.stringify(...)), Date fields arrive as ISO strings.
+      // toValidDate() converts them to Date objects AND guards against the 0001-01-01
+      // sentinel value that causes mat-datepicker to render with a broken year display.
       this.personForm.patchValue({
         firstname: this.inputdata.person.firstname || '',
         lastname: this.inputdata.person.lastname || '',
-        // birthdate: this.inputdata.person.birthdate && this.inputdata.person.birthdate !== infinityDate.toISOString()
-        //   ? new Date(this.inputdata.person.birthdate)
-        //   : null,
-        birthdate: this.inputdata.person.birthdate,
+        birthdate: this.toValidDate(this.inputdata.person.birthdate),
         bankname: this.inputdata.person.bankname || '',
         bankaccount: this.inputdata.person.bankaccount || '',
         phonenumber: this.inputdata.person.phonenumber,
@@ -192,16 +200,8 @@ export class AddEmployeesModalComponent implements OnInit {
         address: this.inputdata.person.address || '',
         cin: this.inputdata.person.cin || '',
         idcnss: this.inputdata.person.idcnss || '',
-        updatedate: new Date(),
-        // Ensure hiredate and firedate are in Date format or fallback to infinityDate
-        // hiredate: this.inputdata.person.hiredate && this.inputdata.person.hiredate !== infinityDate.toISOString()
-        //   ? new Date(this.inputdata.person.hiredate)
-        //   : null,
-        hiredate: this.inputdata.person.hiredate || '',
-        // firedate: this.inputdata.person.firedate && this.inputdata.person.firedate !== infinityDate.toISOString()
-        //   ? new Date(this.inputdata.person.firedate)
-        //   : null,
-        firedate: this.inputdata.person.firedate ? this.inputdata.person.firedate : infinityDate.toISOString(),
+        hiredate: this.toValidDate(this.inputdata.person.hiredate),
+        firedate: this.toValidDate(this.inputdata.person.firedate),
         selectedRole: this.inputdata.person.role || ''
       });
       this.userForm.patchValue({
@@ -212,7 +212,6 @@ export class AddEmployeesModalComponent implements OnInit {
       });
     }
     this.personForm.updateValueAndValidity();
-    // this.userForm.updateValueAndValidity();
   }
 
 
@@ -247,22 +246,35 @@ export class AddEmployeesModalComponent implements OnInit {
     let _id = 0;
     let _updateDate!: Date | null;
     let _creationDate!: Date | null;
-    if (this.inputType == 'updatePerson' || this.inputType == 'updateAppUser') {
+    if (this.inputType == 'updatePerson') {
+      // updatePerson: inputdata IS the Person object directly
       _id = this.inputdata.id;
       _updateDate = new Date();
       _creationDate = this.inputdata.creationdate || null;
+    } else if (this.inputType == 'updateAppUser') {
+      // updateAppUser: inputdata is the AppUser object; the Person is nested inside .person
+      // We must read id and creationdate from the nested person, NOT from the AppUser root
+      _id = this.inputdata.person.id;
+      _updateDate = new Date();
+      _creationDate = this.inputdata.person.creationdate || null;
     } else {
       _creationDate = new Date();
       _updateDate = new Date();
     }
+    let _guid = '';
+    if (this.inputType == 'updatePerson') {
+      // Preserve the existing GUID so the backend does not generate a new one
+      _guid = this.inputdata.guid || '';
+    } else if (this.inputType == 'updateAppUser') {
+      _guid = this.inputdata.person.guid || '';
+    }
+
     return {
       id: _id,
       firstname: formValues.firstname,
       lastname: formValues.lastname,
-      guid: '',
-      /*this.inputdata.person.birthdate && this.inputdata.person.birthdate !== infinityDate.toISOString()
-        ? new Date(this.inputdata.person.birthdate)
-        : null,*/
+      // Send the preserved GUID so the backend keeps it unchanged
+      guid: _guid,
       birthdate: formValues.birthdate && formValues.birthdate !== infinityDate.toISOString()
         ? new Date(formValues.birthdate)
         : null,

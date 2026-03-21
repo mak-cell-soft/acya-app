@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ms.webapp.api.acya.api.Controllers;
 using ms.webapp.api.acya.core.Entities.DTOs;
 using ms.webapp.api.acya.core.Entities.DTOs.Authentication;
@@ -100,45 +101,89 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
     [HttpPut("{id}")]
     public async Task<ActionResult<AppUserDto?>> Put(int id, AppUserDto dto)
     {
-      // Fetch the existing user
-      var existingUser = await _repository.Get(id);
+      // Fetch the existing user WITH the related Person (needed to update both)
+      var existingUser = await _context.AppUsers
+          .Include(u => u.Persons)
+          .FirstOrDefaultAsync(u => u.Id == id);
+
       if (existingUser == null)
+        return NotFound(new { message = $"AppUser with id {id} not found." });
+
+      // Check for duplicate email — only flag as conflict if it belongs to a DIFFERENT user
+      if (!string.IsNullOrEmpty(dto.email))
       {
-        return NotFound();
+        var emailOwner = await _context.AppUsers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Email == dto.email && u.Id != id);
+
+        if (emailOwner != null)
+          return Conflict(new { message = "A user with the same email already exists." });
       }
 
-      // Check if another user exists with the same email but a different ID
-      var userWithSameEmail = await _repository.GetByEmailAsync(existingUser.Email!);
-      if (userWithSameEmail != null && userWithSameEmail.Id != id)
+      // --- Update AppUser scalar fields ---
+      existingUser.Login = dto.login;
+      existingUser.Email = dto.email;
+      existingUser.IsActive = dto.isactive;
+      existingUser.IdSalesSite = dto.defaultsite;
+
+      // Only rehash the password if a new one was provided
+      if (!string.IsNullOrEmpty(dto.password))
       {
-        return Conflict(new { message = "A Person with the same CIN already exists." });
+        using var hmac = new System.Security.Cryptography.HMACSHA512();
+        existingUser.PasswordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(dto.password));
+        existingUser.PasswordSalt = hmac.Key;
       }
 
-      // Update the `Person` and `AppUser` details from DTO
-      dto.person!.updatedate = DateTime.Now;
-      dto.person!.guid = userWithSameEmail?.Persons?.Guid.ToString();
-
-
-
-      // Update the main `AppUser` and related `Person` using the DTO
-      userWithSameEmail!.UpdateFromDto(dto);
-
-      // Detach any tracked `Person` to avoid conflicts
-      if (userWithSameEmail!.Persons != null)
+      // --- Update nested Person fields if provided ---
+      if (dto.person != null && existingUser.Persons != null)
       {
-        _context.Entry(existingUser.Persons!).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
+        var p = existingUser.Persons;
+        var personDto = dto.person;
+
+        // Preserve the existing GUID so we never generate a new one on update
+        // (personDto.guid may be null/empty if the frontend didn't send it back)
+        if (!string.IsNullOrEmpty(personDto.guid) &&
+            Guid.TryParse(personDto.guid, out Guid parsedGuid))
+        {
+          p.Guid = parsedGuid;
+        }
+
+        p.Firstname   = ms.webapp.api.acya.common.Helpers.CapitalizeFirstLetter(personDto.firstname!);
+        p.Lastname    = personDto.lastname?.ToUpper();
+        p.FullName    = $"{personDto.firstname} {personDto.lastname?.ToUpper()}";
+        p.BirthDate   = personDto.birthdate;
+        p.Cin         = personDto.cin;
+        p.IdCnss      = personDto.idcnss;
+        p.Role        = Enum.TryParse(personDto.role.ToString(), out ms.webapp.api.acya.core.Entities.Roles parsedRole)
+                          ? parsedRole
+                          : ms.webapp.api.acya.core.Entities.Roles.Seller;
+        p.Address     = personDto.address;
+        p.BirthTown   = personDto.birthtown;
+        p.BankName    = personDto.bankname;
+        p.BankAccount = personDto.bankaccount;
+        p.PhoneNumber = personDto.phonenumber;
+        p.IsAppUser   = personDto.isappuser;
+        p.IsDeleted   = personDto.isdeleted;
+        // Use null-safe dates — never fall back to DateTime.MinValue/MaxValue for hire/firedate
+        p.HireDate      = personDto.hiredate.HasValue ? personDto.hiredate : null;
+        p.FireDate      = personDto.firedate.HasValue ? personDto.firedate : null;
+        p.CreationDate  = personDto.creationdate.HasValue ? personDto.creationdate : p.CreationDate;
+        p.UpdateDate    = DateTime.Now;
+        p.UpdadatedById = personDto.updatedby;
       }
 
-      // Save the updated entity
-      var updatedEntity = await _repository.Update(userWithSameEmail);
-      if (updatedEntity != null)
+      try
       {
-        // Return the updated DTO
-        var updatedDto = new AppUserDto(updatedEntity);
-        return Ok(updatedDto);
+        await _context.SaveChangesAsync();
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(500, new { message = "Update failed.", detail = ex.Message });
       }
 
-      return NoContent();
+      // Return the updated projection
+      var updatedDto = new AppUserDto(existingUser);
+      return Ok(updatedDto);
     }
 
 

@@ -4,6 +4,7 @@ export class Enterprise {
     id: number = 0;
     name: string = '';
     description: string = '';
+    guid: string = '';
     email: string = '';
     phone: string = '';
     mobileOne: string = '';
