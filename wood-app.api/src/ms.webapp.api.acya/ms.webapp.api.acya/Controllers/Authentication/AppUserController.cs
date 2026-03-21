@@ -154,9 +154,9 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
         p.BirthDate   = personDto.birthdate;
         p.Cin         = personDto.cin;
         p.IdCnss      = personDto.idcnss;
-        p.Role        = Enum.TryParse(personDto.role.ToString(), out ms.webapp.api.acya.core.Entities.Roles parsedRole)
+        p.Role        = Enum.TryParse(personDto.role.ToString(), out ms.webapp.api.acya.common.Roles parsedRole)
                           ? parsedRole
-                          : ms.webapp.api.acya.core.Entities.Roles.Seller;
+                          : ms.webapp.api.acya.common.Roles.Seller;
         p.Address     = personDto.address;
         p.BirthTown   = personDto.birthtown;
         p.BankName    = personDto.bankname;
