@@ -1,3 +1,4 @@
+using System.Globalization;
 using ms.webapp.api.acya.core.Entities.DTOs.Config;
 
 namespace ms.webapp.api.acya.core.Entities
@@ -35,20 +36,20 @@ namespace ms.webapp.api.acya.core.Entities
     // Method to get the formatted value
     public string GetFormattedValue()
     {
+      if (Value == null) return "0.000";
+      
       switch (Nature)
       {
         case "Taxe":
-          return Value?.ToString("F3") ?? "0.000";
+          return Value.Value.ToString("F3", CultureInfo.InvariantCulture);
         case "Tva":
-          return Value?.ToString() + "%";
+          return Value.Value.ToString(CultureInfo.InvariantCulture) + "%";
         case "thickness":
         case "width":
         case "Length":
-          return Value?.ToString("F3") ?? "0.000";
-
-        //return Value?.ToString()!;
+          return Value.Value.ToString("F3", CultureInfo.InvariantCulture);
         default:
-          return Value?.ToString()!;
+          return Value.Value.ToString(CultureInfo.InvariantCulture);
       }
     }
   }
