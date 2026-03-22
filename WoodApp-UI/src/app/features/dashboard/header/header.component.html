@@ -75,17 +75,39 @@
       </button>
 
       <mat-menu #profileMenu="matMenu" class="modern-profile-menu">
-        <div class="profile-header-sm visible-xs">
-          <div class="user-name">{{nameOfConnectedUser}}</div>
+        <!-- New Rich Profile Header -->
+        <div class="profile-menu-header">
+          <div class="header-avatar">
+            {{ nameOfConnectedUser ? nameOfConnectedUser.charAt(0).toUpperCase() : 'U' }}
+          </div>
+          <div class="header-details">
+            <div class="header-name">{{nameOfConnectedUser}}</div>
+            <div class="header-role">{{getRoleTranslated(userDetail.role)}}</div>
+            <div class="header-site" *ngIf="SalesSite">
+              <mat-icon>location_on</mat-icon>
+              {{SalesSite}}
+            </div>
+          </div>
         </div>
-        <mat-divider class="visible-xs"></mat-divider>
-        <button mat-menu-item (click)="openProfileModal()">
-          <mat-icon>account_circle</mat-icon>
-          <span>Mon Profil</span>
-        </button>
+
         <mat-divider></mat-divider>
-        <button mat-menu-item (click)="logout()" class="logout-btn">
-          <mat-icon>logout</mat-icon>
+
+        <div class="menu-items-group">
+          <button mat-menu-item (click)="openProfileModal()" class="premium-menu-item">
+            <mat-icon>account_circle</mat-icon>
+            <span>Mon Profil</span>
+          </button>
+          
+          <button mat-menu-item routerLink="config" class="premium-menu-item hidden-sm-up">
+            <mat-icon>settings</mat-icon>
+            <span>Paramètres</span>
+          </button>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <button mat-menu-item (click)="logout()" class="logout-btn premium-menu-item">
+          <mat-icon>power_settings_new</mat-icon>
           <span>Déconnexion</span>
         </button>
       </mat-menu>

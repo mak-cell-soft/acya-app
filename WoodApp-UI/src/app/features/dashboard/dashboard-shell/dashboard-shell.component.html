@@ -1,6 +1,6 @@
 <app-header [sidenav]="sidenav" (toggleSidebar)="toggleCollapse()"></app-header>
 <mat-sidenav-container class="dashboard-container" autosize>
-  <mat-sidenav #sidenav="matSidenav" [class.collapsed]="isCollapsed" class="modern-sidebar">
+  <mat-sidenav #sidenav="matSidenav" [class.collapsed]="isCollapsed" class="modern-sidebar" [disableClose]="true">
     <div class="sidebar-header" [class.mini]="isCollapsed">
       <div class="avatar-container" [matMenuTriggerFor]="avatarMenu" matTooltip="Modifier l'avatar">
         <img class="avatar mat-elevation-z4" [src]="avatarUrl" alt="Avatar"/>

@@ -1,5 +1,5 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { MatSidenav } from '@angular/material/sidenav';
 import { NavigationEnd, Router } from '@angular/router';
 import { delay, filter } from 'rxjs';
@@ -137,6 +137,19 @@ export class DashboardShellComponent implements AfterViewInit, OnInit {
   // Add these to your component class
   toggleCollapse() {
     this.isCollapsed = !this.isCollapsed;
+  }
+
+  /**
+   * Global Keyboard Listener
+   * Intent: Minimize (collapse) the sidebar on Escape instead of letting it 'disappear'.
+   * This addresses the user's issue where an accidental Escape press made the shell menu vanish.
+   */
+  @HostListener('window:keydown.escape', ['$event'])
+  onEscapeKeydown(event: any) {
+    if (this.sidenav && this.sidenav.opened && !this.isCollapsed) {
+      this.isCollapsed = true;
+      event.preventDefault();
+    }
   }
 
   // Triggers when the user selects a file from the hidden file input.
