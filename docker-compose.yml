@@ -7,9 +7,9 @@ services:
     container_name: wood-app-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
-      POSTGRES_DB: ${POSTGRES_DB:-wood-app-db}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: wood-app-db
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
@@ -19,7 +19,7 @@ services:
     networks:
       - wood-app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-wood-app-db}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d wood-app-db"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -35,8 +35,8 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
-      - ConnectionStrings__WoodAppContextConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB:-wood-app-db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-password};
-      - ConnectionStrings__AppContextConnection=Host=postgres;Port=5432;Database=app-db-bo;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-password};
+      - ConnectionStrings__WoodAppContextConnection=Host=postgres;Port=5432;Database=wood-app-db;Username=postgres;Password=password;
+      - ConnectionStrings__AppContextConnection=Host=postgres;Port=5432;Database=app-db-bo;Username=postgres;Password=password;
       - TokenKey=wood_app_super_secret_unguessable_key_For_FrontEnd_$$&&!_xzawwo9985error,ughjjnp21365_##1
       - JWTSettings__securityKey=wood_app_super_secret_unguessable_key_For_FrontEnd_$$&&!_xzawwo9985error,ughjjnp21365_##1
       - JWTSettings__ValidAudience=https://acya.site
