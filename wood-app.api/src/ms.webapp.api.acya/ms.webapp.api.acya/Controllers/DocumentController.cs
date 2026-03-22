@@ -814,14 +814,85 @@ namespace ms.webapp.api.acya.api.Controllers
     #region Get Invoice by ID
     // Example method to get an invoice by ID (used in CreatedAtAction)
     [HttpGet("{id}")]
-    public async Task<ActionResult<Document>> GetInvoiceById(int id)
+    public async Task<ActionResult<DocumentDto>> GetInvoiceById(int id)
     {
-      var invoice = await _repository.Get(id);
-      if (invoice == null)
+      var d = await _context.Documents
+          .AsNoTracking()
+          .AsSplitQuery()
+          .Include(d => d.CounterPart)
+          .Include(d => d.SalesSite)
+          .Include(d => d.AppUsers)
+              .ThenInclude(u => u!.Persons)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.Merchandise)
+                  .ThenInclude(m => m!.Articles)
+                      .ThenInclude(a => a!.Thicknesses)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.Merchandise)
+                  .ThenInclude(m => m!.Articles)
+                      .ThenInclude(a => a!.Widths)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.Merchandise)
+                  .ThenInclude(m => m!.Articles)
+                      .ThenInclude(a => a!.TVAs)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.QuantityMovements)
+                  .ThenInclude(qm => qm!.ListOfLengths)
+                      .ThenInclude(ll => ll.AppVarLength)
+          .Include(d => d.ChildDocuments)
+              .ThenInclude(cd => cd.ChildDocument)
+          .FirstOrDefaultAsync(d => d.Id == id);
+
+      if (d == null)
       {
         return NotFound();
       }
-      return Ok(invoice);
+
+      var dto = new DocumentDto(d);
+
+      // Logic to retrieve merchandises correctly from join table
+      var sourceMerchandises = d.DocumentMerchandises?.ToList() ?? new List<DocumentMerchandise>();
+      
+      dto.merchandises = sourceMerchandises
+          .Select(dm => new MerchandiseDto
+          {
+            id = dm.MerchandiseId,
+            packagereference = dm.Merchandise?.PackageReference,
+            description = dm.Merchandise?.Description,
+            isinvoicible = dm.Merchandise?.IsInvoicible ?? false,
+            allownegativstock = dm.Merchandise?.AllowNegativStock ?? false,
+            quantity = dm.Quantity,
+            unit_price_ht = dm.UnitPriceHT,
+            cost_ht = dm.CostHT,
+            discount_percentage = dm.DiscountPercentage,
+            cost_net_ht = dm.CostNetHT,
+            cost_discount_value = dm.CostDiscountValue,
+            tva_value = dm.TvaValue,
+            cost_ttc = dm.CostTTC,
+            article = dm.Merchandise?.Articles != null ?
+                  new ArticleDto(dm.Merchandise.Articles) : null,
+            lisoflengths = dm.QuantityMovements?.ListOfLengths?
+                  .Select(ll => new ListOflengthDto
+                  {
+                    nbpieces = ll.NumberOfPieces,
+                    quantity = ll.Quantity,
+                    length = ll.AppVarLength != null ?
+                          new AppVariableDto(ll.AppVarLength) : null
+                  })
+                  .ToArray()
+          })
+          .ToArray();
+
+      // Handle deliveryNoteDocNumbers if exists
+      if (d.ChildDocuments != null && d.ChildDocuments.Any())
+      {
+        dto.deliveryNoteDocNumbers = d.ChildDocuments
+            .Where(cd => cd.ChildDocument != null)
+            .Select(cd => cd.ChildDocument!.DocNumber ?? "")
+            .ToList();
+      }
+
+      return Ok(dto);
     }
     #endregion
 

@@ -19,7 +19,6 @@ import { AddAppVariableModalComponent } from './modals/add-app-variable-modal/ad
 import { PermissionsModalComponent } from './modals/permissions-modal/permissions-modal.component';
 import { AddEmployeesModalComponent } from './modals/add-employees-modal/add-employees-modal.component';
 import { GenerateInvoiceModalComponent } from './modals/invoice/generate-invoice-modal/generate-invoice-modal.component';
-import { EditDocumentModalComponent } from './modals/edit-document-modal/edit-document-modal.component';
 import { LeaveManagementModalComponent } from './modals/leave-management-modal/leave-management-modal.component';
 import { PayslipModalComponent } from './modals/payslip-modal/payslip-modal.component';
 import { AdvanceManagementModalComponent } from './modals/advance-management-modal/advance-management-modal.component';
@@ -68,7 +67,6 @@ import { BaseChartDirective } from 'ng2-charts';
     PermissionsModalComponent,
     AddEmployeesModalComponent,
     GenerateInvoiceModalComponent,
-    EditDocumentModalComponent,
     LeaveManagementModalComponent,
     PayslipModalComponent,
     AdvanceManagementModalComponent,

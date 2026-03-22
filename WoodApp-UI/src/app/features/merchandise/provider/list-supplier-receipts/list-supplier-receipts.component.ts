@@ -16,7 +16,7 @@ import { CounterPartType_FR, TrueFalseTranslate_FR } from '../../../../shared/co
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { SelectionModel } from '@angular/cdk/collections';
 import { GenerateInvoiceModalComponent } from '../../../dashboard/modals/invoice/generate-invoice-modal/generate-invoice-modal.component';
-import { EditDocumentModalComponent } from '../../../dashboard/modals/edit-document-modal/edit-document-modal.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-list-supplier-receipts',
@@ -39,6 +39,7 @@ export class ListSupplierReceiptsComponent implements OnInit, AfterViewInit {
   counterpartService = inject(CounterpartService);
   fb = inject(FormBuilder);
   fb1 = inject(FormBuilder);
+  private router = inject(Router);
 
   //#region Labels
   mat_header_cell_doc_number: string = MAT_HEADER_CELL_DOC_NUMBER;
@@ -304,18 +305,7 @@ export class ListSupplierReceiptsComponent implements OnInit, AfterViewInit {
   }
 
   editDocument(doc: Document) {
-    const dialogRef = this.dialog.open(EditDocumentModalComponent, {
-      width: '1400px',
-      maxWidth: '98vw',
-      maxHeight: '90vh',
-      data: { document: doc }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result === true) {
-        this.getAllDocumentsByType();
-      }
-    });
+    this.router.navigate(['/home/merchandise/reception/edit', doc.id]);
   }
 
   onSupplierChange(supplier: any): void {

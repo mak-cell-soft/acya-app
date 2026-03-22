@@ -10,6 +10,7 @@ import { ListCustomerInvoicesComponent } from './customer/list-customer-invoices
 import { AddInvoiceComponent } from './customer/add-invoice/add-invoice.component';
 import { AddSupplierOrderComponent } from './provider/supplier-order/add-supplier-order/add-supplier-order.component';
 import { ListSupplierOrderComponent } from './provider/supplier-order/list-supplier-order/list-supplier-order.component';
+import { EditSupplierReceiptComponent } from './provider/edit-supplier-receipt/edit-supplier-receipt.component';
 
 import { roleGuard } from '../../guards/role.guard';
 import { CanDeactivateGuard } from '../../guards/can-deactivate.guard';
@@ -23,6 +24,12 @@ const routes: Routes = [
   {
     path: 'reception/list',
     component: ListSupplierReceiptsComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['Admin'] }
+  },
+  {
+    path: 'reception/edit/:id',
+    component: EditSupplierReceiptComponent,
     canActivate: [roleGuard],
     data: { roles: ['Admin'] }
   },
