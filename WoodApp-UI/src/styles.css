@@ -20,3 +20,11 @@ h1, h2, h3, h4, .page-title, .mat-card-title {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
   overflow: hidden !important;
 }
+
+/* Global Responsive Adjustments for Modals */
+@media (max-width: 768px) {
+  .mat-mdc-dialog-container .mdc-dialog__surface {
+    max-width: 95vw !important;
+    width: 95vw !important;
+  }
+}

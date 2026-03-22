@@ -101,15 +101,24 @@ export class DashboardShellComponent implements AfterViewInit, OnInit {
 
   ngAfterViewInit() {
     this.observer
-      .observe(['(max-width: 800px)'])
+      .observe(['(max-width: 768px)', '(min-width: 769px) and (max-width: 1024px)', '(min-width: 1025px)'])
       .pipe(delay(1), untilDestroyed(this))
       .subscribe((res) => {
-        if (res.matches) {
+        if (res.breakpoints['(max-width: 768px)']) {
+          // Mobile
           this.sidenav.mode = 'over';
           this.sidenav.close();
-        } else {
+          this.isCollapsed = false;
+        } else if (res.breakpoints['(min-width: 769px) and (max-width: 1024px)']) {
+          // Tablet
           this.sidenav.mode = 'side';
           this.sidenav.open();
+          this.isCollapsed = true;
+        } else {
+          // Desktop
+          this.sidenav.mode = 'side';
+          this.sidenav.open();
+          this.isCollapsed = false;
         }
       });
 

@@ -3,6 +3,10 @@
     padding: 24px;
     background-color: #f8f9fa;
     min-height: 100vh;
+
+    @media (max-width: 768px) {
+        padding: 12px;
+    }
 }
 
 .main-container {
@@ -19,6 +23,12 @@
     padding: 16px 24px;
     border-radius: 12px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
 }
 
 .header-text h2 {
@@ -97,6 +107,11 @@ mat-card {
 .meta-card .meta-row {
     display: flex;
     gap: 16px;
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        gap: 12px;
+    }
 }
 
 .meta-card .meta-row>*,

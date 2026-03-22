@@ -1,9 +1,10 @@
 <mat-toolbar class="modern-header">
   <!-- Left section: Hamburger & Title -->
   <div class="header-left">
-    <button mat-icon-button class="menu-btn" *ngIf="sidenav.mode === 'over'" (click)="sidenav.toggle()">
-      <mat-icon *ngIf="!sidenav.opened">menu</mat-icon>
-      <mat-icon *ngIf="sidenav.opened">close_fullscreen</mat-icon>
+    <button mat-icon-button class="menu-btn" (click)="onToggleMenu()">
+      <mat-icon *ngIf="sidenav.mode === 'over' && !sidenav.opened">menu</mat-icon>
+      <mat-icon *ngIf="sidenav.mode === 'over' && sidenav.opened">close_fullscreen</mat-icon>
+      <mat-icon *ngIf="sidenav.mode !== 'over'">horizontal_split</mat-icon>
     </button>
     <div class="date-display">
       <mat-icon class="date-icon">calendar_today</mat-icon>

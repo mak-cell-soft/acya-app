@@ -4,6 +4,13 @@
     padding: 0 16px;
     height: 64px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    @media (max-width: 600px) {
+        height: auto;
+        padding: 12px 16px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
 }
 
 .spacer {
@@ -29,6 +36,10 @@
     padding: 24px;
     background-color: #f8f9fa;
     min-height: calc(100vh - 64px);
+
+    @media (max-width: 600px) {
+        padding: 12px;
+    }
 }
 
 .content-card {
@@ -40,6 +51,10 @@
 .search-row {
     padding: 16px 24px 0;
     background-color: white;
+
+    @media (max-width: 600px) {
+        padding: 12px 16px 0;
+    }
 }
 
 .search-field {

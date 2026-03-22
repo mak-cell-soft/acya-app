@@ -2,6 +2,14 @@
     padding: 24px;
     background-color: #f5f7fa;
     min-height: calc(100vh - 64px);
+
+    @media (max-width: 768px) {
+        padding: 16px;
+    }
+
+    @media (max-width: 480px) {
+        padding: 12px;
+    }
 }
 
 .header-section {
@@ -157,6 +165,12 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
 }
 
 .title-group {

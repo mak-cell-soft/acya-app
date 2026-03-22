@@ -14,6 +14,11 @@
   justify-content: space-between;
   border-bottom: 1px solid rgba(0,0,0,0.02);
 
+  @media (max-width: 768px) {
+    height: 64px;
+    padding: 0 0.5rem;
+  }
+
   .header-left {
     display: flex;
     align-items: center;
@@ -24,9 +29,17 @@
       background: rgba(11, 59, 36, 0.05);
       border-radius: 8px;
       transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
       &:hover {
         background: rgba(11, 59, 36, 0.1);
+        transform: scale(1.05);
+      }
+
+      mat-icon {
+        font-size: 24px;
       }
     }
 

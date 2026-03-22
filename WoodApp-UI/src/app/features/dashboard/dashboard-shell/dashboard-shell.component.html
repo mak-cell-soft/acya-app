@@ -1,4 +1,4 @@
-<app-header [sidenav]="sidenav"></app-header>
+<app-header [sidenav]="sidenav" (toggleSidebar)="toggleCollapse()"></app-header>
 <mat-sidenav-container class="dashboard-container" autosize>
   <mat-sidenav #sidenav="matSidenav" [class.collapsed]="isCollapsed" class="modern-sidebar">
     <div class="sidebar-header" [class.mini]="isCollapsed">

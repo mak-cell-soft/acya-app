@@ -10,6 +10,13 @@
     margin-bottom: 24px;
     padding: 0 24px;
     height: 72px;
+
+    @media (max-width: 768px) {
+        height: auto;
+        padding: 16px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
 }
 
 .header-text h2 {
@@ -46,16 +53,32 @@
     flex-wrap: wrap;
     gap: 16px;
     padding: 12px 24px !important;
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 16px !important;
+    }
 }
 
 .search-field {
     flex: 2;
-    min-width: 250px;
+    min-width: 200px;
+    
+    @media (max-width: 640px) {
+        flex: none;
+        width: 100%;
+    }
 }
 
 .filter-select {
     flex: 1;
-    min-width: 200px;
+    min-width: 150px;
+
+    @media (max-width: 640px) {
+        flex: none;
+        width: 100%;
+    }
 }
 
 .reset-btn {

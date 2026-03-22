@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, inject, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
 import { MatSidenav } from '@angular/material/sidenav';
 import { AuthenticationService } from '../../../services/components/authentication.service';
 import { Router } from '@angular/router';
@@ -63,6 +63,7 @@ export class HeaderComponent implements OnInit, AfterViewInit {
   }
 
   @Input() sidenav!: MatSidenav;
+  @Output() toggleSidebar = new EventEmitter<void>();
   authService = inject(AuthenticationService);
   appuserService = inject(AppuserService);
   router = inject(Router);
@@ -156,6 +157,14 @@ export class HeaderComponent implements OnInit, AfterViewInit {
       data: { id: userId },
       autoFocus: false
     });
+  }
+
+  onToggleMenu() {
+    if (this.sidenav.mode === 'over') {
+      this.sidenav.toggle();
+    } else {
+      this.toggleSidebar.emit();
+    }
   }
 
 }
