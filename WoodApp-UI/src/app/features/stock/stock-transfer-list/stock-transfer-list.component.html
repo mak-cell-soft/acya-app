@@ -130,4 +130,12 @@
         <mat-paginator [pageSizeOptions]="[10, 20, 50, 100]" showFirstLastButtons
             aria-label="Sélectionner la page"></mat-paginator>
     </mat-card>
+
+    <!-- Hidden print template -->
+    <div style="display: none;">
+        <app-stock-transfer-print #printTemplate 
+            [transfer]="selectedTransferForPrint" 
+            [details]="selectedTransferDetailsForPrint">
+        </app-stock-transfer-print>
+    </div>
 </div>

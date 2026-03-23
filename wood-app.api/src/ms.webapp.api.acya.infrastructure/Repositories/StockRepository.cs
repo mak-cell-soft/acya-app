@@ -333,6 +333,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                   join ssexit in context.SalesSites on docexit.SalesSiteId equals ssexit.Id
                   join ssreceipt in context.SalesSites on docreceipt.SalesSiteId equals ssreceipt.Id
                   join tr in context.Transporters on st.TransporterId equals tr.Id
+                  join vehicle in context.Vehicles on tr.CarId equals vehicle.Id into vehicleGroup
+                  from vehicle in vehicleGroup.DefaultIfEmpty()
                   join merexit in context.DocumentMerchandises on docexit.Id equals merexit.DocumentId
                   where st.TransferDate > lastMonth
                   select new StockTransferInfoDto
@@ -344,8 +346,10 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                     Destination = ssreceipt.Address!,
                     TransferDate = st.TransferDate,
                     Transporter = tr.FirstName + " " + tr.LastName,
+                    VehicleSerialNumber = vehicle != null ? vehicle.SerialNumber : null,
                     RefPaquet = merexit.Merchandise!.PackageReference!,
                     Status = st.Status,
+                    ConfirmationCode = st.ConfirmationCode
                   };
 
       //return await query.ToListAsync();
@@ -365,8 +369,9 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                          join exitSite in context.SalesSites on exitDoc.SalesSiteId equals exitSite.Id
                          join receiptSite in context.SalesSites on receiptDoc.SalesSiteId equals receiptSite.Id
                          join transporter in context.Transporters on st.TransporterId equals transporter.Id
+                         join vehicle in context.Vehicles on transporter.CarId equals vehicle.Id into vehicleGroup
+                         from vehicle in vehicleGroup.DefaultIfEmpty()
                          join exitMerch in context.DocumentMerchandises on exitDoc.Id equals exitMerch.DocumentId
-                         join receiptMerch in context.DocumentMerchandises on receiptDoc.Id equals receiptMerch.DocumentId
                          join merchandise in context.Merchandises on exitMerch.MerchandiseId equals merchandise.Id
                          join article in context.Articles on merchandise.ArticleId equals article.Id
                          join category in context.Parents on article.ParentId equals category.Id into catGroup
@@ -379,8 +384,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                          from width in widthGroup.DefaultIfEmpty()
                          where (originDoc == null || exitDoc.DocNumber == originDoc) &&
                                (receipt_Doc == null || receiptDoc.DocNumber == receipt_Doc)
-                         group new { exitMerch, exitDoc, receiptDoc, exitSite, receiptSite, st, transporter, merchandise, article, category, subcategory, thickness, width }
-                         by new { exitMerch.MerchandiseId, exitMerch.Quantity } into grouped
+                         group new { exitMerch, exitDoc, receiptDoc, exitSite, receiptSite, st, transporter, vehicle, merchandise, article, category, subcategory, thickness, width }
+                         by new { st.Id, exitMerch.MerchandiseId, exitMerch.Quantity } into grouped
                          select new
                          {
                            ExitMerch = grouped.First().exitMerch,
@@ -390,12 +395,14 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                            ReceiptSite = grouped.First().receiptSite,
                            St = grouped.First().st,
                            Transporter = grouped.First().transporter,
+                           VehicleSerialNumber = grouped.First().vehicle != null ? grouped.First().vehicle.SerialNumber : null,
                            Merchandise = grouped.First().merchandise,
                            Article = grouped.First().article,
                            Category = grouped.First().category,
                            SubCategory = grouped.First().subcategory,
                            Thickness = grouped.First().thickness,
                            Width = grouped.First().width,
+                           ConfirmationCode = grouped.First().st.ConfirmationCode,
                            Quantity = grouped.Key.Quantity
                          };
 
@@ -427,6 +434,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         Destination = r.ReceiptSite.Address,
         TransferDate = r.St.TransferDate,
         Transporter = r.Transporter.FullName,
+        VehicleSerialNumber = r.VehicleSerialNumber,
         RefPaquet = r.Merchandise.PackageReference,
         ArticleId = r.Article.Id,
         MerchandiseId = r.Merchandise.Id,
@@ -438,6 +446,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         Width = r.Width?.Name,
         Unit = r.Article?.Unit ?? string.Empty,
         Quantity = r.Quantity,
+        ConfirmationCode = r.ConfirmationCode,
         ExitDocLengths = exitLengthsDict[r.ExitMerch.Id],
       }).ToList();
     }
@@ -481,6 +490,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                   join ssexit in context.SalesSites on docexit.SalesSiteId equals ssexit.Id
                   join ssreceipt in context.SalesSites on docreceipt.SalesSiteId equals ssreceipt.Id
                   join tr in context.Transporters on st.TransporterId equals tr.Id
+                  join vehicle in context.Vehicles on tr.CarId equals vehicle.Id into vehicleGroup
+                  from vehicle in vehicleGroup.DefaultIfEmpty()
                   join merexit in context.DocumentMerchandises on docexit.Id equals merexit.DocumentId
                   select new
                   {
@@ -490,6 +501,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                     OriginSite = ssexit,
                     DestinationSite = ssreceipt,
                     Transporter = tr,
+                    Vehicle = vehicle,
                     Merchandise = merexit
                   };
 
@@ -516,13 +528,17 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
       var result = await query.Select(x => new StockTransferInfoDto
       {
+        Id = x.StockTransfer.Id,
         DocSortie = x.ExitDoc.DocNumber!,
         DocReception = x.ReceiptDoc.DocNumber!,
         Origine = x.OriginSite.Address!,
         Destination = x.DestinationSite.Address!,
         TransferDate = x.StockTransfer.TransferDate,
         Transporter = x.Transporter.FirstName + " " + x.Transporter.LastName,
-        RefPaquet = x.Merchandise.Merchandise!.PackageReference!
+        VehicleSerialNumber = x.Vehicle != null ? x.Vehicle.SerialNumber : null,
+        RefPaquet = x.Merchandise.Merchandise!.PackageReference!,
+        Status = x.StockTransfer.Status,
+        ConfirmationCode = x.StockTransfer.ConfirmationCode
       }).ToListAsync();
 
       return result;

@@ -20,8 +20,10 @@ export class StockTransferInfo {
     destination: string = '';
     transferDate!: Date;
     transporter: string = '';
+    vehicleSerialNumber: string = '';
     refPaquet: string = '';
     status!: TransferStatus;
+    confirmationCode: string = '';
 }
 
 export class StockTransferDetails {
@@ -32,12 +34,14 @@ export class StockTransferDetails {
     destination: string = '';
     transferDate!: Date;
     transporter: string = '';
+    vehicleSerialNumber: string = '';
     refPaquet: string = '';
     refMerchandise: string = '';
     description: string = '';
     quantity: number = 0;
     unit: string = '';
     exitDocLengths!: ListOfLength[];
+    confirmationCode: string = '';
 }
 
 export interface Notification {

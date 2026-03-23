@@ -33,6 +33,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string Transporter { get; set; } = string.Empty;
     public string RefPaquet { get; set; } = string.Empty;
     public TransferStatus Status { get; set; }
+    public string? ConfirmationCode { get; set; }
+    public string? VehicleSerialNumber { get; set; }
   }
 
   public class StockTransferDetailsDto
@@ -56,6 +58,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public double Quantity { get; set; }
     public string? Unit { get; set; }
     public double? TotalWeight { get; set; }
+    public string? ConfirmationCode { get; set; }
+    public string? VehicleSerialNumber { get; set; }
     public IEnumerable<ListOflengthDto>? ExitDocLengths { get; set; }
   }
 
@@ -81,7 +85,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? OriginSite { get; set; }
     public int ItemsCount { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public string? confirmationCode { get; set; }
+    public string? ConfirmationCode { get; set; }
 
     // Additional flexible data
     public object? AdditionalData { get; set; }

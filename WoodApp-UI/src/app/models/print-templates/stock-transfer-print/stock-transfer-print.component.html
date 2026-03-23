@@ -1,0 +1,152 @@
+<div class="delivery-note-container">
+    <!-- Header Section -->
+    <div class="header">
+        <!-- Left: Company Info -->
+        <div class="company-info">
+            <h2 class="company-name">{{ companyInfo.name }}</h2>
+            <p class="company-details">{{ companyInfo.nameFr }}</p>
+            <p class="company-details">{{ companyInfo.address }}</p>
+            <p class="company-details" style="white-space: pre-line;">{{ companyInfo.contact }}</p>
+            <p class="company-details">{{ companyInfo.ccb }}</p>
+            <p class="company-details">{{ companyInfo.email }}</p>
+            <p class="company-details">{{ companyInfo.registration }}</p>
+            <p class="company-details">{{ companyInfo.phone }}</p>
+        </div>
+
+        <!-- Center: Logo and Location -->
+        <div class="center-section">
+            <div class="logo">
+                <h1 class="logo-text">SOCOFEB</h1>
+            </div>
+            <div class="location">
+                <p style="white-space: pre-line;">{{ companyInfo.location }}</p>
+            </div>
+        </div>
+
+        <!-- Right: Arabic Info and Original Label -->
+        <div class="arabic-info">
+            <p class="arabic-text">{{ companyInfo.arabicName }}</p>
+            <p class="arabic-text">{{ companyInfo.arabicCapital }}</p>
+            <p class="arabic-details">مقرها الاجتماعي: طريق رواد كلم 4 اريانة</p>
+            <h3 class="original-label">TRANSFERT STOCK</h3>
+        </div>
+    </div>
+
+    <!-- Document Title and Client Info -->
+    <div class="document-header">
+        <div class="document-title-section">
+            <h2 class="document-title">ORDRE DE TRANSFERT</h2>
+        </div>
+
+        <div class="transfer-info-box">
+            <div class="info-row">
+                <span class="label">Origine:</span>
+                <span class="value">{{ transfer?.origine }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Destination:</span>
+                <span class="value">{{ transfer?.destination }}</span>
+            </div>
+            <!-- <div class="info-row">
+                <span class="label">Véhicule:</span>
+                <span class="value">{{ getVehicleInfo() }}</span>
+            </div> -->
+            <div class="info-row" *ngIf="transfer?.confirmationCode">
+                <span class="label">Code Conf:</span>
+                <span class="value" style="font-weight: bold; font-family: monospace;">{{ transfer?.confirmationCode }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Details -->
+    <div class="document-details">
+        <div class="detail-item">
+            <span class="detail-label">DATE</span>
+            <span class="detail-value">{{ formatDate(transfer?.transferDate) }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">N° SORTIE</span>
+            <span class="detail-value">{{ transfer?.docSortie }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Code Transfert</span>
+            <span class="detail-value">{{ transfer?.confirmationCode || '---' }}</span>
+        </div>
+    </div>
+
+    <!-- Items Table -->
+    <div class="items-table-container">
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th class="col-code">ART. REF</th>
+                    <th class="col-designation">DESIGNATIONS</th>
+                    <th class="col-paquet">REF. PAQUET</th>
+                    <th class="col-unit">UN</th>
+                    <th class="col-qty">QTE</th>
+                </tr>
+            </thead>
+            <ng-container *ngFor="let item of details">
+                <tbody>
+                    <tr class="item-row">
+                        <td class="col-code">{{ item.refMerchandise }}</td>
+                        <td class="col-designation">{{ item.description }}</td>
+                        <td class="col-paquet">{{ item.refPaquet || '---' }}</td>
+                        <td class="col-unit">{{ item.unit || 'PCS' }}</td>
+                        <td class="col-qty">{{ formatNumber(item.quantity) }}</td>
+                    </tr>
+                    <!-- Lengths Details -->
+                    <tr *ngIf="item.exitDocLengths && item.exitDocLengths.length > 0" class="lengths-row">
+                        <td colspan="5">
+                            <div class="lengths-list">
+                                <span class="label" style="font-size: 7pt; font-weight: bold;">[Détail Longueurs]:</span>
+                                <span *ngFor="let len of item.exitDocLengths" class="length-pill">
+                                    {{ len.length.value }}m ({{ len.nbpieces }}p) ;
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </ng-container>
+            <!-- Empty rows for spacing -->
+            <tr *ngFor="let i of [1,2,3,4,5]" class="empty-row">
+                <td colspan="5">&nbsp;</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Signature Section -->
+    <div class="signature-section">
+        <div class="signature-box">
+            <span class="signature-label">CHAUFFEUR</span>
+            <div class="signature-area">
+                {{ transfer?.transporter }} <br> Véhicule: {{ getVehicleInfo() }}
+            </div>
+            <span class="signature-bottom">Nom & Signature</span>
+        </div>
+        <div class="signature-box">
+            <span class="signature-label">RESP. SORTIE</span>
+            <div class="signature-area"></div>
+        </div>
+        <div class="signature-box">
+            <span class="signature-label">CONTRÔLEUR</span>
+            <div class="signature-area"></div>
+            <span class="signature-bottom">Date & Heure</span>
+        </div>
+        <div class="signature-box">
+            <span class="signature-label">RÉCEPTIONNAIRE</span>
+            <div class="signature-area"></div>
+            <span class="signature-bottom">Cachet & Signature</span>
+        </div>
+        <div class="signature-box">
+            <span class="signature-label">CACHET SOCIETE</span>
+            <div class="signature-area"></div>
+        </div>
+    </div>
+
+    <!-- Footer Legal Text -->
+    <div class="footer-legal">
+        <p class="legal-text">{{ companyInfo.footer }}</p>
+        <p class="agency-info">{{ companyInfo.agencyInfo }}</p>
+    </div>
+</div>

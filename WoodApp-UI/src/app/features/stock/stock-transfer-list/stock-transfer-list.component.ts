@@ -1,5 +1,6 @@
-import { Component, inject, ViewChild } from '@angular/core';
+import { Component, inject, ViewChild, ElementRef } from '@angular/core';
 import { StockTransferDetails, StockTransferInfo, TransferStatus, TransferStatus_FR } from '../../../models/components/stock_transfert';
+import { getSharedPrintStyles } from '../../../utils/print-styles.util';
 import { MatTableDataSource } from '@angular/material/table';
 import { ABORT_BUTTON, REGISTER_BUTTON, UPDATE_BUTTON } from '../../../shared/Text_Buttons';
 import { GENERAL_INFORMATION_PROVIDER } from '../../../shared/constants/components/article';
@@ -54,6 +55,10 @@ export class StockTransferListComponent {
 
   allTransfersStock: MatTableDataSource<StockTransferInfo> = new MatTableDataSource<StockTransferInfo>();
   displayedStockTransferColumns: string[] = ['docSortie', 'docReception', 'origine', 'destination', 'transferDate', 'transporter', 'status', 'action'];
+
+  @ViewChild('printTemplate', { read: ElementRef }) printTemplate!: ElementRef;
+  selectedTransferForPrint: StockTransferInfo | null = null;
+  selectedTransferDetailsForPrint: StockTransferDetails[] = [];
 
 
   constructor(
@@ -114,12 +119,12 @@ export class StockTransferListComponent {
     this.stockTransferService.getStockTransferDetails(transfer.docSortie, transfer.docReception)
       .subscribe({
         next: (details) => {
-          console.log('Transfer Stock Details : ', details);
+          console.log("Details Transfert : ", details);
           this.openDetailsDialog(details);
         },
         error: (err) => {
           // Handle error (show snackbar or toast)
-          console.error('Error loading transfer details', err);
+          this.toastr.error('Erreur lors du chargement des détails');
         }
       });
   }
@@ -153,7 +158,63 @@ export class StockTransferListComponent {
   }
 
   onPrint(transfer: StockTransferInfo): void {
-    // Logic for printing to be implemented
+    this.loading = true;
+    this.stockTransferService.getStockTransferDetails(transfer.docSortie, transfer.docReception)
+      .subscribe({
+        next: (details) => {
+          this.selectedTransferForPrint = transfer;
+          this.selectedTransferDetailsForPrint = details;
+          let codeConfirmation = details[0].confirmationCode;
+          // Small delay to ensure Angular updates the input and renders the template
+          setTimeout(() => {
+            this.executePrint(transfer.docSortie || 'Transfert');
+            this.loading = false;
+          }, 200);
+        },
+        error: (err) => {
+          console.error('Error loading transfer details for print', err);
+          this.toastr.error('Erreur lors du chargement des détails pour l\'impression');
+          this.loading = false;
+        }
+      });
+  }
+
+  private executePrint(docNumber: string): void {
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+
+    if (!printWindow) {
+      this.toastr.error('Impossible d\'ouvrir la fenêtre d\'impression. Veuillez autoriser les popups.');
+      return;
+    }
+
+    // Get the rendered HTML from our hidden component
+    const printContent = this.printTemplate.nativeElement.innerHTML;
+
+    // Write content to the new window
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Ordre de Transfert - ${docNumber}</title>
+        <style>${getSharedPrintStyles()}</style>
+      </head>
+      <body>
+        ${printContent}
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+
+    // Wait for content to load, then print
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.print();
+        // Optionnel: fermer la fenêtre après impression
+        // printWindow.close();
+      }, 500);
+    };
   }
 
   //#region Effet Tableau

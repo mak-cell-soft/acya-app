@@ -45,11 +45,17 @@
                 <span class="detail-label">Date du transfert:</span>
                 <span class="detail-value">{{ commonData.transferDate | date:'mediumDate' }}</span>
             </div>
-
             <div class="detail-item">
                 <span class="detail-label">Transporteur:</span>
                 <span class="span" class=" detail-value">{{ commonData.transporter || 'N/A' }}</span>
             </div>
+        </div>
+        <div class="half-width-wrapper">
+            <div class="detail-item">
+                <span class="detail-label">Code Transfert:</span>
+                <span class="detail-value">{{ commonData.confirmationCode || '---' }}</span>
+            </div>
+
         </div>
     </div>
 </div>
