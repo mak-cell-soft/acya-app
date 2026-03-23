@@ -35,7 +35,7 @@
     <!-- Document Title and Client Info -->
     <div class="document-header">
         <div class="document-title-section">
-            <h2 class="document-title">ORDRE DE TRANSFERT</h2>
+            <h2 class="document-title">ORDRE DE TRANSFERT INTERDEPOTS</h2>
         </div>
 
         <div class="transfer-info-box">
@@ -86,10 +86,10 @@
                     <th class="col-qty">QTE</th>
                 </tr>
             </thead>
-            <ng-container *ngFor="let item of details">
+            <ng-container *ngFor="let item of details; let i = index">
                 <tbody>
                     <tr class="item-row">
-                        <td class="col-code">{{ item.id }}</td>
+                        <td class="col-code">{{ i + 1 }}</td>
                         <td class="col-designation">
                             <div class="item-description">{{ item.description }}</div>
                             <div *ngIf="item.exitDocLengths && item.exitDocLengths.length > 0" class="item-lengths-detail">
@@ -108,7 +108,7 @@
                 </tbody>
             </ng-container>
             <!-- Empty rows for spacing -->
-            <tr *ngFor="let i of [1,2,3,4,5]" class="empty-row">
+            <tr *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]" class="empty-row">
                 <td colspan="5">&nbsp;</td>
             </tr>
         </table>
