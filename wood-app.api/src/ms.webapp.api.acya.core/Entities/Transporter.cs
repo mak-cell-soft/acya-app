@@ -1,17 +1,17 @@
 using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities.DTOs;
 
-namespace ms.webapp.api.acya.core.Entities.CustomerDependecies
+namespace ms.webapp.api.acya.core.Entities
 {
   public class Transporter : IEntity
   {
     public int Id { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
-    public string FullName => Helpers.CapitalizeFirstLetter(FirstName!) + " " + LastName!.ToUpper();
+    public string? FullName { get; set; } 
 
-    public int? CarId { get; set; }
-    public Vehicle? car { get; set; }
+    public int? VehicleId { get; set; }
+    public Vehicle? Vehicle { get; set; }
 
     public Transporter()
     {
@@ -27,7 +27,7 @@ namespace ms.webapp.api.acya.core.Entities.CustomerDependecies
       Id = dto.id;
       FirstName = Helpers.CapitalizeFirstLetter(dto.firstname); ;
       LastName = dto.lastname!.ToUpper();
-      //FullName = Helpers.CapitalizeFirstLetter(FirstName!) + " " + LastName!.ToUpper();
+      FullName = Helpers.CapitalizeFirstLetter(FirstName!) + " " + LastName!.ToUpper();
     }
   }
 }

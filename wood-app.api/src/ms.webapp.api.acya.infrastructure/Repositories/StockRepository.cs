@@ -333,7 +333,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                   join ssexit in context.SalesSites on docexit.SalesSiteId equals ssexit.Id
                   join ssreceipt in context.SalesSites on docreceipt.SalesSiteId equals ssreceipt.Id
                   join tr in context.Transporters on st.TransporterId equals tr.Id
-                  join vehicle in context.Vehicles on tr.CarId equals vehicle.Id into vehicleGroup
+                  join vehicle in context.Vehicles on tr.VehicleId equals vehicle.Id into vehicleGroup
                   from vehicle in vehicleGroup.DefaultIfEmpty()
                   join merexit in context.DocumentMerchandises on docexit.Id equals merexit.DocumentId
                   where st.TransferDate > lastMonth
@@ -369,7 +369,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                          join exitSite in context.SalesSites on exitDoc.SalesSiteId equals exitSite.Id
                          join receiptSite in context.SalesSites on receiptDoc.SalesSiteId equals receiptSite.Id
                          join transporter in context.Transporters on st.TransporterId equals transporter.Id
-                         join vehicle in context.Vehicles on transporter.CarId equals vehicle.Id into vehicleGroup
+                         join vehicle in context.Vehicles on transporter.VehicleId equals vehicle.Id into vehicleGroup
                          from vehicle in vehicleGroup.DefaultIfEmpty()
                          join exitMerch in context.DocumentMerchandises on exitDoc.Id equals exitMerch.DocumentId
                          join merchandise in context.Merchandises on exitMerch.MerchandiseId equals merchandise.Id
@@ -490,7 +490,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                   join ssexit in context.SalesSites on docexit.SalesSiteId equals ssexit.Id
                   join ssreceipt in context.SalesSites on docreceipt.SalesSiteId equals ssreceipt.Id
                   join tr in context.Transporters on st.TransporterId equals tr.Id
-                  join vehicle in context.Vehicles on tr.CarId equals vehicle.Id into vehicleGroup
+                  join vehicle in context.Vehicles on tr.VehicleId equals vehicle.Id into vehicleGroup
                   from vehicle in vehicleGroup.DefaultIfEmpty()
                   join merexit in context.DocumentMerchandises on docexit.Id equals merexit.DocumentId
                   select new

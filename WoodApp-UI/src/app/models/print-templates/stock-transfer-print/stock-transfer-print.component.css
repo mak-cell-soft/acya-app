@@ -1,13 +1,20 @@
-/* Stock Transfer Print Template - Identical to Delivery Note Layout */
+:root {
+    --primary-black: #000;
+    --secondary-gray: #444;
+    --border-width: 1.2px;
+    --font-stack: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --mono-font: 'Courier New', Courier, monospace;
+}
+
 .delivery-note-container {
     width: 210mm;
     min-height: 297mm;
     margin: 0 auto;
-    padding: 10mm;
-    background: #eef0ee;
-    font-family: Arial, sans-serif;
+    padding: 12mm;
+    background: #fff;
+    font-family: var(--font-stack);
     font-size: 9pt;
-    color: #000;
+    color: var(--primary-black);
     position: relative;
     box-sizing: border-box;
 }
@@ -46,20 +53,20 @@
 }
 
 .logo {
-    width: 60mm;
-    height: 20mm;
+    padding: 2mm 8mm;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #000;
+    border: var(--border-width) solid var(--primary-black);
     background: transparent;
 }
 
 .logo-text {
-    font-size: 32pt;
-    font-weight: bold;
+    font-size: 28pt;
+    font-weight: 900;
     margin: 0;
-    letter-spacing: 3px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
 }
 
 .location {
@@ -117,8 +124,8 @@
 }
 
 .transfer-info-box {
-    border: 1px solid #000;
-    padding: 3mm;
+    border: var(--border-width) solid var(--primary-black);
+    padding: 4mm;
 }
 
 .info-row {
@@ -181,52 +188,73 @@
 }
 
 .items-table th {
-    background: transparent;
-    border: 1px solid #000;
-    padding: 2mm;
-    font-size: 7pt;
-    font-weight: bold;
+    background: #f4f4f4 !important;
+    border: var(--border-width) solid var(--primary-black);
+    padding: 2.5mm;
+    font-size: 7.5pt;
+    font-weight: 800;
+    text-transform: uppercase;
     text-align: center;
 }
 
 .items-table td {
-    border: 1px solid #000;
-    padding: 1.5mm;
-    font-size: 8pt;
+    border: 1px solid #666;
+    padding: 2mm;
+    font-size: 8.5pt;
     text-align: center;
 }
 
-.col-code { width: 25mm; }
+.col-code { width: 15mm; font-family: var(--mono-font); font-weight: bold; }
 .col-designation { width: auto; text-align: left !important; }
-.col-unit { width: 10mm; }
-.col-qty { width: 15mm; }
-.col-paquet { width: 25mm; }
+.col-unit { width: 12mm; }
+.col-qty { width: 18mm; font-weight: bold; }
+.col-paquet { width: 30mm; }
 
 .item-row td {
-    font-size: 8pt;
+    vertical-align: top;
 }
 
-/* Lengths Details inside table */
-.lengths-row td {
-    background-color: #f9f9f9;
-    padding: 1mm 4mm !important;
-    text-align: left !important;
+.item-description {
+    font-weight: 600;
+    margin-bottom: 1mm;
+    color: #000;
 }
 
-.lengths-list {
+.item-lengths-detail {
+    border-top: 0.5px dashed #ccc;
+    padding-top: 1mm;
+    margin-top: 1mm;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5mm;
+}
+
+.lengths-label {
+    font-size: 6.5pt;
+    font-weight: bold;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.2mm;
+}
+
+.lengths-wrap {
     display: flex;
     flex-wrap: wrap;
-    gap: 3mm;
+    gap: 1.5mm;
 }
 
-.length-pill {
-    font-family: monospace;
+.length-item {
+    font-size: 7.5pt;
+    font-family: 'Courier New', Courier, monospace;
+    background: #f8f8f8;
+    padding: 0.2mm 1.5mm;
+    border: 0.5px solid #eee;
+    color: #333;
     font-weight: bold;
-    font-size: 8pt;
 }
 
 .empty-row td {
-    height: 8mm;
+    height: 10mm;
     border-left: 1px solid #000;
     border-right: 1px solid #000;
     border-top: none;
