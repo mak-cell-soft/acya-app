@@ -1,0 +1,123 @@
+.accounting-container {
+    height: calc(100vh - 120px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at top left, rgba(99, 102, 241, 0.05), transparent),
+                radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.05), transparent);
+    overflow: hidden;
+}
+
+.construction-card {
+    max-width: 600px;
+    width: 95%;
+    padding: 64px 48px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 40px;
+    box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.06);
+    animation: float 6s ease-in-out infinite;
+    position: relative;
+}
+
+.icon-wrapper {
+    margin-bottom: 32px;
+    position: relative;
+    display: inline-block;
+}
+
+.main-icon {
+    font-size: 100px;
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 15px 25px rgba(99, 102, 241, 0.2));
+}
+
+.cog-icon {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    color: #a855f7;
+    animation: rotate 8s linear infinite;
+    opacity: 0.8;
+}
+
+h1 {
+    font-family: 'Outfit', 'Inter', sans-serif;
+    font-weight: 800;
+    font-size: 3rem;
+    margin: 0 0 16px 0;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #1e293b 0%, #64748b 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+p {
+    font-size: 1.2rem;
+    color: #64748b;
+    line-height: 1.7;
+    margin: 0 0 40px 0;
+    max-width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.badge {
+    display: inline-block;
+    padding: 8px 20px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+    color: #6366f1;
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 24px;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+.loader-bar {
+    width: 200px;
+    height: 4px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress {
+    position: absolute;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(to right, #6366f1, #a855f7);
+    border-radius: 10px;
+    animation: progress-slide 2s ease-in-out infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+}
+
+@keyframes progress-slide {
+    0% { left: -60%; }
+    100% { left: 100%; }
+}

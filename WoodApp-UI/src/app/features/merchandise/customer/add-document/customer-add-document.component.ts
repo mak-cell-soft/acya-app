@@ -460,6 +460,10 @@ export class CustomerAddDocumentComponent {
    */
   onArticleChange(element: Merchand, selectedArticle: Article) {
     if (selectedArticle) {
+      // Sync the search input with formatted reference and description
+      element.articleSearchInput = `${selectedArticle.reference}${selectedArticle.description ? ' - ' + selectedArticle.description : ''}`;
+      element.quantity = 0; // Reset quantity on article change
+      
       // Set wood type flag on the element itself, not globally
       element.isWoodArticle = selectedArticle.iswood;
 
@@ -481,7 +485,7 @@ export class CustomerAddDocumentComponent {
         element.unit_price_ht = selectedArticle.sellprice_ht;
 
         // Initialize wood lengths array if this is a wood article
-        if (element.isWoodArticle && !element.listLengths) {
+        if (element.isWoodArticle) {
           element.listLengths = [];
         }
 
@@ -498,6 +502,7 @@ export class CustomerAddDocumentComponent {
       }
     } else {
       // Clear wood flag if article is deselected
+      element.articleSearchInput = '';
       element.isWoodArticle = false;
       element.selectedStock = null;
       this.updateTotals(element);

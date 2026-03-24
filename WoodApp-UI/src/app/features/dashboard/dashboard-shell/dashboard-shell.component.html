@@ -72,7 +72,7 @@
           </a>
           <button mat-icon-button class="add-btn" routerLink="merchandise/customerinvoices/add"><mat-icon>add_circle_outline</mat-icon></button>
         </div>
-        <a class="sub-menu-item" routerLink="stock/exit" routerLinkActive="active-sub">
+        <a class="sub-menu-item" (click)="openAddTransferDialog()" style="cursor: pointer;">
           <span>{{menu_sub_sell_bon_sortie}}</span>
         </a>
       </div>
@@ -148,7 +148,7 @@
       </div>
 
       <!-- Comptabilité -->
-      <button mat-button class="menu-item"
+      <button mat-button class="menu-item" routerLink="accounting" routerLinkActive="active-route"
               [matTooltip]="isCollapsed ? menu_accounting : ''" matTooltipPosition="right">
         <mat-icon>credit_score</mat-icon>
         <span class="menu-text" *ngIf="!isCollapsed">{{menu_accounting}}</span>

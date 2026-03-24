@@ -401,8 +401,8 @@ export class StockTransferFormComponent implements OnInit {
   */
   onArticleChange(element: Merchand, selectedArticle: Article) {
     if (selectedArticle) {
-      // Update display and reset quantity on article change
-      element.articleSearchInput = selectedArticle.reference;
+      // Update display with formatted reference and description, reset quantity on change
+      element.articleSearchInput = `${selectedArticle.reference}${selectedArticle.description ? ' - ' + selectedArticle.description : ''}`;
       element.quantity = 0;
       element.listLengths = [];
       element.isWoodArticle = selectedArticle.iswood;

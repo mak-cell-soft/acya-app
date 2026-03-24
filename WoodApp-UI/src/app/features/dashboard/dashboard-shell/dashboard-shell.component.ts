@@ -1,11 +1,13 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, HostListener, OnInit, ViewChild, inject } from '@angular/core';
 import { MatSidenav } from '@angular/material/sidenav';
 import { NavigationEnd, Router } from '@angular/router';
 import { delay, filter } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { BUTTON_ADMINISTRATION, BUTTON_HOME, MENU_ACCOUNTING, MENU_ARTICLES, MENU_CLIENT, MENU_HELP, MENU_PROVIDER, MENU_PURCHASE, MENU_SELL, MENU_STOCK, MENU_SUB_BON_SORTIE, MENU_SUB_INVETORY, MENU_SUB_PURCHASE_BC, MENU_SUB_PURCHASE_BR, MENU_SUB_PURCHASE_FACT, MENU_SUB_SELL_BC, MENU_SUB_SELL_BL, MENU_SUB_SELL_DEVIS, MENU_SUB_SELL_FACT, MENU_SUB_STOCK_LIST, MENU_SUB_STOCK_MANAGE } from '../../../shared/constants/components/home';
 import { AuthenticationService } from '../../../services/components/authentication.service';
+import { MatDialog } from '@angular/material/dialog';
+import { StockTransferFormComponent } from '../../stock/stock-transfer-form/stock-transfer-form.component';
 
 @UntilDestroy()
 @Component({
@@ -14,6 +16,7 @@ import { AuthenticationService } from '../../../services/components/authenticati
   styleUrl: './dashboard-shell.component.scss'
 })
 export class DashboardShellComponent implements AfterViewInit, OnInit {
+  dialog = inject(MatDialog);
 
 
   //#region Labels Constants
@@ -204,5 +207,14 @@ export class DashboardShellComponent implements AfterViewInit, OnInit {
     if (currentMenu !== 'vente') this.isVenteMenuOpen = false;
     if (currentMenu !== 'achat') this.isPurchaseMenuOpen = false;
     if (currentMenu !== 'stock') this.isStockMenuOpen = false;
+  }
+
+  openAddTransferDialog(): void {
+    this.dialog.open(StockTransferFormComponent, {
+      width: '1200px',
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      panelClass: 'modern-dialog'
+    });
   }
 }

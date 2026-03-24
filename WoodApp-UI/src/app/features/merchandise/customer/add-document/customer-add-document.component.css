@@ -120,6 +120,16 @@ mat-card {
     width: 100%;
 }
 
+.mat-column-index { width: 45px; }
+.mat-column-article { width: auto; min-width: 250px; }
+.mat-column-sellPrice { width: 160px; }
+.mat-column-quantity { width: 155px; }
+.mat-column-discount { width: 120px; }
+.mat-column-tva { width: 110px; }
+.mat-column-totalWithoutTva { width: 110px; }
+.mat-column-totalWithTva { width: 120px; }
+.mat-column-actions { width: 60px; text-align: right; }
+
 .tax-form mat-form-field {
     width: 100%;
 }
@@ -482,3 +492,97 @@ table td.mat-cell {
     font-size: 0.75rem;
     font-weight: 600;
 }
+
+/* Compact Form Fields for Table Rows */
+::ng-deep .compact-field .mat-mdc-form-field-wrapper {
+    padding-bottom: 0 !important;
+}
+
+::ng-deep .compact-field .mat-mdc-text-field-wrapper {
+    background-color: #ffffff !important;
+    height: 38px !important;
+    padding: 0 10px !important;
+    border-radius: 8px !important;
+    margin-top: 8px; /* Added for alignment with static text */
+}
+
+::ng-deep .compact-field .mat-mdc-form-field-flex {
+    height: 38px !important;
+    align-items: center !important;
+}
+
+::ng-deep .compact-field .mat-mdc-form-field-infix {
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+    min-height: auto !important;
+    width: 100% !important;
+}
+
+::ng-deep .compact-field .mat-mdc-form-field-icon-prefix,
+::ng-deep .compact-field .mat-mdc-form-field-icon-suffix {
+    padding: 0 !important;
+}
+
+::ng-deep .compact-field .mat-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    color: #94a3b8;
+}
+
+/* Article Option Simplified */
+.article-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.article-option .text-content {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.article-option .ref {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #0f172a;
+}
+
+.article-option .desc {
+    font-size: 0.75rem;
+    color: #64748b;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.show-select {
+    display: none !important;
+}
+
+.article-field-compact {
+    width: 100%;
+}
+
+.price-field-compact {
+    width: 150px;
+}
+
+.qty-field-compact {
+    width: 145px;
+}
+
+.tva-field-compact {
+    width: 100px;
+}
+
+.article-info {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 4px;
+    padding-left: 12px;
+    font-weight: 500;
+}

@@ -10,7 +10,8 @@ const routes: Routes = [
   { path: '', component: StockListComponent },
   { path: 'mouvement', component: StockMovementTimelineComponent },
   { path: 'transferinfo/add', component: StockTransferFormComponent },
-  { path: 'transferinfo', component: StockTransferListComponent }
+  { path: 'transferinfo', component: StockTransferListComponent },
+  { path: 'exit', component: StockTransferFormComponent }
 ];
 
 @NgModule({

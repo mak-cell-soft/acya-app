@@ -113,21 +113,34 @@
                 <ng-container matColumnDef="article">
                     <th mat-header-cell *matHeaderCellDef> Article </th>
                     <td mat-cell *matCellDef="let element">
-                        <div class="article-cell">
-                            <input matInput [(ngModel)]="element.articleSearchInput" placeholder="Recherche article"
-                                autocomplete="off" (input)="applyArticleFilter($event, element)"
-                                (focus)="openArticleDropdown(element)" />
-                            <mat-select #articleSelect [(ngModel)]="element.selectedArticle"
-                                (selectionChange)="onArticleChange(element, element.selectedArticle)"
-                                placeholder="Choisir de la liste">
-                                <mat-option
-                                    *ngFor="let article of element.filteredArticles || filteredArticles; trackBy: trackByArticleId"
-                                    [value]="article">
-                                    {{ article.reference }}
-                                    <div class="article-description" *ngIf="article.description"> / &nbsp; {{
-                                        article.description }}</div>
-                                </mat-option>
-                            </mat-select>
+                        <div class="article-cell-container">
+                            <mat-form-field appearance="outline" class="compact-field article-field-compact">
+                                <mat-icon matPrefix>inventory_2</mat-icon>
+                                <input matInput [(ngModel)]="element.articleSearchInput"
+                                    placeholder="Réf. ou désignation..." autocomplete="off"
+                                    (input)="applyArticleFilter($event, element)"
+                                    (focus)="openArticleDropdown(element)" />
+
+                                <mat-select #articleSelect [(ngModel)]="element.selectedArticle"
+                                    (selectionChange)="onArticleChange(element, element.selectedArticle)"
+                                    class="show-select">
+                                    <mat-option *ngIf="!element.filteredArticles?.length && !articles.length" disabled>
+                                        Chargement...
+                                    </mat-option>
+                                    <mat-option
+                                        *ngFor="let article of element.filteredArticles || articles; trackBy: trackByArticleId"
+                                        [value]="article">
+                                        <div class="article-option">
+                                            <mat-icon>inventory_2</mat-icon>
+                                            <div class="text-content">
+                                                <span class="ref">{{ article.reference }}</span>
+                                                <span class="desc" *ngIf="article.description">{{ article.description
+                                                    }}</span>
+                                            </div>
+                                        </div>
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
 
                             <!-- Merchandise selection dropdown -->
                             <mat-select
@@ -174,8 +187,11 @@
                 <ng-container matColumnDef="sellPrice">
                     <th mat-header-cell *matHeaderCellDef> PU. HT </th>
                     <td mat-cell *matCellDef="let element">
-                        <input matInput [(ngModel)]="element.unit_price_ht" type="number"
-                            (input)="updateTotals(element)" class="number-input">
+                        <mat-form-field appearance="outline" class="compact-field price-field-compact">
+                            <span matPrefix>TND&nbsp;</span>
+                            <input matInput [(ngModel)]="element.unit_price_ht" type="number"
+                                (input)="updateTotals(element)">
+                        </mat-form-field>
                     </td>
                 </ng-container>
 
@@ -183,32 +199,31 @@
                 <ng-container matColumnDef="quantity">
                     <th mat-header-cell *matHeaderCellDef> Quantité </th>
                     <td mat-cell *matCellDef="let element">
-                        <div class="quantity-container">
-                            <input matInput [(ngModel)]="element.quantity" type="number" (input)="updateTotals(element)"
-                                [disabled]="shouldDisableQuantityInput(element)" 
-                                [class.invalid-field]="!isQuantityValid(element.quantity)"
-                                class="quantity-input number-input">
+                        <div class="quantity-container-compact">
+                            <mat-form-field appearance="outline" class="compact-field qty-field-compact">
+                                <input matInput [(ngModel)]="element.quantity" type="number"
+                                    (input)="updateTotals(element)" [disabled]="shouldDisableQuantityInput(element)"
+                                    [class.invalid-field]="!isQuantityValid(element.quantity)">
 
-                            <div class="icon-group">
-                                <!-- Wood length button -->
-                                <button mat-icon-button *ngIf="element.isWoodArticle"
-                                    (click)="openWoodLengthDialog(element)" matTooltip="Gérer les longueurs"
-                                    class="wood-length-button">
-                                    <mat-icon>straighten</mat-icon>
-                                </button>
+                                <div matSuffix class="field-actions">
+                                    <!-- Wood length button -->
+                                    <button mat-icon-button *ngIf="element.isWoodArticle"
+                                        (click)="openWoodLengthDialog(element)" matTooltip="Gérer les longueurs">
+                                        <mat-icon>straighten</mat-icon>
+                                    </button>
 
-                                <!-- Stock info button -->
-                                <button mat-icon-button *ngIf="element.selectedStock"
-                                    [matTooltip]="'Stock disponible: ' + (element.selectedStock.stockQuantity | number:'1.3-3')"
-                                    class="stock-info-button">
-                                    <mat-icon>info</mat-icon>
-                                </button>
+                                    <!-- Stock info button -->
+                                    <button mat-icon-button *ngIf="element.selectedStock"
+                                        [matTooltip]="'Stock disponible: ' + (element.selectedStock.stockQuantity | number:'1.3-3')">
+                                        <mat-icon>info</mat-icon>
+                                    </button>
+                                </div>
+                            </mat-form-field>
 
-                                <!-- Wood Nb Pieces badge -->
-                                <span *ngIf="element.isWoodArticle && element.listLengths?.length"
-                                    class="wood-lengths-badge">
-                                    {{ getTotalNbPieces(element) }}PCS ({{ getTotalLengths(element) }}L)
-                                </span>
+                            <!-- Wood Nb Pieces badge -->
+                            <div *ngIf="element.isWoodArticle && element.listLengths?.length"
+                                class="wood-lengths-badge">
+                                {{ getTotalNbPieces(element) }} PCS
                             </div>
                         </div>
                     </td>
@@ -218,8 +233,11 @@
                 <ng-container matColumnDef="discount">
                     <th mat-header-cell *matHeaderCellDef> Remise % </th>
                     <td mat-cell *matCellDef="let element">
-                        <input matInput [(ngModel)]="element.selldiscountpercentage" type="number"
-                            (input)="updateTotals(element)" class="number-input">
+                        <mat-form-field appearance="outline" class="compact-field tva-field-compact">
+                            <input matInput [(ngModel)]="element.selldiscountpercentage" type="number"
+                                (input)="updateTotals(element)">
+                            <span matSuffix>%</span>
+                        </mat-form-field>
                     </td>
                 </ng-container>
 
@@ -227,12 +245,13 @@
                 <ng-container matColumnDef="tva">
                     <th mat-header-cell *matHeaderCellDef> TVA </th>
                     <td mat-cell *matCellDef="let element">
-                        <mat-select placeholder="choisir"
-                            [ngModel]="getSelectedTvaFromArticle(element.selectedArticle)">
-                            <mat-option *ngFor="let tva of TVAs" [value]="tva.id">
-                                {{ tva.value }}
-                            </mat-option>
-                        </mat-select>
+                        <mat-form-field appearance="outline" class="compact-field tva-field-compact">
+                            <mat-select [ngModel]="getSelectedTvaFromArticle(element.selectedArticle)">
+                                <mat-option *ngFor="let tva of TVAs" [value]="tva.id">
+                                    {{ tva.value }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
                     </td>
                 </ng-container>
 

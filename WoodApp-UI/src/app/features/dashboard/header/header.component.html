@@ -1,7 +1,8 @@
 <mat-toolbar class="modern-header">
   <!-- Left section: Hamburger & Title -->
   <div class="header-left">
-    <button mat-icon-button class="menu-btn" (click)="onToggleMenu()">
+    <button mat-icon-button class="menu-btn" (click)="onToggleMenu()"
+      matTooltip="appyer sur échap pour faire disparaitre le menu">
       <mat-icon *ngIf="sidenav.mode === 'over' && !sidenav.opened">menu</mat-icon>
       <mat-icon *ngIf="sidenav.mode === 'over' && sidenav.opened">close_fullscreen</mat-icon>
       <mat-icon *ngIf="sidenav.mode !== 'over'">horizontal_split</mat-icon>
@@ -43,7 +44,7 @@
             Tout marquer comme lu
           </button>
         </div>
-        
+
         <mat-divider></mat-divider>
 
         <div class="notif-scroll-area">
@@ -70,14 +71,14 @@
                 <div class="item-details">
                   <mat-icon>description</mat-icon>
                   <span>Sortie N° {{notif.exitDocNumber}}</span>
-                   • 
+                  •
                   <span>{{notif.itemsCount}} articles</span>
                 </div>
               </div>
             </button>
           </ng-container>
         </div>
-        
+
         <mat-divider></mat-divider>
         <div class="notif-footer" *ngIf="notificationService.getPendingNotifications().length > 0">
           <button mat-button>Voir toutes les notifications</button>
@@ -124,7 +125,7 @@
             <mat-icon>account_circle</mat-icon>
             <span>Mon Profil</span>
           </button>
-          
+
           <button mat-menu-item routerLink="config" class="premium-menu-item hidden-sm-up">
             <mat-icon>settings</mat-icon>
             <span>Paramètres</span>
