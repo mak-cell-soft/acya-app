@@ -1,73 +1,115 @@
-<h1 mat-dialog-title class="dialog-title">
-    <mat-icon class="title-icon">local_shipping</mat-icon>
-    Confirmer le transfert
-</h1>
+<div class="modal-header">
+    <h2 mat-dialog-title>
+        <mat-icon>local_shipping</mat-icon>
+        Confirmation de Réception
+    </h2>
+    <div class="status-badge" [class.loading]="loading">
+        {{ loading ? 'Chargement...' : 'Opération Entrepôt' }}
+    </div>
+</div>
 
-<mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+<mat-progress-bar *ngIf="loading" mode="indeterminate" class="header-loader"></mat-progress-bar>
 
-<div mat-dialog-content class="dialog-content">
-    <div class="detail-grid" *ngIf="!loading">
-        <div class="half-width-wrapper">
-            <div class="detail-item">
-                <span class="detail-label">Doc. Sortie N°:</span>
-                <span class="detail-value">{{ commonData.docSortie || 'N/A' }}</span>
+<div mat-dialog-content class="dialog-content-premium">
+    <!-- Compact Metadata (Reduced Height) -->
+    <div class="compact-meta" *ngIf="!loading">
+        <div class="route-meta">
+            <div class="meta-item">
+                <mat-icon>outbox</mat-icon>
+                <span class="meta-val">{{ commonData.origine || 'N/A' }}</span>
             </div>
-
-            <div class="detail-item">
-                <span class="detail-label">Doc. Reception N°:</span>
-                <span class="detail-value">{{ commonData.docReception || 'N/A' }}</span>
-            </div>
-        </div>
-
-        <div class="half-width-wrapper">
-            <div class="detail-item">
-                <span class="detail-label">Dépôt Origine:</span>
-                <span class="detail-value">{{ commonData.origine || 'N/A' }}</span>
-            </div>
-
-            <div class="detail-item">
-                <span class="detail-label">Dépôt Destination:</span>
-                <span class="detail-value">{{ commonData.destination || 'N/A' }}</span>
+            <mat-icon style="font-size: 14px; opacity: 0.3; width: 14px; height: 14px;">arrow_forward</mat-icon>
+            <div class="meta-item">
+                <mat-icon>inbox</mat-icon>
+                <span class="meta-val">{{ commonData.destination || 'N/A' }}</span>
             </div>
         </div>
+        <div class="meta-item">
+            <mat-icon>receipt_long</mat-icon>
+            <span class="meta-val">{{ commonData.docSortie || 'N/A' }}</span>
+        </div>
+        <div class="meta-item">
+            <mat-icon>calendar_today</mat-icon>
+            <span class="meta-val">{{ commonData.transferDate | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <div class="meta-item" *ngIf="commonData.transporter">
+            <mat-icon>local_shipping</mat-icon>
+            <span class="meta-val">{{ commonData.transporter }}</span>
+        </div>
+    </div>
 
-        <div class="full-width" *ngFor="let item of items">
-            <div class="detail-item-full">
-                <span class="detail-label-full">Marchandise:</span>
-                <div class="detail-value-full">
-                    <div>{{ getMerchandiseInfo(item).line1 }}</div>
-                    <div>{{ getMerchandiseInfo(item).line2 }}</div>
-                    <div style="font-weight: 500;">{{ getMerchandiseInfo(item).line3 }}</div>
+    <div class="details-section" *ngIf="!loading">
+        <div class="section-title">
+            <mat-icon style="font-size: 14px; width:14px; height:14px;">inventory_2</mat-icon>
+            Contenu du Transfert
+        </div>
+
+        <!-- High-Visibility Merchandise List -->
+        <div class="merchandise-list">
+            <div class="merchandise-card" *ngFor="let item of items">
+                <div class="card-main">
+                    <div class="article-label">Article</div>
+                    <div class="article-code">{{ item.refMerchandise }}</div>
+                    <div class="article-desc">{{ item.description }}</div>
+                    
+                    <div class="card-footer">
+                        <div class="footer-item">
+                            <span class="footer-label">Référence Paquet</span>
+                            <span class="footer-val">{{ item.refPaquet || 'Standard' }}</span>
+                        </div>
+                        <div class="footer-item" *ngIf="item.exitDocLengths?.length > 0">
+                            <span class="footer-label">Détails Longueurs</span>
+                            <span class="footer-val">{{ transformLengthsToLine(item.exitDocLengths) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-side">
+                    <div class="qty-display">{{ item.quantity | number:'1.3-3' }}</div>
+                    <div class="unit-label">{{ item.unit || 'PCS' }}</div>
                 </div>
             </div>
         </div>
 
-        <div class="half-width-wrapper">
-            <div class="detail-item">
-                <span class="detail-label">Date du transfert:</span>
-                <span class="detail-value">{{ commonData.transferDate | date:'mediumDate' }}</span>
-            </div>
-
-            <div class="detail-item">
-                <span class="detail-label">Transporteur:</span>
-                <span class="detail-value">{{ commonData.transporter || 'N/A' }}</span>
-            </div>
-        </div>
-
-        <div class="full-width">
+        <!-- Rejection Logic (Same as before but styled via CSS) -->
+        <div class="rejection-area" *ngIf="showRejectionForm">
+            <div class="section-title">Motif du Rejet</div>
             <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Commentaire</mat-label>
-                <textarea matInput [(ngModel)]="comment" rows="3"
-                    placeholder="Ajouter un commentaire (optionnel)"></textarea>
+                <mat-label>Sélectionner un motif</mat-label>
+                <mat-select [(ngModel)]="rejectionReason">
+                    <mat-option *ngFor="let r of rejectionReasons" [value]="r.value">
+                        {{ r.label }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-100" *ngIf="rejectionReason === 'OTHER'">
+                <mat-label>Précisez votre motif</mat-label>
+                <textarea matInput [(ngModel)]="customRejectionReason" rows="2" placeholder="Entrez la raison du rejet..."></textarea>
             </mat-form-field>
         </div>
 
+        <div class="section-title">
+             <mat-icon style="font-size: 14px; width:14px; height:14px;">comment</mat-icon>
+             Observations
+        </div>
+        <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Commentaire additionnel</mat-label>
+            <textarea matInput [(ngModel)]="comment" rows="2"
+                placeholder="Ajouter une note facultative..."></textarea>
+        </mat-form-field>
     </div>
 </div>
 
-<mat-dialog-actions align="end">
-    <button mat-flat-button (click)="onAbort()">Annuler</button>
-    <button mat-flat-button (click)="onReject()" color="warn">Rejeter</button>
-    <button mat-flat-button (click)="onConfirm()" color="primary" cdkFocusInitial
-        [disabled]="loading">Confirmer</button>
-</mat-dialog-actions>
+<div mat-dialog-actions class="dialog-actions-premium">
+    <button mat-button (click)="onAbort()" class="secondary-btn">Annuler</button>
+    <div class="actions-spacer"></div>
+    <button mat-stroked-button color="warn" class="reject-btn" (click)="toggleRejection()" *ngIf="!showRejectionForm">
+        Le transfert est erroné
+    </button>
+    <button mat-flat-button color="warn" class="reject-btn-confirm" (click)="onReject()" *ngIf="showRejectionForm" [disabled]="loading || !rejectionReason">
+        Confirmer le rejet
+    </button>
+    <button mat-flat-button color="primary" class="confirm-btn" (click)="onConfirm()" *ngIf="!showRejectionForm" [disabled]="loading">
+        Valider la réception
+    </button>
+</div>

@@ -14,7 +14,7 @@ export const environment = {
   production: false,
 
   // NOTE: Empty base URL — requests are relative so the proxy handles routing to localhost.
-  apiBaseUrl: '',
+  apiBaseUrl: 'https://localhost:44306',
 
   // All HTTP calls like `this.http.get(environment.apiUrl + 'Enterprise/...')` will
   // be intercepted by the proxy and forwarded to https://localhost:44306/api/...

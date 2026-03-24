@@ -31,6 +31,7 @@ import { Site } from '../../../../models/components/sites';
 import { DocumentService } from '../../../../services/components/document.service';
 import { ListOfLength } from '../../../../models/components/listoflength';
 import { ConfirmDeleteModalComponent } from '../../../../shared/components/modals/confirm-delete-modal/confirm-delete-modal.component';
+import { isQuantityValid } from '../../../../shared/validators/naturalNumberValidator';
 
 @Component({
   selector: 'customer-app-add-document',
@@ -43,6 +44,7 @@ export class CustomerAddDocumentComponent {
   router = inject(Router);
   fb = inject(FormBuilder);
   articleService = inject(ArticleService);
+  isQuantityValid = isQuantityValid; // Expose to template if needed
   appVarService = inject(AppVariableService);
   stockService = inject(StockService);
   counterPartService = inject(CounterpartService);
@@ -679,6 +681,9 @@ export class CustomerAddDocumentComponent {
       }
       if (!this.selectedCustomer || !this.selectedCustomer.id) {
         errors.push('Sélectionner un client.');
+      }
+      if (doc.merchandises.some(m => !isQuantityValid(m.quantity))) {
+        errors.push('Veuillez saisir une quantité supérieure à 0 pour tous les articles');
       }
       if (!this.selectedTransporter || !this.selectedTransporter.id) {
         errors.push('Sélectionner un transporteur.');

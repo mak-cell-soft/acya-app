@@ -208,6 +208,13 @@ table td.mat-cell {
     border-bottom: 2px solid #3f51b5;
 }
 
+.invalid-field {
+    border-bottom: 2px solid #ef4444 !important;
+    background-color: #fef2f2 !important;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
 .quantity-cell {
     display: flex;
     align-items: center;

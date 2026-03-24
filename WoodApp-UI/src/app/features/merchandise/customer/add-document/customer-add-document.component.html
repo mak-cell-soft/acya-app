@@ -185,7 +185,9 @@
                     <td mat-cell *matCellDef="let element">
                         <div class="quantity-container">
                             <input matInput [(ngModel)]="element.quantity" type="number" (input)="updateTotals(element)"
-                                [disabled]="shouldDisableQuantityInput(element)" class="quantity-input number-input">
+                                [disabled]="shouldDisableQuantityInput(element)" 
+                                [class.invalid-field]="!isQuantityValid(element.quantity)"
+                                class="quantity-input number-input">
 
                             <div class="icon-group">
                                 <!-- Wood length button -->

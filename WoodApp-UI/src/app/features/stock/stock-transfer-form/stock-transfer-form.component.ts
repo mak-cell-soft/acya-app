@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Article } from '../../../models/components/article';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { Site } from '../../../models/components/sites';
@@ -24,19 +24,22 @@ import { StockService } from '../../../services/components/stock.service';
 import { AuthenticationService } from '../../../services/components/authentication.service';
 import { AppuserService } from '../../../services/components/appuser.service';
 import { AppVariableService } from '../../../services/configuration/app-variable.service';
-import { response } from 'express';
 import { StockTransfert } from '../../../models/components/stock_transfert';
 import { Router } from '@angular/router';
+import { isQuantityValid } from '../../../shared/validators/naturalNumberValidator';
 import { NotificationService } from '../../../services/components/notification.service';
 
 @Component({
   selector: 'app-stock-transfer-form',
   templateUrl: './stock-transfer-form.component.html',
-  styleUrl: './stock-transfer-form.component.css'
+  styleUrl: './stock-transfer-form.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush // Optimization for high-data ERP forms
 })
 export class StockTransferFormComponent implements OnInit {
   fb = inject(FormBuilder);
+  cdr = inject(ChangeDetectorRef); // Required for manual change detection in some scenarios
   articleService = inject(ArticleService);
+  isQuantityValid = isQuantityValid;
   siteService = inject(SalessitesService);
   transporterService = inject(TransporterService);
   appVarService = inject(AppVariableService);
@@ -398,7 +401,10 @@ export class StockTransferFormComponent implements OnInit {
   */
   onArticleChange(element: Merchand, selectedArticle: Article) {
     if (selectedArticle) {
-      // Set wood type flag on the element itself, not globally
+      // Update display and reset quantity on article change
+      element.articleSearchInput = selectedArticle.reference;
+      element.quantity = 0;
+      element.listLengths = [];
       element.isWoodArticle = selectedArticle.iswood;
 
       // Find all stocks for this article
@@ -411,31 +417,23 @@ export class StockTransferFormComponent implements OnInit {
         if (matchingStocks.length === 1) {
           element.selectedStock = matchingStocks[0];
         } else {
-          // For multiple stocks, we'll let the user choose via the UI
-          // So we won't automatically select one here
           element.selectedStock = null;
         }
 
         element.unit_price_ht = selectedArticle.sellprice_ht;
 
         // Initialize wood lengths array if this is a wood article
-        if (element.isWoodArticle && !element.listLengths) {
+        if (element.isWoodArticle) {
           element.listLengths = [];
         }
 
-        // Update calculations if we have a selected stock
-        if (element.selectedStock) {
-          this.updateTotals(element);
-
-          if (!element.selectedStock.allowNegativeStock && element.selectedStock.stockQuantity <= 0) {
-            console.log("Quantity input disabled: allowNegativStock is false and no stock found");
-          }
-        }
+        this.updateTotals(element);
       } else {
         this.toastr.error('Stock non trouvé pour ' + selectedArticle.reference);
       }
     } else {
       // Clear wood flag if article is deselected
+      element.articleSearchInput = '';
       element.isWoodArticle = false;
       element.selectedStock = null;
       this.updateTotals(element);
@@ -791,6 +789,13 @@ export class StockTransferFormComponent implements OnInit {
 
       if (st.originSiteId == st.destinationSiteId) {
         this.toastr.info("Dépôt source ne peut pas être lui même la destination");
+        return;
+      }
+
+      // Check if any merchandise has zero or negative quantity
+      const hasInvalidQuantity = st.merchandisesItems.some(item => !isQuantityValid(item.quantity));
+      if (hasInvalidQuantity) {
+        this.toastr.error("Veuillez saisir une quantité supérieure à 0 pour tous les articles");
         return;
       }
 

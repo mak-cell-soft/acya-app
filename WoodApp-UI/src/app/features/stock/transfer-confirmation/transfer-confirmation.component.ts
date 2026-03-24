@@ -13,6 +13,18 @@ import { TransferConfirmCodeDialogComponent } from '../transfer-confirm-code-dia
 })
 export class TransferConfirmationComponent implements OnInit {
   comment: string = '';
+  rejectionReason: string = '';
+  customRejectionReason: string = '';
+  showRejectionForm: boolean = false;
+  
+  rejectionReasons = [
+    { value: 'PROB_QTY', label: 'Erreur de quantité' },
+    { value: 'PROB_QUAL', label: 'Marchandise endommagée' },
+    { value: 'WRONG_REF', label: 'Mauvaise référence' },
+    { value: 'MISSING', label: 'Marchandise manquante' },
+    { value: 'OTHER', label: 'Autre (Veuillez préciser)' }
+  ];
+
   stockTransferService = inject(StockService);
   toastr = inject(ToastrService);
   loading: boolean = false;
@@ -66,13 +78,13 @@ export class TransferConfirmationComponent implements OnInit {
   getMerchandiseInfo(item: any): { line1: string, line2: string, line3: string } {
     const lengthsLine = this.transformLengthsToLine(item.exitDocLengths);
     return {
-      line1: `Article : ${item.refMerchandise || 'N/A'} - Description : ${item.description || 'N/A'}`,
+      line1: `Article : ${item.refMerchandise || 'N/A'}`,
       line2: `Référence paquet : ${item.refPaquet || 'N/A'} # quantité : ${item.quantity || '0.000'} ${item.unit || ''}`,
-      line3: `Longueurs : ${lengthsLine}`
+      line3: `Désignation : ${item.description || 'N/A'}`
     };
   }
 
-  private transformLengthsToLine(lengths: ListOfLength[]): string {
+  public transformLengthsToLine(lengths: ListOfLength[]): string {
     if (!lengths || lengths.length === 0) {
       return 'Aucune longueur disponible';
     }
@@ -83,7 +95,7 @@ export class TransferConfirmationComponent implements OnInit {
 
   onConfirm(): void {
     const dialogRef = this.dialog.open(TransferConfirmCodeDialogComponent, {
-      width: '400px',
+      width: '450px',
       data: {
         transferId: this.data.id,
         comment: this.comment
@@ -97,13 +109,35 @@ export class TransferConfirmationComponent implements OnInit {
     });
   }
 
+  toggleRejection(): void {
+    this.showRejectionForm = !this.showRejectionForm;
+  }
+
   onReject(): void {
-    this.stockTransferService.rejectTransfer(this.data.id, this.comment).subscribe(() => {
-      this.toastr.info(
-        `Transfer rejeté avec succés`,
-        'Rejet'
-      );
-      this.dialogRef.close(false);
+    if (!this.rejectionReason) {
+      this.toastr.warning('Veuillez sélectionner un motif de rejet', 'Attention');
+      return;
+    }
+
+    const reasonLabel = this.rejectionReasons.find(r => r.value === this.rejectionReason)?.label;
+    const finalReason = this.rejectionReason === 'OTHER' 
+      ? `Autre: ${this.customRejectionReason}` 
+      : reasonLabel;
+
+    const fullComment = `${finalReason}${this.comment ? ' - Obs: ' + this.comment : ''}`;
+
+    this.loading = true;
+    this.stockTransferService.rejectTransfer(this.data.id, fullComment).subscribe({
+      next: () => {
+        this.toastr.info('Transfert rejeté avec succès', 'Rejet');
+        this.loading = false;
+        this.dialogRef.close(false);
+      },
+      error: (err) => {
+        this.loading = false;
+        this.toastr.error('Erreur lors du rejet du transfert');
+        console.error(err);
+      }
     });
   }
 

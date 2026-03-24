@@ -58,3 +58,18 @@ export function meterCentimeterValidator(nameControl: AbstractControl): Validato
     };
 }
 
+export function positiveNumberValidator(): ValidatorFn {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+        const value = control.value;
+        if (value === null || value === undefined || value === '') return null;
+        return +value > 0 ? null : { 'positiveNumber': true };
+    };
+}
+
+/**
+ * Shared method to verify if a quantity is strictly positive.
+ * Useful for manual validation in loops (e.g. MatTableDataSource).
+ */
+export function isQuantityValid(quantity: number | null | undefined): boolean {
+    return quantity !== null && quantity !== undefined && quantity > 0;
+}

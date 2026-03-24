@@ -32,29 +32,56 @@
       </button>
 
       <mat-menu #notificationsMenu="matMenu" class="modern-notif-menu">
-        <div class="notif-header">
-          <h3>Notifications</h3>
-          <span class="badge">{{notificationService.getPendingNotifications().length}}</span>
+        <div class="notif-menu-header">
+          <div class="header-main">
+            <h3>Notifications</h3>
+            <span class="count-badge" *ngIf="notificationService.getPendingNotifications().length > 0">
+              {{notificationService.getPendingNotifications().length}}
+            </span>
+          </div>
+          <button mat-button class="clear-all-btn" *ngIf="notificationService.getPendingNotifications().length > 0">
+            Tout marquer comme lu
+          </button>
         </div>
+        
         <mat-divider></mat-divider>
 
-        <div *ngIf="notificationService.getPendingNotifications().length === 0" class="empty-state">
-          <mat-icon>notifications_paused</mat-icon>
-          <p>Aucune notification</p>
-        </div>
+        <div class="notif-scroll-area">
+          <div *ngIf="notificationService.getPendingNotifications().length === 0" class="empty-state">
+            <div class="empty-icon-circle">
+              <mat-icon>notifications_paused</mat-icon>
+            </div>
+            <p>Aucune notification non lue</p>
+            <span class="empty-sub">Vous êtes à jour !</span>
+          </div>
 
-        <ng-container *ngIf="notificationService.getPendingNotifications().length > 0">
-          <button *ngFor="let notif of notificationService.getPendingNotifications()" mat-menu-item
-            (click)="openTransferConfirmation(notif)" class="notification-item">
-            <div class="notif-icon-wrapper">
-              <mat-icon>move_to_inbox</mat-icon>
-            </div>
-            <div class="notification-content">
-              <div class="notif-title">Transfert depuis {{notif.originSite}}</div>
-              <div class="notif-desc">Docs: Sortie N° {{notif.exitDocNumber}} - {{notif.itemsCount}} articles</div>
-            </div>
-          </button>
-        </ng-container>
+          <ng-container *ngIf="notificationService.getPendingNotifications().length > 0">
+            <button *ngFor="let notif of notificationService.getPendingNotifications()" mat-menu-item
+              (click)="openTransferConfirmation(notif)" class="notification-item-premium">
+              <div class="item-notif-icon">
+                <mat-icon>transfer_within_a_station</mat-icon>
+              </div>
+              <div class="item-notif-content">
+                <div class="item-header">
+                  <span class="item-type">Transfert Entrant</span>
+                  <span class="item-time">Nouveau</span>
+                </div>
+                <div class="item-title">Depuis {{notif.originSite}}</div>
+                <div class="item-details">
+                  <mat-icon>description</mat-icon>
+                  <span>Sortie N° {{notif.exitDocNumber}}</span>
+                   • 
+                  <span>{{notif.itemsCount}} articles</span>
+                </div>
+              </div>
+            </button>
+          </ng-container>
+        </div>
+        
+        <mat-divider></mat-divider>
+        <div class="notif-footer" *ngIf="notificationService.getPendingNotifications().length > 0">
+          <button mat-button>Voir toutes les notifications</button>
+        </div>
       </mat-menu>
 
       <!-- Settings -->
