@@ -124,6 +124,13 @@
         <span class="menu-text" *ngIf="!isCollapsed">{{menu_articles}}</span>
       </button>
 
+      <!-- Véhicules -->
+      <button mat-button class="menu-item" routerLink="vehicles" routerLinkActive="active-route"
+              [matTooltip]="isCollapsed ? 'Véhicules' : ''" matTooltipPosition="right">
+        <mat-icon>local_shipping</mat-icon>
+        <span class="menu-text" *ngIf="!isCollapsed">Véhicules</span>
+      </button>
+
       <!-- Stock -->
       <button mat-button class="menu-item" (click)="toggleStockMenu()" [class.expanded]="isStockMenuOpen"
               [matTooltip]="isCollapsed ? menu_stock : ''" matTooltipPosition="right">

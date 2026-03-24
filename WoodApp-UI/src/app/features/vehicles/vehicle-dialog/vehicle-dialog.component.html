@@ -1,0 +1,90 @@
+<div class="dialog-container">
+  <div class="dialog-header">
+    <div class="header-icon-box">
+      <mat-icon>{{ isEditMode ? 'edit_note' : 'add_road' }}</mat-icon>
+    </div>
+    <div class="title-meta">
+      <h2 mat-dialog-title>{{ isEditMode ? 'Modifier' : 'Nouveau' }} Véhicule</h2>
+      <p>Entrez les détails techniques du véhicule</p>
+    </div>
+    <button mat-icon-button (click)="onCancel()" class="close-btn"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <mat-dialog-content class="form-content">
+    <form [formGroup]="vehicleForm" class="vehicle-form">
+      <div class="row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Marque & Modèle</mat-label>
+          <input matInput formControlName="brand" placeholder="Ex: Toyota Hilux">
+          <mat-icon matSuffix>badge</mat-icon>
+          <mat-error *ngIf="vehicleForm.get('brand')?.hasError('required')">La marque est obligatoire</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Immatriculation (Matricule)</mat-label>
+          <input matInput formControlName="serialnumber" placeholder="Ex: 1234 TN 56">
+          <mat-icon matSuffix>numbers</mat-icon>
+          <mat-error *ngIf="vehicleForm.get('serialnumber')?.hasError('required')">Le matricule est obligatoire</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Kilométrage Actuel</mat-label>
+          <input matInput formControlName="mileage" placeholder="Ex: 150000" type="number">
+          <span matSuffix>km</span>
+          <mat-icon matSuffix>speed</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <div class="divider">
+        <span><mat-icon>event_note</mat-icon> Échéances Administratives</span>
+      </div>
+
+      <div class="row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Échéance Assurance</mat-label>
+          <input matInput [matDatepicker]="insPicker" formControlName="insurancedate">
+          <mat-datepicker-toggle matSuffix [for]="insPicker"></mat-datepicker-toggle>
+          <mat-datepicker #insPicker></mat-datepicker>
+          <mat-icon matSuffix>verified_user</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Prochaine Visite Technique</mat-label>
+          <input matInput [matDatepicker]="vtPicker" formControlName="technicalvisitdate">
+          <mat-datepicker-toggle matSuffix [for]="vtPicker"></mat-datepicker-toggle>
+          <mat-datepicker #vtPicker></mat-datepicker>
+          <mat-icon matSuffix>build_circle</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <div class="divider">
+        <span><mat-icon>oil_barrel</mat-icon> Maintenance & Entretien</span>
+      </div>
+
+      <div class="row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Date Dernière Vidange</mat-label>
+          <input matInput [matDatepicker]="drainPicker" formControlName="drainingdate">
+          <mat-datepicker-toggle matSuffix [for]="drainPicker"></mat-datepicker-toggle>
+          <mat-datepicker #drainPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Détails Vidange</mat-label>
+          <input matInput formControlName="draining" placeholder="Filtres remplacés...">
+          <mat-icon matSuffix>settings</mat-icon>
+        </mat-form-field>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-footer">
+    <button mat-button (click)="onCancel()" class="cancel-btn">Annuler</button>
+    <button mat-flat-button color="primary" [disabled]="vehicleForm.invalid || loading" (click)="onSubmit()" class="submit-btn" [class.loading]="loading">
+      <span *ngIf="!loading">{{ isEditMode ? 'Mettre à jour' : 'Enregistrer' }}</span>
+      <mat-spinner diameter="24" *ngIf="loading"></mat-spinner>
+    </button>
+  </mat-dialog-actions>
+</div>

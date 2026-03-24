@@ -1,0 +1,210 @@
+.vehicles-container {
+  padding: 2.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: radial-gradient(circle at top left, rgba(63, 81, 181, 0.05) 0%, transparent 40%),
+              radial-gradient(circle at bottom right, rgba(233, 30, 99, 0.05) 0%, transparent 40%);
+
+  .header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 3rem;
+    gap: 2rem;
+
+    .title-group {
+      h1 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 2.8rem;
+        font-weight: 800;
+        margin: 0;
+        letter-spacing: -0.02em;
+        background: linear-gradient(135deg, #1a237e 0%, #311b92 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      p {
+        color: #666;
+        font-size: 1.1rem;
+        margin: 0.5rem 0 0;
+        opacity: 0.8;
+      }
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+
+      .filter-field {
+        width: 350px;
+        margin-bottom: -1.25rem;
+
+        ::ng-deep .mat-mdc-text-field-wrapper {
+          background-color: white;
+          border-radius: 12px;
+        }
+      }
+
+      .add-btn {
+        height: 52px;
+        padding: 0 1.8rem;
+        border-radius: 14px;
+        font-weight: 600;
+        font-size: 1rem;
+        box-shadow: 0 8px 25px rgba(63, 81, 181, 0.25);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+        &:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 12px 35px rgba(63, 81, 181, 0.35);
+        }
+      }
+    }
+  }
+
+  .table-card {
+    border-radius: 24px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+
+    .table-container {
+      overflow-x: auto;
+      min-height: 400px;
+
+      table {
+        width: 100%;
+        background: transparent;
+
+        th {
+          font-family: 'Outfit', sans-serif;
+          font-weight: 700;
+          color: #1a237e;
+          font-size: 0.95rem;
+          padding: 1.5rem 1rem;
+          background: rgba(63, 81, 181, 0.02);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        td {
+          padding: 1.2rem 1rem;
+          font-size: 1rem;
+          color: #444;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        .vehicle-row {
+          transition: background-color 0.2s ease;
+          &:hover {
+            background-color: rgba(63, 81, 181, 0.03);
+          }
+        }
+
+        .brand-cell {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-weight: 600;
+          color: #1a237e;
+
+          .vehicle-icon {
+            color: #3f51b5;
+            background: rgba(63, 81, 181, 0.1);
+            padding: 8px;
+            border-radius: 10px;
+            width: 24px;
+            height: 24px;
+            font-size: 24px;
+          }
+        }
+
+        .mono-font {
+          font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
+          background: #f8f9fa;
+          padding: 4px 10px;
+          border-radius: 6px;
+          font-weight: 500;
+          color: #dc3545;
+          display: inline-block;
+        }
+
+        .mileage-badge {
+          background: #e3f2fd;
+          color: #1976d2;
+          padding: 6px 12px;
+          border-radius: 20px;
+          font-weight: 700;
+          font-size: 0.85rem;
+          box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1);
+        }
+
+        .status-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+          vertical-align: middle;
+          margin-left: 4px;
+        }
+
+        .expiring-soon {
+          color: #f57c00;
+          font-weight: 600;
+        }
+
+        .expired {
+          color: #d32f2f;
+          font-weight: 700;
+          background: rgba(211, 47, 47, 0.05);
+          padding: 4px 8px;
+          border-radius: 6px;
+        }
+
+        .draining-cell {
+          display: flex;
+          flex-direction: column;
+
+          .draining-detail {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 4px;
+            line-height: 1.2;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
+      }
+    }
+
+    mat-paginator {
+      background: transparent;
+      padding: 0.5rem 1rem;
+    }
+  }
+}
+
+// Media Queries for responsiveness
+@media (max-width: 1024px) {
+  .vehicles-container {
+    padding: 1.5rem;
+
+    .header-section {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1.5rem;
+
+      .actions {
+        width: 100%;
+        .filter-field { width: 100%; }
+        .add-btn { flex-shrink: 0; }
+      }
+    }
+  }
+}
