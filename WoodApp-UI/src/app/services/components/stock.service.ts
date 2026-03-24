@@ -78,7 +78,12 @@ export class StockService {
   }
 
   getStockTransfers(): Observable<StockTransferInfo[]> {
-    return this.http.get<StockTransferInfo[]>(this.baseUrl + 'Stock/transfers/infos');
+    const siteId = this.authService.getUserDetail()?.defaultSiteId;
+    let params = new HttpParams();
+    if (siteId) {
+      params = params.append('siteId', siteId);
+    }
+    return this.http.get<StockTransferInfo[]>(this.baseUrl + 'Stock/transfers/infos', { params });
   }
 
   getStockTransferDetails(originDoc?: string, receiptDoc?: string): Observable<StockTransferDetails[]> {

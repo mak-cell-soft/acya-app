@@ -514,9 +514,9 @@ namespace ms.webapp.api.acya.api.Services
             return await _repository.GetStocks();
         }
 
-        public async Task<IEnumerable<StockTransferInfoDto>> GetStockTransfersInfosAsync()
+        public async Task<IEnumerable<StockTransferInfoDto>> GetStockTransfersInfosAsync(int? siteId = null)
         {
-            return await _repository.GetStockTransfersInfos();
+            return await _repository.GetStockTransfersInfos(siteId);
         }
 
         public async Task<IEnumerable<StockTransferDetailsDto>> GetStockTransfersDetailsAsync(string? originDoc, string? receiptDoc)

@@ -99,9 +99,9 @@ namespace ms.webapp.api.acya.api.Controllers
     }
 
     [HttpGet("transfers/infos")]
-    public async Task<ActionResult<IEnumerable<StockTransferInfoDto>>> GetStockTransfersInfos()
+    public async Task<ActionResult<IEnumerable<StockTransferInfoDto>>> GetStockTransfersInfos([FromQuery] int? siteId = null)
     {
-      var allTransfers = await _stockService.GetStockTransfersInfosAsync();
+      var allTransfers = await _stockService.GetStockTransfersInfosAsync(siteId);
       return Ok(allTransfers);
     }
 

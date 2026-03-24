@@ -324,7 +324,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
     /**
      * Retourner les détails du Transfert : les marchandises transférés
      */
-    public async Task<IEnumerable<StockTransferInfoDto>> GetStockTransfersInfos()
+    public async Task<IEnumerable<StockTransferInfoDto>> GetStockTransfersInfos(int? siteId = null)
     {
       var lastMonth = DateTime.Now.AddMonths(-1);
       var query = from st in context.StockTransfers
@@ -337,27 +337,33 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                   from vehicle in vehicleGroup.DefaultIfEmpty()
                   join merexit in context.DocumentMerchandises on docexit.Id equals merexit.DocumentId
                   where st.TransferDate > lastMonth
-                  select new StockTransferInfoDto
-                  {
-                    Id = st.Id,
-                    DocSortie = docexit.DocNumber!,
-                    DocReception = docreceipt.DocNumber!,
-                    Origine = ssexit.Address!,
-                    Destination = ssreceipt.Address!,
-                    TransferDate = st.TransferDate,
-                    Transporter = tr.FirstName + " " + tr.LastName,
-                    VehicleSerialNumber = vehicle != null ? vehicle.SerialNumber : null,
-                    RefPaquet = merexit.Merchandise!.PackageReference!,
-                    Status = st.Status,
-                    ConfirmationCode = st.ConfirmationCode
-                  };
+                  select new { st, docexit, docreceipt, ssexit, ssreceipt, tr, vehicle, merexit };
 
-      //return await query.ToListAsync();
+      if (siteId.HasValue)
+      {
+        query = query.Where(x => x.docexit.SalesSiteId == siteId.Value);
+      }
+
+      var selectQuery = query.Select(x => new StockTransferInfoDto
+      {
+        Id = x.st.Id,
+        DocSortie = x.docexit.DocNumber!,
+        DocReception = x.docreceipt.DocNumber!,
+        Origine = x.ssexit.Address!,
+        Destination = x.ssreceipt.Address!,
+        TransferDate = x.st.TransferDate,
+        Transporter = x.tr.FirstName + " " + x.tr.LastName,
+        VehicleSerialNumber = x.vehicle != null ? x.vehicle.SerialNumber : null,
+        RefPaquet = x.merexit.Merchandise!.PackageReference!,
+        Status = x.st.Status,
+        ConfirmationCode = x.st.ConfirmationCode
+      });
+
       // Group by DocSortie and DocReception and select the first item from each group
-      var groupedQuery = query
+      var groupedQuery = selectQuery
           .GroupBy(x => new { x.DocSortie, x.DocReception })
           .Select(g => g.First());
-       return await groupedQuery.ToListAsync();
+      return await groupedQuery.ToListAsync();
     }
 
     public async Task<IEnumerable<StockTransferDetailsDto>> GetStockTransfersInfosDetails(string? originDoc = null, string? receipt_Doc = null)
