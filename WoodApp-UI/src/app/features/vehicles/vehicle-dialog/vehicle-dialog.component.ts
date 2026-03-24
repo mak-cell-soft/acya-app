@@ -42,10 +42,17 @@ export class VehicleDialogComponent implements OnInit {
     if (this.vehicleForm.invalid) return;
 
     this.loading = true;
-    const vehicleData: Vehicle = this.vehicleForm.value;
+    const formValue = this.vehicleForm.value;
+    
+    // Create a cleanly formatted payload matching the backend expectations
+    const payload: Vehicle = {
+      ...formValue,
+      id: formValue.id || 0,
+      mileage: formValue.mileage ? String(formValue.mileage) : null
+    };
 
     if (this.isEditMode) {
-      this.vehicleService.update(vehicleData).subscribe({
+      this.vehicleService.update(payload).subscribe({
         next: () => {
           this.loading = false;
           this.toastr.success('Véhicule mis à jour avec succès');
@@ -53,12 +60,12 @@ export class VehicleDialogComponent implements OnInit {
         },
         error: (err) => {
           this.loading = false;
-          console.error(err);
+          console.error('Update Error:', err);
           this.toastr.error('Impossible de mettre à jour le véhicule');
         }
       });
     } else {
-      this.vehicleService.add(vehicleData).subscribe({
+      this.vehicleService.add(payload).subscribe({
         next: () => {
           this.loading = false;
           this.toastr.success('Véhicule ajouté avec succès');
@@ -66,8 +73,8 @@ export class VehicleDialogComponent implements OnInit {
         },
         error: (err) => {
           this.loading = false;
-          console.error(err);
-          this.toastr.error("Impossible d'ajouter le véhicule");
+          console.error('Add Error:', err);
+          this.toastr.error(err.error?.title || "Impossible d'ajouter le véhicule");
         }
       });
     }

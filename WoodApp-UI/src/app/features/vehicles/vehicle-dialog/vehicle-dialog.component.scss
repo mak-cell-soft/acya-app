@@ -9,28 +9,28 @@
   .dialog-header {
     background: linear-gradient(135deg, #1A237E 0%, #3F51B5 100%);
     color: white;
-    padding: 2.5rem 2.8rem;
+    padding: 1.5rem 2.5rem; // More compact
     display: flex;
     align-items: center;
     position: relative;
     box-shadow: 0 10px 30px rgba(26, 35, 126, 0.2);
 
     .header-icon-box {
-      width: 68px;
-      height: 68px;
+      width: 54px; // Smaller
+      height: 54px;
       background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(10px);
-      border-radius: 20px;
+      border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-right: 1.8rem;
+      margin-right: 1.5rem;
       border: 1px solid rgba(255, 255, 255, 0.2);
       
       mat-icon {
-        font-size: 38px;
-        width: 38px;
-        height: 38px;
+        font-size: 30px;
+        width: 30px;
+        height: 30px;
         color: white;
       }
     }
@@ -43,107 +43,108 @@
         margin: 0;
         font-family: 'Outfit', sans-serif;
         font-weight: 800;
-        font-size: 1.95rem;
+        font-size: 1.6rem; // Smaller font
         letter-spacing: -0.015em;
         line-height: 1.2;
         color: #ffffff;
       }
 
       p {
-        margin: 0.35rem 0 0;
-        font-size: 1rem;
+        margin: 0.2rem 0 0;
+        font-size: 0.9rem;
         font-weight: 500;
         color: rgba(255, 255, 255, 0.7);
-        letter-spacing: 0.01em;
       }
     }
 
     .close-btn {
       position: absolute;
-      top: 1.5rem;
-      right: 1.5rem;
+      top: 1.2rem;
+      right: 1.2rem;
       color: white;
-      transition: transform 0.3s ease;
-      background: rgba(255, 255, 255, 0.05);
       
       &:hover {
         transform: rotate(90deg);
-        background: rgba(255, 255, 255, 0.15);
       }
     }
   }
 
   .form-content {
     background: #fafbff;
-    padding: 2.5rem 2.8rem;
+    padding: 2rem 2.5rem; // Back to reasonable padding
     margin: 0;
-    max-height: 75vh;
+    max-height: 70vh;
     border-radius: 0;
 
     .vehicle-form {
       .row {
         display: flex;
-        gap: 1.8rem;
-        margin-bottom: 0.6rem;
+        gap: 2rem; // Spacious enough for width but not height
+        margin-bottom: 0.5rem; // Very compact height
 
         .full-width { width: 100%; }
-        .half-width { width: calc(50% - 0.9rem); }
+        .half-width { width: calc(50% - 1rem); }
       }
 
       .divider {
         display: flex;
         align-items: center;
-        margin: 2rem 0 1.5rem;
+        margin: 1.5rem 0 1rem; // Compact margin
         font-family: 'Outfit', sans-serif;
-        font-size: 0.95rem;
+        font-size: 0.85rem;
         font-weight: 800;
         color: #1A237E;
         text-transform: uppercase;
-        letter-spacing: 0.12em;
+        letter-spacing: 0.1em;
         opacity: 0.9;
 
         span {
           background: #e1e4f4;
-          padding: 8px 20px;
+          padding: 6px 16px;
           border-radius: 30px;
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 8px;
 
           mat-icon {
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
           }
         }
         
         &::after {
           content: "";
           flex-grow: 1;
-          height: 1.5px;
+          height: 1px;
           background: linear-gradient(to right, #ced4f3, transparent);
-          margin-left: 1.5rem;
+          margin-left: 1.2rem;
         }
       }
 
       mat-form-field {
+        width: 100%;
         ::ng-deep {
           .mat-mdc-text-field-wrapper {
-            background-color: #ffffff;
-            border-radius: 16px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid transparent;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            background-color: #ffffff !important;
+            border-radius: 12px !important;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(26, 35, 126, 0.08);
+            min-height: 52px; // Compact height
             
             &:hover {
-              background-color: #ffffff;
-              box-shadow: 0 8px 25px rgba(26, 35, 126, 0.08);
+              background-color: #ffffff !important;
+              box-shadow: 0 4px 15px rgba(26, 35, 126, 0.08);
             }
           }
           
           .mat-mdc-form-field-flex {
-            padding-top: 6px !important;
-            padding-bottom: 6px !important;
+            padding: 0 16px !important;
+          }
+
+          .mat-mdc-form-field-infix {
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
           }
           
           .mdc-notched-outline--focused .mdc-notched-outline__leading,
@@ -153,12 +154,32 @@
             border-width: 2px !important;
           }
 
-          .mat-mdc-form-field-focus-overlay {
-            background-color: transparent;
+          .mat-mdc-form-field-icon-suffix {
+            padding-left: 8px !important;
+            
+            mat-icon {
+              font-size: 20px;
+              width: 20px;
+              height: 20px;
+            }
+          }
+
+          .mat-datepicker-toggle {
+            button {
+              width: 36px;
+              height: 36px;
+            }
           }
 
           .mat-mdc-icon-button {
             color: #3f51b5;
+          }
+
+          .suffix-text {
+            font-weight: 700;
+            color: #3f51b5;
+            margin-right: 6px;
+            font-size: 0.8rem;
           }
         }
       }
@@ -168,90 +189,58 @@
   .dialog-footer {
     display: flex;
     justify-content: flex-end;
-    gap: 1.5rem;
-    padding: 2rem 2.8rem;
+    gap: 1.2rem;
+    padding: 1.5rem 2.5rem;
     background: #ffffff;
     border-top: 1px solid #edf0f9;
 
     .cancel-btn {
       color: #666;
       font-weight: 600;
-      padding: 0 1.8rem;
-      height: 54px;
-      border-radius: 16px;
-      font-size: 1rem;
-      transition: all 0.2s ease;
+      padding: 0 1.5rem;
+      height: 48px;
+      border-radius: 12px;
+      font-size: 0.95rem;
       
       &:hover {
         background: #f1f3f9;
-        color: #333;
       }
     }
 
     .submit-btn {
-      min-width: 160px;
-      height: 54px;
-      padding: 0 2.2rem;
-      border-radius: 16px;
+      min-width: 140px;
+      height: 48px;
+      padding: 0 1.8rem;
+      border-radius: 12px;
       font-weight: 700;
-      font-size: 1rem;
+      font-size: 0.95rem;
       background: linear-gradient(135deg, #3F51B5 0%, #1A237E 100%);
-      box-shadow: 0 10px 30px rgba(63, 81, 181, 0.25);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      border: none;
-      color: white;
-
-      &:not([disabled]):hover {
-        transform: translateY(-4px);
-        box-shadow: 0 15px 40px rgba(63, 81, 181, 0.35);
-        background: linear-gradient(135deg, #4c63d2 0%, #202b9e 100%);
-      }
-
-      &:disabled {
-        background: #e0e0e0;
-        color: #999;
-        box-shadow: none;
-      }
-
-      mat-spinner {
-        margin: 0 auto;
-      }
+      box-shadow: 0 8px 20px rgba(63, 81, 181, 0.2);
     }
   }
 }
 
 // Dialog Layout fix for desktop
 ::ng-deep .premium-dialog {
+  max-width: none !important;
   mat-dialog-container {
     padding: 0 !important;
     border-radius: 32px !important;
     overflow: hidden;
+    min-width: 1000px;
   }
 }
 
 // Media Query for small screens
-@media (max-width: 650px) {
+@media (max-width: 1000px) {
   .dialog-container {
-    .dialog-header {
-      padding: 1.8rem;
-      .header-icon-box { display: none; }
-      .title-meta h2 { font-size: 1.6rem; }
-    }
-    
     .form-content {
-      padding: 1.8rem;
+      padding: 1.5rem;
       .vehicle-form .row {
         flex-direction: column;
         gap: 0;
         .half-width { width: 100%; }
       }
-    }
-    
-    .dialog-footer {
-      padding: 1.5rem 1.8rem;
-      flex-direction: column-reverse;
-      gap: 1rem;
-      .cancel-btn, .submit-btn { width: 100%; }
     }
   }
 }

@@ -77,7 +77,8 @@ export class VehiclesListComponent implements OnInit {
 
   openVehicleDialog(vehicle?: Vehicle): void {
     const dialogRef = this.dialog.open(VehicleDialogComponent, {
-      width: '650px',
+      width: '1000px',
+      maxWidth: '100vw',
       data: vehicle || null,
       panelClass: 'premium-dialog'
     });
