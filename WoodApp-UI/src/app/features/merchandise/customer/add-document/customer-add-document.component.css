@@ -185,11 +185,27 @@ table td.mat-cell {
     border-bottom: 1px solid #eee;
 }
 
-.article-cell {
+.article-cell-container {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 250px;
+    flex-direction: row;
+    align-items: flex-start; /* Aligned exactly on top */
+    gap: 12px;
+    width: 100%;
+    padding-top: 0;
+}
+
+.article-selector-wrapper {
+    flex: 2;
+    min-width: 200px;
+}
+
+.article-selector-wrapper ::ng-deep .mat-mdc-text-field-wrapper {
+    margin-top: 0 !important; /* Force override for perfect top alignment */
+}
+
+.stock-selector-wrapper {
+    flex: 1.2;
+    min-width: 160px;
 }
 
 
@@ -365,8 +381,12 @@ table td.mat-cell {
 }
 
 @keyframes slideIn {
-    from { opacity: 0; transform: translateX(10px); }
-    to { opacity: 1; transform: translateX(0); }
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.anim-slide-in {
+    animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .summary-card .discount-warning {
@@ -422,30 +442,51 @@ table td.mat-cell {
 }
 
 .selected-merchandise {
-    background-color: #e3f2fd;
-    padding: 4px 12px;
-    border-radius: 16px;
+    background-color: #eff6ff;
+    padding: 0 10px;
+    border-radius: 6px;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.85rem;
+    gap: 6px;
+    font-size: 0.8rem;
+    height: 28px;
+    border: 1px solid #dbeafe;
+}
+
+.badge-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    color: #2563eb;
 }
 
 .selected-package-ref {
-    font-weight: 600;
-    color: #1a73e8;
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: -0.01em;
 }
 
 .selected-stock-quantity {
-    color: #5f6368;
+    color: #64748b;
+    font-weight: 500;
 }
 
 .merchandise-select {
-    margin-top: 8px;
     width: 100%;
-    background-color: #fafafa;
+    background-color: #f8fafc;
     border-radius: 8px;
-    border: 1px solid #dadce0;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    margin-top: 0; /* Align with article field at absolute top */
+}
+
+.merchandise-select:hover {
+    border-color: #3f51b5;
+    background-color: #fff;
 }
 
 .merchandise-option {

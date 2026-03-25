@@ -133,8 +133,10 @@ export class EditSupplierReceiptComponent implements OnInit {
             this.isLoading = false;
 
             this.searchControl.valueChanges.subscribe((term) => {
+              const val = (term || '').toLowerCase();
               this.filteredArticles = this.articles.filter(a =>
-                a.reference.toLowerCase().includes((term || '').toLowerCase())
+                a.reference.toLowerCase().includes(val) ||
+                (a.description && a.description.toLowerCase().includes(val))
               );
             });
           },
@@ -158,9 +160,9 @@ export class EditSupplierReceiptComponent implements OnInit {
   }
 
   onOptionSelected(articleId: number) {
-    this.searchControl.setValue('');
     const article = this.articles.find(a => a.id === articleId);
     if (article) {
+      this.searchControl.setValue(`${article.reference}${article.description ? ' - ' + article.description : ''}`, { emitEvent: false });
       this.selectedArticle = article;
       this.selectedArticle.tva = this.TVAs.find(t => t.id === article.tvaid) || null;
       this.merchandiseForm.get('tva')?.setValue(article.tvaid);
@@ -280,7 +282,7 @@ export class EditSupplierReceiptComponent implements OnInit {
       allownegativstock: element.allownegativstock
     });
 
-    this.searchControl.setValue(element.article.reference);
+    this.searchControl.setValue(`${element.article.reference}${element.article.description ? ' - ' + element.article.description : ''}`, { emitEvent: false });
     if (this.articleSelect) {
       this.articleSelect.value = element.article.id;
     }
@@ -340,7 +342,8 @@ export class EditSupplierReceiptComponent implements OnInit {
       width: '800px',
       data: {
         article,
-        lengths: this.responseFromModalLengths
+        lengths: this.responseFromModalLengths,
+        isPurchase: true
       }
     });
     dialogRef.afterClosed().subscribe(res => {

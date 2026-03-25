@@ -318,6 +318,25 @@
           }
         }
       }
+
+      /* Selection & Value Highlighting */
+      .has-selection,
+      .has-value {
+        ::ng-deep .mat-mdc-form-field-icon-prefix {
+          mat-icon {
+            color: var(--primary-color) !important;
+            transition: all 0.3s ease;
+          }
+        }
+      }
+
+      .has-selection {
+        .article-selected {
+          color: var(--primary-color) !important;
+          font-weight: 700 !important;
+          transition: color 0.3s ease;
+        }
+      }
     }
 
     mat-card-actions {
