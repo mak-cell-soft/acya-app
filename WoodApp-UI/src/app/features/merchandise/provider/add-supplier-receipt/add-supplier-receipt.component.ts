@@ -227,13 +227,16 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
 
   // Clear input when an option is selected
   onOptionSelected(articleId: number): void {
-    this.searchControl.setValue('');
-    this.filteredArticles = this.articles; // Reset filtered articles
-
     // Find and set the selected article
     const article = this.articles.find((item) => item.id === articleId);
+    
     if (article) {
       this.selectedArticle = article;
+      // Set the display value in the search input
+      const displayValue = article.reference + (article.description ? ' - ' + article.description : '');
+      this.searchControl.setValue(displayValue, { emitEvent: false });
+      
+      this.filteredArticles = this.articles; // Reset filtered articles
 
       console.log("Selected Article : ", this.selectedArticle)
 
@@ -253,6 +256,10 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
 
 
     }
+  }
+
+  clearArticle(): void {
+    this.resetMerchandiseForm();
   }
 
   editRow(element: Merchand) {
@@ -352,12 +359,12 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
       next: (response: CounterPart[]) => {
         this.allSuppliers = response;
 
-        // Set the first supplier after the data is fetched
-        if (this.allSuppliers.length > 0) {
+        // Set the first supplier after the data is fetched (REMOVED BY USER REQUEST)
+        /* if (this.allSuppliers.length > 0) {
           const firstSupplier = this.allSuppliers[0];
           this.selectedSupplier = firstSupplier;
           this.documentForm.get('supplier')?.setValue(firstSupplier); // Update the form control
-        }
+        } */
       },
       error: (error) => {
         console.error('Error fetching providers', error);
@@ -414,7 +421,8 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
           maxWidth: '90vw',
           maxHeight: '90vh',
           data: {
-            article: article
+            article: article,
+            isPurchase: true
           }
         });
         /**

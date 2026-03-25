@@ -58,8 +58,8 @@
 /* Top Section Layout */
 .top-section {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
+    grid-template-columns: 700px 1fr;
+    gap: 16px;
     width: 100%;
 }
 
@@ -72,17 +72,21 @@
 /* General Info Card */
 .info-grid {
     display: flex;
-    gap: 32px;
+    flex-direction: row;
+    gap: 16px;
+    padding: 12px 16px !important;
 }
 
 .date-picker-column {
-    flex: 0 0 300px;
+    flex: 0 0 280px;
 }
 
 .calendar-card {
     background: #f8f9fa;
     border: 1px solid #eef0f2;
     border-radius: 8px;
+    transform: scale(0.9);
+    transform-origin: top left;
 }
 
 .date-display {
@@ -130,7 +134,7 @@
 .entry-form {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
 }
 
 .form-row {
@@ -397,6 +401,70 @@ table.modern-table {
 }
 
 /* Article Dropdown Styling */
+.article-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.article-option .text-content {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.article-option .ref {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #3f51b5;
+}
+
+.article-option .desc {
+    font-size: 0.75rem;
+    color: #64748b;
+    max-width: 400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.show-select {
+    display: none !important;
+}
+
+.clear-article-btn {
+    position: absolute;
+    right: 32px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+    background: transparent !important;
+    width: 28px !important;
+    height: 28px !important;
+    line-height: 28px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.clear-article-btn mat-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    color: #94a3b8;
+}
+
+.clear-article-btn:hover mat-icon {
+    color: #ef4444;
+}
+
+.selected-article-input {
+    font-weight: 700 !important;
+    color: #3f51b5 !important;
+    font-size: 1rem !important;
+}
+
 .opt-ref {
     font-weight: 700;
     color: #3f51b5;

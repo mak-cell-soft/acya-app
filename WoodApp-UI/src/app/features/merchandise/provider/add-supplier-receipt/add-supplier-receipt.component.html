@@ -33,9 +33,11 @@
                 </div>
 
                 <div class="form-column" [formGroup]="documentForm">
-                    <mat-form-field appearance="outline" class="full-width">
+                    <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
                         <mat-label>Fournisseur</mat-label>
-                        <mat-select formControlName="supplier" (selectionChange)="onSupplierChange($event.value)">
+                        <mat-select formControlName="supplier" (selectionChange)="onSupplierChange($event.value)"
+                                    placeholder="Choisir un fournisseur">
+                            <mat-option [value]="null" disabled>Choisir un fournisseur</mat-option>
                             <mat-option *ngFor="let supplier of allSuppliers" [value]="supplier">
                                 {{ supplier.name }}
                             </mat-option>
@@ -58,7 +60,7 @@
                         </div>
                     </div>
 
-                    <mat-form-field appearance="outline" class="full-width">
+                    <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
                         <mat-label>Référence Document Fournisseur</mat-label>
                         <input matInput formControlName="supplierReference" placeholder="N° Bon de Livraison">
                         <mat-icon matSuffix>tag</mat-icon>
@@ -80,21 +82,33 @@
 
             <mat-card-content class="entry-form">
                 <div class="form-row">
-                    <mat-form-field appearance="outline" class="flex-2">
+                    <mat-form-field appearance="outline" class="flex-2" subscriptSizing="dynamic">
                         <mat-label>Rechercher un article</mat-label>
                         <input matInput [formControl]="searchControl" placeholder="Référence ou désignation..."
+                            [class.selected-article-input]="!!selectedArticle"
+                            [readonly]="!!selectedArticle"
                             (input)="applyFilter($event)" (focus)="openDropdown()" />
-                        <mat-icon matSuffix>search</mat-icon>
+                        <mat-icon matSuffix *ngIf="!selectedArticle">search</mat-icon>
+                        
+                        <button mat-icon-button matSuffix *ngIf="selectedArticle" 
+                            (click)="clearArticle()" class="clear-article-btn" matTooltip="Effacer l'article">
+                            <mat-icon>close</mat-icon>
+                        </button>
 
-                        <mat-select #articleSelect (selectionChange)="onOptionSelected($event.value)">
+                        <mat-select #articleSelect (selectionChange)="onOptionSelected($event.value)" class="show-select">
                             <mat-option *ngFor="let item of filteredArticles" [value]="item.id">
-                                <span class="opt-ref">{{ item.reference }}</span>
-                                <span class="opt-desc" *ngIf="item.description"> - {{ item.description }}</span>
+                                <div class="article-option">
+                                    <mat-icon>inventory_2</mat-icon>
+                                    <div class="text-content">
+                                        <span class="ref">{{ item.reference }}</span>
+                                        <span class="desc" *ngIf="item.description"> - {{ item.description }}</span>
+                                    </div>
+                                </div>
                             </mat-option>
                         </mat-select>
                     </mat-form-field>
 
-                    <mat-form-field appearance="outline" class="flex-1">
+                    <mat-form-field appearance="outline" class="flex-1" subscriptSizing="dynamic">
                         <mat-label>Prix Unitaire HT</mat-label>
                         <input matInput formControlName="unit_price_ht" type="number" step="0.001">
                         <span matSuffix>TND</span>
@@ -103,7 +117,7 @@
 
                 <div class="form-row">
                     <div class="quantity-group flex-1">
-                        <mat-form-field appearance="outline" class="full-width">
+                        <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
                             <mat-label>Quantité</mat-label>
                             <input matInput formControlName="quantity" type="number">
                             <mat-error>Requis</mat-error>
@@ -116,13 +130,13 @@
                         </button>
                     </div>
 
-                    <mat-form-field appearance="outline" class="flex-1">
+                    <mat-form-field appearance="outline" class="flex-1" subscriptSizing="dynamic">
                         <mat-label>Remise (%)</mat-label>
                         <input matInput formControlName="selldiscountpercentage" type="number">
                         <mat-icon matSuffix>percent</mat-icon>
                     </mat-form-field>
 
-                    <mat-form-field appearance="outline" class="flex-1">
+                    <mat-form-field appearance="outline" class="flex-1" subscriptSizing="dynamic">
                         <mat-label>TVA</mat-label>
                         <mat-select formControlName="tva">
                             <mat-option *ngFor="let tva of TVAs" [value]="tva.id">{{ tva.value }}</mat-option>
@@ -150,7 +164,7 @@
 
                 <div class="form-row">
                     <div class="ref-gen-group flex-1">
-                        <mat-form-field appearance="outline" class="full-width">
+                        <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
                             <mat-label>Référence Colis</mat-label>
                             <input matInput formControlName="reference" [required]="isArticleTypeWood">
                         </mat-form-field>
@@ -161,7 +175,7 @@
                         </button>
                     </div>
 
-                    <mat-form-field appearance="outline" class="flex-2">
+                    <mat-form-field appearance="outline" class="flex-2" subscriptSizing="dynamic">
                         <mat-label>Description / Note</mat-label>
                         <input matInput formControlName="description">
                     </mat-form-field>

@@ -13,6 +13,7 @@
 ::ng-deep .compact-field .mat-mdc-form-field-flex {
     height: 38px !important;
     align-items: center !important;
+    display: flex !important;
 }
 
 ::ng-deep .compact-field .mat-mdc-form-field-infix {
@@ -99,14 +100,43 @@
 
 /* Wood Lengths Badge */
 .wood-lengths-badge {
+    position: absolute;
+    bottom: -18px;
+    left: 4px;
     font-size: 0.65rem;
-    background: #eff6ff;
-    color: #2563eb;
+    background: #334155;
+    color: #ffffff;
     padding: 1px 6px;
     border-radius: 4px;
     font-weight: 700;
-    margin-top: 4px;
-    display: inline-block;
+    z-index: 2;
+}
+
+.article-cell-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px 0;
+}
+
+.merchandise-select {
+    padding-left: 2px;
+}
+
+.merchandise-select ::ng-deep .mat-mdc-select-trigger {
+    color: #475569;
+}
+
+.merchandise-select ::ng-deep .mat-mdc-select-placeholder {
+    font-size: 0.7rem;
+    color: #94a3b8;
+}
+
+.quantity-cell-wrapper {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding-bottom: 8px;
 }
 
 .show-select {
@@ -242,9 +272,9 @@ td.mat-cell {
 }
 
 .mat-column-index { width: 40px; }
-.mat-column-article { width: 35%; }
+.mat-column-article { width: 40%; }
 .mat-column-sellPrice { width: 110px; }
-.mat-column-quantity { width: 180px; }
+.mat-column-quantity { width: 160px; }
 .mat-column-tva { width: 100px; }
 .mat-column-totalWithoutTva { width: 110px; }
 .mat-column-totalWithTva { width: 110px; }

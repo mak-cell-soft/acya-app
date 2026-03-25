@@ -43,6 +43,7 @@ export class AddLengthsModalComponent implements OnInit {
   article_inputdata: any | null;
   availableStock_inputdata: any | null;
   merchand_inputdata: any | null;
+  isPurchase: boolean = false;
 
   lengths: ListOfLength[] = [];
   totalQuantity: number = 0;
@@ -82,6 +83,12 @@ export class AddLengthsModalComponent implements OnInit {
     this.merchand_inputdata = this.data.merchand;
     // Récupérer l'objet Stock Disponible du Parent
     this.availableStock_inputdata = this.data.availableStock;
+    this.isPurchase = !!this.data.isPurchase;
+
+    // Adjust columns for purchase mode
+    if (this.isPurchase) {
+      this.displayedLengthsColumns = ['number', 'nbpieces', 'length', 'quantity'];
+    }
 
     console.log('Article a voir : article_inputdata', this.article_inputdata);
     console.log('Thickness object:', this.article_inputdata.thickness);
@@ -181,6 +188,7 @@ export class AddLengthsModalComponent implements OnInit {
   }
 
   isInvalidStock(element: ListOfLength): boolean {
+    if (this.isPurchase) return false; // In purchase, we're adding stock, so no limit check
     return (element.nbpieces || 0) > (element.availablePieces || 0);
   }
 
