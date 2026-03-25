@@ -95,6 +95,7 @@ export class CustomerAddDocumentComponent {
   totalRemise_doc$ = new BehaviorSubject<number>(0);
   totalTVA_doc$ = new BehaviorSubject<number>(0);
   netTTC_doc$ = new BehaviorSubject<number>(0);
+  extraDiscount: number = 0; // Extra discount at document level (rounding)
 
   /**
    * Control Buttons
@@ -279,7 +280,7 @@ export class CustomerAddDocumentComponent {
       const discountValue = netBeforeDiscount * (element.selldiscountpercentage / 100);
 
       // Calculate net HT price after discount
-      element.sellcostprice_net_ht = netBeforeDiscount - discountValue;
+      element.sellcostprice_net_ht = parseFloat((netBeforeDiscount - discountValue).toFixed(3));
 
       // Calculate total with tax
       // const tvaRate = Number(element.selectedArticle.tva?.value) || 0;
@@ -294,13 +295,13 @@ export class CustomerAddDocumentComponent {
           tvaRate = Number(element.selectedArticle.tva.value);
         }
       }
-      element.totalWithTax = element.sellcostprice_net_ht * (1 + (tvaRate / 100));
+      element.totalWithTax = parseFloat((element.sellcostprice_net_ht * (1 + (tvaRate / 100))).toFixed(3));
 
       // Update discount value
-      element.sellcostprice_discountValue = discountValue;
+      element.sellcostprice_discountValue = parseFloat(discountValue.toFixed(3));
 
       // Update TVA value
-      element.sellcostprice_taxValue = element.sellcostprice_net_ht * (tvaRate / 100);
+      element.sellcostprice_taxValue = parseFloat((element.sellcostprice_net_ht * (tvaRate / 100)).toFixed(3));
     } else {
       // Reset values if no article selected
       element.sellcostprice_net_ht = 0;
@@ -498,6 +499,7 @@ export class CustomerAddDocumentComponent {
           }
         }
       } else {
+        element.selectedStock = null;
         this.toastr.error('Stock non trouvé pour ' + selectedArticle.reference);
       }
     } else {
@@ -509,6 +511,17 @@ export class CustomerAddDocumentComponent {
     }
   }
 
+
+  clearArticle(element: Merchand) {
+    element.selectedArticle = null;
+    element.articleSearchInput = '';
+    element.selectedStock = null;
+    element.isWoodArticle = false;
+    element.listLengths = [];
+    element.quantity = 0;
+    element.filteredArticles = [...this.articles];
+    this.updateTotals(element);
+  }
 
   getMatchingStocks(articleId: number): StockQuantity[] {
     return this.allStocks.data.filter(stock => stock.articleId === articleId);
@@ -813,10 +826,42 @@ export class CustomerAddDocumentComponent {
       netTTC: 0
     });
 
-    this.totalHTNet_doc$.next(totals.totalHTNet);
-    this.totalRemise_doc$.next(totals.totalRemise);
-    this.totalTVA_doc$.next(totals.totalTVA);
-    this.netTTC_doc$.next(totals.netTTC);
+    // Fix to 3 decimal places to ensure consistent math
+    const cleanTotalHT = parseFloat(totals.totalHTNet.toFixed(3));
+    const cleanTotalTVA = parseFloat(totals.totalTVA.toFixed(3));
+    const cleanTotalTTC = parseFloat(totals.netTTC.toFixed(3));
+    const cleanTotalRemise = parseFloat(totals.totalRemise.toFixed(3));
+
+    // Apply the extra document-level discount (rounding)
+    const finalNetTTC = parseFloat((cleanTotalTTC - this.extraDiscount).toFixed(3));
+    const finalTotalRemise = parseFloat((cleanTotalRemise + this.extraDiscount).toFixed(3));
+
+    this.totalHTNet_doc$.next(cleanTotalHT);
+    this.totalRemise_doc$.next(finalTotalRemise);
+    this.totalTVA_doc$.next(cleanTotalTVA);
+    this.netTTC_doc$.next(finalNetTTC);
+  }
+
+  /**
+   * Called when the user manually edits the Net TTC Final field.
+   * Adjusts the extraDiscount to match the desired final price.
+   * @param newValue The new manual value for Net TTC Final
+   */
+  onFinalPriceChange(newValue: number | string): void {
+    // Re-verify the current natural totals
+    const data = this.dataMerchand.data;
+    const naturalTTC = parseFloat(data.reduce((sum, item) => sum + (item.totalWithTax || 0), 0).toFixed(3));
+    const naturalRemise = parseFloat(data.reduce((sum, item) => sum + ((item.sellcostprice_net_ht * (item.selldiscountpercentage || 0) / 100) || 0), 0).toFixed(3));
+    
+    const manualValue = typeof newValue === 'string' ? parseFloat(newValue) : newValue;
+    if (isNaN(manualValue)) return;
+
+    // The extra discount is the difference between what it should be and what the user wants it to be
+    this.extraDiscount = parseFloat((naturalTTC - manualValue).toFixed(3));
+    
+    // Update the subjects immediately
+    this.netTTC_doc$.next(manualValue);
+    this.totalRemise_doc$.next(parseFloat((naturalRemise + this.extraDiscount).toFixed(3)));
   }
 
   freeAllCalculatedDocumentFields() {
@@ -824,6 +869,7 @@ export class CustomerAddDocumentComponent {
     this.totalRemise_doc$.next(0);
     this.totalTVA_doc$.next(0);
     this.netTTC_doc$.next(0);
+    this.extraDiscount = 0;
 
     this.dataMerchand.data = [];
   }

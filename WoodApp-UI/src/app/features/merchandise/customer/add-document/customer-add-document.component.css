@@ -123,7 +123,7 @@ mat-card {
 .mat-column-index { width: 45px; }
 .mat-column-article { width: auto; min-width: 250px; }
 .mat-column-sellPrice { width: 160px; }
-.mat-column-quantity { width: 155px; }
+.mat-column-quantity { width: 220px; }
 .mat-column-discount { width: 120px; }
 .mat-column-tva { width: 110px; }
 .mat-column-totalWithoutTva { width: 110px; }
@@ -284,25 +284,89 @@ table td.mat-cell {
     font-size: 1.1rem;
 }
 
-.summary-card .summary-row.editable-ttc {
-    border-bottom: none;
-    padding-bottom: 0;
+.summary-card .summary-row.ttc-final-row {
+    border-top: 2px dashed #e2e8f0;
+    border-bottom: none !important;
+    padding-top: 16px !important;
+    margin-top: 8px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
 }
 
-.summary-card .summary-row.editable-ttc .label {
-    color: #3f51b5;
-    font-weight: 700;
+.summary-card .summary-row.ttc-final-row .label {
+    color: #4f46e5;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
 }
 
-.summary-card .summary-row.editable-ttc .ttc-input {
-    width: 150px;
+.ttc-value-container {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
 }
 
-.summary-card .summary-row.editable-ttc .ttc-input input {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #3f51b5;
+.ttc-final-input {
+    border: none;
+    background: transparent;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #4f46e5;
     text-align: right;
+    width: 170px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ttc-final-input:hover {
+    background-color: #f1f5f9;
+}
+
+.ttc-final-input:focus {
+    outline: none;
+    background-color: #eef2ff;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+.ttc-final-input::-webkit-outer-spin-button,
+.ttc-final-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.currency-label-large {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #6366f1;
+}
+
+.rounding-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background-color: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
+    animation: slideIn 0.3s ease-out;
+}
+
+.rounding-note mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: #6366f1;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
 .summary-card .discount-warning {
@@ -385,26 +449,32 @@ table td.mat-cell {
 }
 
 .merchandise-option {
-    padding: 12px 16px;
-    border-bottom: 1px solid #f1f3f4;
+    padding: 0 16px !important;
+    min-height: 48px !important;
+    height: auto !important;
+    border-bottom: 1px solid #f1f5f9;
 }
 
 .merchandise-option .option-content {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    padding: 8px 0;
 }
 
 .package-ref {
     display: flex;
     align-items: center;
     font-weight: 600;
-    color: #3c4043;
-    font-size: 0.9rem;
+    color: #1e293b;
+    font-size: 0.85rem;
+    white-space: nowrap;
 }
 
 .package-icon {
-    color: #1a73e8;
+    color: #6366f1;
     font-size: 18px;
     height: 18px;
     width: 18px;
@@ -414,22 +484,29 @@ table td.mat-cell {
 .stock-info {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     font-size: 0.8rem;
-    color: #70757a;
+    color: #64748b;
+    margin-left: auto;
+    padding-right: 8px;
 }
 
 .stock-quantity {
     display: flex;
     align-items: center;
+    background: #f0fdf4;
+    color: #166534;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 600;
 }
 
 .stock-icon {
-    color: #34a853;
-    font-size: 16px;
-    height: 16px;
-    width: 16px;
-    margin-right: 6px;
+    color: #22c55e;
+    font-size: 14px;
+    height: 14px;
+    width: 14px;
+    margin-right: 4px;
 }
 
 .description {
@@ -447,6 +524,33 @@ table td.mat-cell {
     height: 16px;
     width: 16px;
     margin-right: 6px;
+}
+
+.field-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.field-actions button {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.field-actions button .mat-icon {
+    margin: 0 !important;
+}
+
+.quantity-container-compact {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    height: 100%;
 }
 
 .quantity-container {
@@ -571,8 +675,21 @@ table td.mat-cell {
     width: 150px;
 }
 
+.quantity-container-compact {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
 .qty-field-compact {
-    width: 145px;
+    width: 170px !important;
+}
+
+.quantity-input-field {
+    font-weight: 600 !important;
+    text-align: right !important;
 }
 
 .tva-field-compact {
@@ -585,4 +702,51 @@ table td.mat-cell {
     margin-top: 4px;
     padding-left: 12px;
     font-weight: 500;
+}
+
+.clear-article-btn {
+    width: 28px !important;
+    height: 28px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-top: 0 !important;
+    margin-right: -4px !important;
+    border-radius: 50% !important;
+    transition: background-color 0.2s !important;
+}
+
+.clear-article-btn .mat-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    color: #cbd5e1;
+    transition: all 0.2s ease-in-out;
+}
+
+.clear-article-btn:hover {
+    background-color: #f1f5f9 !important;
+}
+
+.clear-article-btn:hover .mat-icon {
+    color: #ef4444 !important;
+    transform: scale(1.1);
+}
+
+/* Actions Delete Button */
+.mat-column-actions button[color="warn"] .mat-icon {
+    color: #ef4444 !important;
+}
+
+.mat-column-actions button[color="warn"]:hover {
+    background-color: #fef2f2 !important;
+}
+
+.mat-column-actions button[color="warn"]:hover .mat-icon {
+    color: #dc2626 !important;
+}
+
+/* Specific column widths for document table */
+.mat-column-quantity {
+    min-width: 250px !important;
 }

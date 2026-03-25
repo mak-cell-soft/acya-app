@@ -113,6 +113,34 @@
     outline: none;
     box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
   }
+
+  &.invalid-input {
+    border-color: #ef4444 !important;
+    color: #b91c1c !important;
+    background-color: #fef2f2 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+  }
+}
+
+.pcs-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.error-hint {
+  font-size: 0.65rem;
+  color: #ef4444;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .stock-badge {

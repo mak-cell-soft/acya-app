@@ -7,6 +7,7 @@ import { AppVariable } from '../../../../models/configuration/appvariable';
 import { AppVariableService } from '../../../../services/configuration/app-variable.service';
 import { catchError, map, Observable, of } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
+import { isQuantityValid } from '../../../../shared/validators/naturalNumberValidator';
 
 export class ReturnObject {
   _lengths: ListOfLength[] = [];
@@ -31,6 +32,7 @@ export class AddLengthsModalComponent implements OnInit {
   dialogRef = inject(MatDialogRef<AddLengthsModalComponent>);
   appvarService = inject(AppVariableService);
   toastr = inject(ToastrService);
+  isQuantityValid = isQuantityValid;
 
   /**
    * Element recues de Parent
@@ -165,12 +167,30 @@ export class AddLengthsModalComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.isFormInvalid()) {
+      this.toastr.error("Certaines lignes comportent des erreurs de validation.");
+      return;
+    }
+
     if (this.lengths.length > 0 && this.totalQuantity > 0) {
       console.log('PRINT LEGTHS JUST BEFORE CLOSE : ', this.lengths)
       this.dialogRef.close({ lengths: this.lengths, totalQuantity: this.totalQuantity });
     } else {
-      this.toastr.error("Please ensure all fields are filled correctly.");
+      this.toastr.error("Veuillez vous assurer que tous les champs sont correctement remplis.");
     }
+  }
+
+  isInvalidStock(element: ListOfLength): boolean {
+    return (element.nbpieces || 0) > (element.availablePieces || 0);
+  }
+
+  isInvalidQuantity(element: ListOfLength): boolean {
+    if (element.nbpieces === 0 || element.nbpieces === null || element.nbpieces === undefined) return false;
+    return !this.isQuantityValid(element.nbpieces);
+  }
+
+  isFormInvalid(): boolean {
+    return this.lengths.some(l => this.isInvalidStock(l) || this.isInvalidQuantity(l));
   }
 
   /**

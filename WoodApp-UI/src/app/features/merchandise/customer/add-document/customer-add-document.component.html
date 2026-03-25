@@ -120,6 +120,11 @@
                                     placeholder="Réf. ou désignation..." autocomplete="off"
                                     (input)="applyArticleFilter($event, element)"
                                     (focus)="openArticleDropdown(element)" />
+                                
+                                <button mat-icon-button matSuffix *ngIf="element.articleSearchInput || element.selectedArticle"
+                                    (click)="clearArticle(element)" class="clear-article-btn" matTooltip="Effacer la sélection">
+                                    <mat-icon>close</mat-icon>
+                                </button>
 
                                 <mat-select #articleSelect [(ngModel)]="element.selectedArticle"
                                     (selectionChange)="onArticleChange(element, element.selectedArticle)"
@@ -201,14 +206,17 @@
                     <td mat-cell *matCellDef="let element">
                         <div class="quantity-container-compact">
                             <mat-form-field appearance="outline" class="compact-field qty-field-compact">
-                                <input matInput [(ngModel)]="element.quantity" type="number"
+                                <input matInput [(ngModel)]="element.quantity" type="number" 
+                                    [step]="element.isWoodArticle ? 0.001 : 1"
                                     (input)="updateTotals(element)" [disabled]="shouldDisableQuantityInput(element)"
-                                    [class.invalid-field]="!isQuantityValid(element.quantity)">
+                                    [readonly]="element.isWoodArticle" class="quantity-input-field"
+                                    [class.invalid-field]="!isQuantityValid(element.quantity)" placeholder="0">
 
                                 <div matSuffix class="field-actions">
                                     <!-- Wood length button -->
                                     <button mat-icon-button *ngIf="element.isWoodArticle"
-                                        (click)="openWoodLengthDialog(element)" matTooltip="Gérer les longueurs">
+                                        (click)="openWoodLengthDialog(element)" matTooltip="Gérer les longueurs"
+                                        [disabled]="!element.selectedStock">
                                         <mat-icon>straighten</mat-icon>
                                     </button>
 
@@ -317,11 +325,20 @@
                 <span class="label">Total TVA</span>
                 <span class="value">{{ totalTVA_doc$ | async | number:'1.3-3' }}</span>
             </div>
-            <div class="summary-row editable-ttc">
+            <div class="summary-row ttc-final-row">
                 <span class="label">Net TTC Final</span>
-                <span class="value" style="font-size: 1.4rem; font-weight: 700; color: #3f51b5;">
-                    {{ netTTC_doc$ | async | number:'1.3-3' }}
-                </span>
+                <div class="ttc-value-container">
+                    <input type="number" 
+                        [ngModel]="netTTC_doc$ | async" 
+                        (ngModelChange)="onFinalPriceChange($event)"
+                        class="ttc-final-input"
+                        step="0.001">
+                    <span class="currency-label-large">TND</span>
+                </div>
+            </div>
+            <div class="rounding-note" *ngIf="extraDiscount !== 0">
+                <mat-icon>info</mat-icon>
+                <span>Ajustement manuel : {{ extraDiscount | number:'1.3-3' }} TND</span>
             </div>
 
             <div class="action-buttons">
