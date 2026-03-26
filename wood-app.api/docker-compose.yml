@@ -15,7 +15,7 @@ services:
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./postgres-data:/var/lib/postgresql/data
       - ./db:/docker-entrypoint-initdb.d:ro
     networks:
       - wood-app-network
@@ -84,7 +84,5 @@ networks:
     name: wood-app-network
 
 volumes:
-  postgres_data:
-    name: wood-app-postgres-data
   pgadmin_data:
     name: wood-app-pgadmin-data
