@@ -35,3 +35,9 @@ logs/
 # ===== OS =====
 Thumbs.db
 .DS_Store
+
+# ===== Docker / Database =====
+postgres-data/
+**/postgres-data/
+pgdata/
+**/pgdata/
