@@ -10,6 +10,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: wood-app-db
+      APP_DB: app-db-bo
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
