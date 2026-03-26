@@ -812,10 +812,7 @@
                                     {{element.person.lastname}}</td>
                             </ng-container>
 
-                            <ng-container matColumnDef="cin">
-                                <th mat-header-cell *matHeaderCellDef> CIN N° </th>
-                                <td mat-cell *matCellDef="let element">{{element.person.cin}}</td>
-                            </ng-container>
+
 
                             <ng-container matColumnDef="email">
                                 <th mat-header-cell *matHeaderCellDef> Email </th>
@@ -825,6 +822,15 @@
                             <ng-container matColumnDef="login">
                                 <th mat-header-cell *matHeaderCellDef> Login </th>
                                 <td mat-cell *matCellDef="let element">{{element.login}}</td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="isactive">
+                                <th mat-header-cell *matHeaderCellDef> État </th>
+                                <td mat-cell *matCellDef="let element">
+                                    <span class="status-badge" [ngClass]="element.isactive ? 'status-active' : 'status-inactive'">
+                                        {{ element.isactive ? 'actif' : 'non actif' }}
+                                    </span>
+                                </td>
                             </ng-container>
 
                             <ng-container matColumnDef="role">

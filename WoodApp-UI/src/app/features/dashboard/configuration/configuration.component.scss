@@ -269,6 +269,31 @@ $hover-color: #f1f3f5;
     color: #d93025;
 }
 
+// Status Badges
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: capitalize;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+
+    &.status-active {
+        background-color: rgba(#34a853, 0.1);
+        color: #34a853;
+        border: 1px solid rgba(#34a853, 0.2);
+    }
+
+    &.status-inactive {
+        background-color: rgba(#d93025, 0.1);
+        color: #d93025;
+        border: 1px solid rgba(#d93025, 0.2);
+    }
+}
+
 // Alignment Helpers
 .half-width-wrapper {
     display: flex;

@@ -257,7 +257,7 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   displayedEmployeesColumns: string[] = ['fullname', 'cin', 'idcnss', 'role', 'hiredate', 'creationdate', 'action'];
 
   allAppUsers: MatTableDataSource<AppUser> = new MatTableDataSource<AppUser>();
-  displayedAppUsersColumns: string[] = ['fullname', 'cin', 'email', 'login', 'role', 'hiredate', 'action', 'permissions', 'defaultsite'];
+  displayedAppUsersColumns: string[] = ['fullname', 'email', 'login', 'isactive', 'role', 'hiredate', 'action', 'permissions', 'defaultsite'];
 
   displayedColumnsTaxes: string[] = ['name', 'context', 'value', 'applied'];
   displayedColumnsTVA: string[] = ['value', 'action'];
