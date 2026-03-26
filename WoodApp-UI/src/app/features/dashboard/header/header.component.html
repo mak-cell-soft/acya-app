@@ -2,7 +2,7 @@
   <!-- Left section: Hamburger & Title -->
   <div class="header-left">
     <button mat-icon-button class="menu-btn" (click)="onToggleMenu()"
-      matTooltip="appyer sur échap pour faire disparaitre le menu">
+      matTooltip="appuyer sur échap pour réduire le menu">
       <mat-icon *ngIf="sidenav.mode === 'over' && !sidenav.opened">menu</mat-icon>
       <mat-icon *ngIf="sidenav.mode === 'over' && sidenav.opened">close_fullscreen</mat-icon>
       <mat-icon *ngIf="sidenav.mode !== 'over'">horizontal_split</mat-icon>

@@ -399,13 +399,14 @@ export class StockTransferFormComponent implements OnInit {
   * @param element 
   * @param selectedArticle 
   */
-  onArticleChange(element: Merchand, selectedArticle: Article) {
+  onArticleChange(element: Merchand, selectedArticle: Article | null) {
     if (selectedArticle) {
       // Update display with formatted reference and description, reset quantity on change
       element.articleSearchInput = `${selectedArticle.reference}${selectedArticle.description ? ' - ' + selectedArticle.description : ''}`;
       element.quantity = 0;
       element.listLengths = [];
       element.isWoodArticle = selectedArticle.iswood;
+      element.selectedArticle = selectedArticle;
 
       // Find all stocks for this article
       const matchingStocks = this.allStocks.data.filter(stock =>
@@ -433,11 +434,22 @@ export class StockTransferFormComponent implements OnInit {
       }
     } else {
       // Clear wood flag if article is deselected
-      element.articleSearchInput = '';
-      element.isWoodArticle = false;
-      element.selectedStock = null;
-      this.updateTotals(element);
+      this.clearArticle(element);
     }
+  }
+
+  clearArticle(element: Merchand) {
+    element.selectedArticle = null;
+    element.selectedStock = null;
+    element.articleSearchInput = '';
+    element.quantity = 0;
+    element.unit_price_ht = 0;
+    element.sellcostprice_net_ht = 0;
+    element.totalWithTax = 0;
+    element.isWoodArticle = false;
+    element.listLengths = [];
+    this.updateTotals(element);
+    this.cdr.detectChanges();
   }
 
   trackByArticleId(index: number, article: Article): number {

@@ -140,9 +140,9 @@ export class StockTransferListComponent {
 
   openAddTransferDialog(): void {
     const dialogRef = this.dialog.open(StockTransferFormComponent, {
-      width: '1200px',
-      maxWidth: '95vw',
-      maxHeight: '90vh',
+      width: '1600px',
+      maxWidth: '100vw',
+      maxHeight: '100vh',
       panelClass: 'modern-dialog'
     });
 

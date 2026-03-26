@@ -8,12 +8,12 @@
     height: 38px !important;
     padding: 0 10px !important;
     border-radius: 8px !important;
+    margin-top: 8px !important; /* Unified margin for all fields */
 }
 
 ::ng-deep .compact-field .mat-mdc-form-field-flex {
     height: 38px !important;
     align-items: center !important;
-    display: flex !important;
 }
 
 ::ng-deep .compact-field .mat-mdc-form-field-infix {
@@ -33,23 +33,6 @@
     width: 18px !important;
     height: 18px !important;
     color: #94a3b8;
-}
-
-.field-actions {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.field-actions button {
-    width: 28px !important;
-    height: 28px !important;
-    line-height: 28px !important;
-    padding: 0 !important;
-}
-
-.field-actions .mat-icon {
-    font-size: 16px !important;
 }
 
 /* Article Option Simplified */
@@ -81,66 +64,165 @@
     white-space: nowrap;
 }
 
-/* Specific Field Adjustments */
+.show-select {
+    display: none !important;
+}
+
 .article-field-compact {
     width: 100%;
 }
 
 .price-field-compact {
-    width: 100px;
+    width: 150px;
+}
+
+.quantity-container-compact {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
 }
 
 .qty-field-compact {
-    width: 140px;
+    width: 170px !important;
+}
+
+.quantity-input-field {
+    font-weight: 600 !important;
+    text-align: right !important;
 }
 
 .tva-field-compact {
-    width: 90px;
-}
-
-/* Wood Lengths Badge */
-.wood-lengths-badge {
-    position: absolute;
-    bottom: -18px;
-    left: 4px;
-    font-size: 0.65rem;
-    background: #334155;
-    color: #ffffff;
-    padding: 1px 6px;
-    border-radius: 4px;
-    font-weight: 700;
-    z-index: 2;
+    width: 100px;
 }
 
 .article-cell-container {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
     padding: 4px 0;
 }
 
+.article-selector-wrapper {
+    flex: 2;
+    min-width: 200px;
+}
+
+.article-selector-wrapper ::ng-deep .mat-mdc-text-field-wrapper {
+    margin-top: 8px !important; /* Unified margin */
+}
+
+.stock-selector-wrapper {
+    flex: 1.2;
+    min-width: 160px;
+}
+
 .merchandise-select {
-    padding-left: 2px;
-}
-
-.merchandise-select ::ng-deep .mat-mdc-select-trigger {
-    color: #475569;
-}
-
-.merchandise-select ::ng-deep .mat-mdc-select-placeholder {
-    font-size: 0.7rem;
-    color: #94a3b8;
-}
-
-.quantity-cell-wrapper {
+    width: 100%;
+    background-color: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+    height: 38px;
     display: flex;
-    flex-direction: column;
-    position: relative;
-    padding-bottom: 8px;
+    align-items: center;
+    padding: 0 4px;
+    margin-top: 8px !important; /* Unified margin */
 }
 
-.show-select {
-    display: none !important;
+.merchandise-select:hover {
+    border-color: #3f51b5;
+    background-color: #fff;
+}
+
+.selected-merchandise {
+    background-color: #eff6ff;
+    padding: 0 10px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    height: 28px;
+    border: 1px solid #dbeafe;
+}
+
+.badge-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    color: #2563eb;
+}
+
+.selected-package-ref {
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: -0.01em;
+}
+
+.selected-stock-quantity {
+    color: #64748b;
+    font-weight: 500;
+}
+
+.clear-article-btn {
+    width: 28px !important;
+    height: 28px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-top: 0 !important;
+    margin-right: -4px !important;
+    border-radius: 50% !important;
+    transition: background-color 0.2s !important;
+}
+
+.clear-article-btn .mat-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    color: #cbd5e1;
+    transition: all 0.2s ease-in-out;
+}
+
+.clear-article-btn:hover {
+    background-color: #f1f5f9 !important;
+}
+
+.clear-article-btn:hover .mat-icon {
+    color: #ef4444 !important;
+    transform: scale(1.1);
+}
+
+.wood-lengths-badge {
+    background-color: #5d4037;
+    color: white;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.field-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.field-actions button {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.field-actions button .mat-icon {
+    margin: 0 !important;
 }
 
 /* Modal Structure */
@@ -271,14 +353,38 @@ td.mat-cell {
     vertical-align: middle;
 }
 
-.mat-column-index { width: 40px; }
-.mat-column-article { width: 40%; }
-.mat-column-sellPrice { width: 110px; }
-.mat-column-quantity { width: 160px; }
-.mat-column-tva { width: 100px; }
-.mat-column-totalWithoutTva { width: 110px; }
-.mat-column-totalWithTva { width: 110px; }
-.mat-column-actions { width: 60px; text-align: right; }
+.mat-column-index {
+    width: 40px;
+}
+
+.mat-column-article {
+    width: 45%;
+}
+
+.mat-column-sellPrice {
+    width: 140px;
+}
+
+.mat-column-quantity {
+    width: 200px;
+}
+
+.mat-column-tva {
+    width: 100px;
+}
+
+.mat-column-totalWithoutTva {
+    width: 110px;
+}
+
+.mat-column-totalWithTva {
+    width: 110px;
+}
+
+.mat-column-actions {
+    width: 60px;
+    text-align: right;
+}
 
 /* Summary Panel */
 .summary-container {
@@ -364,15 +470,29 @@ td.mat-cell {
     gap: 8px;
 }
 
-.red-icon { color: #ef4444; }
+.red-icon {
+    color: #ef4444;
+}
 
 @media (max-width: 1024px) {
-    .mat-column-totalWithoutTva, 
-    .mat-column-tva { display: none; }
+
+    .mat-column-totalWithoutTva,
+    .mat-column-tva {
+        display: none;
+    }
 }
 
 @media (max-width: 768px) {
-    .filter-container { grid-template-columns: 1fr; }
-    .full-width { grid-column: span 1; }
-    .summary-container { flex-direction: column; gap: 1rem; }
-}
+    .filter-container {
+        grid-template-columns: 1fr;
+    }
+
+    .full-width {
+        grid-column: span 1;
+    }
+
+    .summary-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
