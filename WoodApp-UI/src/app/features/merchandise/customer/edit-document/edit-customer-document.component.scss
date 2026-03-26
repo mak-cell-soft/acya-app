@@ -1,0 +1,438 @@
+// Scss for EditCustomerDocumentComponent
+// Theme: Modern Indigo & Slate (Lighter for app consistency)
+// Features: Subtle gradients, soft shadows, glassmorphism info cards.
+
+// Color Palette
+$primary-color: #3f51b5; // Standard App Indigo
+$primary-light: #e8eaf6;
+$accent-color: #5c6bc0;
+$text-main: #1e293b;
+$text-muted: #64748b;
+$soft-bg: #f8fafc;
+$white: #ffffff;
+$border: #e2e8f0;
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
+$shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.06);
+
+:host {
+  display: block;
+  background-color: $soft-bg;
+  min-height: 100vh;
+}
+
+.header-toolbar {
+  background-color: $white !important;
+  color: $text-main !important;
+  border-bottom: 1px solid $border;
+  z-index: 10;
+  
+  .doc-badge {
+    background: $primary-light;
+    color: $primary-color;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-left: 16px;
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+
+  button[mat-icon-button] {
+    color: $text-muted;
+  }
+
+  span {
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+.main-container {
+  padding: 24px;
+  width: 100%;
+  max-width: 100%; // Enlarge to full width
+  box-sizing: border-box;
+}
+
+.content-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-items: start;
+
+  @media (max-width: 1400px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-section {
+  display: grid;
+  gap: 24px;
+}
+
+.luxury-card {
+  border-radius: 16px;
+  border: 1px solid $border;
+  box-shadow: $shadow-md;
+  overflow: hidden;
+  background: $white;
+  transition: all 0.3s ease;
+
+  mat-card-header {
+    background-color: $soft-bg;
+    padding: 16px 24px;
+    border-bottom: 1px solid $border;
+
+    .header-icon {
+      background-color: $primary-light;
+      color: $primary-color;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+    }
+
+    mat-card-title {
+      font-weight: 700;
+      color: $text-main;
+      font-size: 1.1rem;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    mat-card-subtitle {
+      color: $text-muted;
+      font-size: 0.85rem;
+    }
+  }
+
+  mat-card-content {
+    padding: 24px;
+  }
+
+  &:hover {
+    box-shadow: $shadow-lg;
+  }
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.customer-info {
+  h3 {
+    margin: 0 0 12px 0;
+    font-size: 1.4rem;
+    color: $text-main;
+    font-weight: 700;
+  }
+  p {
+    margin: 6px 0;
+    color: $text-muted;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: $primary-color;
+    }
+  }
+}
+
+.search-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 24px;
+  
+  .search-field {
+    flex: 2;
+  }
+  .ref-field {
+    flex: 1;
+  }
+}
+
+.merch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+  align-items: end;
+
+  .quantity-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    .qty-field {
+      flex: 1;
+    }
+    button {
+      margin-bottom: 22px;
+      box-shadow: $shadow-sm;
+    }
+  }
+
+  .form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-top: 16px;
+    
+    button {
+      height: 48px;
+      padding: 0 32px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+  }
+}
+
+.table-card {
+  padding: 0;
+  
+  .table-container {
+    overflow-x: auto;
+    
+    table {
+      width: 100%;
+      background: transparent;
+      border-collapse: collapse;
+    }
+  }
+
+  th {
+    background-color: $soft-bg;
+    color: $text-muted;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid $border;
+  }
+
+  td {
+    padding: 16px;
+    border-bottom: 1px solid rgba($border, 0.5);
+    color: $text-main;
+    font-size: 0.95rem;
+  }
+
+  .editing-row {
+    background-color: rgba($primary-color, 0.05);
+    td {
+      border-bottom: 1px solid rgba($primary-color, 0.2);
+    }
+  }
+
+  .article-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    .ref {
+      font-weight: 700;
+      color: $primary-color;
+    }
+    .desc {
+      font-size: 0.85rem;
+      color: $text-muted;
+    }
+    .package {
+      font-size: 0.75rem;
+      background: $primary-light;
+      color: $primary-color;
+      padding: 2px 8px;
+      border-radius: 6px;
+      width: fit-content;
+      margin-top: 6px;
+      font-weight: 600;
+    }
+  }
+
+  .ttc-cell {
+    font-weight: 700;
+    color: $text-main;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.summary-card {
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    color: $text-muted;
+    font-size: 0.95rem;
+
+    .value {
+      font-weight: 600;
+      color: $text-main;
+    }
+
+    &.total-row {
+      margin-top: 24px;
+      font-weight: 800;
+      font-size: 1rem;
+      color: $text-main;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 2px dashed $border;
+      
+      span {
+        flex: 1;
+        font-family: 'Outfit', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.85rem;
+      }
+    }
+  }
+
+  .final-input-container {
+    display: flex;
+    align-items: center;
+    background: $white;
+    border: 2px solid $primary-light;
+    border-radius: 12px;
+    padding: 8px 16px;
+    transition: all 0.2s ease;
+
+    input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-weight: 800;
+      font-size: 1.6rem;
+      width: 140px;
+      color: $primary-color;
+      text-align: right;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      
+      &::-webkit-inner-spin-button {
+           -webkit-appearance: none;
+           margin: 0;
+      }
+    }
+
+    .currency {
+      font-size: 0.9rem;
+      color: $text-muted;
+      margin-left: 8px;
+      font-weight: 700;
+    }
+
+    &:hover {
+      border-color: rgba($primary-color, 0.3);
+      background: rgba($primary-color, 0.02);
+    }
+
+    &:focus-within {
+      border-color: $primary-color;
+      background: $white;
+      box-shadow: 0 0 0 4px rgba($primary-color, 0.1);
+    }
+  }
+
+  .adjustment-info {
+    margin-top: 20px;
+    padding: 12px;
+    background-color: rgba($primary-color, 0.05);
+    color: $primary-color;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .btn-block {
+    width: 100%;
+    height: 60px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-radius: 14px;
+    background: $primary-color;
+    box-shadow: 0 4px 14px rgba($primary-color, 0.25);
+    margin-top: 24px;
+    letter-spacing: 0.02em;
+    
+    &:hover:not(:disabled) {
+      background: darken($primary-color, 5%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba($primary-color, 0.35);
+    }
+
+    &:disabled {
+      background: #cbd5e1;
+      box-shadow: none;
+    }
+  }
+}
+
+.sticky-card {
+  position: sticky;
+  top: 24px;
+}
+
+.empty-state {
+  padding: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #cbd5e1;
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+  }
+  p {
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+}
+
+.anim-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.full-width {
+  width: 100%;
+}
+
+.readonly-field {
+  ::ng-deep .mat-mdc-text-field-wrapper {
+    background-color: rgba($soft-bg, 0.5);
+  }
+}

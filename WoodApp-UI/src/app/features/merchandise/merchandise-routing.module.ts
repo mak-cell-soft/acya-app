@@ -11,6 +11,7 @@ import { AddInvoiceComponent } from './customer/add-invoice/add-invoice.componen
 import { AddSupplierOrderComponent } from './provider/supplier-order/add-supplier-order/add-supplier-order.component';
 import { ListSupplierOrderComponent } from './provider/supplier-order/list-supplier-order/list-supplier-order.component';
 import { EditSupplierReceiptComponent } from './provider/edit-supplier-receipt/edit-supplier-receipt.component';
+import { EditCustomerDocumentComponent } from './customer/edit-document/edit-customer-document.component';
 
 import { roleGuard } from '../../guards/role.guard';
 import { CanDeactivateGuard } from '../../guards/can-deactivate.guard';
@@ -42,6 +43,12 @@ const routes: Routes = [
   {
     path: 'customerdelivery',
     component: ListCustomerDocumentsComponent
+  },
+  {
+    path: 'customerdelivery/edit/:id',
+    component: EditCustomerDocumentComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['Admin'] }
   },
   {
     path: 'customerinvoices',

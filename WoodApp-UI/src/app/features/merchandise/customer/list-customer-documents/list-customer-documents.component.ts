@@ -236,8 +236,12 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
     });
   }
 
-  onModify(note: any) {
-    console.log('Modify:', note);
+  onModify(doc: Document) {
+    if (doc.isinvoiced) {
+      this.toastr.warning('Ce document est déjà facturé et ne peut pas être modifié.', 'Action bloquée');
+      return;
+    }
+    this.router.navigate(['/home/merchandise/customerdelivery/edit', doc.id]);
   }
 
   // Check if all rows are selected

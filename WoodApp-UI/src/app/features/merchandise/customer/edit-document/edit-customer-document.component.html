@@ -1,0 +1,247 @@
+<mat-toolbar color="primary" class="header-toolbar">
+  <button mat-icon-button (click)="goBack()" matTooltip="Retour">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Modification du Bon de Livraison</span>
+  <span *ngIf="document" class="doc-badge">{{ document.docnumber }}</span>
+  <span class="spacer"></span>
+  <button mat-raised-button color="accent" (click)="onSubmit()" [disabled]="isSaving || merchandisDocument.data.length === 0">
+    <mat-icon>{{ isSaving ? 'hourglass_empty' : 'save' }}</mat-icon>
+    {{ isSaving ? 'Enregistrement...' : 'Mettre à jour' }}
+  </button>
+</mat-toolbar>
+
+<mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+
+<div class="main-container" *ngIf="!isLoading && document">
+  <div class="content-layout">
+    <!-- Form Section -->
+    <div class="form-section">
+      <!-- Customer Info & Reference -->
+      <mat-card class="info-card luxury-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar class="header-icon">person</mat-icon>
+          <mat-card-title>Informations Client</mat-card-title>
+          <mat-card-subtitle>Détails du destinataire</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="info-grid">
+            <div class="customer-info">
+              <h3>{{ document.counterpart.firstname }} {{ document.counterpart.lastname }}</h3>
+              <p *ngIf="document.counterpart.address"><mat-icon>place</mat-icon> {{ document.counterpart.address }}</p>
+              <p *ngIf="document.counterpart.phonenumberone"><mat-icon>phone</mat-icon> {{ document.counterpart.phonenumberone }}</p>
+            </div>
+            <div class="document-meta">
+              <form [formGroup]="documentForm">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Référence Interne / Client</mat-label>
+                  <input matInput formControlName="customerReference" placeholder="Ex: PO-12345">
+                  <mat-icon matSuffix>badge</mat-icon>
+                </mat-form-field>
+              </form>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Add Merchandise Section -->
+      <mat-card class="merchandise-form-card luxury-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar class="header-icon">add_shopping_cart</mat-icon>
+          <mat-card-title>{{ editingMerchandise ? 'Modifier la ligne' : 'Ajouter un article' }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="search-row">
+            <mat-form-field appearance="outline" class="search-field">
+              <mat-label>Rechercher un article (Réf ou Désign.)</mat-label>
+              <input matInput [formControl]="searchControl" [matAutocomplete]="auto" (input)="applyFilter($event)" placeholder="Commencez à taper...">
+              <mat-icon matSuffix>search</mat-icon>
+              <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onOptionSelected($event.option.value)">
+                <mat-option *ngFor="let article of filteredArticles" [value]="article.id">
+                  <div class="article-option">
+                    <span class="ref">{{ article.reference }}</span>
+                    <span class="desc">{{ article.description }}</span>
+                  </div>
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" *ngIf="selectedArticle" class="ref-field anim-fade-in">
+              <mat-label>Référence Colis</mat-label>
+              <input matInput [formControl]="$any(merchandiseForm).get('packagereference')">
+              <button mat-icon-button matSuffix (click)="generateMerchandReference()" matTooltip="Générer Réf">
+                <mat-icon>autorenew</mat-icon>
+              </button>
+            </mat-form-field>
+          </div>
+
+          <form [formGroup]="merchandiseForm" class="merch-grid" *ngIf="selectedArticle">
+            <mat-form-field appearance="outline">
+              <mat-label>PU HT (TND)</mat-label>
+              <input matInput type="number" formControlName="unit_price_ht">
+            </mat-form-field>
+
+            <div class="quantity-input-wrapper">
+              <mat-form-field appearance="outline" class="qty-field">
+                <mat-label>Quantité</mat-label>
+                <input matInput type="number" formControlName="quantity" [readonly]="isArticleTypeWood">
+              </mat-form-field>
+              <button mat-mini-fab color="primary" *ngIf="isArticleTypeWood" (click)="openAddQuantityModal(selectedArticle)" matTooltip="Gérer longueurs">
+                <mat-icon>straighten</mat-icon>
+              </button>
+            </div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Remise (%)</mat-label>
+              <input matInput type="number" formControlName="selldiscountpercentage">
+              <span matSuffix>%</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>TVA</mat-label>
+              <mat-select formControlName="tva">
+                <mat-option *ngFor="let tva of TVAs" [value]="tva.id">{{ tva.value }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="readonly-field">
+              <mat-label>Total TTC (TND)</mat-label>
+              <input matInput formControlName="totalWithTax" readonly>
+            </mat-form-field>
+
+            <div class="form-actions">
+              <button mat-raised-button color="primary" (click)="addMerchandise()">
+                <mat-icon>{{ editingMerchandise ? 'check' : 'add' }}</mat-icon>
+                {{ editingMerchandise ? 'Valider' : 'Ajouter' }}
+              </button>
+              <button mat-button (click)="resetMerchandiseForm()" *ngIf="selectedArticle">Annuler</button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- table Section -->
+      <mat-card class="table-card luxury-card">
+        <div class="table-container">
+          <table mat-table [dataSource]="merchandisDocument" class="w-100">
+            <ng-container matColumnDef="index">
+              <th mat-header-cell *matHeaderCellDef>#</th>
+              <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="article">
+              <th mat-header-cell *matHeaderCellDef>Article</th>
+              <td mat-cell *matCellDef="let element">
+                <div class="article-cell">
+                  <span class="ref">{{ element.article.reference }}</span>
+                  <span class="desc">{{ element.article.description }}</span>
+                  <span class="package" *ngIf="element.packagereference">Réf: {{ element.packagereference }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="unit_price_ht">
+              <th mat-header-cell *matHeaderCellDef>P.U HT</th>
+              <td mat-cell *matCellDef="let element">{{ element.unit_price_ht | number:'1.3-3' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="quantity">
+              <th mat-header-cell *matHeaderCellDef>Qté</th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.quantity | number:'1.3-3' }}
+                <small *ngIf="element.article.iswood"> ({{ element.lisoflengths?.length || 0 }} pcs)</small>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="cost_ht">
+              <th mat-header-cell *matHeaderCellDef>Total HT</th>
+              <td mat-cell *matCellDef="let element">{{ element.cost_ht | number:'1.3-3' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="discountPercentage">
+              <th mat-header-cell *matHeaderCellDef>Remise</th>
+              <td mat-cell *matCellDef="let element">{{ element.discount_percentage }}%</td>
+            </ng-container>
+
+            <ng-container matColumnDef="cost_net_ht">
+              <th mat-header-cell *matHeaderCellDef>Total TTC</th>
+              <td mat-cell *matCellDef="let element" class="ttc-cell">{{ element.cost_ttc | number:'1.3-3' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let element">
+                <button mat-icon-button color="primary" (click)="editRow(element)" matTooltip="Modifier">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteRow(element)" matTooltip="Supprimer">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" [class.editing-row]="editingMerchandise === row"></tr>
+          </table>
+
+          <div class="empty-state" *ngIf="merchandisDocument.data.length === 0">
+            <mat-icon>inventory_2</mat-icon>
+            <p>Aucun article dans ce document.</p>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Summary Sidebar -->
+    <div class="summary-section">
+      <mat-card class="summary-card luxury-card sticky-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar class="header-icon">summarize</mat-icon>
+          <mat-card-title>Récapitulatif</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="summary-item">
+            <span>Total Brut HT</span>
+            <span class="value">{{ totalBrutHT_doc$ | async | number:'1.3-3' }}</span>
+          </div>
+          <div class="summary-item">
+            <span>Total Remise</span>
+            <span class="value">{{ totalRemise_doc$ | async | number:'1.3-3' }}</span>
+          </div>
+          <div class="summary-item">
+            <span>Total HT Net</span>
+            <span class="value">{{ totalHTNet_doc$ | async | number:'1.3-3' }}</span>
+          </div>
+          <div class="summary-item">
+            <span>Total TVA</span>
+            <span class="value">{{ totalTVA_doc$ | async | number:'1.3-3' }}</span>
+          </div>
+          
+          <mat-divider></mat-divider>
+          
+          <div class="summary-item total-row">
+            <span>Net TTC Final</span>
+            <div class="final-input-container">
+              <input type="number" 
+                     [ngModel]="netTTC_doc$ | async" 
+                     (ngModelChange)="onFinalPriceChange($event)"
+                     step="0.001">
+              <span class="currency">TND</span>
+            </div>
+          </div>
+          
+          <div class="adjustment-info" *ngIf="extraDiscount !== 0">
+            <mat-icon>info</mat-icon>
+            <span>Ajustement: {{ extraDiscount | number:'1.3-3' }} TND</span>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-flat-button color="primary" class="btn-block" (click)="onSubmit()" [disabled]="isSaving || merchandisDocument.data.length === 0">
+            <mat-icon>{{ isSaving ? 'hourglass_empty' : 'check_circle' }}</mat-icon>
+            {{ isSaving ? 'Mise à jour...' : 'Confirmer les modifications' }}
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+</div>

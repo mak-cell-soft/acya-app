@@ -13,6 +13,7 @@ import { AddInvoiceComponent } from './customer/add-invoice/add-invoice.componen
 import { AddSupplierOrderComponent } from './provider/supplier-order/add-supplier-order/add-supplier-order.component';
 import { ListSupplierOrderComponent } from './provider/supplier-order/list-supplier-order/list-supplier-order.component';
 import { EditSupplierReceiptComponent } from './provider/edit-supplier-receipt/edit-supplier-receipt.component';
+import { EditCustomerDocumentComponent } from './customer/edit-document/edit-customer-document.component';
 
 // Modals inside merchandise
 import { DocumentDetailModalComponent } from './customer/list-customer-documents/document-detail-modal/document-detail-modal.component';
@@ -61,6 +62,7 @@ import { MatRadioModule } from '@angular/material/radio';
     AddSupplierOrderComponent,
     ListSupplierOrderComponent,
     EditSupplierReceiptComponent,
+    EditCustomerDocumentComponent,
     DocumentDetailModalComponent,
     DocumentConversionModalComponent,
     CustomerBatchConversionModalComponent,
