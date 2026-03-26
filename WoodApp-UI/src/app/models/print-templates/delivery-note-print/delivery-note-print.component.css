@@ -4,7 +4,7 @@
     min-height: 297mm;
     margin: 0 auto;
     padding: 10mm;
-    background: #eef0ee;
+    background: #fff !important;
     font-family: Arial, sans-serif;
     font-size: 9pt;
     color: #000;
@@ -46,8 +46,7 @@
 }
 
 .logo {
-    width: 60mm;
-    height: 20mm;
+    padding: 4mm 10mm;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -56,10 +55,12 @@
 }
 
 .logo-text {
-    font-size: 32pt;
-    font-weight: bold;
+    font-size: 30pt;
+    font-weight: 900;
     margin: 0;
-    letter-spacing: 3px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: #000;
 }
 
 .location {
@@ -270,6 +271,46 @@
 
 .item-row td {
     font-size: 8pt;
+    vertical-align: top;
+}
+
+.item-description {
+    font-weight: 600;
+    margin-bottom: 1mm;
+    color: #000;
+}
+
+.item-lengths-detail {
+    border-top: 0.5px dashed #ccc;
+    padding-top: 1mm;
+    margin-top: 1mm;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5mm;
+}
+
+.lengths-label {
+    font-size: 6.5pt;
+    font-weight: bold;
+    color: #444;
+    text-transform: uppercase;
+    letter-spacing: 0.2mm;
+}
+
+.lengths-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5mm;
+}
+
+.length-item {
+    font-size: 7.5pt;
+    font-family: 'Courier New', Courier, monospace;
+    background: #f8f8f8;
+    padding: 0.2mm 1.5mm;
+    border: 0.5px solid #eee;
+    color: #333;
+    font-weight: bold;
 }
 
 .empty-row td {
@@ -442,7 +483,7 @@
         height: 297mm;
         margin: 0;
         padding: 10mm;
-        background: #e8f5e9 !important;
+        background: #fff !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
         page-break-after: always;
@@ -486,10 +527,10 @@
     .total-row,
     .signature-section {
         border-color: #000 !important;
-        background: transparent !important;
+        background: #fff !important;
     }
 
     .delivery-note-container {
-        background: #e8f5e9 !important;
+        background: #fff !important;
     }
 }

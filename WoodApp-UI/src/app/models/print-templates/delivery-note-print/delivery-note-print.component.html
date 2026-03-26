@@ -99,7 +99,7 @@
         <table class="items-table">
             <thead>
                 <tr>
-                    <th class="col-code">CODE ARTICLE</th>
+                    <th class="col-code">#</th>
                     <th class="col-designation">DESIGNATIONS</th>
                     <th class="col-unit">UN</th>
                     <th class="col-qty">QTE</th>
@@ -110,13 +110,25 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let merchandise of document?.merchandises" class="item-row">
-                    <td class="col-code">{{ merchandise?.article?.reference }}</td>
-                    <td class="col-designation">{{ merchandise?.article?.description }}</td>
+                <tr *ngFor="let merchandise of document?.merchandises; let i = index" class="item-row">
+                    <td class="col-code">{{ i + 1 }}</td>
+                    <td class="col-designation">
+                        <div class="item-description">
+                            {{ merchandise?.description || merchandise?.article?.description }}
+                        </div>
+                        <div *ngIf="merchandise?.lisoflengths && merchandise.lisoflengths.length > 0" class="item-lengths-detail">
+                            <span class="lengths-label">Détail Longueurs:</span>
+                            <div class="lengths-wrap">
+                                <span *ngFor="let len of merchandise.lisoflengths" class="length-item">
+                                    {{ len.nbpieces }}p / {{ len.length.value }}m
+                                </span>
+                            </div>
+                        </div>
+                    </td>
                     <td class="col-unit">{{ merchandise?.article?.unit || 'PCS' }}</td>
-                    <td class="col-qty">{{ formatNumber(merchandise?.quantity) }}</td>
+                    <td class="col-qty">{{ formatQuantity(merchandise?.quantity, merchandise?.article?.unit) }}</td>
                     <td class="col-price">{{ formatNumber(merchandise?.unit_price_ht) }}</td>
-                    <td class="col-tva">{{ merchandise?.article?.tva || 0 }}</td>
+                    <td class="col-tva">{{ merchandise?.article?.tva?.value || 0 }}</td>
                     <td class="col-rm">{{ formatNumber(merchandise?.discount_percentage) }}</td>
                     <td class="col-total">{{ formatNumber(merchandise?.cost_net_ht) }}</td>
                 </tr>
@@ -204,11 +216,15 @@
         </div>
         <div class="signature-box">
             <span class="signature-label">N° CAMION</span>
-            <div class="signature-area"></div>
+            <div class="signature-area">
+                {{ getVehicleInfo() }}
+            </div>
         </div>
         <div class="signature-box">
             <span class="signature-label">NOM CHAUFFEUR</span>
-            <div class="signature-area"></div>
+            <div class="signature-area">
+                {{ getTransporterName() }}
+            </div>
             <span class="cin-label">C.I.N :</span>
         </div>
         <div class="signature-box">

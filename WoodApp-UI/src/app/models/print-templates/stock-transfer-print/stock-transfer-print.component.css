@@ -11,7 +11,7 @@
     min-height: 297mm;
     margin: 0 auto;
     padding: 12mm;
-    background: #fff;
+    background: #fff !important;
     font-family: var(--font-stack);
     font-size: 9pt;
     color: var(--primary-black);
@@ -53,7 +53,7 @@
 }
 
 .logo {
-    padding: 2mm 8mm;
+    padding: 4mm 10mm;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -62,11 +62,12 @@
 }
 
 .logo-text {
-    font-size: 28pt;
+    font-size: 30pt;
     font-weight: 900;
     margin: 0;
-    letter-spacing: 5px;
+    letter-spacing: 6px;
     text-transform: uppercase;
+    color: #000;
 }
 
 .location {
@@ -204,11 +205,29 @@
     text-align: center;
 }
 
-.col-code { width: 15mm; font-family: var(--mono-font); font-weight: bold; }
-.col-designation { width: auto; text-align: left !important; }
-.col-unit { width: 12mm; }
-.col-qty { width: 18mm; font-weight: bold; }
-.col-paquet { width: 30mm; }
+.col-code {
+    width: 15mm;
+    font-family: var(--mono-font);
+    font-weight: bold;
+}
+
+.col-designation {
+    width: auto;
+    text-align: left !important;
+}
+
+.col-unit {
+    width: 12mm;
+}
+
+.col-qty {
+    width: 18mm;
+    font-weight: bold;
+}
+
+.col-paquet {
+    width: 30mm;
+}
 
 .item-row td {
     vertical-align: top;
@@ -335,7 +354,7 @@
         height: 297mm;
         margin: 0;
         padding: 10mm;
-        background: #e8f5e9 !important;
+        background: #fff !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
         page-break-after: always;
@@ -351,12 +370,18 @@
         margin: 0;
     }
 
-    .logo, .location, .original-label, .document-title-section, .transfer-info-box, .items-table, .signature-section {
+    .logo,
+    .location,
+    .original-label,
+    .document-title-section,
+    .transfer-info-box,
+    .items-table,
+    .signature-section {
         border-color: #000 !important;
-        background: transparent !important;
+        background: #fff !important;
     }
 
     .delivery-note-container {
-        background: #e8f5e9 !important;
+        background: #fff !important;
     }
 }

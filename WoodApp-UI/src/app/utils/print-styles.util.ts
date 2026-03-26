@@ -19,7 +19,7 @@ export function getSharedPrintStyles(): string {
         min-height: 297mm;
         margin: 0 auto;
         padding: 10mm;
-        background: #e8f5e9 !important;
+        background: #fff !important;
         font-size: 9pt;
         color: #000;
         -webkit-print-color-adjust: exact;
@@ -55,8 +55,7 @@ export function getSharedPrintStyles(): string {
       }
 
       .logo {
-        width: 60mm;
-        height: 20mm;
+        padding: 4mm 10mm;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -64,10 +63,12 @@ export function getSharedPrintStyles(): string {
       }
 
       .logo-text {
-        font-size: 32pt;
-        font-weight: bold;
+        font-size: 30pt;
+        font-weight: 900;
         margin: 0;
-        letter-spacing: 3px;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        color: #000;
       }
 
       .location {
@@ -361,10 +362,10 @@ export function getSharedPrintStyles(): string {
           margin: 0;
         }
 
-        body { margin: 0; padding: 0; }
+        body { margin: 0; padding: 0; background: #fff !important; }
 
         .delivery-note-container {
-          background: #e8f5e9 !important;
+          background: #fff !important;
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }

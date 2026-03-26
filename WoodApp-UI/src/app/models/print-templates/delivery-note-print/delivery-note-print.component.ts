@@ -86,30 +86,73 @@ export class DeliveryNotePrintComponent implements OnInit {
     /**
      * Calculate TVA breakdown for footer table
      */
-    getTvaBreakdown(): Array<{ base: number; percentage: number; value: number }> {
-        const breakdown: { [key: number]: { base: number; value: number } } = {};
+    getTvaBreakdown(): Array<{ base: number; percentage: string; value: number }> {
+        const breakdown: { [key: string]: { base: number; value: number } } = {};
 
         this.document?.merchandises?.forEach(merch => {
-            const tvaRate = merch.article?.tva?.value || 0;
+            let tvaRateStr = '0';
+            if (merch.article?.tva?.value) {
+                tvaRateStr = merch.article.tva.value.toString().replace('%', '').trim();
+            }
+            
             const base = merch.cost_net_ht || 0;
             const tvaValue = merch.tva_value || 0;
 
-            if (!breakdown[Number(tvaRate)]) {
-                breakdown[Number(tvaRate)] = { base: 0, value: 0 };
+            if (!breakdown[tvaRateStr]) {
+                breakdown[tvaRateStr] = { base: 0, value: 0 };
             }
 
-            breakdown[Number(tvaRate)].base += base;
-            breakdown[Number(tvaRate)].value += tvaValue;
+            breakdown[tvaRateStr].base += base;
+            breakdown[tvaRateStr].value += tvaValue;
         });
 
         return Object.keys(breakdown).map(rate => {
-            const numRate = Number(rate);
             return {
-                base: breakdown[numRate].base,
-                percentage: numRate,
-                value: breakdown[numRate].value
+                base: breakdown[rate].base,
+                percentage: rate + '%',
+                value: breakdown[rate].value
             };
         });
+    }
+
+    /**
+     * Format quantity based on unit
+     * If unit is not M2, remove trailing zeros if it's an integer
+     */
+    formatQuantity(quantity: number | undefined, unit: string | undefined): string {
+        if (quantity === undefined || quantity === null) return '0,000';
+        
+        // If unit is M2, always show 3 decimals
+        if (unit?.toUpperCase() === 'M2') {
+            return this.formatNumber(quantity);
+        }
+
+        // For other units (PCS, etc.), if it's an integer, show no decimals
+        if (quantity % 1 === 0) {
+            return quantity.toString();
+        }
+
+        // Otherwise show 3 decimals
+        return this.formatNumber(quantity);
+    }
+
+    /**
+     * Extracts Vehicle info
+     */
+    getVehicleInfo(): string {
+        const t = this.document?.transporter;
+        if (!t) return '---';
+        return t.vehiculematricule || t.car?.matricule || t.car?.serialnumber || '---';
+    }
+
+    /**
+     * Get Transporter Name
+     */
+    getTransporterName(): string {
+        const t = this.document?.transporter;
+        if (!t) return '---';
+        const name = (t.firstname || t.transpSurname || '') + ' ' + (t.lastname || t.transpName || '');
+        return name.trim() || t.fullname || '---';
     }
 
     /**
