@@ -113,7 +113,7 @@ export class ListSuppliersComponent implements OnInit {
 
 
   deleteSupplier(element: CounterPart) {
-    const item = { id: element.id, name: element.name };
+    const item = { id: element.id, name: this.getFullName(element) };
     const dialogRef = this.dialog.open(ConfirmDeleteModalComponent, {
       width: '400px',
       data: { item }
@@ -121,21 +121,17 @@ export class ListSuppliersComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        console.log('Item deleted:', item);
         this.counterPartService.Delete(element.id).subscribe({
           next: () => {
             this.allSuppliers.data = this.allSuppliers.data.filter(p => p.id !== element.id);
-            this.toastr.success('Supplier deleted successfully');
+            this.toastr.success('Fournisseur supprimé avec succès');
           },
-          error: () => this.toastr.error('Error deleting Supplier')
+          error: () => this.toastr.error('Erreur lors de la suppression du fournisseur')
         });
-      } else {
-        this.toastr.info("Suppression anuulé");
-        console.log('Deletion canceled');
       }
     });
-
   }
+
 
 
 

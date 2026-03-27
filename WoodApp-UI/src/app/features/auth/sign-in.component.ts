@@ -56,15 +56,29 @@ export class SignInComponent implements OnInit {
       let formValues = this.loginForm.value;
       this.authService.login(formValues).subscribe({
         next: (response) => {
-          this.toastr.success(response.message);
-          this.router.navigateByUrl('home/dashboard');
+          /**
+           * BUSINESS LOGIC ERROR HANDLING:
+           * The backend returns 200 OK even for failed authentication attempts to avoid browser-level interception.
+           * We check the isSuccess flag to determine if the login actually succeeded.
+           */
+          if (response.isSuccess) {
+            this.toastr.success(response.message || "Authentification avec succès", "Succès");
+            this.router.navigateByUrl('home/dashboard');
+          } else {
+            // Business logic failures (incorrect password/email/enterprise)
+            this.toastr.warning(response.message, "Avertissement connexion");
+          }
+          
           this.loading = false;
           this.cdr.markForCheck();
         },
         error: (error) => {
-          this.toastr.error("Impossible de se connecter au serveur");
-          this.toastr.show(error.message);
+          /**
+           * TECHNICAL/INFRASTRUCTURE ERROR HANDLING:
+           * This block is only triggered if the server is unreachable, CORS fails, or a 500 error occurs.
+           */
           this.loading = false;
+          this.toastr.error("Impossible de joindre le serveur. Vérifiez votre connexion.", "Erreur réseau");
           this.cdr.markForCheck();
         }
       });

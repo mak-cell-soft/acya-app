@@ -18,6 +18,8 @@ import { CustomerBatchConversionModalComponent } from '../../merchandise/custome
 import { CustomerDetailsModalComponent } from '../customer-details-modal/customer-details-modal.component';
 import { CustomerEditModalComponent } from '../customer-edit-modal/customer-edit-modal.component';
 import { CustomerAccountModalComponent } from '../customer-account-modal/customer-account-modal.component';
+import { ConfirmDeleteModalComponent } from '../../../shared/components/modals/confirm-delete-modal/confirm-delete-modal.component';
+
 
 export enum CounterPartType {
   customer = 'Client Régulier',
@@ -104,14 +106,25 @@ export class ListCustomersComponent implements OnInit {
   }
 
   deleteCustomer(element: CounterPart) {
-    this.counterPartService.Delete(element.id).subscribe({
-      next: () => {
-        this.allCustomers.data = this.allCustomers.data.filter(p => p.id !== element.id);
-        this.toastr.success('Provider deleted successfully');
-      },
-      error: () => this.toastr.error('Error deleting Provider')
+    const item = { id: element.id, name: this.getFullName(element) };
+    const dialogRef = this.dialog.open(ConfirmDeleteModalComponent, {
+      width: '400px',
+      data: { item }
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.counterPartService.Delete(element.id).subscribe({
+          next: () => {
+            this.allCustomers.data = this.allCustomers.data.filter(p => p.id !== element.id);
+            this.toastr.success('Client supprimé avec succès');
+          },
+          error: () => this.toastr.error('Erreur lors de la suppression du client')
+        });
+      }
     });
   }
+
 
   onDetail(customer: CounterPart): void {
     this.dialog.open(CustomerDetailsModalComponent, {

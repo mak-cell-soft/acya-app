@@ -150,10 +150,10 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
         .Include(u => u.Persons)
         .SingleOrDefaultAsync(u => u.Email == loginDto.login || u.Login == loginDto.login);
 
-      if (user == null) return Unauthorized(new UserAuthDto
+      if (user == null) return Ok(new UserAuthDto
       {
         isSuccess = false,
-        message = "Email non valide !",
+        message = "Email non valide",
       });
 
       using var hmac = new HMACSHA512(user.PasswordSalt!);
@@ -161,27 +161,27 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
 
       for (int i = 0; i < computedHash.Length; i++)
       {
-        if (computedHash[i] != user.PasswordHash![i]) return Unauthorized(new UserAuthDto
+        if (computedHash[i] != user.PasswordHash![i]) return Ok(new UserAuthDto
         {
           fullname = user.Persons!.FullName,
           isSuccess = false,
-          message = "Mot de Passe Non Valide"
+          message = "Mot de passe non valide"
         });
       }
 
       var ent = await _context.Enterprises.FindAsync(user.EnterpriseId);
-      if (ent == null) return Unauthorized(new UserAuthDto
+      if (ent == null) return Ok(new UserAuthDto
       {
         fullname = user.Persons!.FullName,
         isSuccess = false,
-        message = "Entreprise Introuvable"
+        message = "Entreprise introuvable"
       });
 
-      if (ent.Guid.ToString() != loginDto.enterpriseRef) return Unauthorized(new UserAuthDto
+      if (ent.Guid.ToString() != loginDto.enterpriseRef) return Ok(new UserAuthDto
       {
         fullname = user.Persons!.FullName,
         isSuccess = false,
-        message = "Référence de l'Entreprise non Valide"
+        message = "Référence de l'entreprise non valide"
       });
 
       return Ok(new UserAuthDto
