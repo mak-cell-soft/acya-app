@@ -930,6 +930,12 @@ namespace ms.webapp.api.acya.api.Controllers
     #region Update Document
     /**
      * Update Document.
+     * This method works in 2 cases:
+     * 1. Update a direct document (no child documents).
+     * 2. Update a parent document (with child documents).
+     * @param id The id of the document to update.
+     * @param dto The document data to update.
+     * @return The updated document.
      */
     [HttpPut("{id}")]
     public async Task<ActionResult> Update(int id, DocumentDto dto)
