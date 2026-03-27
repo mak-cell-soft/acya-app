@@ -68,12 +68,6 @@ namespace ms.webapp.api.acya.api.Extentions
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
       });
 
-      services.AddControllers().AddJsonOptions(options =>
-      {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-        options.JsonSerializerOptions.WriteIndented = true;
-      });
-
       return services;
     }
   }

@@ -18,7 +18,9 @@ builder.Services.AddHostedService<NotificationRetryService>();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-      options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+      options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+      options.JsonSerializerOptions.Converters.Add(new ms.webapp.api.acya.api.Serialization.DateTimeNullableConverter());
+      options.JsonSerializerOptions.Converters.Add(new ms.webapp.api.acya.api.Serialization.DateTimeConverter());
     });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

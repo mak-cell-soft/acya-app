@@ -8,12 +8,12 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: "wood_app_strong_db_password_270326"
       POSTGRES_DB: wood-app-db
       APP_DB: app-db-bo
       PGDATA: /var/lib/postgresql/data/pgdata
-    ports:
-      - "5432:5432"
+#    ports:
+#      - "5432:5432"
     volumes:
       - ./wood-app.api/postgres-data:/var/lib/postgresql/data
       - ./wood-app.api/db:/docker-entrypoint-initdb.d:ro
@@ -36,8 +36,8 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
-      - ConnectionStrings__WoodAppContextConnection=Host=postgres;Port=5432;Database=wood-app-db;Username=postgres;Password=password;
-      - ConnectionStrings__AppContextConnection=Host=postgres;Port=5432;Database=app-db-bo;Username=postgres;Password=password;
+      - ConnectionStrings__WoodAppContextConnection=Host=postgres;Port=5432;Database=wood-app-db;Username=postgres;Password=wood_app_strong_db_password_270326;
+      - ConnectionStrings__AppContextConnection=Host=postgres;Port=5432;Database=app-db-bo;Username=postgres;Password=wood_app_strong_db_password_270326;
       - TokenKey=wood_app_super_secret_unguessable_key_For_FrontEnd_$$&&!_xzawwo9985error,ughjjnp21365_##1
       - JWTSettings__securityKey=wood_app_super_secret_unguessable_key_For_FrontEnd_$$&&!_xzawwo9985error,ughjjnp21365_##1
       - JWTSettings__ValidAudience=https://acya.site
