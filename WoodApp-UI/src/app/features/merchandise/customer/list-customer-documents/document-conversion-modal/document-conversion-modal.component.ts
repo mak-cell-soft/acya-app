@@ -52,6 +52,7 @@ export class DocumentConversionModalComponent implements OnInit {
     isservice: boolean = false;
     originalTotalTTC: number = 0;
     totalDiscountFromDocs: number = 0;
+    discountPercentage: number = 0;
 
     constructor(
         public dialogRef: MatDialogRef<DocumentConversionModalComponent>,
@@ -67,17 +68,18 @@ export class DocumentConversionModalComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        this.createForm();
+        this.getAllTaxes();
+
         if (this.isBatchMode) {
-            this.createForm();
-            this.getAllTaxes();
             this.getCustomers();
             this.searchCustomerControl.valueChanges.subscribe(() => this.applyCustomerFilter());
-
-            // Listen for tax changes to recalculate totals
-            this.taxeForm.get('selectedTaxe')?.valueChanges.subscribe(() => {
-                this.calculateTotals();
-            });
         }
+
+        // Listen for tax changes to recalculate totals
+        this.taxeForm.get('selectedTaxe')?.valueChanges.subscribe(() => {
+            this.calculateTotals();
+        });
 
         this.calculateTotals();
         this.checkPayments();
@@ -127,6 +129,15 @@ export class DocumentConversionModalComponent implements OnInit {
 
     onOptionCustomerSelected(customerId: number) {
         this.selectedCustomer = this.allCustomers.find(c => c.id === customerId) || null;
+        if (this.selectedCustomer) {
+            const displayName = `${this.selectedCustomer.firstname || ''} ${this.selectedCustomer.lastname || ''} ${this.selectedCustomer.name || ''}`.trim();
+            this.searchCustomerControl.setValue(displayName, { emitEvent: false });
+        }
+    }
+
+    clearCustomer() {
+        this.selectedCustomer = null;
+        this.searchCustomerControl.setValue('');
     }
 
     calculateTotals() {
@@ -138,7 +149,7 @@ export class DocumentConversionModalComponent implements OnInit {
         let baseTTC = this.documents.reduce((sum, doc) => sum + doc.total_net_ttc, 0);
         let taxValue = 0;
 
-        if (this.isBatchMode && this.taxeForm) {
+        if (this.taxeForm) {
             const selectedTaxId = this.taxeForm.get('selectedTaxe')?.value;
             const selectedTax = this.appvariablesTaxes.find(t => t.id === selectedTaxId);
             taxValue = selectedTax ? parseFloat(selectedTax.value) : 0;
@@ -163,6 +174,22 @@ export class DocumentConversionModalComponent implements OnInit {
             this.totalTTC = newTtc;
             const extraDiscount = this.originalTotalTTC - newTtc;
             this.totalDiscount_doc = this.totalDiscountFromDocs + extraDiscount;
+            
+            // Recalculate percentage
+            if (this.originalTotalTTC > 0) {
+                this.discountPercentage = parseFloat(((extraDiscount / this.originalTotalTTC) * 100).toFixed(2));
+            } else {
+                this.discountPercentage = 0;
+            }
+        }
+    }
+
+    onDiscountPercentChange(percent: number) {
+        if (this.isservice) {
+            this.discountPercentage = percent;
+            const extraDiscount = (this.originalTotalTTC * percent) / 100;
+            this.totalTTC = this.originalTotalTTC - extraDiscount;
+            this.totalDiscount_doc = this.totalDiscountFromDocs + extraDiscount;
         }
     }
 
@@ -171,6 +198,7 @@ export class DocumentConversionModalComponent implements OnInit {
         if (!checked) {
             this.totalTTC = this.originalTotalTTC;
             this.totalDiscount_doc = this.totalDiscountFromDocs;
+            this.discountPercentage = 0;
         }
     }
 
@@ -271,23 +299,22 @@ export class DocumentConversionModalComponent implements OnInit {
             deliveryNoteDocNumbers: []
         };
 
-        // If batch mode, validation for required fields
         if (this.isBatchMode) {
-            if (this.taxeForm.invalid) {
-                this.toastr.warning('Veuillez sélectionner une taxe.');
-                this.isConverting = false;
-                return;
-            }
             if (!this.selectedCustomer) {
                 this.toastr.warning('Veuillez sélectionner un client.');
                 this.isConverting = false;
                 return;
             }
-
-            // Assign selected customer
             newInvoice.counterpart = this.selectedCustomer;
+        }
 
-            // Assign selected tax
+        // Assign selected tax (now applicable to all modes)
+        if (this.taxeForm) {
+            if (this.taxeForm.invalid) {
+                this.toastr.warning('Veuillez sélectionner une taxe.');
+                this.isConverting = false;
+                return;
+            }
             const selectedTaxId = this.taxeForm.get('selectedTaxe')?.value;
             const selectedTax = this.appvariablesTaxes.find(t => t.id === selectedTaxId);
             newInvoice.taxe = selectedTax ?? new AppVariable();

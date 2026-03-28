@@ -434,7 +434,8 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
     }
 
     const dialogRef = this.dialog.open(DocumentConversionModalComponent, {
-      width: '600px',
+      width: '1200px',
+      maxWidth: '1200px',
       disableClose: true,
       data: { documents: [doc] }
     });
@@ -465,7 +466,8 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
 
     // If all checks pass, proceed with batch conversion
     const dialogRef = this.dialog.open(DocumentConversionModalComponent, {
-      width: '600px',
+      width: '1200px',
+      maxWidth: '1200px',
       disableClose: true,
       data: { documents: selectedRows }
     });
@@ -481,9 +483,9 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
 
   onBatchConvertForCustomer(): void {
     const dialogRef = this.dialog.open(CustomerBatchConversionModalComponent, {
-      width: '95vw',
-      maxWidth: '1600px',
-      maxHeight: '95vh',
+      width: '1200px',
+      maxWidth: '1200px',
+      maxHeight: '1200px',
       disableClose: true,
       panelClass: 'full-screen-modal'
     });

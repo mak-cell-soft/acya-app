@@ -10,6 +10,11 @@
     </div>
 
     <div class="modal-content">
+        <div class="modal-loader" *ngIf="isLoading">
+            <mat-spinner diameter="50"></mat-spinner>
+            <p>Calcul du solde restant...</p>
+        </div>
+
         <!-- Summary Dashboard -->
         <div class="summary-dashboard">
             <div class="dashboard-card">
@@ -59,10 +64,11 @@
                     <div class="form-row">
                         <mat-form-field appearance="outline">
                             <mat-label>Montant</mat-label>
-                            <input matInput type="number" formControlName="amount">
+                            <input matInput type="number" formControlName="amount" step="0.001">
                             <span matSuffix>TND</span>
-                            <mat-icon matPrefix>monetization_on</mat-icon>
+                            <mat-icon matPrefix>account_balance_wallet</mat-icon>
                             <mat-error *ngIf="paymentForm.get('amount')?.hasError('required')">Requis</mat-error>
+                            <mat-error *ngIf="paymentForm.get('amount')?.hasError('max')">Le montant dépasse le reste à payer ({{data.remainingAmount | number:'1.3-3'}})</mat-error>
                         </mat-form-field>
 
                         <mat-form-field appearance="outline">
@@ -70,7 +76,6 @@
                             <input matInput [matDatepicker]="picker" formControlName="paymentDate">
                             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                             <mat-datepicker #picker></mat-datepicker>
-                            <mat-icon matPrefix>event</mat-icon>
                         </mat-form-field>
                     </div>
 

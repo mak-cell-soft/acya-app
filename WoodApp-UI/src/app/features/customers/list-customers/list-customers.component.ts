@@ -180,9 +180,9 @@ export class ListCustomersComponent implements OnInit {
 
   onBatchConvertForCustomer(): void {
     const dialogRef = this.dialog.open(CustomerBatchConversionModalComponent, {
-      width: '95vw',
-      maxWidth: '1600px',
-      maxHeight: '95vh',
+      width: '1200px',
+      maxWidth: '1200px',
+      maxHeight: '1200px',
       disableClose: true,
       panelClass: 'full-screen-modal'
     });

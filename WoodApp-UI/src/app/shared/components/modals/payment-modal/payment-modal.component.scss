@@ -44,8 +44,29 @@
 
 .modal-content {
   padding: 24px;
-  flex: 1;
   overflow-y: auto;
+  flex: 1;
+  position: relative;
+}
+
+.modal-loader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  
+  p {
+    color: #64748b;
+    font-weight: 500;
+  }
 }
 
 .summary-dashboard {
@@ -122,44 +143,53 @@
 .methods-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
+  gap: 16px;
+  margin-top: 8px;
 
   .method-card {
     border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 16px 8px;
+    border-radius: 16px;
+    padding: 20px 8px;
     text-align: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    background: white;
+    gap: 12px;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 
     &:hover {
-      background: #f1f5f9;
-      transform: translateY(-2px);
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      transform: translateY(-4px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
 
     &.selected {
       background: #f0f9ff;
       border-color: #0ea5e9;
-      color: #0284c7;
-      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
+      color: #0369a1;
+      border-width: 2px;
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
       
-      mat-icon { color: #0ea5e9; }
-      span { font-weight: 700; }
+      mat-icon { color: #0ea5e9; transform: scale(1.1); }
+      span { font-weight: 800; }
     }
 
     mat-icon {
-      font-size: 24px;
-      height: 24px;
-      width: 24px;
+      font-size: 28px;
+      height: 28px;
+      width: 28px;
       color: #64748b;
+      transition: transform 0.2s;
     }
 
-    span { font-size: 0.8rem; }
+    span { 
+      font-size: 0.85rem; 
+      font-weight: 500;
+    }
   }
 }
 
@@ -178,45 +208,65 @@
 
 .modal-actions {
   padding: 16px 24px;
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 16px;
+  align-items: center;
+
+  .btn-cancel {
+    background: #f1f5f9;
+    color: #475569;
+    &:hover { background: #e2e8f0; }
+  }
+
+  .btn-confirm {
+    background: #0ea5e9;
+    color: white;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+    &:hover { background: #0284c7; }
+  }
 
   button {
-    min-width: 140px;
+    min-width: 160px;
     height: 48px;
-    border-radius: 8px;
-    font-weight: 600;
+    border-radius: 12px;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    
+    mat-icon {
+      margin-right: 8px;
+    }
   }
 }
 
 .w-100 { width: 100%; }
 
-// Global fixed for icons scrambled with labels
+// Global fixes for Material 18 alignment
 ::ng-deep {
   .mat-mdc-form-field-appearance-outline {
+    .mdc-notched-outline__leading {
+      border-radius: 12px 0 0 12px !important;
+    }
+    .mdc-notched-outline__trailing {
+      border-radius: 0 12px 12px 0 !important;
+    }
+    
     .mat-mdc-form-field-icon-prefix {
-      padding: 0 !important;
-      min-width: 40px !important;
-      display: inline-flex !important;
-      align-items: center;
-      justify-content: center;
-      
-      mat-icon {
-        font-size: 20px !important;
-        height: 20px !important;
-        width: 20px !important;
-        color: #94a3b8 !important;
-      }
+      padding: 0 4px 0 12px !important;
+      color: #94a3b8;
     }
+  }
 
-    &.mat-mdc-form-field-has-icon-prefix {
-      .mat-mdc-form-field-infix { padding-left: 32px !important; }
-      .mdc-floating-label { left: 32px !important; width: calc(100% - 32px) !important; }
-      &.mat-form-field-should-float { .mdc-floating-label { left: 32px !important; } }
+  .generic-payment-form {
+    .mat-mdc-form-field {
+      width: 100%;
     }
-    .mat-mdc-text-field-wrapper { padding-left: 8px !important; }
+  }
+  
+  .modal-wrapper .mat-mdc-card {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
   }
 }

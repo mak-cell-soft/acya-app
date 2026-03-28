@@ -5,6 +5,8 @@ import { PaymentInstrument, PaymentInstrumentType, PaymentState } from '../../..
 // Adjust path if necessary, assuming shared folder structure exists
 import { BANKS_TN } from '../../../constants/modals/bank_modal';
 import { ABORT_BUTTON, REGISTER_BUTTON } from '../../../Text_Buttons';
+import { PaymentService } from '../../../../services/components/payment.service';
+import { finalize } from 'rxjs';
 
 export interface PaymentModalData {
     documentId: number;
@@ -26,6 +28,7 @@ export interface PaymentModalData {
 export class PaymentModalComponent implements OnInit {
     paymentForm: FormGroup;
     selectedPaymentMethod: 'ESPECE' | 'CHEQUE' | 'TRAITE' | 'VIREMENT' | 'CARTE' = 'ESPECE';
+    isLoading: boolean = false;
 
     abort_button_text: string = ABORT_BUTTON;
     register_button_text: string = REGISTER_BUTTON;
@@ -46,7 +49,8 @@ export class PaymentModalComponent implements OnInit {
     constructor(
         public dialogRef: MatDialogRef<PaymentModalComponent>,
         @Inject(MAT_DIALOG_DATA) public data: PaymentModalData,
-        private fb: FormBuilder
+        private fb: FormBuilder,
+        private paymentService: PaymentService
     ) {
         this.paymentForm = this.fb.group({
             // Common fields or Cash specific fields
@@ -58,6 +62,37 @@ export class PaymentModalComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        this.calculateRemainingAmount();
+    }
+
+    calculateRemainingAmount(): void {
+        this.isLoading = true;
+        this.paymentService.GetByDocumentId(this.data.documentId)
+            .pipe(finalize(() => this.isLoading = false))
+            .subscribe({
+                next: (payments) => {
+                    const totalPaid = (payments || []).reduce((acc, curr) => acc + (curr.amount || 0), 0);
+                    this.data.remainingAmount = Number(this.data.totalAmount) - totalPaid;
+                    
+                    // Add validator for maximum amount (cannot pay more than remaining balance)
+                    this.paymentForm.get('amount')?.setValidators([
+                        Validators.required, 
+                        Validators.min(0), 
+                        Validators.max(this.data.remainingAmount)
+                    ]);
+                    
+                    // Update form amount to the calculated remaining amount
+                    const suggestedAmount = this.data.remainingAmount > 0 ? this.data.remainingAmount : 0;
+                    this.paymentForm.patchValue({
+                        amount: suggestedAmount
+                    });
+                    
+                    this.paymentForm.get('amount')?.updateValueAndValidity();
+                },
+                error: (err) => {
+                    console.error('Error fetching payments for remaining amount calculation:', err);
+                }
+            });
     }
 
     onPaymentMethodChange(method: string): void {

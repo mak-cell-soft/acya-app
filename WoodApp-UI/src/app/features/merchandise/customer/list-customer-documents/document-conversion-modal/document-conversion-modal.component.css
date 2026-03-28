@@ -3,60 +3,252 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 24px;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  color: white;
+  border-bottom: none;
 }
 
 .modal-header h2 {
   margin: 0;
   font-size: 1.25rem;
-  color: #333;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: white;
+}
+
+.modal-header button {
+  color: white;
 }
 
 .modal-content {
   padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
-.summary-section p {
-  margin: 8px 0;
-  font-size: 1rem;
+/* Grid Layout */
+.conversion-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
 }
 
-.payment-status-section {
+@media (max-width: 800px) {
+  .conversion-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+.section-description {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0 0 12px 0;
+  font-style: italic;
+}
+
+.grid-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e3a8a;
+  margin: 0 0 8px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e2e8f0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Batch Info Styles */
+.batch-info-container, .tax-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tax-form-container {
+  margin-top: 8px;
+}
+
+.batch-count {
+  font-size: 0.95rem;
+  color: #475569;
+}
+
+.documents-list-container {
+  padding: 12px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.list-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 8px !important;
+}
+
+.documents-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 80px;
+  overflow-y: auto;
+}
+
+.doc-chip {
+  background-color: #dbeafe;
+  color: #1e40af;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid #bfdbfe;
+}
+
+/* Right Section Styles */
+.service-option-container {
+  padding: 12px;
+  background-color: #f0f9ff;
+  border-radius: 8px;
+  border: 1px solid #bae6fd;
+}
+
+.ttc-controls-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   padding: 16px;
-  border-radius: 4px;
-  background-color: #fafafa;
+  background-color: #fff7ed;
+  border: 1px solid #ffedd1;
+  border-radius: 8px;
 }
 
-.status-success {
+.flex-row {
   display: flex;
   align-items: center;
+}
+
+.gap-10 {
   gap: 10px;
-  color: #4caf50;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.half-width {
+  flex: 1;
+}
+
+.discount-hint {
+  font-size: 0.85rem;
+  color: #d97706;
+  font-weight: 600;
+  margin: 4px 0 0 0;
+}
+
+.ttc-display-only {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.total-badge {
+  display: flex;
+  flex-direction: column;
+  background: #f1f5f9;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border-left: 4px solid #3b82f6;
+}
+
+.total-badge .label {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.total-badge .value {
+  font-size: 1.5rem;
+  color: #1e293b;
+  font-weight: 700;
+}
+
+/* Payment Status Card */
+.payment-status-card {
+  margin-top: 8px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
   font-weight: 500;
 }
 
-.status-warning {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  color: #ff9800;
+.status-indicator.success {
+  background-color: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
 }
 
-.status-warning mat-icon {
-  color: #ff9800;
+.status-indicator.warning {
+  background-color: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #ffedd5;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.status-indicator.info {
+  background-color: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #dbeafe;
+}
+
+.warning-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-indicator mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* Confirmation Section */
+.confirmation-section {
+  margin-top: 8px;
 }
 
 .confirmation-text {
-  margin-top: 10px;
+  margin-top: 16px;
+}
+
+.confirmation-text p {
+  margin: 4px 0;
+  color: #334155;
 }
 
 .note {
-  font-size: 0.85rem;
-  color: #666;
+  font-size: 0.8rem;
+  color: #64748b;
   font-style: italic;
 }
 
@@ -65,83 +257,18 @@
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 24px;
-  background-color: #f5f5f5;
-  border-top: 1px solid #e0e0e0;
+  background-color: #f1f5f9;
+  border-top: 1px solid #e2e8f0;
+}
+
+.modal-actions button {
+  min-width: 120px;
+  height: 44px;
+  border-radius: 8px;
+  font-weight: 600;
 }
 
 mat-spinner {
   display: inline-block;
   margin-right: 8px;
-}
-
-/* Batch Mode Styles */
-.batch-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.full-width {
-  width: 100%;
-}
-
-.selected-customer-info {
-  font-size: 0.9rem;
-  color: #4caf50;
-  margin-bottom: 8px;
-  padding: 8px;
-  background: #e8f5e9;
-  border-radius: 4px;
-}
-
-/* Document List Styles */
-.documents-list-container {
-  margin: 8px 0;
-  padding: 10px;
-  background-color: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-}
-
-.list-label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #666;
-  margin-bottom: 8px !important;
-}
-
-.documents-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  max-height: 100px;
-  overflow-y: auto;
-}
-
-.doc-chip {
-  background-color: #e3f2fd;
-  color: #1976d2;
-  padding: 4px 8px;
-  border-radius: 16px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  border: 1px solid #bbdefb;
-  white-space: nowrap;
-}
-
-.service-section {
-  margin: 16px 0 8px 0;
-}
-
-.ttc-edit {
-  margin-top: 8px;
-}
-
-.discount-hint {
-  font-size: 0.85rem;
-  color: #ff9800;
-  font-weight: 500;
-  margin-top: -12px;
-  margin-bottom: 8px;
-}
+}

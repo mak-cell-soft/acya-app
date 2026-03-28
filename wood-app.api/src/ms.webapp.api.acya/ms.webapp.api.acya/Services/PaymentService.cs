@@ -132,7 +132,7 @@ namespace ms.webapp.api.acya.api.Services
                         "Payment", 
                         createDto.Amount, 
                         createdPayment.Id, 
-                        $"Payment for document {document.DocNumber}");
+                        $"Payment - document {document.DocNumber}");
 
                     // Sync Account Ledger for converted delivery notes if applicable
                     await SyncLedgerForInvoiceAsync(document);
@@ -266,7 +266,7 @@ namespace ms.webapp.api.acya.api.Services
                             "customerDeliveryNote",
                             invoice.Id,
                             "customerInvoice",
-                            $"Movement for document {invoice.DocNumber} related to {child.DocNumber}"
+                            $"Movement - document {invoice.DocNumber} related to {child.DocNumber}"
                         );
                     }
                 }
