@@ -31,4 +31,8 @@ export class SubCategoryService {
   }
 
 
+  Delete(id: number) {
+    return this.http.delete(this.baseUrl + 'FirstChild/' + id);
+  }
+
 }

@@ -27,4 +27,7 @@ export class TransporterService {
   getAll(): Observable<Transporter[]> {
     return this.http.get<Transporter[]>(this.baseUrl + 'Transporter');
   }
+  Delete(id: number): Observable<any> {
+    return this.http.delete(this.baseUrl + 'Transporter/' + id);
+  }
 }

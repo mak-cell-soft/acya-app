@@ -720,6 +720,7 @@
                     </div>
                 </div>
 
+                <!-- liste des employers -->
                 <mat-card id="emp-list" class="card-details">
                     <h5>
                         <mat-icon>badge</mat-icon>
@@ -796,6 +797,7 @@
                     </div>
                 </mat-card>
 
+                <!-- liste des utilisateurs -->
                 <mat-card id="user-list" class="card-details">
                     <h5>
                         <mat-icon>person_pin</mat-icon>
@@ -844,18 +846,6 @@
                                 <td mat-cell *matCellDef="let element">{{element.person.hiredate | date: 'dd-MM-yyyy'}}
                                 </td>
                             </ng-container>
-
-                            <!-- <ng-container matColumnDef="creationdate">
-                                <th mat-header-cell *matHeaderCellDef> Crée le </th>
-                                <td mat-cell *matCellDef="let element">{{element.person.creationdate | date:
-                                    'dd-MM-yyyy'}}</td>
-                            </ng-container>
-
-                            <ng-container matColumnDef="updatedate">
-                                <th mat-header-cell *matHeaderCellDef> Modifié le </th>
-                                <td mat-cell *matCellDef="let element">{{element.person.updatedate | date:
-                                    'dd-MM-yyyy'}}</td>
-                            </ng-container> -->
 
                             <ng-container matColumnDef="action">
                                 <th mat-header-cell *matHeaderCellDef> Action </th>
@@ -927,73 +917,80 @@
 
                 <mat-card id="bank-list" class="card-details">
                     <h5><mat-icon>account_balance_wallet</mat-icon>{{mat_card_bank_account_header}}</h5>
-                    <div class="table-scroll-container">
-                        <table mat-table [dataSource]="bankAccounts" class="w-100" *ngIf="bankAccounts.length">
-                            <ng-container matColumnDef="reference">
-                                <th mat-header-cell *matHeaderCellDef>{{mat_header_cell_bank_name}}</th>
-                                <td mat-cell *matCellDef="let element">{{element.reference}}</td>
-                            </ng-container>
+                    <div class="bank-cards-grid" *ngIf="bankAccounts.length">
+                        <div *ngFor="let element of bankAccounts; let i = index" 
+                             class="bank-card" 
+                             [class.editing-state]="element.editing">
+                            
+                            <!-- Card Header (Bank Name & Actions) -->
+                            <div class="card-header">
+                                <div class="bank-id">
+                                    <h3 class="bank-name">{{element.reference}}</h3>
+                                    <p class="bank-desc">{{element.designation}}</p>
+                                </div>
+                                <div class="card-actions" *ngIf="!element.editing">
+                                    <button (click)="editBankAccount(element)" matTooltip="Modifier">
+                                        <mat-icon>edit</mat-icon>
+                                    </button>
+                                    <button (click)="deleteBankAccount(element)" matTooltip="Supprimer" class="delete-btn">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
 
-                            <ng-container matColumnDef="designation">
-                                <th mat-header-cell *matHeaderCellDef>{{mat_header_cell_bank_description}}</th>
-                                <td mat-cell *matCellDef="let element">{{element.designation}}</td>
-                            </ng-container>
-
-                            <ng-container matColumnDef="agency">
-                                <th mat-header-cell *matHeaderCellDef>{{mat_header_cell_bank_agency}}</th>
-                                <td mat-cell *matCellDef="let element">
-                                    <ng-container *ngIf="!element.editing">
-                                        {{element.agency}}
-                                    </ng-container>
-                                    <ng-container *ngIf="element.editing">
-                                        <input matInput [(ngModel)]="element.agency">
-                                    </ng-container>
-                                </td>
-                            </ng-container>
-
-                            <ng-container matColumnDef="rib">
-                                <th mat-header-cell *matHeaderCellDef>{{mat_header_cell_bank_rib}}</th>
-                                <td mat-cell *matCellDef="let element">
-                                    <ng-container *ngIf="!element.editing">
-                                        {{element.rib}}
-                                    </ng-container>
-                                    <ng-container *ngIf="element.editing">
-                                        <input matInput [(ngModel)]="element.rib">
-                                    </ng-container>
-                                </td>
-                            </ng-container>
-
-                            <ng-container matColumnDef="iban">
-                                <th mat-header-cell *matHeaderCellDef>{{mat_header_cell_bank_iban}}</th>
-                                <td mat-cell *matCellDef="let element">
-                                    <ng-container *ngIf="!element.editing">
-                                        {{element.iban}}
-                                    </ng-container>
-                                    <ng-container *ngIf="element.editing">
-                                        <input matInput [(ngModel)]="element.iban">
-                                    </ng-container>
-                                </td>
-                            </ng-container>
-
-                            <ng-container matColumnDef="action">
-                                <th mat-header-cell *matHeaderCellDef> Action </th>
-                                <td mat-cell *matCellDef="let element">
-                                    <div class="action-buttons">
-                                        <mat-icon *ngIf="!element.editing" class="green-icon"
-                                            (click)="editBankAccount(element)">edit</mat-icon>
-                                        <mat-icon *ngIf="element.editing" class="blue-icon"
-                                            (click)="saveBankAccount(element)">save</mat-icon>
-                                        <mat-icon *ngIf="element.editing" class="red-icon"
-                                            (click)="cancelEditBankAccount(element)">cancel</mat-icon>
-                                        <mat-icon class="red-icon"
-                                            (click)="deleteBankAccount(element)">delete</mat-icon>
+                            <!-- Card Body (Account Info) -->
+                            <div class="card-body" *ngIf="!element.editing">
+                                <div class="field-label">RIB / Compte</div>
+                                <div class="account-number">{{element.rib}}</div>
+                                
+                                <div class="card-extra-info">
+                                    <div class="info-group">
+                                        <div class="field-label">Agence</div>
+                                        <div class="value">{{element.agency}}</div>
                                     </div>
-                                </td>
-                            </ng-container>
+                                    <div class="info-group text-right">
+                                        <div class="field-label">IBAN</div>
+                                        <div class="iban-number">{{element.iban}}</div>
+                                    </div>
+                                </div>
+                            </div>
 
-                            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-                        </table>
+                            <!-- Card Footer (Chip Only) -->
+                            <div class="card-footer" *ngIf="!element.editing">
+                                <div class="chip"></div>
+                            </div>
+
+                            <!-- Card Editing Mode -->
+                            <div class="edit-fields" *ngIf="element.editing">
+                                <mat-form-field appearance="outline">
+                                    <mat-label>{{mat_header_cell_bank_agency}}</mat-label>
+                                    <input matInput [(ngModel)]="element.agency">
+                                    <mat-icon matPrefix>location_city</mat-icon>
+                                </mat-form-field>
+
+                                <mat-form-field appearance="outline">
+                                    <mat-label>{{mat_header_cell_bank_rib}}</mat-label>
+                                    <input matInput [(ngModel)]="element.rib">
+                                    <mat-icon matPrefix>pin</mat-icon>
+                                </mat-form-field>
+
+                                <mat-form-field appearance="outline">
+                                    <mat-label>{{mat_header_cell_bank_iban}}</mat-label>
+                                    <input matInput [(ngModel)]="element.iban">
+                                    <mat-icon matPrefix>language</mat-icon>
+                                </mat-form-field>
+
+                                <div class="edit-actions">
+                                    <button mat-button color="warn" (click)="cancelEditBankAccount(element)">
+                                        Annuler
+                                    </button>
+                                    <button mat-flat-button color="primary" (click)="saveBankAccount(element)">
+                                        <mat-icon>save</mat-icon>
+                                        Enregistrer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="control-button">
                         <mat-dialog-actions>

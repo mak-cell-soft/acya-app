@@ -28,6 +28,7 @@ import { SubCategoryService } from '../../../services/configuration/sub-category
 import { AddSubCategoriesModalComponent } from '../modals/add-sub-categories-modal/add-sub-categories-modal.component';
 import { ERROR_UPDATE_CATEGORY, ERROR_UPDATE_SUB_CATEGORY, SUCCESS_UPDATE_CATEGORY, SUCCESS_UPDATE_SUB_CATEGORY } from '../../../shared/constants/modals/categories_modal';
 import { combineLatest, forkJoin, Observable, tap } from 'rxjs';
+import { ConfirmDeleteModalComponent } from '../../../shared/components/modals/confirm-delete-modal/confirm-delete-modal.component';
 import { BankService } from '../../../services/configuration/bank.service';
 import { Bank } from '../../../models/configuration/bank';
 import { ERROR_UPDATE_BANK, LOAD_BANK_ERROR, LOAD_BANK_SUCCESS, SUCCESS_UPDATE_BANK } from '../../../shared/constants/modals/bank_modal';
@@ -265,6 +266,25 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   allTransporters: MatTableDataSource<Transporter> = new MatTableDataSource<Transporter>();
   displayedTransporterColumns: string[] = ['fullname', 'car', 'action'];
 
+  deleteTransporter(element: any): void {
+    const dialogRef = this.dialog.open(ConfirmDeleteModalComponent, {
+      width: '400px',
+      data: { item: element.fullname }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.transporterService.Delete(element.id).subscribe({
+          next: () => {
+            this.getAllTransporters();
+            this.toastr.success('Transporteur supprimé avec succès');
+          },
+          error: () => this.toastr.error('Erreur suppression transporteur')
+        });
+      }
+    });
+  }
+
 
   //dataSource = ELEMENT_DATA;
   ROLE_TRANSLATIONS = ROLE_TRANSLATIONS; // make it accessible in template
@@ -452,12 +472,22 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   }
 
   deleteSite(index: number): void {
-    const currentData = this.allSites.data;
-    currentData.splice(index, 1);  // Remove the element at the specified index
-    this.allSites.data = [...currentData];  // Refresh the data source
+    const site = this.allSites.data[index];
+    const dialogRef = this.dialog.open(ConfirmDeleteModalComponent, {
+      width: '400px',
+      data: { item: site.address }
+    });
 
-    // Manually trigger change detection to update the row numbers
-    this.cdr.detectChanges();
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Here you would call a service to delete the site if one existed
+        const currentData = this.allSites.data;
+        currentData.splice(index, 1);
+        this.allSites.data = [...currentData];
+        this.cdr.detectChanges();
+        this.toastr.success('Site supprimé avec succès');
+      }
+    });
   }
   //#endregion
 
@@ -487,16 +517,22 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
 
 
   deleteTaxe(appvar: AppVariable): void {
-    if (confirm('Voulez-vous vraiment supprimer cette taxe ?')) {
-      this.appvarService.Delete(appvar.id).subscribe({
-        next: () => {
-          this.getAllTaxes();
-        },
-        error: (error: any) => {
-          this.toastr.error('Erreur lors de la suppression de la taxe');
-        }
-      });
-    }
+    const dialogRef = this.dialog.open(ConfirmDeleteModalComponent, {
+      width: '400px',
+      data: { item: appvar.name }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.appvarService.Delete(appvar.id).subscribe({
+          next: () => {
+            this.getAllTaxes();
+            this.toastr.success('Taxe supprimée');
+          },
+          error: () => this.toastr.error('Erreur suppression')
+        });
+      }
+    });
   }
 
   editTaxe(appvar: AppVariable): void {
@@ -550,8 +586,23 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   }
 
 
-  deleteTva(index: number): void {
-    //this.tva.splice(index, 1);
+  deleteTva(appvar: AppVariable): void {
+    const dialogRef = this.dialog.open(ConfirmDeleteModalComponent, {
+      width: '400px',
+      data: { item: `${appvar.name} (${appvar.value}%)` }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.appvarService.Delete(appvar.id).subscribe({
+          next: () => {
+            this.getAllTva();
+            this.toastr.success('TVA supprimée');
+          },
+          error: () => this.toastr.error('Erreur suppression')
+        });
+      }
+    });
   }
 
   editTva(appvar: AppVariable): void {
@@ -641,17 +692,22 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   }
 
   deleteDimension(appvar: AppVariable): void {
-    if (confirm('Voulez-vous vraiment supprimer cette dimension ?')) {
-      this.appvarService.Delete(appvar.id).subscribe({
-        next: () => {
-          this.toastr.success('Dimension supprimée avec succès');
-          this.getAllDimensions();
-        },
-        error: (error: any) => {
-          this.toastr.error('Erreur lors de la suppression de la dimension');
-        }
-      });
-    }
+    const dialogRef = this.dialog.open(ConfirmDeleteModalComponent, {
+      width: '400px',
+      data: { item: `${appvar.nature}: ${appvar.value}` }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.appvarService.Delete(appvar.id).subscribe({
+          next: () => {
+            this.getAllDimensions();
+            this.toastr.success('Dimension supprimée');
+          },
+          error: () => this.toastr.error('Erreur suppression')
+        });
+      }
+    });
   }
 
   editDimension(appvar: AppVariable): void {
@@ -699,17 +755,22 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
 
   //#region Length
   deleteLength(appvar: AppVariable): void {
-    if (confirm('Voulez-vous vraiment supprimer cette longueur ?')) {
-      this.appvarService.Delete(appvar.id).subscribe({
-        next: () => {
-          this.toastr.success('Longueur supprimée avec succès');
-          this.getAllLength();
-        },
-        error: (error: any) => {
-          this.toastr.error('Erreur lors de la suppression de la longueur');
-        }
-      });
-    }
+    const dialogRef = this.dialog.open(ConfirmDeleteModalComponent, {
+      width: '400px',
+      data: { item: appvar.value }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.appvarService.Delete(appvar.id).subscribe({
+          next: () => {
+            this.getAllLength();
+            this.toastr.success('Longueur supprimée');
+          },
+          error: () => this.toastr.error('Erreur suppression')
+        });
+      }
+    });
   }
 
   // editLength(appvar: AppVariable): void {
@@ -806,10 +867,28 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   }
 
   deleteBankAccount(account: any): void {
-    const index = this.bankAccounts.indexOf(account);
-    if (index >= 0) {
-      this.bankAccounts.splice(index, 1);
-    }
+    const dialogRef = this.dialog.open(ConfirmDeleteModalComponent, {
+      width: '400px',
+      data: { item: account.reference }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.bankService.Delete(account.id).subscribe({
+          next: () => {
+            const index = this.bankAccounts.indexOf(account);
+            if (index >= 0) {
+              this.bankAccounts.splice(index, 1);
+            }
+            this.toastr.success('Compte bancaire supprimé avec succès');
+          },
+          error: (error) => {
+            this.toastr.error('Erreur lors de la suppression du compte bancaire');
+            console.error(error);
+          }
+        });
+      }
+    });
   }
 
   editBankAccount(bank: Bank): void {
@@ -1042,7 +1121,22 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   }
 
   onDeleteSubCategory(subcategory: SubCategory): void {
-    // Handle delete logic here
+    const dialogRef = this.dialog.open(ConfirmDeleteModalComponent, {
+      width: '400px',
+      data: { item: subcategory.reference }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.subCategoryService.Delete(subcategory.id).subscribe({
+          next: () => {
+             this.getAllCategories();
+             this.toastr.success('Sous-catégorie supprimée');
+          },
+          error: () => this.toastr.error('Erreur suppression')
+        });
+      }
+    });
   }
 
   onEditSubCategory(subcategory: SubCategory): void {
@@ -1065,8 +1159,22 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   }
 
   onDeleteCategory(category: Category): void {
-    // Implement delete logic here
-    console.log('Delete:', category);
+    const dialogRef = this.dialog.open(ConfirmDeleteModalComponent, {
+      width: '400px',
+      data: { item: category.reference }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.categoryService.Delete(category.id).subscribe({
+          next: () => {
+             this.getAllCategories();
+             this.toastr.success('Catégorie supprimée');
+          },
+          error: () => this.toastr.error('Erreur suppression')
+        });
+      }
+    });
   }
 
   addSubCategory(category: Category): void {
@@ -1137,7 +1245,22 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   }
 
   deleteEmployee(element: Person) {
+    const dialogRef = this.dialog.open(ConfirmDeleteModalComponent, {
+      width: '400px',
+      data: { item: `${element.firstname} ${element.lastname}` }
+    });
 
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.employeeService.Delete(element.id).subscribe({
+          next: () => {
+            this.getAllEmployees();
+            this.toastr.success('Employé supprimé');
+          },
+          error: () => this.toastr.error('Erreur suppression')
+        });
+      }
+    });
   }
 
   openLeavesModal(element: any): void {
@@ -1186,8 +1309,23 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
 
   }
 
-  deleteAppUser(element: Person) {
+  deleteAppUser(element: AppUser) {
+    const dialogRef = this.dialog.open(ConfirmDeleteModalComponent, {
+      width: '400px',
+      data: { item: element.login }
+    });
 
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.appuserService.Delete(element.id).subscribe({
+          next: () => {
+            this.getAllAppUsers();
+            this.toastr.success('Utilisateur supprimé');
+          },
+          error: () => this.toastr.error('Erreur suppression')
+        });
+      }
+    });
   }
 
 
@@ -1289,14 +1427,6 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
     });
   }
 
-  deleteTransporter(transporter: Transporter) {
-    if (confirm(`Voulez-vous vraiment supprimer le transporteur ${transporter.fullname} ?`)) {
-      // Assuming there is a Delete method in TransporterService
-      // If not, I'll need to check the service again.
-      // For now, let's assume it's like other services.
-      this.toastr.info('Fonction de suppression non implémentée dans le backend');
-    }
-  }
   //#endregion
 
   /**

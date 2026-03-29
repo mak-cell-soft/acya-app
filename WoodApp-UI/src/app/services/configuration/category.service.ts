@@ -63,4 +63,8 @@ export class CategoryService {
     return this.http.get<Category[]>(this.baseUrl + 'Category');
   }
 
+  Delete(id: number) {
+    return this.http.delete(this.baseUrl + 'Category/' + id);
+  }
+
 }

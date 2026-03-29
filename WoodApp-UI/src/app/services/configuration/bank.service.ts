@@ -47,4 +47,13 @@ export class BankService {
     return this.http.get<Bank[]>(this.baseUrl + 'Bank');
   }
 
+  /**
+  * Appel de la méthode Delete endpoint : Bank/id.
+  * @param id 
+  * @returns 
+  */
+  Delete(id: number) {
+    return this.http.delete(this.baseUrl + 'Bank/' + id);
+  }
+
 }

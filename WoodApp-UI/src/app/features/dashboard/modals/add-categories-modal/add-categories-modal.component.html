@@ -1,58 +1,83 @@
-<div class="modal-header">
-  <mat-icon>category</mat-icon>
-  <h1 mat-dialog-title>{{mat_dialog_title_modal}}</h1>
-</div>
-
-<mat-dialog-content class="mat-typography">
-  <form [formGroup]="categoryForm">
-    <div class="half-width-wrapper mt-3">
-      <mat-form-field appearance="outline">
-        <mat-label>{{mat_label_reference}}</mat-label>
-        <input matInput formControlName="reference" />
-        <mat-icon matPrefix>code</mat-icon>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>{{mat_label_description}}</mat-label>
-        <input matInput formControlName="description" />
-        <mat-icon matPrefix>description</mat-icon>
-      </mat-form-field>
-    </div>
-
-    <div class="add-subcategory-wrapper">
-      <button mat-stroked-button color="primary" type="button" (click)="addSubcategory()">
-        <mat-icon>add_circle</mat-icon>
-        {{add_under_category_button}}
-      </button>
-    </div>
-
-    <div formArrayName="subcategories" *ngFor="let subcategory of subcategories.controls; let i=index" >
-      <div class="square-width-wrapper" [formGroupName]="i">
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>{{mat_label_reference}}</mat-label>
-          <input matInput formControlName="subReference" />
-          <mat-icon matPrefix>code</mat-icon>
-        </mat-form-field>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>{{mat_label_description}}</mat-label>
-          <input matInput formControlName="subDescription" />
-          <mat-icon matPrefix>description</mat-icon>
-        </mat-form-field>
-        <button mat-icon-button color="warn" type="button" (click)="removeSubcategory(i)" matTooltip="Supprimer">
-          <mat-icon>delete_outline</mat-icon>
+<div class="modal-wrapper mat-typography">
+    <div class="modal-header">
+        <div class="header-title">
+            <mat-icon>category</mat-icon>
+            <h2>{{mat_dialog_title_modal}}</h2>
+        </div>
+        <button mat-icon-button (click)="onNoClick()" class="close-btn">
+            <mat-icon>close</mat-icon>
         </button>
-      </div>
     </div>
-  </form>
-</mat-dialog-content>
 
-<div class="control-button">
-  <mat-dialog-actions align="end">
-    <button mat-button color="warn" (click)="onNoClick()">
-      <mat-icon>close</mat-icon> {{abort_button}}
-    </button>
-    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="categoryForm.invalid">
-      <mat-icon>save</mat-icon> {{register_button}}
-    </button>
-  </mat-dialog-actions>
+    <div class="modal-content">
+        <form [formGroup]="categoryForm">
+            <div class="form-section">
+                <div class="section-title">
+                    <mat-icon>label</mat-icon>
+                    <span>Informations Catégorie</span>
+                </div>
+                <div class="form-grid">
+                    <mat-form-field appearance="outline">
+                        <mat-label>{{mat_label_reference}}</mat-label>
+                        <input matInput formControlName="reference" />
+                        <mat-icon matPrefix>code</mat-icon>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>{{mat_label_description}}</mat-label>
+                        <input matInput formControlName="description" />
+                        <mat-icon matPrefix>description</mat-icon>
+                    </mat-form-field>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <mat-icon>account_tree</mat-icon>
+                        <span>Sous-catégories</span>
+                    </div>
+                    <button mat-stroked-button color="primary" type="button" (click)="addSubcategory()" class="add-btn">
+                        <mat-icon>add</mat-icon>
+                        {{add_under_category_button}}
+                    </button>
+                </div>
+
+                <div class="subcategory-list">
+                    <div formArrayName="subcategories" *ngFor="let subcategory of subcategories.controls; let i=index" class="subcategory-item">
+                        <div class="item-grid" [formGroupName]="i">
+                            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                <mat-label>{{mat_label_reference}}</mat-label>
+                                <input matInput formControlName="subReference" />
+                                <mat-icon matPrefix>tag</mat-icon>
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                <mat-label>{{mat_label_description}}</mat-label>
+                                <input matInput formControlName="subDescription" />
+                                <mat-icon matPrefix>info_outline</mat-icon>
+                            </mat-form-field>
+                            <button mat-icon-button color="warn" type="button" (click)="removeSubcategory(i)" matTooltip="Supprimer" class="delete-btn">
+                                <mat-icon>delete_outline</mat-icon>
+                            </button>
+                        </div>
+                    </div>
+                    <div *ngIf="subcategories.length === 0" class="empty-state">
+                        <mat-icon>layers_clear</mat-icon>
+                        <p>Aucune sous-catégorie ajoutée</p>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal-actions">
+        <button mat-button color="warn" (click)="onNoClick()" class="btn-cancel">
+            {{abort_button}}
+        </button>
+        <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="categoryForm.invalid" class="btn-save">
+            <mat-icon>save</mat-icon>
+            {{register_button}}
+        </button>
+    </div>
 </div>
+
 

@@ -1,51 +1,62 @@
-<div class="modal-header">
-  <mat-icon>account_balance</mat-icon>
-  <h1 mat-dialog-title>{{mat_dialog_title}}</h1>
+<div class="modal-wrapper mat-typography">
+    <div class="modal-header">
+        <div class="header-title">
+            <mat-icon>account_balance</mat-icon>
+            <h2>{{mat_dialog_title}}</h2>
+        </div>
+        <button mat-icon-button (click)="onNoClick()" class="close-btn">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <div class="modal-content">
+        <form [formGroup]="bankForm">
+            <div class="form-section">
+                <div class="form-grid">
+                    <mat-form-field appearance="outline">
+                        <mat-label>{{mat_label_bank}}</mat-label>
+                        <mat-select formControlName="reference" (selectionChange)="onBankChange($event.value)">
+                            <mat-option *ngFor="let bank of sortedBankOptions" [value]="bank.key">{{bank.key}}</mat-option>
+                        </mat-select>
+                        <mat-icon matPrefix>account_balance</mat-icon>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>{{mat_label_designation}}</mat-label>
+                        <input matInput readonly formControlName="designation">
+                        <mat-icon matPrefix>info</mat-icon>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>{{mat_label_agency}}</mat-label>
+                        <input matInput formControlName="agency" placeholder="{{mat_placeholder_agency}}">
+                        <mat-icon matPrefix>location_city</mat-icon>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>{{mat_label_rib}}</mat-label>
+                        <input matInput formControlName="rib" placeholder="{{mat_placeholder_rib}}">
+                        <mat-icon matPrefix>pin</mat-icon>
+                    </mat-form-field>
+                </div>
+
+                <mat-form-field appearance="outline" class="full-width mt-3">
+                    <mat-label>{{mat_label_iban}}</mat-label>
+                    <input matInput formControlName="iban" placeholder="{{mat_placeholder_iban}}">
+                    <mat-icon matPrefix>language</mat-icon>
+                </mat-form-field>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal-actions">
+        <button mat-button color="warn" (click)="onNoClick()" class="btn-cancel">
+            {{abort_button_text}}
+        </button>
+        <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="bankForm.invalid" class="btn-save">
+            <mat-icon>save</mat-icon>
+            {{register_button_text}}
+        </button>
+    </div>
 </div>
-
-<mat-dialog-content class="mat-typography">
-  <form [formGroup]="bankForm">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{mat_label_bank}}</mat-label>
-      <mat-select formControlName="reference" (selectionChange)="onBankChange($event.value)">
-        <mat-option *ngFor="let bank of sortedBankOptions" [value]="bank.key">{{bank.key}}</mat-option>
-      </mat-select>
-      <mat-icon matPrefix>business</mat-icon>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{mat_label_designation}}</mat-label>
-      <input matInput readonly formControlName="designation">
-      <mat-icon matPrefix>info</mat-icon>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{mat_label_agency}}</mat-label>
-      <input matInput formControlName="agency" placeholder="{{mat_placeholder_agency}}">
-      <mat-icon matPrefix>location_on</mat-icon>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{mat_label_rib}}</mat-label>
-      <input matInput formControlName="rib" placeholder="{{mat_placeholder_rib}}">
-      <mat-icon matPrefix>pin</mat-icon>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{mat_label_iban}}</mat-label>
-      <input matInput formControlName="iban" placeholder="{{mat_placeholder_iban}}">
-      <mat-icon matPrefix>language</mat-icon>
-    </mat-form-field>
-  </form>
-</mat-dialog-content>
-
-<div class="control-button">
-  <mat-dialog-actions align="end">
-    <button mat-button color="warn" (click)="onNoClick()">
-      <mat-icon>close</mat-icon> {{abort_button_text}}
-    </button>
-    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="bankForm.invalid">
-      <mat-icon>save</mat-icon> {{register_button_text}}
-    </button>
-  </mat-dialog-actions>
-</div>
+
