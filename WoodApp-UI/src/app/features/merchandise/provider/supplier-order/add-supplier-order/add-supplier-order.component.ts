@@ -141,16 +141,15 @@ export class AddSupplierOrderComponent implements OnInit {
     this.counterpartService.GetAll(CounterPartType_FR.supplier).subscribe({
       next: (response: CounterPart[]) => {
         this.allSuppliers = response;
-        if (this.allSuppliers.length > 0) {
-          const firstSupplier = this.allSuppliers[0];
-          this.selectedSupplier = firstSupplier;
-          this.documentForm.get('supplier')?.setValue(firstSupplier);
-        }
       },
       error: (error) => {
         this.toastr.error('Erreur chargement Fournisseurs');
       }
     });
+  }
+
+  onSupplierChange(supplier: CounterPart): void {
+    this.selectedSupplier = supplier;
   }
 
   getArticles() {
@@ -184,18 +183,38 @@ export class AddSupplierOrderComponent implements OnInit {
       article.reference.toLowerCase().includes(filterValue) ||
       (article.description && article.description.toLowerCase().includes(filterValue))
     );
+    this.openDropdown();
+  }
+
+  openDropdown() {
     this.articleSelect.open();
   }
 
   onOptionSelected(articleId: number): void {
-    this.searchControl.setValue('');
     const article = this.articles.find((item) => item.id === articleId);
     if (article) {
       this.selectedArticle = article;
+      const displayValue = article.reference + (article.description ? ' - ' + article.description : '');
+      this.searchControl.setValue(displayValue, { emitEvent: false });
+      
       this.merchandiseForm.get('tva')?.setValue(article.tvaid);
-      this.merchandiseForm.get('last_purchase_price')?.setValue(article.lastpurchaseprice_ttc);
+      
+      this.articleService.GetLastPurchasePrice(articleId).subscribe({
+        next: (price) => {
+          this.merchandiseForm.get('last_purchase_price')?.setValue(price > 0 ? price : (article.lastpurchaseprice_ttc || 0));
+        },
+        error: () => {
+          this.merchandiseForm.get('last_purchase_price')?.setValue(article.lastpurchaseprice_ttc);
+        }
+      });
+      this.merchandiseForm.get('last_purchase_price')?.enable();
+
       this.isArticleTypeWood = this.selectedArticle.iswood;
     }
+  }
+
+  clearArticle(): void {
+    this.resetMerchandiseForm();
   }
 
   addMerchandise() {
@@ -253,6 +272,7 @@ export class AddSupplierOrderComponent implements OnInit {
       description: '',
       last_purchase_price: ''
     });
+    this.merchandiseForm.get('last_purchase_price')?.disable();
     this.searchControl.reset('');
     this.isArticleTypeWood = false;
   }

@@ -79,6 +79,7 @@ import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2
 
 
 import { MatChipsModule } from '@angular/material/chips';
+import { StatusOrderModalComponent } from './shared/components/modals/status-order-modal/status-order-modal.component';
 
 
 
@@ -103,6 +104,7 @@ import { MatChipsModule } from '@angular/material/chips';
     PaymentModalComponent,
     ChequePaymentFormComponent,
     TraitePaymentFormComponent,
+    StatusOrderModalComponent,
 
 
 

@@ -1123,6 +1123,28 @@ namespace ms.webapp.api.acya.api.Controllers
         }
       }
     }
+    #region Update Status
+    [HttpPatch("UpdateStatus/{id}")]
+    public async Task<ActionResult> UpdateStatus(int id, UpdateDocStatusDto dto)
+    {
+      var doc = await _context.Documents.FindAsync(id);
+      if (doc == null)
+      {
+        return NotFound();
+      }
+
+      doc.DocStatus = dto.DocStatus;
+      if (!string.IsNullOrEmpty(dto.SupplierReference))
+      {
+        doc.SupplierReference = dto.SupplierReference;
+      }
+      doc.UpdateDate = DateTime.UtcNow;
+
+      await _context.SaveChangesAsync();
+      return Ok(new { message = "Status updated successfully" });
+    }
+    #endregion
+
     #endregion
   }
 }

@@ -100,4 +100,8 @@ export class DocumentService {
   Update(id: number, model: Document): Observable<any> {
     return this.http.put<any>(this.baseUrl + 'Document/' + id, model);
   }
+
+  UpdateStatus(id: number, status: number, supplierReference?: string): Observable<any> {
+    return this.http.patch<any>(this.baseUrl + 'Document/UpdateStatus/' + id, { docStatus: status, supplierReference });
+  }
 }

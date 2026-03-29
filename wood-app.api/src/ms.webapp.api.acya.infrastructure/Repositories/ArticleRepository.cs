@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities.DTOs;
 using ms.webapp.api.acya.core.Entities.Product;
 
@@ -54,6 +55,23 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
           .SingleOrDefaultAsync();
 
       return article;
+    }
+
+    public async Task<double> GetLastPurchasePrice(int articleId)
+    {
+      var lastPurchase = await context.DocumentMerchandises
+          .Include(dm => dm.Document)
+          .Include(dm => dm.Merchandise)
+          .Where(dm => dm.Merchandise!.ArticleId == articleId && dm.Document!.Type == DocumentTypes.supplierReceipt)
+          .OrderByDescending(dm => dm.CreationDate)
+          .FirstOrDefaultAsync();
+
+      if (lastPurchase == null || lastPurchase.Quantity == 0)
+      {
+        return 0;
+      }
+
+      return lastPurchase.CostTTC / lastPurchase.Quantity;
     }
   }
 }

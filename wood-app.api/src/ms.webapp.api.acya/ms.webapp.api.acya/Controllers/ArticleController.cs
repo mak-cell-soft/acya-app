@@ -84,6 +84,13 @@ namespace ms.webapp.api.acya.api.Controllers
       return Ok();
     }
 
+    [HttpGet("LastPurchasePrice/{id}")]
+    public async Task<ActionResult<double>> GetLastPurchasePrice(int id)
+    {
+      var price = await _repository.GetLastPurchasePrice(id);
+      return Ok(price);
+    }
+
     [HttpPut("{id}")]
     public async Task<ActionResult<ArticleDto?>> Put(int id, ArticleDto dto)
     {

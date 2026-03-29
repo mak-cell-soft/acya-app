@@ -1,0 +1,44 @@
+<h2 mat-dialog-title>
+    <mat-icon>update</mat-icon> 
+    <span>Suivi Commande : {{ data.docNumber }}</span>
+</h2>
+
+<mat-dialog-content>
+    <div [formGroup]="statusForm">
+        <p class="subtitle">Sélectionnez le nouveau statut pour cette commande fournisseur.</p>
+
+        <div class="form-row status-select-row">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>État de la commande</mat-label>
+                <mat-select formControlName="status" (selectionChange)="onStatusChange()" placeholder="Choisir un statut">
+                    <mat-option *ngFor="let s of statuses" [value]="s.value">
+                        <mat-icon [ngClass]="'status-icon-' + s.value">circle</mat-icon>
+                        <span>{{ s.label }}</span>
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <!-- Condition: Show Ref Fournisseur if Delivered -->
+        <div class="form-row ref-row" *ngIf="statusForm.get('status')?.value === DocStatus.Delivered">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Référence Facture / Bon Fournisseur</mat-label>
+                <input matInput formControlName="supplierReference" placeholder="Ex: FACT-2024-001" required>
+                <mat-icon matSuffix>description</mat-icon>
+                <mat-hint>Obligatoire pour le statut "Livré"</mat-hint>
+            </mat-form-field>
+        </div>
+
+        <div class="alert-info" *ngIf="statusForm.get('status')?.value === DocStatus.Delivered">
+            <mat-icon>info</mat-icon>
+            <span>Le passage au statut <strong>Livré</strong> marque la fin du processus de commande.</span>
+        </div>
+    </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button (click)="cancel()">ANNULER</button>
+    <button mat-raised-button color="primary" [disabled]="statusForm.invalid" (click)="confirm()">
+        <mat-icon>check</mat-icon> METTRE À JOUR
+    </button>
+</mat-dialog-actions>

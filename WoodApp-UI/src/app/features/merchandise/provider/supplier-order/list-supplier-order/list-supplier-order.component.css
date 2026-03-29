@@ -32,6 +32,26 @@
     border-radius: 16px;
     font-size: 0.85rem;
     font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-badge.clickable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.status-badge.clickable:hover {
+    filter: brightness(0.95);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.status-edit-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    opacity: 0.6;
 }
 
 .badge-pending { background: #fff3e0; color: #e65100; }

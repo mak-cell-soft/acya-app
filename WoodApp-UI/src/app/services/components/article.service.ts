@@ -51,4 +51,8 @@ export class ArticleService {
     return this.http.delete(this.baseUrl + 'Article/DeleteSoft/' + id);
   }
 
+  GetLastPurchasePrice(id: number) {
+    return this.http.get<number>(this.baseUrl + 'Article/LastPurchasePrice/' + id);
+  }
+
 }

@@ -11,6 +11,7 @@ import { CounterPart } from '../../../../../models/components/counterpart';
 import { CounterpartService } from '../../../../../services/components/counterpart.service';
 import { CounterPartType_FR } from '../../../../../shared/constants/list_of_constants';
 import { ConfirmDeleteModalComponent } from '../../../../../shared/components/modals/confirm-delete-modal/confirm-delete-modal.component';
+import { StatusOrderModalComponent } from '../../../../../shared/components/modals/status-order-modal/status-order-modal.component';
 
 @Component({
   selector: 'app-list-supplier-order',
@@ -110,6 +111,29 @@ export class ListSupplierOrderComponent implements OnInit {
 
   printOrder(element: Document) {
     window.print();
+  }
+
+  changeStatus(element: Document) {
+    const dialogRef = this.dialog.open(StatusOrderModalComponent, {
+      width: '500px',
+      data: {
+        currentStatus: element.docstatus,
+        supplierReference: element.supplierReference,
+        docNumber: element.docnumber
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.docService.UpdateStatus(element.id, result.status, result.supplierReference).subscribe({
+          next: () => {
+            this.toastr.success('Statut mis à jour');
+            this.loadOrders();
+          },
+          error: () => this.toastr.error('Erreur lors de la mise à jour')
+        });
+      }
+    });
   }
 
   sendEmail(element: Document) {
