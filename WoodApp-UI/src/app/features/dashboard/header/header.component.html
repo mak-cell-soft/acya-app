@@ -92,8 +92,11 @@
 
       <!-- User Profile Dropdown -->
       <button mat-button class="user-profile-btn" [matMenuTriggerFor]="profileMenu">
-        <div class="avatar-circle">
-          {{ nameOfConnectedUser ? nameOfConnectedUser.charAt(0).toUpperCase() : 'U' }}
+        <div class="avatar-container">
+          <div class="avatar-circle">
+            {{ nameOfConnectedUser ? nameOfConnectedUser.charAt(0).toUpperCase() : 'U' }}
+          </div>
+          <div class="status-dot"></div>
         </div>
         <div class="user-info hidden-xs">
           <span class="user-name">{{nameOfConnectedUser}}</span>
