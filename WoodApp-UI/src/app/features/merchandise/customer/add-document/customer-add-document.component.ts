@@ -413,12 +413,26 @@ export class CustomerAddDocumentComponent {
     if (selectedCustomer) {
       this.selectedCustomer = selectedCustomer;
       this.form.get('customer')?.setValue(selectedCustomer); // Update the form control
-      this.searchCustomerControl.setValue(''); // Clear the search input
+      
+      // Update the search input to show the selected customer's name
+      const displayName = selectedCustomer.name || (selectedCustomer.firstname + ' ' + selectedCustomer.lastname);
+      this.searchCustomerControl.setValue(displayName, { emitEvent: false });
+      
       // Assign values to `selectedTransporter`
-      this.selectedTransporter.firstname = selectedCustomer.transporter.firstname;
-      this.selectedTransporter.lastname = selectedCustomer.transporter.lastname;
-      this.selectedTransporter.car = selectedCustomer.transporter.car;
+      if (selectedCustomer.transporter) {
+        this.selectedTransporter = selectedCustomer.transporter;
+        const transpDisplayName = selectedCustomer.transporter.firstname + ' ' + selectedCustomer.transporter.lastname;
+        this.searchTransporterControl.setValue(transpDisplayName, { emitEvent: false });
+      }
     }
+  }
+
+  clearCustomer(): void {
+    this.selectedCustomer = {};
+    this.searchCustomerControl.setValue('');
+    this.filteredCustomers = [...this.allCustomers];
+    // If the customer was cleared, we might want to clear the transporter too if it was auto-linked
+    this.clearTransporter();
   }
 
   /**
@@ -442,13 +456,21 @@ export class CustomerAddDocumentComponent {
 
   onOptionTransporterSelected(transporterId: number): void {
     // Find the selected transporter from allTransporters
-    this.selectedTransporter = this.allTransporters.find(
+    const selected = this.allTransporters.find(
       transporter => transporter.id === transporterId
     );
 
-    // Clear the search input (optional, if you want to keep it empty after selection)
-    this.searchTransporterControl.setValue('');
+    if (selected) {
+      this.selectedTransporter = selected;
+      const displayName = selected.firstname + ' ' + selected.lastname;
+      this.searchTransporterControl.setValue(displayName, { emitEvent: false });
+    }
+  }
 
+  clearTransporter(): void {
+    this.selectedTransporter = {};
+    this.searchTransporterControl.setValue('');
+    this.filteredTransporters = [...this.allTransporters];
   }
   //#region Manage Marchand
 

@@ -16,28 +16,46 @@
             <!-- Customer Section -->
             <div class="info-section customer-section">
                 <div class="section-title">Informations Client</div>
-                <div class="search-row" style="display: flex; align-items: center; gap: 8px;">
-                    <mat-form-field appearance="outline" class="full-width">
+                <div class="search-row" style="display: flex; align-items: flex-start; gap: 8px;">
+                    <mat-form-field appearance="outline" class="full-width" [class.has-selection]="selectedCustomer?.id">
                         <mat-label>Client</mat-label>
+                        <mat-icon matPrefix>person</mat-icon>
                         <input matInput [formControl]="searchCustomerControl" placeholder="Rechercher un client..."
                             autocomplete="off" (input)="applyCustomerFilter()" (focus)="openCustomerDropdown()">
-                        <mat-icon matSuffix>search</mat-icon>
+                        
+                        <div matSuffix class="field-actions">
+                            <button mat-icon-button *ngIf="selectedCustomer?.id" 
+                                (click)="$event.stopPropagation(); clearCustomer()" 
+                                matTooltip="Effacer la sélection" class="clear-selection-btn">
+                                <mat-icon>close</mat-icon>
+                            </button>
+                            <mat-icon *ngIf="!selectedCustomer?.id">search</mat-icon>
+                        </div>
+
                         <mat-select #customerSelect (selectionChange)="onOptionCustomerSelected($event.value)"
                             class="hidden-select">
+                            <mat-option *ngIf="!filteredCustomers.length" disabled>Aucun client trouvé</mat-option>
                             <mat-option *ngFor="let item of filteredCustomers" [value]="item.id">
-                                {{ item.name || (item.firstname + ' ' + item.lastname) }}
-                                <div class="customer-description" *ngIf="item.description"> / &nbsp;{{ item.description
-                                    }}</div>
+                                <div class="option-row">
+                                    <mat-icon class="option-icon">person</mat-icon>
+                                    <div class="option-text">
+                                        <span class="main-text">{{ item.name || (item.firstname + ' ' + item.lastname) }}</span>
+                                        <span class="sub-text" *ngIf="item.description">{{ item.description }}</span>
+                                    </div>
+                                    <div class="option-badge" *ngIf="item.phonenumberone">
+                                        {{ item.phonenumberone }}
+                                    </div>
+                                </div>
                             </mat-option>
                         </mat-select>
                     </mat-form-field>
                     <button mat-raised-button color="primary" (click)="addCustomer()"
-                        style="height: 56px; margin-bottom: 22px;">
+                        style="height: 56px;">
                         <mat-icon>settings</mat-icon>
                     </button>
                 </div>
 
-                <div *ngIf="selectedCustomer && selectedCustomer.id" class="customer-details">
+                <div *ngIf="selectedCustomer && selectedCustomer.id" class="customer-details anim-slide-in">
                     <div class="detail-item">
                         <mat-icon>person</mat-icon>
                         <span>{{ selectedCustomer.firstname }} {{ selectedCustomer.lastname }}</span>
@@ -52,33 +70,50 @@
                     </div>
                 </div>
             </div>
+
             <div class="vertical-separator"></div>
 
             <!-- Section Transporteur -->
             <div class="info-section transporter-section">
                 <div class="section-title">Informations Transporteur</div>
-                <div class="search-row" style="display: flex; align-items: center; gap: 8px;">
-                    <mat-form-field appearance="outline" class="full-width">
+                <div class="search-row" style="display: flex; align-items: flex-start; gap: 8px;">
+                    <mat-form-field appearance="outline" class="full-width" [class.has-selection]="selectedTransporter?.id">
                         <mat-label>Transporteur</mat-label>
+                        <mat-icon matPrefix>local_shipping</mat-icon>
                         <input matInput [formControl]="searchTransporterControl"
                             placeholder="Rechercher un transporteur..." autocomplete="off"
                             (input)="applyTransporterFilter($event)" (focus)="openDropdownTransporters()">
-                        <mat-icon matSuffix>search</mat-icon>
+                        
+                        <div matSuffix class="field-actions">
+                            <button mat-icon-button *ngIf="selectedTransporter?.id" 
+                                (click)="$event.stopPropagation(); clearTransporter()" 
+                                matTooltip="Effacer la sélection" class="clear-selection-btn">
+                                <mat-icon>close</mat-icon>
+                            </button>
+                            <mat-icon *ngIf="!selectedTransporter?.id">search</mat-icon>
+                        </div>
+
                         <mat-select #transporterSelect (selectionChange)="onOptionTransporterSelected($event.value)"
                             class="hidden-select">
+                            <mat-option *ngIf="!filteredTransporters.length" disabled>Aucun transporteur trouvé</mat-option>
                             <mat-option *ngFor="let item of filteredTransporters" [value]="item.id">
-                                {{ item.firstname }} {{ item.lastname }}
-                                <div class="customer-description" *ngIf="item.car?.serialnumber"></div>
+                                <div class="option-row">
+                                    <mat-icon class="option-icon">local_shipping</mat-icon>
+                                    <div class="option-text">
+                                        <span class="main-text">{{ item.firstname }} {{ item.lastname }}</span>
+                                        <span class="sub-text" *ngIf="item.car?.serialnumber">{{ item.car?.serialnumber }}</span>
+                                    </div>
+                                </div>
                             </mat-option>
                         </mat-select>
                     </mat-form-field>
                     <button mat-raised-button color="primary" (click)="addTransporter(); $event.stopPropagation()"
-                        style="height: 56px; margin-bottom: 22px;">
+                        style="height: 56px;">
                         <mat-icon>add</mat-icon>
                     </button>
                 </div>
 
-                <div *ngIf="selectedTransporter && selectedTransporter.id" class="customer-details">
+                <div *ngIf="selectedTransporter && selectedTransporter.id" class="customer-details anim-slide-in">
                     <div class="detail-item">
                         <mat-icon>person</mat-icon>
                         <span>{{ selectedTransporter.firstname }} {{ selectedTransporter.lastname }}</span>
