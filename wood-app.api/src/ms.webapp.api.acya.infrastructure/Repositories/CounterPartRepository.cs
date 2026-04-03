@@ -66,26 +66,26 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
       if (!string.IsNullOrEmpty(dto.taxregistrationnumber))
       {
-        var res = await context.CounterParts.AnyAsync(c => c.TaxRegistrationNumber == dto.taxregistrationnumber && c.IsDeleted == false);
-        if (res)
+        var existing = await context.CounterParts.FirstOrDefaultAsync(c => c.TaxRegistrationNumber == dto.taxregistrationnumber && c.IsDeleted == false);
+        if (existing != null)
         {
-          return new CounterPartExistenceResult { Exists = true, Dto = dto };
+          return new CounterPartExistenceResult { Exists = true, Dto = new CounterPartDto(existing) };
         }
       }
       else if (!string.IsNullOrEmpty(dto.identitycardnumber))
       {
-        var res = await context.CounterParts.AnyAsync(c => c.IdentityCardNumber == dto.identitycardnumber && c.IsDeleted == false);
-        if (res)
+        var existing = await context.CounterParts.FirstOrDefaultAsync(c => c.IdentityCardNumber == dto.identitycardnumber && c.IsDeleted == false);
+        if (existing != null)
         {
-          return new CounterPartExistenceResult { Exists = true, Dto = dto };
+          return new CounterPartExistenceResult { Exists = true, Dto = new CounterPartDto(existing) };
         }
       }
       else if (!string.IsNullOrEmpty(dto.patentecode))
       {
-        var res = await context.CounterParts.AnyAsync(c => c.PatenteCode! == dto.patentecode && c.IsDeleted == false);
-        if (res)
+        var existing = await context.CounterParts.FirstOrDefaultAsync(c => c.PatenteCode! == dto.patentecode && c.IsDeleted == false);
+        if (existing != null)
         {
-          return new CounterPartExistenceResult { Exists = true, Dto = dto };
+          return new CounterPartExistenceResult { Exists = true, Dto = new CounterPartDto(existing) };
         }
       }
 

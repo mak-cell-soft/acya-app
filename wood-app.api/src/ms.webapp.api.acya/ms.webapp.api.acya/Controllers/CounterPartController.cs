@@ -78,7 +78,7 @@ namespace ms.webapp.api.acya.api.Controllers
 
       // Check if there's another Counter Part with the same reference but a different ID
       var counterpartWithSameName = await _repository.ExistsAsync(dto);
-      if (counterpartWithSameName != null && counterpartWithSameName.Dto!.id != id)
+      if (counterpartWithSameName.Exists && counterpartWithSameName.Dto!.id != id)
       {
         return Conflict(new { message = "Counter Part with the same Name already exists." });
       }
@@ -89,7 +89,7 @@ namespace ms.webapp.api.acya.api.Controllers
       // Test the existence of Transporter
       if (existingCounterpart.Transporter != null)
       {
-        _context.Entry(existingCounterpart.Transporter).State = EntityState.Added;
+        _context.Entry(existingCounterpart.Transporter).State = EntityState.Unchanged;
       }
 
       // Update the entity in the repository
