@@ -15,7 +15,10 @@ services:
 #    ports:
 #      - "5432:5432"
     volumes:
-      - ./wood-app.api/postgres-data:/var/lib/postgresql/data
+      # This is my old DB
+      #- ./wood-app.api/postgres-data:/var/lib/postgresql/data
+      # This is my new DB
+      - ./wood-app.api/postgres-data-new_for_ahmed:/var/lib/postgresql/data
       - ./wood-app.api/db:/docker-entrypoint-initdb.d:ro
     networks:
       - wood-app-network
