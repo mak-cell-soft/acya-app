@@ -22,41 +22,58 @@
         <mat-card-title>Filtres</mat-card-title>
     </mat-card-header>
     <mat-card-content class="filter-content">
-        <mat-form-field appearance="outline">
-            <mat-label>Fournisseur</mat-label>
-            <input matInput [(ngModel)]="filterSupplier" (ngModelChange)="onFilterChange()"
-                placeholder="Rechercher par fournisseur">
-            <button *ngIf="filterSupplier" matSuffix mat-icon-button aria-label="Clear"
-                (click)="filterSupplier=''; onFilterChange()">
-                <mat-icon>clear</mat-icon>
-            </button>
-            <mat-icon matSuffix *ngIf="!filterSupplier">search</mat-icon>
-        </mat-form-field>
+        <div class="filter-fields-group">
+            <mat-form-field appearance="outline">
+                <mat-label>Fournisseur</mat-label>
+                <input matInput [(ngModel)]="filterSupplier" (ngModelChange)="onFilterChange()"
+                    placeholder="Rechercher par fournisseur">
+                <button *ngIf="filterSupplier" matSuffix mat-icon-button aria-label="Clear"
+                    (click)="filterSupplier=''; onFilterChange()">
+                    <mat-icon>clear</mat-icon>
+                </button>
+                <mat-icon matSuffix *ngIf="!filterSupplier">search</mat-icon>
+            </mat-form-field>
 
-        <mat-form-field appearance="outline">
-            <mat-label>Date</mat-label>
-            <input matInput [matDatepicker]="pickerDate" [(ngModel)]="filterDate" (dateChange)="onFilterChange()">
-            <button *ngIf="filterDate" matSuffix mat-icon-button aria-label="Clear"
-                (click)="filterDate=null; onFilterChange()">
-                <mat-icon>clear</mat-icon>
-            </button>
-            <mat-datepicker-toggle matIconSuffix [for]="pickerDate"></mat-datepicker-toggle>
-            <mat-datepicker #pickerDate></mat-datepicker>
-        </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Date</mat-label>
+                <input matInput [matDatepicker]="pickerDate" [(ngModel)]="filterDate" (dateChange)="onFilterChange()">
+                <button *ngIf="filterDate" matSuffix mat-icon-button aria-label="Clear"
+                    (click)="filterDate=null; onFilterChange()">
+                    <mat-icon>clear</mat-icon>
+                </button>
+                <mat-datepicker-toggle matIconSuffix [for]="pickerDate"></mat-datepicker-toggle>
+                <mat-datepicker #pickerDate></mat-datepicker>
+            </mat-form-field>
 
-        <mat-form-field appearance="outline">
-            <mat-label>Période</mat-label>
-            <mat-date-range-input [rangePicker]="pickerRange">
-                <input matStartDate [(ngModel)]="filterStartDate" (dateChange)="onFilterChange()" placeholder="Début">
-                <input matEndDate [(ngModel)]="filterEndDate" (dateChange)="onFilterChange()" placeholder="Fin">
-            </mat-date-range-input>
-            <button *ngIf="filterStartDate || filterEndDate" matSuffix mat-icon-button aria-label="Clear"
-                (click)="filterStartDate=undefined; filterEndDate=undefined; onFilterChange()">
-                <mat-icon>clear</mat-icon>
-            </button>
-            <mat-datepicker-toggle matIconSuffix [for]="pickerRange"></mat-datepicker-toggle>
-            <mat-date-range-picker #pickerRange></mat-date-range-picker>
-        </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Période</mat-label>
+                <mat-date-range-input [rangePicker]="pickerRange">
+                    <input matStartDate [(ngModel)]="filterStartDate" (dateChange)="onFilterChange()" placeholder="Début">
+                    <input matEndDate [(ngModel)]="filterEndDate" (dateChange)="onFilterChange()" placeholder="Fin">
+                </mat-date-range-input>
+                <button *ngIf="filterStartDate || filterEndDate" matSuffix mat-icon-button aria-label="Clear"
+                    (click)="filterStartDate=undefined; filterEndDate=undefined; onFilterChange()">
+                    <mat-icon>clear</mat-icon>
+                </button>
+                <mat-datepicker-toggle matIconSuffix [for]="pickerRange"></mat-datepicker-toggle>
+                <mat-date-range-picker #pickerRange></mat-date-range-picker>
+            </mat-form-field>
+        </div>
+
+        <div class="filter-actions-section">
+            <span class="action-label">Actions rapides</span>
+            <div class="filter-actions">
+                <button mat-flat-button color="primary" class="pill-button action-btn-primary">
+                    <mat-icon>payment</mat-icon>
+                    Paiement
+                </button>
+                <button mat-stroked-button color="accent" class="pill-button action-btn-secondary">
+                    <mat-icon>history</mat-icon>
+                    Historique
+                </button>
+                <span class="error-msg" *ngIf="errorMessage">{{errorMessage}}</span>
+            </div>
+        </div>
     </mat-card-content>
 </mat-card>
 
@@ -64,7 +81,7 @@
 <mat-card class="summary-card">
     <mat-card-content class="summary-content">
         <div class="summary-item">
-            <div class="summary-icon-wrapper provider-theme-icon-ht">
+            <div class="summary-icon-wrapper" style="background: #e3f2fd; color: #1976d2;">
                 <mat-icon>attach_money</mat-icon>
             </div>
             <div class="summary-data">
@@ -73,7 +90,7 @@
             </div>
         </div>
         <div class="summary-item">
-            <div class="summary-icon-wrapper provider-theme-icon-tva">
+            <div class="summary-icon-wrapper" style="background: #ede7f6; color: #673ab7;">
                 <mat-icon>receipt_long</mat-icon>
             </div>
             <div class="summary-data">
@@ -82,16 +99,16 @@
             </div>
         </div>
         <div class="summary-item">
-            <div class="summary-icon-wrapper provider-theme-icon-ttc">
+            <div class="summary-icon-wrapper" style="background: #e8f5e9; color: #2e7d32;">
                 <mat-icon>monetization_on</mat-icon>
             </div>
             <div class="summary-data">
                 <span class="label">Total TTC</span>
-                <span class="value provider-total-ttc">{{totalTtc | number:'1.3-3'}} TND</span>
+                <span class="value total-ttc">{{totalTtc | number:'1.3-3'}} TND</span>
             </div>
         </div>
         <div class="summary-item">
-            <div class="summary-icon-wrapper provider-theme-icon-count">
+            <div class="summary-icon-wrapper" style="background: #fff3e0; color: #ef6c00;">
                 <mat-icon>description</mat-icon>
             </div>
             <div class="summary-data">
@@ -110,33 +127,33 @@
 
             <ng-container matColumnDef="number">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header> {{mat_header_cell_doc_number}} </th>
-                <td mat-cell *matCellDef="let element"><strong>{{element.ParentDocument.docnumber}}</strong></td>
+                <td mat-cell *matCellDef="let element"><strong>{{element.parentDocument.docnumber}}</strong></td>
             </ng-container>
 
             <ng-container matColumnDef="LastModified">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header> {{mat_header_cell_doc_UpdatedDate}} </th>
-                <td mat-cell *matCellDef="let element"> {{element.ParentDocument.updatedate | date: 'dd/MM/yyyy'}} </td>
+                <td mat-cell *matCellDef="let element"> {{element.parentDocument.updatedate | date: 'dd/MM/yyyy'}} </td>
             </ng-container>
 
             <ng-container matColumnDef="counterpart">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header> {{mat_header_cell_doc_supplier}} </th>
                 <td mat-cell *matCellDef="let element">
-                    {{element.ParentDocument.counterpart.name}}
+                    {{element.parentDocument.counterpart.name}}
                 </td>
             </ng-container>
 
             <ng-container matColumnDef="supplierreference">
                 <th mat-header-cell *matHeaderCellDef> {{mat_header_cell_doc_supplierReference}} </th>
-                <td mat-cell *matCellDef="let element"> {{element.ParentDocument.supplierReference}} </td>
+                <td mat-cell *matCellDef="let element"> {{element.parentDocument.supplierReference}} </td>
             </ng-container>
 
             <ng-container matColumnDef="amount">
                 <th mat-header-cell *matHeaderCellDef> Montant </th>
                 <td mat-cell *matCellDef="let element">
                     <div style="display: flex; flex-direction: column;">
-                        <span style="font-weight: bold;">{{element.ParentDocument.total_net_ttc | number:'1.3-3'}}
+                        <span style="font-weight: bold;">{{element.parentDocument.total_net_ttc | number:'1.3-3'}}
                             TTC</span>
-                        <span style="font-size: 0.8em; color: gray;">{{element.ParentDocument.total_ht_net_doc |
+                        <span style="font-size: 0.8em; color: gray;">{{element.parentDocument.total_ht_net_doc |
                             number:'1.3-3'}} HT</span>
                     </div>
                 </td>
@@ -145,37 +162,37 @@
             <ng-container matColumnDef="status">
                 <th mat-header-cell *matHeaderCellDef> Etat </th>
                 <td mat-cell *matCellDef="let element">
-                    <span class="status-badge" [style.color]="getStatusInfo(element.ParentDocument.docstatus).color"
-                        [style.backgroundColor]="getStatusInfo(element.ParentDocument.docstatus).bgColor">
-                        {{getStatusInfo(element.ParentDocument.docstatus).text}}
+                    <span class="status-badge" [style.color]="getStatusInfo(element.parentDocument.docstatus).color"
+                        [style.backgroundColor]="getStatusInfo(element.parentDocument.docstatus).bgColor">
+                        {{getStatusInfo(element.parentDocument.docstatus).text}}
                     </span>
                     <br>
                     <span class="status-badge"
-                        [style.color]="getBillingStatusInfo(element.ParentDocument.billingstatus).color"
-                        [style.backgroundColor]="getBillingStatusInfo(element.ParentDocument.billingstatus).bgColor">
-                        {{getBillingStatusInfo(element.ParentDocument.billingstatus).text}}
+                        [style.color]="getBillingStatusInfo(element.parentDocument.billingstatus).color"
+                        [style.backgroundColor]="getBillingStatusInfo(element.parentDocument.billingstatus).bgColor">
+                        {{getBillingStatusInfo(element.parentDocument.billingstatus).text}}
                     </span>
                 </td>
             </ng-container>
 
             <ng-container matColumnDef="site">
                 <th mat-header-cell *matHeaderCellDef> Site </th>
-                <td mat-cell *matCellDef="let element">{{element.ParentDocument.sales_site?.address}}</td>
+                <td mat-cell *matCellDef="let element">{{element.parentDocument.sales_site?.address}}</td>
             </ng-container>
 
             <!-- Action Column -->
             <ng-container matColumnDef="action">
                 <th mat-header-cell *matHeaderCellDef> Actions </th>
-                <td mat-cell *matCellDef="let element">
+                        <td mat-cell *matCellDef="let element">
                     <div style="display: flex; gap: 4px;">
                         <button mat-icon-button color="primary" (click)="displaySettings()" matTooltip="Réglages">
                             <mat-icon>display_settings</mat-icon>
                         </button>
-                        <button mat-icon-button class="green-icon" (click)="editDocument(element.ParentDocument)"
+                        <button mat-icon-button class="green-icon" (click)="editDocument(element.parentDocument)"
                             matTooltip="Modifier">
                             <mat-icon>edit</mat-icon>
                         </button>
-                        <button mat-icon-button color="warn" (click)="deleteDocument(element.ParentDocument)"
+                        <button mat-icon-button color="warn" (click)="deleteDocument(element.parentDocument)"
                             matTooltip="Supprimer">
                             <mat-icon>delete</mat-icon>
                         </button>
@@ -205,24 +222,38 @@
                             <span>Liste des bons de réception associés</span>
                         </div>
                         <div class="reception-list">
-                            <div *ngFor="let reception of element.ChildDocuments; let i = index" class="reception-item">
+                            <div *ngFor="let reception of element.childDocuments; let i = index" class="reception-item">
                                 <div class="reception-badge">#{{ i + 1 }}</div>
+                                
                                 <div class="reception-info">
-                                    <div class="main"><strong>Réf:</strong> {{ reception.docnumber }}</div>
-                                    <div class="sub"><strong>Réf. Fournisseur:</strong> {{ reception.supplierReference
-                                        }}</div>
+                                    <div class="reception-info-item">
+                                        <span class="label">Référence Interne</span>
+                                        <span class="value">{{ reception.docnumber }}</span>
+                                    </div>
+                                    <div class="reception-info-item">
+                                        <span class="label">Réf. Fournisseur</span>
+                                        <span class="value">{{ reception.supplierReference || '--' }}</span>
+                                    </div>
                                 </div>
+
                                 <div class="reception-financials">
-                                    <div><strong>Net TTC:</strong> {{ reception.total_net_ttc | number:'1.3-3'}}</div>
-                                    <div class="sub"><strong>HT:</strong> {{ reception.total_ht_net_doc |
-                                        number:'1.3-3'}}</div>
+                                    <div class="financial-item">
+                                        <span class="label">Base HT</span>
+                                        <span class="value">{{ reception.total_ht_net_doc | number:'1.3-3' }}</span>
+                                    </div>
+                                    <div class="financial-item">
+                                        <span class="label">Total TTC</span>
+                                        <span class="value highlighted-ttc">{{ reception.total_net_ttc | number:'1.3-3' }}</span>
+                                    </div>
                                 </div>
+
                                 <div class="reception-date">
-                                    <strong>Modifié le:</strong> {{ reception.updatedate | date: 'dd/MM/yyyy'}}
+                                    <span class="label">Mise à jour le</span>
+                                    <span class="value">{{ reception.updatedate | date: 'dd/MM/yyyy' }}</span>
                                 </div>
                             </div>
                         </div>
-                        <div *ngIf="!element.ChildDocuments?.length" class="no-children">
+                        <div *ngIf="!element.childDocuments?.length" class="no-children">
                             Aucun bon de réception associé trouvé.
                         </div>
                     </div>
@@ -246,18 +277,4 @@
         </table>
         <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
     </div>
-</mat-card>
-
-<!-- Additional Settings Card -->
-<mat-card class="card-details" *ngIf="invoiceSettings">
-    <mat-card-header>
-        <mat-card-title>Actions rapides</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-        <div class="control-button-filter">
-            <button mat-raised-button color="primary">Paiement</button>
-            <button mat-raised-button color="accent">Historique des Paiements</button>
-            <span class="error-msg" *ngIf="errorMessage">{{errorMessage}}</span>
-        </div>
-    </mat-card-content>
 </mat-card>

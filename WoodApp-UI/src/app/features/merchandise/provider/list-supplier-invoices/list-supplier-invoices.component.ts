@@ -40,7 +40,7 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
 
   // Filters
   filterSupplier: string = '';
-  filterDate: Date | null = new Date(); // Default to today
+  filterDate: Date | null = null; // Default to null to show all invoices by default
   filterStartDate?: Date;
   filterEndDate?: Date;
 
@@ -139,37 +139,34 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
       next: (response: DocumentsRelationship[]) => {
         let filteredData = response;
 
-        // Ensure we are only dealing with provider invoices (ParentDocument.type === DocumentTypes.supplierInvoice)
-        filteredData = filteredData.filter(d => d.ParentDocument?.type === DocumentTypes.supplierInvoice);
+        // Ensure we are only dealing with provider invoices (parentDocument.type === DocumentTypes.supplierInvoice)
+        filteredData = filteredData.filter(d => d.parentDocument?.type === DocumentTypes.supplierInvoice);
 
-        // Filter by Date (Single Date)
         if (this.filterDate && !this.filterStartDate && !this.filterEndDate) {
-          filteredData = filteredData.filter(d => d.ParentDocument && isSameDay(d.ParentDocument.updatedate, this.filterDate!));
+          filteredData = filteredData.filter(d => d.parentDocument && isSameDay(d.parentDocument.updatedate, this.filterDate!));
         }
 
-        // Filter by Date Range
         if (this.filterStartDate && this.filterEndDate) {
           filteredData = filteredData.filter(d => {
-            if (!d.ParentDocument) return false;
-            const docDate = new Date(d.ParentDocument.updatedate);
+            if (!d.parentDocument) return false;
+            const docDate = new Date(d.parentDocument.updatedate);
             return docDate >= this.filterStartDate! && docDate <= this.filterEndDate!;
           });
         }
 
-        // Filter by Supplier (Counterpart)
         if (this.filterSupplier) {
           const search = this.filterSupplier.toLowerCase();
           filteredData = filteredData.filter(d =>
-            d.ParentDocument?.counterpart?.name?.toLowerCase().includes(search) ||
-            d.ParentDocument?.counterpart?.firstname?.toLowerCase().includes(search) ||
-            d.ParentDocument?.counterpart?.lastname?.toLowerCase().includes(search)
+            d.parentDocument?.counterpart?.name?.toLowerCase().includes(search) ||
+            d.parentDocument?.counterpart?.firstname?.toLowerCase().includes(search) ||
+            d.parentDocument?.counterpart?.lastname?.toLowerCase().includes(search)
           );
         }
 
         // Sort descending by document number
         filteredData.sort((a, b) => {
-          const docNumberA = a.ParentDocument?.docnumber ?? '';
-          const docNumberB = b.ParentDocument?.docnumber ?? '';
+          const docNumberA = a.parentDocument?.docnumber ?? '';
+          const docNumberB = b.parentDocument?.docnumber ?? '';
           return docNumberB.localeCompare(docNumberA);
         });
 
@@ -191,8 +188,8 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
 
   updateSummary() {
     this.invoiceCount = this.allInvoices.data.length;
-    this.totalHt = this.allInvoices.data.reduce((acc, curr) => acc + (curr.ParentDocument?.total_ht_net_doc || 0), 0);
-    this.totalTva = this.allInvoices.data.reduce((acc, curr) => acc + (curr.ParentDocument?.total_tva_doc || 0), 0);
+    this.totalHt = this.allInvoices.data.reduce((acc, curr) => acc + (curr.parentDocument?.total_ht_net_doc || 0), 0);
+    this.totalTva = this.allInvoices.data.reduce((acc, curr) => acc + (curr.parentDocument?.total_tva_doc || 0), 0);
     this.totalTtc = this.totalHt + this.totalTva;
   }
 
@@ -207,7 +204,7 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
       if (result) {
         this.docService.Delete(element.id).subscribe({
           next: () => {
-            this.allInvoices.data = this.allInvoices.data.filter(p => p.ParentDocumentId !== element.id);
+            this.allInvoices.data = this.allInvoices.data.filter(p => p.parentDocumentId !== element.id);
             this.updateSummary();
             this.toastr.success('Facture supprimée avec succès');
           },
