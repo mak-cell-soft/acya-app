@@ -23,8 +23,9 @@ import { BehaviorSubject } from 'rxjs';
 import { ConfirmDeleteModalComponent } from '../../../../shared/components/modals/confirm-delete-modal/confirm-delete-modal.component';
 import { ToWords } from 'to-words';
 import { CanComponentDeactivate } from '../../../../guards/can-deactivate.guard';
-import { Document, DocumentTypes, BillingStatus } from '../../../../models/components/document';
+import { Document, DocumentTypes, BillingStatus, DocStatus } from '../../../../models/components/document';
 import { DocumentService } from '../../../../services/components/document.service';
+import { DocumentsRelationship } from '../../../../models/components/documentsrelationship';
 import { AppuserService } from '../../../../services/components/appuser.service';
 import { Site } from '../../../../models/components/sites';
 import { Router } from '@angular/router';
@@ -33,6 +34,7 @@ import { MerchandiseService } from '../../../../services/components/merchandise.
 import { SalesSiteModalComponent } from '../../../../shared/components/modals/sales-site-modal/sales-site-modal.component';
 import { firstValueFrom } from 'rxjs';
 import { TransactionType } from '../../../../models/components/stock';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-add-supplier-receipt',
@@ -57,6 +59,7 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
   docService = inject(DocumentService);
   merchandiseService = inject(MerchandiseService);
   router = inject(Router);
+  route = inject(ActivatedRoute);
 
   @ViewChild('articleSelect') articleSelect!: MatSelect;
 
@@ -113,6 +116,10 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
   register_button: string = REGISTER_BUTTON;
   abort_button: string = ABORT_BUTTON;
 
+  isEditing: boolean = false;
+  editIndex: number | null = null;
+  originOrderId: number | null = null;
+
 
   constructor() {
     // Watch for data changes and recalculate totals
@@ -139,6 +146,14 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
       this.loadData();
       this.watchForDiscountPercentage();
       this.watchForQuantity();
+
+      // Check for Order Conversion
+      this.route.queryParams.subscribe(params => {
+        if (params['orderId']) {
+          this.originOrderId = Number(params['orderId']);
+          this.loadFromOrder(this.originOrderId);
+        }
+      });
     }
 
   }
@@ -191,9 +206,16 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
         isdeleted: false
       };
 
-      // Add the new Merchandise to the data source
+      // Add or Update the Merchandise in the data source
       const currentData = this.merchandisDocument.data;
-      currentData.push(newMerchandise);
+      if (this.isEditing && this.editIndex !== null) {
+        currentData[this.editIndex] = newMerchandise;
+        this.isEditing = false;
+        this.editIndex = null;
+        this.toastr.success('Article modifié');
+      } else {
+        currentData.push(newMerchandise);
+      }
       this.merchandisDocument.data = [...currentData]; // Update the data source
       /**
        * Appliquer ici où on veux tester le Composant comment il a changé.
@@ -262,8 +284,38 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
     this.resetMerchandiseForm();
   }
 
-  editRow(element: Merchand) {
-    // Logic for editing a row
+  editRow(element: Merchandise) {
+    this.isEditing = true;
+    this.editIndex = this.merchandisDocument.data.indexOf(element);
+
+    // Populate the form and article selection
+    this.selectedArticle = element.article;
+    this.onOptionSelected(element.article.id);
+
+    // Patch form with rest of the values
+    this.merchandiseForm.patchValue({
+      unit_price_ht: element.unit_price_ht,
+      quantity: element.quantity,
+      merchandise_cost_ht: element.cost_ht,
+      tva: element.article.tvaid,
+      sellcostprice_discountValue: element.cost_discount_value,
+      selldiscountpercentage: element.discount_percentage,
+      sellcostprice_net_ht: element.cost_net_ht,
+      sellcostprice_taxValue: element.tva_value,
+      totalWithTax: element.cost_ttc,
+      reference: element.packagereference,
+      description: element.description,
+      isinvoicible: element.isinvoicible,
+      allownegativstock: element.allownegativstock
+    });
+
+    if (element.article.iswood) {
+      this.responseFromModalLengths = element.lisoflengths;
+      this.responseFromModalTotQuantity = element.quantity;
+      this.isArticleTypeWood = true;
+    }
+
+    this.toastr.info('Veuillez modifier les champs et enregistrer');
   }
 
   validateRow(element: Merchand) {
@@ -352,6 +404,8 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
     this.isArticleTypeWood = false;
     this.responseFromModalLengths = [];
     this.responseFromModalTotQuantity = 0;
+    this.isEditing = false;
+    this.editIndex = null;
   }
 
   getSuppliers(): void {
@@ -407,6 +461,42 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
       error: (error) => {
         console.error('Error fetching Taxes:', error);
         this.toastr.error("Erreur Serveur");
+      }
+    });
+  }
+
+  loadFromOrder(orderId: number) {
+    this.docService.GetById(orderId).subscribe({
+      next: (order: Document) => {
+        // 3 - Select Supplier
+        const supplier = this.allSuppliers.find(s => s.id === order.counterpart.id);
+        if (supplier) {
+          this.selectedSupplier = supplier;
+          this.documentForm.get('supplier')?.setValue(supplier);
+        }
+
+        // Suggest Supplier Reference
+        //this.documentForm.get('supplierReference')?.setValue(`BC-${order.docnumber}`);
+
+        // 2 - Pre-fill Merchandises
+        if (order.merchandises && order.merchandises.length > 0) {
+          const mappedMerchandises: Merchandise[] = order.merchandises.map(m => ({
+            ...m,
+            id: 0, // New items for receipt
+            creationdate: new Date(),
+            updatedate: new Date(),
+            documentid: 0
+          }));
+
+          this.merchandisDocument.data = [...mappedMerchandises];
+          this.calculateTotals(this.merchandisDocument.data);
+          this.hasUnsavedChanges = true;
+          this.toastr.success(`Importé ${mappedMerchandises.length} articles depuis la commande ${order.docnumber}`);
+        }
+      },
+      error: (err) => {
+        console.error('Error loading order data:', err);
+        this.toastr.error('Impossible de charger les données de la commande');
       }
     });
   }
@@ -763,6 +853,11 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
           // Display a success message using toastr
           this.toastr.success(`Document ${docRef} créé avec succès`);
 
+          // 🆕 Update Order Status if originating from an order
+          if (this.originOrderId) {
+            this.handleOrderStatusUpdate(this.originOrderId, (response as any).id, docRef);
+          }
+
           // Free all calculated document fields
           this.freeAllCalculatedDocumentFields();
           this.router.navigateByUrl('home/merchandise/reception/list');
@@ -780,10 +875,59 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
           }
         }
       });
-
     } catch (error) {
       console.error('Error in sales site selection:', error);
     }
+  }
+
+  handleOrderStatusUpdate(orderId: number, receiptId: number, receiptRef: string) {
+    const relationship = {
+      parentDocumentId: orderId,
+      childDocumentId: receiptId
+    };
+
+    this.docService.RegisterRelationship(relationship).subscribe({
+      next: () => {
+        this.docService.GetById(orderId).subscribe({
+          next: (order: Document) => {
+            const siblingRefs = order.deliveryNoteDocNumbers || [];
+            if (!siblingRefs.includes(receiptRef)) siblingRefs.push(receiptRef);
+
+            this.docService.GetByType(DocumentTypes.supplierReceipt).subscribe({
+              next: (allReceipts: Document[]) => {
+                const siblingReceipts = allReceipts.filter(r => siblingRefs.includes(r.docnumber));
+                
+                const orderedQtities = new Map<number, number>();
+                order.merchandises.forEach((m: any) => {
+                  orderedQtities.set(m.article.id, (orderedQtities.get(m.article.id) || 0) + m.quantity);
+                });
+
+                const receivedQtities = new Map<number, number>();
+                siblingReceipts.forEach((r: any) => {
+                  r.merchandises.forEach((m: any) => {
+                    receivedQtities.set(m.article.id, (receivedQtities.get(m.article.id) || 0) + m.quantity);
+                  });
+                });
+
+                let isFullyDelivered = true;
+                orderedQtities.forEach((orderedQty, articleId) => {
+                  const receivedQty = receivedQtities.get(articleId) || 0;
+                  if (receivedQty < orderedQty) isFullyDelivered = false;
+                });
+
+                const newStatus = isFullyDelivered ? DocStatus.Delivered : DocStatus.PartiallyDelivered;
+                this.docService.UpdateStatus(orderId, newStatus).subscribe({
+                  next: () => {
+                    this.toastr.info(`Flux mis à jour: ${isFullyDelivered ? "Réceptionné" : "Réception Partielle"}`);
+                  }
+                });
+              }
+            });
+          }
+        });
+      },
+      error: (err) => console.error('❌ relationship error:', err)
+    });
   }
   //#endregion
 

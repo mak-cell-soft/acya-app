@@ -465,6 +465,12 @@ table.modern-table {
     font-size: 1rem !important;
 }
 
+/* Edit Mode Highlighting */
+.edit-mode-card { border: 2px solid #fbbf24 !important; background: #fffdf5 !important; }
+.edit-mode-card mat-card-title { color: #b45309 !important; }
+.edit-mode-card mat-card-header { background: #fff9e6 !important; }
+.edit-mode-card mat-card-avatar { background-color: #fbbf24 !important; color: #0f172a !important; }
+
 .opt-ref {
     font-weight: 700;
     color: #3f51b5;

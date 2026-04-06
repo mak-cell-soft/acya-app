@@ -4,25 +4,19 @@
     </div>
     <span class="spacer"></span>
     <div class="header-buttons">
-        <!-- New selection-based button in header -->
-        <button mat-raised-button color="primary" (click)="makeInvoiceDocuments()"
+        <button mat-flat-button class="pill-button btn-invoice" (click)="makeInvoiceDocuments()"
             [disabled]="selection.selected.length === 0"
             matTooltip="Générer une facture pour les documents sélectionnés">
             <mat-icon>receipt</mat-icon>
             Facturer ({{selection.selected.length}})
         </button>
 
-        <mat-divider [vertical]="true"></mat-divider>
-
-        <button mat-stroked-button color="primary" [routerLink]="['/home/merchandise/sinvoices']">
+        <button mat-stroked-button class="pill-button btn-view-invoices" [routerLink]="['/home/merchandise/sinvoices']">
             <mat-icon>view_list</mat-icon>
             Voir Mes Factures
         </button>
 
-        <mat-divider [vertical]="true"></mat-divider>
-
-        <!-- Keep the routerLink as specified in the original logic -->
-        <button mat-flat-button color="accent" [routerLink]="['../']">
+        <button mat-flat-button color="primary" class="pill-button btn-new-doc" [routerLink]="['../']">
             <mat-icon>add</mat-icon>
             Nouveau Document
         </button>
@@ -69,8 +63,8 @@
         </div>
 
         <div class="filter-actions">
-            <button mat-button color="warn" (click)="resetFilters()">Réinitialiser</button>
-            <button mat-raised-button color="primary" (click)="applyFilters()">Filtrer</button>
+            <button mat-button color="warn" [disabled]="isLoading" (click)="resetFilters()">Réinitialiser</button>
+            <button mat-raised-button color="primary" [disabled]="isLoading" (click)="applyFilters()">Filtrer</button>
         </div>
     </mat-card-content>
 </mat-card>
@@ -80,7 +74,7 @@
 <!-- Data Table Card -->
 <mat-card class="table-card">
     <!-- Premium Loading Overlay -->
-    <div class="loader-wrapper" *ngIf="loading">
+    <div class="loader-wrapper" *ngIf="isLoading">
         <mat-progress-bar mode="indeterminate" class="custom-progress-bar"></mat-progress-bar>
         <div class="glass-overlay">
             <div class="loader-content">
@@ -94,6 +88,7 @@
     </div>
 
     <div class="table-container mat-elevation-z0">
+
         <table mat-table (click)="clearErrorMessage()" [dataSource]="allDocuments" matSort class="modern-table"
             multiTemplateDataRows>
 
@@ -276,7 +271,7 @@
             aria-label="Sélectionner les documents"></mat-paginator>
 
         <!-- Fallback for empty data when not loading -->
-        <div *ngIf="!loading && !allDocuments.data.length" class="no-data">
+        <div *ngIf="!isLoading && !allDocuments.data.length" class="no-data">
             <mat-icon>inventory_2</mat-icon>
             <p>Aucun document trouvé.</p>
         </div>

@@ -4,9 +4,12 @@
     </div>
     <span class="spacer"></span>
     <div class="header-buttons">
-        <button mat-raised-button color="primary" (click)="onExport()">Exporter</button>
-        <mat-divider [vertical]="true"></mat-divider>
-        <button mat-flat-button color="accent" (click)="onAddNew()">
+        <button mat-stroked-button class="pill-button btn-export" (click)="onExport()">
+            <mat-icon>download</mat-icon>
+            Exporter
+        </button>
+
+        <button mat-flat-button color="primary" class="pill-button btn-add" (click)="onAddNew()">
             <mat-icon>add</mat-icon>
             Ajouter une facture
         </button>

@@ -73,14 +73,18 @@
         </mat-card>
 
         <!-- Section: Merchandise Form -->
-        <mat-card class="entry-card section-card" [formGroup]="merchandiseForm">
+        <mat-card class="entry-card section-card" [formGroup]="merchandiseForm" [class.edit-mode-card]="isEditing">
             <mat-card-header>
-                <mat-icon mat-card-avatar>add_shopping_cart</mat-icon>
-                <mat-card-title>Ajout de Marchandise</mat-card-title>
-                <mat-card-subtitle>Saisir les détails de l'article</mat-card-subtitle>
+                <mat-icon mat-card-avatar>{{ isEditing ? 'edit' : 'add_shopping_cart' }}</mat-icon>
+                <mat-card-title>{{ isEditing ? 'Modification de Marchandise' : 'Ajout de Marchandise' }}</mat-card-title>
+                <mat-card-subtitle>{{ isEditing ? "Mettre à jour les détails de la ligne" : "Saisir les détails de l'article" }}</mat-card-subtitle>
             </mat-card-header>
 
+            <!-- ... existing article search and form rows ... -->
+            <!-- Note: I will keep the existing content here, just updating the actions -->
+
             <mat-card-content class="entry-form">
+                <!-- Keep existing form content -->
                 <div class="form-row">
                     <mat-form-field appearance="outline" class="flex-2" subscriptSizing="dynamic">
                         <mat-label>Rechercher un article</mat-label>
@@ -189,9 +193,12 @@
             </mat-card-content>
 
             <mat-card-actions align="end">
-                <button mat-raised-button color="primary" class="add-article-btn" (click)="addMerchandise()">
-                    <mat-icon>add</mat-icon>
-                    Ajouter à la liste
+                <button mat-button color="warn" *ngIf="isEditing" (click)="resetMerchandiseForm()">
+                    Annuler
+                </button>
+                <button mat-raised-button [color]="isEditing ? 'accent' : 'primary'" class="add-article-btn" (click)="addMerchandise()">
+                    <mat-icon>{{ isEditing ? 'done' : 'add' }}</mat-icon>
+                    {{ isEditing ? 'Enregistrer les modifications' : 'Ajouter à la liste' }}
                 </button>
             </mat-card-actions>
         </mat-card>

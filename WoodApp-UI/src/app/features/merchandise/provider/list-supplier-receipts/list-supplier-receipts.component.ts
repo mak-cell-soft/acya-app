@@ -63,7 +63,7 @@ export class ListSupplierReceiptsComponent implements OnInit, AfterViewInit {
   allSuppliers: CounterPart[] = [];
   errorMessage: string = '';
 
-  loading: boolean = false; // Track loading state
+  isLoading: boolean = false; // Track loading state
 
   @ViewChild(MatPaginator) PaginationDocument!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -121,7 +121,7 @@ export class ListSupplierReceiptsComponent implements OnInit, AfterViewInit {
    * Loads all initial data required for the component
    */
   loadInitialData(): void {
-    this.loading = true;
+    this.isLoading = true;
     
     // Use parallel execution but wait for both to finish if possible, 
     // or just manage the loading flag carefully.
@@ -258,7 +258,7 @@ export class ListSupplierReceiptsComponent implements OnInit, AfterViewInit {
   //#endregion
 
   getAllDocumentsByType() {
-    this.loading = true;
+    this.isLoading = true;
     this.allDocuments.data = [];
     this.docService.GetByType(DocumentTypes.supplierReceipt).subscribe({
       next: (response: Document[]) => {
@@ -268,11 +268,7 @@ export class ListSupplierReceiptsComponent implements OnInit, AfterViewInit {
         // Assign the sorted data to the property in your component
         this.documents = sortedDocuments;
         this.allDocuments.data = sortedDocuments;
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error fetching documents', error);
-        this.loading = false;
+        this.isLoading = false;
       }
     });
   }
@@ -323,16 +319,16 @@ export class ListSupplierReceiptsComponent implements OnInit, AfterViewInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         console.log('Item deleted:', item);
-        this.loading = true;
+        this.isLoading = true;
         this.docService.Delete(element.id).subscribe({
           next: () => {
             this.allDocuments.data = this.allDocuments.data.filter(p => p.id !== element.id);
-            this.toastr.success('Supplier deleted successfully');
-            this.loading = false;
+            this.toastr.success('Document supprimé avec succès');
+            this.isLoading = false;
           },
           error: () => {
-            this.toastr.error('Error deleting Supplier');
-            this.loading = false;
+            this.toastr.error('Erreur lors de la suppression du document');
+            this.isLoading = false;
           }
         });
       } else {

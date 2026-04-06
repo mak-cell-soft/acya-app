@@ -104,4 +104,8 @@ export class DocumentService {
   UpdateStatus(id: number, status: number, supplierReference?: string): Observable<any> {
     return this.http.patch<any>(this.baseUrl + 'Document/UpdateStatus/' + id, { docStatus: status, supplierReference });
   }
+
+  RegisterRelationship(relationship: any): Observable<any> {
+    return this.http.post<any>(this.baseUrl + 'Document/RegisterRelationship', relationship);
+  }
 }

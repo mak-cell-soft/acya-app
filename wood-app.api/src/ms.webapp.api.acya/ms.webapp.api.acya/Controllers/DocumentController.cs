@@ -103,6 +103,15 @@ namespace ms.webapp.api.acya.api.Controllers
                 .Select(cd => cd.ChildDocument!.DocNumber ?? "")
                 .ToList();
 
+            // 🆕 Populate childdocuments with simplified data for the UI
+            dto.childdocuments = d.ChildDocuments
+                .Where(cd => cd.ChildDocument != null)
+                .Select(cd => new DocumentDto {
+                    id = cd.ChildDocument!.Id,
+                    docnumber = cd.ChildDocument.DocNumber,
+                    creationdate = cd.ChildDocument.CreationDate
+                }).ToList();
+
             foreach (var rel in d.ChildDocuments.Where(cd => cd.ChildDocument != null))
             {
                 if (rel.ChildDocument!.DocumentMerchandises != null)
@@ -230,6 +239,15 @@ namespace ms.webapp.api.acya.api.Controllers
                 .Where(cd => cd.ChildDocument != null)
                 .Select(cd => cd.ChildDocument!.DocNumber ?? "")
                 .ToList();
+
+             // 🆕 Also populate the full childdocuments collection
+            dto.childdocuments = d.ChildDocuments
+                .Where(cd => cd.ChildDocument != null)
+                .Select(cd => new DocumentDto {
+                    id = cd.ChildDocument!.Id,
+                    docnumber = cd.ChildDocument.DocNumber,
+                    creationdate = cd.ChildDocument.CreationDate
+                }).ToList();
 
             foreach (var rel in d.ChildDocuments.Where(cd => cd.ChildDocument != null))
             {
@@ -622,7 +640,7 @@ namespace ms.webapp.api.acya.api.Controllers
                   await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId, lastTxType, DateTime.UtcNow);
           }
 
-          return Ok(new { docRef = doc.DocNumber, message = "Document added successfully" });
+          return Ok(new { id = doc.Id, docRef = doc.DocNumber, message = "Document added successfully" });
         }
         catch (Exception ex)
         {
@@ -1142,6 +1160,29 @@ namespace ms.webapp.api.acya.api.Controllers
 
       await _context.SaveChangesAsync();
       return Ok(new { message = "Status updated successfully" });
+    }
+    #endregion
+
+    #region Register Relationship
+    [HttpPost("RegisterRelationship")]
+    public async Task<ActionResult> RegisterRelationship([FromBody] DocumentDocumentRelationship relationship)
+    {
+        if (relationship == null || relationship.ParentDocumentId == 0 || relationship.ChildDocumentId == 0)
+        {
+            return BadRequest("Invalid relationship data.");
+        }
+
+        var exists = await _context.DocumentDocumentRelationships.AnyAsync(r => 
+            r.ParentDocumentId == relationship.ParentDocumentId && 
+            r.ChildDocumentId == relationship.ChildDocumentId);
+
+        if (!exists)
+        {
+            _context.DocumentDocumentRelationships.Add(relationship);
+            await _context.SaveChangesAsync();
+        }
+
+        return Ok(new { message = "Relationship registered successfully" });
     }
     #endregion
 

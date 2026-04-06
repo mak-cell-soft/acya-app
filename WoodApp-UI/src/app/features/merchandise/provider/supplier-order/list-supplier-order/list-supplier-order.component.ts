@@ -11,12 +11,23 @@ import { CounterPart } from '../../../../../models/components/counterpart';
 import { CounterpartService } from '../../../../../services/components/counterpart.service';
 import { CounterPartType_FR } from '../../../../../shared/constants/list_of_constants';
 import { ConfirmDeleteModalComponent } from '../../../../../shared/components/modals/confirm-delete-modal/confirm-delete-modal.component';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 import { StatusOrderModalComponent } from '../../../../../shared/components/modals/status-order-modal/status-order-modal.component';
+import { Router } from '@angular/router';
+import { MENU_PURCHASE } from '../../../../../shared/constants/components/home';
 
 @Component({
   selector: 'app-list-supplier-order',
   templateUrl: './list-supplier-order.component.html',
-  styleUrl: './list-supplier-order.component.css'
+  styleUrl: './list-supplier-order.component.css',
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed,void', style({ height: '0px', minHeight: '0', visibility: 'hidden' })),
+      state('expanded', style({ height: '*', visibility: 'visible' })),
+      transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
+      transition('expanded <=> void', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)'))
+    ]),
+  ],
 })
 export class ListSupplierOrderComponent implements OnInit {
 
@@ -25,13 +36,19 @@ export class ListSupplierOrderComponent implements OnInit {
   dialog = inject(MatDialog);
   toastr = inject(ToastrService);
   counterpartService = inject(CounterpartService);
+  router = inject(Router);
 
   documents = new MatTableDataSource<Document>([]);
-  displayedColumns: string[] = ['number', 'date', 'supplier', 'total', 'status', 'action'];
+  displayedColumns: string[] = ['number', 'date', 'supplier', 'total', 'status', 'action', 'expand'];
+  columnsToDisplayWithExpand = [...this.displayedColumns];
+  expandedElement: Document | null = null;
+
+  menu_purchase: string = MENU_PURCHASE;
 
   allSuppliers: CounterPart[] = [];
   selectedSupplier: number | null = null;
   selectedStatus: number | null = null;
+  isLoading = false;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -55,11 +72,16 @@ export class ListSupplierOrderComponent implements OnInit {
   }
 
   loadOrders() {
+    this.isLoading = true;
     this.docService.GetByType(DocumentTypes.supplierOrder).subscribe({
       next: (res: Document[]) => {
         this.documents.data = res.sort((a, b) => b.docnumber.localeCompare(a.docnumber));
         this.documents.paginator = this.paginator;
         this.documents.sort = this.sort;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
       }
     });
   }
