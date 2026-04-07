@@ -8,6 +8,7 @@ import { BUTTON_ADMINISTRATION, BUTTON_HOME, MENU_ACCOUNTING, MENU_ARTICLES, MEN
 import { AuthenticationService } from '../../../services/components/authentication.service';
 import { MatDialog } from '@angular/material/dialog';
 import { StockTransferFormComponent } from '../../stock/stock-transfer-form/stock-transfer-form.component';
+import { EnterpriseService } from '../../../services/components/enterprise.service';
 
 @UntilDestroy()
 @Component({
@@ -71,6 +72,10 @@ export class DashboardShellComponent implements AfterViewInit, OnInit {
   defaultAvatarUrl = '/assets/enterprise-avatar.png';
   avatarUrl = this.defaultAvatarUrl;
 
+  // NOTE: Enterprise info bound to the sidebar header — fetched once on init from the API
+  enterpriseName: string = '';
+  enterpriseDescription: string = '';
+
   // toggleVenteMenu() {
   //   this.isVenteMenuOpen = !this.isVenteMenuOpen;
   // }
@@ -87,7 +92,13 @@ export class DashboardShellComponent implements AfterViewInit, OnInit {
   //   this.isReceptionOpen = !this.isReceptionOpen;
   // }
 
-  constructor(private observer: BreakpointObserver, private router: Router, private authService: AuthenticationService) { }
+  constructor(
+    private observer: BreakpointObserver,
+    private router: Router,
+    private authService: AuthenticationService,
+    // NOTE: EnterpriseService is injected here to fetch live enterprise info from the API
+    private enterpriseService: EnterpriseService
+  ) { }
 
   get isAdmin(): boolean {
     return this.authService.getRole() === 'Admin';
@@ -96,9 +107,29 @@ export class DashboardShellComponent implements AfterViewInit, OnInit {
   // Called on component initialization.
   // Intent: Hydrate the avatar state from localStorage so the user sees their uploaded image across sessions.
   ngOnInit() {
+    // Hydrate avatar from localStorage so users see their uploaded image across sessions
     const savedAvatar = localStorage.getItem('userAvatar');
     if (savedAvatar) {
       this.avatarUrl = savedAvatar;
+    }
+
+    // Fetch enterprise metadata (name + description) using the EnterpriseId embedded in the JWT
+    const enterpriseIdStr = this.authService.getEnterpriseId();
+    if (enterpriseIdStr) {
+      const enterpriseId = parseInt(enterpriseIdStr, 10);
+      if (!isNaN(enterpriseId)) {
+        this.enterpriseService.getEnterpriseInfo(enterpriseId).subscribe({
+          next: (enterprise) => {
+            // Bind to template properties so the sidebar header shows real data
+            this.enterpriseName = enterprise.name;
+            this.enterpriseDescription = enterprise.description;
+          },
+          error: (err) => {
+            // TODO: consider surfacing a subtle toast warning if this fails
+            console.error('Impossible de charger les infos entreprise:', err);
+          }
+        });
+      }
     }
   }
 

@@ -22,9 +22,10 @@
         </button>
       </mat-menu>
 
+      <!-- Enterprise name & description are fetched dynamically via EnterpriseService on init -->
       <div class="user-info" *ngIf="!isCollapsed">
-        <h4 class="name">SOCOFEB</h4>
-        <p class="designation">Vente Bois et Dérivés</p>
+        <h4 class="name">{{ enterpriseName }}</h4>
+        <p class="designation">{{ enterpriseDescription }}</p>
       </div>
     </div>
     
