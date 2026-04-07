@@ -100,16 +100,13 @@ export class HeaderComponent implements OnInit, AfterViewInit {
     let _id = 0;
     if (this.isLoggedIn()) {
       _id = Number(this.authService.getUserDetail()?.id);
-      console.log('Id Utilisateur a Voir : ', _id);
       this.appuserService.getConnectedUserSalesSiteAsString(_id).subscribe({
         next: (response: string) => {
-          console.log('The Sales Site as a String :', response);
           // Assuming response is a string containing the sales site address
           this.SalesSite = response;
         },
         error: (err) => {
-          console.error('Failed to fetch sales site:', err);
-          this.SalesSite = 'Non-connu'; // Fallback or default value
+          this.SalesSite = 'Non-affecté'; // Fallback or default value
         }
       });
     }
@@ -118,7 +115,6 @@ export class HeaderComponent implements OnInit, AfterViewInit {
 
   //#region Open Modal Notification details
   openTransferConfirmation(notif: any) {
-    console.log('Details of notifications are here', notif);
     const dialogRef = this.dialog.open(TransferConfirmationComponent, {
       maxWidth: '700px',  // Adjust width as needed
       data: {
