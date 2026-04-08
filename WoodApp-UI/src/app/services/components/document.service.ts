@@ -27,8 +27,8 @@ export class DocumentService {
   //   return this.http.post<Document>(this.baseUrl + 'Document/', model);
   // }
 
-  Add(model: Document): Observable<{ docRef: string, message: string }> {
-    return this.http.post<{ docRef: string, message: string }>(this.baseUrl + 'Document/', model);
+  Add(model: Document): Observable<{ id: number, docRef: string, message: string }> {
+    return this.http.post<{ id: number, docRef: string, message: string }>(this.baseUrl + 'Document/', model);
   }
 
   /**

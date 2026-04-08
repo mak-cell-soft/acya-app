@@ -24,6 +24,7 @@ namespace ms.webapp.api.acya.common
         DocumentTypes.supplierOrder => "SO", // Bon de commande Fournisseur
         DocumentTypes.supplierReceipt => "SR", // Bon de réception Fournisseur
         DocumentTypes.supplierInvoice => "FF", // Facture Fournisseur
+        DocumentTypes.customerQuote => "DV", // Devis Client — no stock movement
         DocumentTypes.customerOrder => "CO", // Bon de commande Client
         DocumentTypes.customerDeliveryNote => "BL", // Bon de livraison Client
         DocumentTypes.customerInvoice => "FC", // Facture Client
@@ -84,6 +85,10 @@ namespace ms.webapp.api.acya.common
         case DocumentTypes.customerDeliveryNote:
         case DocumentTypes.customerInvoice:
           return TransactionType.Retrieve;
+
+        // customerQuote: No stock movement — quote only
+        case DocumentTypes.customerQuote:
+          return TransactionType.None;
 
         default:
           return TransactionType.None;

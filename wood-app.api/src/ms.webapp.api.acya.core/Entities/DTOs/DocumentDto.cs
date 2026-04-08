@@ -66,6 +66,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public bool isPaid { get; set; }
 
     public ICollection<DocumentDto>? childdocuments { get; set; } = new List<DocumentDto>();
+    public ICollection<DocumentDto>? parentdocuments { get; set; } = new List<DocumentDto>();
     public List<string>? deliveryNoteDocNumbers { get; set; }
 
     public DocumentDto()
@@ -99,6 +100,33 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       isservice = entity.Isservice;
       isPaid = entity.BillingStatus == BillingStatus.Billed;
       isdeleted = entity.IsDeleted;
+
+      // Populate childdocuments if navigation property is loaded
+      if (entity.ChildDocuments != null && entity.ChildDocuments.Any())
+      {
+          childdocuments = entity.ChildDocuments
+              .Where(cd => cd.ChildDocument != null)
+              .Select(cd => new DocumentDto {
+                  id = cd.ChildDocument!.Id,
+                  docnumber = cd.ChildDocument.DocNumber,
+                  creationdate = cd.ChildDocument.CreationDate,
+                  type = cd.ChildDocument.Type
+              }).ToList();
+      }
+
+      // Populate parentdocuments if navigation property is loaded
+      if (entity.ParentDocuments != null && entity.ParentDocuments.Any())
+      {
+          parentdocuments = entity.ParentDocuments
+              .Where(pd => pd.ParentDocument != null)
+              .Select(pd => new DocumentDto {
+                  id = pd.ParentDocument!.Id,
+                  docnumber = pd.ParentDocument.DocNumber,
+                  creationdate = pd.ParentDocument.CreationDate,
+                  type = pd.ParentDocument.Type
+              }).ToList();
+      }
+
       if(entity.Taxes != null)
       {
         if(taxe == null) 

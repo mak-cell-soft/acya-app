@@ -881,6 +881,7 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
   }
 
   handleOrderStatusUpdate(orderId: number, receiptId: number, receiptRef: string) {
+    // Step 1: Register parent-child relationship between order and new receipt
     const relationship = {
       parentDocumentId: orderId,
       childDocumentId: receiptId
@@ -888,20 +889,24 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
 
     this.docService.RegisterRelationship(relationship).subscribe({
       next: () => {
+        // Step 2: Reload the parent order to get current delivery note references
         this.docService.GetById(orderId).subscribe({
           next: (order: Document) => {
             const siblingRefs = order.deliveryNoteDocNumbers || [];
             if (!siblingRefs.includes(receiptRef)) siblingRefs.push(receiptRef);
 
+            // Step 3: Fetch all supplier receipts to compare ordered vs received quantities
             this.docService.GetByType(DocumentTypes.supplierReceipt).subscribe({
               next: (allReceipts: Document[]) => {
                 const siblingReceipts = allReceipts.filter(r => siblingRefs.includes(r.docnumber));
                 
+                // Build ordered quantities map per article
                 const orderedQtities = new Map<number, number>();
                 order.merchandises.forEach((m: any) => {
                   orderedQtities.set(m.article.id, (orderedQtities.get(m.article.id) || 0) + m.quantity);
                 });
 
+                // Build received quantities map per article across all linked receipts
                 const receivedQtities = new Map<number, number>();
                 siblingReceipts.forEach((r: any) => {
                   r.merchandises.forEach((m: any) => {
@@ -909,20 +914,36 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
                   });
                 });
 
+                // Determine if all articles have been fully received
                 let isFullyDelivered = true;
                 orderedQtities.forEach((orderedQty, articleId) => {
                   const receivedQty = receivedQtities.get(articleId) || 0;
                   if (receivedQty < orderedQty) isFullyDelivered = false;
                 });
 
+                // Step 4: Update order status based on reception completeness
                 const newStatus = isFullyDelivered ? DocStatus.Delivered : DocStatus.PartiallyDelivered;
                 this.docService.UpdateStatus(orderId, newStatus).subscribe({
                   next: () => {
                     this.toastr.info(`Flux mis à jour: ${isFullyDelivered ? "Réceptionné" : "Réception Partielle"}`);
+                  },
+                  error: (err) => {
+                    console.error('❌ Failed to update order status:', err);
+                    this.toastr.warning('Réception créée, mais le statut de la commande n\'a pas pu être mis à jour.');
                   }
                 });
+              },
+              // NOTE: If fetching receipts fails, the status update is skipped — user is warned
+              error: (err) => {
+                console.error('❌ Failed to fetch receipts for status calculation:', err);
+                this.toastr.warning('Réception créée, calcul du statut impossible. Rafraîchissez la commande.');
               }
             });
+          },
+          // NOTE: If reloading the order fails, the entire status update chain is aborted
+          error: (err) => {
+            console.error('❌ Failed to reload order for status update:', err);
+            this.toastr.warning('Réception créée, statut de commande non mis à jour. Rafraîchissez manuellement.');
           }
         });
       },

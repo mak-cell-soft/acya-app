@@ -13,6 +13,14 @@ import { ListSupplierOrderComponent } from './provider/supplier-order/list-suppl
 import { EditSupplierReceiptComponent } from './provider/edit-supplier-receipt/edit-supplier-receipt.component';
 import { EditCustomerDocumentComponent } from './customer/edit-document/edit-customer-document.component';
 
+// ── Customer Quote (Devis) components ──────────────────────────────────────
+import { ListCustomerQuotesComponent } from './customer/customer-quote/list-customer-quotes/list-customer-quotes.component';
+import { AddCustomerQuoteComponent } from './customer/customer-quote/add-customer-quote/add-customer-quote.component';
+
+// ── Customer Order (Bon de Commande) components ────────────────────────────
+import { ListCustomerOrdersComponent } from './customer/customer-order/list-customer-orders/list-customer-orders.component';
+import { AddCustomerOrderComponent } from './customer/customer-order/add-customer-order/add-customer-order.component';
+
 import { roleGuard } from '../../guards/role.guard';
 import { CanDeactivateGuard } from '../../guards/can-deactivate.guard';
 
@@ -69,6 +77,38 @@ const routes: Routes = [
   {
     path: 'supplierorder/list',
     component: ListSupplierOrderComponent
+  },
+
+  // ── Customer Quote (Devis) routes ──────────────────────────────────────
+  // Matches menu routerLink="merchandise/devis"
+  {
+    path: 'devis',
+    redirectTo: 'devis/list',
+    pathMatch: 'full'
+  },
+  {
+    path: 'devis/list',
+    component: ListCustomerQuotesComponent
+  },
+  {
+    path: 'devis/add',
+    component: AddCustomerQuoteComponent
+  },
+
+  // ── Customer Order (Bon de Commande) routes ────────────────────────────
+  // Matches menu routerLink="merchandise/bc"
+  {
+    path: 'bc',
+    redirectTo: 'bc/list',
+    pathMatch: 'full'
+  },
+  {
+    path: 'bc/list',
+    component: ListCustomerOrdersComponent
+  },
+  {
+    path: 'bc/add',
+    component: AddCustomerOrderComponent
   }
 ];
 

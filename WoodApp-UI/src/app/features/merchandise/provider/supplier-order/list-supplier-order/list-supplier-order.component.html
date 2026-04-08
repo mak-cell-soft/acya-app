@@ -96,7 +96,8 @@
                         <button mat-menu-item (click)="printOrder(element)">
                             <mat-icon>print</mat-icon> Imprimer
                         </button>
-                        <button mat-menu-item (click)="sendEmail(element)">
+                        <!-- NOTE: Email not yet implemented — disabled until ready -->
+                        <button mat-menu-item disabled>
                             <mat-icon>alternate_email</mat-icon> Envoyer par Mail
                         </button>
                         <mat-divider></mat-divider>
@@ -126,7 +127,11 @@
                             <div class="step-line"></div>
                             
                             <!-- Step 1: Order -->
-                            <div class="step-item active">
+                            <!-- Active unless the order is abandoned or deleted -->
+                            <div class="step-item" [ngClass]="{
+                                'active': element.docstatus !== DocStatus.Abandoned && element.docstatus !== DocStatus.Deleted,
+                                'cancelled': element.docstatus === DocStatus.Abandoned || element.docstatus === DocStatus.Deleted
+                            }">
                                 <div class="step-bubble">
                                     <mat-icon>assignment</mat-icon>
                                 </div>
@@ -138,20 +143,24 @@
                             </div>
 
                             <!-- Step 2: Receipt -->
+                            <!-- Active when partially or fully received, pending otherwise -->
                             <div class="step-item" [ngClass]="{
-                                'active': element.docstatus === 11 || element.docstatus === 1,
-                                'pending': element.docstatus !== 11 && element.docstatus !== 1
+                                'active': element.docstatus === DocStatus.PartiallyDelivered || element.docstatus === DocStatus.Delivered,
+                                'pending': element.docstatus !== DocStatus.PartiallyDelivered && element.docstatus !== DocStatus.Delivered
                             }">
                                 <div class="step-bubble">
-                                    <mat-icon>{{element.docstatus === 1 ? 'task_alt' : 'inventory_2'}}</mat-icon>
+                                    <mat-icon>{{element.docstatus === DocStatus.Delivered ? 'task_alt' : 'inventory_2'}}</mat-icon>
                                 </div>
                                 <div class="step-content">
                                     <span class="label">Réception</span>
-                                    <span class="status-text" *ngIf="element.docstatus !== 11 && element.docstatus !== 1">En attente</span>
-                                    <span class="status-text success" *ngIf="element.docstatus === 1">Réceptionné</span>
-                                    <span class="status-text partial" *ngIf="element.docstatus === 11">Partiel</span>
+                                    <!-- Pending: no receipt yet -->
+                                    <span class="status-text" *ngIf="element.docstatus !== DocStatus.PartiallyDelivered && element.docstatus !== DocStatus.Delivered">En attente</span>
+                                    <!-- Fully received -->
+                                    <span class="status-text success" *ngIf="element.docstatus === DocStatus.Delivered">Réceptionné</span>
+                                    <!-- Partially received -->
+                                    <span class="status-text partial" *ngIf="element.docstatus === DocStatus.PartiallyDelivered">Partiel</span>
                                     
-                                    <!-- 🆕 Detailed metadata list for receipts -->
+                                    <!-- 🆕 Detailed metadata list for receipts (requires backend to include ChildDocuments) -->
                                     <div class="step-metadata-list" *ngIf="element.childdocuments?.length">
                                         <div *ngFor="let child of element.childdocuments" class="metadata-item">
                                             <span class="m-doc">{{child.docnumber}}</span>
@@ -159,10 +168,10 @@
                                         </div>
                                     </div>
 
-                                    <button mat-button class="action-link" *ngIf="element.docstatus !== 1" 
+                                    <button mat-button class="action-link" *ngIf="element.docstatus !== DocStatus.Delivered" 
                                             [routerLink]="['/home/merchandise/reception']" 
                                             [queryParams]="{ orderId: element.id }">
-                                        {{ element.docstatus === 11 ? 'Compléter reception' : 'Créer un bon de réception' }}
+                                        {{ element.docstatus === DocStatus.PartiallyDelivered ? 'Compléter reception' : 'Créer un bon de réception' }}
                                     </button>
                                 </div>
                             </div>

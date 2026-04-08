@@ -58,6 +58,11 @@ export class Document {
     isservice: boolean = false;
     deliveryNoteDocNumbers?: string[] = [];
     transporter?: any;
+    // Child documents linked to this document (e.g. receipts linked to an order)
+    // NOTE: Backend must include .Include(x => x.ChildDocuments) in EF query
+    childdocuments?: Document[];
+    // Parent documents this document was transformed from
+    parentdocuments?: Document[];
 }
 
 export class typeDocsToFilter {
@@ -71,19 +76,21 @@ export enum DocumentTypes {
     supplierOrder = 1, // Commande Fournisseur
     supplierReceipt = 2, // Bon de réception Fournisseur
     supplierInvoice = 3, // Facture Fournisseur
-    customerOrder = 4, // Commande Client
+    customerOrder = 4, // Bon de commande Client (no stock)
     customerDeliveryNote = 5, // Bon de Livraison Client
     customerInvoice = 6, // Facture Client
     stockTransfer = 7, // Transfert stock
     customerInvoiceReturn = 9, // Retour Client
-    inventory = 10
+    inventory = 10,
+    customerQuote = 11 // Devis Client (no stock)
 }
 
 export enum DocTypes_FR {
     supplierOrder = 'Commande Fournisseur',
     supplierReceipt = 'Réception Fournisseur',
     supplierInvoice = 'Facture Fournisseur',
-    customerOrder = 'Commande Client',
+    customerQuote = 'Devis Client',          // NEW
+    customerOrder = 'Bon de Commande Client', // NEW label
     customerDeliveryNote = 'Bon de Livraison',
     customerInvoice = 'Facture Client',
     stockTransfer = 'Transfert stock',

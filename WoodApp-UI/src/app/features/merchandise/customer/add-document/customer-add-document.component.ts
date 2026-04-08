@@ -17,7 +17,7 @@ import { CounterpartService } from '../../../../services/components/counterpart.
 import { CounterPartList_FR, CounterPartType_FR } from '../../../../shared/constants/list_of_constants';
 import { MatSelect } from '@angular/material/select';
 import { Transporter, Vehicle } from '../../../../models/components/customer';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { ABORT_BUTTON, REGISTER_BUTTON } from '../../../../shared/Text_Buttons';
 import { MatDialog } from '@angular/material/dialog';
@@ -53,6 +53,7 @@ export class CustomerAddDocumentComponent {
   authService = inject(AuthenticationService);
   appUserService = inject(AppuserService);
   docService = inject(DocumentService);
+  route = inject(ActivatedRoute);
 
   typeDoc: string = '';
   selected = model<Date | null>(null);
@@ -76,6 +77,7 @@ export class CustomerAddDocumentComponent {
   isLoading = false;
   responseFromModalLengths!: ListOfLength[];
   responseFromModalTotQuantity!: number;
+  sourceDocumentId = 0;
 
 
   @ViewChild('customerSelect') customerSelect!: MatSelect;
@@ -114,7 +116,14 @@ export class CustomerAddDocumentComponent {
       //this.getAppUserSite();
       this.getCustomers();
       this.searchCustomerControl.valueChanges.subscribe(() => this.applyCustomerFilter());
-      //this.loadData();
+
+      this.route.queryParams.subscribe(params => {
+        if (params['fromOrderId']) {
+          this.sourceDocumentId = +params['fromOrderId'];
+        } else if (params['fromQuoteId']) {
+          this.sourceDocumentId = +params['fromQuoteId'];
+        }
+      });
     }
   }
 
@@ -123,6 +132,10 @@ export class CustomerAddDocumentComponent {
     this.getStocks();
     this.getTaxes();
     this.getAllTransporters();
+
+    if (this.sourceDocumentId > 0) {
+      this.loadSourceDocument(this.sourceDocumentId);
+    }
   }
 
   /**
@@ -143,6 +156,56 @@ export class CustomerAddDocumentComponent {
         console.error('Error fetching site data:', err);
         this.toastr.error('Site de Vente non trouvé.');
       }
+    });
+  }
+
+  loadSourceDocument(id: number) {
+    this.isLoading = true;
+    this.docService.GetById(id).subscribe({
+      next: (doc) => {
+        if (doc.counterpart) {
+          this.onOptionCustomerSelected(doc.counterpart.id);
+        }
+        if (doc.merchandises) {
+          this.dataMerchand.data = this.transformMerchandiseToMerchand(doc.merchandises);
+          this.calculateTotals(this.dataMerchand.data);
+        }
+        this.form.get('customerReference')?.setValue(doc.docnumber);
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        this.toastr.error('Erreur lors du chargement du document source');
+      }
+    });
+  }
+
+  private transformMerchandiseToMerchand(items: Merchandise[]): Merchand[] {
+    return items.map(m => {
+      const row: Merchand = {
+        selectedArticle: m.article,
+        unit_price_ht: m.unit_price_ht,
+        merchandise_cost_ht: m.cost_ht,
+        quantity: m.quantity,
+        listLengths: m.lisoflengths || [],
+        selldiscountpercentage: m.discount_percentage,
+        sellcostprice_discountValue: m.cost_discount_value,
+        sellcostprice_net_ht: m.cost_net_ht,
+        sellcostprice_taxValue: m.tva_value,
+        totalWithTax: m.cost_ttc,
+        articleSearchInput: `${m.article.reference}${m.article.description ? ' - ' + m.article.description : ''}`,
+        filteredArticles: [...this.articles],
+        isWoodArticle: !!m.article.iswood,
+        selectedStock: null // Will try to match below
+      };
+
+      // Try matching stock
+      const stocks = this.getMatchingStocks(m.article.id);
+      if (stocks.length > 0) {
+        row.selectedStock = stocks.length === 1 ? stocks[0] : null;
+      }
+
+      return row;
     });
   }
 
@@ -770,7 +833,6 @@ export class CustomerAddDocumentComponent {
       merchandise.allownegativstock = merchand.selectedStock?.allowNegativeStock || false;
       merchandise.ismergedwith = merchand.selectedStock?.isMergedWith || false;
       merchandise.isdeleted = false;
-
       return merchandise;
     });
   }
@@ -780,31 +842,34 @@ export class CustomerAddDocumentComponent {
    * @param doc 
    */
   saveDocument(doc: Document) {
+    this.isLoading = true;
     this.docService.Add(doc).subscribe({
       next: (response) => {
-        // Access the docRef property from the response
         const docRef = response.docRef;
+        this.toastr.success(`Bon de Livraison ${docRef} créé avec succès`);
 
-        // Log the document reference to the console
-        console.log('Document created with reference: ', docRef);
+        // Register relationship if transformed from Order or Quote
+        if (this.sourceDocumentId > 0 && response.id > 0) {
+          const relationship = {
+            parentDocumentId: this.sourceDocumentId,
+            childDocumentId: response.id
+          };
+          this.docService.RegisterRelationship(relationship).subscribe({
+            next: () => console.log('Relationship registered for Delivery Note'),
+            error: (err) => console.error('Failed to register relationship:', err)
+          });
+        }
 
-        // Display a success message using toastr
-        this.toastr.success(`Document ${docRef} créé avec succès`);
-
-        // Free all calculated document fields
         this.freeAllCalculatedDocumentFields();
-        this.router.navigateByUrl('home/merchandise/customerdelivery');
+        this.isLoading = false;
+        this.router.navigateByUrl('home/merchandise/bl/list');
       },
       error: (err) => {
+        this.isLoading = false;
         if (err.status === 409) {
-          this.toastr.error('Un document avec la même référence fournisseur existe déjà.');
-        } else if (err.status === 400) {
-          this.toastr.error('Données invalides. Veuillez vérifier les champs.');
-        } else if (err.status === 500) {
-          this.toastr.error('Une erreur interne est survenue. Veuillez réessayer plus tard.');
+          this.toastr.error('Un document avec la même référence existe déjà.');
         } else {
-          console.error('Error creating document: ', err);
-          this.toastr.error('Erreur lors de la création du document');
+          this.toastr.error('La création du document a échoué');
         }
       }
     });

@@ -1,0 +1,254 @@
+<div class="main-container">
+    <div class="header-container">
+        <div class="header-text">
+            <div class="brand-icon">
+                <mat-icon>shopping_cart</mat-icon>
+            </div>
+            <div class="brand-titles">
+                <h2>Nouveau Bon de Commande</h2>
+                <p class="subtitle">Commande client — sans impact stock</p>
+            </div>
+        </div>
+        <div class="header-buttons">
+            <button mat-flat-button class="btn-back" (click)="router.navigate(['home/merchandise/bc/list'])">
+                <mat-icon>arrow_back</mat-icon> Retour
+            </button>
+        </div>
+    </div>
+
+    <!-- Customer card -->
+    <mat-card class="document-info-card">
+        <div class="info-grid">
+            <div class="info-section customer-section">
+                <div class="section-title">
+                    <mat-icon>person</mat-icon> Client
+                </div>
+                <div class="search-row">
+                    <mat-form-field appearance="outline" class="full-width" [class.has-selection]="selectedCustomer?.id">
+                        <mat-label>Client</mat-label>
+                        <mat-icon matPrefix>person</mat-icon>
+                        <input matInput [formControl]="searchCustomerControl" placeholder="Rechercher un client..."
+                            autocomplete="off" (input)="applyCustomerFilter()" (focus)="customerSelect.open()">
+                        <div matSuffix class="field-actions">
+                            <button mat-icon-button *ngIf="selectedCustomer?.id"
+                                (click)="$event.stopPropagation(); clearCustomer()" class="clear-btn">
+                                <mat-icon>close</mat-icon>
+                            </button>
+                            <mat-icon *ngIf="!selectedCustomer?.id">search</mat-icon>
+                        </div>
+                        <mat-select #customerSelect (selectionChange)="onOptionCustomerSelected($event.value)" class="hidden-select">
+                            <mat-option *ngIf="!filteredCustomers.length" disabled>Aucun client</mat-option>
+                            <mat-option *ngFor="let item of filteredCustomers" [value]="item.id">
+                                <div class="option-row">
+                                    <mat-icon class="option-icon">person</mat-icon>
+                                    <div class="option-text">
+                                        <span class="main-text">{{ item.name || (item.firstname + ' ' + item.lastname) }}</span>
+                                        <span class="sub-text" *ngIf="item.description">{{ item.description }}</span>
+                                    </div>
+                                </div>
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div *ngIf="selectedCustomer?.id" class="customer-details anim-slide-in">
+                    <div class="detail-item"><mat-icon>person</mat-icon><span>{{ selectedCustomer.firstname }} {{ selectedCustomer.lastname }}</span></div>
+                    <div class="detail-item" *ngIf="selectedCustomer.address"><mat-icon>location_on</mat-icon><span>{{ selectedCustomer.address }}</span></div>
+                    <div class="detail-item" *ngIf="selectedCustomer.phonenumberone"><mat-icon>phone</mat-icon><span>{{ selectedCustomer.phonenumberone }}</span></div>
+                </div>
+            </div>
+
+            <div class="vertical-separator"></div>
+
+            <div class="info-section meta-section">
+                <div class="section-title"><mat-icon>edit_note</mat-icon> Référence & Date</div>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Référence interne</mat-label>
+                    <mat-icon matPrefix>tag</mat-icon>
+                    <input matInput [formControl]="$any(form).get('customerReference')" placeholder="Optionnel">
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Date</mat-label>
+                    <mat-icon matPrefix>calendar_today</mat-icon>
+                    <input matInput [matDatepicker]="picker" [(ngModel)]="selectedDate" disabled>
+                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-datepicker #picker></mat-datepicker>
+                </mat-form-field>
+                <div class="no-stock-badge">
+                    <mat-icon>info</mat-icon>
+                    Ce bon de commande <strong>n'affecte pas le stock</strong>
+                </div>
+            </div>
+        </div>
+    </mat-card>
+
+    <!-- Merchandise Table -->
+    <mat-card class="merchandise-card">
+        <div class="card-header">
+            <h3>Articles Commandés</h3>
+            <button mat-raised-button color="primary" (click)="addRow()">
+                <mat-icon>add</mat-icon> Ajouter un Article
+            </button>
+        </div>
+        <div class="table-wrapper mat-elevation-z4">
+            <table mat-table [dataSource]="dataMerchand">
+                <ng-container matColumnDef="index">
+                    <th mat-header-cell *matHeaderCellDef>#</th>
+                    <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="article">
+                    <th mat-header-cell *matHeaderCellDef>Article</th>
+                    <td mat-cell *matCellDef="let element">
+                        <div class="article-cell-container">
+                            <mat-form-field appearance="outline" class="compact-field article-field-compact" [class.has-selection]="element.selectedArticle">
+                                <mat-icon matPrefix>inventory_2</mat-icon>
+                                <input matInput [(ngModel)]="element.articleSearchInput"
+                                    placeholder="Réf. ou désignation..." autocomplete="off"
+                                    (input)="applyArticleFilter($event, element)"
+                                    (focus)="openArticleDropdown(element)" />
+                                <button mat-icon-button matSuffix *ngIf="element.articleSearchInput || element.selectedArticle"
+                                    (click)="clearArticle(element)"><mat-icon>close</mat-icon></button>
+                                <mat-select #articleSelect [(ngModel)]="element.selectedArticle"
+                                    (selectionChange)="onArticleChange(element, element.selectedArticle)"
+                                    class="show-select">
+                                    <mat-option *ngFor="let article of element.filteredArticles || articles; trackBy: trackByArticleId" [value]="article">
+                                        <div class="article-option">
+                                            <mat-icon>inventory_2</mat-icon>
+                                            <div class="text-content">
+                                                <span class="ref">{{ article.reference }}</span>
+                                                <span class="desc" *ngIf="article.description">{{ article.description }}</span>
+                                            </div>
+                                        </div>
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+
+                            <div class="stock-selector-wrapper"
+                                *ngIf="element.selectedArticle && getMatchingStocks(element.selectedArticle.id).length > 1">
+                                <mat-select [(ngModel)]="element.selectedStock" (selectionChange)="onMerchandiseChange(element)" placeholder="Réf. Lot">
+                                    <mat-option *ngFor="let stock of getMatchingStocks(element.selectedArticle.id)" [value]="stock">
+                                        {{ stock.packageReference || 'Standard' }} ({{ stock.stockQuantity | number:'1.2-3' }})
+                                    </mat-option>
+                                </mat-select>
+                            </div>
+                            <div class="stock-warning-badge"
+                                *ngIf="element.selectedArticle && !element.selectedStock && getMatchingStocks(element.selectedArticle.id).length === 0">
+                                <mat-icon>warning_amber</mat-icon><span>Aucun stock — Saisie manuelle</span>
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="sellPrice">
+                    <th mat-header-cell *matHeaderCellDef>PU. HT</th>
+                    <td mat-cell *matCellDef="let element">
+                        <mat-form-field appearance="outline" class="compact-field price-field-compact">
+                            <span matPrefix>TND&nbsp;</span>
+                            <input matInput [(ngModel)]="element.unit_price_ht" type="number" (input)="updateTotals(element)">
+                        </mat-form-field>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="quantity">
+                    <th mat-header-cell *matHeaderCellDef>Quantité</th>
+                    <td mat-cell *matCellDef="let element">
+                        <div class="quantity-container-compact">
+                            <mat-form-field appearance="outline" class="compact-field qty-field-compact">
+                                <input matInput [(ngModel)]="element.quantity" type="number"
+                                    [step]="element.isWoodArticle ? 0.001 : 1"
+                                    (input)="updateTotals(element)"
+                                    [disabled]="shouldDisableQuantityInput(element)"
+                                    [readonly]="element.isWoodArticle" placeholder="0">
+                                <div matSuffix class="field-actions">
+                                    <button mat-icon-button *ngIf="element.isWoodArticle"
+                                        (click)="openWoodLengthDialog(element)" [disabled]="!element.selectedStock">
+                                        <mat-icon>straighten</mat-icon>
+                                    </button>
+                                    <button mat-icon-button *ngIf="element.selectedStock"
+                                        [matTooltip]="'Stock: ' + (element.selectedStock.stockQuantity | number:'1.3-3')">
+                                        <mat-icon>info</mat-icon>
+                                    </button>
+                                </div>
+                            </mat-form-field>
+                            <div *ngIf="element.isWoodArticle && element.listLengths?.length" class="wood-lengths-badge">
+                                {{ getTotalNbPieces(element) }} PCS
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="discount">
+                    <th mat-header-cell *matHeaderCellDef>Remise %</th>
+                    <td mat-cell *matCellDef="let element">
+                        <mat-form-field appearance="outline" class="compact-field tva-field-compact">
+                            <input matInput [(ngModel)]="element.selldiscountpercentage" type="number" (input)="updateTotals(element)">
+                            <span matSuffix>%</span>
+                        </mat-form-field>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="tva">
+                    <th mat-header-cell *matHeaderCellDef>TVA</th>
+                    <td mat-cell *matCellDef="let element">
+                        <mat-form-field appearance="outline" class="compact-field tva-field-compact">
+                            <mat-select [ngModel]="getSelectedTvaFromArticle(element.selectedArticle)">
+                                <mat-option *ngFor="let tva of TVAs" [value]="tva.id">{{ tva.value }}</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="totalWithoutTva">
+                    <th mat-header-cell *matHeaderCellDef>Net HT</th>
+                    <td mat-cell *matCellDef="let element">{{ element.sellcostprice_net_ht | number:'1.3-3' }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="totalWithTva">
+                    <th mat-header-cell *matHeaderCellDef>Net TTC</th>
+                    <td mat-cell *matCellDef="let element">{{ element.totalWithTax | number:'1.3-3' }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat-cell *matCellDef="let element">
+                        <button mat-icon-button color="warn" (click)="deleteRow(element)"><mat-icon>delete</mat-icon></button>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+            <div *ngIf="!dataMerchand.data.length" class="empty-table-msg">
+                <mat-icon>shopping_cart</mat-icon>
+                <span>Ajoutez des articles pour commencer la commande</span>
+            </div>
+        </div>
+    </mat-card>
+
+    <div class="footer-section">
+        <div></div>
+        <mat-card class="summary-card">
+            <div class="summary-row"><span class="label">Total HT Net</span><span class="value">{{ totalHTNet_doc$ | async | number:'1.3-3' }}</span></div>
+            <div class="summary-row"><span class="label">Total Remise</span><span class="value">{{ totalRemise_doc$ | async | number:'1.3-3' }}</span></div>
+            <div class="summary-row"><span class="label">Total TVA</span><span class="value">{{ totalTVA_doc$ | async | number:'1.3-3' }}</span></div>
+            <div class="summary-row ttc-final-row">
+                <span class="label">Net TTC Final</span>
+                <div class="ttc-value-container">
+                    <input type="number" [ngModel]="netTTC_doc$ | async" (ngModelChange)="onFinalPriceChange($event)"
+                        class="ttc-final-input" step="0.001">
+                    <span class="currency-label-large">TND</span>
+                </div>
+            </div>
+            <div class="rounding-note" *ngIf="extraDiscount !== 0">
+                <mat-icon>info</mat-icon><span>Ajustement: {{ extraDiscount | number:'1.3-3' }} TND</span>
+            </div>
+            <div class="action-buttons">
+                <button mat-flat-button class="btn-save" (click)="onSubmit()" [disabled]="isLoading">
+                    <mat-spinner diameter="18" *ngIf="isLoading"></mat-spinner>
+                    <mat-icon *ngIf="!isLoading">save</mat-icon>
+                    {{ isLoading ? 'Enregistrement...' : register_button }}
+                </button>
+            </div>
+        </mat-card>
+    </div>
+</div>

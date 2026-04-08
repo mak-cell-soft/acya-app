@@ -15,6 +15,16 @@ import { ListSupplierOrderComponent } from './provider/supplier-order/list-suppl
 import { EditSupplierReceiptComponent } from './provider/edit-supplier-receipt/edit-supplier-receipt.component';
 import { EditCustomerDocumentComponent } from './customer/edit-document/edit-customer-document.component';
 
+// ── Customer Quote (Devis) ────────────────────────────────────────────────
+import { ListCustomerQuotesComponent } from './customer/customer-quote/list-customer-quotes/list-customer-quotes.component';
+import { AddCustomerQuoteComponent } from './customer/customer-quote/add-customer-quote/add-customer-quote.component';
+
+// ── Customer Order (Bon de Commande) ──────────────────────────────────────
+import { ListCustomerOrdersComponent } from './customer/customer-order/list-customer-orders/list-customer-orders.component';
+import { AddCustomerOrderComponent } from './customer/customer-order/add-customer-order/add-customer-order.component';
+
+
+
 // Modals inside merchandise
 import { DocumentDetailModalComponent } from './customer/list-customer-documents/document-detail-modal/document-detail-modal.component';
 import { DocumentConversionModalComponent } from './customer/list-customer-documents/document-conversion-modal/document-conversion-modal.component';
@@ -67,7 +77,13 @@ import { MatRadioModule } from '@angular/material/radio';
     DocumentConversionModalComponent,
     CustomerBatchConversionModalComponent,
     DeliveryNotePrintComponent,
-    SupplierOrderPrintComponent
+    SupplierOrderPrintComponent,
+    // ── Customer Quote (Devis)
+    ListCustomerQuotesComponent,
+    AddCustomerQuoteComponent,
+    // ── Customer Order (Bon de Commande)
+    ListCustomerOrdersComponent,
+    AddCustomerOrderComponent
   ],
   imports: [
     CommonModule,

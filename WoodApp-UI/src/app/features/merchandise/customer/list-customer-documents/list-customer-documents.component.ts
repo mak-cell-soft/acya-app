@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, ViewChild, AfterViewInit, TemplateRef, ElementRef } from '@angular/core';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 import { PaymentModalComponent } from '../../../../shared/components/modals/payment-modal/payment-modal.component';
 import { DocumentConversionModalComponent } from './document-conversion-modal/document-conversion-modal.component';
 import { CustomerBatchConversionModalComponent } from './customer-batch-conversion-modal/customer-batch-conversion-modal.component';
@@ -27,7 +28,15 @@ import { getStatusInfo, getBillingStatusInfo, getMonthIndex } from '../../../../
 @Component({
   selector: 'app-list-customer-documents',
   templateUrl: './list-customer-documents.component.html',
-  styleUrl: './list-customer-documents.component.css'
+  styleUrl: './list-customer-documents.component.css',
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed,void', style({ height: '0px', minHeight: '0', visibility: 'hidden' })),
+      state('expanded', style({ height: '*', visibility: 'visible' })),
+      transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
+      transition('expanded <=> void', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)'))
+    ]),
+  ]
 })
 export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
   isLoading: boolean = false;
@@ -68,7 +77,8 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
   //#endregion Labels
 
   allCustomerDeliveryNotes: MatTableDataSource<Document> = new MatTableDataSource<Document>();
-  displayedDeliveryNotesColumns: string[] = ['select', 'reference', 'date', 'counterPart', 'amount', 'status', 'isInvoiced', 'sellSite', 'action'];
+  displayedDeliveryNotesColumns: string[] = ['select', 'reference', 'date', 'counterPart', 'amount', 'status', 'isInvoiced', 'action', 'expand'];
+  expandedElement: Document | null = null;
 
   selection = new SelectionModel<any>(true, []); // true = allow multiple selections
 

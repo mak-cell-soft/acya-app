@@ -79,6 +79,8 @@ namespace ms.webapp.api.acya.api.Controllers
                               .ThenInclude(a => a!.TVAs)
           .Include(d => d.ChildDocuments)
               .ThenInclude(cd => cd.ChildDocument)
+          .Include(d => d.ParentDocuments)
+              .ThenInclude(pd => pd.ParentDocument)
                   .ThenInclude(c => c!.DocumentMerchandises)
                       .ThenInclude(cdm => cdm.QuantityMovements)
                           .ThenInclude(qm => qm!.ListOfLengths)
@@ -212,6 +214,8 @@ namespace ms.webapp.api.acya.api.Controllers
                               .ThenInclude(a => a!.TVAs)
           .Include(d => d.ChildDocuments)
               .ThenInclude(cd => cd.ChildDocument)
+          .Include(d => d.ParentDocuments)
+              .ThenInclude(pd => pd.ParentDocument)
                   .ThenInclude(c => c!.DocumentMerchandises)
                       .ThenInclude(cdm => cdm.QuantityMovements)
                           .ThenInclude(qm => qm!.ListOfLengths)
@@ -622,8 +626,11 @@ namespace ms.webapp.api.acya.api.Controllers
           // Post-commit operations
           await _repository.updateListOfIdsListOfLengths(doc);
           
-          // supplierOrder: no stock movement
-          if (doc.Type != DocumentTypes.supplierOrder)
+          // supplierOrder, customerQuote, customerOrder: no stock movement
+          // Only actual receipts/deliveries affect inventory
+          if (doc.Type != DocumentTypes.supplierOrder 
+              && doc.Type != DocumentTypes.customerQuote
+              && doc.Type != DocumentTypes.customerOrder)
           {
               await _repository.updateStockByMerchandises(doc);
           }

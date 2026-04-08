@@ -11,6 +11,7 @@ namespace ms.webapp.api.acya.common
     stockTransfer = 7,
     supplierInvoiceReturn = 8,
     customerInvoiceReturn = 9,
-    inventory = 10
+    inventory = 10,
+    customerQuote = 11  // Devis Client — no stock movement
   }
 }

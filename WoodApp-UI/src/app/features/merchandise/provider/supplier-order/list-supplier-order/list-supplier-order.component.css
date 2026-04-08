@@ -282,6 +282,26 @@
     border-style: dashed;
 }
 
+/* Cancelled state — shown when order is Abandoned or Deleted */
+.step-item.cancelled .step-bubble {
+    background: rgba(239, 68, 68, 0.08);
+    border: 2px solid #ef4444;
+    color: #ef4444;
+    transform: scale(1.0);
+    box-shadow: none;
+}
+
+.step-item.cancelled .step-content .label {
+    color: #ef4444;
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.step-item.cancelled .step-content .value,
+.step-item.cancelled .step-content .date {
+    opacity: 0.5;
+}
+
 .step-content {
     margin-top: 12px;
     display: flex;
