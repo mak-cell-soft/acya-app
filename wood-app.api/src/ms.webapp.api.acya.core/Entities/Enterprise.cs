@@ -47,7 +47,7 @@ namespace ms.webapp.api.acya.core.Entities
       MobileTwo= dto.mobileTwo;
       MatriculeFiscal = dto.matriculeFiscal;
       Devise = dto.devise;
-      NameResponsable= dto.nameResponsable.ToUpper();
+      NameResponsable= dto.nameResponsable?.ToUpper();
       PositionResponsable = dto.positionResponsable;
       SurnameResponsable = dto.surnameResponsable!;
       SiegeAddress = dto.siegeAddress;
