@@ -49,10 +49,34 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
     public string? GetLastDocNumberByPrefix(string prefix)
     {
-      return context.Documents
-          .Where(d => d.DocNumber!.StartsWith(prefix))
-          .OrderByDescending(d => d.DocNumber)
+      // We fetch the documents starting with the prefix.
+      // To handle mixed lengths (e.g., BL-26-016 vs BL-26-0017), we sort in memory
+      // because SQL string sorting would put 016 > 0017.
+      var candidates = context.Documents
+          .Where(d => d.DocNumber!.StartsWith(prefix + "-"))
+          .OrderByDescending(d => d.Id) // Optimization: usually newer IDs have newer numbers
+          .Take(50) // Take a reasonable sample to find the "true" max
           .Select(d => d.DocNumber)
+          .ToList();
+
+      if (!candidates.Any()) return null;
+
+      return candidates
+          .Select(c => 
+          {
+              var parts = c!.Split('-');
+              if (parts.Length >= 3 && 
+                  int.TryParse(parts[parts.Length - 1], out int inc) && 
+                  int.TryParse(parts[parts.Length - 2], out int year))
+              {
+                  return new { Original = c, Year = year, Increment = inc };
+              }
+              return null;
+          })
+          .Where(x => x != null)
+          .OrderByDescending(x => x!.Year)
+          .ThenByDescending(x => x!.Increment)
+          .Select(x => x!.Original)
           .FirstOrDefault();
     }
 

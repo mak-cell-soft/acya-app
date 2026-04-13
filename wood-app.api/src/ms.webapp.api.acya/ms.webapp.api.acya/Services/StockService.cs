@@ -58,8 +58,11 @@ namespace ms.webapp.api.acya.api.Services
                 return StockTransferResult.Fail("updatedbyid is required.");
             }
 
-            var appUserExists = await _context.AppUsers.AnyAsync(u => u.Id == dto.updatedById);
-            if (!appUserExists)
+            var user = await _context.AppUsers
+                .Include(u => u.Enterprise)
+                .FirstOrDefaultAsync(u => u.Id == dto.updatedById);
+
+            if (user == null)
             {
                 return StockTransferResult.Fail("Invalid updatedById: The specified user does not exist.");
             }
@@ -78,7 +81,18 @@ namespace ms.webapp.api.acya.api.Services
             }
 
             // 2. Document Number Generation
-            string prefix = Helpers.GetPrefixForDocumentType(DocumentTypes.stockTransfer);
+            var numberingConfig = new DocumentNumberingConfigDto();
+            if (!string.IsNullOrEmpty(user.Enterprise?.DocumentNumberingConfig))
+            {
+                try
+                {
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    numberingConfig = System.Text.Json.JsonSerializer.Deserialize<DocumentNumberingConfigDto>(user.Enterprise.DocumentNumberingConfig, options) ?? new DocumentNumberingConfigDto();
+                }
+                catch { }
+            }
+
+            string prefix = Helpers.GetPrefixForDocumentType(DocumentTypes.stockTransfer, numberingConfig.Prefixes);
             if (string.IsNullOrEmpty(prefix))
             {
                 return StockTransferResult.Fail("Invalid document type.");
@@ -92,8 +106,8 @@ namespace ms.webapp.api.acya.api.Services
                 lock (_docRepository)
                 {
                     string? lastDocNumber = _docRepository.GetLastDocNumberByPrefix(prefix);
-                    outgoingDocNumber = Helpers.GenerateNewDocNumber(prefix, lastDocNumber);
-                    incomingDocNumber = Helpers.GenerateNewDocNumber(prefix, outgoingDocNumber);
+                    outgoingDocNumber = Helpers.GenerateNewDocNumber(prefix, lastDocNumber, numberingConfig.YearFormat, numberingConfig.IncrementLength);
+                    incomingDocNumber = Helpers.GenerateNewDocNumber(prefix, outgoingDocNumber, numberingConfig.YearFormat, numberingConfig.IncrementLength);
                 }
             }
             catch (Exception ex)
