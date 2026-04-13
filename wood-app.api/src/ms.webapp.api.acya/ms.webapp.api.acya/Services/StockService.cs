@@ -4,6 +4,7 @@ using ms.webapp.api.acya.api.Controllers; // For NotificationHub
 using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs;
+using ms.webapp.api.acya.core.Entities.DTOs.Config;
 using ms.webapp.api.acya.core.Entities.Product;
 using ms.webapp.api.acya.core.Interfaces;
 using ms.webapp.api.acya.infrastructure;
