@@ -101,8 +101,20 @@
 
                 <ng-container matColumnDef="quantity">
                     <th mat-header-cell *matHeaderCellDef class="article-table-cell">Quantité</th>
-                    <td mat-cell *matCellDef="let element" class="article-table-cell">
+                    <td mat-cell *matCellDef="let element" class="article-table-cell" [class.critical-text]="element.minimumstock > 0 && element.quantity <= element.minimumstock">
                         {{element.quantity}} {{element.merchandise?.article?.unit}}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="minimumStock">
+                    <th mat-header-cell *matHeaderCellDef class="article-table-cell">Seuil Min.</th>
+                    <td mat-cell *matCellDef="let element" class="article-table-cell">
+                        <div class="min-stock-cell">
+                            <span>{{element.minimumstock}}</span>
+                            <button mat-icon-button class="edit-btn-mini" (click)="onEditMinimumStock(element)">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                        </div>
                     </td>
                 </ng-container>
 
@@ -114,7 +126,8 @@
                 </ng-container>
 
                 <tr mat-header-row *matHeaderRowDef="displayedStockColumns"></tr>
-                <tr mat-row *matRowDef="let element; columns: displayedStockColumns;"></tr>
+                <tr mat-row *matRowDef="let element; columns: displayedStockColumns;"
+                    [class.low-stock-row]="element.minimumstock > 0 && element.quantity <= element.minimumstock"></tr>
 
 
                 <!-- Row shown when there is no matching data. -->

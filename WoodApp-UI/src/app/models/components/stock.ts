@@ -10,6 +10,7 @@ export class Stock {
      * Remaining Quantity
      */
     quantity: number = 0;
+    minimumstock: number = 0;
     creationdate!: Date;
     updatedate!: Date;
     type!: TransactionType;
@@ -49,6 +50,7 @@ export class StockQuantity {
     //merchandiseQuantity: number = 0;
     siteId: number = 0;
     stockQuantity: number = 0;
+    minimumStock: number = 0;
     MerchandiseDescription: string = '';
     isInvoicible: boolean = false;
     allowNegativeStock: boolean = false;
@@ -65,4 +67,12 @@ export class StockWithLengthDetails {
     LengthId: number = 0;
     LengthName: string | null = null;
     RemainingPieces: number = 0;
+}
+
+export interface StockDashboardStats {
+    totalItems: number;
+    lowStockItems: number;
+    outOfStockItems: number;
+    healthyStockItems: number;
+    topLowStockItems: StockQuantity[];
 }

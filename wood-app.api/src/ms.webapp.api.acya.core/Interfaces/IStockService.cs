@@ -24,5 +24,10 @@ namespace ms.webapp.api.acya.core.Interfaces
         Task<IEnumerable<StockTransferDetailsDto>> GetStockTransfersDetailsAsync(string? originDoc, string? receiptDoc);
         Task<IEnumerable<StockTransferInfoDto>> GetFilteredStockTransfersAsync(DateTime? fromDate, DateTime? toDate, int? originSiteId, int? destinationSiteId);
         Task<IEnumerable<WoodArticleStockDetail>> GetWoodArticleStockDetailsAsync(string articleRef, int salesSiteId, int merchandiseId);
+        
+        // Stock Alerts
+        Task<bool> UpdateMinimumStockAsync(int stockId, double minimumStock);
+        Task<IEnumerable<StockQuantityDto>> GetStockAlertsAsync(int? siteId = null);
+        Task<StockDashboardStatsDto> GetStockDashboardStatsAsync(int? siteId = null);
     }
 }

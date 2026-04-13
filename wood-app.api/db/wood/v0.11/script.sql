@@ -30,4 +30,7 @@ WHERE NOT EXISTS (
     SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260413070039_AddAuditTrail'
 );
 
+-- §5.7 — Alerte de stock bas
+ALTER TABLE tbl_stock ADD COLUMN IF NOT EXISTS minimumstock double precision NOT NULL DEFAULT 0;
+
 COMMIT;

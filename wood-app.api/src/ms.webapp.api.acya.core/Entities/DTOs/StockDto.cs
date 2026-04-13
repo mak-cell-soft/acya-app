@@ -16,6 +16,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
      * Remaining Quantity
      */
     public double quantity { get; set; }
+    public double minimumstock { get; set; }
     public DateTime? creationdate { get; set; }
     public DateTime? updatedate { get; set; }
     public TransactionType type { get; set; }
@@ -37,6 +38,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     {
       id = entity.Id;
       quantity = entity.Quantity;
+      minimumstock = entity.MinimumStock;
       creationdate = entity.CreationDate;
       updatedate = entity.UpdateDate;
       if (entity.Merchandises!= null)

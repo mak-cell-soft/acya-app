@@ -474,6 +474,26 @@
       }
     }
 
+    .notif-section-title {
+      padding: 12px 24px 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #8C6239;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: rgba(140, 98, 57, 0.03);
+    }
+
+    .stock-alert-item {
+      .item-notif-icon.warning {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+      }
+      .item-time.critical {
+        color: #ef4444;
+      }
+    }
+
     .notif-footer {
       padding: 12px 24px;
       display: flex;

@@ -26,6 +26,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
      */
     public int SiteId { get; set; }
     public double StockQuantity { get; set; }
+    public double MinimumStock { get; set; }
 
   }
 }

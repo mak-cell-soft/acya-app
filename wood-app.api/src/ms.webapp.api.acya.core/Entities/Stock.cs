@@ -12,6 +12,7 @@ namespace ms.webapp.api.acya.core.Entities
      * Remaining Quantity
      */
     public double Quantity { get; set; }
+    public double MinimumStock { get; set; } = 0;
 
     public DateTime? CreationDate { get; set; }
     public DateTime? UpdateDate { get; set; }

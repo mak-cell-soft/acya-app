@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
-import { Stock, StockQuantity, StockWithLengthDetails, WoodParams } from '../../models/components/stock';
+import { Stock, StockDashboardStats, StockQuantity, StockWithLengthDetails, WoodParams } from '../../models/components/stock';
 import { Site } from '../../models/components/sites';
 import { ConfirmTransferResponse, StockTransferDetails, StockTransferInfo, StockTransfert } from '../../models/components/stock_transfert';
 import { AuthenticationService } from './authentication.service';
@@ -139,6 +139,26 @@ export class StockService {
       this.baseUrl + 'Stock/wood/details',
       woodParams
     );
+  }
+
+  updateMinimumStock(stockId: number, minimumStock: number): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}Stock/${stockId}/minimum`, minimumStock);
+  }
+
+  getStockAlerts(siteId?: number): Observable<StockQuantity[]> {
+    let params = new HttpParams();
+    if (siteId) {
+      params = params.set('siteId', siteId.toString());
+    }
+    return this.http.get<StockQuantity[]>(`${this.baseUrl}Stock/alerts`, { params });
+  }
+
+  getStockDashboardStats(siteId?: number): Observable<StockDashboardStats> {
+    let params = new HttpParams();
+    if (siteId) {
+      params = params.set('siteId', siteId.toString());
+    }
+    return this.http.get<StockDashboardStats>(`${this.baseUrl}Stock/dashboard-stats`, { params });
   }
 
 }

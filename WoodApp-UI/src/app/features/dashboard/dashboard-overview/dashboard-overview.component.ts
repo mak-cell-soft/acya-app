@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CounterpartService } from '../../../services/components/counterpart.service';
 import { DocumentService } from '../../../services/components/document.service';
+import { StockService } from '../../../services/components/stock.service';
 import { CounterPartType_FR } from '../../../shared/constants/list_of_constants';
 import { DocumentTypes } from '../../../models/components/document';
 import { Router } from '@angular/router';
@@ -23,6 +24,7 @@ export class DashboardOverviewComponent implements OnInit {
   documentService = inject(DocumentService);
   authService = inject(AuthenticationService);
   paymentService = inject(PaymentService);
+  stockService = inject(StockService);
   router = inject(Router);
 
   selectedDate: Date = new Date();
@@ -47,6 +49,21 @@ export class DashboardOverviewComponent implements OnInit {
     labels: [],
     datasets: []
   };
+
+  stockHealthChartData: ChartData<'pie'> = {
+    labels: ['Bon', 'Bas', 'Rupture'],
+    datasets: []
+  };
+
+  stockHealthChartOptions: ChartOptions<'pie'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom' },
+      title: { display: true, text: 'Santé du Stock' }
+    }
+  };
+
   salesChartOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -145,10 +162,16 @@ export class DashboardOverviewComponent implements OnInit {
     // 2. Fetch Sales (Invoices) - Assuming fetching all for now, optimization would be a backend aggregation endpoint
     const sales$ = this.documentService.GetByType(DocumentTypes.customerInvoice);
 
+    // 3. Fetch Stock Stats
+    const user = this.authService.getUserDetail();
+    const siteId = user?.defaultSiteId ? Number(user.defaultSiteId) : undefined;
+    const stockStats$ = this.stockService.getStockDashboardStats(siteId);
+
     forkJoin({
       customers: customers$,
       providers: providers$,
-      sales: sales$
+      sales: sales$,
+      stock: stockStats$
     }).subscribe({
       next: (data) => {
         // Customer vs Provider
@@ -158,6 +181,9 @@ export class DashboardOverviewComponent implements OnInit {
 
         // Daily Sales & Sales Chart
         this.processSalesData(data.sales);
+
+        // Stock Health Chart
+        this.updateStockHealthChart(data.stock);
 
         this.loading = false;
       },
@@ -234,6 +260,19 @@ export class DashboardOverviewComponent implements OnInit {
             "#81C784",
             "#FFB74D"
           ]
+        }
+      ]
+    };
+  }
+
+  updateStockHealthChart(stats: any) {
+    this.stockHealthChartData = {
+      labels: ['Bon', 'Bas', 'Rupture'],
+      datasets: [
+        {
+          data: [stats.healthyStockItems, stats.lowStockItems, stats.outOfStockItems],
+          backgroundColor: ['#66BB6A', '#FFA726', '#EF5350'],
+          hoverBackgroundColor: ['#81C784', '#FFB74D', '#E57373']
         }
       ]
     };

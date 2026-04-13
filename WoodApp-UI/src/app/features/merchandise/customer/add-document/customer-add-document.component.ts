@@ -862,7 +862,7 @@ export class CustomerAddDocumentComponent {
 
         this.freeAllCalculatedDocumentFields();
         this.isLoading = false;
-        this.router.navigateByUrl('home/merchandise/bl/list');
+        this.router.navigateByUrl('home/merchandise/customerdelivery');
       },
       error: (err) => {
         this.isLoading = false;

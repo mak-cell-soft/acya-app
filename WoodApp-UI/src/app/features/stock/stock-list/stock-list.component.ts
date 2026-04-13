@@ -7,6 +7,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
+import { ToastrService } from 'ngx-toastr';
 import { StockTransferFormComponent } from '../stock-transfer-form/stock-transfer-form.component';
 
 interface UnitTotal {
@@ -32,9 +33,10 @@ export class StockListComponent implements OnInit, AfterViewInit {
   authService = inject(AuthenticationService);
   router = inject(Router);
   dialog = inject(MatDialog);
+  toastr = inject(ToastrService);
 
   categoryGroups: CategoryGroup[] = [];
-  displayedStockColumns: string[] = ['articleReference', 'articleDescription', 'packageReference', 'merchandiseDescription', 'updateDate', 'site', 'quantity', 'updatedBy'];
+  displayedStockColumns: string[] = ['articleReference', 'articleDescription', 'packageReference', 'merchandiseDescription', 'updateDate', 'site', 'quantity', 'minimumStock', 'updatedBy'];
 
   @ViewChildren(MatPaginator) paginators!: QueryList<MatPaginator>;
   @ViewChildren(MatSort) sorts!: QueryList<MatSort>;
@@ -171,6 +173,29 @@ export class StockListComponent implements OnInit, AfterViewInit {
         this.getAll(); // Refresh stock list if transfer was successful
       }
     });
+  }
+
+  onEditMinimumStock(element: Stock) {
+    const newMin = window.prompt(`Modifier le seuil minimum pour ${element.merchandise?.article?.reference}`, element.minimumstock?.toString());
+    
+    if (newMin !== null) {
+      const value = parseFloat(newMin);
+      if (isNaN(value) || value < 0) {
+        this.toastr.error('Veuillez saisir un nombre valide >= 0');
+        return;
+      }
+
+      this.stockService.updateMinimumStock(element.id, value).subscribe({
+        next: () => {
+          this.toastr.success('Seuil mis à jour avec succès');
+          element.minimumstock = value; // Update local value
+        },
+        error: (err) => {
+          this.toastr.error('Erreur lors de la mise à jour du seuil');
+          console.error(err);
+        }
+      });
+    }
   }
 }
 

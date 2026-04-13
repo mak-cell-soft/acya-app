@@ -16,6 +16,7 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Stock
             entity.Property(e => e.CreationDate).HasColumnName("creationdate");
             entity.Property(e => e.UpdateDate).HasColumnName("updatedate");
             entity.Property(e => e.Quantity).HasColumnName("quantity");
+            entity.Property(e => e.MinimumStock).HasColumnName("minimumstock");
             entity.Property(e => e.MerchandiseId).HasColumnName("idmerchandise");
             entity.Property(e => e.UpdatedById).HasColumnName("updatedbyid");
             entity.Property(e => e.SalesSiteId).HasColumnName("idsite");

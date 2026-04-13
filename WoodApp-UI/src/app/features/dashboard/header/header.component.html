@@ -27,8 +27,8 @@
 
       <!-- Notification Bell -->
       <button mat-icon-button class="action-btn" [matMenuTriggerFor]="notificationsMenu">
-        <mat-icon [matBadge]="notificationService.getPendingNotifications().length" matBadgeColor="warn"
-          [matBadgeHidden]="notificationService.getPendingNotifications().length === 0"
+        <mat-icon [matBadge]="notificationService.getTotalUnreadCount()" matBadgeColor="warn"
+          [matBadgeHidden]="notificationService.getTotalUnreadCount() === 0"
           class="bell-icon">notifications</mat-icon>
       </button>
 
@@ -36,8 +36,8 @@
         <div class="notif-menu-header">
           <div class="header-main">
             <h3>Notifications</h3>
-            <span class="count-badge" *ngIf="notificationService.getPendingNotifications().length > 0">
-              {{notificationService.getPendingNotifications().length}}
+            <span class="count-badge" *ngIf="notificationService.getTotalUnreadCount() > 0">
+              {{notificationService.getTotalUnreadCount()}}
             </span>
           </div>
           <button mat-button class="clear-all-btn" *ngIf="notificationService.getPendingNotifications().length > 0">
@@ -73,6 +73,27 @@
                   <span>Sortie N° {{notif.exitDocNumber}}</span>
                   •
                   <span>{{notif.itemsCount}} articles</span>
+                </div>
+              </div>
+            </button>
+          </ng-container>
+
+          <ng-container *ngIf="notificationService.getStockAlerts().length > 0">
+            <div class="notif-section-title">Alertes Stock Bas</div>
+            <button *ngFor="let alert of notificationService.getStockAlerts()" mat-menu-item
+              routerLink="home/stock" class="notification-item-premium stock-alert-item">
+              <div class="item-notif-icon warning">
+                <mat-icon>warning</mat-icon>
+              </div>
+              <div class="item-notif-content">
+                <div class="item-header">
+                  <span class="item-type">Alerte Stock</span>
+                  <span class="item-time critical">Critique</span>
+                </div>
+                <div class="item-title">{{alert.articleReference}}</div>
+                <div class="item-details">
+                  <mat-icon>inventory_2</mat-icon>
+                  <span>Reste: {{alert.stockQuantity}} / Seuil: {{alert.minimumStock}}</span>
                 </div>
               </div>
             </button>

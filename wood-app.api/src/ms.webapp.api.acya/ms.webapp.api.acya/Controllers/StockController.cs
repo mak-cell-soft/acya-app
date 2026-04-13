@@ -1,16 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using ms.webapp.api.acya.api.Controllers;
-using ms.webapp.api.acya.api.Services;
-using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs;
-using ms.webapp.api.acya.core.Entities.Product;
 using ms.webapp.api.acya.infrastructure;
-using ms.webapp.api.acya.infrastructure.Repositories;
 using ms.webapp.api.acya.core.Interfaces;
-
+using ms.webapp.api.acya.common;
 
 namespace ms.webapp.api.acya.api.Controllers
 {
@@ -18,7 +13,7 @@ namespace ms.webapp.api.acya.api.Controllers
   {
     private readonly IStockService _stockService;
     private readonly ILogger<StockController> _logger;
-    private readonly WoodAppContext _context; // Kept for GetMissedNotifications - consider refactoring later
+    private readonly WoodAppContext _context;
 
     public StockController(
         IStockService stockService, 
@@ -30,10 +25,6 @@ namespace ms.webapp.api.acya.api.Controllers
       _logger = logger;
     }
 
-    /**
-     * Transfer without confirmation
-     * 
-     */
     [HttpPost("transfer")]
     public async Task<ActionResult> StockTransfer(StockTransferDto dto)
     {
@@ -91,10 +82,6 @@ namespace ms.webapp.api.acya.api.Controllers
     public async Task<ActionResult<StockWithLengthDetailsDto>> GetWoodStockWithLengthDetails([FromBody] WoodParamsDto woodParams)
     {
       var stockDetails = await _stockService.GetWoodArticleStockDetailsAsync(woodParams.merchandiseRef!, woodParams.salesSiteId, woodParams.merchandiseId);
-      foreach (var detail in stockDetails)
-      {
-        Console.WriteLine($"Length: {detail.LengthName}, Remaining Pieces: {detail.RemainingPieces}");
-      }
       return Ok(stockDetails);
     }
 
@@ -111,17 +98,6 @@ namespace ms.webapp.api.acya.api.Controllers
     [FromQuery] string? receiptDoc = null)
     {
       var allTrInfos = await _stockService.GetStockTransfersDetailsAsync(originDoc, receiptDoc);
-      if (allTrInfos == null || !allTrInfos.Any()) 
-      {
-        // Check if it was because not found or just empty
-        // Service returns empty if not found logic was triggered or just no items.
-        // Controller logic had specific "NotFound" if doc refs didn't exist.
-        // I moved that check to service. Service returns empty if check fails.
-        // Is it critical to return 404? 
-        // If args provided and result empty, maybe 404?
-        // Let's assume OK with empty list is fine or checking "empty" is enough.
-        // Actually, let's keep it simple.
-      }
       return Ok(allTrInfos);
     }
 
@@ -147,11 +123,6 @@ namespace ms.webapp.api.acya.api.Controllers
         return StatusCode(500, "An error occurred while retrieving stock transfers" + ex.Message);
       }
     }
-
-    /***
-     * Implementaion of Transfer with confirmation
-     * there are three endpoints (methods) to do that.
-     */
 
     [HttpPost("process-transfer")]
     public async Task<ActionResult> PreocessStockTransfer(StockTransferDto dto)
@@ -196,12 +167,6 @@ namespace ms.webapp.api.acya.api.Controllers
        return Ok(new { Message = result.Message });
     }
 
-    /***
-     * @description Update a transfer
-     * @param transferId
-     * @param request
-     * @returns updated transfer
-     */
     [HttpPut("transfers/{transferId}")]
     public async Task<ActionResult> UpdateTransfer(int transferId, [FromBody] UpdateTransferRequest request)
     {
@@ -218,50 +183,27 @@ namespace ms.webapp.api.acya.api.Controllers
         });
     }
 
-    /***
-     * @description Get missed notifications for a user
-     * @param userId
-     * @returns missed notifications
-     */
     [HttpGet("notifications/missed")]
     public async Task<ActionResult> GetMissedNotifications(int userId)
     {
       try
       {
         string? siteId = null;
+        var user = await _context.AppUsers.Include(u => u.SalesSite).FirstOrDefaultAsync(u => u.Id == userId);
+        if (user?.SalesSite != null) siteId = user.SalesSite.Id.ToString();
 
-        // Try to get siteId from the user's associated SalesSite
-        var user = await _context.AppUsers
-            .Include(u => u.SalesSite)
-            .FirstOrDefaultAsync(u => u.Id == userId);
-
-        if (user?.SalesSite != null)
-        {
-          siteId = user.SalesSite.Id.ToString();
-        }
-
-        // Fallback logic: try to get siteId from JWT claims
         if (string.IsNullOrEmpty(siteId))
         {
           var siteAddress = User.FindFirst("DefaultSite")?.Value;
           if (!string.IsNullOrEmpty(siteAddress))
           {
-            var site = await _context.SalesSites
-                .FirstOrDefaultAsync(s => s.Address == siteAddress);
-            if (site != null)
-            {
-              siteId = site.Id.ToString();
-            }
+            var site = await _context.SalesSites.FirstOrDefaultAsync(s => s.Address == siteAddress);
+            if (site != null) siteId = site.Id.ToString();
           }
         }
 
-        // If still no siteId found, return error
-        if (string.IsNullOrEmpty(siteId))
-        {
-          return BadRequest("User site context not found.");
-        }
+        if (string.IsNullOrEmpty(siteId)) return BadRequest("User site context not found.");
 
-        // Fetch non-finalized notifications (exclude Confirmed, Rejected, Cancelled)
         var notifications = await _context.PendingNotifications
             .Where(n => n.Status != TransferStatus.Confirmed && 
                         n.Status != TransferStatus.Rejected && 
@@ -274,35 +216,39 @@ namespace ms.webapp.api.acya.api.Controllers
       }
       catch (Exception ex)
       {
-        _logger.LogError(ex, "Error retrieving missed notifications for user {UserId}", userId);
-        return StatusCode(500, $"An error occurred while retrieving notifications: {ex.Message}");
+        _logger.LogError(ex, "Error retrieving missed notifications");
+        return StatusCode(500, ex.Message);
       }
     }
 
-    /***
-     * @description Get confirmation code for a transfer
-     * @param transferId
-     * @returns confirmation code
-     */
     [HttpGet("confirmation-code/{transferId}")]
     public async Task<ActionResult> GetConfirmationCode(int transferId)
     {
-      try
-      {
-        var transfer = await _context.StockTransfers
-            .FirstOrDefaultAsync(t => t.Id == transferId);
-        if (transfer == null)
-        {
-          return NotFound("Transfer not found");
-        }
-        return Ok(transfer.ConfirmationCode);
-      }
-      catch (Exception ex)
-      {
-        _logger.LogError(ex, "Error retrieving confirmation code for transfer {TransferId}", transferId);
-        return StatusCode(500, $"An error occurred while retrieving confirmation code: {ex.Message}");
-      }
+      var transfer = await _context.StockTransfers.FirstOrDefaultAsync(t => t.Id == transferId);
+      if (transfer == null) return NotFound("Transfer not found");
+      return Ok(transfer.ConfirmationCode);
+    }
+
+    [HttpPut("{stockId}/minimum")]
+    public async Task<IActionResult> UpdateMinimumStock(int stockId, [FromBody] double minimumStock)
+    {
+        var success = await _stockService.UpdateMinimumStockAsync(stockId, minimumStock);
+        if (!success) return NotFound("Stock reference not found.");
+        return Ok();
+    }
+
+    [HttpGet("alerts")]
+    public async Task<ActionResult<IEnumerable<StockQuantityDto>>> GetStockAlerts([FromQuery] int? siteId = null)
+    {
+        var alerts = await _stockService.GetStockAlertsAsync(siteId);
+        return Ok(alerts);
+    }
+
+    [HttpGet("dashboard-stats")]
+    public async Task<ActionResult<StockDashboardStatsDto>> GetStockDashboardStats([FromQuery] int? siteId = null)
+    {
+        var stats = await _stockService.GetStockDashboardStatsAsync(siteId);
+        return Ok(stats);
     }
   }
-
 }

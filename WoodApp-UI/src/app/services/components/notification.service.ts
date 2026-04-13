@@ -6,7 +6,7 @@ import { map, Observable, Subject } from 'rxjs';
 import { AuthenticationService } from './authentication.service';
 import { environment } from '../../../environments/environment';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +14,7 @@ import { HttpClient } from '@angular/common/http';
 export class NotificationService implements OnDestroy, OnInit {
   private hubConnection!: signalR.HubConnection;
   private notifications: TransferNotification[] = [];
+  private stockAlerts: any[] = [];
   private destroy$ = new Subject<void>();
   private isManualReconnect = false;
 
@@ -178,6 +179,10 @@ export class NotificationService implements OnDestroy, OnInit {
       this.handleTransferNotification(transfer);
     });
 
+    this.hubConnection.on('ReceiveStockAlert', (alert: any) => {
+      this.handleStockAlert(alert);
+    });
+
     this.hubConnection.on('NotificationDeleted', (data: any) => {
       this.removeNotification(data.id);
     });
@@ -251,6 +256,24 @@ export class NotificationService implements OnDestroy, OnInit {
     }
   }
 
+  private handleStockAlert(alert: any) {
+    console.log('[SignalR] Stock alert:', alert);
+    
+    // Add to alerts if it's the first time or update
+    this.stockAlerts = [
+      ...this.stockAlerts.filter(a => a.articleReference !== alert.articleReference),
+      alert
+    ];
+
+    if (this.authService.isLoggedIn()) {
+      this.snackBar.open(
+        `Alerte Stock Bas: ${alert.articleReference} (${alert.quantity})`,
+        'OK',
+        { duration: 6000, panelClass: ['critical-snackbar'] }
+      );
+    }
+  }
+
   private logConnectionState() {
     console.log('Current connection state:', this.hubConnection.state);
     this.hubConnection.onreconnecting(() => console.log('Connection reconnecting...'));
@@ -276,6 +299,34 @@ export class NotificationService implements OnDestroy, OnInit {
 
   clearNotifications() {
     this.notifications = [];
+    this.stockAlerts = [];
+  }
+
+  fetchStockAlerts() {
+    const user = this.authService.getUserDetail();
+    if (!user || (!user.defaultSiteId && !user.defaultSite)) return;
+    
+    const siteId = user.defaultSiteId ? Number(user.defaultSiteId) : undefined;
+    
+    let params = new HttpParams();
+    if (siteId) {
+      params = params.append('siteId', siteId);
+    }
+
+    this.http.get<any[]>(`${environment.apiBaseUrl}/api/stock/alerts`, { params }).subscribe({
+      next: (alerts) => {
+        this.stockAlerts = alerts;
+      },
+      error: (err) => console.error('Failed to fetch stock alerts', err)
+    });
+  }
+
+  getStockAlerts(): any[] {
+    return [...this.stockAlerts];
+  }
+
+  getTotalUnreadCount(): number {
+    return this.notifications.length + this.stockAlerts.length;
   }
 
   ngOnDestroy() {

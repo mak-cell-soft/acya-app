@@ -34,7 +34,10 @@ export class HeaderComponent implements OnInit, AfterViewInit {
     }
 
     // Wait 2 seconds before fetching missed to ensure auth is settled
-    setTimeout(() => this.fetchMissedNotifications(), 2000);
+    setTimeout(() => {
+      this.fetchMissedNotifications();
+      this.notificationService.fetchStockAlerts();
+    }, 2000);
   }
 
   fetchMissedNotifications() {

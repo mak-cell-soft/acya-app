@@ -214,6 +214,7 @@ namespace ms.webapp.api.acya.api.Services
                 {
                     await _docRepository.updateListOfIdsListOfLengths(receiptDoc);
                     await _repository.UpdateStockForTransfer(exitDoc.Id, receiptDoc.Id);
+                    await CheckDocumentStockAlertsAsync(exitDoc.Id);
                     
                     return StockTransferResult.Ok(
                         "Stock transfer completed successfully",
@@ -229,6 +230,7 @@ namespace ms.webapp.api.acya.api.Services
                 {
                     // Only update stock for exit side immediately
                     await _repository.UpdateStockForTransfer(exitDoc.Id, null);
+                    await CheckDocumentStockAlertsAsync(exitDoc.Id);
 
                     // Notifications
                     await SendTransferNotificationAsync(destinationSite, originSite, transferRelationship, dto.merchandisesItems.Length, exitDoc.DocNumber!, receiptDoc.DocNumber!);
@@ -493,6 +495,12 @@ namespace ms.webapp.api.acya.api.Services
         public async Task HandleTransactionAsync(Stock transaction)
         {
             await _repository.HandleTransaction(transaction);
+            
+            // Check for low stock alert after retrieval
+            if (transaction.Type == TransactionType.Retrieve)
+            {
+                await CheckAndNotifyLowStockAsync(transaction.SalesSiteId, transaction.MerchandiseId);
+            }
         }
 
         #endregion
@@ -542,9 +550,78 @@ namespace ms.webapp.api.acya.api.Services
 
         public async Task<IEnumerable<WoodArticleStockDetail>> GetWoodArticleStockDetailsAsync(string articleRef, int salesSiteId, int merchandiseId)
         {
-            // Map the repository result (Core.Entities.DTOs.WoodArticleStockDetail)
-            // Wait, I moved the class to Core DTOs, so the types should match exactly!
             return await _repository.GetWoodArticleStockDetails(articleRef, salesSiteId, merchandiseId);
+        }
+
+        public async Task<bool> UpdateMinimumStockAsync(int stockId, double minimumStock)
+        {
+            var stock = await _context.Stocks.FindAsync(stockId);
+            if (stock == null) return false;
+
+            stock.MinimumStock = minimumStock;
+            stock.UpdateDate = DateTime.Now;
+            
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<IEnumerable<StockQuantityDto>> GetStockAlertsAsync(int? siteId = null)
+        {
+            var query = _context.Stocks
+                .Include(s => s.Merchandises)
+                    .ThenInclude(m => m!.Articles)
+                .Where(s => s.MinimumStock > 0 && s.Quantity <= s.MinimumStock);
+
+            if (siteId.HasValue)
+            {
+                query = query.Where(s => s.SalesSiteId == siteId.Value);
+            }
+
+            var results = await query.Select(s => new StockQuantityDto
+            {
+                ArticleId = s.Merchandises!.ArticleId,
+                MerchandiseId = s.MerchandiseId,
+                PackageReference = s.Merchandises.PackageReference,
+                ArticleReference = s.Merchandises.Articles!.Reference,
+                StockQuantity = s.Quantity,
+                MinimumStock = s.MinimumStock,
+                SiteId = s.SalesSiteId
+            }).ToListAsync();
+
+            return results;
+        }
+
+        public async Task<StockDashboardStatsDto> GetStockDashboardStatsAsync(int? siteId = null)
+        {
+            var query = _context.Stocks.AsQueryable();
+            if (siteId.HasValue)
+            {
+                query = query.Where(s => s.SalesSiteId == siteId.Value);
+            }
+
+            var allStocks = await query.ToListAsync();
+
+            var stats = new StockDashboardStatsDto
+            {
+                TotalItems = allStocks.Count,
+                OutOfStockItems = allStocks.Count(s => s.Quantity <= 0),
+                LowStockItems = allStocks.Count(s => s.MinimumStock > 0 && s.Quantity > 0 && s.Quantity <= s.MinimumStock),
+                HealthyStockItems = allStocks.Count(s => s.Quantity > s.MinimumStock || s.MinimumStock == 0)
+            };
+
+            // Get top 5 low stock items for detail
+            stats.TopLowStockItems = await query
+                .Where(s => s.MinimumStock > 0 && s.Quantity <= s.MinimumStock)
+                .OrderBy(s => s.Quantity / s.MinimumStock)
+                .Take(5)
+                .Select(s => new StockQuantityDto
+                {
+                    ArticleReference = s.Merchandises!.Articles!.Reference,
+                    StockQuantity = s.Quantity,
+                    MinimumStock = s.MinimumStock
+                }).ToListAsync();
+
+            return stats;
         }
 
         #endregion
@@ -623,6 +700,54 @@ namespace ms.webapp.api.acya.api.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to queue persistence notification");
+            }
+        }
+
+        private async Task CheckAndNotifyLowStockAsync(int siteId, int merchandiseId)
+        {
+            try
+            {
+                var stock = await _context.Stocks
+                    .Include(s => s.Merchandises)
+                        .ThenInclude(m => m!.Articles)
+                    .FirstOrDefaultAsync(s => s.SalesSiteId == siteId && s.MerchandiseId == merchandiseId);
+
+                if (stock != null && stock.MinimumStock > 0 && stock.Quantity <= stock.MinimumStock)
+                {
+                    // Send real-time notification
+                    await _hubContext.Clients.Group(siteId.ToString()).SendAsync("ReceiveStockAlert", new
+                    {
+                        ArticleReference = stock.Merchandises!.Articles!.Reference,
+                        Quantity = stock.Quantity,
+                        MinimumStock = stock.MinimumStock,
+                        SiteId = siteId
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking/notifying low stock");
+            }
+        }
+
+        private async Task CheckDocumentStockAlertsAsync(int docId)
+        {
+            try
+            {
+                var doc = await _context.Documents
+                    .Include(d => d.DocumentMerchandises)
+                    .FirstOrDefaultAsync(d => d.Id == docId);
+
+                if (doc == null || doc.StockTransactionType != TransactionType.Retrieve) return;
+
+                foreach (var dm in doc.DocumentMerchandises)
+                {
+                    await CheckAndNotifyLowStockAsync(doc.SalesSiteId, dm.MerchandiseId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking document stock alerts");
             }
         }
 

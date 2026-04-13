@@ -28,6 +28,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                     MerchandiseId = s.MerchandiseId,
                     PackageReference = m.PackageReference,
                     StockQuantity = s.Quantity,
+                    MinimumStock = s.MinimumStock,
                     SiteId = s.SalesSiteId,
                   };
 
