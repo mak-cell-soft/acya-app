@@ -28,6 +28,14 @@
                         <div class="nav-icon-wrapper"><mat-icon>location_city</mat-icon></div>
                         <span class="nav-label">Sites</span>
                     </div>
+                    <div class="quick-nav-item" (click)="scrollTo('enterprise-numbering')">
+                        <div class="nav-icon-wrapper"><mat-icon>pin</mat-icon></div>
+                        <span class="nav-label">Numérotation</span>
+                    </div>
+                    <div class="quick-nav-item" (click)="scrollTo('enterprise-audit')">
+                        <div class="nav-icon-wrapper"><mat-icon>history</mat-icon></div>
+                        <span class="nav-label">Audit</span>
+                    </div>
                 </div>
 
                 <!-- Informations générales de l'entreprise -->
@@ -72,8 +80,8 @@
                     </div>
                     <div class="control-button">
                         <mat-dialog-actions>
-                            <button mat-flat-button color="primary" (click)="enableForm()">
-                                <mat-icon>update</mat-icon>
+                            <button mat-flat-button color="primary" (click)="saveEnterprise()">
+                                <mat-icon>save</mat-icon>
                                 {{update_button}}
                             </button>
                         </mat-dialog-actions>
@@ -145,8 +153,8 @@
                     </div>
                     <div class="control-button">
                         <mat-dialog-actions>
-                            <button mat-flat-button color="primary">
-                                <mat-icon>update</mat-icon>
+                            <button mat-flat-button color="primary" (click)="saveEnterprise()">
+                                <mat-icon>save</mat-icon>
                                 {{update_button}}
                             </button>
                         </mat-dialog-actions>
@@ -206,6 +214,67 @@
                                 (click)="openAddSalesSiteDialog()">
                                 <mat-icon>add</mat-icon>
                                 {{add_button}}
+                            </button>
+                        </mat-dialog-actions>
+                    </div>
+                </mat-card>
+
+                <!-- Numérotation des documents -->
+                <mat-card id="enterprise-numbering" class="card-details">
+                    <h3><mat-icon>pin</mat-icon>{{mat_card_header_numbering}}</h3>
+                    <div [formGroup]="documentNumberingForm">
+                        <div class="half-width-wrapper">
+                            <mat-form-field class="half-width" appearance="outline">
+                                <mat-label>Format de l'année</mat-label>
+                                <mat-select formControlName="yearFormat">
+                                    <mat-option [value]="2">YY (ex: 26)</mat-option>
+                                    <mat-option [value]="4">YYYY (ex: 2026)</mat-option>
+                                </mat-select>
+                                <mat-hint>Utilisé dans le numéro (ex: FA-26-001)</mat-hint>
+                            </mat-form-field>
+                            <mat-form-field class="half-width" appearance="outline">
+                                <mat-label>Longueur de l'incrément</mat-label>
+                                <input matInput type="number" formControlName="incrementLength" min="3" max="8">
+                                <mat-hint>Nombre de chiffres (ex: 3 pour 001)</mat-hint>
+                            </mat-form-field>
+                        </div>
+
+                        <h4 style="margin-top: 20px;">Préfixes par Document</h4>
+                        <div class="prefixes-grid" formGroupName="prefixes">
+                            <div class="prefix-item" *ngFor="let doc of documentTypes">
+                                <mat-form-field appearance="outline" class="full-width">
+                                    <mat-label>{{doc.name}}</mat-label>
+                                    <input matInput [formControlName]="doc.id">
+                                </mat-form-field>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-button">
+                        <mat-dialog-actions>
+                            <button mat-flat-button color="primary" (click)="saveNumberingConfig()">
+                                <mat-icon>save</mat-icon>
+                                Enregistrer
+                            </button>
+                        </mat-dialog-actions>
+                    </div>
+                </mat-card>
+
+                <!-- Audit Trail Configuration -->
+                <mat-card id="enterprise-audit" class="card-details">
+                    <h3><mat-icon>history</mat-icon>{{mat_card_header_audit}}</h3>
+                    <div [formGroup]="auditRetentionForm">
+                        <mat-form-field class="full-width" appearance="outline">
+                            <mat-label>Durée de rétention de l'historique (mois)</mat-label>
+                            <input matInput type="number" formControlName="auditRetentionMonths" min="1">
+                            <mat-icon matSuffix>timer</mat-icon>
+                            <mat-hint>Les logs d'audit plus anciens seront automatiquement supprimés.</mat-hint>
+                        </mat-form-field>
+                    </div>
+                    <div class="control-button">
+                        <mat-dialog-actions>
+                            <button mat-flat-button color="primary" (click)="saveAuditRetention()">
+                                <mat-icon>save</mat-icon>
+                                Enregistrer
                             </button>
                         </mat-dialog-actions>
                     </div>

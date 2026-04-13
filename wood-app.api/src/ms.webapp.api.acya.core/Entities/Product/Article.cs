@@ -1,10 +1,11 @@
 using System.Collections;
 using ms.webapp.api.acya.core.Entities.Categories;
 using ms.webapp.api.acya.core.Entities.DTOs;
+using ms.webapp.api.acya.core.Interfaces;
 
 namespace ms.webapp.api.acya.core.Entities.Product
 {
-  public class Article : IEntity
+  public class Article : IEntity, IAuditable
   {
     public int Id { get; set; }
     public string? Reference { get; set; }

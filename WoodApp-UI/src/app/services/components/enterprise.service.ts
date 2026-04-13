@@ -32,4 +32,8 @@ export class EnterpriseService {
   getEnterpriseInfo(id: number) {
     return this.http.get<Enterprise>(this.baseUrl + 'Enterprise/getbyid/' + id);
   }
+
+  Update(id: number, model: Enterprise) {
+    return this.http.put<any>(this.baseUrl + 'Enterprise/' + id, model);
+  }
 }

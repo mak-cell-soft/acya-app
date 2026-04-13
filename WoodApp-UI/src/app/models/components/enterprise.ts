@@ -1,5 +1,11 @@
 import { Site } from "./sites";
 
+export interface DocumentNumberingConfig {
+    prefixes: { [key: number]: string };
+    yearFormat: number; // 2 for YY, 4 for YYYY
+    incrementLength: number;
+}
+
 export class Enterprise {
     id: number = 0;
     name: string = '';
@@ -18,6 +24,8 @@ export class Enterprise {
     commercialregister: string = '';
     capital: string = '';
     issalingwood: boolean = false;
+    auditRetentionMonths: number = 12;
+    documentNumberingConfig?: string; // Stored as JSON string in DB
     sites!: Site[] | null;
     user!: AppUserEnterprise | null;
 }

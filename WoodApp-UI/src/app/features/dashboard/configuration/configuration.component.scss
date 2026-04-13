@@ -685,4 +685,25 @@ $hover-color: #f1f3f5;
             margin-top: 16px;
         }
     }
-}
+}
+
+// Prefixes Grid for Numbering Config
+.prefixes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+
+    .prefix-item {
+        background: rgba($primary-color, 0.02);
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid rgba($border-color, 0.5);
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: rgba($primary-color, 0.05);
+            border-color: rgba($primary-color, 0.2);
+        }
+    }
+}

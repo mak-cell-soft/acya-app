@@ -23,6 +23,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? commercialregister { get; set; }
     public string? capital { get; set; }
     public bool? issalingwood { get; set; }
+    public int auditRetentionMonths { get; set; }
+    public string? documentNumberingConfig { get; set; }
     public SiteDto[]? sites { get; set; }
     public AppUserEnterpriseDto? user { get; set; }
 
@@ -54,6 +56,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       commercialregister = entity.CommercialRegister;
       capital = entity.Capital;
       issalingwood = entity.IsSalingWood;
+      auditRetentionMonths = entity.AuditRetentionMonths;
+      documentNumberingConfig = entity.DocumentNumberingConfig;
       if (entity.Sites != null)
       {
         sites = entity.Sites.Select(site => new SiteDto(site)).ToArray();

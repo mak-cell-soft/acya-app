@@ -14,10 +14,12 @@ import {
   MAT_TAB_LABEL_SETTINGS,
   MAT_HEADER_CELL_ACTIONS,
   MAT_HEADER_SELL_REF,
-  MAT_CARD_HEADER_DIMENSION,
   MAT_CARD_HEADER_TRANSPORTER,
   MAT_HEADER_CELL_TRANSPORTER_NAME,
-  MAT_HEADER_CELL_TRANSPORTER_CAR
+  MAT_HEADER_CELL_TRANSPORTER_CAR,
+  MAT_CARD_HEADER_NUMBERING,
+  MAT_CARD_HEADER_AUDIT,
+  MAT_CARD_HEADER_DIMENSION
 } from '../../../shared/constants/components/config';
 import { UPDATE_BUTTON, ADD_BUTTON } from '../../../shared/Text_Buttons'
 import { ToastrService } from 'ngx-toastr';
@@ -53,7 +55,7 @@ import { AddEmployeesModalComponent } from '../modals/add-employees-modal/add-em
 import { EmployeeService } from '../../../services/components/employee.service';
 import { AccountService } from '../../../services/components/account.service';
 import { EnterpriseService } from '../../../services/components/enterprise.service';
-import { Enterprise } from '../../../models/components/enterprise';
+import { DocumentNumberingConfig, Enterprise } from '../../../models/components/enterprise';
 import { error } from 'console';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Site } from '../../../models/components/sites';
@@ -164,6 +166,9 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   mat_header_cell_length_isactive: string = MAT_HEADER_CELL_LENGTH_ISACTIVE;
   mat_header_cell_length_isdefault: string = MAT_HEADER_CELL_LENGTH_ISDEFAULT;
 
+  mat_card_header_numbering: string = MAT_CARD_HEADER_NUMBERING;
+  mat_card_header_audit: string = MAT_CARD_HEADER_AUDIT;
+
 
   // TAB BANK ACCOUNT
   // CARD CATEGORY
@@ -219,6 +224,22 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   enterpriseData: Enterprise = new Enterprise();
 
   allSitesForm!: FormGroup;
+  documentNumberingForm!: FormGroup;
+  auditRetentionForm!: FormGroup;
+
+  documentTypes = [
+    { id: 1, name: 'Commande Fournisseur' },
+    { id: 2, name: 'Bon de Réception' },
+    { id: 3, name: 'Facture Fournisseur' },
+    { id: 4, name: 'Commande Client' },
+    { id: 5, name: 'Bon de Livraison' },
+    { id: 6, name: 'Facture Client' },
+    { id: 7, name: 'Transfert de Stock' },
+    { id: 8, name: 'Avoir Fournisseur' },
+    { id: 9, name: 'Avoir Client' },
+    { id: 10, name: 'Inventaire' },
+    { id: 11, name: 'Devis Client' }
+  ];
 
 
   allSites: MatTableDataSource<Site> = new MatTableDataSource<Site>();
@@ -323,6 +344,7 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   ngOnInit(): void {
     this.createEnterpriseForm();
     this.createSiteForm();
+    this.createNumberingAndAuditForms();
     this.getEnterpriseInfos();
   }
 
@@ -379,6 +401,24 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
     });
   }
 
+  createNumberingAndAuditForms() {
+    // Create initial numbering form with prefixes grouped
+    const prefixGroup: any = {};
+    this.documentTypes.forEach(doc => {
+      prefixGroup[doc.id] = [''];
+    });
+
+    this.documentNumberingForm = this.fb.group({
+      yearFormat: [2],
+      incrementLength: [3],
+      prefixes: this.fb.group(prefixGroup)
+    });
+
+    this.auditRetentionForm = this.fb.group({
+      auditRetentionMonths: [12, [Validators.required, Validators.min(1)]]
+    });
+  }
+
   createSiteForm() {
     this.allSitesForm = this.fb.group({
       number: [''],
@@ -406,6 +446,33 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
       commercialRegister: formValues.commercialregister,
       capital: formValues.capital
     });
+
+    // Patch Audit Retention
+    this.auditRetentionForm.patchValue({
+      auditRetentionMonths: formValues.auditRetentionMonths
+    });
+
+    // Patch Numbering Config
+    if (formValues.documentNumberingConfig) {
+      try {
+        const config: DocumentNumberingConfig = JSON.parse(formValues.documentNumberingConfig);
+        this.documentNumberingForm.patchValue({
+          yearFormat: config.yearFormat,
+          incrementLength: config.incrementLength
+        });
+
+        if (config.prefixes) {
+          const prefixesGroup = this.documentNumberingForm.get('prefixes') as FormGroup;
+          Object.keys(config.prefixes).forEach(key => {
+            if (prefixesGroup.controls[key]) {
+              prefixesGroup.controls[key].setValue(config.prefixes[Number(key)]);
+            }
+          });
+        }
+      } catch (e) {
+        console.error("Error parsing documentNumberingConfig", e);
+      }
+    }
   }
 
   private getDevisKeyByValue(_val: string): number | null {
@@ -453,6 +520,50 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
 
   enableForm(): void {
     this.enterpriseForm.enable(); // Enables all fields in the form
+  }
+
+  saveEnterprise() {
+    if (this.enterpriseForm.invalid) return;
+
+    const model: Enterprise = { ...this.enterpriseData, ...this.enterpriseForm.value };
+    // Handle specific mappings
+    model.positionResponsable = this.jobDescOptions.find((j: any) => j.key === this.enterpriseForm.value.positionResponsable)?.value;
+    model.devise = this.devisesOptions.find((d: any) => d.key === this.enterpriseForm.value.devise)?.value;
+
+    this.enterpriseService.Update(model.id, model).subscribe({
+      next: () => {
+        this.toastr.success("Informations de l'entreprise mises à jour");
+        this.getEnterpriseInfos();
+      },
+      error: () => this.toastr.error("Erreur lors de la mise à jour")
+    });
+  }
+
+  saveNumberingConfig() {
+    const config = this.documentNumberingForm.value;
+    const jsonConfig = JSON.stringify(config);
+
+    const model: Enterprise = { ...this.enterpriseData, documentNumberingConfig: jsonConfig };
+
+    this.enterpriseService.Update(model.id, model).subscribe({
+      next: () => {
+        this.toastr.success("Configuration de numérotation enregistrée");
+        this.getEnterpriseInfos();
+      },
+      error: () => this.toastr.error("Erreur lors de l'enregistrement")
+    });
+  }
+
+  saveAuditRetention() {
+    const model: Enterprise = { ...this.enterpriseData, auditRetentionMonths: this.auditRetentionForm.value.auditRetentionMonths };
+
+    this.enterpriseService.Update(model.id, model).subscribe({
+      next: () => {
+        this.toastr.success("Paramètres de rétention enregistrés");
+        this.getEnterpriseInfos();
+      },
+      error: () => this.toastr.error("Erreur lors de l'enregistrement")
+    });
   }
 
   onToggleChange(event: MatSlideToggleChange, element: any): void {

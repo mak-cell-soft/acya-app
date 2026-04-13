@@ -46,6 +46,7 @@ export const MAT_HEADER_CELL_TAXE_ISACTIVE = 'Est active';
 export const MAT_HEADER_CELL_TAXE_ISEDITABLE = 'Est modifiable';
 export const MAT_HEADER_CELL_TAXE_ISDEFAULT = 'Est par défaut';
 
+//export const MAT_CARD_HEADER_DIMENSION = 'Dimensions de Bois';
 export const MAT_HEADER_CELL_DIMENSION_NAME = 'Référence Dimension';
 export const MAT_HEADER_CELL_DIMENSION_VALUE = 'mesure de la dimension (en m)';
 export const MAT_HEADER_CELL_DIMENSION_NATURE = 'Epaisseur/Largeur';

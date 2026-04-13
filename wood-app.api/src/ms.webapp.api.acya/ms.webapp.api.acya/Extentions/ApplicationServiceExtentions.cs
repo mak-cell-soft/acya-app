@@ -8,6 +8,7 @@ using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.infrastructure;
 using ms.webapp.api.acya.infrastructure.Repositories;
 using ms.webapp.api.acya.api.Interfaces;
+using ms.webapp.api.acya.infrastructure.Configurations.Audit;
 
 namespace ms.webapp.api.acya.api.Extentions
 {
@@ -59,10 +60,16 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<IPaymentService, PaymentService>();
       services.AddScoped<IBalanceService, BalanceService>();
       services.AddScoped<IStockMovementService, StockMovementService>();
+      services.AddScoped<IAuditService, AuditService>();
+      services.AddScoped<AuditTrailInterceptor>();
 
-      services.AddDbContext<WoodAppContext>(options =>
+      services.AddDbContext<WoodAppContext>((sp, options) =>
       {
         options.UseNpgsql(config.GetConnectionString("WoodAppContextConnection"));
+        // Externalized audit treatment
+        var auditInterceptor = sp.GetRequiredService<AuditTrailInterceptor>();
+        options.AddInterceptors(auditInterceptor);
+
         // To avoid error Cannot write DateTime with Kind
         // = Local to PostgreSQL type 'timestamp with time zone',
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);

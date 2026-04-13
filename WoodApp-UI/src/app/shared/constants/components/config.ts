@@ -82,4 +82,9 @@ export const MAT_CARD_HEADER_TRANSPORTER = 'Liste des Transporteurs';
 export const MAT_HEADER_CELL_TRANSPORTER_NAME = 'Nom & Prénom';
 export const MAT_HEADER_CELL_TRANSPORTER_CAR = 'Véhicule';
 
+// CARD NUMBERING
+export const MAT_CARD_HEADER_NUMBERING = 'Numérotation des Documents';
+// CARD AUDIT
+export const MAT_CARD_HEADER_AUDIT = 'Audit et Rétention';
+
 

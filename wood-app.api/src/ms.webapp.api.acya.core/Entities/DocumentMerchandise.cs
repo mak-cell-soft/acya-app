@@ -1,8 +1,9 @@
 using ms.webapp.api.acya.core.Entities.Product;
+using ms.webapp.api.acya.core.Interfaces;
 
 namespace ms.webapp.api.acya.core.Entities
 {
-  public class DocumentMerchandise : IEntity
+  public class DocumentMerchandise : IEntity, IAuditable
   {
     public int Id { get; set; } // New primary key
 

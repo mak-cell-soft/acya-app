@@ -17,8 +17,13 @@ namespace ms.webapp.api.acya.common
       return char.ToUpper(value[0]) + value.Substring(1).ToLower();
     }
 
-    public static string GetPrefixForDocumentType(DocumentTypes type)
+    public static string GetPrefixForDocumentType(DocumentTypes type, Dictionary<string, string>? customPrefixes = null)
     {
+      if (customPrefixes != null && customPrefixes.TryGetValue(((int)type).ToString(), out string? customPrefix))
+      {
+        return customPrefix;
+      }
+
       return type switch
       {
         DocumentTypes.supplierOrder => "SO", // Bon de commande Fournisseur
@@ -29,6 +34,8 @@ namespace ms.webapp.api.acya.common
         DocumentTypes.customerDeliveryNote => "BL", // Bon de livraison Client
         DocumentTypes.customerInvoice => "FC", // Facture Client
         DocumentTypes.stockTransfer => "TS", // Transfert Stock
+        DocumentTypes.customerInvoiceReturn => "AV", // Avoir Client
+        DocumentTypes.supplierInvoiceReturn => "AVF", // Avoir Fournisseur
         _ => string.Empty
       };
     }
@@ -37,35 +44,39 @@ namespace ms.webapp.api.acya.common
     * Here is a Doc number with the Year added in the prefix 2.0
     * The incremetal number changes (reset to 0) if year changes.
     */
-    public static string GenerateNewDocNumber(string prefix, string? lastDocNumber)
+    public static string GenerateNewDocNumber(string prefix, string? lastDocNumber, int yearFormat = 2, int incrementLength = 3)
     {
-      string yearSuffix = DateTime.Now.ToString("yy"); // Get the last two digits of the current year
+      string yearFormatString = yearFormat == 4 ? "yyyy" : "yy";
+      string yearSuffix = DateTime.Now.ToString(yearFormatString); 
       int newIncrement = 1;
 
       if (!string.IsNullOrEmpty(lastDocNumber))
       {
-        // Extract the year suffix from the lastDocNumber
-        string lastYearSuffix = lastDocNumber.Substring(prefix.Length + 1, 2); // +1 to skip the hyphen (-)
+        // We expect prefix-year-increment
+        // Let's find the second hyphen to get the year part reliably if prefix has hyphens
+        var parts = lastDocNumber.Split('-');
+        if (parts.Length >= 3)
+        {
+            string lastYearSuffix = parts[parts.Length - 2];
+            string lastNumericPart = parts[parts.Length - 1];
 
-        // Check if the lastDocNumber is from the previous year
-        if (lastYearSuffix != yearSuffix)
-        {
-          // If the year has changed, reset the increment to 1
-          newIncrement = 1;
-        }
-        else if (lastDocNumber.StartsWith($"{prefix}-{yearSuffix}"))
-        {
-          // Extract the numeric part of the last DocNumber
-          string numericPart = lastDocNumber.Substring($"{prefix}-{yearSuffix}-".Length);
-          if (int.TryParse(numericPart, out int lastIncrement))
-          {
-            newIncrement = lastIncrement + 1;
-          }
+            if (lastYearSuffix != yearSuffix)
+            {
+                newIncrement = 1;
+            }
+            else
+            {
+                if (int.TryParse(lastNumericPart, out int lastIncrement))
+                {
+                    newIncrement = lastIncrement + 1;
+                }
+            }
         }
       }
 
       // Return the new DocNumber with year
-      return $"{prefix}-{yearSuffix}-{newIncrement:D3}"; // Example: SO-25-001, SO-25-002, etc.
+      string incrementFormat = $"D{incrementLength}";
+      return $"{prefix}-{yearSuffix}-{newIncrement.ToString(incrementFormat)}"; // Example: SO-25-001, etc.
     }
 
     /**

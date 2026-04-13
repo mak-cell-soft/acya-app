@@ -21,6 +21,8 @@ namespace ms.webapp.api.acya.core.Entities
     public string? CommercialRegister { get; set; }
     public string? Capital { get; set; }
     public bool? IsSalingWood { get; set; }
+    public int AuditRetentionMonths { get; set; } = 12; // Default to 12 months
+    public string? DocumentNumberingConfig { get; set; }
 
     public HashSet<SalesSite>? Sites { get; set; } = new HashSet<SalesSite>();
 
@@ -52,6 +54,8 @@ namespace ms.webapp.api.acya.core.Entities
       CommercialRegister = dto.commercialregister;
       Capital = dto.capital;
       IsSalingWood = dto.issalingwood;
+      AuditRetentionMonths = dto.auditRetentionMonths;
+      DocumentNumberingConfig = dto.documentNumberingConfig;
 
       if (dto.sites != null)
       {

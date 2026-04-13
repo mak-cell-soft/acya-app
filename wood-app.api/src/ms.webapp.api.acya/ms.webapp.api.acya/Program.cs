@@ -13,6 +13,7 @@ var config = builder.Configuration;
 // Add services to the container.
 builder.Services.AddApplicationServices(config);
 builder.Services.AddHostedService<NotificationRetryService>();
+builder.Services.AddHostedService<AuditCleanupBackgroundService>();
 //builder.Services.AddControllers();
 //configure JSON serialization to ignore circular references.
 builder.Services.AddControllers()

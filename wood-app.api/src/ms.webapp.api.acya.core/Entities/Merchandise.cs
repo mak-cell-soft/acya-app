@@ -1,9 +1,10 @@
 using ms.webapp.api.acya.core.Entities.DTOs;
 using ms.webapp.api.acya.core.Entities.Product;
+using ms.webapp.api.acya.core.Interfaces;
 
 namespace ms.webapp.api.acya.core.Entities
 {
-  public class Merchandise : IEntity
+  public class Merchandise : IEntity, IAuditable
   {
     public int Id { get; set; }
     public string? PackageReference { get; set; }

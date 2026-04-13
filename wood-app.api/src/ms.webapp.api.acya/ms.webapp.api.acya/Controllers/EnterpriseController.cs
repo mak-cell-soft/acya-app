@@ -104,5 +104,25 @@ namespace ms.webapp.api.acya.api.Controllers
       }
       return Ok(_dto);
     }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult> Update(int id, EnterpriseDto dto)
+    {
+      if (id != dto.id)
+      {
+        return BadRequest("ID mismatch");
+      }
+
+      var existing = await _repository.Get(id);
+      if (existing == null)
+      {
+        return NotFound();
+      }
+
+      existing.UpdateFromDto(dto);
+      await _repository.Update(existing);
+
+      return Ok(new { message = "Enterprise updated successfully" });
+    }
   }
 }

@@ -337,8 +337,31 @@ namespace ms.webapp.api.acya.api.Controllers
         }
       }
 
+      // Get Enterprise Configuration for numbering
+      var user = await _context.AppUsers
+          .Include(u => u.Enterprise)
+          .FirstOrDefaultAsync(u => u.Id == dto.updatedbyid);
+
+      var numberingConfig = new DocumentNumberingConfigDto();
+      if (!string.IsNullOrEmpty(user?.Enterprise?.DocumentNumberingConfig))
+      {
+          try 
+          {
+              var options = new System.Text.Json.JsonSerializerOptions
+              {
+                  PropertyNameCaseInsensitive = true,
+                  NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString
+              };
+              numberingConfig = System.Text.Json.JsonSerializer.Deserialize<DocumentNumberingConfigDto>(user.Enterprise.DocumentNumberingConfig, options) ?? new DocumentNumberingConfigDto();
+          }
+          catch 
+          {
+              // Fallback to defaults on error
+          }
+      }
+
       // Generate the document number
-      string prefix = Helpers.GetPrefixForDocumentType(dto.type.Value);
+      string prefix = Helpers.GetPrefixForDocumentType(dto.type.Value, numberingConfig.Prefixes);
       if (string.IsNullOrEmpty(prefix))
       {
         return BadRequest("Invalid document type.");
@@ -350,7 +373,7 @@ namespace ms.webapp.api.acya.api.Controllers
         lock (_repository)
         {
           string? lastDocNumber = _repository.GetLastDocNumberByPrefix(prefix);
-          newDocNumber = Helpers.GenerateNewDocNumber(prefix, lastDocNumber);
+          newDocNumber = Helpers.GenerateNewDocNumber(prefix, lastDocNumber, numberingConfig.YearFormat, numberingConfig.IncrementLength);
         }
       }
       catch (Exception ex)
@@ -690,13 +713,26 @@ namespace ms.webapp.api.acya.api.Controllers
         }
       }
 
-      /**
-      * Document Invoice type will be supplierInvoice 
-      * so the reference will be like FF-25-0001 
-      * Here we Generate the Prefix
-      */
+      // Get Enterprise Configuration for numbering
+      var user = await _context.AppUsers
+          .Include(u => u.Enterprise)
+          .FirstOrDefaultAsync(u => u.Id == genDto.invoiceDoc.updatedbyid);
+
+      var numberingConfig = new DocumentNumberingConfigDto();
+      if (!string.IsNullOrEmpty(user?.Enterprise?.DocumentNumberingConfig))
+      {
+          try 
+          {
+              numberingConfig = System.Text.Json.JsonSerializer.Deserialize<DocumentNumberingConfigDto>(user.Enterprise.DocumentNumberingConfig) ?? new DocumentNumberingConfigDto();
+          }
+          catch 
+          {
+              // Fallback to defaults on error
+          }
+      }
+
       // Generate the document number
-      string prefix = Helpers.GetPrefixForDocumentType(genDto.invoiceDoc.type.Value);
+      string prefix = Helpers.GetPrefixForDocumentType(genDto.invoiceDoc.type.Value, numberingConfig.Prefixes);
       if (string.IsNullOrEmpty(prefix))
       {
         return BadRequest("Invalid document type.");
@@ -712,7 +748,7 @@ namespace ms.webapp.api.acya.api.Controllers
           string? lastDocNumber = _repository.GetLastDocNumberByPrefix(prefix);
 
           // Generate a new incremental DocNumber
-          newDocNumber = Helpers.GenerateNewDocNumber(prefix, lastDocNumber);
+          newDocNumber = Helpers.GenerateNewDocNumber(prefix, lastDocNumber, numberingConfig.YearFormat, numberingConfig.IncrementLength);
         }
       }
       catch (Exception ex)

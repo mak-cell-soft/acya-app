@@ -1,10 +1,11 @@
 using System;
 using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities.DTOs;
+using ms.webapp.api.acya.core.Interfaces;
 
 namespace ms.webapp.api.acya.core.Entities
 {
-    public class Payment : IEntity
+    public class Payment : IEntity, IAuditable
     {
         public int Id { get; set; }
         public int DocumentId { get; set; }

@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using ms.webapp.api.acya.common;
+using ms.webapp.api.acya.core.Interfaces;
 
 namespace ms.webapp.api.acya.core.Entities
 {
-  public class StockTransfer : IEntity
+  public class StockTransfer : IEntity, IAuditable
   {
     public int Id { get; set; }
 

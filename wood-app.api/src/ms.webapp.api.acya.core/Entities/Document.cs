@@ -3,10 +3,11 @@ using System.Linq;
 using System.Reflection.Metadata;
 using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities.DTOs;
+using ms.webapp.api.acya.core.Interfaces;
 
 namespace ms.webapp.api.acya.core.Entities
 {
-  public class Document : IEntity
+  public class Document : IEntity, IAuditable
   {
     public int Id { get; set; }
     /**
