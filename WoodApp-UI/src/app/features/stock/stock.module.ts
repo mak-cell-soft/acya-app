@@ -11,6 +11,7 @@ import { StockInventoryComponent } from './stock-inventory/stock-inventory.compo
 import { TransferDetailsDialogComponent } from './transfer-details-dialog/transfer-details-dialog.component';
 import { TransferConfirmationComponent } from './transfer-confirmation/transfer-confirmation.component';
 import { TransferConfirmCodeDialogComponent } from './transfer-confirm-code-dialog/transfer-confirm-code-dialog.component';
+import { MinimumStockModalComponent } from './modals/minimum-stock-modal/minimum-stock-modal.component';
 import { StockTransferPrintComponent } from '../../models/print-templates/stock-transfer-print/stock-transfer-print.component';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -49,6 +50,7 @@ import { MatRadioModule } from '@angular/material/radio';
     TransferDetailsDialogComponent,
     TransferConfirmationComponent,
     TransferConfirmCodeDialogComponent,
+    MinimumStockModalComponent,
     StockTransferPrintComponent
   ],
   imports: [

@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
 import { StockTransferFormComponent } from '../stock-transfer-form/stock-transfer-form.component';
+import { MinimumStockModalComponent } from '../modals/minimum-stock-modal/minimum-stock-modal.component';
 
 interface UnitTotal {
   unit: string;
@@ -176,26 +177,28 @@ export class StockListComponent implements OnInit, AfterViewInit {
   }
 
   onEditMinimumStock(element: Stock) {
-    const newMin = window.prompt(`Modifier le seuil minimum pour ${element.merchandise?.article?.reference}`, element.minimumstock?.toString());
-    
-    if (newMin !== null) {
-      const value = parseFloat(newMin);
-      if (isNaN(value) || value < 0) {
-        this.toastr.error('Veuillez saisir un nombre valide >= 0');
-        return;
-      }
+    const dialogRef = this.dialog.open(MinimumStockModalComponent, {
+      width: '450px',
+      data: { stock: element },
+      panelClass: 'modern-dialog'
+    });
 
-      this.stockService.updateMinimumStock(element.id, value).subscribe({
-        next: () => {
-          this.toastr.success('Seuil mis à jour avec succès');
-          element.minimumstock = value; // Update local value
-        },
-        error: (err) => {
-          this.toastr.error('Erreur lors de la mise à jour du seuil');
-          console.error(err);
-        }
-      });
-    }
+    dialogRef.afterClosed().subscribe(newMin => {
+      if (newMin !== undefined && newMin !== null) {
+        const value = parseFloat(newMin);
+        
+        this.stockService.updateMinimumStock(element.id, value).subscribe({
+          next: () => {
+            this.toastr.success('Seuil mis à jour avec succès');
+            element.minimumstock = value; // Update local value
+          },
+          error: (err) => {
+            this.toastr.error('Erreur lors de la mise à jour du seuil');
+            console.error(err);
+          }
+        });
+      }
+    });
   }
 }
 

@@ -1,0 +1,48 @@
+<div class="modal-header">
+    <h2 mat-dialog-title>
+        <mat-icon>trending_down</mat-icon>
+        Seuil de Stock Minimum
+    </h2>
+    <button mat-icon-button (click)="onCancel()" class="close-btn">
+        <mat-icon>close</mat-icon>
+    </button>
+</div>
+
+<div mat-dialog-content class="dialog-content-premium">
+    <div class="item-info-card">
+        <div class="info-icon">
+            <mat-icon>inventory_2</mat-icon>
+        </div>
+        <div class="info-details">
+            <span class="info-label">Référence Article</span>
+            <span class="info-value">{{data.stock.merchandise?.article?.reference}}</span>
+            <p class="info-description">{{data.stock.merchandise?.article?.description}}</p>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <h3>Définir le seuil d'alerte</h3>
+        <p class="description-text">
+            Saisissez la quantité minimale en stock pour cet article. 
+            Une alerte visuelle apparaîtra lorsque le stock sera inférieur ou égal à ce seuil.
+        </p>
+
+        <mat-form-field appearance="outline" class="w-100 threshold-field">
+            <mat-label>Seuil minimum ({{data.stock.merchandise?.article?.unit}})</mat-label>
+            <input matInput type="number" [(ngModel)]="minimumStock" min="0" #stockInput="ngModel"
+                (keyup.enter)="onSave()" placeholder="0.00" required autofocus>
+            <mat-icon matSuffix>notifications_active</mat-icon>
+            <mat-hint>Quantité actuelle: {{data.stock.quantity}} {{data.stock.merchandise?.article?.unit}}</mat-hint>
+        </mat-form-field>
+    </div>
+</div>
+
+<div mat-dialog-actions class="dialog-actions-premium">
+    <button mat-button (click)="onCancel()" class="secondary-btn">Annuler</button>
+    <div class="actions-spacer"></div>
+    <button mat-flat-button color="primary" (click)="onSave()" [disabled]="minimumStock < 0 || stockInput.invalid"
+        class="save-button-premium">
+        <mat-icon>save</mat-icon>
+        Confirmer
+    </button>
+</div>

@@ -780,12 +780,14 @@ namespace ms.webapp.api.acya.api.Controllers
       invoice.DocNumber = newDocNumber;
 
       // Ensure the AppUser is tracked as an existing entity
-      if (invoice.AppUsers != null)
+      if (user != null)
       {
+        invoice.AppUsers = user;
         _context.Entry(invoice.AppUsers).State = EntityState.Unchanged;
       }
       else
       {
+        invoice.AppUsers = null;
         invoice.UpdatedById = genDto.invoiceDoc.updatedbyid;
       }
 
