@@ -383,7 +383,15 @@ export class NotificationService implements OnDestroy, OnInit {
 
     this.http.get<any[]>(`${environment.apiBaseUrl}/api/stock/alerts`, { params }).subscribe({
       next: (alerts) => {
-        this.stockAlerts = alerts;
+        // NOTE: Normalize the REST response to match the SignalR alert shape.
+        // The REST endpoint returns StockQuantityDto with 'stockQuantity',
+        // but the SignalR handler and the template both use 'quantity'.
+        this.stockAlerts = alerts.map(a => ({
+          articleReference: a.articleReference,
+          quantity: a.stockQuantity,   // ← normalize: stockQuantity → quantity
+          minimumStock: a.minimumStock,
+          siteId: a.siteId
+        }));
       },
       error: (err) => console.error('Failed to fetch stock alerts', err)
     });

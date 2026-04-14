@@ -13,6 +13,12 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
      * Inititial quantity will be stored separately
      */
     public double quantity { get; set; }
+
+    // §5.5 — Reliquats : quantité effectivement livrée (0 par défaut = rien livré)
+    public double quantity_delivered { get; set; }
+
+    // §5.5 — Reliquats : quantité restante à livrer (calculée : quantity - quantity_delivered)
+    public double quantity_remaining { get; set; }
     public double stock_quantity { get; set; }
 
     /**

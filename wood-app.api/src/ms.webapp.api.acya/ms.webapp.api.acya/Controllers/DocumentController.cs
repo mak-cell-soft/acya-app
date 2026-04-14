@@ -140,6 +140,9 @@ namespace ms.webapp.api.acya.api.Controllers
               isinvoicible = dm.Merchandise?.IsInvoicible ?? false,
               allownegativstock = dm.Merchandise?.AllowNegativStock ?? false,
               quantity = dm.Quantity,
+              // §5.5 — Reliquats
+              quantity_delivered = dm.QuantityDelivered,
+              quantity_remaining = dm.QuantityRemaining,
               unit_price_ht = dm.UnitPriceHT,
               cost_ht = dm.CostHT,
               discount_percentage = dm.DiscountPercentage,
@@ -279,6 +282,9 @@ namespace ms.webapp.api.acya.api.Controllers
               isinvoicible = dm.Merchandise?.IsInvoicible ?? false,
               allownegativstock = dm.Merchandise?.AllowNegativStock ?? false,
               quantity = dm.Quantity,
+              // §5.5 — Reliquats
+              quantity_delivered = dm.QuantityDelivered,
+              quantity_remaining = dm.QuantityRemaining,
               unit_price_ht = dm.UnitPriceHT,
               cost_ht = dm.CostHT,
               discount_percentage = dm.DiscountPercentage,

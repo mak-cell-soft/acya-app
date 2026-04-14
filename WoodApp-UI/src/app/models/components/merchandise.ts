@@ -33,9 +33,12 @@ export class Merchandise {
     updatedbyid: number = 0;
 
     /**
+     * §5.5 — Reliquats (quantités partiellement livrées)
      * Inititial quantity will be stored separately
      */
-    quantity: number = 0; // Quantité
+    quantity: number = 0; // Quantité commandée
+    quantity_delivered?: number; // §5.5 — Quantité livrée (partielle ou totale) — reçu de l'API
+    quantity_remaining?: number; // §5.5 — Reliquat : quantity - quantity_delivered — reçu de l'API
 
     /**
      * Cost Informations

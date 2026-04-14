@@ -26,6 +26,13 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
             entity.Property(e => e.TvaValue).HasColumnName("tva_value").HasColumnType("numeric(19,4)");
             entity.Property(e => e.CostTTC).HasColumnName("cost_ttc").HasColumnType("numeric(19,4)");
 
+            // §5.5 — Reliquats : quantité livrée (colonne déjà présente en base depuis la migration précédente)
+            // NOTE: column is named "QuantityDelivered" (PascalCase) because the first migration used the default EF naming
+            entity.Property(e => e.QuantityDelivered).HasColumnName("QuantityDelivered").HasDefaultValue(0.0);
+
+            // §5.5 — QuantityRemaining est une propriété calculée, non stockée en base
+            entity.Ignore(e => e.QuantityRemaining);
+
             // Foreign keys
             entity.Property(e => e.DocumentId).HasColumnName("documentid");
             entity.Property(e => e.MerchandiseId).HasColumnName("merchandiseid");

@@ -8,6 +8,12 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public DateTime? creationdate { get; set; }
     public DateTime? updatedate { get; set; }
     public double quantity { get; set; }
+
+    // §5.5 — Reliquats : quantité livrée sur cette ligne de document
+    public double quantityDelivered { get; set; }
+
+    // §5.5 — Reliquats : quantité restante (calculée côté serveur)
+    public double quantityRemaining { get; set; }
     public double unitpriceHT { get; set; }
     public double costHT { get; set; }
     public double discountPercentage { get; set; }

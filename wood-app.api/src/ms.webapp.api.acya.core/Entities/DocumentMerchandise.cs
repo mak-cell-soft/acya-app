@@ -12,10 +12,22 @@ namespace ms.webapp.api.acya.core.Entities
     public DateTime? UpdateDate { get; set; }
 
     /**
-    * Inititial quantity will be stored separately
-    * for history
+    * Quantité initialement commandée / livrée sur ce ligne de document
     */
     public double Quantity { get; set; }
+
+    /**
+     * §5.5 — Quantité effectivement livrée (partielle ou totale)
+     * Alimente par la conversion BC→BL pour les livraisons partielles.
+     * Défaut 0 = rien de livré encore.
+     */
+    public double QuantityDelivered { get; set; } = 0;
+
+    /**
+     * §5.5 — Quantité restante à livrer (calculée, non stockée)
+     * quantityRemaining = Quantity - QuantityDelivered
+     */
+    public double QuantityRemaining => Quantity - QuantityDelivered;
 
     /**
      * Cost Values
