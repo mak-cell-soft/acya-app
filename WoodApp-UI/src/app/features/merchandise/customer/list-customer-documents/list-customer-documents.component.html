@@ -301,7 +301,7 @@
                                         <span class="m-ref">{{ merchandise.article?.reference }}</span>
                                     </div>
                                     <div class="m-body">
-                                        <p class="m-desc">{{ merchandise.description }}</p>
+                                        <p class="m-desc">{{ merchandise.description || merchandise.article?.description }}</p>
                                         <div class="m-stats">
                                             <div class="m-stat">
                                                 <span class="label">Qté</span>

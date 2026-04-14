@@ -206,17 +206,28 @@
             <!-- Articles grid -->
             <div class="expanded-merchandise">
               <h4>Articles de la commande</h4>
-              <div class="m-grid">
-                <div *ngFor="let m of element.merchandises" class="m-item">
-                  <div class="m-main-info">
+              <div class="articles-grid">
+                <div *ngFor="let m of element.merchandises; let i = index" class="merchandise-card">
+                  <div class="m-header">
+                    <span class="m-index">#{{ i + 1 }}</span>
                     <span class="m-ref">{{ m.article?.reference }}</span>
-                    <span class="m-price">{{ m.unit_price_ht | number:'1.3-3' }} <small>TND</small></span>
                   </div>
-                  <span class="m-desc">{{ m.description || m.article?.description }}</span>
-                  <div class="m-footer">
-                    <span class="m-qty">Qté: <b>{{ m.quantity | number:'1.3-3' }}</b>
-                      <small>{{ m.article?.iswood ? 'm³' : 'u' }}</small>
-                    </span>
+                  <div class="m-body">
+                    <p class="m-desc">{{ m.description || m.article?.description }}</p>
+                    <div class="m-stats">
+                      <div class="m-stat">
+                        <span class="label">Qté</span>
+                        <span class="value">{{ (m.article?.unit === 'M3' || m.article?.unit === 'm3') ? (m.quantity | number:'1.3-3') : (m.quantity | number:'1.0-3') }}</span>
+                      </div>
+                      <div class="m-stat">
+                        <span class="label">P.U HT</span>
+                        <span class="value">{{ m.unit_price_ht | number:'1.3-3'}}</span>
+                      </div>
+                      <div class="m-stat highlight">
+                        <span class="label">Total TTC</span>
+                        <span class="value">{{ (m.cost_ttc || (m.unit_price_ht * m.quantity * 1.19)) | number:'1.3-3'}}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
