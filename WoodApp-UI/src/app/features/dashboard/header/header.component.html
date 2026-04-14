@@ -48,7 +48,7 @@
         <mat-divider></mat-divider>
 
         <div class="notif-scroll-area">
-          <div *ngIf="notificationService.getPendingNotifications().length === 0" class="empty-state">
+          <div *ngIf="notificationService.getTotalUnreadCount() === 0" class="empty-state">
             <div class="empty-icon-circle">
               <mat-icon>notifications_paused</mat-icon>
             </div>
@@ -56,7 +56,28 @@
             <span class="empty-sub">Vous êtes à jour !</span>
           </div>
 
+          <ng-container *ngIf="notifications.length > 0">
+            <div class="notif-section-title">Système</div>
+            <div *ngFor="let notif of notifications" class="notification-item-premium" (click)="markAsRead(notif.id, $event)">
+              <div class="item-notif-icon" [ngClass]="getNotificationTypeClass(notif.type)">
+                <mat-icon>{{getNotificationIcon(notif.type)}}</mat-icon>
+              </div>
+              <div class="item-notif-content">
+                <div class="item-header">
+                  <span class="item-type">{{notif.title}}</span>
+                  <span class="item-time">{{notif.createdAt | date:'HH:mm'}}</span>
+                </div>
+                <div class="item-title">{{notif.message}}</div>
+              </div>
+              <button mat-icon-button class="mark-read-quick" (click)="markAsRead(notif.id, $event)">
+                <mat-icon>done</mat-icon>
+              </button>
+            </div>
+          </ng-container>
+
+          <!-- Transfer Notifications (Legacy but kept) -->
           <ng-container *ngIf="notificationService.getPendingNotifications().length > 0">
+            <div class="notif-section-title">Transferts</div>
             <button *ngFor="let notif of notificationService.getPendingNotifications()" mat-menu-item
               (click)="openTransferConfirmation(notif)" class="notification-item-premium">
               <div class="item-notif-icon">
@@ -93,7 +114,7 @@
                 <div class="item-title">{{alert.articleReference}}</div>
                 <div class="item-details">
                   <mat-icon>inventory_2</mat-icon>
-                  <span>Reste: {{alert.stockQuantity}} / Seuil: {{alert.minimumStock}}</span>
+                  <span>Reste: {{alert.quantity}}</span>
                 </div>
               </div>
             </button>

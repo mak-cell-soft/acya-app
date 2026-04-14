@@ -9,6 +9,8 @@ import { AuthenticationService } from '../../../services/components/authenticati
 import { MatDialog } from '@angular/material/dialog';
 import { StockTransferFormComponent } from '../../stock/stock-transfer-form/stock-transfer-form.component';
 import { EnterpriseService } from '../../../services/components/enterprise.service';
+import { NotificationService } from '../../../services/components/notification.service';
+import { AppNotification } from '../../../models/app-notification';
 
 @UntilDestroy()
 @Component({
@@ -75,6 +77,10 @@ export class DashboardShellComponent implements AfterViewInit, OnInit {
   // NOTE: Enterprise info bound to the sidebar header — fetched once on init from the API
   enterpriseName: string = '';
   enterpriseDescription: string = '';
+  
+  // LIVE NOTIFICATIONS
+  unreadCount$ = this.notificationService.unreadCount$;
+  systemNotifications: AppNotification[] = [];
 
   // toggleVenteMenu() {
   //   this.isVenteMenuOpen = !this.isVenteMenuOpen;
@@ -97,7 +103,8 @@ export class DashboardShellComponent implements AfterViewInit, OnInit {
     private router: Router,
     private authService: AuthenticationService,
     // NOTE: EnterpriseService is injected here to fetch live enterprise info from the API
-    private enterpriseService: EnterpriseService
+    private enterpriseService: EnterpriseService,
+    public notificationService: NotificationService
   ) { }
 
   get isAdmin(): boolean {
@@ -131,6 +138,9 @@ export class DashboardShellComponent implements AfterViewInit, OnInit {
         });
       }
     }
+
+    // Initialize notification polling/loading
+    this.notificationService.fetchUnreads();
   }
 
   ngAfterViewInit() {
@@ -247,5 +257,13 @@ export class DashboardShellComponent implements AfterViewInit, OnInit {
       maxHeight: '100vh',
       panelClass: 'modern-dialog'
     });
+  }
+
+  markAsRead(id: number) {
+    this.notificationService.markAsRead(id);
+  }
+
+  get notifications(): AppNotification[] {
+    return this.notificationService.getSystemNotifications();
   }
 }

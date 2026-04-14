@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Http;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
@@ -48,8 +48,29 @@ public class NotificationHub : Hub
     if (!string.IsNullOrEmpty(siteId))
     {
       await Groups.AddToGroupAsync(Context.ConnectionId, siteId);
-      _logger.LogInformation("Added connection {ConnectionId} to group {SiteId}",
+      _logger.LogInformation("Added connection {ConnectionId} to group site-{SiteId}",
           Context.ConnectionId, siteId);
+    }
+
+    // Add to User-specific group
+    var userId = Context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    if (!string.IsNullOrEmpty(userId))
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"user-{userId}");
+        _logger.LogInformation("Added connection {ConnectionId} to group user-{UserId}",
+            Context.ConnectionId, userId);
+    }
+
+    // Add to Role-specific groups
+    var roles = Context.User?.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value);
+    if (roles != null)
+    {
+        foreach (var role in roles)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"role-{role}");
+            _logger.LogInformation("Added connection {ConnectionId} to group role-{Role}",
+                Context.ConnectionId, role);
+        }
     }
 
     await base.OnConnectedAsync();

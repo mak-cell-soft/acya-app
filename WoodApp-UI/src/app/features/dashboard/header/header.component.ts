@@ -37,6 +37,7 @@ export class HeaderComponent implements OnInit, AfterViewInit {
     setTimeout(() => {
       this.fetchMissedNotifications();
       this.notificationService.fetchStockAlerts();
+      this.notificationService.fetchUnreads();
     }, 2000);
   }
 
@@ -166,4 +167,36 @@ export class HeaderComponent implements OnInit, AfterViewInit {
     }
   }
 
+  markAsRead(id: number, event: MouseEvent) {
+    event.stopPropagation();
+    this.notificationService.markAsRead(id);
+  }
+
+  markAllAsRead() {
+    // Implement on service if needed, or just loop
+    this.notifications.forEach(n => this.notificationService.markAsRead(n.id));
+  }
+
+  get notifications() {
+    return this.notificationService.getSystemNotifications();
+  }
+
+  getNotificationIcon(type: number): string {
+    switch (type) {
+      case 1: return 'check_circle'; // Success
+      case 2: return 'warning'; // Warning
+      case 3: return 'error'; // Error
+      default: return 'notifications'; // Info/Email
+    }
+  }
+
+  getNotificationTypeClass(type: number): string {
+    switch (type) {
+      case 1: return 'success'; // Success
+      case 2: return 'warning'; // Warning
+      case 3: return 'error'; // Error
+      case 4: return 'email'; // Email
+      default: return 'info'; // Info
+    }
+  }
 }

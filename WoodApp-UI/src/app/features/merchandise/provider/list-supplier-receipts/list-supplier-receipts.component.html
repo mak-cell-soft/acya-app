@@ -233,7 +233,7 @@
                                     <div class="m-stats">
                                         <div class="m-stat">
                                             <span class="label">Qté</span>
-                                            <span class="value">{{ merchandise.quantity | number:'1.3-3'}}</span>
+                                            <span class="value">{{ merchandise.article.unit === 'M3' ? (merchandise.quantity | number:'1.3-3') : (merchandise.quantity | number:'1.0-3') }}</span>
                                         </div>
                                         <div class="m-stat">
                                             <span class="label">P.U HT</span>

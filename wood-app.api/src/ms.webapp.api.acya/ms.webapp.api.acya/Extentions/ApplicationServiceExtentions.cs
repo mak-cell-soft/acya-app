@@ -63,6 +63,11 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<IAuditService, AuditService>();
       services.AddScoped<AuditTrailInterceptor>();
 
+      // Notifications & Reminders (§5.19)
+      services.Configure<ms.webapp.api.acya.api.Models.SmtpSettings>(config.GetSection("SmtpSettings"));
+      services.AddScoped<IEmailService, EmailService>();
+      services.AddScoped<IAppNotificationService, AppNotificationService>();
+
       services.AddDbContext<WoodAppContext>((sp, options) =>
       {
         options.UseNpgsql(config.GetConnectionString("WoodAppContextConnection"));

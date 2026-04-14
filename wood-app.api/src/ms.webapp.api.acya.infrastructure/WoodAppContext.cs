@@ -4,6 +4,7 @@ using ms.webapp.api.acya.core.Entities.Categories;
 using ms.webapp.api.acya.core.Entities.Product;
 using ms.webapp.api.acya.infrastructure.Core;
 using ms.webapp.api.acya.infrastructure.Configurations.Audit;
+using ms.webapp.api.acya.core.Entities.Notifications;
 
 namespace ms.webapp.api.acya.infrastructure
 {
@@ -63,6 +64,7 @@ namespace ms.webapp.api.acya.infrastructure
     public virtual DbSet<EmployeeLeave> EmployeeLeaves { get; set; }
     public virtual DbSet<EmployeePayslip> EmployeePayslips { get; set; }
     public virtual DbSet<EmployeeAdvance> EmployeeAdvances { get; set; }
+    public virtual DbSet<AppNotification> AppNotifications { get; set; }
     public virtual DbSet<AuditLog> AuditLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

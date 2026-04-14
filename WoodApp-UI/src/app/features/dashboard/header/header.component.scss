@@ -416,6 +416,12 @@
           height: 24px;
           margin-right: 0 !important;
         }
+
+        &.success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        &.warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        &.error   { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        &.email   { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        &.info    { background: rgba(11, 59, 36, 0.08); color: #0B3B24; }
       }
 
       .item-notif-content {
@@ -471,6 +477,20 @@
             opacity: 0.6;
           }
         }
+      }
+
+      .mark-read-quick {
+        opacity: 0;
+        transition: opacity 0.2s;
+        color: #10b981;
+        
+        &:hover {
+          background: rgba(16, 185, 129, 0.1);
+        }
+      }
+
+      &:hover .mark-read-quick {
+        opacity: 1;
       }
     }
 

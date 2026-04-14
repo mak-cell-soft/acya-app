@@ -7,6 +7,8 @@ import { AuthenticationService } from './authentication.service';
 import { environment } from '../../../environments/environment';
 import { Router } from '@angular/router';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { ToastrService } from 'ngx-toastr';
+import { AppNotification, NotificationType } from '../../models/app-notification';
 
 @Injectable({
   providedIn: 'root'
@@ -14,14 +16,19 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 export class NotificationService implements OnDestroy, OnInit {
   private hubConnection!: signalR.HubConnection;
   private notifications: TransferNotification[] = [];
+  private systemNotifications: AppNotification[] = [];
   private stockAlerts: any[] = [];
   private destroy$ = new Subject<void>();
   private isManualReconnect = false;
 
+  private unreadCountSubject = new Subject<number>();
+  unreadCount$ = this.unreadCountSubject.asObservable();
+
   constructor(
     private snackBar: MatSnackBar,
     private authService: AuthenticationService,
-    private http: HttpClient
+    private http: HttpClient,
+    private toastr: ToastrService
   ) {
     this.initializeConnection();
   }
@@ -110,6 +117,34 @@ export class NotificationService implements OnDestroy, OnInit {
       );
   }
 
+  fetchUnreads(): void {
+    if (!this.authService.isLoggedIn()) return;
+
+    this.http.get<AppNotification[]>(`${environment.apiBaseUrl}/api/notifications/unreads`)
+      .subscribe({
+        next: (notifications) => {
+          this.systemNotifications = notifications;
+          this.updateUnreadCount();
+        },
+        error: (err) => console.error('Failed to fetch unread notifications', err)
+      });
+  }
+
+  markAsRead(id: number): void {
+    this.http.put(`${environment.apiBaseUrl}/api/notifications/${id}/read`, {}).subscribe({
+      next: () => {
+        this.systemNotifications = this.systemNotifications.filter(n => n.id !== id);
+        this.updateUnreadCount();
+      },
+      error: (err) => console.error('Failed to mark notification as read', err)
+    });
+  }
+
+  private updateUnreadCount(): void {
+    const count = this.systemNotifications.length + this.notifications.length + this.stockAlerts.length;
+    this.unreadCountSubject.next(count);
+  }
+
   private initializeConnection() {
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl(`${environment.apiBaseUrl}/api/notificationHub`, {
@@ -181,6 +216,10 @@ export class NotificationService implements OnDestroy, OnInit {
 
     this.hubConnection.on('ReceiveStockAlert', (alert: any) => {
       this.handleStockAlert(alert);
+    });
+
+    this.hubConnection.on('ReceiveSystemNotification', (notification: AppNotification) => {
+      this.handleSystemNotification(notification);
     });
 
     this.hubConnection.on('NotificationDeleted', (data: any) => {
@@ -274,6 +313,35 @@ export class NotificationService implements OnDestroy, OnInit {
     }
   }
 
+  private handleSystemNotification(notification: AppNotification) {
+    console.log('[SignalR] System notification:', notification);
+    
+    // Convert string dates to Date objects if needed
+    notification.createdAt = new Date(notification.createdAt);
+    
+    this.systemNotifications = [notification, ...this.systemNotifications];
+    this.updateUnreadCount();
+
+    if (this.authService.isLoggedIn()) {
+      const typeStr = notification.type.toString().toLowerCase();
+      
+      switch (notification.type) {
+        case NotificationType.Success:
+          this.toastr.success(notification.message, notification.title);
+          break;
+        case NotificationType.Warning:
+          this.toastr.warning(notification.message, notification.title);
+          break;
+        case NotificationType.Error:
+          this.toastr.error(notification.message, notification.title);
+          break;
+        default:
+          this.toastr.info(notification.message, notification.title);
+          break;
+      }
+    }
+  }
+
   private logConnectionState() {
     console.log('Current connection state:', this.hubConnection.state);
     this.hubConnection.onreconnecting(() => console.log('Connection reconnecting...'));
@@ -321,12 +389,16 @@ export class NotificationService implements OnDestroy, OnInit {
     });
   }
 
+  getSystemNotifications(): AppNotification[] {
+    return [...this.systemNotifications];
+  }
+
   getStockAlerts(): any[] {
     return [...this.stockAlerts];
   }
 
   getTotalUnreadCount(): number {
-    return this.notifications.length + this.stockAlerts.length;
+    return this.systemNotifications.length + this.notifications.length + this.stockAlerts.length;
   }
 
   ngOnDestroy() {
