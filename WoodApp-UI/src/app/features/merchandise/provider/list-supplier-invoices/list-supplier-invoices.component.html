@@ -165,7 +165,10 @@
                         </span>
                         <div class="ttc-sub" *ngIf="element.parentDocument?.total_net_payable && element.parentDocument?.total_net_payable !== element.parentDocument?.total_net_ttc">
                             <span class="label">TTC:</span> {{element.parentDocument?.total_net_ttc | number:'1.3-3'}} TND
-                            <span class="rs-badge">RS: {{element.parentDocument?.holdingtax?.taxpercentage}}%</span>
+                            <span class="rs-badge" [class.signed]="element.parentDocument?.holdingtax?.issigned">
+                                RS: {{element.parentDocument?.holdingtax?.taxpercentage}}%
+                                <mat-icon *ngIf="element.parentDocument?.holdingtax?.issigned" class="signed-icon">verified</mat-icon>
+                            </span>
                         </div>
                         <span class="ttc-only" *ngIf="!element.parentDocument?.total_net_payable || element.parentDocument?.total_net_payable === element.parentDocument?.total_net_ttc">
                              {{element.parentDocument?.total_net_ttc | number:'1.3-3'}} TND

@@ -452,10 +452,26 @@ td.mat-cell {
 .rs-badge {
     background: #fce4ec;
     color: #c2185b;
-    padding: 2px 6px;
+    padding: 2px 8px;
     border-radius: 4px;
     font-weight: 800;
     font-size: 0.65rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.rs-badge.signed {
+    background: #e8f5e9;
+    color: #2e7d32;
+    box-shadow: 0 0 0 1px rgba(46, 125, 50, 0.1);
+}
+
+.signed-icon {
+    font-size: 14px !important;
+    width: 14px !important;
+    height: 14px !important;
 }
 
 .ttc-only {

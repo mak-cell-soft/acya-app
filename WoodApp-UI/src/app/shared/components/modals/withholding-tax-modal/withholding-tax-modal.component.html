@@ -35,9 +35,15 @@
 
             <mat-form-field appearance="outline" class="w-100">
                 <mat-label>Référence / N° Avis de débit</mat-label>
-                <input matInput [(ngModel)]="reference" placeholder="Ex: RS-2024-001">
+                <input matInput [(ngModel)]="reference" required placeholder="Ex: RS-2024-001">
                 <mat-icon matPrefix>tag</mat-icon>
             </mat-form-field>
+
+            <div class="checkbox-container">
+                <mat-checkbox [(ngModel)]="issigned" color="primary">
+                    Le document de la retenue est signé
+                </mat-checkbox>
+            </div>
         </div>
 
         <div class="calculation-preview" *ngIf="selectedRate">
@@ -65,7 +71,7 @@
         <button mat-button (click)="onCancel()" class="btn-cancel">
             Annuler
         </button>
-        <button mat-raised-button color="primary" (click)="onConfirm()" class="btn-confirm">
+        <button mat-raised-button color="primary" (click)="onConfirm()" class="btn-confirm" [disabled]="!selectedRate || !reference">
             <mat-icon>check_circle</mat-icon>
             Appliquer la RS
         </button>

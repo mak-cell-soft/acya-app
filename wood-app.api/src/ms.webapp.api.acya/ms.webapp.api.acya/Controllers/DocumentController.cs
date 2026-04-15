@@ -41,6 +41,7 @@ namespace ms.webapp.api.acya.api.Controllers
           .AsSplitQuery() // Performance: Avoid cartesian product in complex joins
           .Include(d => d.CounterPart)
           .Include(d => d.SalesSite)
+          .Include(d => d.HoldingTaxes)
           .Include(d => d.AppUsers)
               .ThenInclude(u => u!.Persons)
           .Include(d => d.DocumentMerchandises)
@@ -179,6 +180,7 @@ namespace ms.webapp.api.acya.api.Controllers
           .AsSplitQuery() // Performance: Avoid cartesian product in complex joins
           .Include(d => d.CounterPart)
           .Include(d => d.SalesSite)
+          .Include(d => d.HoldingTaxes)
           .Include(d => d.AppUsers)
               .ThenInclude(u => u!.Persons)
           .Include(d => d.DocumentMerchandises)
@@ -890,6 +892,7 @@ namespace ms.webapp.api.acya.api.Controllers
           .AsSplitQuery()
           .Include(d => d.CounterPart)
           .Include(d => d.SalesSite)
+          .Include(d => d.HoldingTaxes)
           .Include(d => d.AppUsers)
               .ThenInclude(u => u!.Persons)
           .Include(d => d.DocumentMerchandises)
@@ -975,10 +978,12 @@ namespace ms.webapp.api.acya.api.Controllers
     {
       var parentDocuments = await _context.DocumentDocumentRelationships
           .Include(p => p.ParentDocument)
-              .ThenInclude(p => p!.CounterPart) // Include CounterPart for ParentDocument
-              .ThenInclude(p => p!.AppUsers) // Include AppUsers for ParentDocument (if AppUsers is a relation of CounterPart)
-              .ThenInclude(p => p!.Persons)
-          .Include(c => c.ChildDocument) // Include ChildDocument
+              .ThenInclude(p => p!.CounterPart)
+                  .ThenInclude(cp => cp!.AppUsers)
+                      .ThenInclude(u => u!.Persons)
+          .Include(p => p.ParentDocument)
+              .ThenInclude(p => p!.HoldingTaxes)
+          .Include(c => c.ChildDocument)
           .Where(p => p.ParentDocument!.Type == DocumentTypes.supplierInvoice)
           .ToListAsync();
 

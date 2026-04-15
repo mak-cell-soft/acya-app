@@ -20,6 +20,7 @@ export class WithholdingTaxModalComponent implements OnInit {
   availableRSRates: AppVariable[] = [];
   selectedRate: AppVariable | null = null;
   reference: string = '';
+  issigned: boolean = false;
   
   // Totals for display
   totalTtc: number = 0;
@@ -33,6 +34,7 @@ export class WithholdingTaxModalComponent implements OnInit {
     this.totalTtc = this.data.document.total_net_ttc || 0;
     if (this.data.document.holdingtax) {
       this.reference = this.data.document.holdingtax.reference || '';
+      this.issigned = this.data.document.holdingtax.issigned || false;
     }
   }
 
@@ -78,7 +80,10 @@ export class WithholdingTaxModalComponent implements OnInit {
     holdingTax.taxpercentage = this.selectedRate ? Number(this.selectedRate.value) : 0;
     holdingTax.taxvalue = this.rsAmount;
     holdingTax.reference = this.reference;
+    holdingTax.issigned = this.issigned;
     holdingTax.newamountdocvalue = this.netPayable;
+    holdingTax.updatedbyid = this.data.document.updatedbyid;
+    
 
     this.dialogRef.close(holdingTax);
   }

@@ -33,7 +33,6 @@ namespace ms.webapp.api.acya.api.Controllers
                 // Update existing
                 document.HoldingTaxes.UpdateFromDto(dto);
                 document.HoldingTaxes.UpdateDate = DateTime.UtcNow;
-                _context.Entry(document.HoldingTaxes).State = EntityState.Modified;
             }
             else
             {
