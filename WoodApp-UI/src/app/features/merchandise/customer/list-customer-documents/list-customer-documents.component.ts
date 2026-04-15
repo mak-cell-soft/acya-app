@@ -353,6 +353,8 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
       documentId: doc.id,
       documentNumber: doc.docnumber,
       totalAmount: doc.total_net_ttc,
+      totalNetPayable: doc.total_net_payable,
+      withholdingtax: doc.withholdingtax,
       remainingAmount: doc.total_net_ttc, // Needs actual remaining amount logic if available, using total for now as discussed
       // Retrieve counterpart fullname as owner
       ownerFullName: doc.counterpart?.name || doc.counterpart?.firstname + ' ' + doc.counterpart?.lastname || '',

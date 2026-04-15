@@ -442,6 +442,8 @@ export class AddInvoiceComponent implements OnInit {
             documentId: 0,
             documentNumber: 'NOUVELLE-FACTURE',
             totalAmount: finalTTC,
+            totalNetPayable: this.total_net_payable$.value,
+            withholdingtax: !!this.selectedRS,
             remainingAmount: finalTTC,
             ownerFullName: this.selectedCustomer ? (this.selectedCustomer.name || `${this.selectedCustomer.firstname} ${this.selectedCustomer.lastname}`) : '',
             porterName: '',

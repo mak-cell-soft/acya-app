@@ -26,8 +26,12 @@
                 <span class="card-value">{{ data.ownerFullName }}</span>
             </div>
             <div class="dashboard-card primary">
-                <span class="card-label">Total Document</span>
+                <span class="card-label">Total TTC</span>
                 <span class="card-value">{{ data.totalAmount | number:'1.3-3' }} <small>TND</small></span>
+            </div>
+            <div class="dashboard-card secondary" *ngIf="data.withholdingtax && data.totalNetPayable">
+                <span class="card-label">Net à Payer (RS incluse)</span>
+                <span class="card-value">{{ data.totalNetPayable | number:'1.3-3' }} <small>TND</small></span>
             </div>
             <div class="dashboard-card alert">
                 <span class="card-label">Reste à payer</span>

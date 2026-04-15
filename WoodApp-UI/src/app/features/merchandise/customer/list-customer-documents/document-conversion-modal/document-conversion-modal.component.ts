@@ -224,6 +224,8 @@ export class DocumentConversionModalComponent implements OnInit {
             documentId: doc.id,
             documentNumber: doc.docnumber,
             totalAmount: this.totalTTC,
+            totalNetPayable: doc.total_net_payable,
+            withholdingtax: doc.withholdingtax,
             remainingAmount: this.totalTTC,
             ownerFullName: doc.counterpart?.name || doc.counterpart?.firstname + ' ' + doc.counterpart?.lastname || '',
             porterName: doc.counterpart?.name || doc.counterpart?.firstname + ' ' + doc.counterpart?.lastname || '',

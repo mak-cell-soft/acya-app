@@ -5,15 +5,21 @@ using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs;
 using ms.webapp.api.acya.infrastructure;
 
+using ms.webapp.api.acya.api.Interfaces;
+
 namespace ms.webapp.api.acya.api.Controllers
 {
     public class HoldingTaxController : BaseApiController
     {
         private readonly WoodAppContext _context;
+        private readonly IAccountService _accountService;
+        private readonly IBalanceService _balanceService;
 
-        public HoldingTaxController(WoodAppContext context)
+        public HoldingTaxController(WoodAppContext context, IAccountService accountService, IBalanceService balanceService)
         {
             _context = context;
+            _accountService = accountService;
+            _balanceService = balanceService;
         }
 
         [HttpPost("apply-to-document/{documentId}")]
@@ -50,6 +56,30 @@ namespace ms.webapp.api.acya.api.Controllers
 
             await _context.SaveChangesAsync();
 
+            // UPDATE LEDGER
+            // If we already had an entry for this holding tax, delete it first to avoid duplicates on update
+            await _accountService.DeleteLedgerEntryAsync(document.HoldingTaxes.Id, "RS");
+
+            // Add new ledger entry
+            string description = $"Retenue à la source ({document.HoldingTaxes.TaxPercentage}%) - document {document.DocNumber}";
+            await _accountService.AddLedgerEntryAsync(
+                document.CounterPartId,
+                "RS",
+                (decimal)document.HoldingTaxes.TaxValue,
+                document.HoldingTaxes.Id,
+                description
+            );
+
+            // Update persistent balance
+            var counterpart = await _context.CounterParts.FindAsync(document.CounterPartId);
+            if (counterpart != null)
+            {
+                if (counterpart.Type == ms.webapp.api.acya.common.CounterPartType.Customer)
+                    await _balanceService.UpdateCustomerBalanceAsync(counterpart.Id, "RS", DateTime.UtcNow);
+                else
+                    await _balanceService.UpdateSupplierBalanceAsync(counterpart.Id, "RS", DateTime.UtcNow);
+            }
+
             return Ok(new { message = "Holding tax applied successfully", holdingTaxId = document.HoldingTaxes.Id });
         }
 
@@ -65,6 +95,12 @@ namespace ms.webapp.api.acya.api.Controllers
                 return NotFound(new { message = "Document not found" });
             }
 
+            document.WithHoldingTax = false;
+            document.UpdateDate = DateTime.UtcNow;
+
+            // Before removing from DB, keep the ID for ledger cleanup
+            int? oldHoldingTaxId = document.HoldingTaxes?.Id;
+
             if (document.HoldingTaxes != null)
             {
                 _context.Set<HoldingTax>().Remove(document.HoldingTaxes);
@@ -72,10 +108,23 @@ namespace ms.webapp.api.acya.api.Controllers
                 document.HoldingTaxId = null;
             }
 
-            document.WithHoldingTax = false;
-            document.UpdateDate = DateTime.UtcNow;
-
             await _context.SaveChangesAsync();
+
+            // CLEANUP LEDGER
+            if (oldHoldingTaxId.HasValue)
+            {
+                await _accountService.DeleteLedgerEntryAsync(oldHoldingTaxId.Value, "RS");
+                
+                // Update persistent balance
+                var counterpart = await _context.CounterParts.FindAsync(document.CounterPartId);
+                if (counterpart != null)
+                {
+                    if (counterpart.Type == ms.webapp.api.acya.common.CounterPartType.Customer)
+                        await _balanceService.UpdateCustomerBalanceAsync(counterpart.Id, "RS-Removed", DateTime.UtcNow);
+                    else
+                        await _balanceService.UpdateSupplierBalanceAsync(counterpart.Id, "RS-Removed", DateTime.UtcNow);
+                }
+            }
 
             return Ok(new { message = "Holding tax removed successfully" });
         }

@@ -37,7 +37,7 @@ namespace ms.webapp.api.acya.api.Services
             if (counterpart.Type == CounterPartType.Customer)
             {
                 // Invoices/Delivery Notes/Debit adjustments increase debt (Debit)
-                // Payments/Returns decrease debt (Credit)
+                // Payments/Returns/RS decrease debt (Credit)
                 if (type == "Invoice" || type == "customerInvoice" || type == "customerDeliveryNote" || (type == "Adjustment" && amount > 0))
                 {
                     entry.Debit = Math.Abs(amount);
@@ -45,6 +45,7 @@ namespace ms.webapp.api.acya.api.Services
                 }
                 else
                 {
+                    // Includes Type == "RS", "Payment", "Return", etc.
                     entry.Credit = Math.Abs(amount);
                     entry.Debit = 0;
                 }
@@ -52,7 +53,7 @@ namespace ms.webapp.api.acya.api.Services
             else if (counterpart.Type == CounterPartType.Supplier)
             {
                 // Supplier Invoices increase what we owe (Credit)
-                // Payments to supplier decrease what we owe (Debit)
+                // Payments to supplier / RS decrease what we owe (Debit)
                 if (type == "Invoice" || type == "supplierInvoice" || (type == "Adjustment" && amount < 0))
                 {
                     entry.Credit = Math.Abs(amount);
@@ -60,6 +61,7 @@ namespace ms.webapp.api.acya.api.Services
                 }
                 else
                 {
+                    // Includes Type == "RS", "Payment", etc.
                     entry.Debit = Math.Abs(amount);
                     entry.Credit = 0;
                 }

@@ -71,7 +71,7 @@
 
 .summary-dashboard {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
   margin-bottom: 24px;
 
@@ -107,6 +107,12 @@
       background: #f0f9ff;
       border-color: #bae6fd;
       .card-value { color: #0369a1; }
+    }
+
+    &.secondary {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+      .card-value { color: #15803d; }
     }
 
     &.alert {

@@ -12,6 +12,8 @@ export interface PaymentModalData {
     documentId: number;
     documentNumber: string;
     totalAmount: number;
+    totalNetPayable?: number;
+    withholdingtax?: boolean;
     remainingAmount: number;
     ownerFullName: string;
     porterName: string;
@@ -72,7 +74,9 @@ export class PaymentModalComponent implements OnInit {
             .subscribe({
                 next: (payments) => {
                     const totalPaid = (payments || []).reduce((acc, curr) => acc + (curr.amount || 0), 0);
-                    this.data.remainingAmount = Number(this.data.totalAmount) - totalPaid;
+                    // If RS is applied, target the net payable amount, otherwise target total TTC
+                    const targetTotal = (this.data.withholdingtax && this.data.totalNetPayable) ? this.data.totalNetPayable : this.data.totalAmount;
+                    this.data.remainingAmount = Number(targetTotal) - totalPaid;
                     
                     // Add validator for maximum amount (cannot pay more than remaining balance)
                     this.paymentForm.get('amount')?.setValidators([

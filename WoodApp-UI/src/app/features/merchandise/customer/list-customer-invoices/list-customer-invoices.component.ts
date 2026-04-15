@@ -196,6 +196,8 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
             documentId: doc.id,
             documentNumber: doc.docnumber,
             totalAmount: doc.total_net_ttc,
+            totalNetPayable: doc.total_net_payable,
+            withholdingtax: doc.withholdingtax,
             remainingAmount: doc.total_net_ttc,
             ownerFullName: doc.counterpart?.name || (doc.counterpart?.firstname + ' ' + doc.counterpart?.lastname) || '',
             porterName: doc.counterpart?.name || (doc.counterpart?.firstname + ' ' + doc.counterpart?.lastname) || '',
