@@ -1,6 +1,7 @@
 export class HoldingTaxe {
     id: number = 0;
     description: string = '';
+    reference?: string; // Référence documentaire RS (ex: avis de débit)
     taxpercentage: number = 0;
     taxvalue: number = 0;
     issigned: boolean = false;

@@ -62,6 +62,7 @@ import { AddTransporterModalComponent } from './shared/components/modals/add-tra
 import { ConfirmDeleteModalComponent } from './shared/components/modals/confirm-delete-modal/confirm-delete-modal.component';
 import { GenericConfirmationModalComponent } from './shared/components/modals/generic-confirmation-modal/generic-confirmation-modal.component';
 import { AddLengthsModalComponent } from './shared/components/modals/add-lengths-modal/add-lengths-modal.component';
+import { WithholdingTaxModalComponent } from './shared/components/modals/withholding-tax-modal/withholding-tax-modal.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 
@@ -105,6 +106,7 @@ import { StatusOrderModalComponent } from './shared/components/modals/status-ord
     ChequePaymentFormComponent,
     TraitePaymentFormComponent,
     StatusOrderModalComponent,
+    WithholdingTaxModalComponent,
 
 
 

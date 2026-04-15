@@ -101,6 +101,11 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
   SalesSite!: Site;
   appUser!: AppUser;
 
+  // Retenue à la Source (RS)
+  rsList: AppVariable[] = [];
+  selectedRS: AppVariable | null = null;
+  total_net_payable$ = new BehaviorSubject<number>(0);
+
   /**
    * Table Summary
    * 
@@ -144,6 +149,7 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
       this.createMerchandiseForm();
       //this.addRow();
       this.loadData();
+      this.loadAppVariables(); // Load RS and others
       this.watchForDiscountPercentage();
       this.watchForQuantity();
 
@@ -452,6 +458,22 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
     });
   }
 
+  loadAppVariables() {
+    this.appVarService.GetAll('RS').subscribe({
+      next: (response) => {
+        this.rsList = response;
+      },
+      error: (error) => {
+        console.error('Error fetching RS variables:', error);
+      }
+    });
+  }
+
+  onRSChange(rs: AppVariable | null) {
+    this.selectedRS = rs;
+    this.calculateTotals(this.merchandisDocument.data);
+  }
+
   getTVAs() {
     this.TVAs = [];
     this.appVarService.GetAll('Tva').subscribe({
@@ -722,10 +744,14 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
     const totalTVA = data.reduce((sum, item) => sum + item.tva_value, 0);
     const netTTC = data.reduce((sum, item) => sum + item.cost_ttc, 0);
 
+    const rsValue = this.selectedRS ? (netTTC * (Number(this.selectedRS.value) / 100)) : 0;
+    const netPayable = netTTC - rsValue;
+
     this.totalHTNet_doc$.next(totalHTNet);
     this.totalRemise_doc$.next(totalRemise);
     this.totalTVA_doc$.next(totalTVA);
     this.netTTC_doc$.next(netTTC);
+    this.total_net_payable$.next(netPayable);
 
     /**
      * Exemple ecriture chiffre en lettres.
@@ -740,6 +766,7 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
     this.totalRemise_doc$.next(null!);
     this.totalTVA_doc$.next(null!);
     this.netTTC_doc$.next(null!);
+    this.total_net_payable$.next(null!);
 
     this.merchandisDocument.data = [];
   }
@@ -775,9 +802,19 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
           total_discount_doc: this.totalRemise_doc$.value,
           total_tva_doc: this.totalTVA_doc$.value,
           total_net_ttc: this.netTTC_doc$.value,
+          total_net_payable: this.total_net_payable$.value,
           taxe: _taxe,
-          holdingtax: _holdingTax,
-          withholdingtax: false,
+          holdingtax: this.selectedRS ? {
+            id: 0,
+            description: this.selectedRS.name,
+            taxpercentage: Number(this.selectedRS.value),
+            taxvalue: this.netTTC_doc$.value * (Number(this.selectedRS.value) / 100),
+            newamountdocvalue: this.total_net_payable$.value,
+            issigned: false,
+            isdeleted: false,
+            updatedbyid: Number(this.userconnected?.id)
+          } as any : null,
+          withholdingtax: !!this.selectedRS,
           counterpart: this.selectedSupplier,
           sales_site: _sales_site, // Now _s will have the site data
           creationdate: new Date(),

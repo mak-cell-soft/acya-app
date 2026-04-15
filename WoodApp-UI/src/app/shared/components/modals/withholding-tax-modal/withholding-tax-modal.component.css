@@ -1,0 +1,137 @@
+.modal-wrapper {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    color: white;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-title h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
+.close-btn {
+    color: white;
+}
+
+.modal-content {
+    padding: 24px;
+    background: #f8fafc;
+}
+
+.document-summary {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 24px;
+    background: white;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-item .label {
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    font-weight: 600;
+}
+
+.info-item .value {
+    font-size: 1.1rem;
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.calculation-preview {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.calc-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 1rem;
+}
+
+.rs-row {
+    color: #ef4444;
+    font-weight: 500;
+}
+
+.net-row {
+    margin-top: 12px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e3a8a;
+}
+
+.net-value {
+    color: #10b981;
+}
+
+.no-rs-message {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: #eff6ff;
+    color: #1e40af;
+    border-radius: 8px;
+    border-left: 4px solid #3b82f6;
+}
+
+.modal-actions {
+    padding: 16px 24px;
+    background: white;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.btn-cancel {
+    color: #64748b;
+}
+
+.btn-confirm {
+    padding: 0 24px;
+    height: 44px;
+    border-radius: 22px;
+}

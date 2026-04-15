@@ -239,6 +239,34 @@
     color: #166534;
 }
 
+.m-delivery-progress {
+    display: flex;
+    justify-content: flex-start;
+    gap: 16px;
+    padding: 8px 12px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    border-left: 3px solid #64748b;
+}
+
+.progress-stat .label {
+    font-size: 0.6rem;
+    color: #64748b;
+}
+
+.progress-stat .value {
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.progress-stat .value.success {
+    color: #10b981;
+}
+
+.progress-stat .value.warning {
+    color: #f59e0b;
+}
+
 /* Loader */
 .loader-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; pointer-events: none; }
 .custom-progress-bar { position: absolute; top: 0; left: 0; width: 100%; height: 6px !important; z-index: 1001; }

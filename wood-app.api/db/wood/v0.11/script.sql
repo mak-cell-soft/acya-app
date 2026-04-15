@@ -33,4 +33,34 @@ WHERE NOT EXISTS (
 -- §5.7 — Alerte de stock bas
 ALTER TABLE tbl_stock ADD COLUMN IF NOT EXISTS minimumstock double precision NOT NULL DEFAULT 0;
 
+-- §5.3 — Retenue à la source (RS) — Référence documentaire
+ALTER TABLE tbl_holding_tax ADD COLUMN IF NOT EXISTS reference text NULL;
+
+-- 1. S'assurer que les colonnes ont les bons noms (minuscules fusionnées)
+DO $$ 
+BEGIN
+    -- Renommer les colonnes si elles existent sous l'ancien format
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tbl_holding_tax' AND column_name = 'Id') THEN
+        ALTER TABLE "tbl_holding_tax" RENAME COLUMN "Id" TO id;
+    END IF;
+    -- Répéter pour les autres colonnes si nécessaire...
+END $$;
+
+-- 2. Ajouter la colonne 'reference' si elle est manquante
+ALTER TABLE tbl_holding_tax ADD COLUMN IF NOT EXISTS reference text;
+
+-- 3. Mise à jour de la foreign key vers tbl_document si nécessaire
+-- (Assurez-vous que tbl_document.holdingtaxid pointe bien vers tbl_holding_tax.id)
+ALTER TABLE tbl_document 
+DROP CONSTRAINT IF EXISTS fk_tbl_document_tbl_holding_tax;
+
+ALTER TABLE tbl_document 
+ADD CONSTRAINT fk_tbl_document_tbl_holding_tax 
+FOREIGN KEY (holdingtaxid) REFERENCES tbl_holding_tax(id) ON DELETE SET NULL;
+
+-- 4. Marquer la migration comme effectuée dans l'historique EF
+DELETE FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260415131429_FixHoldingTaxMappingFinal';
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion") 
+VALUES ('20260415131429_FixHoldingTaxMappingFinal', '7.0.20');
+
 COMMIT;

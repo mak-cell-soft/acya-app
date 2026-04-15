@@ -182,6 +182,33 @@ mat-form-field {
     color: #3f51b5 !important;
 }
 
+.highlight-nap {
+    background: linear-gradient(135deg, #f1f8e9 0%, #dcedc8 100%) !important;
+    border: 1px solid #c5e1a5 !important;
+}
+
+.highlight-nap .value {
+    color: #33691e !important;
+}
+
+.rs-applied {
+    color: #2e7d32;
+    text-shadow: 0 0 1px rgba(46, 125, 50, 0.2);
+}
+
+.rs-badge {
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    width: fit-content;
+    margin-top: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border: 1px solid #c8e6c9;
+}
+
 /* Table Card */
 .table-card {
     background: white;

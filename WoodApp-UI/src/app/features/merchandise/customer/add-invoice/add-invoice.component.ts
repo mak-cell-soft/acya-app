@@ -81,6 +81,11 @@ export class AddInvoiceComponent implements OnInit {
     totalRemise_doc$ = new BehaviorSubject<number>(0);
     totalTVA_doc$ = new BehaviorSubject<number>(0);
     netTTC_doc$ = new BehaviorSubject<number>(0);
+    total_net_payable$ = new BehaviorSubject<number>(0);
+
+    // Retenue à la Source (RS)
+    rsList: AppVariable[] = [];
+    selectedRS: AppVariable | null = null;
 
     // ViewChildren
     @ViewChild('customerSelect') customerSelect!: MatSelect;
@@ -101,6 +106,7 @@ export class AddInvoiceComponent implements OnInit {
             this.getCustomers();
             this.searchCustomerControl.valueChanges.subscribe(() => this.applyCustomerFilter());
             this.getAllTaxes();
+            this.loadAppVariables(); // Load RS
         }
     }
 
@@ -181,6 +187,20 @@ export class AddInvoiceComponent implements OnInit {
             },
             error: (err) => console.error('Error loading taxes', err)
         });
+    }
+
+    loadAppVariables() {
+        this.appVarService.GetAll('RS').subscribe({
+            next: (response) => {
+                this.rsList = response;
+            },
+            error: (err) => console.error('Error loading RS', err)
+        });
+    }
+
+    onRSChange(rs: AppVariable | null) {
+        this.selectedRS = rs;
+        this.calculateTotals(this.dataMerchand.data);
     }
 
     getCustomers() {
@@ -377,10 +397,14 @@ export class AddInvoiceComponent implements OnInit {
 
         const finalTTC = totals.netTTC + taxAddition;
 
+        const rsValue = this.selectedRS ? (finalTTC * (Number(this.selectedRS.value) / 100)) : 0;
+        const netPayable = finalTTC - rsValue;
+
         this.totalHTNet_doc$.next(totals.totalHTNet);
         this.totalRemise_doc$.next(totals.totalRemise);
         this.totalTVA_doc$.next(totals.totalTVA);
         this.netTTC_doc$.next(finalTTC);
+        this.total_net_payable$.next(netPayable);
     }
 
     // TTC Editable Logic
@@ -460,9 +484,19 @@ export class AddInvoiceComponent implements OnInit {
             total_discount_doc: this.totalRemise_doc$.value,
             total_tva_doc: this.totalTVA_doc$.value,
             total_net_ttc: this.netTTC_doc$.value,
+            total_net_payable: this.total_net_payable$.value,
             taxe: (this.appvariablesTaxes.find(t => t.id === this.taxeForm.get('selectedTaxe')?.value) || null) as any,
-            holdingtax: null as any,
-            withholdingtax: false,
+            holdingtax: this.selectedRS ? {
+              id: 0,
+              description: this.selectedRS.name,
+              taxpercentage: Number(this.selectedRS.value),
+              taxvalue: this.netTTC_doc$.value * (Number(this.selectedRS.value) / 100),
+              newamountdocvalue: this.total_net_payable$.value,
+              issigned: false,
+              isdeleted: false,
+              updatedbyid: Number(this.userconnected?.id)
+            } as any : null,
+            withholdingtax: !!this.selectedRS,
             counterpart: this.selectedCustomer!,
             transporter: this.selectedTransporter,
             sales_site: this.SalesSite,

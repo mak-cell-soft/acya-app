@@ -87,7 +87,16 @@
             </div>
             <div class="summary-data">
                 <span class="label">Total TTC</span>
-                <span class="value total-ttc">{{totalTtc | number:'1.3-3'}} TND</span>
+                <span class="value">{{totalTtc | number:'1.3-3'}} TND</span>
+            </div>
+        </div>
+        <div class="summary-item highlight-nap">
+            <div class="summary-icon-wrapper" style="background: #f1f8e9; color: #558b2f;">
+                <mat-icon>account_balance_wallet</mat-icon>
+            </div>
+            <div class="summary-data">
+                <span class="label">Total Net à Payer</span>
+                <span class="value total-nap">{{totalNetPayable | number:'1.3-3'}} TND</span>
             </div>
         </div>
         <div class="summary-item">
@@ -130,9 +139,16 @@
                 <th mat-header-cell *matHeaderCellDef>Montant</th>
                 <td mat-cell *matCellDef="let element">
                     <div style="display: flex; flex-direction: column;">
-                        <span style="font-weight: bold;">{{element.total_net_ttc | number:'1.3-3'}} TTC</span>
-                        <span style="font-size: 0.8em; color: gray;">{{element.total_ht_net_doc | number:'1.3-3'}}
-                            HT</span>
+                        <span style="font-weight: bold;" [class.rs-applied]="element.withholdingtax">
+                            {{(element.total_net_payable || element.total_net_ttc) | number:'1.3-3'}} Net à Payer
+                        </span>
+                        <span style="font-size: 0.8em; color: gray;" *ngIf="element.withholdingtax">
+                            {{element.total_net_ttc | number:'1.3-3'}} TTC
+                        </span>
+                        <span style="font-size: 0.8em; color: gray;">
+                            {{element.total_ht_net_doc | number:'1.3-3'}} HT
+                        </span>
+                        <span class="rs-badge" *ngIf="element.withholdingtax">RS Appliquée</span>
                     </div>
                 </td>
             </ng-container>
@@ -178,6 +194,10 @@
                         <button mat-icon-button color="primary" matTooltip="Paiement"
                             (click)="openPaymentModal(element)">
                             <mat-icon>payment</mat-icon>
+                        </button>
+                        <button mat-icon-button color="primary" (click)="openHoldingTaxModal(element)"
+                            matTooltip="Retenue à la source">
+                            <mat-icon>account_balance</mat-icon>
                         </button>
                         <button mat-icon-button color="primary" (click)="onDetail(element)" matTooltip="Détail">
                             <mat-icon>visibility</mat-icon>

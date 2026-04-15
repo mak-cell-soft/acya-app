@@ -12,10 +12,12 @@ import { PaymentModalComponent } from '../../../../shared/components/modals/paym
 import { DocumentConversionModalComponent } from '../list-customer-documents/document-conversion-modal/document-conversion-modal.component';
 import { PaymentService } from '../../../../services/components/payment.service';
 import { AuthenticationService } from '../../../../services/components/authentication.service';
+import { WithholdingTaxModalComponent } from '../../../../shared/components/modals/withholding-tax-modal/withholding-tax-modal.component';
 import { Payment } from '../../../../models/components/payment';
 import { ElementRef } from '@angular/core';
 import { getSharedPrintStyles } from '../../../../utils/print-styles.util';
 import { getStatusInfo, getBillingStatusInfo, isSameDay } from '../../../../utils/document-utils';
+import { HoldingTaxService } from '../../../../services/components/holding-tax.service';
 
 @Component({
     selector: 'app-list-customer-invoices',
@@ -46,6 +48,7 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
     totalHt: number = 0;
     totalTva: number = 0;
     totalTtc: number = 0;
+    totalNetPayable: number = 0;
     invoiceCount: number = 0;
 
     @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -138,7 +141,8 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
         this.invoiceCount = this.allCustomerInvoices.data.length;
         this.totalHt = this.allCustomerInvoices.data.reduce((acc, curr) => acc + (curr.total_ht_net_doc || 0), 0);
         this.totalTva = this.allCustomerInvoices.data.reduce((acc, curr) => acc + (curr.total_tva_doc || 0), 0);
-        this.totalTtc = this.totalHt + this.totalTva;
+        this.totalTtc = this.allCustomerInvoices.data.reduce((acc, curr) => acc + (curr.total_net_ttc || 0), 0);
+        this.totalNetPayable = this.allCustomerInvoices.data.reduce((acc, curr) => acc + (curr.total_net_payable || curr.total_net_ttc || 0), 0);
     }
 
     onDetail(doc: Document) {
@@ -158,10 +162,35 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
     }
 
     // Helpers for Status
-    getStatusInfo = getStatusInfo;
     getBillingStatusInfo = getBillingStatusInfo;
+    getStatusInfo = getStatusInfo;
+    isSameDay = isSameDay;
 
-    // New Actions
+    holdingTaxService = inject(HoldingTaxService);
+
+    openHoldingTaxModal(doc: Document) {
+        const dialogRef = this.dialog.open(WithholdingTaxModalComponent, {
+            width: '600px',
+            data: { document: doc }
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+                // Update implementation
+                doc.holdingtax = result;
+                // Calculate NAP immediately for UI
+                doc.total_net_payable = result.newamountdocvalue;
+                this.updateSummary();
+                
+                // Save to backend
+                this.holdingTaxService.applyToDocument(doc.id, result).subscribe({
+                    next: () => this.toastr.success('Retenue à la source mise à jour'),
+                    error: () => this.toastr.error('Erreur lors de la mise à jour de la RS')
+                });
+            }
+        });
+    }
+
     openPaymentModal(doc: Document) {
         const modalData = {
             documentId: doc.id,

@@ -57,6 +57,7 @@ namespace ms.webapp.api.acya.infrastructure
     public virtual DbSet<Vehicle> Vehicles { get; set; }
 
     public virtual DbSet<StockTransfer> StockTransfers { get; set; }
+    public virtual DbSet<HoldingTax> HoldingTaxes { get; set; }
 
     public DbSet<PendingNotification> PendingNotifications { get; set; }
     public DbSet<Payment> Payments { get; set; }

@@ -19,7 +19,8 @@ import {
   MAT_HEADER_CELL_TRANSPORTER_CAR,
   MAT_CARD_HEADER_NUMBERING,
   MAT_CARD_HEADER_AUDIT,
-  MAT_CARD_HEADER_DIMENSION
+  MAT_CARD_HEADER_DIMENSION,
+  MAT_CARD_HEADER_RS
 } from '../../../shared/constants/components/config';
 import { UPDATE_BUTTON, ADD_BUTTON } from '../../../shared/Text_Buttons'
 import { ToastrService } from 'ngx-toastr';
@@ -147,6 +148,7 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
 
   // CARD DIMENSION
   mat_card_header_dimension: string = MAT_CARD_HEADER_DIMENSION;
+  mat_card_header_rs: string = MAT_CARD_HEADER_RS;
   mat_header_cell_dimension_name: string = MAT_HEADER_CELL_DIMENSION_NAME;
   mat_header_cell_dimension_value: string = MAT_HEADER_CELL_DIMENSION_VALUE;
   mat_header_cell_dimension_nature: string = MAT_HEADER_CELL_DIMENSION_NATURE;
@@ -261,6 +263,9 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   appvariablesTVA: AppVariable[] = [];
   displayedAppVariablesTVAColumns: string[] = ['name', 'value', 'isactive', 'isdefault', 'action'];
 
+  appvariablesRS: AppVariable[] = [];
+  displayedAppVariablesRSColumns: string[] = ['name', 'value', 'isactive', 'isdefault', 'action'];
+
   //appvariablesDimension: AppVariable[] = [];
   appvariablesDimension: MatTableDataSource<AppVariable> = new MatTableDataSource<AppVariable>();
   displayedAppVariablesDimensionsColumns: string[] = ['name', 'value', 'nature', 'isactive', 'action'];
@@ -372,6 +377,7 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
     this.getAllBanksAccounts();
     this.getAllTaxes();
     this.getAllTva();
+    this.getAllRS();
     this.getAllDimensions();
     this.getAllLength();
     this.getAllEmployees();
@@ -747,6 +753,61 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
   }
 
   cancelEditTva(appvar: AppVariable): void {
+    appvar.editing = false;
+  }
+  //#endregion
+
+  //#region RS
+  getAllRS(): void {
+    this.store.dispatch(loadAppVariables({ nature: 'RS' }));
+
+    this.store.pipe(select(selectAppVariablesByNature('RS'))).subscribe((appVariables) => {
+      this.appvariablesRS = appVariables;
+    });
+  }
+
+  deleteRS(appvar: AppVariable): void {
+    const dialogRef = this.dialog.open(ConfirmDeleteModalComponent, {
+      width: '400px',
+      data: { item: `${appvar.name} (${appvar.value}%)` }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.appvarService.Delete(appvar.id).subscribe({
+          next: () => {
+            this.getAllRS();
+            this.toastr.success('RS supprimée');
+          },
+          error: () => this.toastr.error('Erreur suppression')
+        });
+      }
+    });
+  }
+
+  editRS(appvar: AppVariable): void {
+    const updatedAppvar = { ...appvar, editing: true };
+    const index = this.appvariablesRS.findIndex(item => item.id === appvar.id);
+    const updatedData = [...this.appvariablesRS];
+    updatedData[index] = updatedAppvar;
+    this.appvariablesRS = updatedData;
+  }
+
+  saveRS(appvar: AppVariable): void {
+    this.appvarService.Put(appvar.id, appvar).pipe(
+      tap({
+        next: () => {
+          appvar.editing = false;
+          this.toastr.success(this.update_bank_success);
+        },
+        error: () => {
+          this.toastr.error(this.update_bank_error);
+        }
+      })
+    ).subscribe();
+  }
+
+  cancelEditRS(appvar: AppVariable): void {
     appvar.editing = false;
   }
   //#endregion
@@ -1555,6 +1616,7 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
       'config-categories': 'Catégories',
       'config-taxes': 'Taxes',
       'config-tva': 'TVA',
+      'config-rs': 'Retenue à la Source',
       'config-dimensions': 'Dimensions',
       'config-lengths': 'Longueurs',
       'config-transporters': 'Transporteurs',
@@ -1595,6 +1657,7 @@ export class ConfigurationComponent implements AfterViewInit, OnInit {
         this.getAllCategories();
         this.getAllTaxes();
         this.getAllTva();
+        this.getAllRS();
         this.getAllDimensions();
         this.getAllLength();
         this.getAllTransporters();

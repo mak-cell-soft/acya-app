@@ -228,6 +228,22 @@
                         <span class="value">{{ (m.cost_ttc || (m.unit_price_ht * m.quantity * 1.19)) | number:'1.3-3'}}</span>
                       </div>
                     </div>
+                    
+                    <!-- Delivery Progress Section (§5.5) -->
+                    <div class="m-delivery-progress" *ngIf="m.quantity_delivered > 0">
+                      <div class="m-stat progress-stat">
+                        <span class="label">Livré</span>
+                        <span class="value success">{{ (m.article?.unit === 'M3' || m.article?.unit === 'm3') ? (m.quantity_delivered | number:'1.3-3') : (m.quantity_delivered | number:'1.0-3') }}</span>
+                      </div>
+                      <div class="m-stat progress-stat" *ngIf="m.quantity_remaining > 0">
+                        <span class="label">Reste</span>
+                        <span class="value warning">{{ (m.article?.unit === 'M3' || m.article?.unit === 'm3') ? (m.quantity_remaining | number:'1.3-3') : (m.quantity_remaining | number:'1.0-3') }}</span>
+                      </div>
+                      <div class="m-stat progress-stat" *ngIf="m.quantity_remaining <= 0">
+                        <span class="label">Statut</span>
+                        <span class="value success">Solié</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -25,6 +25,7 @@ export class Document {
     total_discount_doc: number = 0;
     total_tva_doc: number = 0;
     total_net_ttc: number = 0;
+    total_net_payable?: number;
 
     /**
     * Taxe : Droit de Timbre

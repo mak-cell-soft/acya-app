@@ -2,7 +2,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
-import { ERROR_ADD_APPVAR, ERROR_ADD_APPVAR_TVA_VALUE, ERROR_INVALID_CENTIMETER, ERROR_INVALID_MILLIMETER, ERROR_VALUE_MATCH_CENTIMETER, ERROR_VALUE_MATCH_METER, MAT_DIALOG_APPVAR_TITLE, MAT_LABEL_APPVAR_ISACTIVE, MAT_LABEL_APPVAR_ISDEFAULT, MAT_LABEL_APPVAR_ISEDITABLE, MAT_LABEL_APPVAR_NAME, MAT_LABEL_APPVAR_NATURE, MAT_LABEL_APPVAR_VALUE, MAT_PLACEHOLDER_APPVAR_DIMENSION_NAME, MAT_PLACEHOLDER_APPVAR_DIMENSION_VALUE, MAT_PLACEHOLDER_APPVAR_LENGTH_NAME, MAT_PLACEHOLDER_APPVAR_LENGTH_VALUE, MAT_PLACEHOLDER_APPVAR_NAME as MAT_PLACEHOLDER_APPVAR_NAME, MAT_PLACEHOLDER_APPVAR_VALUE as MAT_PLACEHOLDER_APPVAR_VALUE, MAT_PLACEHOLDER_DIMENSION_NAME, MAT_PLACEHOLDER_DIMENSION_VALUE, MAT_PLACEHOLDER_LENGTH_NAME, MAT_PLACEHOLDER_LENGTH_VALUE, MAT_PLACEHOLDER_TAXE_NAME, MAT_PLACEHOLDER_TAXE_VALUE, MAT_PLACEHOLDER_TVA_NAME, MAT_PLACEHOLDER_TVA_VALUE, SUCCESS_ADD_APPVAR, WARNING_ADD_APPVAR } from '../../../../shared/constants/modals/app_variable_modal';
+import { ERROR_ADD_APPVAR, ERROR_ADD_APPVAR_TVA_VALUE, ERROR_INVALID_CENTIMETER, ERROR_INVALID_MILLIMETER, ERROR_VALUE_MATCH_CENTIMETER, ERROR_VALUE_MATCH_METER, MAT_DIALOG_APPVAR_TITLE, MAT_LABEL_APPVAR_ISACTIVE, MAT_LABEL_APPVAR_ISDEFAULT, MAT_LABEL_APPVAR_ISEDITABLE, MAT_LABEL_APPVAR_NAME, MAT_LABEL_APPVAR_NATURE, MAT_LABEL_APPVAR_VALUE, MAT_PLACEHOLDER_APPVAR_DIMENSION_NAME, MAT_PLACEHOLDER_APPVAR_DIMENSION_VALUE, MAT_PLACEHOLDER_APPVAR_LENGTH_NAME, MAT_PLACEHOLDER_APPVAR_LENGTH_VALUE, MAT_PLACEHOLDER_APPVAR_NAME as MAT_PLACEHOLDER_APPVAR_NAME, MAT_PLACEHOLDER_APPVAR_VALUE as MAT_PLACEHOLDER_APPVAR_VALUE, MAT_PLACEHOLDER_DIMENSION_NAME, MAT_PLACEHOLDER_DIMENSION_VALUE, MAT_PLACEHOLDER_LENGTH_NAME, MAT_PLACEHOLDER_LENGTH_VALUE, MAT_PLACEHOLDER_RS_NAME, MAT_PLACEHOLDER_RS_VALUE, MAT_PLACEHOLDER_TAXE_NAME, MAT_PLACEHOLDER_TAXE_VALUE, MAT_PLACEHOLDER_TVA_NAME, MAT_PLACEHOLDER_TVA_VALUE, SUCCESS_ADD_APPVAR, WARNING_ADD_APPVAR } from '../../../../shared/constants/modals/app_variable_modal';
 import { AppVariable } from '../../../../models/configuration/appvariable';
 import { AppVariableService } from '../../../../services/configuration/app-variable.service';
 import { ABORT_BUTTON, REGISTER_BUTTON } from '../../../../shared/Text_Buttons';
@@ -98,6 +98,7 @@ export class AddAppVariableModalComponent implements OnInit {
     const placeholdersAppVar_Name: { [key: string]: string } = {
       'Taxe': `${MAT_PLACEHOLDER_APPVAR_NAME + " " + MAT_PLACEHOLDER_TAXE_NAME}`,
       'Tva': `${MAT_PLACEHOLDER_APPVAR_NAME + " " + MAT_PLACEHOLDER_TVA_NAME}`,
+      'RS': `${MAT_PLACEHOLDER_APPVAR_NAME + " " + MAT_PLACEHOLDER_RS_NAME}`,
       'Dimension': `${MAT_PLACEHOLDER_APPVAR_DIMENSION_NAME + " " + MAT_PLACEHOLDER_DIMENSION_NAME}`,
       'Length': `${MAT_PLACEHOLDER_APPVAR_LENGTH_NAME + " " + MAT_PLACEHOLDER_LENGTH_NAME}`
     };
@@ -106,6 +107,7 @@ export class AddAppVariableModalComponent implements OnInit {
     const placeholdersAppVar_Value: { [key: string]: string } = {
       'Taxe': `${MAT_PLACEHOLDER_APPVAR_VALUE + " " + MAT_PLACEHOLDER_TAXE_VALUE}`,
       'Tva': `${MAT_PLACEHOLDER_APPVAR_VALUE + " " + MAT_PLACEHOLDER_TVA_VALUE}`,
+      'RS': `${MAT_PLACEHOLDER_APPVAR_VALUE + " " + MAT_PLACEHOLDER_RS_VALUE}`,
       'Dimension': `${MAT_PLACEHOLDER_APPVAR_DIMENSION_VALUE + " " + MAT_PLACEHOLDER_DIMENSION_VALUE}`,
       'Length': `${MAT_PLACEHOLDER_APPVAR_LENGTH_VALUE + " " + MAT_PLACEHOLDER_LENGTH_VALUE}`
     };
@@ -132,8 +134,8 @@ export class AddAppVariableModalComponent implements OnInit {
       appvar.id = 0; // Assuming it will be initialized in BackEnd
       appvar.nature = this.nature;
       appvar.name = '' + formValues.name;
-      // Check if nature is 'Tva' and remove '%' if it exists
-      if (this.nature === 'Tva') {
+      // Check if nature is 'Tva' or 'RS' and remove '%' if it exists
+      if (this.nature === 'Tva' || this.nature === 'RS') {
         appvar.value = formValues.value.replace(/%$/, '');
       }
       if (this.nature === 'Dimension') {
@@ -159,14 +161,14 @@ export class AddAppVariableModalComponent implements OnInit {
   applyValidatorsBasedOnNature(): void {
     const nameControl = this.appvariableForm.get('name')!;
     const valueControl = this.appvariableForm.get('value')!;
-    if (this.nature === 'Tva') {
-      console.log("Tva is SELECTED AND setValidators is called");
+    if (this.nature === 'Tva' || this.nature === 'RS') {
+      console.log(this.nature + " is SELECTED AND setValidators is called");
       this.appvariableForm.get('value')!.setValidators([
         Validators.required,
         percentageValidator()
       ]);
       this.appvariableForm.get('value')!.updateValueAndValidity();
-      console.log("TVA MODAL IS Validated");
+      console.log(this.nature + " MODAL IS Validated");
     } else if (this.nature === 'Taxe') {
       console.log("TAXE MODAL IS Validated");
     } else if (this.nature === 'Dimension') {

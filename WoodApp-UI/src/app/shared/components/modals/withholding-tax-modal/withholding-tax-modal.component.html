@@ -1,0 +1,73 @@
+<div class="modal-wrapper mat-typography">
+    <div class="modal-header">
+        <div class="header-title">
+            <mat-icon>account_balance</mat-icon>
+            <h2>Gestion de la Retenue à la Source (RS)</h2>
+        </div>
+        <button mat-icon-button (click)="onCancel()" class="close-btn">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <div class="modal-content">
+        <div class="document-summary">
+            <div class="info-item">
+                <span class="label">Document:</span>
+                <span class="value">{{ data.document.docnumber }}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Total TTC:</span>
+                <span class="value">{{ totalTtc | number:'1.3-3' }} TND</span>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Taux de Retenue à la Source</mat-label>
+                <mat-select [(ngModel)]="selectedRate" (selectionChange)="onRateChange()">
+                    <mat-option [value]="null">Aucune RS</mat-option>
+                    <mat-option *ngFor="let rate of availableRSRates" [value]="rate">
+                        {{ rate.name }} ({{ rate.value }}%)
+                    </mat-option>
+                </mat-select>
+                <mat-icon matPrefix>percent</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Référence / N° Avis de débit</mat-label>
+                <input matInput [(ngModel)]="reference" placeholder="Ex: RS-2024-001">
+                <mat-icon matPrefix>tag</mat-icon>
+            </mat-form-field>
+        </div>
+
+        <div class="calculation-preview" *ngIf="selectedRate">
+            <div class="calc-row">
+                <span>Total TTC</span>
+                <span>{{ totalTtc | number:'1.3-3' }} TND</span>
+            </div>
+            <div class="calc-row rs-row">
+                <span>Retenue ({{ selectedRate.value }}%)</span>
+                <span>- {{ rsAmount | number:'1.3-3' }} TND</span>
+            </div>
+            <mat-divider></mat-divider>
+            <div class="calc-row net-row">
+                <span>Net à Payer</span>
+                <span class="net-value">{{ netPayable | number:'1.3-3' }} TND</span>
+            </div>
+        </div>
+        <div class="no-rs-message" *ngIf="!selectedRate">
+            <mat-icon>info</mat-icon>
+            <span>Aucune retenue à la source sélectionnée. Le montant total reste identique au TTC.</span>
+        </div>
+    </div>
+
+    <div class="modal-actions">
+        <button mat-button (click)="onCancel()" class="btn-cancel">
+            Annuler
+        </button>
+        <button mat-raised-button color="primary" (click)="onConfirm()" class="btn-confirm">
+            <mat-icon>check_circle</mat-icon>
+            Appliquer la RS
+        </button>
+    </div>
+</div>

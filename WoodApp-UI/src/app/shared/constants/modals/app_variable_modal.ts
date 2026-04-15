@@ -19,6 +19,8 @@ export const MAT_PLACEHOLDER_TAXE_VALUE = '1.000, 2.000, ...';
 export const MAT_PLACEHOLDER_TVA_VALUE = '19%, 13%, ...';
 export const MAT_PLACEHOLDER_DIMENSION_NAME = '63, 50 / 75, 100';
 export const MAT_PLACEHOLDER_DIMENSION_VALUE = '0.063, 0.05 / 0.075, 0.1';
+export const MAT_PLACEHOLDER_RS_NAME = 'RS Vente, RS Achat, ...';
+export const MAT_PLACEHOLDER_RS_VALUE = '1%, 1.5%, 15%, ...';
 export const MAT_PLACEHOLDER_LENGTH_NAME = '270, 540; ...';
 export const MAT_PLACEHOLDER_LENGTH_VALUE = '2.7, 5.4, ...';
 

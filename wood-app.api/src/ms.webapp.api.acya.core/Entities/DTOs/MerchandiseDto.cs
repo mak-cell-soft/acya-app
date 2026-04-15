@@ -95,6 +95,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       ismergedwith = entity.IsMergedWith;
       idmergedmerchandise = entity.IdMergedMerchandise;
       isdeleted = entity.IsDeleted;
+      
       if(entity.Articles != null)
       {
         if (article == null)
@@ -107,19 +108,43 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       {
         article = null;
       }
+    }
 
-      //if (entity.QuantityMovements != null)
-      //{
-      //  // Map QuantityMovements' ListOfLengths to ListOflengthDto array
-      //  lisoflengths = entity.QuantityMovements.ListOfLengths
-      //                  ?.Select(l => new ListOflengthDto(l))
-      //                  .ToArray();
-      //}
-      //else
-      //{
-      //  lisoflengths = null;
-      //}
+    public MerchandiseDto(DocumentMerchandise line)
+    {
+      if (line.Merchandise != null)
+      {
+          id = line.Merchandise.Id;
+          packagereference = line.Merchandise.PackageReference;
+          description = line.Merchandise.Description;
+          isinvoicible = line.Merchandise.IsInvoicible;
+          allownegativstock = line.Merchandise.AllowNegativStock;
+          ismergedwith = line.Merchandise.IsMergedWith;
+          idmergedmerchandise = line.Merchandise.IdMergedMerchandise;
+          isdeleted = line.Merchandise.IsDeleted;
+          
+          if (line.Merchandise.Articles != null)
+          {
+              article = new ArticleDto();
+              article.UpdateFromEntity(line.Merchandise.Articles);
+          }
+      }
 
+      documentid = line.DocumentId;
+      
+      // Populate quantity fields from DocumentMerchandise
+      quantity = line.Quantity;
+      quantity_delivered = line.QuantityDelivered;
+      quantity_remaining = line.QuantityRemaining;
+
+      // Populate pricing fields from DocumentMerchandise
+      unit_price_ht = line.UnitPriceHT;
+      cost_ht = line.CostHT;
+      discount_percentage = line.DiscountPercentage;
+      cost_net_ht = line.CostNetHT;
+      cost_discount_value = line.CostDiscountValue;
+      tva_value = line.TvaValue;
+      cost_ttc = line.CostTTC;
     }
   }
 }

@@ -298,15 +298,17 @@ export class NotificationService implements OnDestroy, OnInit {
   private handleStockAlert(alert: any) {
     console.log('[SignalR] Stock alert:', alert);
     
+    const normalized = this.normalizeStockAlert(alert);
+    
     // Add to alerts if it's the first time or update
     this.stockAlerts = [
-      ...this.stockAlerts.filter(a => a.articleReference !== alert.articleReference),
-      alert
+      ...this.stockAlerts.filter(a => a.articleReference !== normalized.articleReference),
+      normalized
     ];
 
     if (this.authService.isLoggedIn()) {
       this.snackBar.open(
-        `Alerte Stock Bas: ${alert.articleReference} (${alert.quantity})`,
+        `Alerte Stock Bas: ${normalized.articleReference} (${normalized.quantity})`,
         'OK',
         { duration: 6000, panelClass: ['critical-snackbar'] }
       );
@@ -383,18 +385,20 @@ export class NotificationService implements OnDestroy, OnInit {
 
     this.http.get<any[]>(`${environment.apiBaseUrl}/api/stock/alerts`, { params }).subscribe({
       next: (alerts) => {
-        // NOTE: Normalize the REST response to match the SignalR alert shape.
-        // The REST endpoint returns StockQuantityDto with 'stockQuantity',
-        // but the SignalR handler and the template both use 'quantity'.
-        this.stockAlerts = alerts.map(a => ({
-          articleReference: a.articleReference,
-          quantity: a.stockQuantity,   // ← normalize: stockQuantity → quantity
-          minimumStock: a.minimumStock,
-          siteId: a.siteId
-        }));
+        this.stockAlerts = alerts.map(a => this.normalizeStockAlert(a));
       },
       error: (err) => console.error('Failed to fetch stock alerts', err)
     });
+  }
+
+  private normalizeStockAlert(alert: any): any {
+    return {
+      articleReference: alert.articleReference || alert.ArticleReference,
+      quantity: alert.quantity !== undefined ? alert.quantity : 
+               (alert.Quantity !== undefined ? alert.Quantity : alert.stockQuantity),
+      minimumStock: alert.minimumStock || alert.MinimumStock,
+      siteId: alert.siteId || alert.SiteId
+    };
   }
 
   getSystemNotifications(): AppNotification[] {

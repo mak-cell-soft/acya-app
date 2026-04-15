@@ -12,6 +12,8 @@ import { AuthenticationService } from '../../../../services/components/authentic
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { DocumentsRelationship } from '../../../../models/components/documentsrelationship';
 import { getStatusInfo, getBillingStatusInfo, isSameDay } from '../../../../utils/document-utils';
+import { WithholdingTaxModalComponent } from '../../../../shared/components/modals/withholding-tax-modal/withholding-tax-modal.component';
+import { HoldingTaxService } from '../../../../services/components/holding-tax.service';
 
 @Component({
   selector: 'app-list-supplier-invoices',
@@ -54,6 +56,7 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
   totalHt: number = 0;
   totalTva: number = 0;
   totalTtc: number = 0;
+  totalNetPayable: number = 0;
   invoiceCount: number = 0;
 
   @ViewChild(MatPaginator) PaginationInvoices!: MatPaginator;
@@ -191,6 +194,13 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
     this.totalHt = this.allInvoices.data.reduce((acc, curr) => acc + (curr.parentDocument?.total_ht_net_doc || 0), 0);
     this.totalTva = this.allInvoices.data.reduce((acc, curr) => acc + (curr.parentDocument?.total_tva_doc || 0), 0);
     this.totalTtc = this.totalHt + this.totalTva;
+    // NOTE: Calculer le Net à Payer global (TTC - RS pour chaque facture)
+    this.totalNetPayable = this.allInvoices.data.reduce((acc, curr) => {
+      const doc = curr.parentDocument;
+      if (!doc) return acc;
+      // Utiliser total_net_payable s'il est déjà calculé par le back, sinon TTC
+      return acc + (doc.total_net_payable || doc.total_net_ttc || 0);
+    }, 0);
   }
 
   deleteDocument(element: Document) {
@@ -228,6 +238,30 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
 
   onAddNew() {
     // Implement navigation to add invoice
+  }
+
+  holdingTaxService = inject(HoldingTaxService);
+
+  openHoldingTaxModal(doc: Document) {
+    const dialogRef = this.dialog.open(WithholdingTaxModalComponent, {
+      width: '600px',
+      data: { document: doc }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        doc.holdingtax = result;
+        // The summary update in list-supplier-invoices uses doc.total_net_payable
+        doc.total_net_payable = result.newamountdocvalue;
+        this.updateSummary();
+
+        // Save to backend
+        this.holdingTaxService.applyToDocument(doc.id, result).subscribe({
+          next: () => this.toastr.success('Retenue à la source mise à jour'),
+          error: () => this.toastr.error('Erreur lors de la mise à jour de la RS')
+        });
+      }
+    });
   }
 
 }

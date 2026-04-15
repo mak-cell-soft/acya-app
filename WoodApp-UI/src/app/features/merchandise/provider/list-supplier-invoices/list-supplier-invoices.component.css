@@ -417,3 +417,49 @@ td.mat-cell {
     font-size: 0.7rem;
     text-transform: uppercase;
 }
+
+.amount-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.net-payable {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #0f172a;
+}
+
+.net-payable.has-rs {
+    color: #c2185b;
+}
+
+.ttc-sub {
+    font-size: 0.75rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ttc-sub .label {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.65rem;
+}
+
+.rs-badge {
+    background: #fce4ec;
+    color: #c2185b;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 800;
+    font-size: 0.65rem;
+}
+
+.ttc-only {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: #475569;
+}

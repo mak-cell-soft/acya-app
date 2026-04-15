@@ -304,6 +304,10 @@
                         <div class="nav-icon-wrapper"><mat-icon>percent</mat-icon></div>
                         <span class="nav-label">TVA</span>
                     </div>
+                    <div class="quick-nav-item" (click)="scrollTo('config-rs')">
+                        <div class="nav-icon-wrapper"><mat-icon>account_balance</mat-icon></div>
+                        <span class="nav-label">RS</span>
+                    </div>
                     <div class="quick-nav-item" (click)="scrollTo('config-dimensions')">
                         <div class="nav-icon-wrapper"><mat-icon>straighten</mat-icon></div>
                         <span class="nav-label">Dimensions</span>
@@ -573,6 +577,80 @@
                         <mat-dialog-actions>
                             <button mat-flat-button color="primary" class="add-button"
                                 (click)="openAddAppVarDialog('Tva')">
+                                <mat-icon>add</mat-icon>
+                                {{add_button}}
+                            </button>
+                        </mat-dialog-actions>
+                    </div>
+                </mat-card>
+
+                <!-- RS -->
+                <mat-card id="config-rs" class="card-details">
+                    <h5><mat-icon>account_balance</mat-icon>{{mat_card_header_rs}}</h5>
+                    <div class="table-scroll-container">
+                        <table mat-table [dataSource]="appvariablesRS" class="w-100" *ngIf="appvariablesRS.length">
+                            <ng-container matColumnDef="name">
+                                <th mat-header-cell *matHeaderCellDef>{{mat_header_cell_taxe_name}}</th>
+                                <td mat-cell *matCellDef="let element">
+                                    <ng-container *ngIf="!element.editing">
+                                        {{element.name}}
+                                    </ng-container>
+                                    <ng-container *ngIf="element.editing">
+                                        <input matInput [(ngModel)]="element.name">
+                                    </ng-container>
+                                </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="value">
+                                <th mat-header-cell *matHeaderCellDef>{{mat_header_cell_taxe_value}}</th>
+                                <td mat-cell *matCellDef="let element">
+                                    <ng-container *ngIf="!element.editing">
+                                        {{element.value}}
+                                    </ng-container>
+                                    <ng-container *ngIf="element.editing">
+                                        <input matInput [(ngModel)]="element.value">
+                                    </ng-container>
+                                </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="isactive">
+                                <th mat-header-cell *matHeaderCellDef>{{mat_header_cell_taxe_isactive}}</th>
+                                <td mat-cell *matCellDef="let element">
+                                    <mat-slide-toggle [(ngModel)]="element.isactive"></mat-slide-toggle>
+                                </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="isdefault">
+                                <th mat-header-cell *matHeaderCellDef>{{mat_header_cell_taxe_isdefault}}</th>
+                                <td mat-cell *matCellDef="let element">
+                                    <mat-slide-toggle [(ngModel)]="element.isdefault"></mat-slide-toggle>
+                                </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="action">
+                                <th mat-header-cell *matHeaderCellDef>{{mat_header_cell_bank_action}}</th>
+                                <td mat-cell *matCellDef="let element">
+                                    <div class="action-buttons">
+                                        <mat-icon *ngIf="!element.editing" class="green-icon"
+                                            (click)="editRS(element)">edit</mat-icon>
+                                        <mat-icon *ngIf="element.editing" class="blue-icon"
+                                            (click)="saveRS(element)">save</mat-icon>
+                                        <mat-icon *ngIf="element.editing" class="red-icon"
+                                            (click)="cancelEditRS(element)">cancel</mat-icon>
+                                        <mat-icon class="red-icon" (click)="deleteRS(element)">delete</mat-icon>
+                                    </div>
+                                </td>
+                            </ng-container>
+
+                            <tr mat-header-row *matHeaderRowDef="displayedAppVariablesRSColumns"></tr>
+                            <tr mat-row *matRowDef="let row; columns: displayedAppVariablesRSColumns;"></tr>
+                        </table>
+                    </div>
+
+                    <div class="control-button">
+                        <mat-dialog-actions>
+                            <button mat-flat-button color="primary" class="add-button"
+                                (click)="openAddAppVarDialog('RS')">
                                 <mat-icon>add</mat-icon>
                                 {{add_button}}
                             </button>

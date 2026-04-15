@@ -61,6 +61,9 @@ export const MAT_CARD_HEADER_TAXE = 'Taxes';
 // CARD TVA
 export const MAT_CARD_HEADER_TVA = 'Tva';
 
+// CARD RS
+export const MAT_CARD_HEADER_RS = 'Retenue à la Source (RS)';
+
 // CARD DIMENSION
 export const MAT_CARD_HEADER_DIMENSION = 'Dimension Bois';
 

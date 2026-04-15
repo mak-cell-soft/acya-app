@@ -104,7 +104,16 @@
             </div>
             <div class="summary-data">
                 <span class="label">Total TTC</span>
-                <span class="value total-ttc">{{totalTtc | number:'1.3-3'}} TND</span>
+                <span class="value">{{totalTtc | number:'1.3-3'}} TND</span>
+            </div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-icon-wrapper" style="background: #fce4ec; color: #c2185b;">
+                <mat-icon>account_balance_wallet</mat-icon>
+            </div>
+            <div class="summary-data">
+                <span class="label">Net à Payer</span>
+                <span class="value total-ttc">{{totalNetPayable | number:'1.3-3'}} TND</span>
             </div>
         </div>
         <div class="summary-item">
@@ -148,13 +157,19 @@
             </ng-container>
 
             <ng-container matColumnDef="amount">
-                <th mat-header-cell *matHeaderCellDef> Montant </th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Montant </th>
                 <td mat-cell *matCellDef="let element">
-                    <div style="display: flex; flex-direction: column;">
-                        <span style="font-weight: bold;">{{element.parentDocument.total_net_ttc | number:'1.3-3'}}
-                            TTC</span>
-                        <span style="font-size: 0.8em; color: gray;">{{element.parentDocument.total_ht_net_doc |
-                            number:'1.3-3'}} HT</span>
+                    <div class="amount-container">
+                        <span class="net-payable" [class.has-rs]="element.parentDocument?.total_net_payable && element.parentDocument?.total_net_payable !== element.parentDocument?.total_net_ttc">
+                            {{(element.parentDocument?.total_net_payable || element.parentDocument?.total_net_ttc) | number:'1.3-3'}} TND
+                        </span>
+                        <div class="ttc-sub" *ngIf="element.parentDocument?.total_net_payable && element.parentDocument?.total_net_payable !== element.parentDocument?.total_net_ttc">
+                            <span class="label">TTC:</span> {{element.parentDocument?.total_net_ttc | number:'1.3-3'}} TND
+                            <span class="rs-badge">RS: {{element.parentDocument?.holdingtax?.taxpercentage}}%</span>
+                        </div>
+                        <span class="ttc-only" *ngIf="!element.parentDocument?.total_net_payable || element.parentDocument?.total_net_payable === element.parentDocument?.total_net_ttc">
+                             {{element.parentDocument?.total_net_ttc | number:'1.3-3'}} TND
+                        </span>
                     </div>
                 </td>
             </ng-container>
@@ -187,6 +202,9 @@
                     <div style="display: flex; gap: 4px;">
                         <button mat-icon-button color="primary" (click)="displaySettings()" matTooltip="Réglages">
                             <mat-icon>display_settings</mat-icon>
+                        </button>
+                        <button mat-icon-button color="primary" (click)="openHoldingTaxModal(element.parentDocument)" matTooltip="Retenue à la source">
+                            <mat-icon>account_balance</mat-icon>
                         </button>
                         <button mat-icon-button class="green-icon" (click)="editDocument(element.parentDocument)"
                             matTooltip="Modifier">

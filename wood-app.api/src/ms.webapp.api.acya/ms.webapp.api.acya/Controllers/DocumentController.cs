@@ -1231,9 +1231,52 @@ namespace ms.webapp.api.acya.api.Controllers
         {
             _context.DocumentDocumentRelationships.Add(relationship);
             await _context.SaveChangesAsync();
+
+            // §5.5 — Gestion des reliquats
+            // If we are linking a child (e.g. BL) to a parent (e.g. BC), 
+            // we should update the parent's QuantityDelivered based on the child's Quantity.
+            await UpdateParentQuantities(relationship.ParentDocumentId, relationship.ChildDocumentId);
         }
 
         return Ok(new { message = "Relationship registered successfully" });
+    }
+
+    private async Task UpdateParentQuantities(int parentId, int childId)
+    {
+        var parent = await _context.Documents
+            .Include(d => d.DocumentMerchandises)
+                .ThenInclude(dm => dm.Merchandise)
+            .FirstOrDefaultAsync(d => d.Id == parentId);
+
+        var child = await _context.Documents
+            .Include(d => d.DocumentMerchandises)
+                .ThenInclude(dm => dm.Merchandise)
+            .FirstOrDefaultAsync(d => d.Id == childId);
+
+        if (parent == null || child == null) return;
+
+        // For each item in the child document, find a corresponding item in the parent
+        foreach (var childMerch in child.DocumentMerchandises)
+        {
+            // Match logic:
+            // 1. Precise MerchandiseId match (best)
+            // 2. OR ArticleId + PackageReference match (common when converting Quote -> Order or Order -> BL)
+            var parentMerch = parent.DocumentMerchandises
+                .FirstOrDefault(pm => 
+                    pm.MerchandiseId == childMerch.MerchandiseId || 
+                    (pm.MerchandiseId > 0 && pm.MerchandiseId == childMerch.MerchandiseId) ||
+                    (pm.Merchandise != null && childMerch.Merchandise != null &&
+                     pm.Merchandise.ArticleId == childMerch.Merchandise.ArticleId && 
+                     pm.Merchandise.PackageReference == childMerch.Merchandise.PackageReference));
+
+            if (parentMerch != null)
+            {
+                parentMerch.QuantityDelivered += childMerch.Quantity;
+                _context.Entry(parentMerch).State = EntityState.Modified;
+            }
+        }
+
+        await _context.SaveChangesAsync();
     }
     #endregion
 

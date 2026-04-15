@@ -295,12 +295,23 @@
                 <span class="label">Total TVA</span>
                 <span class="value">{{ totalTVA_doc$ | async | number:'1.3-3' }}</span>
             </div>
+            <div class="summary-row rs-row">
+                <span class="label">Retenue à la Source (RS)</span>
+                <mat-select [value]="selectedRS" (selectionChange)="onRSChange($event.value)" placeholder="Aucune" class="rs-select">
+                    <mat-option [value]="null">Aucune</mat-option>
+                    <mat-option *ngFor="let rs of rsList" [value]="rs">{{ rs.name }} ({{ rs.value }}%)</mat-option>
+                </mat-select>
+            </div>
             <div class="summary-row editable-ttc">
                 <span class="label">Net TTC Final</span>
                 <mat-form-field appearance="outline" class="ttc-input">
                     <input matInput [ngModel]="netTTC_doc$ | async" (ngModelChange)="onTTCAmountChange($event)"
                         type="number">
                 </mat-form-field>
+            </div>
+            <div class="summary-row net-payable" *ngIf="selectedRS">
+                <span class="label">Net à Payer (NAP)</span>
+                <span class="value highlight">{{ total_net_payable$ | async | number:'1.3-3' }}</span>
             </div>
             <div class="discount-warning"
                 *ngIf="((netTTC_doc$ | async) || 0) < (((totalHTNet_doc$ | async) || 0) + ((totalTVA_doc$ | async) || 0)) * 0.95">

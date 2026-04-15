@@ -40,6 +40,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public double total_net_ttc { get; set; }
     public double total_tva_doc { get; set; }
     public double total_discount_doc { get; set; }
+    public double? total_net_payable { get; set; }
     /**
      * Holding Taxe : Retenue à la source
      */
@@ -100,6 +101,30 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       isservice = entity.Isservice;
       isPaid = entity.BillingStatus == BillingStatus.Billed;
       isdeleted = entity.IsDeleted;
+      withholdingtax = entity.WithHoldingTax;
+
+      // Calculate total_net_payable if RS is applied
+      if (entity.WithHoldingTax && entity.HoldingTaxes != null)
+      {
+          total_net_payable = entity.TotalCostNetTTCDoc - entity.HoldingTaxes.TaxValue;
+          holdingtax = new HoldingTaxDto
+          {
+              id = entity.HoldingTaxes.Id,
+              description = entity.HoldingTaxes.Description,
+              taxpercentage = entity.HoldingTaxes.TaxPercentage,
+              taxvalue = entity.HoldingTaxes.TaxValue,
+              issigned = entity.HoldingTaxes.isSigned,
+              creationdate = entity.HoldingTaxes.CreationDate,
+              updatedate = entity.HoldingTaxes.UpdateDate,
+              newamountdocvalue = (float)entity.HoldingTaxes.NewAmountDocValue,
+              documentid = entity.Id
+          };
+      }
+      else
+      {
+          total_net_payable = entity.TotalCostNetTTCDoc;
+          holdingtax = null;
+      }
 
       // Populate childdocuments if navigation property is loaded
       if (entity.ChildDocuments != null && entity.ChildDocuments.Any())
@@ -138,14 +163,11 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       {
         taxe = null;
       }
-      if (entity.Merchandises!= null)
+      if (entity.DocumentMerchandises != null && entity.DocumentMerchandises.Any())
       {
-        if (merchandises == null)
-        {
-          merchandises = entity.Merchandises
-                            .Select(m => new MerchandiseDto(m))
+          merchandises = entity.DocumentMerchandises
+                            .Select(dm => new MerchandiseDto(dm))
                             .ToArray();
-        }
       }
       else
       {
