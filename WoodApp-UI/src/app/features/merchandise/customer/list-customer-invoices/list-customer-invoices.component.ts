@@ -188,7 +188,13 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
                         this.toastr.success('Retenue à la source mise à jour');
                         this.fetchInvoices();
                     },
-                    error: () => this.toastr.error('Erreur lors de la mise à jour de la RS')
+                    error: (err) => {
+                        if (err.error && err.error.message === 'Retenue existe déjà') {
+                            this.toastr.warning('Retenue existe déjà', 'RS');
+                        } else {
+                            this.toastr.error('Erreur lors de la mise à jour de la RS');
+                        }
+                    }
                 });
             }
         });

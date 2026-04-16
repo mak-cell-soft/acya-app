@@ -8,6 +8,9 @@ import { Store, select } from '@ngrx/store';
 import { loadAppVariables } from '../../../../store/actions/appvariable.actions';
 import { selectAppVariablesByNature } from '../../../../store/selectors/appvariable.selectors';
 
+import { HoldingTaxService } from '../../../../services/components/holding-tax.service';
+import { ToastrService } from 'ngx-toastr';
+
 @Component({
   selector: 'app-withholding-tax-modal',
   templateUrl: './withholding-tax-modal.component.html',
@@ -15,12 +18,15 @@ import { selectAppVariablesByNature } from '../../../../store/selectors/appvaria
 })
 export class WithholdingTaxModalComponent implements OnInit {
   appVariableService = inject(AppVariableService);
+  holdingTaxService = inject(HoldingTaxService);
+  toastr = inject(ToastrService);
   store = inject(Store);
 
   availableRSRates: AppVariable[] = [];
   selectedRate: AppVariable | null = null;
   reference: string = '';
   issigned: boolean = false;
+  loadingRef: boolean = false;
   
   // Totals for display
   totalTtc: number = 0;
@@ -57,6 +63,23 @@ export class WithholdingTaxModalComponent implements OnInit {
 
   onRateChange() {
     this.calculate();
+  }
+
+  onGenerateReference() {
+    if (!this.data.document.id) return;
+    
+    this.loadingRef = true;
+    this.holdingTaxService.generateReference(this.data.document.id).subscribe({
+      next: (res) => {
+        this.reference = res.reference;
+        this.loadingRef = false;
+        this.toastr.success('Référence générée avec succès');
+      },
+      error: (err) => {
+        this.loadingRef = false;
+        this.toastr.error('Erreur lors de la génération de la référence');
+      }
+    });
   }
 
   calculate() {

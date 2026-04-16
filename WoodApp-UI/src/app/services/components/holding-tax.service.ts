@@ -20,6 +20,10 @@ export class HoldingTaxService {
     return this.http.post(`${this.apiUrl}HoldingTax/apply-to-document/${documentId}`, dto);
   }
 
+  generateReference(documentId: number): Observable<{ reference: string }> {
+    return this.http.get<{ reference: string }>(`${this.apiUrl}HoldingTax/generate-reference/${documentId}`);
+  }
+
 
   removeFromDocument(documentId: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}HoldingTax/remove-from-document/${documentId}`);

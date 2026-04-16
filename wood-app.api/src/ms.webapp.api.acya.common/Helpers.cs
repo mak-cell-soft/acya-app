@@ -106,5 +106,12 @@ namespace ms.webapp.api.acya.common
       }
     }
 
+    public static string GenerateHoldingTaxReference(string docNumber, string counterPartName)
+    {
+      string yearMonth = DateTime.Now.ToString("yyMM");
+      // Clean counterpart name from spaces and special characters for a cleaner reference
+      string cleanName = new string(counterPartName?.Where(c => char.IsLetterOrDigit(c)).ToArray() ?? Array.Empty<char>());
+      return $"RS-{docNumber}-{cleanName}-{yearMonth}";
+    }
   }
 }

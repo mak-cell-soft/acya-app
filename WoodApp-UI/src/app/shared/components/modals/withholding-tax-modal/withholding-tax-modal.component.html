@@ -37,7 +37,20 @@
                 <mat-label>Référence / N° Avis de débit</mat-label>
                 <input matInput [(ngModel)]="reference" required placeholder="Ex: RS-2024-001">
                 <mat-icon matPrefix>tag</mat-icon>
+                <button mat-icon-button matSuffix (click)="onGenerateReference()" 
+                        [disabled]="loadingRef" 
+                        matTooltip="Générer la référence"
+                        type="button">
+                    <mat-icon [class.spinning]="loadingRef">{{ loadingRef ? 'sync' : 'auto_fix_high' }}</mat-icon>
+                </button>
             </mat-form-field>
+
+            <div class="tej-container">
+                <a href="https://login-tej.finances.gov.tn/realms/seif/protocol/openid-connect/auth?client_id=seif-app&redirect_uri=https%3A%2F%2Ftej.finances.gov.tn%2F&state=0c5f438a-c250-423e-8331-35cee9aaeec6&response_mode=fragment&response_type=code&scope=openid&nonce=c0fac403-0b6b-4e01-be39-4ee0a4795e63" target="_blank" class="tej-link">
+                    <mat-icon>launch</mat-icon>
+                    Créer le certificat sur TEJ (Portail Finances)
+                </a>
+            </div>
 
             <div class="checkbox-container">
                 <mat-checkbox [(ngModel)]="issigned" color="primary">

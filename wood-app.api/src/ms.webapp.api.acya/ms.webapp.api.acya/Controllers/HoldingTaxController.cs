@@ -23,6 +23,19 @@ namespace ms.webapp.api.acya.api.Controllers
             _balanceService = balanceService;
         }
 
+        [HttpGet("generate-reference/{documentId}")]
+        public async Task<ActionResult> GenerateReference(int documentId)
+        {
+            var document = await _context.Documents
+                .Include(d => d.CounterPart)
+                .FirstOrDefaultAsync(d => d.Id == documentId);
+
+            if (document == null) return NotFound(new { message = "Document not found" });
+
+            string reference = Helpers.GenerateHoldingTaxReference(document.DocNumber ?? "", document.CounterPart?.Name ?? "");
+            return Ok(new { reference });
+        }
+
         [HttpPost("apply-to-document/{documentId}")]
         public async Task<ActionResult> ApplyToDocument(int documentId, [FromBody] HoldingTaxDto dto)
         {
@@ -33,6 +46,18 @@ namespace ms.webapp.api.acya.api.Controllers
             if (document == null)
             {
                 return NotFound(new { message = "Document not found" });
+            }
+
+            // Uniqueness check for Reference
+            if (!string.IsNullOrWhiteSpace(dto.reference))
+            {
+                var exists = await _context.HoldingTaxes
+                    .AnyAsync(h => h.Reference == dto.reference && h.Id != (document.HoldingTaxId ?? 0));
+                
+                if (exists)
+                {
+                    return BadRequest(new { message = "Retenue existe déjà" });
+                }
             }
 
             if (document.HoldingTaxes != null)
@@ -153,7 +178,7 @@ namespace ms.webapp.api.acya.api.Controllers
                     h.CreationDate,
                     h.UpdateDate,
                     DocNumber = h.Documents.OrderByDescending(d => d.UpdateDate).Select(d => d.DocNumber).FirstOrDefault(),
-                    CounterPartName = h.Documents.OrderByDescending(d => d.UpdateDate).Select(d => d.CounterPart.Name).FirstOrDefault()
+                    CounterPartName = h.Documents.OrderByDescending(d => d.UpdateDate).Select(d => d.CounterPart != null ? d.CounterPart.Name : "").FirstOrDefault()
                 })
                 .OrderByDescending(h => h.UpdateDate)
                 .ToListAsync();
