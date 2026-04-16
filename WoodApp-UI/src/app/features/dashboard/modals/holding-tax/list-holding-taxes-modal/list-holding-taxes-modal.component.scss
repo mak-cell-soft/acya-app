@@ -2,6 +2,8 @@
   position: relative;
   display: flex;
   flex-direction: column;
+  width: 1100px;
+  max-width: 95vw;
 }
 
 .loading-overlay {
@@ -39,21 +41,6 @@
       color: #0284c7;
     }
   }
-
-  .header-subtitle {
-    margin-top: 8px;
-    
-    .badge {
-      background: #e0f2fe;
-      color: #0369a1;
-      padding: 4px 12px;
-      border-radius: 99px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-  }
 }
 
 .modal-content {
@@ -63,12 +50,23 @@
   gap: 20px;
 }
 
+.filter-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 8px;
+
+  .search-field {
+    flex: 1;
+  }
+}
+
 .table-wrapper {
   border-radius: 12px;
   overflow: auto;
   border: 1px solid #e2e8f0;
-  margin-bottom: 20px;
-  max-height: 400px;
+  margin-bottom: 8px;
+  max-height: 60vh;
   background: white;
   
   table {
@@ -85,45 +83,34 @@
     
     .bold-cell { font-weight: 600; color: #1e293b; }
     .price-cell { font-weight: 700; color: #0f172a; }
+    .doc-cell { color: #0284c7; font-weight: 600; }
   }
 }
 
-.invoice-summary-grid {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 8px;
-
-  .summary-details {
-    width: 320px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    background: #f8fafc;
-    padding: 16px;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-  }
-
-  .summary-item {
-    display: flex;
-    justify-content: space-between;
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
     align-items: center;
-    font-size: 0.9rem;
+    gap: 4px;
 
-    .label { color: #64748b; }
-    .value { font-weight: 600; color: #1e293b; }
-    .negative { color: #ef4444; }
-
-    &.highlight {
-      .inline-select { width: 100px; }
-      ::ng-deep .mat-mdc-text-field-wrapper { background: white !important; }
+    &.signed {
+        background-color: #ecfdf5;
+        color: #059669;
     }
 
-    &.total {
-      .label { font-weight: 800; color: #0f172a; }
-      .value { font-size: 1.25rem; font-weight: 800; color: #0284c7; }
+    &.not-signed {
+        background-color: #fff7ed;
+        color: #d97706;
     }
-  }
+
+    mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+    }
 }
 
 .modal-actions {
@@ -131,5 +118,3 @@
   background: #f8fafc;
   border-top: 1px solid #e2e8f0;
 }
-
-.full-width { width: 100%; }

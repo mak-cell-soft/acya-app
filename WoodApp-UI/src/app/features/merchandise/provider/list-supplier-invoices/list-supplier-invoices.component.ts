@@ -14,6 +14,8 @@ import { DocumentsRelationship } from '../../../../models/components/documentsre
 import { getStatusInfo, getBillingStatusInfo, isSameDay } from '../../../../utils/document-utils';
 import { WithholdingTaxModalComponent } from '../../../../shared/components/modals/withholding-tax-modal/withholding-tax-modal.component';
 import { HoldingTaxService } from '../../../../services/components/holding-tax.service';
+import { ListHoldingTaxesModalComponent } from '../../../dashboard/modals/holding-tax/list-holding-taxes-modal/list-holding-taxes-modal.component';
+
 
 @Component({
   selector: 'app-list-supplier-invoices',
@@ -261,6 +263,14 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
           error: () => this.toastr.error('Erreur lors de la mise à jour de la RS')
         });
       }
+    });
+  }
+
+  openListHoldingTaxesModal() {
+    this.dialog.open(ListHoldingTaxesModalComponent, {
+      width: '1100px',
+      maxWidth: '95vw',
+      maxHeight: '95vh',
     });
   }
 

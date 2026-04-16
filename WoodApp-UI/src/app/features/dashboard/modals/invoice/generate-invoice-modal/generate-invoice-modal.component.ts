@@ -100,13 +100,19 @@ export class GenerateInvoiceModalComponent implements OnInit, AfterViewInit {
 
   }
   ngAfterViewInit(): void {
-    this.allSelectedDocs.paginator = this.PaginationDocument;
-    this.allSelectedDocs.sort = this.sort;
+    // Small delay to ensure the ViewChild is fully initialized and bound to the table
+    setTimeout(() => {
+      if (this.PaginationDocument) {
+        this.allSelectedDocs.paginator = this.PaginationDocument;
+      }
+      if (this.sort) {
+        this.allSelectedDocs.sort = this.sort;
+      }
+    });
 
     // Listen for changes to the selectedTaxe form control
     this.taxeForm.get('selectedTaxe')!.valueChanges.subscribe((selectedTaxId) => {
-      console.log('Selected Taxe changed to:', selectedTaxId);
-      this.calculateTotals(this.allSelectedDocs.data); // Recalculate totals
+      this.calculateTotals(this.allSelectedDocs.data);
     });
   }
 

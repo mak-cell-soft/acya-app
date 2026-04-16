@@ -20,7 +20,12 @@ export class HoldingTaxService {
     return this.http.post(`${this.apiUrl}HoldingTax/apply-to-document/${documentId}`, dto);
   }
 
+
   removeFromDocument(documentId: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}HoldingTax/remove-from-document/${documentId}`);
+  }
+
+  getAll(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}HoldingTax/all`);
   }
 }

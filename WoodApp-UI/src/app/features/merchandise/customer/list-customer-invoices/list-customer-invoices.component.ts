@@ -184,7 +184,10 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
                 
                 // Save to backend
                 this.holdingTaxService.applyToDocument(doc.id, result).subscribe({
-                    next: () => this.toastr.success('Retenue à la source mise à jour'),
+                    next: () => {
+                        this.toastr.success('Retenue à la source mise à jour');
+                        this.fetchInvoices();
+                    },
                     error: () => this.toastr.error('Erreur lors de la mise à jour de la RS')
                 });
             }

@@ -45,7 +45,7 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
                   .HasConstraintName("fk_tbl_document_tbl_app_user");
             // Holding Tax Relationship
             entity.HasOne(e => e.HoldingTaxes)
-                  .WithMany()
+                  .WithMany(h => h.Documents)
                   .HasForeignKey(e => e.HoldingTaxId)
                   .OnDelete(DeleteBehavior.SetNull) // Ensure this matches your database constraint
                   .HasConstraintName("fk_tbl_document_tbl_holding_tax");

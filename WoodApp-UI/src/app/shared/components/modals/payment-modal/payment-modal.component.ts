@@ -56,7 +56,7 @@ export class PaymentModalComponent implements OnInit {
     ) {
         this.paymentForm = this.fb.group({
             // Common fields or Cash specific fields
-            amount: [this.data.remainingAmount, [Validators.required, Validators.min(0)]],
+            amount: [this.data.remainingAmount?.toFixed(3) || '0.000', [Validators.required, Validators.min(0)]],
             paymentDate: [new Date(), Validators.required],
             reference: [''], // For Virement/Carte
             notes: ['']
@@ -76,7 +76,7 @@ export class PaymentModalComponent implements OnInit {
                     const totalPaid = (payments || []).reduce((acc, curr) => acc + (curr.amount || 0), 0);
                     // If RS is applied, target the net payable amount, otherwise target total TTC
                     const targetTotal = (this.data.withholdingtax && this.data.totalNetPayable) ? this.data.totalNetPayable : this.data.totalAmount;
-                    this.data.remainingAmount = Number(targetTotal) - totalPaid;
+                    this.data.remainingAmount = Number((Number(targetTotal) - totalPaid).toFixed(3));
                     
                     // Add validator for maximum amount (cannot pay more than remaining balance)
                     this.paymentForm.get('amount')?.setValidators([
@@ -86,7 +86,7 @@ export class PaymentModalComponent implements OnInit {
                     ]);
                     
                     // Update form amount to the calculated remaining amount
-                    const suggestedAmount = this.data.remainingAmount > 0 ? this.data.remainingAmount : 0;
+                    const suggestedAmount = this.data.remainingAmount > 0 ? this.data.remainingAmount.toFixed(3) : '0.000';
                     this.paymentForm.patchValue({
                         amount: suggestedAmount
                     });
@@ -122,14 +122,22 @@ export class PaymentModalComponent implements OnInit {
 
         let result: any = {
             method: this.selectedPaymentMethod,
-            amount: this.paymentForm.get('amount')?.value,
+            amount: Number(Number(this.paymentForm.get('amount')?.value).toFixed(3)),
             date: this.paymentForm.get('paymentDate')?.value,
         };
 
         if (this.selectedPaymentMethod === 'CHEQUE' && this.chequeFormGroup) {
             result.details = this.chequeFormGroup.value;
+            // Ensure amount in details is also rounded if it's there
+            if (result.details.amount) {
+                result.details.amount = Number(Number(result.details.amount).toFixed(3));
+            }
         } else if (this.selectedPaymentMethod === 'TRAITE' && this.traiteFormGroup) {
             result.details = this.traiteFormGroup.value;
+            // Ensure amount in details is also rounded if it's there
+            if (result.details.amount) {
+                result.details.amount = Number(Number(result.details.amount).toFixed(3));
+            }
         } else if (this.selectedPaymentMethod === 'VIREMENT' || this.selectedPaymentMethod === 'CARTE') {
             result.details = {
                 reference: this.paymentForm.get('reference')?.value,

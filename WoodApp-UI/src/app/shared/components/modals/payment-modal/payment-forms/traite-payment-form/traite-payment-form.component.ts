@@ -35,7 +35,7 @@ export class TraitePaymentFormComponent implements OnInit {
         this.paymentForm.patchValue({
             owner: this.ownerName,
             porter: this.porterId,
-            amount: this.defaultAmount
+            amount: this.defaultAmount?.toFixed(3) || '0.000'
         });
 
         this.formReady.emit(this.paymentForm);

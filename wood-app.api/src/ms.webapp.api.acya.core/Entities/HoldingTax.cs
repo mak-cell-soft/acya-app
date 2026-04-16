@@ -22,7 +22,9 @@ namespace ms.webapp.api.acya.core.Entities
     public bool IsDeleted { get; set; }
 
 
-    //public Document? Documents { get; set; }
+
+    public ICollection<Document> Documents { get; set; } = new HashSet<Document>();
+
 
     public int UpdatedById { get; set; }
     //public int? AppUsersId { get; set; }

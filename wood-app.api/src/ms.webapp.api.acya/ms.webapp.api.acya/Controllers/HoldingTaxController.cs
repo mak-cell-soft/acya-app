@@ -4,6 +4,7 @@ using ms.webapp.api.acya.api.Controllers;
 using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs;
 using ms.webapp.api.acya.infrastructure;
+using ms.webapp.api.acya.common;
 
 using ms.webapp.api.acya.api.Interfaces;
 
@@ -127,6 +128,37 @@ namespace ms.webapp.api.acya.api.Controllers
             }
 
             return Ok(new { message = "Holding tax removed successfully" });
+        }
+
+        [HttpGet("all")]
+        public async Task<ActionResult> GetAll()
+        {
+            var result = await _context.HoldingTaxes
+                .Where(h => !h.IsDeleted)
+                // Filter to only include holding taxes associated with supplier documents
+                .Where(h => h.Documents.Any(d => d.Type == DocumentTypes.supplierOrder ||
+                                               d.Type == DocumentTypes.supplierReceipt ||
+                                               d.Type == DocumentTypes.supplierInvoice ||
+                                               d.Type == DocumentTypes.supplierInvoiceReturn))
+                .Include(h => h.Documents)
+                    .ThenInclude(d => d.CounterPart)
+                .Select(h => new
+                {
+                    h.Id,
+                    h.Description,
+                    h.Reference,
+                    h.TaxPercentage,
+                    h.TaxValue,
+                    h.isSigned,
+                    h.CreationDate,
+                    h.UpdateDate,
+                    DocNumber = h.Documents.OrderByDescending(d => d.UpdateDate).Select(d => d.DocNumber).FirstOrDefault(),
+                    CounterPartName = h.Documents.OrderByDescending(d => d.UpdateDate).Select(d => d.CounterPart.Name).FirstOrDefault()
+                })
+                .OrderByDescending(h => h.UpdateDate)
+                .ToListAsync();
+
+            return Ok(result);
         }
     }
 }
