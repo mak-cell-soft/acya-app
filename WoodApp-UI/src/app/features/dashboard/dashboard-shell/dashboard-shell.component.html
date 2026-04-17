@@ -55,12 +55,18 @@
         <mat-icon class="expand-icon" *ngIf="!isCollapsed">{{isVenteMenuOpen ? 'expand_less' : 'expand_more'}}</mat-icon>
       </button>
       <div class="submenu" [class.open]="isVenteMenuOpen" *ngIf="!isCollapsed">
-        <a class="sub-menu-item" routerLink="merchandise/devis" routerLinkActive="active-sub">
-          <span>{{menu_sub_sell_devis}}</span>
-        </a>
-        <a class="sub-menu-item" routerLink="merchandise/bc" routerLinkActive="active-sub">
-          <span>{{menu_sub_sell_bc}}</span>
-        </a>
+        <div class="sub-menu-row">
+          <a class="sub-menu-item flex-item" routerLink="merchandise/devis" routerLinkActive="active-sub">
+            <span>{{menu_sub_sell_devis}}</span>
+          </a>
+          <button mat-icon-button class="add-btn" routerLink="merchandise/devis/add"><mat-icon>add_circle_outline</mat-icon></button>
+        </div>
+        <div class="sub-menu-row">
+          <a class="sub-menu-item flex-item" routerLink="merchandise/bc" routerLinkActive="active-sub">
+            <span>{{menu_sub_sell_bc}}</span>
+          </a>
+          <button mat-icon-button class="add-btn" routerLink="merchandise/bc/add"><mat-icon>add_circle_outline</mat-icon></button>
+        </div>
         <div class="sub-menu-row">
           <a class="sub-menu-item flex-item" routerLink="merchandise/customerdelivery" routerLinkActive="active-sub">
             <span>{{menu_sub_sell_bl}}</span>

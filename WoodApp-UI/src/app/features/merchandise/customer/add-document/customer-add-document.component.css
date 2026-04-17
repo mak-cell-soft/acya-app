@@ -114,21 +114,138 @@ mat-card {
     }
 }
 
+:host {
+    display: block;
+    padding: 24px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+
+    @media (max-width: 768px) {
+        padding: 12px;
+    }
+}
+
+.main-container {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    background: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+}
+
+.header-text h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+mat-card {
+    border-radius: 12px !important;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+    margin-bottom: 24px;
+    padding: 24px;
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+    gap: 32px;
+    align-items: start;
+}
+
+.vertical-separator {
+    background-color: #e9ecef;
+    width: 1px;
+    align-self: stretch;
+}
+
+.customer-details {
+    margin-top: 16px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.customer-details .detail-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.customer-details .detail-item mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #3f51b5;
+}
+
+
+.meta-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.meta-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.meta-card .meta-row {
+    display: flex;
+    gap: 16px;
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+
 .meta-card .meta-row>*,
 .meta-card .meta-row mat-form-field {
     flex: 1;
     width: 100%;
 }
 
-.mat-column-index { width: 45px; }
-.mat-column-article { width: auto; min-width: 250px; }
-.mat-column-sellPrice { width: 160px; }
-.mat-column-quantity { width: 220px; }
-.mat-column-discount { width: 120px; }
-.mat-column-tva { width: 110px; }
-.mat-column-totalWithoutTva { width: 110px; }
-.mat-column-totalWithTva { width: 120px; }
-.mat-column-actions { width: 60px; text-align: right; }
+/* Column Widths (Standardized) */
+::ng-deep .mat-column-index { width: 45px !important; min-width: 45px !important; }
+::ng-deep .mat-column-article { width: auto !important; min-width: 350px !important; }
+::ng-deep .mat-column-sellPrice { width: 115px !important; min-width: 115px !important; max-width: 115px !important; }
+::ng-deep .mat-column-quantity { width: 125px !important; min-width: 125px !important; max-width: 125px !important; }
+::ng-deep .mat-column-discount { width: 85px !important; min-width: 85px !important; max-width: 85px !important; }
+::ng-deep .mat-column-tva { width: 95px !important; min-width: 95px !important; max-width: 95px !important; }
+::ng-deep .mat-column-totalWithoutTva { width: 120px !important; min-width: 120px !important; text-align: right !important; }
+::ng-deep .mat-column-totalWithTva { width: 130px !important; min-width: 130px !important; text-align: right !important; }
+::ng-deep .mat-column-actions { width: 60px !important; min-width: 60px !important; text-align: center !important; }
 
 .tax-form mat-form-field {
     width: 100%;
@@ -713,7 +830,7 @@ table td.mat-cell {
 }
 
 .price-field-compact {
-    width: 150px;
+    width: 105px !important;
 }
 
 .quantity-container-compact {
@@ -725,7 +842,7 @@ table td.mat-cell {
 }
 
 .qty-field-compact {
-    width: 170px !important;
+    width: 110px !important;
 }
 
 .quantity-input-field {
@@ -734,7 +851,7 @@ table td.mat-cell {
 }
 
 .tva-field-compact {
-    width: 100px;
+    width: 80px !important;
 }
 
 .article-info {
@@ -788,9 +905,7 @@ table td.mat-cell {
 }
 
 /* Specific column widths for document table */
-.mat-column-quantity {
-    min-width: 250px !important;
-}
+
 /* Enhanced Dropdown Option Styles */
 .option-row {
     display: flex;
