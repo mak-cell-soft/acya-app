@@ -40,4 +40,63 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     }
   }
 
+  public class PurchasePriceHistoryDto
+  {
+    public int id { get; set; }
+    public int articleid { get; set; }
+    public int counterpartid { get; set; }
+    public string? counterpartname { get; set; }
+    public double pricevalue { get; set; }
+    public DateTime transactiondate { get; set; }
+    public int documentid { get; set; }
+    public string? docnumber { get; set; }
+    public DateTime? creationdate { get; set; }
+    public bool isdeleted { get; set; }
+
+    public PurchasePriceHistoryDto() { }
+
+    public PurchasePriceHistoryDto(PurchasePriceHistory entity)
+    {
+      id = entity.Id;
+      articleid = entity.ArticleId;
+      counterpartid = entity.CounterPartId;
+      counterpartname = entity.Supplier?.Name;
+      pricevalue = entity.PriceValue;
+      transactiondate = entity.TransactionDate;
+      documentid = entity.DocumentId;
+      docnumber = entity.DocNumber;
+      creationdate = entity.CreationDate;
+      isdeleted = entity.IsDeleted;
+    }
+  }
+
+  public class SalesPriceHistoryDto
+  {
+    public int id { get; set; }
+    public int articleid { get; set; }
+    public int counterpartid { get; set; }
+    public string? counterpartname { get; set; }
+    public double pricevalue { get; set; }
+    public DateTime transactiondate { get; set; }
+    public int documentid { get; set; }
+    public string? docnumber { get; set; }
+    public DateTime? creationdate { get; set; }
+    public bool isdeleted { get; set; }
+
+    public SalesPriceHistoryDto() { }
+
+    public SalesPriceHistoryDto(SalesPriceHistory entity)
+    {
+      id = entity.Id;
+      articleid = entity.ArticleId;
+      counterpartid = entity.CounterPartId;
+      counterpartname = entity.Customer?.Name;
+      pricevalue = entity.PriceValue;
+      transactiondate = entity.TransactionDate;
+      documentid = entity.DocumentId;
+      docnumber = entity.DocNumber;
+      creationdate = entity.CreationDate;
+      isdeleted = entity.IsDeleted;
+    }
+  }
 }

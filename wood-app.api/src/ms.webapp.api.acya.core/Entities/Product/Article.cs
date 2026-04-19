@@ -28,6 +28,8 @@ namespace ms.webapp.api.acya.core.Entities.Product
 
     public int? SellHistoryId { get; set; }
     public SellPriceHistory? SellHistories { get; set; }
+    public virtual ICollection<PurchasePriceHistory> PurchasePriceHistories { get; set; } = new List<PurchasePriceHistory>();
+    public virtual ICollection<SalesPriceHistory> SalesPriceHistories { get; set; } = new List<SalesPriceHistory>();
 
     public int TvaId { get; set; }
     public AppVariable? TVAs { get; set; }

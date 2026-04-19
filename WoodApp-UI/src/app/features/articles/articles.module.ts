@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ArticlesRoutingModule } from './articles-routing.module';
 import { AddArticleComponent } from './add-article/add-article.component';
 import { ListArticleComponent } from './list-article/list-article.component';
+import { ArticleHistoryComponent } from './article-history/article-history.component';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -23,11 +24,13 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTabsModule } from '@angular/material/tabs';
 
 @NgModule({
   declarations: [
     AddArticleComponent,
-    ListArticleComponent
+    ListArticleComponent,
+    ArticleHistoryComponent
   ],
   imports: [
     CommonModule,
@@ -50,7 +53,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     MatDialogModule,
     MatChipsModule,
     MatProgressBarModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatTabsModule
   ]
 })
 export class ArticlesModule { }

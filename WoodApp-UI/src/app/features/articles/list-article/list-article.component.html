@@ -141,10 +141,13 @@
             <th mat-header-cell *matHeaderCellDef> Actions </th>
             <td mat-cell *matCellDef="let element">
               <div class="row-actions">
-                <button mat-icon-button color="primary" (click)="editArticle(element)" matTooltip="Modifier">
+                <button mat-icon-button class="history-btn" (click)="openHistoryModal(element); $event.stopPropagation()" matTooltip="Historique des prix">
+                  <mat-icon>history</mat-icon>
+                </button>
+                <button mat-icon-button color="primary" (click)="editArticle(element); $event.stopPropagation()" matTooltip="Modifier">
                   <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-icon-button color="warn" (click)="deleteArticle(element)" matTooltip="Supprimer">
+                <button mat-icon-button color="warn" (click)="deleteArticle(element); $event.stopPropagation()" matTooltip="Supprimer">
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>

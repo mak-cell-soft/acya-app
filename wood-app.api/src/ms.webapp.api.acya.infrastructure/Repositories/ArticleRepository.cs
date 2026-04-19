@@ -73,5 +73,33 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
       return lastPurchase.CostTTC / lastPurchase.Quantity;
     }
+
+    public async Task<IEnumerable<PurchasePriceHistory>> GetPurchaseHistory(int articleId)
+    {
+        return await context.PurchasePriceHistories
+            .Include(h => h.Supplier)
+            .Include(h => h.Document)
+            .Where(h => h.ArticleId == articleId && h.IsDeleted == false)
+            .OrderByDescending(h => h.TransactionDate)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<SalesPriceHistory>> GetSalesHistory(int articleId)
+    {
+        return await context.SalesPriceHistories
+            .Include(h => h.Customer)
+            .Include(h => h.Document)
+            .Where(h => h.ArticleId == articleId && h.IsDeleted == false)
+            .OrderByDescending(h => h.TransactionDate)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<SellPriceHistory>> GetSellPriceHistory(int articleId)
+    {
+        return await context.SellPricesHistories
+            .Where(h => h.ArticleId == articleId && h.IsDeleted == false)
+            .OrderByDescending(h => h.CreationDate)
+            .ToListAsync();
+    }
   }
 }

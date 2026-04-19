@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { Article } from '../../models/components/article';
+import { PurchasePriceHistory } from '../../models/components/purchase-price-history';
+import { SalesPriceHistory } from '../../models/components/sales-price-history';
 
 @Injectable({
   providedIn: 'root'
@@ -53,6 +56,18 @@ export class ArticleService {
 
   GetLastPurchasePrice(id: number) {
     return this.http.get<number>(this.baseUrl + 'Article/LastPurchasePrice/' + id);
+  }
+
+  GetPurchaseHistory(id: number) {
+    return this.http.get<PurchasePriceHistory[]>(this.baseUrl + 'Article/' + id + '/purchase-history');
+  }
+
+  GetSalesHistory(id: number) {
+    return this.http.get<SalesPriceHistory[]>(this.baseUrl + 'Article/' + id + '/sales-history');
+  }
+
+  GetCatalogHistory(id: number): Observable<any[]> {
+    return this.http.get<any[]>(this.baseUrl + 'Article/' + id + '/catalog-history');
   }
 
 }

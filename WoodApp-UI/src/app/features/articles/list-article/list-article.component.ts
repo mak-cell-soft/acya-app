@@ -4,6 +4,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { AddArticleComponent } from '../add-article/add-article.component';
+import { ArticleHistoryComponent } from '../article-history/article-history.component';
 import { ArticleService } from '../../../services/components/article.service';
 import { Article } from '../../../models/components/article';
 import { animate, state, style, transition, trigger } from '@angular/animations';
@@ -233,6 +234,17 @@ export class ListArticleComponent implements AfterViewInit {
           },
           error: () => this.toastr.error('Erreur lors de la suppression')
         });
+      }
+    });
+  }
+
+  openHistoryModal(article: Article) {
+    this.dialog.open(ArticleHistoryComponent, {
+      width: '900px',
+      maxWidth: '95vw',
+      data: { 
+        articleId: article.id,
+        articleReference: article.reference 
       }
     });
   }

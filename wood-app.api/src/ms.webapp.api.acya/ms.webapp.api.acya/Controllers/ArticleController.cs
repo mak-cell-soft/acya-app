@@ -115,6 +115,21 @@ namespace ms.webapp.api.acya.api.Controllers
       var updatedEntity = await _repository.Update(existingArticle);
       if (updatedEntity != null)
       {
+        // Record sell price history if price changed
+        if (dto.sellprice_ttc > 0)
+        {
+            var sellPriceHistory = new SellPriceHistory
+            {
+                PriceValue = dto.sellprice_ttc,
+                ArticleId = updatedEntity.Id,
+                UpdatedBy = updatedEntity.UpdatedBy,
+                CreationDate = DateTime.UtcNow,
+                UpdateDate = DateTime.UtcNow,
+                IsDeleted = false
+            };
+            await _repositoryPriceHistory.Add(sellPriceHistory);
+        }
+
         var updatedDto = new ArticleDto(updatedEntity);
         return Ok(updatedDto);
       }
@@ -149,6 +164,30 @@ namespace ms.webapp.api.acya.api.Controllers
       _a.IsDeleted = true;
       var updateDel = await _repository.Update(_a);
       return Ok();
+    }
+
+    [HttpGet("{id}/purchase-history")]
+    public async Task<ActionResult<IEnumerable<PurchasePriceHistoryDto>>> GetPurchaseHistory(int id)
+    {
+        var history = await _repository.GetPurchaseHistory(id);
+        var dtos = history.Select(h => new PurchasePriceHistoryDto(h));
+        return Ok(dtos);
+    }
+
+    [HttpGet("{id}/sales-history")]
+    public async Task<ActionResult<IEnumerable<SalesPriceHistoryDto>>> GetSalesHistory(int id)
+    {
+        var history = await _repository.GetSalesHistory(id);
+        var dtos = history.Select(h => new SalesPriceHistoryDto(h));
+        return Ok(dtos);
+    }
+
+    [HttpGet("{id}/catalog-history")]
+    public async Task<ActionResult<IEnumerable<SellPriceHistoryDto>>> GetCatalogHistory(int id)
+    {
+        var history = await _repository.GetSellPriceHistory(id);
+        var dtos = history.Select(h => new SellPriceHistoryDto(h));
+        return Ok(dtos);
     }
   }
 }

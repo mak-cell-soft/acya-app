@@ -640,6 +640,11 @@ namespace ms.webapp.api.acya.api.Controllers
           #endregion
 
           await _context.SaveChangesAsync();
+          
+          /**
+           * §5.6 — Record Transactional Price History
+           */
+          await RecordPriceHistory(doc);
 
           #region Ledger Entry
           // Integrate Ledger Entry if it's an Invoice or Delivery Note
@@ -650,7 +655,7 @@ namespace ms.webapp.api.acya.api.Controllers
                   doc.Type.ToString()!, 
                   (decimal)doc.TotalCostNetTTCDoc, 
                   doc.Id, 
-                  $"Movement for document {doc.DocNumber}");
+                  $"Movement - document {doc.DocNumber}");
           }
           #endregion
 
@@ -861,6 +866,9 @@ namespace ms.webapp.api.acya.api.Controllers
       try
       {
         await _repository.SaveChanges();
+
+        // Record Price History for the newly created invoice
+        await RecordPriceHistory(invoice);
 
         // Update persistent balance
         if (invoice.CounterPartId > 0)
@@ -1175,6 +1183,11 @@ namespace ms.webapp.api.acya.api.Controllers
           await _repository.updateListOfIdsListOfLengths(doc);
           await _repository.updateStockByMerchandises(doc);
           #endregion
+          
+          /**
+           * §5.6 — Record Transactional Price History
+           */
+          await RecordPriceHistory(doc);
 
           await transaction.CommitAsync();
 
@@ -1282,6 +1295,86 @@ namespace ms.webapp.api.acya.api.Controllers
         }
 
         await _context.SaveChangesAsync();
+    }
+    private async Task RecordPriceHistory(Document doc)
+    {
+      if (doc == null || doc.CounterPartId == 0) return;
+
+      // We only care about transaction documents
+      if (doc.Type != DocumentTypes.supplierReceipt 
+          && doc.Type != DocumentTypes.supplierInvoice 
+          && doc.Type != DocumentTypes.customerDeliveryNote 
+          && doc.Type != DocumentTypes.customerInvoice) return;
+
+      // Check if it's a child document (converted from another)
+      // If it's an Invoice coming from a BR/BL, we don't record another history entry
+      bool hasParentTransaction = await _context.DocumentDocumentRelationships
+          .AnyAsync(r => r.ChildDocumentId == doc.Id && 
+                        (r.ParentDocument!.Type == DocumentTypes.supplierReceipt || 
+                         r.ParentDocument!.Type == DocumentTypes.customerDeliveryNote));
+                         
+      if (hasParentTransaction) return;
+
+      // Clear existing history for this document (for updates)
+      var existingPurchaseHistory = await _context.PurchasePriceHistories
+          .Where(h => h.DocumentId == doc.Id)
+          .ToListAsync();
+      if (existingPurchaseHistory.Any())
+          _context.PurchasePriceHistories.RemoveRange(existingPurchaseHistory);
+
+      var existingSalesHistory = await _context.SalesPriceHistories
+          .Where(h => h.DocumentId == doc.Id)
+          .ToListAsync();
+      if (existingSalesHistory.Any())
+          _context.SalesPriceHistories.RemoveRange(existingSalesHistory);
+
+      await _context.SaveChangesAsync();
+
+      // Fetch merchandises directly from DB to ensure we have ArticleId and latest data
+      var merchandises = await _context.DocumentMerchandises
+          .Include(dm => dm.Merchandise)
+          .Where(dm => dm.DocumentId == doc.Id)
+          .ToListAsync();
+
+      foreach (var dm in merchandises)
+      {
+          int articleId = dm.Merchandise?.ArticleId ?? 0;
+          if (articleId == 0) continue;
+
+          if (doc.Type == DocumentTypes.supplierReceipt || doc.Type == DocumentTypes.supplierInvoice)
+          {
+              var history = new PurchasePriceHistory
+              {
+                  ArticleId = articleId,
+                  CounterPartId = doc.CounterPartId,
+                  PriceValue = dm.UnitPriceHT,
+                  TransactionDate = doc.CreationDate ?? DateTime.UtcNow,
+                  DocumentId = doc.Id,
+                  DocNumber = doc.DocNumber,
+                  CreationDate = DateTime.UtcNow,
+                  UpdateDate = DateTime.UtcNow,
+                  IsDeleted = false
+              };
+              _context.PurchasePriceHistories.Add(history);
+          }
+          else if (doc.Type == DocumentTypes.customerDeliveryNote || doc.Type == DocumentTypes.customerInvoice)
+          {
+              var history = new SalesPriceHistory
+              {
+                  ArticleId = articleId,
+                  CounterPartId = doc.CounterPartId,
+                  PriceValue = dm.UnitPriceHT,
+                  TransactionDate = doc.CreationDate ?? DateTime.UtcNow,
+                  DocumentId = doc.Id,
+                  DocNumber = doc.DocNumber,
+                  CreationDate = DateTime.UtcNow,
+                  UpdateDate = DateTime.UtcNow,
+                  IsDeleted = false
+              };
+              _context.SalesPriceHistories.Add(history);
+          }
+      }
+      await _context.SaveChangesAsync();
     }
     #endregion
 

@@ -16,7 +16,10 @@
         padding: 16px;
         flex-wrap: wrap;
         gap: 12px;
-    }
+    }.detail-section.full-width {
+    flex: 1 1 100%;
+    max-width: 100%;
+}
 }
 
 .header-text h2 {
@@ -153,6 +156,16 @@
 .row-actions {
     display: flex;
     gap: 4px;
+}
+
+.history-btn {
+    color: #64748b;
+    transition: all 0.2s ease;
+}
+
+.history-btn:hover {
+    color: #0ea5e9;
+    background: rgba(14, 165, 233, 0.05);
 }
 
 /* Badges & Text Styles */

@@ -35,6 +35,8 @@ namespace ms.webapp.api.acya.infrastructure
     public virtual DbSet<AppVariable> AppVariables { get; set; }
     public virtual DbSet<Article> Articles { get; set; }
     public virtual DbSet<SellPriceHistory> SellPricesHistories { get; set; }
+    public virtual DbSet<PurchasePriceHistory> PurchasePriceHistories { get; set; }
+    public virtual DbSet<SalesPriceHistory> SalesPriceHistories { get; set; }
     public virtual DbSet<Provider> Providers { get; set; }
     public virtual DbSet<Enterprise> Enterprises { get; set; }
 
