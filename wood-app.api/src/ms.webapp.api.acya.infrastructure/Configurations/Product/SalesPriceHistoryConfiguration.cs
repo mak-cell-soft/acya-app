@@ -21,6 +21,12 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Product
             entity.Property(e => e.CreationDate).HasColumnName("creationdate");
             entity.Property(e => e.UpdateDate).HasColumnName("updatedate");
             entity.Property(e => e.IsDeleted).HasColumnName("isdeleted");
+            entity.Property(e => e.UpdatedById).HasColumnName("idupdatedby");
+
+            entity.HasOne(e => e.UpdatedBy)
+                .WithMany()
+                .HasForeignKey(e => e.UpdatedById)
+                .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(e => e.Article)
                 .WithMany(a => a.SalesPriceHistories)

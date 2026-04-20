@@ -78,7 +78,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
     {
         return await context.PurchasePriceHistories
             .Include(h => h.Supplier)
-            .Include(h => h.Document)
+            .Include(h => h.Document!).ThenInclude(d => d.AppUsers!).ThenInclude(u => u.Persons)
+            .Include(h => h.UpdatedBy!).ThenInclude(u => u.Persons)
             .Where(h => h.ArticleId == articleId && h.IsDeleted == false)
             .OrderByDescending(h => h.TransactionDate)
             .ToListAsync();
@@ -86,17 +87,33 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
     public async Task<IEnumerable<SalesPriceHistory>> GetSalesHistory(int articleId)
     {
-        return await context.SalesPriceHistories
+        var history = await context.SalesPriceHistories
             .Include(h => h.Customer)
-            .Include(h => h.Document)
+            .Include(h => h.Document!).ThenInclude(d => d.AppUsers!).ThenInclude(u => u.Persons)
+            .Include(h => h.UpdatedBy!).ThenInclude(u => u.Persons)
             .Where(h => h.ArticleId == articleId && h.IsDeleted == false)
-            .OrderByDescending(h => h.TransactionDate)
+            .OrderBy(h => h.TransactionDate)
             .ToListAsync();
+
+        var filteredHistory = new List<SalesPriceHistory>();
+        double lastPrice = -1;
+
+        foreach (var item in history)
+        {
+            if (Math.Abs(item.PriceValue - lastPrice) > 0.0001) // Handle precision
+            {
+                filteredHistory.Add(item);
+                lastPrice = item.PriceValue;
+            }
+        }
+
+        return filteredHistory.OrderByDescending(h => h.TransactionDate);
     }
 
     public async Task<IEnumerable<SellPriceHistory>> GetSellPriceHistory(int articleId)
     {
         return await context.SellPricesHistories
+            .Include(h => h.AppUsers!).ThenInclude(u => u.Persons)
             .Where(h => h.ArticleId == articleId && h.IsDeleted == false)
             .OrderByDescending(h => h.CreationDate)
             .ToListAsync();

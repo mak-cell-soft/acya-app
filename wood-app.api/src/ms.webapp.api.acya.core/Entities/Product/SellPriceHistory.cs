@@ -15,7 +15,7 @@ namespace ms.webapp.api.acya.core.Entities.Product
     //public Article? Articles { get; set; }
 
     public int UpdatedBy { get; set; }
-    //public AppUser? AppUsers { get; set; }
+    public AppUser? AppUsers { get; set; }
 
     public SellPriceHistory()
     {

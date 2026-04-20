@@ -17,6 +17,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public bool isdeleted { get; set; }
     public int articleid { get; set; }
     public int updatedby { get; set; }
+    public string? updatedby_name { get; set; }
 
     public SellPriceHistoryDto()
     {
@@ -37,6 +38,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       isdeleted = entity.IsDeleted;
       articleid = entity.ArticleId;
       updatedby = entity.UpdatedBy;
+      updatedby_name = entity.AppUsers?.Persons?.FullName ?? entity.AppUsers?.Login;
     }
   }
 
@@ -52,6 +54,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? docnumber { get; set; }
     public DateTime? creationdate { get; set; }
     public bool isdeleted { get; set; }
+    public int? updatedby_id { get; set; }
+    public string? updatedby_name { get; set; }
 
     public PurchasePriceHistoryDto() { }
 
@@ -67,6 +71,9 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       docnumber = entity.DocNumber;
       creationdate = entity.CreationDate;
       isdeleted = entity.IsDeleted;
+      updatedby_id = entity.UpdatedById ?? entity.Document?.UpdatedById;
+      var user = entity.UpdatedBy ?? entity.Document?.AppUsers;
+      updatedby_name = user?.Persons?.FullName ?? user?.Login;
     }
   }
 
@@ -82,6 +89,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? docnumber { get; set; }
     public DateTime? creationdate { get; set; }
     public bool isdeleted { get; set; }
+    public int? updatedby_id { get; set; }
+    public string? updatedby_name { get; set; }
 
     public SalesPriceHistoryDto() { }
 
@@ -97,6 +106,9 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       docnumber = entity.DocNumber;
       creationdate = entity.CreationDate;
       isdeleted = entity.IsDeleted;
+      updatedby_id = entity.UpdatedById ?? entity.Document?.UpdatedById;
+      var user = entity.UpdatedBy ?? entity.Document?.AppUsers;
+      updatedby_name = user?.Persons?.FullName ?? user?.Login;
     }
   }
 }

@@ -145,9 +145,21 @@
   }
 }
 
-.bold-text {
-  font-weight: 600;
-  color: #2c3e50;
+.user-cell {
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #444;
+    font-weight: 500;
+
+    .user-icon {
+      font-size: 18px;
+      height: 18px;
+      width: 18px;
+      color: #78909c;
+    }
+  }
 }
 
 .doc-pill-cell {

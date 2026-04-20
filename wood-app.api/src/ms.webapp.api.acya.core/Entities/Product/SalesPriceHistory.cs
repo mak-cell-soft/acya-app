@@ -23,6 +23,9 @@ namespace ms.webapp.api.acya.core.Entities.Product
     public DateTime? UpdateDate { get; set; }
     public bool IsDeleted { get; set; }
 
+    public int? UpdatedById { get; set; }
+    public AppUser? UpdatedBy { get; set; }
+
     public SalesPriceHistory()
     {
     }

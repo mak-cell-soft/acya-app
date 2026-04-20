@@ -17,6 +17,11 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Stock
             entity.Property(e => e.IsDeleted).HasColumnName("isdeleted");
             entity.Property(e => e.ArticleId).HasColumnName("idarticle");
             entity.Property(e => e.UpdatedBy).HasColumnName("idappuser");
+
+            entity.HasOne(e => e.AppUsers)
+                .WithMany()
+                .HasForeignKey(e => e.UpdatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
