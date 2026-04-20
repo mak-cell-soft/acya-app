@@ -108,4 +108,8 @@ export class DocumentService {
   RegisterRelationship(relationship: any): Observable<any> {
     return this.http.post<any>(this.baseUrl + 'Document/RegisterRelationship', relationship);
   }
+
+  Convert(parentId: number, model: Document): Observable<{ id: number, docRef: string, message: string }> {
+    return this.http.post<{ id: number, docRef: string, message: string }>(this.baseUrl + 'Document/' + parentId + '/convert', model);
+  }
 }

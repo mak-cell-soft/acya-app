@@ -132,22 +132,16 @@ export class AddCustomerOrderComponent {
 
   saveDocument(doc: Document) {
     this.isLoading = true;
-    this.docService.Add(doc).subscribe({
+
+    const saveObs = this.sourceDocumentId > 0 
+      ? this.docService.Convert(this.sourceDocumentId, doc)
+      : this.docService.Add(doc);
+
+    saveObs.subscribe({
       next: (response) => {
         const docRef = response.docRef;
-        this.toastr.success(`Commande ${docRef} créée avec succès`);
-
-        // Register relationship if transformed from Quote
-        if (this.sourceDocumentId > 0 && response.id > 0) {
-          const relationship = {
-            parentDocumentId: this.sourceDocumentId,
-            childDocumentId: response.id
-          };
-          this.docService.RegisterRelationship(relationship).subscribe({
-            next: () => console.log('Relationship registered between Quote and Order'),
-            error: (err) => console.error('Failed to register relationship:', err)
-          });
-        }
+        const docTypeLabel = doc.type === DocumentTypes.customerOrder ? 'Commande' : 'Document';
+        this.toastr.success(`${docTypeLabel} ${docRef} créée avec succès`);
 
         this.freeAllCalculatedDocumentFields();
         this.isLoading = false;
@@ -158,7 +152,7 @@ export class AddCustomerOrderComponent {
         if (err.status === 409) {
           this.toastr.error('Un document avec la même référence existe déjà.');
         } else {
-          this.toastr.error('La création de la commande a échoué');
+          this.toastr.error('La création du document a échoué');
         }
       }
     });

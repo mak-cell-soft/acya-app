@@ -95,11 +95,12 @@ namespace ms.webapp.api.acya.api.Controllers
         var dto = new DocumentDto(d);
 
         // Logic to retrieve merchandises: 
-        // 1. If ChildDocuments exist (Generated Invoice), aggregate from them
-        // 2. Otherwise use d.DocumentMerchandises (Direct Invoice)
+        // 1. If ChildDocuments exist (Generated Invoice/Delivery Note) AND it's NOT an Order, aggregate from them
+        // 2. Otherwise use d.DocumentMerchandises (Direct Documents or Orders with status tracking)
         
         var sourceMerchandises = new List<DocumentMerchandise>();
-        if (d.ChildDocuments != null && d.ChildDocuments.Any())
+        if (d.ChildDocuments != null && d.ChildDocuments.Any() && 
+            d.Type != DocumentTypes.supplierOrder && d.Type != DocumentTypes.customerOrder && d.Type != DocumentTypes.customerQuote)
         {
             dto.deliveryNoteDocNumbers = d.ChildDocuments
                 .Where(cd => cd.ChildDocument != null)
@@ -125,9 +126,22 @@ namespace ms.webapp.api.acya.api.Controllers
         }
         else
         {
+            // For Orders and basic documents, use the direct lines
             if (d.DocumentMerchandises != null)
             {
                 sourceMerchandises.AddRange(d.DocumentMerchandises);
+            }
+            
+            // Still populate childdocuments list for the UI (timeline/badges)
+            if (d.ChildDocuments != null)
+            {
+                dto.childdocuments = d.ChildDocuments
+                    .Where(cd => cd.ChildDocument != null)
+                    .Select(cd => new DocumentDto {
+                        id = cd.ChildDocument!.Id,
+                        docnumber = cd.ChildDocument.DocNumber,
+                        creationdate = cd.ChildDocument.CreationDate
+                    }).ToList();
             }
         }
 
@@ -242,6 +256,9 @@ namespace ms.webapp.api.acya.api.Controllers
         // 2. Otherwise use d.DocumentMerchandises (Direct Invoice)
         
         var sourceMerchandises = new List<DocumentMerchandise>();
+        
+        bool isOrderOrQuote = d.Type == DocumentTypes.supplierOrder || d.Type == DocumentTypes.customerOrder || d.Type == DocumentTypes.customerQuote;
+
         if (d.ChildDocuments != null && d.ChildDocuments.Any())
         {
             dto.deliveryNoteDocNumbers = d.ChildDocuments
@@ -258,11 +275,23 @@ namespace ms.webapp.api.acya.api.Controllers
                     creationdate = cd.ChildDocument.CreationDate
                 }).ToList();
 
-            foreach (var rel in d.ChildDocuments.Where(cd => cd.ChildDocument != null))
+            if (isOrderOrQuote)
             {
-                if (rel.ChildDocument!.DocumentMerchandises != null)
+                // Logic for Orders: Show DIRECT lines (which contain delivered quantities)
+                if (d.DocumentMerchandises != null)
                 {
-                    sourceMerchandises.AddRange(rel.ChildDocument.DocumentMerchandises);
+                    sourceMerchandises.AddRange(d.DocumentMerchandises);
+                }
+            }
+            else
+            {
+                // Logic for Invoices/BLs: Aggregate from children
+                foreach (var rel in d.ChildDocuments.Where(cd => cd.ChildDocument != null))
+                {
+                    if (rel.ChildDocument!.DocumentMerchandises != null)
+                    {
+                        sourceMerchandises.AddRange(rel.ChildDocument.DocumentMerchandises);
+                    }
                 }
             }
         }
@@ -1210,6 +1239,54 @@ namespace ms.webapp.api.acya.api.Controllers
         }
       }
     }
+    #region Convert Document
+    [HttpPost("{parentId}/convert")]
+    public async Task<ActionResult> Convert(int parentId, DocumentDto dto)
+    {
+        // 1. Validate the parent document exists
+        var parentExists = await _context.Documents.AnyAsync(d => d.Id == parentId);
+        if (!parentExists)
+        {
+            return NotFound($"Parent document with ID {parentId} not found.");
+        }
+
+        // 2. Perform the normal 'Add' logic, but inside the same transaction
+        // NOTE: We could refactor 'Add' but to keep it simple and safe for now, 
+        // we'll follow the pattern and include relationship registration.
+        
+        var result = await Add(dto);
+
+        if (result is OkObjectResult okResult)
+        {
+            // Extract the new document ID from the okResult
+            if (okResult.Value == null) return StatusCode(500, "Document created but result data is missing.");
+            
+            var responseData = okResult.Value as dynamic;
+            int childId = responseData.id;
+
+            // 3. Register Relationship
+            var relationship = new DocumentDocumentRelationship
+            {
+                ParentDocumentId = parentId,
+                ChildDocumentId = childId
+            };
+
+            var registerResult = await RegisterRelationship(relationship);
+            
+            if (registerResult is OkObjectResult)
+            {
+                return okResult; // Return the successful document creation result
+            }
+            else
+            {
+                return StatusCode(500, "Document created but relationship registration failed.");
+            }
+        }
+
+        return result; 
+    }
+    #endregion
+
     #region Update Status
     [HttpPatch("UpdateStatus/{id}")]
     public async Task<ActionResult> UpdateStatus(int id, UpdateDocStatusDto dto)

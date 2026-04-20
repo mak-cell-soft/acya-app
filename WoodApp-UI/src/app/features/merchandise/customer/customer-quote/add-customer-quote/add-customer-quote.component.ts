@@ -165,28 +165,21 @@ export class AddCustomerQuoteComponent {
 
   saveDocument(doc: Document) {
     this.isLoading = true;
-    this.docService.Add(doc).subscribe({
+
+    const saveObs = this.sourceDocumentId > 0 
+      ? this.docService.Convert(this.sourceDocumentId, doc)
+      : this.docService.Add(doc);
+
+    saveObs.subscribe({
       next: (res) => {
-        this.toastr.success(`Devis ${res.docRef} créé avec succès`);
-
-        // Register relationship if duplicated from another Quote
-        if (this.sourceDocumentId > 0 && res.id > 0) {
-          const relationship = {
-            parentDocumentId: this.sourceDocumentId,
-            childDocumentId: res.id
-          };
-          this.docService.RegisterRelationship(relationship).subscribe({
-            next: () => console.log('Relationship registered for duplicated Quote'),
-            error: (err) => console.error('Failed to register relationship:', err)
-          });
-        }
-
+        const docTypeLabel = doc.type === DocumentTypes.customerQuote ? 'Devis' : 'Document';
+        this.toastr.success(`${docTypeLabel} ${res.docRef} créé avec succès`);
         this.isLoading = false;
         this.router.navigateByUrl('home/merchandise/devis/list');
       },
       error: () => {
         this.isLoading = false;
-        this.toastr.error('La création du devis a échoué');
+        this.toastr.error('La création du document a échoué');
       }
     });
   }

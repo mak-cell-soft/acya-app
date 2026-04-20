@@ -843,22 +843,16 @@ export class CustomerAddDocumentComponent {
    */
   saveDocument(doc: Document) {
     this.isLoading = true;
-    this.docService.Add(doc).subscribe({
+
+    const saveObs = this.sourceDocumentId > 0 
+      ? this.docService.Convert(this.sourceDocumentId, doc)
+      : this.docService.Add(doc);
+
+    saveObs.subscribe({
       next: (response) => {
         const docRef = response.docRef;
-        this.toastr.success(`Bon de Livraison ${docRef} créé avec succès`);
-
-        // Register relationship if transformed from Order or Quote
-        if (this.sourceDocumentId > 0 && response.id > 0) {
-          const relationship = {
-            parentDocumentId: this.sourceDocumentId,
-            childDocumentId: response.id
-          };
-          this.docService.RegisterRelationship(relationship).subscribe({
-            next: () => console.log('Relationship registered for Delivery Note'),
-            error: (err) => console.error('Failed to register relationship:', err)
-          });
-        }
+        const docTypeLabel = doc.type === DocumentTypes.customerDeliveryNote ? 'Bon de Livraison' : 'Document';
+        this.toastr.success(`${docTypeLabel} ${docRef} créé avec succès`);
 
         this.freeAllCalculatedDocumentFields();
         this.isLoading = false;
