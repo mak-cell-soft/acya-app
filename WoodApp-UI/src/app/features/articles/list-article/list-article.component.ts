@@ -242,9 +242,11 @@ export class ListArticleComponent implements AfterViewInit {
     this.dialog.open(ArticleHistoryComponent, {
       width: '900px',
       maxWidth: '95vw',
-      data: { 
+      data: {
         articleId: article.id,
-        articleReference: article.reference 
+        articleReference: article.reference,
+        articleDescription: article.description,
+        articleTvaValue: article.tva?.value
       }
     });
   }
@@ -359,7 +361,7 @@ export class ListArticleComponent implements AfterViewInit {
     });
   }
   //#endregion
-  
+
   /**
    * Smoothly scrolls back to the top of the collection list or the top of the viewport.
    */
