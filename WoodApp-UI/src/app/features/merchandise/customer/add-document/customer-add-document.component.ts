@@ -79,10 +79,9 @@ export class CustomerAddDocumentComponent {
   responseFromModalTotQuantity!: number;
   sourceDocumentId = 0;
 
-
   @ViewChild('customerSelect') customerSelect!: MatSelect;
   @ViewChild('transporterSelect') transporterSelect!: MatSelect;
-  @ViewChild('articleSelect') articleSelect!: MatSelect;
+  @ViewChildren('articleSelect') articleSelects!: QueryList<MatSelect>;
 
   displayedColumns: string[] = ['index', 'article', 'sellPrice', 'quantity', 'discount', 'tva', 'totalWithoutTva', 'totalWithTva', 'actions'];
   dataMerchand = new MatTableDataSource<Merchand>([]);
@@ -459,8 +458,6 @@ export class CustomerAddDocumentComponent {
     }
   }
 
-  // Update ViewChildren reference
-  @ViewChildren('articleSelect') articleSelects!: QueryList<MatSelect>;
 
   openArticleDropdown(element: Merchand) {
     const index = this.dataMerchand.data.indexOf(element);
@@ -514,7 +511,9 @@ export class CustomerAddDocumentComponent {
   }
 
   openDropdownTransporters() {
-    this.transporterSelect.open();
+    if (this.transporterSelect) {
+      this.transporterSelect.open();
+    }
   }
 
   onOptionTransporterSelected(transporterId: number): void {
@@ -549,7 +548,7 @@ export class CustomerAddDocumentComponent {
       // Sync the search input with formatted reference and description
       element.articleSearchInput = `${selectedArticle.reference}${selectedArticle.description ? ' - ' + selectedArticle.description : ''}`;
       element.quantity = 0; // Reset quantity on article change
-      
+
       // Set wood type flag on the element itself, not globally
       element.isWoodArticle = selectedArticle.iswood;
 
@@ -844,7 +843,7 @@ export class CustomerAddDocumentComponent {
   saveDocument(doc: Document) {
     this.isLoading = true;
 
-    const saveObs = this.sourceDocumentId > 0 
+    const saveObs = this.sourceDocumentId > 0
       ? this.docService.Convert(this.sourceDocumentId, doc)
       : this.docService.Add(doc);
 
@@ -933,13 +932,13 @@ export class CustomerAddDocumentComponent {
     const data = this.dataMerchand.data;
     const naturalTTC = parseFloat(data.reduce((sum, item) => sum + (item.totalWithTax || 0), 0).toFixed(3));
     const naturalRemise = parseFloat(data.reduce((sum, item) => sum + ((item.sellcostprice_net_ht * (item.selldiscountpercentage || 0) / 100) || 0), 0).toFixed(3));
-    
+
     const manualValue = typeof newValue === 'string' ? parseFloat(newValue) : newValue;
     if (isNaN(manualValue)) return;
 
     // The extra discount is the difference between what it should be and what the user wants it to be
     this.extraDiscount = parseFloat((naturalTTC - manualValue).toFixed(3));
-    
+
     // Update the subjects immediately
     this.netTTC_doc$.next(manualValue);
     this.totalRemise_doc$.next(parseFloat((naturalRemise + this.extraDiscount).toFixed(3)));
@@ -1089,4 +1088,6 @@ export class CustomerAddDocumentComponent {
   //#endregion
 
 }
+
+
 

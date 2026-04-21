@@ -43,7 +43,7 @@
                     <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
                         <mat-label>Fournisseur</mat-label>
                         <mat-select formControlName="supplier" (selectionChange)="onSupplierChange($event.value)"
-                                    placeholder="Choisir un fournisseur">
+                            placeholder="Choisir un fournisseur">
                             <mat-option [value]="null" disabled>Choisir un fournisseur</mat-option>
                             <mat-option *ngFor="let supplier of allSuppliers" [value]="supplier">
                                 {{ supplier.name }}
@@ -98,23 +98,29 @@
                     <mat-form-field appearance="outline" class="flex-2" subscriptSizing="dynamic">
                         <mat-label>Rechercher un article</mat-label>
                         <input matInput [formControl]="searchControl" placeholder="Référence ou désignation..."
-                            [class.selected-article-input]="!!selectedArticle"
-                            [readonly]="!!selectedArticle"
-                            (input)="applyFilter($event)" (focus)="openDropdown()" />
+                            [class.selected-article-input]="!!selectedArticle" [readonly]="!!selectedArticle"/>
                         <mat-icon matSuffix *ngIf="!selectedArticle">search</mat-icon>
-                        
-                        <button mat-icon-button matSuffix *ngIf="selectedArticle" 
-                            (click)="clearArticle()" class="clear-article-btn" matTooltip="Effacer l'article">
+
+                        <button mat-icon-button matSuffix *ngIf="selectedArticle" (click)="clearArticle()"
+                            class="clear-article-btn" matTooltip="Effacer l'article">
                             <mat-icon>close</mat-icon>
                         </button>
 
-                        <mat-select #articleSelect (selectionChange)="onOptionSelected($event.value)" class="show-select">
-                            <mat-option *ngFor="let item of filteredArticles" [value]="item.id">
+                        <mat-select #articleSelect (selectionChange)="onOptionSelected($event.value)"
+                            class="show-select">
+                            <mat-option *ngIf="!filteredArticles.length && !articles.length" disabled>
+                                Chargement des articles...
+                            </mat-option>
+                            <mat-option *ngIf="filteredArticles.length === 0 && articles.length > 0" disabled>
+                                Aucun article trouvé
+                            </mat-option>
+                            <mat-option *ngFor="let article of filteredArticles" [value]="article">
                                 <div class="article-option">
                                     <mat-icon>inventory_2</mat-icon>
                                     <div class="text-content">
-                                        <span class="ref">{{ item.reference }}</span>
-                                        <span class="desc" *ngIf="item.description"> - {{ item.description }}</span>
+                                        <span class="ref">{{ article.reference }}</span>
+                                        <span class="desc" *ngIf="article.description"> - {{ article.description
+                                            }}</span>
                                     </div>
                                 </div>
                             </mat-option>
@@ -199,7 +205,8 @@
 
                 <ng-container matColumnDef="lastPurchasePrice">
                     <th mat-header-cell *matHeaderCellDef> Dernier PA </th>
-                    <td mat-cell *matCellDef="let element">{{ element.article.lastpurchaseprice_ttc | number: '1.3-3' }}</td>
+                    <td mat-cell *matCellDef="let element">{{ element.article.lastpurchaseprice_ttc | number: '1.3-3' }}
+                    </td>
                 </ng-container>
 
                 <ng-container matColumnDef="unit_price_ht">

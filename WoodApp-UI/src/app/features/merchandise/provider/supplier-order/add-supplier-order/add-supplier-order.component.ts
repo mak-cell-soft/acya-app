@@ -133,7 +133,7 @@ export class AddSupplierOrderComponent implements OnInit {
       quantity: ['', Validators.required],
       tva: ['', Validators.required],
       description: [''],
-      last_purchase_price: [{value: '', disabled: true}]
+      last_purchase_price: [{ value: '', disabled: true }]
     });
   }
 
@@ -158,8 +158,10 @@ export class AddSupplierOrderComponent implements OnInit {
         this.articles = response;
         this.filteredArticles = [...this.articles];
         this.searchControl.valueChanges.subscribe((searchTerm) => {
+          const lowerTerm = (searchTerm || '').toLowerCase();
           this.filteredArticles = this.articles.filter(article =>
-            article.reference.toLowerCase().includes((searchTerm || '').toLowerCase())
+            article.reference.toLowerCase().includes(lowerTerm) ||
+            article.description?.toLowerCase().includes(lowerTerm)
           );
         });
       },
@@ -177,29 +179,18 @@ export class AddSupplierOrderComponent implements OnInit {
     });
   }
 
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
-    this.filteredArticles = this.articles.filter(article =>
-      article.reference.toLowerCase().includes(filterValue) ||
-      (article.description && article.description.toLowerCase().includes(filterValue))
-    );
-    this.openDropdown();
-  }
 
-  openDropdown() {
-    this.articleSelect.open();
-  }
 
-  onOptionSelected(articleId: number): void {
-    const article = this.articles.find((item) => item.id === articleId);
+  onOptionSelected(article: Article): void {
     if (article) {
       this.selectedArticle = article;
+      const articleId = article.id;
       const displayValue = article.reference + (article.description ? ' - ' + article.description : '');
       this.searchControl.setValue(displayValue, { emitEvent: false });
-      
+
       this.merchandiseForm.get('tva')?.setValue(article.tvaid);
-      
-      this.articleService.GetLastPurchasePrice(articleId).subscribe({
+
+      this.articleService.GetLastPurchasePrice(article.id).subscribe({
         next: (price) => {
           this.merchandiseForm.get('last_purchase_price')?.setValue(price > 0 ? price : (article.lastpurchaseprice_ttc || 0));
         },
@@ -219,48 +210,48 @@ export class AddSupplierOrderComponent implements OnInit {
 
   addMerchandise() {
     if (this.merchandiseForm.valid && this.selectedArticle) {
-        let qtity = this.isArticleTypeWood ? this.responseFromModalTotQuantity : this.merchandiseForm.get('quantity')?.value;
-        const unitPrice = this.merchandiseForm.get('unit_price_ht')?.value;
-        const tvaId = this.merchandiseForm.get('tva')?.value;
-        const tvaObj = this.TVAs.find(t => t.id === tvaId);
-        const tvaRate = tvaObj ? parseFloat(tvaObj.value.replace('%', '')) : 0;
-        
-        const costHT = qtity * unitPrice;
-        const taxValue = costHT * (tvaRate / 100);
-        const costTTC = costHT + taxValue;
+      let qtity = this.isArticleTypeWood ? this.responseFromModalTotQuantity : this.merchandiseForm.get('quantity')?.value;
+      const unitPrice = this.merchandiseForm.get('unit_price_ht')?.value;
+      const tvaId = this.merchandiseForm.get('tva')?.value;
+      const tvaObj = this.TVAs.find(t => t.id === tvaId);
+      const tvaRate = tvaObj ? parseFloat(tvaObj.value.replace('%', '')) : 0;
 
-        const newMerchandise: Merchandise = {
-            id: 0,
-            packagereference: 'Standard',
-            description: this.merchandiseForm.get('description')?.value || '',
-            creationdate: new Date(),
-            updatedate: new Date(),
-            updatedbyid: Number(this.userconnected?.id),
-            unit_price_ht: unitPrice,
-            quantity: qtity,
-            cost_ht: costHT,
-            discount_percentage: 0,
-            cost_net_ht: costHT,
-            tva_value: taxValue,
-            cost_discount_value: 0,
-            cost_ttc: costTTC,
-            documentid: 0,
-            isinvoicible: true,
-            allownegativstock: false,
-            article: this.selectedArticle,
-            lisoflengths: this.isArticleTypeWood ? this.responseFromModalLengths : [],
-            ismergedwith: false,
-            idmergedmerchandise: 0,
-            isdeleted: false
-        };
+      const costHT = qtity * unitPrice;
+      const taxValue = costHT * (tvaRate / 100);
+      const costTTC = costHT + taxValue;
 
-        const currentData = this.merchandisDocument.data;
-        currentData.push(newMerchandise);
-        this.merchandisDocument.data = [...currentData];
-        this.hasUnsavedChanges = true;
-        this.resetMerchandiseForm();
+      const newMerchandise: Merchandise = {
+        id: 0,
+        packagereference: 'Standard',
+        description: this.merchandiseForm.get('description')?.value || '',
+        creationdate: new Date(),
+        updatedate: new Date(),
+        updatedbyid: Number(this.userconnected?.id),
+        unit_price_ht: unitPrice,
+        quantity: qtity,
+        cost_ht: costHT,
+        discount_percentage: 0,
+        cost_net_ht: costHT,
+        tva_value: taxValue,
+        cost_discount_value: 0,
+        cost_ttc: costTTC,
+        documentid: 0,
+        isinvoicible: true,
+        allownegativstock: false,
+        article: this.selectedArticle,
+        lisoflengths: this.isArticleTypeWood ? this.responseFromModalLengths : [],
+        ismergedwith: false,
+        idmergedmerchandise: 0,
+        isdeleted: false
+      };
+
+      const currentData = this.merchandisDocument.data;
+      currentData.push(newMerchandise);
+      this.merchandisDocument.data = [...currentData];
+      this.hasUnsavedChanges = true;
+      this.resetMerchandiseForm();
     } else {
-        this.toastr.info('Veuillez remplir tous les champs');
+      this.toastr.info('Veuillez remplir tous les champs');
     }
   }
 
@@ -274,6 +265,13 @@ export class AddSupplierOrderComponent implements OnInit {
     });
     this.merchandiseForm.get('last_purchase_price')?.disable();
     this.searchControl.reset('');
+    this.selectedArticle = null!;
+
+    if (this.articleSelect) {
+      this.articleSelect.value = null;
+    }
+
+    this.filteredArticles = [...this.articles];
     this.isArticleTypeWood = false;
   }
 

@@ -36,7 +36,7 @@
                     <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
                         <mat-label>Fournisseur</mat-label>
                         <mat-select formControlName="supplier" (selectionChange)="onSupplierChange($event.value)"
-                                    placeholder="Choisir un fournisseur">
+                            placeholder="Choisir un fournisseur">
                             <mat-option [value]="null" disabled>Choisir un fournisseur</mat-option>
                             <mat-option *ngFor="let supplier of allSuppliers" [value]="supplier">
                                 {{ supplier.name }}
@@ -76,8 +76,10 @@
         <mat-card class="entry-card section-card" [formGroup]="merchandiseForm" [class.edit-mode-card]="isEditing">
             <mat-card-header>
                 <mat-icon mat-card-avatar>{{ isEditing ? 'edit' : 'add_shopping_cart' }}</mat-icon>
-                <mat-card-title>{{ isEditing ? 'Modification de Marchandise' : 'Ajout de Marchandise' }}</mat-card-title>
-                <mat-card-subtitle>{{ isEditing ? "Mettre à jour les détails de la ligne" : "Saisir les détails de l'article" }}</mat-card-subtitle>
+                <mat-card-title>{{ isEditing ? 'Modification de Marchandise' : 'Ajout de Marchandise'
+                    }}</mat-card-title>
+                <mat-card-subtitle>{{ isEditing ? "Mettre à jour les détails de la ligne" : "Saisir les détails de
+                    l'article" }}</mat-card-subtitle>
             </mat-card-header>
 
             <!-- ... existing article search and form rows ... -->
@@ -89,23 +91,30 @@
                     <mat-form-field appearance="outline" class="flex-2" subscriptSizing="dynamic">
                         <mat-label>Rechercher un article</mat-label>
                         <input matInput [formControl]="searchControl" placeholder="Référence ou désignation..."
-                            [class.selected-article-input]="!!selectedArticle"
-                            [readonly]="!!selectedArticle"
-                            (input)="applyFilter($event)" (focus)="openDropdown()" />
+                            [class.selected-article-input]="!!selectedArticle" [readonly]="!!selectedArticle"
+                            (focus)="openDropdown()" />
                         <mat-icon matSuffix *ngIf="!selectedArticle">search</mat-icon>
-                        
-                        <button mat-icon-button matSuffix *ngIf="selectedArticle" 
-                            (click)="clearArticle()" class="clear-article-btn" matTooltip="Effacer l'article">
+
+                        <button mat-icon-button matSuffix *ngIf="selectedArticle" (click)="clearArticle()"
+                            class="clear-article-btn" matTooltip="Effacer l'article">
                             <mat-icon>close</mat-icon>
                         </button>
 
-                        <mat-select #articleSelect (selectionChange)="onOptionSelected($event.value)" class="show-select">
-                            <mat-option *ngFor="let item of filteredArticles" [value]="item.id">
+                        <mat-select #articleSelect (selectionChange)="onOptionSelected($event.value)"
+                            class="show-select">
+                            <mat-option *ngIf="!filteredArticles.length && !articles.length" disabled>
+                                Chargement des articles...
+                            </mat-option>
+                            <mat-option *ngIf="filteredArticles.length === 0 && articles.length > 0" disabled>
+                                Aucun article trouvé
+                            </mat-option>
+                            <mat-option *ngFor="let article of filteredArticles" [value]="article">
                                 <div class="article-option">
                                     <mat-icon>inventory_2</mat-icon>
                                     <div class="text-content">
-                                        <span class="ref">{{ item.reference }}</span>
-                                        <span class="desc" *ngIf="item.description"> - {{ item.description }}</span>
+                                        <span class="ref">{{ article.reference }}</span>
+                                        <span class="desc" *ngIf="article.description"> - {{ article.description
+                                            }}</span>
                                     </div>
                                 </div>
                             </mat-option>
@@ -196,7 +205,8 @@
                 <button mat-button color="warn" *ngIf="isEditing" (click)="resetMerchandiseForm()">
                     Annuler
                 </button>
-                <button mat-raised-button [color]="isEditing ? 'accent' : 'primary'" class="add-article-btn" (click)="addMerchandise()">
+                <button mat-raised-button [color]="isEditing ? 'accent' : 'primary'" class="add-article-btn"
+                    (click)="addMerchandise()">
                     <mat-icon>{{ isEditing ? 'done' : 'add' }}</mat-icon>
                     {{ isEditing ? 'Enregistrer les modifications' : 'Ajouter à la liste' }}
                 </button>
@@ -338,9 +348,11 @@
                     <mat-divider></mat-divider>
                     <div class="summary-line rs-section">
                         <span class="label">Retenue à la Source (RS)</span>
-                        <mat-select [value]="selectedRS" (selectionChange)="onRSChange($event.value)" placeholder="Aucune" class="rs-select">
+                        <mat-select [value]="selectedRS" (selectionChange)="onRSChange($event.value)"
+                            placeholder="Aucune" class="rs-select">
                             <mat-option [value]="null">Aucune</mat-option>
-                            <mat-option *ngFor="let rs of rsList" [value]="rs">{{ rs.name }} ({{ rs.value }}%)</mat-option>
+                            <mat-option *ngFor="let rs of rsList" [value]="rs">{{ rs.name }} ({{ rs.value
+                                }}%)</mat-option>
                         </mat-select>
                     </div>
                     <mat-divider></mat-divider>

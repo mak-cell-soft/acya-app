@@ -234,36 +234,15 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
     }
   }
 
-  /**
-   * @description loaded Articles when start typing
-   * @param event 
-   */
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
-    this.filteredArticles = this.articles.filter(article =>
-      article.reference.toLowerCase().includes(filterValue) ||
-      (article.description && article.description.toLowerCase().includes(filterValue))
-    );
-    // Open dropdown on filter
-    this.openDropdown();
-  }
-
-  // Open dropdown programmatically
-  openDropdown() {
-    this.articleSelect.open();
-  }
 
   // Clear input when an option is selected
-  onOptionSelected(articleId: number): void {
-    // Find and set the selected article
-    const article = this.articles.find((item) => item.id === articleId);
-    
+  onOptionSelected(article: Article): void {
     if (article) {
       this.selectedArticle = article;
       // Set the display value in the search input
       const displayValue = article.reference + (article.description ? ' - ' + article.description : '');
       this.searchControl.setValue(displayValue, { emitEvent: false });
-      
+
       this.filteredArticles = this.articles; // Reset filtered articles
 
       console.log("Selected Article : ", this.selectedArticle)
@@ -279,7 +258,7 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
       this.isArticleTypeWood = this.selectedArticle.iswood;
       if (this.isArticleTypeWood) {
         console.log('Type Wood Selected : ', this.isArticleTypeWood);
-        this.merchandiseForm.get('quantity')?.disabled; // Disable the quantity input
+        this.merchandiseForm.get('quantity')?.disable(); // Disable the quantity input
       }
 
 
@@ -296,7 +275,7 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
 
     // Populate the form and article selection
     this.selectedArticle = element.article;
-    this.onOptionSelected(element.article.id);
+    this.onOptionSelected(element.article);
 
     // Patch form with rest of the values
     this.merchandiseForm.patchValue({
@@ -404,9 +383,14 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
     });
 
     this.searchControl.reset('');
+    this.selectedArticle = null!;
 
     // Clear dropdown selection
-    this.articleSelect.value = null;
+    if (this.articleSelect) {
+      this.articleSelect.value = null;
+    }
+
+    this.filteredArticles = [...this.articles];
     this.isArticleTypeWood = false;
     this.responseFromModalLengths = [];
     this.responseFromModalTotQuantity = 0;
@@ -437,17 +421,24 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
     this.selectedSupplier = supplier;
   }
 
+  openDropdown() {
+    if (this.articleSelect) {
+      this.articleSelect.open();
+    }
+  }
+
   getArticles() {
     this.articles = [];
     this.articleService.GetAll().subscribe({
       next: (response) => {
         this.articles = response;
-        // Initialize filteredArticles with all articles
         this.filteredArticles = [...this.articles];
         // Subscribe to searchControl value changes to filter the articles
         this.searchControl.valueChanges.subscribe((searchTerm) => {
+          const lowerTerm = (searchTerm || '').toLowerCase();
           this.filteredArticles = this.articles.filter(article =>
-            article.reference.toLowerCase().includes((searchTerm || '').toLowerCase())
+            article.reference.toLowerCase().includes(lowerTerm) ||
+            article.description?.toLowerCase().includes(lowerTerm)
           );
         });
       },
@@ -936,7 +927,7 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
             this.docService.GetByType(DocumentTypes.supplierReceipt).subscribe({
               next: (allReceipts: Document[]) => {
                 const siblingReceipts = allReceipts.filter(r => siblingRefs.includes(r.docnumber));
-                
+
                 // Build ordered quantities map per article
                 const orderedQtities = new Map<number, number>();
                 order.merchandises.forEach((m: any) => {
@@ -1025,5 +1016,4 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
       this.toastr.info("Selectionner un Article d\'abord");
     }
   }
-
 }
