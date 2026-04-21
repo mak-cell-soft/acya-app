@@ -166,22 +166,41 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
     getStatusInfo = getStatusInfo;
     isSameDay = isSameDay;
 
-    getPaymentStatusClass(doc: Document): string {
-        const total = doc.total_net_payable ?? doc.total_net_ttc ?? 0;
+    /**
+     * Computes the remaining balance for a document, RS-aware.
+     * Priority: falls back computed from total_net_payable (RS applied) or total_net_ttc minus paid.
+     */
+    getRemainingBalance(doc: Document): number {
         const paid = doc.total_paid ?? 0;
-        const remaining = doc.remaining_balance ?? (total - paid);
+        // When RS is applied, the correct target total is total_net_payable (post-RS)
+        const targetTotal = (doc.withholdingtax && doc.total_net_payable != null)
+            ? doc.total_net_payable
+            : (doc.total_net_ttc ?? 0);
+        
+        // Compute from targetTotal - paid, ensuring it's not negative
+        return Math.max(0, Number((targetTotal - paid).toFixed(3)));
+    }
 
-        if (paid >= total && total > 0) return 'badge-paid';
+    getPaymentStatusClass(doc: Document): string {
+        const paid = doc.total_paid ?? 0;
+        const targetTotal = (doc.withholdingtax && doc.total_net_payable != null)
+            ? doc.total_net_payable
+            : (doc.total_net_ttc ?? 0);
+        const remaining = this.getRemainingBalance(doc);
+
+        if (paid >= targetTotal && targetTotal > 0) return 'badge-paid';
         if (paid > 0 && remaining > 0) return 'badge-partial';
         return 'badge-unpaid';
     }
 
     getPaymentStatusText(doc: Document): string {
-        const total = doc.total_net_payable ?? doc.total_net_ttc ?? 0;
         const paid = doc.total_paid ?? 0;
-        const remaining = doc.remaining_balance ?? (total - paid);
+        const targetTotal = (doc.withholdingtax && doc.total_net_payable != null)
+            ? doc.total_net_payable
+            : (doc.total_net_ttc ?? 0);
+        const remaining = this.getRemainingBalance(doc);
 
-        if (paid >= total && total > 0) return 'Payé';
+        if (paid >= targetTotal && targetTotal > 0) return 'Payé';
         if (paid > 0 && remaining > 0) return 'Partiel';
         return 'Non payé';
     }
@@ -227,7 +246,7 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
             totalAmount: doc.total_net_ttc,
             totalNetPayable: doc.total_net_payable,
             withholdingtax: doc.withholdingtax,
-            remainingAmount: doc.total_net_ttc,
+            remainingAmount: this.getRemainingBalance(doc),
             ownerFullName: doc.counterpart?.name || (doc.counterpart?.firstname + ' ' + doc.counterpart?.lastname) || '',
             porterName: doc.counterpart?.name || (doc.counterpart?.firstname + ' ' + doc.counterpart?.lastname) || '',
             porterId: doc.counterpart?.id || 0,

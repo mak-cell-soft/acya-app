@@ -28,7 +28,7 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
 
             // Relationships
             entity.HasOne(e => e.Document)
-                  .WithMany()
+                  .WithMany(d => d.Payments)
                   .HasForeignKey(e => e.DocumentId)
                   .OnDelete(DeleteBehavior.Restrict)
                   .HasConstraintName("fk_tbl_payments_tbl_document");

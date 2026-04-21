@@ -86,9 +86,10 @@ namespace ms.webapp.api.acya.api.Services
 
             // Validate Document total
             var totalPaid = await _paymentRepository.GetTotalByDocumentIdAsync(createDto.DocumentId);
-            var remainingBalance = (decimal)document.TotalCostNetTTCDoc - totalPaid;
+            decimal rsValue = (document.WithHoldingTax && document.HoldingTaxes != null) ? (decimal)document.HoldingTaxes.TaxValue : 0;
+            var remainingBalance = (decimal)document.TotalCostNetTTCDoc - rsValue - totalPaid;
 
-            if (createDto.Amount > remainingBalance)
+            if (createDto.Amount > remainingBalance + (decimal)0.001) // Small epsilon for float/decimal conversion issues
                 throw new ArgumentException($"Payment amount ({createDto.Amount}) exceeds remaining balance ({remainingBalance}).");
 
             // Fetch generic user name if needed or let DB handle UpdatedById relation

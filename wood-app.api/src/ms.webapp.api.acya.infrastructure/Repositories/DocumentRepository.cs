@@ -32,6 +32,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
     public async Task<Document?> GetWithRelationshipsAsync(int id)
     {
         return await context.Documents
+            .Include(d => d.HoldingTaxes)
             .Include(d => d.ChildDocuments)
                 .ThenInclude(cd => cd.ChildDocument)
             .Include(d => d.ParentDocuments)

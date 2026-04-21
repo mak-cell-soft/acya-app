@@ -82,6 +82,7 @@ namespace ms.webapp.api.acya.core.Entities
 
     [JsonIgnore]
     public ICollection<DocumentDocumentRelationship> ChildDocuments { get; set; } = new List<DocumentDocumentRelationship>();
+    public ICollection<Payment> Payments { get; set; } = new HashSet<Payment>();
 
     public Document()
     {
