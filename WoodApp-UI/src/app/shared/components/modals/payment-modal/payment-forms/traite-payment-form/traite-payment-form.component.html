@@ -59,4 +59,13 @@
             <mat-datepicker #pickerExp></mat-datepicker>
         </mat-form-field>
     </div>
+
+    <!-- Conflict Warning -->
+    <div class="echeance-warning" *ngIf="existingEcheance">
+        <mat-icon>warning</mat-icon>
+        <div class="warning-text">
+            <strong>Échéances existantes ce jour :</strong> 
+            {{existingEcheance.totalAmount | number:'1.3-3'}} TND ({{existingEcheance.instrumentCount}} effets)
+        </div>
+    </div>
 </form>

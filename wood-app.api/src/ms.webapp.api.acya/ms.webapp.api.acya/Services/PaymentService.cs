@@ -63,6 +63,39 @@ namespace ms.webapp.api.acya.api.Services
             return payments.Select(MapToDto);
         }
 
+        public async Task<IEnumerable<PaymentDto>> GetBySupplierIdAsync(int supplierId)
+        {
+            var payments = await _paymentRepository.GetByCustomerIdAsync(supplierId);
+            return payments.Select(MapToDto);
+        }
+
+        public async Task<IEnumerable<PaymentDto>> GetTraitesBySupplierIdAsync(int supplierId)
+        {
+            var payments = await _paymentRepository.GetTraitesBySupplierIdAsync(supplierId);
+            return payments.Select(MapToDto);
+        }
+
+        public async Task<IEnumerable<SupplierEcheanceDto>> GetEcheancesAsync(DateTime fromDate, DateTime toDate)
+        {
+            return await _paymentRepository.GetEcheancesAsync(fromDate, toDate);
+        }
+
+        public async Task<bool> MarkTraiteAsPaidAsync(int instrumentId, MarkTraitePaidDto markPaidDto)
+        {
+            var instrument = await _paymentRepository.GetInstrumentByIdAsync(instrumentId);
+            if (instrument == null) return false;
+
+            instrument.IsPaidAtBank = true;
+            instrument.PaidAtBankDate = markPaidDto.PaidAtBankDate;
+            instrument.BankSettlementStatus = "PAID_AT_BANK";
+            instrument.Notes = string.IsNullOrEmpty(instrument.Notes) 
+                ? markPaidDto.Notes 
+                : $"{instrument.Notes}\n{markPaidDto.Notes}";
+            instrument.UpdatedAt = DateTime.UtcNow;
+
+            return await _paymentRepository.UpdateInstrumentAsync(instrument);
+        }
+
         public async Task<IEnumerable<PaymentDto>> GetByDocumentIdAsync(int documentId)
         {
             var payments = await _paymentRepository.GetByDocumentIdAsync(documentId);
@@ -116,6 +149,22 @@ namespace ms.webapp.api.acya.api.Services
                         CreatedAt = DateTime.UtcNow,
                         IsDeleted = false
                     };
+
+                    if (createDto.PaymentMethod == "TRAITE" && createDto.InstrumentDetails != null)
+                    {
+                        payment.PaymentInstrument = new PaymentInstrument
+                        {
+                            InstrumentNumber = createDto.InstrumentDetails.InstrumentNumber,
+                            Type = "TRAITE",
+                            Bank = createDto.InstrumentDetails.Bank,
+                            Owner = createDto.InstrumentDetails.Owner,
+                            IssueDate = createDto.InstrumentDetails.IssueDate ?? createDto.PaymentDate,
+                            DueDate = createDto.InstrumentDetails.DueDate,
+                            ExpirationDate = createDto.InstrumentDetails.ExpirationDate,
+                            CreatedAt = DateTime.UtcNow,
+                            CreatedBy = createdByName
+                        };
+                    }
 
                     var createdPayment = await _paymentRepository.Add(payment);
 
@@ -298,7 +347,22 @@ namespace ms.webapp.api.acya.api.Services
                 Reference = payment.Reference,
                 Notes = payment.Notes,
                 CreatedAt = payment.CreatedAt ?? DateTime.MinValue,
-                CreatedBy = payment.CreatedBy 
+                CreatedBy = payment.CreatedBy,
+                Instrument = payment.PaymentInstrument != null ? new PaymentInstrumentDto
+                {
+                    Id = payment.PaymentInstrument.Id,
+                    PaymentId = payment.PaymentInstrument.PaymentId,
+                    Type = payment.PaymentInstrument.Type,
+                    InstrumentNumber = payment.PaymentInstrument.InstrumentNumber,
+                    Bank = payment.PaymentInstrument.Bank,
+                    Owner = payment.PaymentInstrument.Owner,
+                    IssueDate = payment.PaymentInstrument.IssueDate,
+                    DueDate = payment.PaymentInstrument.DueDate,
+                    ExpirationDate = payment.PaymentInstrument.ExpirationDate,
+                    IsPaidAtBank = payment.PaymentInstrument.IsPaidAtBank,
+                    PaidAtBankDate = payment.PaymentInstrument.PaidAtBankDate,
+                    BankSettlementStatus = payment.PaymentInstrument.BankSettlementStatus
+                } : null
             };
         }
     }

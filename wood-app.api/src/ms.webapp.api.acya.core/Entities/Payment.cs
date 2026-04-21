@@ -29,6 +29,8 @@ namespace ms.webapp.api.acya.core.Entities
         public int? UpdatedById { get; set; }
         public AppUser? AppUser { get; set; }
 
+        public PaymentInstrument? PaymentInstrument { get; set; }
+
         public bool IsDeleted { get; set; }
 
         public Payment()

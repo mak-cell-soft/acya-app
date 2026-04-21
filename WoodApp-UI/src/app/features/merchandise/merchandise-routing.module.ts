@@ -23,8 +23,15 @@ import { AddCustomerOrderComponent } from './customer/customer-order/add-custome
 
 import { roleGuard } from '../../guards/role.guard';
 import { CanDeactivateGuard } from '../../guards/can-deactivate.guard';
+import { SupplierPaymentsComponent } from './provider/supplier-payments/supplier-payments.component';
 
 const routes: Routes = [
+  {
+    path: 'supplier-invoices/payments',
+    component: SupplierPaymentsComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['Admin'] }
+  },
   {
     path: 'reception',
     component: AddSupplierReceiptComponent,

@@ -17,12 +17,14 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                 .Include(p => p.Document)
                 .Include(p => p.Customer)
                 .Include(p => p.AppUser)
+                .Include(p => p.PaymentInstrument)
                 .FirstOrDefaultAsync(p => p.Id == paymentId && !p.IsDeleted);
         }
 
         public new async Task<IEnumerable<Payment>> GetAllAsync()
         {
             return await context.Payments
+                .Include(p => p.PaymentInstrument)
                 .Where(p => !p.IsDeleted)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
@@ -34,6 +36,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                 .Include(p => p.Document)
                 .Include(p => p.Customer)
                 .Include(p => p.AppUser)
+                .Include(p => p.PaymentInstrument)
                 .Where(p => !p.IsDeleted);
 
             if (searchDto.FromDate.HasValue)
@@ -71,6 +74,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         {
             return await context.Payments
                 .Include(p => p.Document)
+                .Include(p => p.PaymentInstrument)
                 .Where(p => p.CustomerId == customerId && !p.IsDeleted)
                 .OrderByDescending(p => p.PaymentDate)
                 .ToListAsync();
@@ -79,9 +83,66 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         public async Task<IEnumerable<Payment>> GetByDocumentIdAsync(int documentId)
         {
             return await context.Payments
+                .Include(p => p.PaymentInstrument)
                 .Where(p => p.DocumentId == documentId && !p.IsDeleted)
                 .OrderByDescending(p => p.PaymentDate)
                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Payment>> GetTraitesBySupplierIdAsync(int supplierId)
+        {
+            return await context.Payments
+                .Include(p => p.Document)
+                .Include(p => p.PaymentInstrument)
+                .Where(p => p.CustomerId == supplierId && !p.IsDeleted && p.PaymentMethod == "TRAITE")
+                .OrderByDescending(p => p.PaymentInstrument!.DueDate)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<SupplierEcheanceDto>> GetEcheancesAsync(DateTime fromDate, DateTime toDate)
+        {
+            var traites = await context.PaymentInstruments
+                .Include(pi => pi.Payment)
+                    .ThenInclude(p => p!.Customer)
+                .Include(pi => pi.Payment)
+                    .ThenInclude(p => p!.Document)
+                .Where(pi => pi.DueDate >= fromDate && pi.DueDate <= toDate)
+                .ToListAsync();
+
+            return traites
+                .GroupBy(pi => pi.DueDate!.Value.Date)
+                .Select(g => new SupplierEcheanceDto
+                {
+                    DueDate = g.Key,
+                    TotalAmount = g.Sum(pi => pi.Payment?.Amount ?? 0),
+                    InstrumentCount = g.Count(),
+                    Details = g.Select(pi => new EcheanceDetailDto
+                    {
+                        PaymentId = pi.PaymentId,
+                        DocumentId = pi.Payment?.DocumentId ?? 0,
+                        DocumentNumber = pi.Payment?.Document?.DocNumber,
+                        SupplierName = pi.Payment?.Customer?.Fullname,
+                        InstrumentNumber = pi.InstrumentNumber,
+                        Bank = pi.Bank,
+                        Amount = pi.Payment?.Amount ?? 0,
+                        DueDate = pi.DueDate ?? DateTime.MinValue,
+                        IsPaidAtBank = pi.IsPaidAtBank
+                    }).ToList()
+                })
+                .OrderBy(e => e.DueDate)
+                .ToList();
+        }
+
+        public async Task<PaymentInstrument?> GetInstrumentByIdAsync(int instrumentId)
+        {
+            return await context.PaymentInstruments
+                .FirstOrDefaultAsync(pi => pi.Id == instrumentId);
+        }
+
+        public async Task<bool> UpdateInstrumentAsync(PaymentInstrument instrument)
+        {
+            context.PaymentInstruments.Update(instrument);
+            return await context.SaveChangesAsync() > 0;
         }
 
         public async Task<decimal> GetTotalByDocumentIdAsync(int documentId)

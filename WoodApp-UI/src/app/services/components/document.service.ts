@@ -50,6 +50,10 @@ export class DocumentService {
     return this.http.get<Document[]>(this.baseUrl + 'Document/_type', { params });
   }
 
+  GetByCounterpartId(id: number): Observable<Document[]> {
+    return this.http.get<Document[]>(this.baseUrl + 'Document/counterpart/' + id);
+  }
+
   /**
   * Appel de la méthode Get endpoint : Document.
   * @param 

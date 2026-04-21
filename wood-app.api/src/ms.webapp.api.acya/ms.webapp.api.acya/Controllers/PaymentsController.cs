@@ -169,6 +169,69 @@ namespace ms.webapp.api.acya.api.Controllers
             }
         }
 
+        [HttpGet("supplier/{supplierId}")]
+        public async Task<ActionResult<IEnumerable<PaymentDto>>> GetBySupplier(int supplierId)
+        {
+            try
+            {
+                var payments = await _paymentService.GetBySupplierIdAsync(supplierId);
+                return Ok(payments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting payments for supplier {SupplierId}", supplierId);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("supplier/{supplierId}/traites")]
+        public async Task<ActionResult<IEnumerable<PaymentDto>>> GetTraitesBySupplier(int supplierId)
+        {
+            try
+            {
+                var payments = await _paymentService.GetTraitesBySupplierIdAsync(supplierId);
+                return Ok(payments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting traites for supplier {SupplierId}", supplierId);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("echeances")]
+        public async Task<ActionResult<IEnumerable<SupplierEcheanceDto>>> GetEcheances([FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)
+        {
+            try
+            {
+                var start = fromDate ?? DateTime.Today;
+                var end = toDate ?? DateTime.Today.AddDays(120);
+                var result = await _paymentService.GetEcheancesAsync(start, end);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting echeances");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpPatch("instruments/{instrumentId}/mark-paid")]
+        public async Task<ActionResult> MarkTraitePaid(int instrumentId, [FromBody] MarkTraitePaidDto markPaidDto)
+        {
+            try
+            {
+                var result = await _paymentService.MarkTraiteAsPaidAsync(instrumentId, markPaidDto);
+                if (!result) return NotFound();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error marking traite {InstrumentId} as paid", instrumentId);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("dashboard")]
         public async Task<ActionResult<IEnumerable<DashboardPaymentDto>>> GetDashboardPayments([FromQuery] string date, [FromQuery] int? appuserid)
         {

@@ -186,6 +186,22 @@ namespace ms.webapp.api.acya.api.Controllers
       return Ok(documentDtos);
     }
 
+    [HttpGet("counterpart/{id}")]
+    public async Task<ActionResult<IEnumerable<DocumentDto>>> GetByCounterpartId(int id)
+    {
+      var documents = await _context.Documents
+          .AsNoTracking()
+          .Include(d => d.CounterPart)
+          .Include(d => d.Payments)
+          .Include(d => d.HoldingTaxes)
+          .Where(d => d.CounterPartId == id && !d.IsDeleted)
+          .OrderByDescending(d => d.DocNumber)
+          .ToListAsync();
+
+      var documentDtos = documents.Select(d => new DocumentDto(d)).ToList();
+      return Ok(documentDtos);
+    }
+
     [HttpPost("_typefiltered")]
     public async Task<ActionResult<IEnumerable<DocumentDto>>> GetByTypeByMonth([FromBody] TypeDocToFilterDto _type)
     {

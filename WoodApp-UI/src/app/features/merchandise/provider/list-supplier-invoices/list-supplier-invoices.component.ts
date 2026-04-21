@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, inject, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
@@ -35,6 +36,7 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
   dialog = inject(MatDialog);
   toastr = inject(ToastrService);
   authService = inject(AuthenticationService);
+  router = inject(Router);
 
 
   loading: boolean = false; // Track loading state
@@ -186,6 +188,12 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
         this.toastr.error('Erreur lors du chargement des factures');
         this.loading = false;
       }
+    });
+  }
+
+  navigateToPayments() {
+    this.router.navigate(['home/merchandise/supplier-invoices/payments'], {
+      queryParams: { supplierId: this.filterSupplier || null }
     });
   }
 

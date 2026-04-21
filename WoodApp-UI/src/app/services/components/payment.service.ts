@@ -72,4 +72,23 @@ export class PaymentService {
             {}
         );
     }
+
+    GetBySupplierId(supplierId: number): Observable<Payment[]> {
+        return this.http.get<Payment[]>(`${this.baseUrl}Payments/supplier/${supplierId}`);
+    }
+
+    GetTraitesBySupplierId(supplierId: number): Observable<Payment[]> {
+        return this.http.get<Payment[]>(`${this.baseUrl}Payments/supplier/${supplierId}/traites`);
+    }
+
+    GetEcheances(fromDate: Date, toDate: Date): Observable<any[]> {
+        let params = new HttpParams()
+            .set('fromDate', fromDate.toISOString())
+            .set('toDate', toDate.toISOString());
+        return this.http.get<any[]>(`${this.baseUrl}Payments/echeances`, { params });
+    }
+
+    MarkTraiteAsPaid(instrumentId: number, model: { paidAtBankDate: Date, notes?: string }): Observable<void> {
+        return this.http.patch<void>(`${this.baseUrl}Payments/instruments/${instrumentId}/mark-paid`, model);
+    }
 }
