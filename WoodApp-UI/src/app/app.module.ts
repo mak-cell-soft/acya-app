@@ -81,8 +81,7 @@ import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2
 
 import { MatChipsModule } from '@angular/material/chips';
 import { StatusOrderModalComponent } from './shared/components/modals/status-order-modal/status-order-modal.component';
-
-
+import { TaxRegistrationModalComponent } from './shared/components/modals/tax-registration-modal/tax-registration-modal.component';
 
 
 @NgModule({
@@ -107,6 +106,7 @@ import { StatusOrderModalComponent } from './shared/components/modals/status-ord
     TraitePaymentFormComponent,
     StatusOrderModalComponent,
     WithholdingTaxModalComponent,
+    TaxRegistrationModalComponent,
 
 
 

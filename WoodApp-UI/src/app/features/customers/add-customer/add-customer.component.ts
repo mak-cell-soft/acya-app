@@ -7,6 +7,7 @@ import { atLeastOneRequiredValidator, numericValidator, uppercaseAlphanumericVal
 import { GOV_TN } from '../../../shared/constants/modals/sales_site_modal';
 import { MatDialog } from '@angular/material/dialog';
 import { AddTransporterModalComponent } from '../../../shared/components/modals/add-transporter-modal/add-transporter-modal.component';
+import { TaxRegistrationModalComponent } from '../../../shared/components/modals/tax-registration-modal/tax-registration-modal.component';
 import { CounterPart } from '../../../models/components/counterpart';
 import { AppUser } from '../../../models/components/appuser';
 import { Transporter, Vehicle } from '../../../models/components/customer';
@@ -283,6 +284,20 @@ export class AddCustomerComponent implements OnInit {
       }
     });
 
+  }
+
+  openTaxRegistrationModal(form: FormGroup): void {
+    const dialogRef = this.dialog.open(TaxRegistrationModalComponent, {
+      width: '650px',
+      maxWidth: 'none',
+      panelClass: 'premium-modal-panel'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        form.get('mfcode')?.setValue(result);
+      }
+    });
   }
 
   delete(index: number) {

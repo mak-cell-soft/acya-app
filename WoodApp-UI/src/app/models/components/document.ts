@@ -26,6 +26,8 @@ export class Document {
     total_tva_doc: number = 0;
     total_net_ttc: number = 0;
     total_net_payable?: number;
+    total_paid?: number;
+    remaining_balance?: number;
 
     /**
     * Taxe : Droit de Timbre

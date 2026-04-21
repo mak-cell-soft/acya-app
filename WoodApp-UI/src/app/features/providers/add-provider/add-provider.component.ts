@@ -3,7 +3,9 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { GENERAL_INFORMATION_PROVIDER } from '../../../shared/constants/components/article';
 import { ABORT_BUTTON, REGISTER_BUTTON } from '../../../shared/Text_Buttons';
 import { BANKS_TN } from '../../../shared/constants/modals/bank_modal';
+import { MatDialog } from '@angular/material/dialog';
 import { fiscalMatriculeValidator } from '../../../shared/validators/taxRegistrationValidator';
+import { TaxRegistrationModalComponent } from '../../../shared/components/modals/tax-registration-modal/tax-registration-modal.component';
 import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
 import { CounterPartType_FR, Prefix, SupplierCategories_FR, SocietyPrefixes_FR } from '../../../shared/constants/list_of_constants';
@@ -28,6 +30,7 @@ export class AddProviderComponent implements OnInit {
 
   counterPartService = inject(CounterpartService);
   fb = inject(FormBuilder);
+  dialog = inject(MatDialog);
   toastr = inject(ToastrService);
   router = inject(Router);
   authService = inject(AuthenticationService);
@@ -145,6 +148,20 @@ export class AddProviderComponent implements OnInit {
       this.toastr.warning("Valider les champs de saisie d\'abord !");
     }
     return null;
+  }
+
+  openTaxRegistrationModal(): void {
+    const dialogRef = this.dialog.open(TaxRegistrationModalComponent, {
+      width: '650px',
+      maxWidth: 'none',
+      panelClass: 'premium-modal-panel'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.supplierForm.get('taxRegistration')?.setValue(result);
+      }
+    });
   }
 
   addSupplier(supplier: CounterPart): void {

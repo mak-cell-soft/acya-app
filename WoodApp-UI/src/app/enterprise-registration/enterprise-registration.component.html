@@ -72,6 +72,10 @@
               <mat-form-field appearance="outline" class="half-width">
                 <mat-label>{{mat_label_input_enterprise_details_mf}}</mat-label>
                 <input matInput formControlName="matriculeFiscal" placeholder="{{mat_input_enterprise_details_placeholder_mf}}">
+                <button type="button" mat-icon-button matSuffix (click)="openTaxRegistrationModal()" matTooltip="Utiliser l'assistant de saisie">
+                  <mat-icon color="primary">app_registration</mat-icon>
+                </button>
+                <mat-hint class="blue-hint">Utilisez l'assistant (icône à droite) pour un formatage parfait.</mat-hint>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="half-width">

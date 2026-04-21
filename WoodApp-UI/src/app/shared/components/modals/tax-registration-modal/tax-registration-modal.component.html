@@ -1,0 +1,87 @@
+<div class="tax-modal-container" @modalFadeIn>
+  <h2>Matricule Fiscal</h2>
+  <p>Veuillez saisir les composants de votre identifiant fiscal selon le format standard.</p>
+
+  <form [formGroup]="taxForm" (ngSubmit)="onSubmit()" @staggerInputs>
+    <div class="form-content">
+      <div class="input-grid">
+        <!-- Part 1: XXXXXXXY -->
+        <div class="input-section">
+          <label>Identifiant</label>
+          <input 
+            type="text" 
+            class="part1-input" 
+            formControlName="part1" 
+            placeholder="1234567P"
+            maxlength="8"
+            id="part1-input"
+            (input)="onPart1Input($event)"
+            [class.invalid]="taxForm.get('part1')?.invalid && taxForm.get('part1')?.touched"
+          >
+        </div>
+
+        <span class="separator">/</span>
+
+        <!-- Part 2A: Letter 1 -->
+        <div class="input-section">
+          <label>Cat.</label>
+          <input 
+            type="text" 
+            class="letter-input" 
+            formControlName="part2a" 
+            placeholder="A"
+            maxlength="1"
+            id="part2a-input"
+            (input)="onPart2aInput($event)"
+            [class.invalid]="taxForm.get('part2a')?.invalid && taxForm.get('part2a')?.touched"
+          >
+        </div>
+
+        <span class="separator">/</span>
+
+        <!-- Part 2B: Letter 2 -->
+        <div class="input-section">
+          <label>TVA</label>
+          <input 
+            type="text" 
+            class="letter-input" 
+            formControlName="part2b" 
+            placeholder="M"
+            maxlength="1"
+            id="part2b-input"
+            (input)="onPart2bInput($event)"
+            [class.invalid]="taxForm.get('part2b')?.invalid && taxForm.get('part2b')?.touched"
+          >
+        </div>
+
+        <span class="separator">/</span>
+
+        <!-- Part 3: 000 -->
+        <div class="input-section">
+          <label>Code</label>
+          <input 
+            type="text" 
+            class="part3-input" 
+            formControlName="part3" 
+            placeholder="000"
+            maxlength="3"
+            id="part3-input"
+            (input)="onPart3Input($event)"
+            [class.invalid]="taxForm.get('part3')?.invalid && taxForm.get('part3')?.touched"
+          >
+        </div>
+      </div>
+
+      <div class="preview-text" *ngIf="taxForm.valid">
+        Format final: <span>{{ taxForm.get('part1')?.value }} /{{ taxForm.get('part2a')?.value }}/{{ taxForm.get('part2b')?.value }}/ {{ taxForm.get('part3')?.value }}</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="cancel-btn" (click)="onCancel()">Annuler</button>
+      <button type="submit" class="submit-btn" [disabled]="taxForm.invalid">
+        Confirmer l'Identifiant
+      </button>
+    </div>
+  </form>
+</div>

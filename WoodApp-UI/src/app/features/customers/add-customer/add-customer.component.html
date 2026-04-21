@@ -133,6 +133,10 @@
                             <mat-form-field appearance="outline">
                                 <mat-label>Matricule Fiscal</mat-label>
                                 <input matInput formControlName="mfcode" (input)="onUpperCase($event, 'mfcode')">
+                                <button type="button" mat-icon-button matSuffix (click)="openTaxRegistrationModal(customerForm)" matTooltip="Utiliser l'assistant de saisie">
+                                    <mat-icon color="primary">app_registration</mat-icon>
+                                </button>
+                                <mat-hint class="blue-hint">Utilisez l'assistant (icône à droite) pour un formatage parfait.</mat-hint>
                                 <mat-icon matPrefix>receipt</mat-icon>
                             </mat-form-field>
 
@@ -365,6 +369,10 @@
                             <mat-form-field appearance="outline">
                                 <mat-label>Matricule Fiscal</mat-label>
                                 <input matInput formControlName="mfcode" (input)="onUpperCase($event, 'mfcode')">
+                                <button type="button" mat-icon-button matSuffix (click)="openTaxRegistrationModal(societyForm)" matTooltip="Utiliser l'assistant de saisie">
+                                    <mat-icon color="primary">app_registration</mat-icon>
+                                </button>
+                                <mat-hint class="blue-hint">Utilisez l'assistant (icône à droite) pour un formatage parfait.</mat-hint>
                                 <mat-icon matPrefix>receipt</mat-icon>
                             </mat-form-field>
                             <mat-form-field appearance="outline">

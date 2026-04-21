@@ -28,3 +28,9 @@ h1, h2, h3, h4, .page-title, .mat-card-title {
     width: 95vw !important;
   }
 }
+
+.blue-hint {
+  color: #1976d2 !important;
+  font-weight: 500;
+  display: block;
+}

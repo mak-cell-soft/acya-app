@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, inject, OnInit, ChangeDetectionStrategy }
 import { ASK_FOR_WOOD_SELLEING, MAT_CARD_HEADER_DETAILS, MAT_CARD_HEADER_ENTER_SITES, MAT_CARD_HEADER_ENTERPRISE, MAT_CARD_SETTINGS_CONFIG, MAT_INPUT_ENTERPRISE_DETAILS_PLCHOLDER_ADRESSE, MAT_INPUT_ENTERPRISE_DETAILS_PLCHOLDER_CITY, MAT_INPUT_ENTERPRISE_DETAILS_PLCHOLDER_CODEPOST, MAT_INPUT_ENTERPRISE_DETAILS_PLCHOLDER_DEVISE, MAT_INPUT_ENTERPRISE_DETAILS_PLCHOLDER_MF, MAT_INPUT_ENTERPRISE_DETAILS_PLCHOLDER_POSITION, MAT_INPUT_ENTERPRISE_DETAILS_PLCHOLDER_RESP_NAME, MAT_INPUT_ENTERPRISE_DETAILS_PLCHOLDER_RESP_SURNAME, MAT_INPUT_ENTERPRISE_PLCHOLDER_DESC, MAT_INPUT_ENTERPRISE_PLCHOLDER_EMAIL, MAT_INPUT_ENTERPRISE_PLCHOLDER_MOBILE_1, MAT_INPUT_ENTERPRISE_PLCHOLDER_MOBILE_2, MAT_INPUT_ENTERPRISE_PLCHOLDER_NAME, MAT_INPUT_ENTERPRISE_PLCHOLDER_PHONE, MAT_LABEL_INPUT_ENTERPRISE_DESC, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_ADDRESS, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_CITY, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_CODEPOST, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_DEVISE, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_GOV, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_MF, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_POSITION, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_RESP_NAME, MAT_LABEL_INPUT_ENTERPRISE_DETAILS_RESP_SURNAME, MAT_LABEL_INPUT_ENTERPRISE_FIX_PHONE, MAT_LABEL_INPUT_ENTERPRISE_MAIL, MAT_LABEL_INPUT_ENTERPRISE_MOBILE_1, MAT_LABEL_INPUT_ENTERPRISE_MOBILE_2, MAT_LABEL_INPUT_ENTERPRISE_NAME, MAT_TAB_LABEL_ENTERPRISE, MAT_TAB_LABEL_PARAMS, MAT_TAB_LABEL_SETTINGS } from '../shared/constants/components/config';
 import { MatDialog } from '@angular/material/dialog';
 import { AddSalesSiteModalComponent } from '../features/dashboard/modals/add-sales-site-modal/add-sales-site-modal.component';
+import { TaxRegistrationModalComponent } from '../shared/components/modals/tax-registration-modal/tax-registration-modal.component';
 import { ABORT_BUTTON, ADD_BUTTON } from '../shared/Text_Buttons';
 import { DEVISES, GOV_TN, JOB_DESCRIPTION } from '../shared/constants/modals/sales_site_modal';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
@@ -186,6 +187,21 @@ export class EnterpriseRegistrationComponent implements OnInit {
         console.log("Updated Table Data: ", this.allSites.data);
 
         // Trigger change detection manually
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  openTaxRegistrationModal(): void {
+    const dialogRef = this.dialog.open(TaxRegistrationModalComponent, {
+      width: '650px',
+      maxWidth: 'none',
+      panelClass: 'premium-modal-panel'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.enterpriseForm.get('matriculeFiscal')?.setValue(result);
         this.cdr.detectChanges();
       }
     });

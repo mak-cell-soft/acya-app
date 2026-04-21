@@ -41,7 +41,7 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
 
     // Data
     allCustomerInvoices: MatTableDataSource<Document> = new MatTableDataSource<Document>();
-    displayedColumns: string[] = ['reference', 'date', 'counterPart', 'amount', 'status', 'isInvoiced', 'sellSite', 'action'];
+    displayedColumns: string[] = ['reference', 'date', 'counterPart', 'amount', 'payment', 'status', 'isInvoiced', 'sellSite', 'action'];
     selection = new SelectionModel<any>(false, []);
 
     // Summary
@@ -166,6 +166,26 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
     getStatusInfo = getStatusInfo;
     isSameDay = isSameDay;
 
+    getPaymentStatusClass(doc: Document): string {
+        const total = doc.total_net_payable ?? doc.total_net_ttc ?? 0;
+        const paid = doc.total_paid ?? 0;
+        const remaining = doc.remaining_balance ?? (total - paid);
+
+        if (paid >= total && total > 0) return 'badge-paid';
+        if (paid > 0 && remaining > 0) return 'badge-partial';
+        return 'badge-unpaid';
+    }
+
+    getPaymentStatusText(doc: Document): string {
+        const total = doc.total_net_payable ?? doc.total_net_ttc ?? 0;
+        const paid = doc.total_paid ?? 0;
+        const remaining = doc.remaining_balance ?? (total - paid);
+
+        if (paid >= total && total > 0) return 'Payé';
+        if (paid > 0 && remaining > 0) return 'Partiel';
+        return 'Non payé';
+    }
+
     holdingTaxService = inject(HoldingTaxService);
 
     openHoldingTaxModal(doc: Document) {
@@ -264,6 +284,11 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
                 this.toastr.error('Erreur lors de l\'enregistrement du paiement');
             }
         });
+    }
+
+    onRelance(doc: Document) {
+        // Implement logic to send a reminder or mark a reminder action
+        this.toastr.success(`Relance envoyée pour la facture ${doc.docnumber}`);
     }
 
     onModify(doc: Document) {

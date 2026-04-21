@@ -118,6 +118,10 @@
                     <mat-form-field appearance="outline">
                         <mat-label>Matricule Fiscal</mat-label>
                         <input matInput formControlName="taxRegistration" placeholder="1234567A /B/M/ 000">
+                        <button type="button" mat-icon-button matSuffix (click)="openTaxRegistrationModal()" matTooltip="Utiliser l'assistant de saisie">
+                            <mat-icon color="primary">app_registration</mat-icon>
+                        </button>
+                        <mat-hint class="blue-hint">Utilisez l'assistant (icône à droite) pour un formatage parfait.</mat-hint>
                         <mat-icon matPrefix>receipt</mat-icon>
                         <mat-error *ngIf="supplierForm.get('taxRegistration')?.hasError('invalidMatriculeFiscal')">Format : 7 chiffres, 1 lettre, /lettre/lettre/, 3 chiffres</mat-error>
                         <mat-error *ngIf="supplierForm.get('taxRegistration')?.hasError('required')">Matricule fiscal requis</mat-error>

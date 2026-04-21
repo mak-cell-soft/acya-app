@@ -256,6 +256,25 @@ tr.mat-row:hover {
     margin-bottom: 4px;
 }
 
+/* Payment Badges */
+.badge-paid {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.badge-partial {
+    background-color: #fff3e0;
+    color: #ef6c00;
+    border: 1px solid #ffe0b2;
+}
+
+.badge-unpaid {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
 /* Action Button Tooltip Alignment */
 .mat-icon-button {
     width: 36px;

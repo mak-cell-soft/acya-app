@@ -49,7 +49,7 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
   filterEndDate?: Date;
 
   allInvoices: MatTableDataSource<DocumentsRelationship> = new MatTableDataSource<DocumentsRelationship>();
-  displayedInvoicessColumns: string[] = ['number', 'LastModified', 'counterpart', 'supplierreference', 'amount', 'status', 'site', 'action'];
+  displayedInvoicessColumns: string[] = ['number', 'LastModified', 'counterpart', 'supplierreference', 'amount', 'payment', 'status', 'site', 'action'];
   columnsToDisplayWithExpand = [...this.displayedInvoicessColumns, 'expand'];
 
   expandedElement: Document | null = null;
@@ -113,8 +113,10 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
     this.selectedDocument = null;
   }
 
-  editDocument(doc: Document) {
-    doc.editing = true;
+  editDocument(doc: Document | null) {
+    if (doc) {
+      doc.editing = true;
+    }
   }
 
   // getAllDocumentsByType() {
@@ -162,9 +164,9 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
         if (this.filterSupplier) {
           const search = this.filterSupplier.toLowerCase();
           filteredData = filteredData.filter(d =>
-            d.parentDocument?.counterpart?.name?.toLowerCase().includes(search) ||
-            d.parentDocument?.counterpart?.firstname?.toLowerCase().includes(search) ||
-            d.parentDocument?.counterpart?.lastname?.toLowerCase().includes(search)
+            (d.parentDocument?.counterpart?.name?.toLowerCase() || '').includes(search) ||
+            (d.parentDocument?.counterpart?.firstname?.toLowerCase() || '').includes(search) ||
+            (d.parentDocument?.counterpart?.lastname?.toLowerCase() || '').includes(search)
           );
         }
 
@@ -201,11 +203,12 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
       const doc = curr.parentDocument;
       if (!doc) return acc;
       // Utiliser total_net_payable s'il est déjà calculé par le back, sinon TTC
-      return acc + (doc.total_net_payable || doc.total_net_ttc || 0);
+      return acc + (doc.total_net_payable ?? doc.total_net_ttc ?? 0);
     }, 0);
   }
 
-  deleteDocument(element: Document) {
+  deleteDocument(element: Document | null) {
+    if (!element) return;
     const item = { id: element.id, name: element.docnumber };
     const dialogRef = this.dialog.open(ConfirmDeleteModalComponent, {
       width: '400px',
@@ -230,6 +233,28 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
   getStatusInfo = getStatusInfo;
   getBillingStatusInfo = getBillingStatusInfo;
 
+  getPaymentStatusClass(doc: Document | null): string {
+      if (!doc) return 'badge-unpaid';
+      const total = doc.total_net_payable ?? doc.total_net_ttc ?? 0;
+      const paid = doc.total_paid ?? 0;
+      const remaining = doc.remaining_balance ?? (total - paid);
+
+      if (paid >= total && total > 0) return 'badge-paid';
+      if (paid > 0 && remaining > 0) return 'badge-partial';
+      return 'badge-unpaid';
+  }
+
+  getPaymentStatusText(doc: Document | null): string {
+      if (!doc) return 'Non payé';
+      const total = doc.total_net_payable ?? doc.total_net_ttc ?? 0;
+      const paid = doc.total_paid ?? 0;
+      const remaining = doc.remaining_balance ?? (total - paid);
+
+      if (paid >= total && total > 0) return 'Payé';
+      if (paid > 0 && remaining > 0) return 'Partiel';
+      return 'Non payé';
+  }
+
   displaySettings() {
     this.invoiceSettings = !this.invoiceSettings;
   }
@@ -244,7 +269,8 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
 
   holdingTaxService = inject(HoldingTaxService);
 
-  openHoldingTaxModal(doc: Document) {
+  openHoldingTaxModal(doc: Document | null) {
+    if (!doc) return;
     const dialogRef = this.dialog.open(WithholdingTaxModalComponent, {
       width: '600px',
       data: { document: doc }
