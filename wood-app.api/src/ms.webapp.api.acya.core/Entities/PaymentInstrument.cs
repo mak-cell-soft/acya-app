@@ -14,6 +14,7 @@ namespace ms.webapp.api.acya.core.Entities
         public string? Type { get; set; }             // "TRAITE" | "CHEQUE"
         public string? Bank { get; set; }
         public string? Owner { get; set; }
+        public string? Porter { get; set; }
         
         public DateTime? IssueDate { get; set; }
         public DateTime? DueDate { get; set; }         // Échéance

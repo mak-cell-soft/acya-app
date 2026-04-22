@@ -26,7 +26,7 @@
         <mat-form-field appearance="outline" class="half-width">
             <!-- Identifying the Porter/Bearer by name but using ID in form value -->
             <mat-label>Porteur (Client)</mat-label>
-            <input matInput [value]="porterName" readonly>
+            <input matInput formControlName="porter" readonly>
         </mat-form-field>
     </div>
 

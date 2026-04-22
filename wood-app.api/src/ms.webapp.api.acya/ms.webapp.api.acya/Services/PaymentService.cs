@@ -150,14 +150,15 @@ namespace ms.webapp.api.acya.api.Services
                         IsDeleted = false
                     };
 
-                    if (createDto.PaymentMethod == "TRAITE" && createDto.InstrumentDetails != null)
+                    if ((createDto.PaymentMethod == "TRAITE" || createDto.PaymentMethod == "CHEQUE") && createDto.InstrumentDetails != null)
                     {
                         payment.PaymentInstrument = new PaymentInstrument
                         {
                             InstrumentNumber = createDto.InstrumentDetails.InstrumentNumber,
-                            Type = "TRAITE",
+                            Type = createDto.PaymentMethod,
                             Bank = createDto.InstrumentDetails.Bank,
                             Owner = createDto.InstrumentDetails.Owner,
+                            Porter = createDto.InstrumentDetails.Porter,
                             IssueDate = createDto.InstrumentDetails.IssueDate ?? createDto.PaymentDate,
                             DueDate = createDto.InstrumentDetails.DueDate,
                             ExpirationDate = createDto.InstrumentDetails.ExpirationDate,
@@ -356,6 +357,7 @@ namespace ms.webapp.api.acya.api.Services
                     InstrumentNumber = payment.PaymentInstrument.InstrumentNumber,
                     Bank = payment.PaymentInstrument.Bank,
                     Owner = payment.PaymentInstrument.Owner,
+                    Porter = payment.PaymentInstrument.Porter,
                     IssueDate = payment.PaymentInstrument.IssueDate,
                     DueDate = payment.PaymentInstrument.DueDate,
                     ExpirationDate = payment.PaymentInstrument.ExpirationDate,

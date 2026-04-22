@@ -122,22 +122,18 @@ export class PaymentModalComponent implements OnInit {
 
         let result: any = {
             method: this.selectedPaymentMethod,
-            amount: Number(Number(this.paymentForm.get('amount')?.value).toFixed(3)),
             date: this.paymentForm.get('paymentDate')?.value,
+            amount: Number(Number(this.paymentForm.get('amount')?.value).toFixed(3))
         };
 
         if (this.selectedPaymentMethod === 'CHEQUE' && this.chequeFormGroup) {
             result.details = this.chequeFormGroup.value;
-            // Ensure amount in details is also rounded if it's there
-            if (result.details.amount) {
-                result.details.amount = Number(Number(result.details.amount).toFixed(3));
-            }
+            if (result.details.amount) result.amount = Number(Number(result.details.amount).toFixed(3));
+            if (result.details.paymentDate) result.date = result.details.paymentDate;
         } else if (this.selectedPaymentMethod === 'TRAITE' && this.traiteFormGroup) {
             result.details = this.traiteFormGroup.value;
-            // Ensure amount in details is also rounded if it's there
-            if (result.details.amount) {
-                result.details.amount = Number(Number(result.details.amount).toFixed(3));
-            }
+            if (result.details.amount) result.amount = Number(Number(result.details.amount).toFixed(3));
+            if (result.details.paymentDate) result.date = result.details.paymentDate;
         } else if (this.selectedPaymentMethod === 'VIREMENT' || this.selectedPaymentMethod === 'CARTE') {
             result.details = {
                 reference: this.paymentForm.get('reference')?.value,

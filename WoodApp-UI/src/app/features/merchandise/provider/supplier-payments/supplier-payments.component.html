@@ -84,6 +84,10 @@
     <mat-card class="table-card">
       <mat-card-header>
         <mat-card-title>Factures non réglées</mat-card-title>
+        <span class="spacer"></span>
+        <mat-slide-toggle [checked]="showSettledInvoices" (change)="toggleSettledInvoices()" color="primary">
+          <span style="font-size: 0.8rem; color: #64748b;">Afficher les réglées</span>
+        </mat-slide-toggle>
       </mat-card-header>
       <mat-card-content>
         <table mat-table [dataSource]="invoicesDataSource" matSort #invoiceSort="matSort">
@@ -137,6 +141,15 @@
       </mat-card-header>
       <mat-card-content>
         <table mat-table [dataSource]="traitesDataSource" matSort #traiteSort="matSort">
+          <ng-container matColumnDef="paymentmethod">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Mode </th>
+            <td mat-cell *matCellDef="let element">
+              <span class="method-badge" [ngClass]="element.paymentmethod?.toLowerCase()">
+                {{element.paymentmethod}}
+              </span>
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="instrumentNumber">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> N° Effet </th>
             <td mat-cell *matCellDef="let element"> {{element.instrument?.instrumentNumber}} </td>

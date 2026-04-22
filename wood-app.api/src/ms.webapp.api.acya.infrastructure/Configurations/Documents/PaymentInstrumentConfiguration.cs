@@ -18,6 +18,7 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
             entity.Property(e => e.InstrumentNumber).HasColumnName("instrumentnumber").HasMaxLength(100);
             entity.Property(e => e.Bank).HasColumnName("bank").HasMaxLength(200);
             entity.Property(e => e.Owner).HasColumnName("owner").HasMaxLength(200);
+            entity.Property(e => e.Porter).HasColumnName("porter").HasMaxLength(200);
             entity.Property(e => e.IssueDate).HasColumnName("issuedate");
             entity.Property(e => e.DueDate).HasColumnName("duedate");
             entity.Property(e => e.ExpirationDate).HasColumnName("expirationdate");

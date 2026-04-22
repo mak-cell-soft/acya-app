@@ -186,12 +186,43 @@ mat-card {
 mat-card-header {
     margin-bottom: 16px;
     padding: 16px 24px 0;
+    display: flex;
+    align-items: center;
 }
 
 mat-card-title {
     font-size: 1.1rem !important;
     font-weight: 700 !important;
     color: #1e293b;
+    margin: 0 !important;
+}
+
+/* Payment Method Badges */
+.method-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.method-badge.cheque {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.method-badge.traite {
+    background-color: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #dbeafe;
+}
+
+.method-badge.espece {
+    background-color: #ecfdf5;
+    color: #059669;
+    border: 1px solid #d1fae5;
 }
 
 table {

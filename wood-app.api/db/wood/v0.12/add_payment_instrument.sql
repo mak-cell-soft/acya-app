@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS tbl_payment_instrument (
     instrumentnumber VARCHAR(100),
     bank            VARCHAR(200),
     owner           VARCHAR(200),
+    porter          VARCHAR(200),
     issuedate       TIMESTAMP,
     duedate         TIMESTAMP,        -- ★ Date d'échéance
     expirationdate  TIMESTAMP,

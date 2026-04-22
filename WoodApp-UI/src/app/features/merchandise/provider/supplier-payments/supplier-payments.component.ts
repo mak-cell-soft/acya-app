@@ -2,6 +2,7 @@
 import { Component, OnInit, inject, ViewChild, AfterViewInit, ElementRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { finalize } from 'rxjs/operators';
 
 // Angular Material imports
 import { MatCardModule } from '@angular/material/card';
@@ -17,6 +18,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 // Router
 import { ActivatedRoute, Router } from '@angular/router';
@@ -31,6 +33,8 @@ import { Chart, registerables } from 'chart.js';
 import { PaymentService } from '../../../../services/components/payment.service';
 import { CounterpartService } from '../../../../services/components/counterpart.service';
 import { DocumentService } from '../../../../services/components/document.service';
+import { AuthenticationService } from '../../../../services/components/authentication.service';
+import { EnterpriseService } from '../../../../services/components/enterprise.service';
 
 // App models
 import { Payment, SupplierEcheanceDto } from '../../../../models/components/payment';
@@ -66,6 +70,7 @@ Chart.register(...registerables);
     MatPaginatorModule,
     MatSortModule,
     MatSelectModule,
+    MatSlideToggleModule,
     MatToolbar
 ]
 })
@@ -77,6 +82,8 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
   private router = inject(Router);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
+  private authService = inject(AuthenticationService);
+  private enterpriseService = inject(EnterpriseService);
 
   // Subject used by takeUntil to cancel all subscriptions on destroy
   private destroy$ = new Subject<void>();
@@ -108,14 +115,20 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
   loading = false;
   selectedSupplier: CounterPart | null = null;
   allSuppliers: CounterPart[] = [];
+  enterpriseName: string = '';
+  enterpriseId: number = 0;
 
   // Column definitions for both tables
   displayedInvoiceColumns = ['docnumber', 'updatedate', 'total_net_ttc', 'total_paid', 'remaining_balance', 'actions'];
-  displayedTraiteColumns = ['instrumentNumber', 'bank', 'dueDate', 'amount', 'isPaidAtBank', 'actions'];
+  displayedTraiteColumns = ['paymentmethod', 'instrumentNumber', 'bank', 'dueDate', 'amount', 'isPaidAtBank', 'actions'];
+
+  // Filter state
+  showSettledInvoices = false;
 
 
   ngOnInit() {
     this.loadSuppliers();
+    this.loadEnterpriseInfo();
 
     // Auto-select supplier if supplierId is in query params (e.g. navigated from invoice list)
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -168,6 +181,16 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
     });
   }
 
+  loadEnterpriseInfo() {
+    const user = this.authService.getUserDetail();
+    if (user && user.enterpriseId) {
+      this.enterpriseId = +user.enterpriseId;
+      this.enterpriseService.getEnterpriseInfo(this.enterpriseId).pipe(takeUntil(this.destroy$)).subscribe(ent => {
+        this.enterpriseName = ent.name;
+      });
+    }
+  }
+
   // Called by mat-autocomplete (optionSelected) — receives the selected Provider object
   onSupplierSelect(supplier: CounterPart) {
     if (!supplier || typeof supplier === 'string') return;
@@ -201,7 +224,7 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
       next: (docs) => {
         this.invoicesDataSource.data = docs.filter(d =>
           d.counterpart?.id === this.selectedSupplier?.id &&
-          (d.remaining_balance || 0) > 0
+          (this.showSettledInvoices || (d.remaining_balance || 0) > 0)
         );
         this.calculateKPIs();
         this.loading = false;
@@ -349,17 +372,68 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
         ownerFullName: invoice.counterpart?.name ||
           `${invoice.counterpart?.firstname} ${invoice.counterpart?.lastname}`.trim(),
         withholdingtax: invoice.holdingtax,
-        totalNetPayable: invoice.total_net_payable
+        totalNetPayable: invoice.total_net_payable,
+        porterName: this.enterpriseName || 'Moi-même',
+        porterId: this.enterpriseId
       }
     });
 
-    // Refresh data if a payment was submitted
+    // Handle payment creation when modal returns a result
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
-        this.loadSupplierData();
-        this.loadEcheances();
+        this.processPayment(invoice, result);
       }
     });
+  }
+
+  private processPayment(invoice: Document, result: any) {
+    const user = this.authService.getUserDetail();
+    const payment: any = {
+      documentId: invoice.id,
+      customerId: invoice.counterpart?.id || 0,
+      updatedbyid: user?.id ? +user.id : 0,
+      amount: result.details?.amount || result.amount,
+      paymentDate: result.date,
+      paymentMethod: result.method,
+      reference: result.details?.reference || '',
+      notes: result.details?.notes || ''
+    };
+
+    // If it's a Traite or Cheque, add instrument details (backend expects InstrumentDetails)
+    if (result.method === 'CHEQUE' || result.method === 'TRAITE') {
+      payment.instrumentDetails = {
+        type: result.method,
+        instrumentNumber: result.details.number,
+        bank: result.details.bank,
+        owner: result.details.owner,
+        porter: result.details.porter,
+        issueDate: result.details.paymentDate || result.date,
+        dueDate: result.details.dueDate,
+        expirationDate: result.details.expirationDate,
+        isPaidAtBank: false
+      };
+    }
+
+    this.loading = true;
+    this.paymentService.Add(payment).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loading = false)
+    ).subscribe({
+      next: () => {
+        this.snackBar.open('Paiement enregistré avec succès', 'Fermer', { duration: 3000 });
+        this.loadSupplierData();
+        this.loadEcheances();
+      },
+      error: (err) => {
+        console.error('Error creating payment:', err);
+        this.snackBar.open('Erreur lors de l\'enregistrement du paiement', 'Fermer', { duration: 4000 });
+      }
+    });
+  }
+
+  toggleSettledInvoices() {
+    this.showSettledInvoices = !this.showSettledInvoices;
+    this.loadSupplierData();
   }
 
   markAsPaidInBank(traite: Payment) {

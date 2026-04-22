@@ -38,7 +38,7 @@ export class TraitePaymentFormComponent implements OnInit, OnDestroy {
         // Initialize defaults
         this.paymentForm.patchValue({
             owner: this.ownerName,
-            porter: this.porterId,
+            porter: this.porterName || 'Moi-même',
             amount: this.defaultAmount?.toFixed(3) || '0.000'
         });
 

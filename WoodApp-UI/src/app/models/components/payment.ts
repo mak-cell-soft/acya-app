@@ -24,6 +24,7 @@ export interface PaymentInstrumentDto {
     instrumentNumber: string;
     bank: string;
     owner: string;
+    porter: string;
     issueDate?: Date;
     dueDate?: Date;
     expirationDate?: Date;

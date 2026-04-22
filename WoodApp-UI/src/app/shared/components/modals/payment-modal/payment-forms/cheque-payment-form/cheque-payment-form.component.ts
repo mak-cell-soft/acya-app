@@ -34,7 +34,7 @@ export class ChequePaymentFormComponent implements OnInit {
         // Initialize defaults
         this.paymentForm.patchValue({
             owner: this.ownerName,
-            porter: this.porterId, // ID here, assuming input field or hidden
+            porter: this.porterName || 'Moi-même', 
             amount: this.defaultAmount?.toFixed(3) || '0.000'
         });
 

@@ -94,7 +94,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
             return await context.Payments
                 .Include(p => p.Document)
                 .Include(p => p.PaymentInstrument)
-                .Where(p => p.CustomerId == supplierId && !p.IsDeleted && p.PaymentMethod == "TRAITE")
+                .Where(p => p.CustomerId == supplierId && !p.IsDeleted && (p.PaymentMethod == "TRAITE" || p.PaymentMethod == "CHEQUE"))
                 .OrderByDescending(p => p.PaymentInstrument!.DueDate)
                 .ToListAsync();
         }

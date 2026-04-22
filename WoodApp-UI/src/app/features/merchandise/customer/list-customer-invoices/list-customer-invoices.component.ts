@@ -269,35 +269,36 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
     }
 
     onPaymentSubmit(paymentResult: any, doc: Document) {
-        const payment = new Payment();
-        payment.documentid = doc.id;
-        payment.customerid = doc.counterpart.id;
-        payment.paymentdate = paymentResult.date;
-        payment.amount = paymentResult.amount;
-        payment.paymentmethod = paymentResult.method;
+    const payment: any = {
+        documentId: doc.id,
+        customerId: doc.counterpart.id,
+        updatedbyid: Number(this.authService.getUserDetail()?.id) || 0,
+        amount: paymentResult.details?.amount || paymentResult.amount,
+        paymentDate: paymentResult.date,
+        paymentMethod: paymentResult.method,
+        reference: paymentResult.details?.reference || '',
+        notes: paymentResult.details?.notes || ''
+    };
 
-        if (paymentResult.details) {
-            if (paymentResult.method === 'ESPECE') {
-                payment.notes = paymentResult.details.notes || '';
-            } else if (paymentResult.method === 'VIREMENT' || paymentResult.method === 'CARTE') {
-                payment.reference = paymentResult.details.reference || '';
-                payment.notes = paymentResult.details.notes || '';
-            } else {
-                payment.reference = paymentResult.details.number || '';
-                payment.notes = JSON.stringify(paymentResult.details);
-            }
-        }
+    if (paymentResult.method === 'CHEQUE' || paymentResult.method === 'TRAITE') {
+        payment.instrumentDetails = {
+            type: paymentResult.method,
+            instrumentNumber: paymentResult.details.number,
+            bank: paymentResult.details.bank,
+            owner: paymentResult.details.owner,
+            porter: paymentResult.details.porter,
+            issueDate: paymentResult.details.paymentDate || paymentResult.date,
+            dueDate: paymentResult.details.dueDate,
+            expirationDate: paymentResult.details.expirationDate,
+            isPaidAtBank: false
+        };
+    }
 
-        payment.createdat = new Date();
-        payment.createdby = this.authService.getUserDetail()?.fullname || '';
-        payment.updatedat = new Date();
-        payment.updatedbyid = Number(this.authService.getUserDetail()?.id) || 0;
-
-        this.paymentService.Add(payment).subscribe({
-            next: (res) => {
-                this.toastr.success('Paiement effectué avec succès');
-                this.fetchInvoices();
-            },
+    this.paymentService.Add(payment).subscribe({
+        next: (res) => {
+            this.toastr.success('Paiement effectué avec succès');
+            this.fetchInvoices();
+        },
             error: (err) => {
                 console.error('Error saving payment', err);
                 this.toastr.error('Erreur lors de l\'enregistrement du paiement');

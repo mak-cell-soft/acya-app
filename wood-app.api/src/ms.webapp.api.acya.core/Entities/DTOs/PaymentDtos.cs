@@ -50,6 +50,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public string? InstrumentNumber { get; set; }
         public string? Bank { get; set; }
         public string? Owner { get; set; }
+        public string? Porter { get; set; }
         public DateTime? IssueDate { get; set; }
         public DateTime? DueDate { get; set; }
         public DateTime? ExpirationDate { get; set; }
