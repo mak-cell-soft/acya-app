@@ -82,9 +82,17 @@ export class PaymentService {
     }
 
     GetEcheances(fromDate: Date, toDate: Date): Observable<any[]> {
+        // Use local date components to avoid timezone shifts and 400 Bad Request (formatting)
+        const format = (d: Date) => {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
         let params = new HttpParams()
-            .set('fromDate', fromDate.toISOString())
-            .set('toDate', toDate.toISOString());
+            .set('fromDate', format(fromDate))
+            .set('toDate', format(toDate));
         return this.http.get<any[]>(`${this.baseUrl}Payments/echeances`, { params });
     }
 

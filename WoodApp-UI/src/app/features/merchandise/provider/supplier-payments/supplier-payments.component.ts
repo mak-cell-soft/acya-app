@@ -196,11 +196,11 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
     if (!this.selectedSupplier) return;
     this.loading = true;
 
-    // Use optimized GetByCounterpartId instead of fetching all documents and filtering on client
-    this.docService.GetByCounterpartId(this.selectedSupplier.id).pipe(takeUntil(this.destroy$)).subscribe({
+    // Use GetByType and filter locally to ensure compatibility with all backend versions
+    this.docService.GetByType(DocumentTypes.supplierInvoice).pipe(takeUntil(this.destroy$)).subscribe({
       next: (docs) => {
         this.invoicesDataSource.data = docs.filter(d =>
-          d.type === DocumentTypes.supplierInvoice &&
+          d.counterpart?.id === this.selectedSupplier?.id &&
           (d.remaining_balance || 0) > 0
         );
         this.calculateKPIs();
