@@ -338,7 +338,7 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
 
   openPaymentModal(invoice: Document) {
     const dialogRef = this.dialog.open(PaymentModalComponent, {
-      width: '850px',
+      width: '1000px',
       maxWidth: '95vw',
       maxHeight: '95vh',
       data: {
