@@ -2,13 +2,13 @@
     <!-- Loading Overlay -->
     <div class="loading-overlay" *ngIf="loading">
         <mat-spinner diameter="50"></mat-spinner>
-        <div class="mt-3 fw-bold text-primary">Génération de la facture...</div>
+        <div class="mt-3 fw-bold text-primary">Comptabilisation...</div>
     </div>
 
     <div class="dialog-header">
         <h2 mat-dialog-title>
             <mat-icon>receipt_long</mat-icon>
-            Générer Facture : {{getSupplierName()}}
+            Comptabilisation des factures : {{getSupplierName()}}
         </h2>
         <div class="header-subtitle">
             <span class="badge">{{ allSelectedDocs.data.length }} documents sélectionnés</span>
@@ -121,4 +121,4 @@
             {{ loading ? 'Enregistrement...' : 'Confirmer la Facture' }}
         </button>
     </mat-dialog-actions>
-</div>
+</div>

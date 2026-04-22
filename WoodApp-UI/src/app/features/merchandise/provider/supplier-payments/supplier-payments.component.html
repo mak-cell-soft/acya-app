@@ -69,7 +69,14 @@
   <!-- Projection Chart -->
   <mat-card class="chart-card">
     <mat-card-header>
-      <mat-card-title>Projection des Échéances (120 Jours)</mat-card-title>
+      <mat-card-title>Projection des Échéances ({{projectionDays}} Jours)</mat-card-title>
+      <span class="spacer"></span>
+      <mat-button-toggle-group [value]="projectionDays" (change)="onProjectionDaysChange($event.value)"
+        class="projection-toggle" aria-label="Délai de projection">
+        <mat-button-toggle [value]="60">60 J</mat-button-toggle>
+        <mat-button-toggle [value]="90">90 J</mat-button-toggle>
+        <mat-button-toggle [value]="120">120 J</mat-button-toggle>
+      </mat-button-toggle-group>
     </mat-card-header>
     <mat-card-content>
       <div class="chart-container">

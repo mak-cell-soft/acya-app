@@ -19,6 +19,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 // Router
 import { ActivatedRoute, Router } from '@angular/router';
@@ -71,6 +72,7 @@ Chart.register(...registerables);
     MatSortModule,
     MatSelectModule,
     MatSlideToggleModule,
+    MatButtonToggleModule,
     MatToolbar
 ]
 })
@@ -124,6 +126,7 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
 
   // Filter state
   showSettledInvoices = false;
+  projectionDays = 120; // Default to 120 days projection
 
 
   ngOnInit() {
@@ -157,7 +160,7 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
     // Mark view as ready so initChart won't crash on a null canvas ref
     this.viewInitialized = true;
 
-    // Load 120-day écheance projection for the chart
+    // Load écheance projection for the chart
     this.loadEcheances();
   }
 
@@ -245,11 +248,16 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
   loadEcheances() {
     const fromDate = new Date();
     const toDate = new Date();
-    toDate.setDate(toDate.getDate() + 120); // 120-day forward projection
+    toDate.setDate(toDate.getDate() + this.projectionDays);
 
     this.paymentService.GetEcheances(fromDate, toDate).pipe(takeUntil(this.destroy$)).subscribe(data => {
       this.initChart(data);
     });
+  }
+
+  onProjectionDaysChange(days: number) {
+    this.projectionDays = days;
+    this.loadEcheances();
   }
 
   // ─── KPI calculations ─────────────────────────────────────────────────────

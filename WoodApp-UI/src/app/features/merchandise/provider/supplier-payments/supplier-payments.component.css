@@ -171,6 +171,35 @@ mat-card {
     padding: 16px;
 }
 
+/* Projection Toggle Styling */
+.projection-toggle {
+    border: none !important;
+    background: #f1f5f9;
+    border-radius: 8px !important;
+    padding: 2px;
+}
+
+::ng-deep .projection-toggle .mat-button-toggle {
+    background-color: transparent;
+    color: #64748b;
+    border: none !important;
+    font-weight: 700;
+    font-size: 0.75rem;
+    border-radius: 6px !important;
+    transition: all 0.3s ease;
+}
+
+::ng-deep .projection-toggle .mat-button-toggle-checked {
+    background-color: white !important;
+    color: #3b82f6 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+::ng-deep .projection-toggle .mat-button-toggle-label-content {
+    line-height: 28px !important;
+    padding: 0 12px !important;
+}
+
 /* Tables Section */
 .tables-grid {
     display: grid;
