@@ -23,3 +23,15 @@ CREATE TABLE IF NOT EXISTS tbl_payment_instrument (
 -- Index sur la date d'échéance pour les requêtes de timeline
 CREATE INDEX IF NOT EXISTS idx_payment_instrument_duedate ON tbl_payment_instrument(duedate);
 CREATE INDEX IF NOT EXISTS idx_payment_instrument_paymentid ON tbl_payment_instrument(paymentid);
+
+-- Add auditretentionmonths column to tbl_enterprise table with default value of 12
+ALTER TABLE tbl_enterprise ADD COLUMN auditretentionmonths integer DEFAULT 12;
+
+-- Add documentnumberingconfig column to tbl_enterprise table
+ALTER TABLE tbl_enterprise ADD COLUMN documentnumberingconfig text;
+
+-- Add minimumstock column to tbl_stock table with default value of 0
+ALTER TABLE tbl_stock ADD COLUMN minimumstock numeric(19,4) DEFAULT 0;
+
+-- Add reference column to tbl_holding_tax table
+ALTER TABLE tbl_holding_tax ADD COLUMN reference text;
