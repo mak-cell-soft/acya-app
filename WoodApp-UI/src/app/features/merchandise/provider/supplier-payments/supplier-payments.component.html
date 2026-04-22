@@ -1,67 +1,69 @@
 <div class="supplier-payments-container">
-  <!-- Toolbar -->
-  <div class="page-header">
+  <!-- Standard Header Toolbar -->
+  <mat-toolbar class="header-container">
     <div class="header-left">
-      <button mat-icon-button (click)="goBack()" matTooltip="Retour aux factures">
+      <button mat-icon-button (click)="goBack()" matTooltip="Retour aux factures" style="color: white;">
         <mat-icon>arrow_back</mat-icon>
       </button>
-      <h1 class="page-title">Gestion des Paiements Fournisseurs</h1>
+      <h1>Gestion des Paiements Fournisseurs</h1>
     </div>
+    <span class="spacer"></span>
     <div class="header-right">
-      <mat-form-field appearance="outline" class="supplier-selector">
-        <mat-label>Sélectionner un Fournisseur</mat-label>
-        <input type="text" matInput [matAutocomplete]="auto" [(ngModel)]="supplierSearch" placeholder="Rechercher...">
-        <mat-icon matSuffix>search</mat-icon>
-        <mat-autocomplete #auto="matAutocomplete" [displayWith]="displaySupplier" (optionSelected)="onSupplierSelect($event.option.value)">
+      <!-- Point 2: Replacing mat-autocomplete with a mat-select "list" -->
+      <mat-form-field appearance="outline" class="supplier-selector" subscriptSizing="dynamic">
+        <mat-label>Choisir un Fournisseur</mat-label>
+        <mat-select [(ngModel)]="selectedSupplier" (selectionChange)="onSupplierSelect($event.value)"
+          placeholder="Sélectionner...">
           <mat-option *ngFor="let supplier of allSuppliers" [value]="supplier">
-            {{supplier.name}}
+            {{supplier.name || (supplier.firstname + ' ' + supplier.lastname)}}
           </mat-option>
-        </mat-autocomplete>
+        </mat-select>
+        <mat-icon matSuffix style="color: white;">business</mat-icon>
       </mat-form-field>
     </div>
-  </div>
+  </mat-toolbar>
 
-  <!-- KPIs Dashboard -->
+  <!-- Point 1: Homogeneous Dashboard KPIs (Summary Items Style) -->
   <div class="kpi-grid">
-    <mat-card class="kpi-card info">
-      <mat-card-content>
-        <div class="kpi-icon"><mat-icon>account_balance_wallet</mat-icon></div>
-        <div class="kpi-data">
-          <span class="kpi-label">Reste à Payer</span>
-          <span class="kpi-value">{{kpis.remaining | number:'1.3-3'}} TND</span>
-        </div>
-      </mat-card-content>
-    </mat-card>
+    <div class="summary-item info">
+      <div class="summary-icon-wrapper">
+        <mat-icon>account_balance_wallet</mat-icon>
+      </div>
+      <div class="summary-data">
+        <span class="label">Reste à Payer</span>
+        <span class="value">{{kpis.remaining | number:'1.3-3'}} TND</span>
+      </div>
+    </div>
 
-    <mat-card class="kpi-card warning">
-      <mat-card-content>
-        <div class="kpi-icon"><mat-icon>schedule</mat-icon></div>
-        <div class="kpi-data">
-          <span class="kpi-label">Traites en Cours</span>
-          <span class="kpi-value">{{kpis.pendingTraites | number:'1.3-3'}} TND</span>
-        </div>
-      </mat-card-content>
-    </mat-card>
+    <div class="summary-item warning">
+      <div class="summary-icon-wrapper">
+        <mat-icon>schedule</mat-icon>
+      </div>
+      <div class="summary-data">
+        <span class="label">Traites en Cours</span>
+        <span class="value">{{kpis.pendingTraites | number:'1.3-3'}} TND</span>
+      </div>
+    </div>
 
-    <mat-card class="kpi-card danger">
-      <mat-card-content>
-        <div class="kpi-icon"><mat-icon>event_busy</mat-icon></div>
-        <div class="kpi-data">
-          <span class="kpi-label">Échéances Dépassées</span>
-          <span class="kpi-value">{{kpis.overdue | number:'1.3-3'}} TND</span>
-        </div>
-      </mat-card-content>
-    </mat-card>
+    <div class="summary-item danger">
+      <div class="summary-icon-wrapper">
+        <mat-icon>event_busy</mat-icon>
+      </div>
+      <div class="summary-data">
+        <span class="label">Échéances Dépassées</span>
+        <span class="value">{{kpis.overdue | number:'1.3-3'}} TND</span>
+      </div>
+    </div>
 
-    <mat-card class="kpi-card success">
-      <mat-card-content>
-        <div class="kpi-icon"><mat-icon>verified</mat-icon></div>
-        <div class="kpi-data">
-          <span class="kpi-label">Déjà Payé en Banque</span>
-          <span class="kpi-value">{{kpis.paidInBank | number:'1.3-3'}} TND</span>
-        </div>
-      </mat-card-content>
-    </mat-card>
+    <div class="summary-item success">
+      <div class="summary-icon-wrapper">
+        <mat-icon>verified</mat-icon>
+      </div>
+      <div class="summary-data">
+        <span class="label">Payé en Banque</span>
+        <span class="value">{{kpis.paidInBank | number:'1.3-3'}} TND</span>
+      </div>
+    </div>
   </div>
 
   <!-- Projection Chart -->
@@ -87,7 +89,7 @@
         <table mat-table [dataSource]="invoicesDataSource" matSort #invoiceSort="matSort">
           <ng-container matColumnDef="docnumber">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> N° Facture </th>
-            <td mat-cell *matCellDef="let element"> {{element.docnumber}} </td>
+            <td mat-cell *matCellDef="let element"> <strong>{{element.docnumber}}</strong> </td>
           </ng-container>
 
           <ng-container matColumnDef="updatedate">
@@ -107,13 +109,15 @@
 
           <ng-container matColumnDef="remaining_balance">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Reste </th>
-            <td mat-cell *matCellDef="let element" class="remaining-value"> {{element.remaining_balance | number:'1.3-3'}} </td>
+            <td mat-cell *matCellDef="let element" class="remaining-value"> {{element.remaining_balance |
+              number:'1.3-3'}} </td>
           </ng-container>
 
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef> Actions </th>
             <td mat-cell *matCellDef="let element">
-              <button mat-icon-button color="primary" (click)="openPaymentModal(element)" matTooltip="Effectuer un paiement">
+              <button mat-icon-button color="primary" (click)="openPaymentModal(element)"
+                matTooltip="Effectuer un paiement">
                 <mat-icon>payment</mat-icon>
               </button>
             </td>
@@ -127,7 +131,7 @@
     </mat-card>
 
     <!-- Traites History Table -->
-    <mat-card class="table-card">
+    <mat-card class="table-card" style="border-left: 2px dashed #e2e8f0 !important;">
       <mat-card-header>
         <mat-card-title>Suivi des Traites / Chèques</mat-card-title>
       </mat-card-header>
@@ -145,32 +149,30 @@
 
           <ng-container matColumnDef="dueDate">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Échéance </th>
-            <td mat-cell *matCellDef="let element" [class.overdue-text]="isOverdue(element)"> 
-              {{element.instrument?.dueDate | date:'dd/MM/yyyy'}} 
+            <td mat-cell *matCellDef="let element" [class.overdue-text]="isOverdue(element)">
+              {{element.instrument?.dueDate | date:'dd/MM/yyyy'}}
             </td>
           </ng-container>
 
           <ng-container matColumnDef="amount">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Montant </th>
-            <td mat-cell *matCellDef="let element"> {{element.amount | number:'1.3-3'}} </td>
+            <td mat-cell *matCellDef="let element"> <strong>{{element.amount | number:'1.3-3'}}</strong> </td>
           </ng-container>
 
           <ng-container matColumnDef="isPaidAtBank">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Statut Banque </th>
             <td mat-cell *matCellDef="let element">
-              <mat-chip-listbox>
-                <mat-chip [color]="element.instrument?.isPaidAtBank ? 'accent' : 'warn'" highlighted>
-                  {{element.instrument?.isPaidAtBank ? 'Payé' : 'En attente'}}
-                </mat-chip>
-              </mat-chip-listbox>
+              <span class="status-badge" [ngClass]="element.instrument?.isPaidAtBank ? 'badge-paid' : 'badge-unpaid'">
+                {{element.instrument?.isPaidAtBank ? 'Payé' : 'En attente'}}
+              </span>
             </td>
           </ng-container>
 
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef> Actions </th>
             <td mat-cell *matCellDef="let element">
-              <button mat-icon-button color="accent" *ngIf="!element.instrument?.isPaidAtBank" 
-                      (click)="markAsPaidInBank(element)" matTooltip="Confirmer encaissement banque">
+              <button mat-icon-button color="accent" *ngIf="!element.instrument?.isPaidAtBank"
+                (click)="markAsPaidInBank(element)" matTooltip="Confirmer encaissement banque">
                 <mat-icon>check_circle</mat-icon>
               </button>
             </td>

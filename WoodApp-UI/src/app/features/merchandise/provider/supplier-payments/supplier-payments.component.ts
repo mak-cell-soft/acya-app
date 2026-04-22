@@ -16,7 +16,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatSelectModule } from '@angular/material/select';
 
 // Router
 import { ActivatedRoute, Router } from '@angular/router';
@@ -29,16 +29,18 @@ import { Chart, registerables } from 'chart.js';
 
 // App services
 import { PaymentService } from '../../../../services/components/payment.service';
-import { ProviderService } from '../../../../services/components/provider.service';
+import { CounterpartService } from '../../../../services/components/counterpart.service';
 import { DocumentService } from '../../../../services/components/document.service';
 
 // App models
 import { Payment, SupplierEcheanceDto } from '../../../../models/components/payment';
 import { Document, DocumentTypes } from '../../../../models/components/document';
-import { Provider } from '../../../../models/components/provider';
+import { CounterPart } from '../../../../models/components/counterpart';
+import { CounterPartType_FR } from '../../../../shared/constants/list_of_constants';
 
 // Shared components
 import { PaymentModalComponent } from '../../../../shared/components/modals/payment-modal/payment-modal.component';
+import { MatToolbar } from "@angular/material/toolbar";
 
 // Register Chart.js plugins once
 Chart.register(...registerables);
@@ -63,12 +65,13 @@ Chart.register(...registerables);
     MatSnackBarModule,
     MatPaginatorModule,
     MatSortModule,
-    MatAutocompleteModule
-  ]
+    MatSelectModule,
+    MatToolbar
+]
 })
 export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestroy {
   private paymentService = inject(PaymentService);
-  private providerService = inject(ProviderService);
+  private counterpartService = inject(CounterpartService);
   private docService = inject(DocumentService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -103,21 +106,13 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
 
   // UI state
   loading = false;
-  selectedSupplier: Provider | null = null;
-  allSuppliers: Provider[] = [];
-  filteredSuppliers: Provider[] = [];
-  supplierSearch = '';
+  selectedSupplier: CounterPart | null = null;
+  allSuppliers: CounterPart[] = [];
 
   // Column definitions for both tables
   displayedInvoiceColumns = ['docnumber', 'updatedate', 'total_net_ttc', 'total_paid', 'remaining_balance', 'actions'];
   displayedTraiteColumns = ['instrumentNumber', 'bank', 'dueDate', 'amount', 'isPaidAtBank', 'actions'];
 
-  // Used by mat-autocomplete [displayWith] to render a supplier object as a string
-  displaySupplier(supplier: Provider): string {
-    if (!supplier) return '';
-    // Provider uses 'name' (company) or 'representedbyfullname' (individual)
-    return supplier.name || supplier.representedbyfullname || '';
-  }
 
   ngOnInit() {
     this.loadSuppliers();
@@ -130,9 +125,8 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
         if (this.allSuppliers.length > 0) {
           this.selectSupplierById(id);
         } else {
-          this.providerService.GetAll().pipe(takeUntil(this.destroy$)).subscribe(data => {
+          this.counterpartService.GetAll(CounterPartType_FR.supplier).pipe(takeUntil(this.destroy$)).subscribe(data => {
             this.allSuppliers = data;
-            this.filteredSuppliers = data;
             this.selectSupplierById(id);
           });
         }
@@ -169,14 +163,13 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
   // ─── Supplier selection ─────────────────────────────────────────────────────
 
   loadSuppliers() {
-    this.providerService.GetAll().pipe(takeUntil(this.destroy$)).subscribe(data => {
+    this.counterpartService.GetAll(CounterPartType_FR.supplier).pipe(takeUntil(this.destroy$)).subscribe(data => {
       this.allSuppliers = data;
-      this.filteredSuppliers = data;
     });
   }
 
   // Called by mat-autocomplete (optionSelected) — receives the selected Provider object
-  onSupplierSelect(supplier: Provider) {
+  onSupplierSelect(supplier: CounterPart) {
     if (!supplier || typeof supplier === 'string') return;
     this.selectedSupplier = supplier;
     // Persist selection in URL so the page can be bookmarked / refreshed
@@ -190,10 +183,9 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
 
   // Internal helper — select a supplier by ID after the list is loaded
   private selectSupplierById(id: number) {
-    const supplier = this.allSuppliers.find((s: Provider) => s.id === id);
+    const supplier = this.allSuppliers.find((s: CounterPart) => s.id === id);
     if (supplier) {
       this.selectedSupplier = supplier;
-      this.supplierSearch = this.displaySupplier(supplier);
       this.loadSupplierData();
     }
   }

@@ -1,188 +1,273 @@
-.supplier-payments-container {
-  padding: 24px;
-  background-color: #0f172a;
-  min-height: calc(100vh - 64px);
-  color: #f8fafc;
+/* Main Container Spacing */
+:host {
+    display: block;
+    padding: 0;
+    background-color: #f8fafc;
+    min-height: 100vh;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
+/* Header Styling */
+.header-container {
+    background: #0f172a;
+    color: white;
+    margin-bottom: 24px;
+    padding: 0 24px;
+    height: 88px;
+    border-bottom: 3px solid #fbbf24;
+    display: flex;
+    align-items: center;
+}
+
+.spacer {
+    flex: 1 1 auto;
+}
+
+.header-text h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.5px;
 }
 
 .header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 
-.page-title {
-  font-size: 24px;
-  font-weight: 600;
-  margin: 0;
-  background: linear-gradient(to right, #60a5fa, #3b82f6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.header-left h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: white;
+    font-family: 'Outfit', sans-serif;
 }
 
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Supplier Selector in Header */
 .supplier-selector {
-  width: 350px;
+    width: 350px;
 }
 
 ::ng-deep .supplier-selector .mat-mdc-text-field-wrapper {
-  background-color: rgba(30, 41, 59, 0.5) !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-/* KPI Cards */
+::ng-deep .supplier-selector .mat-mdc-select-value-text,
+::ng-deep .supplier-selector .mat-mdc-select-arrow,
+::ng-deep .supplier-selector .mat-mdc-floating-label,
+::ng-deep .supplier-selector .mat-mdc-form-field-label {
+    color: white !important;
+}
+
+/* Fix for the outline border color in dark toolbar */
+::ng-deep .supplier-selector .mdc-notched-outline__leading,
+::ng-deep .supplier-selector .mdc-notched-outline__notch,
+::ng-deep .supplier-selector .mdc-notched-outline__trailing {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Ensure dropdown options are readable (Light background, Dark text) */
+::ng-deep .mat-mdc-select-panel {
+    background-color: white !important;
+}
+
+::ng-deep .mat-mdc-option .mdc-list-item__primary-text {
+    color: #0f172a !important;
+}
+
+::ng-deep .mat-mdc-option:hover {
+    background-color: #f1f5f9 !important;
+}
+
+/* Common Card Styling */
+mat-card {
+    border-radius: 16px !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+    margin: 0 24px 24px;
+    overflow: hidden;
+    background: white !important;
+}
+
+/* KPI Summary Cards - Dashboard Style */
 .kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 24px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin: 0 24px 24px;
 }
 
-.kpi-card {
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(30, 41, 59, 0.7) !important;
-  backdrop-filter: blur(8px);
+.summary-item {
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease;
 }
 
-.kpi-card mat-card-content {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 20px !important;
+.summary-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
-.kpi-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.summary-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.kpi-icon mat-icon {
-  font-size: 28px;
-  width: 28px;
-  height: 28px;
+.summary-icon-wrapper mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
 }
 
-.kpi-data {
-  display: flex;
-  flex-direction: column;
+.summary-data {
+    display: flex;
+    flex-direction: column;
 }
 
-.kpi-label {
-  font-size: 13px;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.summary-item .label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
 }
 
-.kpi-value {
-  font-size: 20px;
-  font-weight: 700;
-  font-family: 'Outfit', sans-serif;
+.summary-item .value {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #0f172a;
+    font-family: 'Outfit', sans-serif;
 }
 
 /* KPI Variants */
-.info .kpi-icon { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-.warning .kpi-icon { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
-.danger .kpi-icon { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-.success .kpi-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.info .summary-icon-wrapper { background: #e3f2fd; color: #1976d2; }
+.warning .summary-icon-wrapper { background: #fff3e0; color: #ef6c00; }
+.danger .summary-icon-wrapper { background: #ffebee; color: #c62828; }
+.success .summary-icon-wrapper { background: #e8f5e9; color: #2e7d32; }
 
 /* Chart Card */
-.chart-card {
-  background: rgba(30, 41, 59, 0.7) !important;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  margin-bottom: 24px;
-}
-
 .chart-container {
-  height: 300px;
-  position: relative;
+    height: 300px;
+    position: relative;
+    padding: 16px;
 }
 
 /* Tables Section */
 .tables-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0px;
+    margin-bottom: 24px;
 }
 
 .table-card {
-  background: rgba(30, 41, 59, 0.7) !important;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 0;
 }
 
 mat-card-header {
-  margin-bottom: 16px;
+    margin-bottom: 16px;
+    padding: 16px 24px 0;
 }
 
 mat-card-title {
-  font-size: 16px !important;
-  color: #e2e8f0;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: #1e293b;
 }
 
 table {
-  width: 100%;
-  background: transparent !important;
+    width: 100%;
+    background: transparent !important;
 }
 
-.mat-mdc-header-cell {
-  color: #94a3b8 !important;
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 11px;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+th.mat-header-cell {
+    background: #f8fafc;
+    color: #0f172a !important;
+    font-weight: 800 !important;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 16px !important;
 }
 
-.mat-mdc-cell {
-  color: #cbd5e1 !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02) !important;
-  font-size: 13px;
+td.mat-cell {
+    padding: 16px !important;
+    color: #334155 !important;
+    font-size: 0.9rem;
 }
 
 tr:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+    background-color: #f1f5f9;
 }
 
 .remaining-value {
-  color: #ef4444;
-  font-weight: 600;
+    color: #ef4444;
+    font-weight: 700;
 }
 
 .overdue-text {
-  color: #ef4444;
-  font-weight: 700;
+    color: #ef4444;
+    font-weight: 700;
 }
 
-mat-paginator {
-  background: transparent !important;
-  color: #94a3b8 !important;
+/* Status Badges */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
 }
 
-::ng-deep .mat-mdc-paginator-range-label,
-::ng-deep .mat-mdc-paginator-navigation-button {
-  color: #94a3b8 !important;
+.badge-paid {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.badge-partial {
+    background-color: #fff3e0;
+    color: #ef6c00;
+    border: 1px solid #ffe0b2;
+}
+
+.badge-unpaid {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
 }
 
 /* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.kpi-card, .chart-card, .table-card {
-  animation: fadeIn 0.4s ease forwards;
+.summary-item, .chart-card, .table-card {
+    animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-.kpi-card:nth-child(1) { animation-delay: 0.1s; }
-.kpi-card:nth-child(2) { animation-delay: 0.15s; }
-.kpi-card:nth-child(3) { animation-delay: 0.2s; }
-.kpi-card:nth-child(4) { animation-delay: 0.25s; }
+.summary-item:nth-child(1) { animation-delay: 0.1s; }
+.summary-item:nth-child(2) { animation-delay: 0.15s; }
+.summary-item:nth-child(3) { animation-delay: 0.2s; }
+.summary-item:nth-child(4) { animation-delay: 0.25s; }
+
