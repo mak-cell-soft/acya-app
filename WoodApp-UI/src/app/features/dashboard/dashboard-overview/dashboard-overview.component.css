@@ -101,13 +101,13 @@
 /* Charts Grid */
 .charts-container {
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 24px;
 }
 
 .chart-card {
     border-radius: 12px;
-    height: 400px;
+    height: 380px;
     display: flex;
     flex-direction: column;
 }
@@ -138,14 +138,20 @@
     font-size: 0.9rem;
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1200px) {
+    .charts-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
     .charts-container {
         grid-template-columns: 1fr;
     }
 
     .chart-card {
         height: auto;
-        min-height: 350px;
+        min-height: 320px;
     }
 }
 

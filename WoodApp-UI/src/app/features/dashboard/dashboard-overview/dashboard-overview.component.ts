@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ViewChild } from '@angular/core';
 import { CounterpartService } from '../../../services/components/counterpart.service';
 import { DocumentService } from '../../../services/components/document.service';
 import { StockService } from '../../../services/components/stock.service';
@@ -10,6 +10,8 @@ import { ChartConfiguration, ChartData, ChartOptions } from 'chart.js';
 import { AuthenticationService } from '../../../services/components/authentication.service';
 import { PaymentService } from '../../../services/components/payment.service';
 import { DashboardPaymentDto } from '../../../models/components/payment';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatTableDataSource } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -29,8 +31,11 @@ export class DashboardOverviewComponent implements OnInit {
 
   selectedDate: Date = new Date();
   payments: DashboardPaymentDto[] = [];
+  dataSource = new MatTableDataSource<DashboardPaymentDto>([]);
   paymentMethodTotals: { method: string, total: number, icon: string, color: string }[] = [];
   paymentsLoading: boolean = false;
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   // Data for Charts
   countsChartData: ChartData<'doughnut'> = {
@@ -95,9 +100,13 @@ export class DashboardOverviewComponent implements OnInit {
     const user = this.authService.getUserDetail();
     const appUserId = user && user.id ? parseInt(user.id) : undefined;
 
-    this.paymentService.GetDashboardPayments(this.selectedDate, appUserId).subscribe({
+    this.paymentService.GetDashboardPayments(this.selectedDate, appUserId, 'customer').subscribe({
       next: (payments) => {
         this.payments = payments;
+        this.dataSource.data = payments;
+        setTimeout(() => {
+          this.dataSource.paginator = this.paginator;
+        });
         this.calculatePaymentTotals();
         this.paymentsLoading = false;
       },

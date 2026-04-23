@@ -170,13 +170,13 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
             context.Payments.Update(payment);
             return await context.SaveChangesAsync() > 0;
         }
-        public async Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int salesSiteId)
+        public async Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int salesSiteId, string? documentSide = null)
         {
             int year = date.Year;
             int month = date.Month;
             int day = date.Day;
 
-            var result = await context.Payments
+            var query = context.Payments
                 .AsNoTracking()
                 .Include(p => p.Customer)
                 .Include(p => p.Document)
@@ -190,7 +190,31 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                             p.PaymentDate.Value.Year == year && 
                             p.PaymentDate.Value.Month == month && 
                             p.PaymentDate.Value.Day == day)
-                .Where(p => p.Document != null && p.Document.SalesSiteId == salesSiteId)
+                .Where(p => p.Document != null && p.Document.SalesSiteId == salesSiteId);
+
+            if (documentSide == "customer")
+            {
+                var customerDocTypes = new[] {
+                    DocumentTypes.customerOrder,
+                    DocumentTypes.customerDeliveryNote,
+                    DocumentTypes.customerInvoice,
+                    DocumentTypes.customerInvoiceReturn,
+                    DocumentTypes.customerQuote
+                };
+                query = query.Where(p => p.Document!.Type.HasValue && customerDocTypes.Contains(p.Document.Type.Value));
+            }
+            else if (documentSide == "supplier")
+            {
+                var supplierDocTypes = new[] {
+                    DocumentTypes.supplierOrder,
+                    DocumentTypes.supplierReceipt,
+                    DocumentTypes.supplierInvoice,
+                    DocumentTypes.supplierInvoiceReturn
+                };
+                query = query.Where(p => p.Document!.Type.HasValue && supplierDocTypes.Contains(p.Document.Type.Value));
+            }
+
+            var result = await query
                 .OrderByDescending(p => p.CreatedAt)
                 .Select(p => new DashboardPaymentDto
                 {

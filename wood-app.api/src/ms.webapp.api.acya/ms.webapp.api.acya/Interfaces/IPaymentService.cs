@@ -17,7 +17,7 @@ namespace ms.webapp.api.acya.api.Interfaces
         Task<PaymentDto> CreateAsync(CreatePaymentDto createDto, int createdById);
         Task<PaymentDto> UpdateAsync(UpdatePaymentDto updateDto, int updatedById);
         Task<bool> DeleteAsync(int paymentId, int deletedById);
-        Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int userId);
+        Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int userId, string? documentSide = null);
 
         /// <summary>
         /// Reassigns an existing payment's DocumentId to the new invoice ID.
