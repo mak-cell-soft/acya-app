@@ -97,6 +97,12 @@
           font-size: 1rem;
           color: #444;
           border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+          vertical-align: middle;
+        }
+
+        .text-center {
+          text-align: center;
+          justify-content: center;
         }
 
         .vehicle-row {
@@ -127,29 +133,37 @@
         .mono-font {
           font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
           background: #f8f9fa;
-          padding: 4px 10px;
-          border-radius: 6px;
-          font-weight: 500;
+          padding: 6px 12px;
+          border-radius: 8px;
+          font-weight: 600;
           color: #dc3545;
-          display: inline-block;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px dashed rgba(220, 53, 69, 0.2);
         }
 
         .mileage-badge {
           background: #e3f2fd;
           color: #1976d2;
-          padding: 6px 12px;
+          padding: 6px 14px;
           border-radius: 20px;
           font-weight: 700;
           font-size: 0.85rem;
           box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1);
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
         }
 
         .status-icon {
           font-size: 18px;
           width: 18px;
           height: 18px;
-          vertical-align: middle;
-          margin-left: 4px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          margin-left: 6px;
         }
 
         .expiring-soon {

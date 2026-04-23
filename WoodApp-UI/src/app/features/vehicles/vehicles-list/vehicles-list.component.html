@@ -36,22 +36,22 @@
 
         <!-- Serial Number Column -->
         <ng-container matColumnDef="serialnumber">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Matricule </th>
-          <td mat-cell *matCellDef="let vehicle" class="mono-font"> {{vehicle.serialnumber}} </td>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-center"> Matricule </th>
+          <td mat-cell *matCellDef="let vehicle" class="mono-font text-center"> {{vehicle.serialnumber}} </td>
         </ng-container>
 
         <!-- Mileage Column -->
         <ng-container matColumnDef="mileage">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Kilométrage </th>
-          <td mat-cell *matCellDef="let vehicle"> 
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-center"> Kilométrage </th>
+          <td mat-cell *matCellDef="let vehicle" class="text-center"> 
             <span class="mileage-badge">{{vehicle.mileage}} km</span>
           </td>
         </ng-container>
 
         <!-- Insurance Date Column -->
         <ng-container matColumnDef="insurancedate">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Assurance </th>
-          <td mat-cell *matCellDef="let vehicle">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-center"> Assurance </th>
+          <td mat-cell *matCellDef="let vehicle" class="text-center">
             <span [class.expiring-soon]="isExpiringSoon(vehicle.insurancedate)" [class.expired]="isExpired(vehicle.insurancedate)">
               {{vehicle.insurancedate | date:'dd/MM/yyyy'}}
               <mat-icon *ngIf="isExpired(vehicle.insurancedate)" matTooltip="Expiré" color="warn" class="status-icon">error</mat-icon>
@@ -62,8 +62,8 @@
 
         <!-- Technical Visit Date Column -->
         <ng-container matColumnDef="technicalvisitdate">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Visite Technique </th>
-          <td mat-cell *matCellDef="let vehicle">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-center"> Visite Technique </th>
+          <td mat-cell *matCellDef="let vehicle" class="text-center">
             <span [class.expiring-soon]="isExpiringSoon(vehicle.technicalvisitdate)" [class.expired]="isExpired(vehicle.technicalvisitdate)">
               {{vehicle.technicalvisitdate | date:'dd/MM/yyyy'}}
               <mat-icon *ngIf="isExpired(vehicle.technicalvisitdate)" matTooltip="Expiré" color="warn" class="status-icon">error</mat-icon>
@@ -74,8 +74,8 @@
 
         <!-- Draining Date Column -->
         <ng-container matColumnDef="drainingdate">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Dernière Vidange </th>
-          <td mat-cell *matCellDef="let vehicle"> 
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-center"> Dernière Vidange </th>
+          <td mat-cell *matCellDef="let vehicle" class="text-center"> 
             <div class="draining-cell">
               <span>{{vehicle.drainingdate | date:'dd/MM/yyyy'}}</span>
               <small class="draining-detail" *ngIf="vehicle.draining">{{vehicle.draining}}</small>
@@ -85,8 +85,11 @@
 
         <!-- Actions Column -->
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef> Actions </th>
-          <td mat-cell *matCellDef="let vehicle">
+          <th mat-header-cell *matHeaderCellDef class="text-center"> Actions </th>
+          <td mat-cell *matCellDef="let vehicle" class="text-center">
+            <button mat-icon-button color="accent" matTooltip="Voir détails" (click)="openVehicleDialog(vehicle, true)">
+              <mat-icon>visibility</mat-icon>
+            </button>
             <button mat-icon-button color="primary" matTooltip="Modifier" (click)="openVehicleDialog(vehicle)">
               <mat-icon>edit</mat-icon>
             </button>

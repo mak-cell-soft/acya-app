@@ -75,11 +75,11 @@ export class VehiclesListComponent implements OnInit {
     }
   }
 
-  openVehicleDialog(vehicle?: Vehicle): void {
+  openVehicleDialog(vehicle?: Vehicle, isReadOnly: boolean = false): void {
     const dialogRef = this.dialog.open(VehicleDialogComponent, {
       width: '1000px',
       maxWidth: '100vw',
-      data: vehicle || null,
+      data: vehicle ? { ...vehicle, isReadOnly } : null,
       panelClass: 'premium-dialog'
     });
 

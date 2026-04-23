@@ -189,6 +189,39 @@
           }
         }
       }
+
+      .draining-checklist-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 8px 16px;
+        background: white;
+        border: 1px solid rgba(26, 35, 126, 0.08);
+        border-radius: 12px;
+        min-height: 100px;
+
+        .checklist-label {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #3f51b5;
+          opacity: 0.8;
+          margin-bottom: 4px;
+        }
+
+        .checklist-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 4px 12px;
+
+          .checklist-item {
+            ::ng-deep .mdc-label {
+              font-size: 0.85rem;
+              font-weight: 500;
+              color: #444;
+            }
+          }
+        }
+      }
     }
 
     .owned-toggle-row {

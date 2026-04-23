@@ -4,8 +4,8 @@
       <mat-icon>{{ isEditMode ? 'edit_note' : 'add_road' }}</mat-icon>
     </div>
     <div class="title-meta">
-      <h2 mat-dialog-title>{{ isEditMode ? 'Modifier' : 'Nouveau' }} Véhicule</h2>
-      <p>Entrez les détails techniques du véhicule</p>
+      <h2 mat-dialog-title>{{ isReadOnly ? 'Détails' : (isEditMode ? 'Modifier' : 'Nouveau') }} Véhicule</h2>
+      <p>{{ isReadOnly ? 'Consultation technique du véhicule' : 'Entrez les détails techniques du véhicule' }}</p>
     </div>
     <button mat-icon-button (click)="onCancel()" class="close-btn"><mat-icon>close</mat-icon></button>
   </div>
@@ -84,20 +84,30 @@
           <mat-datepicker #drainPicker></mat-datepicker>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>Détails Vidange</mat-label>
-          <input matInput formControlName="draining" placeholder="Filtres remplacés...">
-          <mat-icon matSuffix>settings</mat-icon>
-        </mat-form-field>
+        <div class="half-width draining-checklist-container">
+          <label class="checklist-label">Détails Vidange</label>
+          <div class="checklist-grid">
+            <input type="hidden" formControlName="draining">
+            <mat-checkbox *ngFor="let option of drainingOptions" 
+                          [checked]="isOptionSelected(option)"
+                          (change)="onDrainingOptionToggle(option, $event.checked)"
+                          class="checklist-item">
+              {{ option }}
+            </mat-checkbox>
+          </div>
+        </div>
       </div>
     </form>
   </mat-dialog-content>
 
   <mat-dialog-actions align="end" class="dialog-footer">
     <button mat-button (click)="onCancel()" class="cancel-btn">Annuler</button>
-    <button mat-flat-button color="primary" [disabled]="vehicleForm.invalid || loading" (click)="onSubmit()" class="submit-btn" [class.loading]="loading">
+    <button mat-flat-button color="primary" [disabled]="vehicleForm.invalid || loading" (click)="onSubmit()" class="submit-btn" [class.loading]="loading" *ngIf="!isReadOnly">
       <span *ngIf="!loading">{{ isEditMode ? 'Mettre à jour' : 'Enregistrer' }}</span>
       <mat-spinner diameter="24" *ngIf="loading"></mat-spinner>
+    </button>
+    <button mat-flat-button color="primary" (click)="onCancel()" class="submit-btn" *ngIf="isReadOnly">
+      Fermer
     </button>
   </mat-dialog-actions>
 </div>

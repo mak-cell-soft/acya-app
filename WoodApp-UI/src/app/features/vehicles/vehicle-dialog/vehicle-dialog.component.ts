@@ -14,7 +14,18 @@ import { ToastrService } from 'ngx-toastr';
 export class VehicleDialogComponent implements OnInit {
   vehicleForm: FormGroup;
   isEditMode: boolean;
+  isReadOnly: boolean = false;
   loading = false;
+  drainingOptions = [
+    'Changement Huile',
+    'Filtre à Huile',
+    'Filtre à air',
+    'Liquide Frein',
+    'Filtre à Gasoil',
+    'Huile Pond',
+    'Graissage'
+  ];
+  selectedDrainingOptions: string[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -23,7 +34,9 @@ export class VehicleDialogComponent implements OnInit {
     private toastr: ToastrService,
     @Inject(MAT_DIALOG_DATA) public data: Vehicle | null
   ) {
-    this.isEditMode = !!data;
+    this.isEditMode = !!data && !(data as any).isReadOnly;
+    this.isReadOnly = (data as any)?.isReadOnly || false;
+    
     this.vehicleForm = this.fb.group({
       id: [data?.id || 0],
       serialnumber: [data?.serialnumber || '', Validators.required],
@@ -35,9 +48,34 @@ export class VehicleDialogComponent implements OnInit {
       drainingdate: [data?.drainingdate || null],
       isowned: [data?.isowned ?? true],
     });
+
+    if (data?.draining) {
+      this.selectedDrainingOptions = data.draining.split(',').map(s => s.trim()).filter(s => s !== '');
+    }
+
+    if (this.isReadOnly) {
+      this.vehicleForm.disable();
+    }
   }
 
   ngOnInit(): void {}
+
+  onDrainingOptionToggle(option: string, checked: boolean): void {
+    if (this.isReadOnly) return;
+    
+    if (checked) {
+      if (!this.selectedDrainingOptions.includes(option)) {
+        this.selectedDrainingOptions.push(option);
+      }
+    } else {
+      this.selectedDrainingOptions = this.selectedDrainingOptions.filter(o => o !== option);
+    }
+    this.vehicleForm.get('draining')?.setValue(this.selectedDrainingOptions.join(', '));
+  }
+
+  isOptionSelected(option: string): boolean {
+    return this.selectedDrainingOptions.includes(option);
+  }
 
   onSubmit(): void {
     if (this.vehicleForm.invalid) return;
