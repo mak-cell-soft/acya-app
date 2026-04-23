@@ -68,12 +68,7 @@
                     <td mat-cell *matCellDef="let element"> {{element.phonenumberone}} </td>
                 </ng-container>
 
-                <ng-container matColumnDef="phonetwo">
-                    <th mat-header-cell *matHeaderCellDef mat-sort-header>
-                        <mat-icon class="header-icon">phone_android</mat-icon> Téléphone 2
-                    </th>
-                    <td mat-cell *matCellDef="let element"> {{element.phonenumbertwo}} </td>
-                </ng-container>
+
 
                 <ng-container matColumnDef="email">
                     <th mat-header-cell *matHeaderCellDef mat-sort-header>
@@ -104,7 +99,7 @@
                 <tr mat-row *matRowDef="let row; columns: displayedProvidersColumns;"></tr>
 
                 <tr class="mat-row" *matNoDataRow>
-                    <td class="mat-cell" colspan="9" class="text-center p-4">
+                    <td class="mat-cell" colspan="8" class="text-center p-4">
                         Aucun fournisseur trouvé pour : "{{input.value}}"
                     </td>
                 </tr>

@@ -37,12 +37,7 @@
                     <td mat-cell *matCellDef="let element"> {{getFullName(element)}} </td>
                 </ng-container>
 
-                <ng-container matColumnDef="type">
-                    <th mat-header-cell *matHeaderCellDef mat-sort-header>
-                        <mat-icon class="header-icon">category</mat-icon> Type
-                    </th>
-                    <td mat-cell *matCellDef="let element"> {{element.type}} </td>
-                </ng-container>
+
 
                 <ng-container matColumnDef="address">
                     <th mat-header-cell *matHeaderCellDef mat-sort-header>
@@ -77,6 +72,13 @@
                         <mat-icon class="header-icon">phone</mat-icon> Téléphone
                     </th>
                     <td mat-cell *matCellDef="let element"> {{element.phonenumberone}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="openingbalance">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                        <mat-icon class="header-icon">account_balance_wallet</mat-icon> Solde départ
+                    </th>
+                    <td mat-cell *matCellDef="let element"> {{element.openingbalance | number: '1.3-3'}} </td>
                 </ng-container>
 
                 <ng-container matColumnDef="action">

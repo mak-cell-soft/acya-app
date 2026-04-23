@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
@@ -23,7 +23,7 @@ import { ProviderDetailsModalComponent } from '../provider-details-modal/provide
   templateUrl: './list-suppliers.component.html',
   styleUrls: ['./list-suppliers.component.css']
 })
-export class ListSuppliersComponent implements OnInit {
+export class ListSuppliersComponent implements OnInit, AfterViewInit {
 
   counterPartService = inject(CounterpartService);
   authService = inject(AuthenticationService);
@@ -62,7 +62,7 @@ export class ListSuppliersComponent implements OnInit {
 
   // allProviders: MatTableDataSource<Provider> = new MatTableDataSource<Provider>();
   allSuppliers: MatTableDataSource<CounterPart> = new MatTableDataSource<CounterPart>();
-  displayedProvidersColumns: string[] = ['prefix', 'name', 'description', 'responsable', 'taxregistration', 'phoneone', 'phonetwo', 'email', 'action'];
+  displayedProvidersColumns: string[] = ['prefix', 'name', 'description', 'responsable', 'taxregistration', 'phoneone', 'email', 'action'];
 
 
   constructor(
@@ -70,11 +70,14 @@ export class ListSuppliersComponent implements OnInit {
     private fb: FormBuilder,
   ) { }
 
+  ngAfterViewInit(): void {
+    this.allSuppliers.paginator = this.PaginationSupplier;
+    this.allSuppliers.sort = this.sort;
+  }
+
   ngOnInit(): void {
     if (this.authService.isLoggedIn()) {
       this.getSuppliers();
-      this.allSuppliers.paginator = this.PaginationSupplier;
-      this.allSuppliers.sort = this.sort;
     }
 
   }

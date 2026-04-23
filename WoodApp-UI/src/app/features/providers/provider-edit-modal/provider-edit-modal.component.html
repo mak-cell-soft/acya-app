@@ -3,16 +3,18 @@
     <div class="modal-form-container">
         <!-- Prefix and Name row -->
         <div class="row-flex">
-            <mat-form-field appearance="outline" class="flex-1">
+             <mat-form-field appearance="outline" class="flex-1">
                 <mat-label>Préfixe</mat-label>
                 <mat-select formControlName="prefix">
                     <mat-option *ngFor="let prefix of allPrefixes" [value]="prefix.id">{{prefix.id}} -
                         {{prefix.name}}</mat-option>
                 </mat-select>
+                <mat-error *ngIf="providerForm.get('prefix')?.hasError('required')">Requis</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="flex-3">
                 <mat-label>Nom</mat-label>
                 <input matInput formControlName="name" placeholder="Nom du Fournisseur">
+                <mat-error *ngIf="providerForm.get('name')?.hasError('required')">Requis</mat-error>
             </mat-form-field>
         </div>
 
@@ -24,6 +26,9 @@
                     placeholder="7 chiffres, 1 lettre, /lettre/lettre/, 3 chiffres">
                 <mat-error *ngIf="providerForm.get('taxRegistration')?.hasError('invalidMatriculeFiscal')">
                     Format Invalide
+                </mat-error>
+                <mat-error *ngIf="providerForm.get('taxRegistration')?.hasError('required')">
+                    Matricule Fiscal est requis
                 </mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="flex-1">
@@ -40,10 +45,12 @@
             <mat-form-field appearance="outline" class="flex-1">
                 <mat-label>Description</mat-label>
                 <input matInput formControlName="description" placeholder="Description">
+                <mat-error *ngIf="providerForm.get('description')?.hasError('required')">Requis</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="flex-1">
                 <mat-label>Adresse</mat-label>
                 <input matInput formControlName="address" placeholder="Adresse">
+                <mat-error *ngIf="providerForm.get('address')?.hasError('required')">Requis</mat-error>
             </mat-form-field>
         </div>
 
@@ -52,10 +59,12 @@
             <mat-form-field appearance="outline" class="flex-1">
                 <mat-label>Prénom responsable</mat-label>
                 <input matInput formControlName="representedBySurname" placeholder="Prénom">
+                <mat-error *ngIf="providerForm.get('representedBySurname')?.hasError('required')">Requis</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="flex-1">
                 <mat-label>Nom responsable</mat-label>
                 <input matInput formControlName="representedByName" placeholder="Nom">
+                <mat-error *ngIf="providerForm.get('representedByName')?.hasError('required')">Requis</mat-error>
             </mat-form-field>
         </div>
 
@@ -64,6 +73,7 @@
             <mat-form-field appearance="outline" class="flex-1">
                 <mat-label>Téléphone 1</mat-label>
                 <input matInput formControlName="phoneOne" placeholder="Téléphone 1">
+                <mat-error *ngIf="providerForm.get('phoneOne')?.hasError('required')">Requis</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="flex-1">
                 <mat-label>Téléphone 2</mat-label>
@@ -78,6 +88,7 @@
                 <mat-select formControlName="category">
                     <mat-option *ngFor="let cat of allProvidersCategories" [value]="cat.id">{{cat.value}}</mat-option>
                 </mat-select>
+                <mat-error *ngIf="providerForm.get('category')?.hasError('required')">Requis</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="flex-1">
                 <mat-label>Banque</mat-label>
@@ -85,6 +96,7 @@
                     <mat-option *ngFor="let bank of allBanks" [value]="bank.key">{{bank.key}} - {{ bank.value
                         }}</mat-option>
                 </mat-select>
+                <mat-error *ngIf="providerForm.get('bank')?.hasError('required')">Requis</mat-error>
             </mat-form-field>
         </div>
 
@@ -93,6 +105,7 @@
             <mat-form-field appearance="outline" class="full-width">
                 <mat-label>RIB Bancaire</mat-label>
                 <input matInput formControlName="bankAccountNumber" placeholder="Compte Courant">
+                <mat-error *ngIf="providerForm.get('bankAccountNumber')?.hasError('required')">Requis</mat-error>
             </mat-form-field>
         </div>
     </div>

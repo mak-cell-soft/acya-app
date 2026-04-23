@@ -24,7 +24,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       firstname = entity.FirstName;
       lastname = entity.LastName;
       fullname = entity.FullName;
-      car = new VehicleDto(entity.Vehicle!);
+      car = entity.Vehicle != null ? new VehicleDto(entity.Vehicle) : null;
     }
   }
 
@@ -51,6 +51,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
 
     public void UpdateFromEntity(Vehicle entity)
     {
+      if (entity == null) return;
+
       id = entity.Id;
       serialnumber = entity.SerialNumber;
       brand = entity.Brand;

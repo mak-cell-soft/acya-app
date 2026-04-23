@@ -4,10 +4,11 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { CounterPart } from '../../../models/components/counterpart';
 import { CounterpartService } from '../../../services/components/counterpart.service';
 import { ToastrService } from 'ngx-toastr';
-import { SocietyPrefixes_FR, SupplierCategories_FR } from '../../../shared/constants/list_of_constants';
+import { fullPrefixes_FR, SupplierCategories_FR } from '../../../shared/constants/list_of_constants';
 import { BANKS_TN } from '../../../shared/constants/modals/bank_modal';
 import { fiscalMatriculeValidator } from '../../../shared/validators/taxRegistrationValidator';
 import { UPDATE_BUTTON } from '../../../shared/Text_Buttons';
+import { AuthenticationService } from '../../../services/components/authentication.service';
 
 @Component({
     selector: 'app-provider-edit-modal',
@@ -16,18 +17,22 @@ import { UPDATE_BUTTON } from '../../../shared/Text_Buttons';
 })
 export class ProviderEditModalComponent implements OnInit {
     providerForm!: FormGroup;
-    allPrefixes = Object.values(SocietyPrefixes_FR);
-    allProvidersCategories = Object.values(SupplierCategories_FR);
+    allPrefixes = fullPrefixes_FR;
+    allProvidersCategories = SupplierCategories_FR;
     allBanks = BANKS_TN;
     update_button: string = UPDATE_BUTTON;
+    currentUser: any;
 
     constructor(
         public dialogRef: MatDialogRef<ProviderEditModalComponent>,
         @Inject(MAT_DIALOG_DATA) public data: { supplier: CounterPart },
         private fb: FormBuilder,
         private counterPartService: CounterpartService,
-        private toastr: ToastrService
-    ) { }
+        private toastr: ToastrService,
+        private authService: AuthenticationService
+    ) { 
+        this.currentUser = this.authService.getUserDetail();
+    }
 
     ngOnInit(): void {
         this.createForm();
@@ -39,14 +44,14 @@ export class ProviderEditModalComponent implements OnInit {
             prefix: ['', Validators.required],
             name: ['', Validators.required],
             description: ['', Validators.required],
-            taxRegistration: ['', [fiscalMatriculeValidator()]],
+            taxRegistration: ['', [Validators.required, fiscalMatriculeValidator()]],
             email: ['', Validators.email],
             address: ['', Validators.required],
             category: ['', Validators.required],
             representedBySurname: ['', Validators.required],
             representedByName: ['', Validators.required],
             phoneOne: ['', Validators.required],
-            phoneTwo: ['', Validators.required],
+            phoneTwo: [''],
             bank: ['', Validators.required],
             bankAccountNumber: ['', Validators.required]
         });
@@ -90,19 +95,23 @@ export class ProviderEditModalComponent implements OnInit {
                 bankname: formValues.bank,
                 bankaccountnumber: formValues.bankAccountNumber,
                 updatedate: new Date(),
-                updatedbyid: 1 // Default as per original code
+                updatedbyid: Number(this.currentUser?.id) || 1
             };
 
             this.counterPartService.Put(updatedSupplier.id, updatedSupplier).subscribe({
-                next: (response) => {
-                    this.toastr.success(response.name, 'Mis à jour');
+                next: (response: CounterPart) => {
+                    this.toastr.success('Le fournisseur ' + response.name + ' a été mis à jour avec succès.', 'Mis à jour');
                     this.dialogRef.close(true);
                 },
-                error: (error) => {
+                error: (error: any) => {
+                    console.error('Update error:', error);
                     const errorMessage = error.error?.message || 'Erreur lors de la mise à jour';
-                    this.toastr.warning(errorMessage, 'Erreur');
+                    this.toastr.error(errorMessage, 'Erreur');
                 }
             });
+        } else {
+            this.toastr.warning('Veuillez remplir tous les champs obligatoires.', 'Formulaire invalide');
+            this.providerForm.markAllAsTouched();
         }
     }
 

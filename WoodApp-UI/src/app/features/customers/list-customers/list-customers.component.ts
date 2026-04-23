@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { ToastrService } from 'ngx-toastr';
@@ -39,7 +39,7 @@ export enum CounterPartType {
     ]),
   ]
 })
-export class ListCustomersComponent implements OnInit {
+export class ListCustomersComponent implements OnInit, AfterViewInit {
 
   toastr = inject(ToastrService);
   fb = inject(FormBuilder);
@@ -49,7 +49,7 @@ export class ListCustomersComponent implements OnInit {
   dialog = inject(MatDialog);
 
   allCustomers: MatTableDataSource<CounterPart> = new MatTableDataSource<CounterPart>();
-  displayedColumns: string[] = ['fullname', 'type', 'address', 'mfcode', 'cin', 'updatedate', 'mobileone', 'action'];
+  displayedColumns: string[] = ['fullname', 'address', 'mfcode', 'cin', 'updatedate', 'mobileone', 'openingbalance', 'action'];
 
   loading: boolean = false; // Track loading state
   selectedCustomer!: CounterPart | null;
@@ -65,11 +65,14 @@ export class ListCustomersComponent implements OnInit {
   @ViewChild(MatPaginator) PaginationCustomer!: MatPaginator;
   @ViewChild(MatSort) sortCustomers!: MatSort;
 
+  ngAfterViewInit(): void {
+    this.allCustomers.paginator = this.PaginationCustomer;
+    this.allCustomers.sort = this.sortCustomers;
+  }
+
   ngOnInit(): void {
     if (this.authService.isLoggedIn()) {
       this.getCustomers();
-      this.allCustomers.paginator = this.PaginationCustomer;
-      this.allCustomers.sort = this.sortCustomers;
     } else {
       this.toastr.error('Vous devez vous connecter pour accéder à cette page');
       this.router.navigateByUrl('/login');
