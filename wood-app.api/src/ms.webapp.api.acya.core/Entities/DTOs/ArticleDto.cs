@@ -29,6 +29,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public double? minquantity { get; set; }
     public double? profitmarginpercentage { get; set; }
     public string? lengths { get; set; } //example : [3.3, 3.6, 5.4]
+    public string? imageurl { get; set; }
     public bool? editing { get; set; } = false;
     public CategoryDto? category { get; set; }
     public FirstChildDto? subcategory { get; set; }
@@ -60,6 +61,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       lengths= entity.Lengths;
       lastpurchaseprice_ttc = (double)entity.LastPurchasePriceTTC;
       profitmarginpercentage = entity.ProfitMarginPercentage;
+      imageurl = entity.ImageUrl;
 
       categoryid = entity.ParentId;
       thicknessid = entity.ThicknessId;

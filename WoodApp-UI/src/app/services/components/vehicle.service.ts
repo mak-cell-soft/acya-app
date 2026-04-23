@@ -12,8 +12,12 @@ export class VehicleService {
 
   constructor(private http: HttpClient) { }
 
-  getAll(): Observable<Vehicle[]> {
-    return this.http.get<Vehicle[]>(this.baseUrl);
+  getAll(isowned?: boolean): Observable<Vehicle[]> {
+    let url = this.baseUrl;
+    if (isowned !== undefined) {
+      url += `?isowned=${isowned}`;
+    }
+    return this.http.get<Vehicle[]>(url);
   }
 
   get(id: number): Observable<Vehicle> {

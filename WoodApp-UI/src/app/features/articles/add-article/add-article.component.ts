@@ -190,7 +190,8 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
       calculatedPriceHT: [{ value: '' }],
       quantityUnit: ['', Validators.required],
       minquantity: [0, [Validators.required, Validators.min(0)]],
-      profitpercentage: [0, [Validators.required, percentageValidator()]]
+      profitpercentage: [0, [Validators.required, percentageValidator()]],
+      imageurl: [null]
     });
 
     // Call the method whenever 'selectedPriceTTC' or 'selectedTva' changes
@@ -248,6 +249,22 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
     }
   }
 
+  onImageSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        this.articleForm.get('imageurl')?.setValue(base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removeImage(): void {
+    this.articleForm.get('imageurl')?.setValue(null);
+  }
+
   onCategoryChange(categoryId: number, patchSubCategory?: number | null) {
     const selectedCategory = this.categories.find(category => category.id === categoryId);
     this.filteredSubCategories = selectedCategory ? selectedCategory.firstchildren : [];
@@ -292,7 +309,8 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
         return unit.toLowerCase().startsWith(articleUnit || '');
       }),
       minquantity: article.minquantity,
-      profitpercentage: article.profitmarginpercentage
+      profitpercentage: article.profitmarginpercentage,
+      imageurl: article.imageurl
     }, { emitEvent: false });
 
     if (article.iswood) {
@@ -351,6 +369,7 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
       article.thicknessid = formValues.selectedThikness || null;
       article.widthid = formValues.selectedWidth || null;
       article.tvaid = formValues.selectedTva || 0;
+      article.imageurl = formValues.imageurl || null;
 
       // Set related entities to null for now
       article.category = null;

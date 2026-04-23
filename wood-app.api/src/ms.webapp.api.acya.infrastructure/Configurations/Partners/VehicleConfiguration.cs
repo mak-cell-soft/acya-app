@@ -19,6 +19,7 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Partners
             entity.Property(e => e.Mileage).HasColumnName("mileage");
             entity.Property(e => e.Draining).HasColumnName("draining");
             entity.Property(e => e.DrainingDate).HasColumnName("drainingdate");
+            entity.Property(e => e.IsOwned).HasColumnName("isowned");
         }
     }
 }

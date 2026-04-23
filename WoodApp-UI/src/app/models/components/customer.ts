@@ -53,6 +53,7 @@ export class Vehicle {
     mileage!: number;
     draining!: string;
     drainingdate!: string;
+    isowned: boolean = false;
     constructor(public matricule: string) {
         this.serialnumber = matricule;
     }

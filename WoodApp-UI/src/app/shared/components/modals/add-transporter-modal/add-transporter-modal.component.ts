@@ -56,6 +56,7 @@ export class AddTransporterModalComponent implements OnInit {
 
       // Create a new instance of Vehicle
       const vehicle = new Vehicle(vehiculematricule);
+      vehicle.isowned = false;
 
       // Transform into Transporter format
       const transporter: Transporter = {

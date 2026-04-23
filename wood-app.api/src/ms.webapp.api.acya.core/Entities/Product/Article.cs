@@ -25,6 +25,7 @@ namespace ms.webapp.api.acya.core.Entities.Product
      * like : 330, 360, 390, 420
      */
     public string? Lengths { get; set; }
+    public string? ImageUrl { get; set; }
 
     public int? SellHistoryId { get; set; }
     public SellPriceHistory? SellHistories { get; set; }
@@ -83,6 +84,7 @@ namespace ms.webapp.api.acya.core.Entities.Product
       WidthId = dto.widthid;
       ParentId = dto.categoryid;
       FirstChildId = dto.subcategoryid;
+      ImageUrl = dto.imageurl;
     }
 
   }

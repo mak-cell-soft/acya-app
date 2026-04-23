@@ -8,41 +8,62 @@
         <!-- Section: General Info -->
         <div class="form-section">
             <h6 class="section-title">{{ general_information }}</h6>
-            <div class="form-row">
-                <mat-form-field appearance="outline" class="flex-1">
-                    <mat-label>{{ code_article }}</mat-label>
-                    <input matInput formControlName="articlecode" placeholder="Ex: RF163100...">
-                    <mat-icon matSuffix>qr_code</mat-icon>
-                    <mat-error *ngIf="f['articlecode'].errors?.['required']">Code article requis</mat-error>
-                </mat-form-field>
+            
+            <div class="general-info-layout">
+                <!-- Image Upload Zone -->
+                <div class="image-column">
+                    <div class="image-upload-zone" (click)="fileInput.click()" [class.has-image]="articleForm.get('imageurl')?.value">
+                        <ng-container *ngIf="!articleForm.get('imageurl')?.value">
+                            <mat-icon>photo_camera</mat-icon>
+                            <span class="upload-text">Ajouter Image</span>
+                        </ng-container>
+                        <img *ngIf="articleForm.get('imageurl')?.value" [src]="articleForm.get('imageurl')?.value" class="image-preview">
+                        <button mat-icon-button *ngIf="articleForm.get('imageurl')?.value" (click)="removeImage(); $event.stopPropagation()" class="remove-image-btn">
+                            <mat-icon>cancel</mat-icon>
+                        </button>
+                    </div>
+                    <input type="file" #fileInput (change)="onImageSelected($event)" accept="image/*" style="display: none">
+                </div>
 
-                <mat-form-field appearance="outline" class="flex-2">
-                    <mat-label>{{ description_label }}</mat-label>
-                    <input matInput formControlName="description" placeholder="Ex: Bois Rouge Finlandais...">
-                    <mat-error *ngIf="f['description'].errors?.['required']">Description requise</mat-error>
-                </mat-form-field>
-            </div>
+                <!-- Fields Column -->
+                <div class="fields-column">
+                    <div class="form-row">
+                        <mat-form-field appearance="outline" class="flex-1">
+                            <mat-label>{{ code_article }}</mat-label>
+                            <input matInput formControlName="articlecode" placeholder="Ex: RF163100...">
+                            <mat-icon matSuffix>qr_code</mat-icon>
+                            <mat-error *ngIf="f['articlecode'].errors?.['required']">Code article requis</mat-error>
+                        </mat-form-field>
 
-            <div class="form-row">
-                <mat-form-field appearance="outline" class="flex-1">
-                    <mat-label>{{ categories_label }}</mat-label>
-                    <mat-select formControlName="selectedCategory" (selectionChange)="onCategoryChange($event.value)">
-                        <mat-option *ngFor="let category of categories" [value]="category.id">
-                            {{ category.description }}
-                        </mat-option>
-                    </mat-select>
-                    <mat-error *ngIf="f['selectedCategory'].errors?.['required']">Catégorie requise</mat-error>
-                </mat-form-field>
+                        <mat-form-field appearance="outline" class="flex-2">
+                            <mat-label>{{ description_label }}</mat-label>
+                            <input matInput formControlName="description" placeholder="Ex: Bois Rouge Finlandais...">
+                            <mat-error *ngIf="f['description'].errors?.['required']">Description requise</mat-error>
+                        </mat-form-field>
+                    </div>
 
-                <mat-form-field appearance="outline" class="flex-1">
-                    <mat-label>{{ under_categories_label }}</mat-label>
-                    <mat-select formControlName="selectedSubCategory">
-                        <mat-option *ngFor="let subcategory of filteredSubCategories" [value]="subcategory.id">
-                            {{ subcategory.description }}
-                        </mat-option>
-                    </mat-select>
-                    <mat-error *ngIf="f['selectedSubCategory'].errors?.['required']">Sous-catégorie requise</mat-error>
-                </mat-form-field>
+                    <div class="form-row">
+                        <mat-form-field appearance="outline" class="flex-1">
+                            <mat-label>{{ categories_label }}</mat-label>
+                            <mat-select formControlName="selectedCategory" (selectionChange)="onCategoryChange($event.value)">
+                                <mat-option *ngFor="let category of categories" [value]="category.id">
+                                    {{ category.description }}
+                                </mat-option>
+                            </mat-select>
+                            <mat-error *ngIf="f['selectedCategory'].errors?.['required']">Catégorie requise</mat-error>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="flex-1">
+                            <mat-label>{{ under_categories_label }}</mat-label>
+                            <mat-select formControlName="selectedSubCategory">
+                                <mat-option *ngFor="let subcategory of filteredSubCategories" [value]="subcategory.id">
+                                    {{ subcategory.description }}
+                                </mat-option>
+                            </mat-select>
+                            <mat-error *ngIf="f['selectedSubCategory'].errors?.['required']">Sous-catégorie requise</mat-error>
+                        </mat-form-field>
+                    </div>
+                </div>
             </div>
         </div>
 

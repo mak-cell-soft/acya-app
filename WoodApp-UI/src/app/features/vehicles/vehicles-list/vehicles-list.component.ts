@@ -50,7 +50,7 @@ export class VehiclesListComponent implements OnInit {
   loadVehicles(): void {
     this.loading = true;
     this.cdr.markForCheck();
-    this.vehicleService.getAll().subscribe({
+    this.vehicleService.getAll(true).subscribe({
       next: (data) => {
         this.dataSource.data = data;
         this.dataSource.paginator = this.paginator;

@@ -37,6 +37,19 @@
         </mat-form-field>
       </div>
 
+      <div class="row owned-toggle-row">
+        <div class="owned-toggle-container">
+          <mat-icon [color]="vehicleForm.get('isowned')?.value ? 'primary' : 'disabled'">
+            {{ vehicleForm.get('isowned')?.value ? 'business' : 'local_shipping' }}
+          </mat-icon>
+          <div class="toggle-labels">
+            <span class="main-label">Véhicule de l'Entreprise</span>
+            <span class="sub-label">{{ vehicleForm.get('isowned')?.value ? 'Appartient à l\'entreprise' : 'Appartient à un transporteur' }}</span>
+          </div>
+          <mat-slide-toggle formControlName="isowned" color="primary"></mat-slide-toggle>
+        </div>
+      </div>
+
       <div class="divider">
         <span><mat-icon>event_note</mat-icon> Échéances Administratives</span>
       </div>

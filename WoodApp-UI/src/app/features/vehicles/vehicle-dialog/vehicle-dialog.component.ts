@@ -33,6 +33,7 @@ export class VehicleDialogComponent implements OnInit {
       mileage: [data?.mileage || ''],
       draining: [data?.draining || ''],
       drainingdate: [data?.drainingdate || null],
+      isowned: [data?.isowned ?? true],
     });
   }
 

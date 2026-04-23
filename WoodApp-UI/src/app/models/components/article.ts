@@ -22,6 +22,7 @@ export class Article {
     minquantity: number = 0;
     lengths?: string | null;//example : [3.3, 3.6, 5.4]
     profitmarginpercentage: number = 0; // Pourcentage de marge de gain
+    imageurl?: string | null;
     editing?: Boolean = false;
 
     category?: Category | null;

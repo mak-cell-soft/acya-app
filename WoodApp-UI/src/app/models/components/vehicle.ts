@@ -7,4 +7,5 @@ export interface Vehicle {
     mileage: string | null;
     draining: string | null;
     drainingdate: Date | string | null;
+    isowned?: boolean;
 }

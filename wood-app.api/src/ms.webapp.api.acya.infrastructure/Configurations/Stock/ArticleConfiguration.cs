@@ -23,6 +23,7 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Stock
             entity.Property(e => e.LastPurchasePriceTTC).HasColumnName("lastpurchaseprice_ttc");
             entity.Property(e => e.ProfitMarginPercentage).HasColumnName("profitmarginpercentage");
             entity.Property(e => e.Lengths).HasColumnName("lengths");
+            entity.Property(e => e.ImageUrl).HasColumnName("imageurl");
 
             entity.Property(e => e.TvaId).HasColumnName("idtva");
             entity.Property(e => e.ParentId).HasColumnName("idcategory");

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ms.webapp.api.acya.api.Controllers;
 using ms.webapp.api.acya.core.Entities.DTOs;
 using ms.webapp.api.acya.core.Entities;
@@ -19,9 +20,10 @@ namespace ms.webapp.api.acya.api.Controllers
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<VehicleDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<VehicleDto>>> GetAll(bool? isowned = null)
     {
-      var vehicles = await _repository.GetAll();
+      var query = _repository.FindByCondition(v => !isowned.HasValue || v.IsOwned == isowned.Value);
+      var vehicles = await query.ToListAsync();
       var vehicleDtos = vehicles.Select(v => new VehicleDto(v)).ToList();
       return Ok(vehicleDtos);
     }

@@ -38,6 +38,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? mileage { get; set; } // Kilométrage
     public string? draining { get; set; } // Vidange [filtre à huile, Filtre à air, Filtre ...]
     public DateTime? drainingdate { get; set; }
+    public bool isowned { get; set; }
 
     public VehicleDto()
     {
@@ -58,6 +59,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       mileage = entity.Mileage;
       draining = entity.Draining;
       drainingdate = entity.DrainingDate;
+      isowned = entity.IsOwned;
     }
   }
 }

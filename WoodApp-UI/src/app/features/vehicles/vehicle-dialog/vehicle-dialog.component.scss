@@ -26,7 +26,7 @@
       justify-content: center;
       margin-right: 1.5rem;
       border: 1px solid rgba(255, 255, 255, 0.2);
-      
+
       mat-icon {
         font-size: 30px;
         width: 30px;
@@ -62,7 +62,7 @@
       top: 1.2rem;
       right: 1.2rem;
       color: white;
-      
+
       &:hover {
         transform: rotate(90deg);
       }
@@ -82,8 +82,13 @@
         gap: 2rem; // Spacious enough for width but not height
         margin-bottom: 0.5rem; // Very compact height
 
-        .full-width { width: 100%; }
-        .half-width { width: calc(50% - 1rem); }
+        .full-width {
+          width: 100%;
+        }
+
+        .half-width {
+          width: calc(50% - 1rem);
+        }
       }
 
       .divider {
@@ -112,7 +117,7 @@
             height: 18px;
           }
         }
-        
+
         &::after {
           content: "";
           flex-grow: 1;
@@ -124,6 +129,7 @@
 
       mat-form-field {
         width: 100%;
+
         ::ng-deep {
           .mat-mdc-text-field-wrapper {
             background-color: #ffffff !important;
@@ -131,13 +137,13 @@
             transition: all 0.3s ease;
             border: 1px solid rgba(26, 35, 126, 0.08);
             min-height: 52px; // Compact height
-            
+
             &:hover {
               background-color: #ffffff !important;
               box-shadow: 0 4px 15px rgba(26, 35, 126, 0.08);
             }
           }
-          
+
           .mat-mdc-form-field-flex {
             padding: 0 16px !important;
           }
@@ -146,7 +152,7 @@
             padding-top: 8px !important;
             padding-bottom: 8px !important;
           }
-          
+
           .mdc-notched-outline--focused .mdc-notched-outline__leading,
           .mdc-notched-outline--focused .mdc-notched-outline__notch,
           .mdc-notched-outline--focused .mdc-notched-outline__trailing {
@@ -156,7 +162,7 @@
 
           .mat-mdc-form-field-icon-suffix {
             padding-left: 8px !important;
-            
+
             mat-icon {
               font-size: 20px;
               width: 20px;
@@ -184,45 +190,88 @@
         }
       }
     }
-  }
 
-  .dialog-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1.2rem;
-    padding: 1.5rem 2.5rem;
-    background: #ffffff;
-    border-top: 1px solid #edf0f9;
+    .owned-toggle-row {
+      margin: 1rem 0;
+      background: #f0f3ff;
+      padding: 12px 20px;
+      border-radius: 16px;
+      border: 1px solid rgba(26, 35, 126, 0.05);
 
-    .cancel-btn {
-      color: #666;
-      font-weight: 600;
-      padding: 0 1.5rem;
-      height: 48px;
-      border-radius: 12px;
-      font-size: 0.95rem;
-      
-      &:hover {
-        background: #f1f3f9;
+      .owned-toggle-container {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        gap: 16px;
+
+        mat-icon {
+          font-size: 28px;
+          width: 28px;
+          height: 28px;
+          transition: all 0.3s ease;
+        }
+
+        .toggle-labels {
+          flex-grow: 1;
+          display: flex;
+          flex-direction: column;
+
+          .main-label {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #1A237E;
+          }
+
+          .sub-label {
+            font-size: 0.8rem;
+            color: #666;
+            font-weight: 500;
+          }
+        }
       }
-    }
-
-    .submit-btn {
-      min-width: 140px;
-      height: 48px;
-      padding: 0 1.8rem;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 0.95rem;
-      background: linear-gradient(135deg, #3F51B5 0%, #1A237E 100%);
-      box-shadow: 0 8px 20px rgba(63, 81, 181, 0.2);
     }
   }
 }
 
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1.2rem;
+  padding: 1.5rem 2.5rem;
+  background: #ffffff;
+  border-top: 1px solid #edf0f9;
+
+  .cancel-btn {
+    color: #666;
+    font-weight: 600;
+    padding: 0 1.5rem;
+    height: 48px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+
+    &:hover {
+      background: #f1f3f9;
+    }
+  }
+
+  .submit-btn {
+    min-width: 140px;
+    height: 48px;
+    padding: 0 1.8rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    background: linear-gradient(135deg, #3F51B5 0%, #1A237E 100%);
+    box-shadow: 0 8px 20px rgba(63, 81, 181, 0.2);
+  }
+}
+
+
 // Dialog Layout fix for desktop
 ::ng-deep .premium-dialog {
   max-width: none !important;
+
   mat-dialog-container {
     padding: 0 !important;
     border-radius: 32px !important;
@@ -236,10 +285,14 @@
   .dialog-container {
     .form-content {
       padding: 1.5rem;
+
       .vehicle-form .row {
         flex-direction: column;
         gap: 0;
-        .half-width { width: 100%; }
+
+        .half-width {
+          width: 100%;
+        }
       }
     }
   }
