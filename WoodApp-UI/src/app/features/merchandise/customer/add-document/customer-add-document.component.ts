@@ -432,10 +432,11 @@ export class CustomerAddDocumentComponent {
    */
   applyArticleFilter(event: Event, element: Merchand) {
     const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
-    element.filteredArticles = this.articles.filter(article =>
-      article.reference.toLowerCase().includes(filterValue) ||
-      (article.description && article.description.toLowerCase().includes(filterValue))
-    );
+    element.filteredArticles = this.articles.filter(article => {
+      const reference = (article.reference || '').toLowerCase();
+      const description = (article.description || '').toLowerCase();
+      return reference.includes(filterValue) || description.includes(filterValue);
+    });
   }
 
   /**
@@ -443,11 +444,25 @@ export class CustomerAddDocumentComponent {
   * @param event 
   */
   applyCustomerFilter(): void {
-    const filterValue = this.searchCustomerControl.value!.trim().toLowerCase();
-    this.filteredCustomers = this.allCustomers.filter(customer =>
-      customer.firstname.toLowerCase().includes(filterValue) ||
-      (customer.firstname.toLowerCase() && customer.description.toLowerCase().includes(filterValue))
-    );
+    const filterValue = (this.searchCustomerControl.value || '').trim().toLowerCase();
+    
+    if (!filterValue) {
+      this.filteredCustomers = [...this.allCustomers];
+    } else {
+      this.filteredCustomers = this.allCustomers.filter(customer => {
+        const name = (customer.name || '').toLowerCase();
+        const firstname = (customer.firstname || '').toLowerCase();
+        const lastname = (customer.lastname || '').toLowerCase();
+        const description = (customer.description || '').toLowerCase();
+        const phone = (customer.phonenumberone || '').toLowerCase();
+
+        return name.includes(filterValue) || 
+               firstname.includes(filterValue) || 
+               lastname.includes(filterValue) || 
+               description.includes(filterValue) ||
+               phone.includes(filterValue);
+      });
+    }
     this.openCustomerDropdown(); // Open dropdown on filter
   }
 
@@ -502,12 +517,22 @@ export class CustomerAddDocumentComponent {
    */
   applyTransporterFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
-    this.filteredTransporters = this.allTransporters.filter(transporter =>
-      transporter.firstname.toLowerCase().includes(filterValue) ||
-      (transporter.firstname && transporter.firstname.toLowerCase().includes(filterValue))
-    );
+    
+    if (!filterValue) {
+      this.filteredTransporters = [...this.allTransporters];
+    } else {
+      this.filteredTransporters = this.allTransporters.filter(transporter => {
+        const firstname = (transporter.firstname || '').toLowerCase();
+        const lastname = (transporter.lastname || '').toLowerCase();
+        const matricule = (transporter.car?.serialnumber || '').toLowerCase();
+
+        return firstname.includes(filterValue) || 
+               lastname.includes(filterValue) || 
+               matricule.includes(filterValue);
+      });
+    }
     // Open dropdown on filter
-    //this.openDropdownTransporters();
+    this.openDropdownTransporters();
   }
 
   openDropdownTransporters() {
