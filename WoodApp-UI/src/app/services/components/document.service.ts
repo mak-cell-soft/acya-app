@@ -116,4 +116,8 @@ export class DocumentService {
   Convert(parentId: number, model: Document): Observable<{ id: number, docRef: string, message: string }> {
     return this.http.post<{ id: number, docRef: string, message: string }>(this.baseUrl + 'Document/' + parentId + '/convert', model);
   }
+
+  CreateCreditNote(parentId: number, model: Document): Observable<{ id: number, docRef: string, message: string }> {
+    return this.http.post<{ id: number, docRef: string, message: string }>(this.baseUrl + 'Document/' + parentId + '/credit-note', model);
+  }
 }

@@ -4,7 +4,7 @@ import { MatSidenav } from '@angular/material/sidenav';
 import { NavigationEnd, Router } from '@angular/router';
 import { delay, filter } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { BUTTON_ADMINISTRATION, BUTTON_HOME, MENU_ACCOUNTING, MENU_ARTICLES, MENU_CLIENT, MENU_HELP, MENU_PROVIDER, MENU_PURCHASE, MENU_SELL, MENU_STOCK, MENU_SUB_BON_SORTIE, MENU_SUB_INVETORY, MENU_SUB_PURCHASE_BC, MENU_SUB_PURCHASE_BR, MENU_SUB_PURCHASE_FACT, MENU_SUB_SELL_BC, MENU_SUB_SELL_BL, MENU_SUB_SELL_DEVIS, MENU_SUB_SELL_FACT, MENU_SUB_STOCK_LIST, MENU_SUB_STOCK_MANAGE } from '../../../shared/constants/components/home';
+import { BUTTON_ADMINISTRATION, BUTTON_HOME, MENU_ACCOUNTING, MENU_ARTICLES, MENU_CLIENT, MENU_HELP, MENU_PROVIDER, MENU_PURCHASE, MENU_SELL, MENU_STOCK, MENU_SUB_BON_SORTIE, MENU_SUB_INVETORY, MENU_SUB_PURCHASE_AVOIR, MENU_SUB_PURCHASE_BC, MENU_SUB_PURCHASE_BR, MENU_SUB_PURCHASE_FACT, MENU_SUB_SELL_AVOIR, MENU_SUB_SELL_BC, MENU_SUB_SELL_BL, MENU_SUB_SELL_DEVIS, MENU_SUB_SELL_FACT, MENU_SUB_STOCK_LIST, MENU_SUB_STOCK_MANAGE } from '../../../shared/constants/components/home';
 import { AuthenticationService } from '../../../services/components/authentication.service';
 import { MatDialog } from '@angular/material/dialog';
 import { StockTransferFormComponent } from '../../stock/stock-transfer-form/stock-transfer-form.component';
@@ -32,6 +32,7 @@ export class DashboardShellComponent implements AfterViewInit, OnInit {
   menu_sub_sell_bc: string = MENU_SUB_SELL_BC;
   menu_sub_sell_bl: string = MENU_SUB_SELL_BL;
   menu_sub_sell_fact: string = MENU_SUB_SELL_FACT;
+  menu_sub_sell_avoir: string = MENU_SUB_SELL_AVOIR;
   menu_sub_sell_bon_sortie: string = MENU_SUB_BON_SORTIE;
 
   // PURCHASE MENU
@@ -39,6 +40,7 @@ export class DashboardShellComponent implements AfterViewInit, OnInit {
   menu_sub_purchase_bc: string = MENU_SUB_PURCHASE_BC;
   menu_sub_purchase_br: string = MENU_SUB_PURCHASE_BR;
   menu_sub_purchase_fact: string = MENU_SUB_PURCHASE_FACT;
+  menu_sub_purchase_avoir: string = MENU_SUB_PURCHASE_AVOIR;
 
   // CUSTOMER MENU
   menu_client: string = MENU_CLIENT;

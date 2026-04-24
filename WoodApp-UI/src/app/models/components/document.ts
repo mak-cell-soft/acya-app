@@ -84,6 +84,7 @@ export enum DocumentTypes {
     customerInvoice = 6, // Facture Client
     stockTransfer = 7, // Transfert stock
     customerInvoiceReturn = 9, // Retour Client
+    supplierInvoiceReturn = 8, // Avoir Fournisseur
     inventory = 10,
     customerQuote = 11 // Devis Client (no stock)
 }
@@ -98,6 +99,7 @@ export enum DocTypes_FR {
     customerInvoice = 'Facture Client',
     stockTransfer = 'Transfert stock',
     customerInvoiceReturn = 'Retour Client',
+    supplierInvoiceReturn = 'Avoir Fournisseur',
     inventory = 'Inventaire'
 }
 

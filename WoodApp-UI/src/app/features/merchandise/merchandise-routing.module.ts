@@ -24,6 +24,7 @@ import { AddCustomerOrderComponent } from './customer/customer-order/add-custome
 import { roleGuard } from '../../guards/role.guard';
 import { CanDeactivateGuard } from '../../guards/can-deactivate.guard';
 import { SupplierPaymentsComponent } from './provider/supplier-payments/supplier-payments.component';
+import { ListSupplierCreditNotesComponent } from './provider/list-supplier-credit-notes/list-supplier-credit-notes.component';
 
 const routes: Routes = [
   {
@@ -52,6 +53,12 @@ const routes: Routes = [
   {
     path: 'sinvoices',
     component: ListSupplierInvoicesComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['Admin'] }
+  },
+  {
+    path: 'scredit-notes',
+    component: ListSupplierCreditNotesComponent,
     canActivate: [roleGuard],
     data: { roles: ['Admin'] }
   },

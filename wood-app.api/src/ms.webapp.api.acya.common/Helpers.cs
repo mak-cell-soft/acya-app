@@ -97,6 +97,12 @@ namespace ms.webapp.api.acya.common
         case DocumentTypes.customerInvoice:
           return TransactionType.Retrieve;
 
+        case DocumentTypes.customerInvoiceReturn:
+          return TransactionType.Add;
+
+        case DocumentTypes.supplierInvoiceReturn:
+          return TransactionType.Retrieve;
+
         // customerQuote: No stock movement — quote only
         case DocumentTypes.customerQuote:
           return TransactionType.None;

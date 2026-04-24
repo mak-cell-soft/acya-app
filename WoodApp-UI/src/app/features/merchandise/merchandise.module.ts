@@ -23,6 +23,10 @@ import { AddCustomerQuoteComponent } from './customer/customer-quote/add-custome
 import { ListCustomerOrdersComponent } from './customer/customer-order/list-customer-orders/list-customer-orders.component';
 import { AddCustomerOrderComponent } from './customer/customer-order/add-customer-order/add-customer-order.component';
 
+// ── Credit Notes (Avoirs) ──────────────────────────────────────────────────
+import { ListSupplierCreditNotesComponent } from './provider/list-supplier-credit-notes/list-supplier-credit-notes.component';
+import { AddCreditNoteDialogComponent } from './provider/add-credit-note-dialog/add-credit-note-dialog.component';
+
 
 
 // Modals inside merchandise
@@ -83,7 +87,10 @@ import { MatRadioModule } from '@angular/material/radio';
     AddCustomerQuoteComponent,
     // ── Customer Order (Bon de Commande)
     ListCustomerOrdersComponent,
-    AddCustomerOrderComponent
+    AddCustomerOrderComponent,
+    // ── Credit Notes (Avoirs)
+    ListSupplierCreditNotesComponent,
+    AddCreditNoteDialogComponent
   ],
   imports: [
     CommonModule,

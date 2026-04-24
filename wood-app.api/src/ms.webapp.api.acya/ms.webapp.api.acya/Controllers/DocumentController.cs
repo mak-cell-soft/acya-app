@@ -694,8 +694,10 @@ namespace ms.webapp.api.acya.api.Controllers
           await RecordPriceHistory(doc);
 
           #region Ledger Entry
-          // Integrate Ledger Entry if it's an Invoice or Delivery Note
-          if (doc.Type == DocumentTypes.customerInvoice || doc.Type == DocumentTypes.customerDeliveryNote || doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt)
+          // Integrate Ledger Entry if it's an Invoice, Delivery Note or Credit Note
+          if (doc.Type == DocumentTypes.customerInvoice || doc.Type == DocumentTypes.customerDeliveryNote || 
+              doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt ||
+              doc.Type == DocumentTypes.customerInvoiceReturn || doc.Type == DocumentTypes.supplierInvoiceReturn)
           {
               await _accountService.AddLedgerEntryAsync(
                   doc.CounterPartId, 
@@ -713,7 +715,8 @@ namespace ms.webapp.api.acya.api.Controllers
           // Only actual receipts/deliveries affect inventory
           if (doc.Type != DocumentTypes.supplierOrder 
               && doc.Type != DocumentTypes.customerQuote
-              && doc.Type != DocumentTypes.customerOrder)
+              && doc.Type != DocumentTypes.customerOrder
+              && doc.Isservice != true) // §5.13 — Skip stock for financial credit notes or services
           {
               await _repository.updateStockByMerchandises(doc);
           }
@@ -1215,7 +1218,9 @@ namespace ms.webapp.api.acya.api.Controllers
 
           #region Post Commit Operations (Same as Add)
           // Update Ledger Entry (Delete old and Add new to handle amount changes)
-          if (doc.Type == DocumentTypes.customerInvoice || doc.Type == DocumentTypes.customerDeliveryNote || doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt)
+          if (doc.Type == DocumentTypes.customerInvoice || doc.Type == DocumentTypes.customerDeliveryNote || 
+              doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt ||
+              doc.Type == DocumentTypes.customerInvoiceReturn || doc.Type == DocumentTypes.supplierInvoiceReturn)
           {
               string docTypeStr = doc.Type.ToString()!;
               await _accountService.DeleteLedgerEntryAsync(doc.Id, docTypeStr);
@@ -1299,6 +1304,57 @@ namespace ms.webapp.api.acya.api.Controllers
             else
             {
                 return StatusCode(500, "Document created but relationship registration failed.");
+            }
+        }
+
+        return result; 
+    }
+    #endregion
+    #region Create Credit Note
+    /**
+     * Create Credit Note for a given parent document (usually an invoice).
+     * @param parentId The id of the invoice to credit.
+     * @param dto The credit note data.
+     * @return The created credit note.
+     */
+    [HttpPost("{parentId}/credit-note")]
+    public async Task<ActionResult> CreateCreditNote(int parentId, DocumentDto dto)
+    {
+        // 1. Validate the parent document exists
+        var parentExists = await _context.Documents.AnyAsync(d => d.Id == parentId);
+        if (!parentExists)
+        {
+            return NotFound($"Parent document with ID {parentId} not found.");
+        }
+
+        // 2. Perform the normal 'Add' logic
+        // The Add method handles numbering, stock (skipped if isservice=true), and ledger entry.
+        var result = await Add(dto);
+
+        if (result is OkObjectResult okResult)
+        {
+            // Extract the new document ID from the okResult
+            if (okResult.Value == null) return StatusCode(500, "Credit note created but result data is missing.");
+            
+            var responseData = okResult.Value as dynamic;
+            int childId = responseData.id;
+
+            // 3. Register Relationship
+            var relationship = new DocumentDocumentRelationship
+            {
+                ParentDocumentId = parentId,
+                ChildDocumentId = childId
+            };
+
+            var registerResult = await RegisterRelationship(relationship);
+            
+            if (registerResult is OkObjectResult)
+            {
+                return okResult; // Return the successful document creation result
+            }
+            else
+            {
+                return StatusCode(500, "Credit note created but relationship registration failed.");
             }
         }
 

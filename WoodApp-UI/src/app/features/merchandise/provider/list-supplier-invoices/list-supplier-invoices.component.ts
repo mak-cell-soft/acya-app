@@ -16,6 +16,7 @@ import { getStatusInfo, getBillingStatusInfo, isSameDay } from '../../../../util
 import { WithholdingTaxModalComponent } from '../../../../shared/components/modals/withholding-tax-modal/withholding-tax-modal.component';
 import { HoldingTaxService } from '../../../../services/components/holding-tax.service';
 import { ListHoldingTaxesModalComponent } from '../../../dashboard/modals/holding-tax/list-holding-taxes-modal/list-holding-taxes-modal.component';
+import { AddCreditNoteDialogComponent } from '../add-credit-note-dialog/add-credit-note-dialog.component';
 
 
 @Component({
@@ -338,6 +339,19 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
       width: '1100px',
       maxWidth: '95vw',
       maxHeight: '95vh',
+    });
+  }
+
+  createCreditNote(doc: Document | null) {
+    const dialogRef = this.dialog.open(AddCreditNoteDialogComponent, {
+      width: '800px',
+      data: { type: 'supplier' }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.fetchInvoices();
+      }
     });
   }
 

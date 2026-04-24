@@ -1,0 +1,115 @@
+.dialog-container {
+    padding: 8px;
+}
+
+.dialog-header {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    gap: 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.header-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 48px;
+    color: #3b82f6;
+    background: #eff6ff;
+    border-radius: 12px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-titles h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.header-titles p {
+    margin: 0;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.close-btn {
+    margin-left: auto;
+    color: #94a3b8;
+}
+
+mat-dialog-content {
+    padding: 24px !important;
+}
+
+.credit-note-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-row {
+    display: flex;
+    gap: 16px;
+}
+
+.flex-1 { flex: 1; }
+.flex-2 { flex: 2; }
+.full-width { width: 100%; }
+
+.financial-section {
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 16px;
+    margin-top: 8px;
+}
+
+.financial-section h3 {
+    margin: 0 0 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ttc-display {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    padding-right: 12px;
+}
+
+.ttc-display .label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.ttc-display .value {
+    font-size: 24px;
+    font-weight: 800;
+    color: #16a34a;
+}
+
+mat-dialog-actions {
+    padding: 16px 24px !important;
+    gap: 12px;
+}
+
+.pill-button {
+    border-radius: 50px !important;
+    padding: 0 24px !important;
+    font-weight: 600 !important;
+}
+
+mat-spinner {
+    display: inline-block;
+    margin-right: 8px;
+}

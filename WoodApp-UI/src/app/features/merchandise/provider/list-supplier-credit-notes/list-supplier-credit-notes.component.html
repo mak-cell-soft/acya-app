@@ -1,0 +1,178 @@
+<mat-toolbar class="header-container">
+    <div class="header-text">
+        <h2>Avoirs Fournisseurs</h2>
+    </div>
+    <span class="spacer"></span>
+    <div class="header-buttons">
+        <button mat-flat-button class="pill-button btn-export" (click)="onExport()">
+            <mat-icon>download</mat-icon>
+            Exporter
+        </button>
+
+        <button mat-flat-button color="primary" class="pill-button btn-add" (click)="openAddCreditNoteDialog()">
+            <mat-icon>add</mat-icon>
+            Nouvel Avoir
+        </button>
+    </div>
+</mat-toolbar>
+
+<!-- Filter Card -->
+<mat-card class="filter-card">
+    <mat-card-header>
+        <mat-card-title>Recherche & Filtres</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="filter-content">
+        <div class="filter-fields-group">
+            <mat-form-field appearance="outline">
+                <mat-label>Fournisseur</mat-label>
+                <input matInput [(ngModel)]="filterSupplier" (ngModelChange)="onFilterChange()"
+                    placeholder="Filtrer par nom...">
+                <button *ngIf="filterSupplier" matSuffix mat-icon-button aria-label="Clear"
+                    (click)="filterSupplier=''; onFilterChange()">
+                    <mat-icon>clear</mat-icon>
+                </button>
+                <mat-icon matSuffix *ngIf="!filterSupplier">search</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Date précise</mat-label>
+                <input matInput [matDatepicker]="pickerDate" [(ngModel)]="filterDate" (dateChange)="onFilterChange()">
+                <mat-datepicker-toggle matSuffix [for]="pickerDate"></mat-datepicker-toggle>
+                <mat-datepicker #pickerDate></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Période</mat-label>
+                <mat-date-range-input [rangePicker]="pickerRange">
+                    <input matStartDate [(ngModel)]="filterStartDate" (dateChange)="onFilterChange()" placeholder="Début">
+                    <input matEndDate [(ngModel)]="filterEndDate" (dateChange)="onFilterChange()" placeholder="Fin">
+                </mat-date-range-input>
+                <mat-datepicker-toggle matSuffix [for]="pickerRange"></mat-datepicker-toggle>
+                <mat-date-range-picker #pickerRange></mat-date-range-picker>
+            </mat-form-field>
+
+            <button mat-stroked-button color="warn" class="pill-button" (click)="clearFilters()" *ngIf="filterSupplier || filterDate || filterStartDate">
+                <mat-icon>filter_list_off</mat-icon>
+                Réinitialiser
+            </button>
+        </div>
+    </mat-card-content>
+</mat-card>
+
+<!-- Summary Grid -->
+<div class="summary-grid">
+    <div class="summary-item item-ht">
+        <div class="icon-box">
+            <mat-icon>payments</mat-icon>
+        </div>
+        <div class="summary-details">
+            <span class="label">Total HT</span>
+            <span class="value">{{totalHt | number:'1.3-3'}} TND</span>
+        </div>
+    </div>
+    <div class="summary-item item-tva">
+        <div class="icon-box">
+            <mat-icon>receipt</mat-icon>
+        </div>
+        <div class="summary-details">
+            <span class="label">Total TVA</span>
+            <span class="value">{{totalTva | number:'1.3-3'}} TND</span>
+        </div>
+    </div>
+    <div class="summary-item item-ttc">
+        <div class="icon-box">
+            <mat-icon>account_balance_wallet</mat-icon>
+        </div>
+        <div class="summary-details">
+            <span class="label">Total TTC</span>
+            <span class="value main-value">{{totalTtc | number:'1.3-3'}} TND</span>
+        </div>
+    </div>
+    <div class="summary-item item-count">
+        <div class="icon-box">
+            <mat-icon>inventory_2</mat-icon>
+        </div>
+        <div class="summary-details">
+            <span class="label">Nombre d'avoirs</span>
+            <span class="value">{{creditNoteCount}}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Main Table -->
+<mat-card class="table-card">
+    <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+    <div class="table-container">
+        <table mat-table [dataSource]="dataSource" matSort>
+
+            <ng-container matColumnDef="number">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> N° Avoir </th>
+                <td mat-cell *matCellDef="let element"><strong>{{element.docnumber}}</strong></td>
+            </ng-container>
+
+            <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Date </th>
+                <td mat-cell *matCellDef="let element"> {{element.updatedate | date: 'dd/MM/yyyy'}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="counterpart">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Fournisseur </th>
+                <td mat-cell *matCellDef="let element">
+                    {{element.counterpart?.name || (element.counterpart?.firstname + ' ' + element.counterpart?.lastname)}}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="amount">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Montant TTC </th>
+                <td mat-cell *matCellDef="let element">
+                    <span class="amount-ttc">{{element.total_net_ttc | number:'1.3-3'}} TND</span>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="type">
+                <th mat-header-cell *matHeaderCellDef> Nature </th>
+                <td mat-cell *matCellDef="let element">
+                    <span class="type-badge" [class.financial]="element.isservice">
+                        <mat-icon>{{element.isservice ? 'account_balance' : 'inventory'}}</mat-icon>
+                        {{element.isservice ? 'Financier' : 'Marchandise'}}
+                    </span>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef> État </th>
+                <td mat-cell *matCellDef="let element">
+                    <span class="status-badge" [style.color]="getStatusInfo(element.docstatus).color"
+                        [style.backgroundColor]="getStatusInfo(element.docstatus).bgColor">
+                        {{getStatusInfo(element.docstatus).text}}
+                    </span>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="action">
+                <th mat-header-cell *matHeaderCellDef> Actions </th>
+                <td mat-cell *matCellDef="let element">
+                    <div class="action-buttons">
+                        <button mat-icon-button color="primary" matTooltip="Voir détails">
+                            <mat-icon>visibility</mat-icon>
+                        </button>
+                        <button mat-icon-button color="warn" (click)="deleteDocument(element)" matTooltip="Supprimer">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </div>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+
+            <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell" colspan="7" class="no-data">
+                    <mat-icon>search_off</mat-icon>
+                    <span>Aucun avoir trouvé pour les critères sélectionnés.</span>
+                </td>
+            </tr>
+        </table>
+        <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
+    </div>
+</mat-card>

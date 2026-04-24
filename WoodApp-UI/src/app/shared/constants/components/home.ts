@@ -7,6 +7,7 @@ export const MENU_SUB_SELL_DEVIS = 'Devis';
 export const MENU_SUB_SELL_BC = 'Commande client';
 export const MENU_SUB_SELL_BL = 'Bon de Livraison';
 export const MENU_SUB_SELL_FACT = 'Facture';
+export const MENU_SUB_SELL_AVOIR = 'Avoir client';
 export const MENU_SUB_BON_SORTIE = 'Bon de sortie';
 
 // PURCHASE MENU
@@ -14,6 +15,7 @@ export const MENU_PURCHASE = 'Achat';
 export const MENU_SUB_PURCHASE_BC = 'Bon de Commande';
 export const MENU_SUB_PURCHASE_BR = 'Bon de Réception';
 export const MENU_SUB_PURCHASE_FACT = 'Facture';
+export const MENU_SUB_PURCHASE_AVOIR = 'Avoir fournisseur';
 
 // CUSTOMER MENU
 export const MENU_CLIENT = 'Client';
