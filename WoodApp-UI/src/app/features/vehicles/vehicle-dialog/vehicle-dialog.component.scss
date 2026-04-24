@@ -82,6 +82,10 @@
         gap: 2rem; // Spacious enough for width but not height
         margin-bottom: 0.5rem; // Very compact height
 
+        &.maintenance-row {
+          align-items: flex-start;
+        }
+
         .full-width {
           width: 100%;
         }
@@ -297,6 +301,7 @@
     font-size: 0.95rem;
     background: linear-gradient(135deg, #3F51B5 0%, #1A237E 100%);
     box-shadow: 0 8px 20px rgba(63, 81, 181, 0.2);
+    color: #ffffff !important;
   }
 }
 

@@ -76,12 +76,13 @@
         <span><mat-icon>oil_barrel</mat-icon> Maintenance & Entretien</span>
       </div>
 
-      <div class="row">
+      <div class="row maintenance-row">
         <mat-form-field appearance="outline" class="half-width">
           <mat-label>Date Dernière Vidange</mat-label>
           <input matInput [matDatepicker]="drainPicker" formControlName="drainingdate">
           <mat-datepicker-toggle matSuffix [for]="drainPicker"></mat-datepicker-toggle>
           <mat-datepicker #drainPicker></mat-datepicker>
+          <mat-icon matSuffix>event</mat-icon>
         </mat-form-field>
 
         <div class="half-width draining-checklist-container">
