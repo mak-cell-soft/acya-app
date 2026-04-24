@@ -46,9 +46,9 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
 
   // Filters
   filterSupplier: string = '';
-  filterDate: Date | null = null; // Default to null to show all invoices by default
-  filterStartDate?: Date;
-  filterEndDate?: Date;
+  filterDate: Date | null = null;
+  filterStartDate: Date | undefined = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  filterEndDate: Date | undefined = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
 
   allInvoices: MatTableDataSource<DocumentsRelationship> = new MatTableDataSource<DocumentsRelationship>();
   displayedInvoicessColumns: string[] = ['number', 'LastModified', 'counterpart', 'supplierreference', 'amount', 'payment', 'status', 'site', 'action'];
@@ -199,6 +199,33 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
 
   onFilterChange() {
     this.fetchInvoices();
+  }
+
+  /** Reset all filters back to the current-month default */
+  clearFilters(): void {
+    this.filterSupplier = '';
+    this.filterDate = null;
+    this.filterStartDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    this.filterEndDate = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
+    this.fetchInvoices();
+  }
+
+  onSingleDateSelected(date: Date | null) {
+    if (date) {
+      // Clear range when a specific date is chosen
+      this.filterStartDate = undefined;
+      this.filterEndDate = undefined;
+    }
+    this.filterDate = date;
+    this.onFilterChange();
+  }
+
+  onRangeDateSelected() {
+    if (this.filterStartDate || this.filterEndDate) {
+      // Clear single date when range is active
+      this.filterDate = null;
+    }
+    this.onFilterChange();
   }
 
   updateSummary() {

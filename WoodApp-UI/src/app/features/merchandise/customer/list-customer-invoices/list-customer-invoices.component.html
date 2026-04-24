@@ -19,7 +19,12 @@
 <!-- Filter Card -->
 <mat-card class="filter-card">
     <mat-card-header>
-        <mat-card-title>Filtres</mat-card-title>
+        <mat-card-title>
+            Filtres
+            <span class="active-filter-badge" style="font-size: 0.6em; background: #e8f5e9; color: #2e7d32; padding: 4px 12px; border-radius: 12px; margin-left: 12px; font-weight: 500; border: 1px solid #c8e6c9;">
+                Aujourd'hui par défaut
+            </span>
+        </mat-card-title>
     </mat-card-header>
     <mat-card-content class="filter-content">
         <mat-form-field appearance="outline">
@@ -35,7 +40,7 @@
 
         <mat-form-field appearance="outline">
             <mat-label>Date</mat-label>
-            <input matInput [matDatepicker]="pickerDate" [(ngModel)]="filterDate" (dateChange)="onFilterChange()">
+            <input matInput [matDatepicker]="pickerDate" [(ngModel)]="filterDate" (dateChange)="onSingleDateSelected($event.value)">
             <button *ngIf="filterDate" matSuffix mat-icon-button aria-label="Clear"
                 (click)="filterDate=null; onFilterChange()">
                 <mat-icon>clear</mat-icon>
@@ -47,11 +52,11 @@
         <mat-form-field appearance="outline">
             <mat-label>Période</mat-label>
             <mat-date-range-input [rangePicker]="pickerRange">
-                <input matStartDate [(ngModel)]="filterStartDate" (dateChange)="onFilterChange()" placeholder="Début">
-                <input matEndDate [(ngModel)]="filterEndDate" (dateChange)="onFilterChange()" placeholder="Fin">
+                <input matStartDate [(ngModel)]="filterStartDate" (dateChange)="onRangeDateSelected()" placeholder="Début">
+                <input matEndDate [(ngModel)]="filterEndDate" (dateChange)="onRangeDateSelected()" placeholder="Fin">
             </mat-date-range-input>
             <button *ngIf="filterStartDate || filterEndDate" matSuffix mat-icon-button aria-label="Clear"
-                (click)="filterStartDate=undefined; filterEndDate=undefined; onFilterChange()">
+                (click)="clearFilters()">
                 <mat-icon>clear</mat-icon>
             </button>
             <mat-datepicker-toggle matIconSuffix [for]="pickerRange"></mat-datepicker-toggle>

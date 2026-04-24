@@ -384,11 +384,11 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
     console.log('Payment Submitted:', paymentResult);
 
     const payment = new Payment();
-    payment.documentid = doc.id;
-    payment.customerid = doc.counterpart.id;
-    payment.paymentdate = paymentResult.date;
+    payment.documentId = doc.id;
+    payment.customerId = doc.counterpart.id;
+    payment.paymentDate = paymentResult.date;
     payment.amount = paymentResult.amount;
-    payment.paymentmethod = paymentResult.method;
+    payment.paymentMethod = paymentResult.method;
 
     // Handle details
     if (paymentResult.details) {

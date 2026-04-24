@@ -331,3 +331,22 @@ tr:hover {
 .summary-item:nth-child(3) { animation-delay: 0.2s; }
 .summary-item:nth-child(4) { animation-delay: 0.25s; }
 
+
+/* Premium Modal Overlay Overrides */
+::ng-deep .premium-modal-overlay .mat-mdc-dialog-container {
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+::ng-deep .premium-modal-overlay .mat-mdc-dialog-surface {
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 24px !important;
+    overflow: visible !important;
+}
+
+::ng-deep .cdk-overlay-dark-backdrop {
+    background: rgba(15, 23, 42, 0.7) !important;
+    backdrop-filter: blur(8px) !important;
+}

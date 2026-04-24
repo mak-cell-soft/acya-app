@@ -42,7 +42,7 @@
 
             <mat-form-field appearance="outline">
                 <mat-label>Date</mat-label>
-                <input matInput [matDatepicker]="pickerDate" [(ngModel)]="filterDate" (dateChange)="onFilterChange()">
+                <input matInput [matDatepicker]="pickerDate" [(ngModel)]="filterDate" (dateChange)="onSingleDateSelected($event.value)">
                 <button *ngIf="filterDate" matSuffix mat-icon-button aria-label="Clear"
                     (click)="filterDate=null; onFilterChange()">
                     <mat-icon>clear</mat-icon>
@@ -54,11 +54,11 @@
             <mat-form-field appearance="outline">
                 <mat-label>Période</mat-label>
                 <mat-date-range-input [rangePicker]="pickerRange">
-                    <input matStartDate [(ngModel)]="filterStartDate" (dateChange)="onFilterChange()" placeholder="Début">
-                    <input matEndDate [(ngModel)]="filterEndDate" (dateChange)="onFilterChange()" placeholder="Fin">
+                    <input matStartDate [(ngModel)]="filterStartDate" (dateChange)="onRangeDateSelected()" placeholder="Début">
+                    <input matEndDate [(ngModel)]="filterEndDate" (dateChange)="onRangeDateSelected()" placeholder="Fin">
                 </mat-date-range-input>
                 <button *ngIf="filterStartDate || filterEndDate" matSuffix mat-icon-button aria-label="Clear"
-                    (click)="filterStartDate=undefined; filterEndDate=undefined; onFilterChange()">
+                    (click)="clearFilters()">
                     <mat-icon>clear</mat-icon>
                 </button>
                 <mat-datepicker-toggle matIconSuffix [for]="pickerRange"></mat-datepicker-toggle>

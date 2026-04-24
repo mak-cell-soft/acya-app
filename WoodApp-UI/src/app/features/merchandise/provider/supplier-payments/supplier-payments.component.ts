@@ -45,6 +45,7 @@ import { CounterPartType_FR } from '../../../../shared/constants/list_of_constan
 
 // Shared components
 import { PaymentModalComponent } from '../../../../shared/components/modals/payment-modal/payment-modal.component';
+import { EcheanceDetailsModalComponent } from './echeance-details-modal/echeance-details-modal.component';
 import { MatToolbar } from "@angular/material/toolbar";
 
 // Register Chart.js plugins once
@@ -122,7 +123,7 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
 
   // Column definitions for both tables
   displayedInvoiceColumns = ['docnumber', 'updatedate', 'total_net_ttc', 'total_paid', 'remaining_balance', 'actions'];
-  displayedTraiteColumns = ['paymentmethod', 'instrumentNumber', 'bank', 'dueDate', 'amount', 'isPaidAtBank', 'actions'];
+  displayedTraiteColumns = ['paymentMethod', 'instrumentNumber', 'bank', 'dueDate', 'amount', 'isPaidAtBank', 'actions'];
 
   // Filter state
   showSettledInvoices = false;
@@ -309,7 +310,7 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
     this.chart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: data.map(d => new Date(d.dueDate).toLocaleDateString()),
+        labels: data.map(d => this.formatDate(d.dueDate)),
         datasets: [{
           label: 'Montant Échéances (TND)',
           data: data.map(d => d.totalAmount),
@@ -355,14 +356,28 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   showEcheanceDetails(detail: SupplierEcheanceDto) {
-    const names = detail.details.map(d => d.supplierName).join(', ');
-    this.snackBar.open(
-      `Échéances du ${new Date(detail.dueDate).toLocaleDateString()}: ` +
-      `${detail.totalAmount.toFixed(3)} TND (${detail.instrumentCount} effets). ` +
-      `Fournisseurs: ${names}`,
-      'Fermer',
-      { duration: 5000, panelClass: ['info-snackbar'] }
-    );
+    this.dialog.open(EcheanceDetailsModalComponent, {
+      width: '600px',
+      maxWidth: '90vw',
+      data: detail,
+      panelClass: 'premium-modal-overlay'
+    });
+  }
+
+  /** Helper to format date consistently and avoid timezone shifts */
+  private formatDate(dateInput: any): string {
+    if (!dateInput) return '--/--/----';
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return '--/--/----';
+
+    // If it's a string from backend like "2026-05-19T00:00:00", 
+    // new Date() might shift it if interpreted as UTC.
+    // We use fr-FR to ensure DD/MM/YYYY format
+    return d.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   }
 
   // ─── Actions ──────────────────────────────────────────────────────────────
@@ -396,12 +411,23 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
 
   private processPayment(invoice: Document, result: any) {
     const user = this.authService.getUserDetail();
+    
+    // Helper to format date as YYYY-MM-DD without UTC shift
+    const formatLocal = (d: any) => {
+      if (!d) return null;
+      const date = new Date(d);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     const payment: any = {
       documentId: invoice.id,
       customerId: invoice.counterpart?.id || 0,
       updatedbyid: user?.id ? +user.id : 0,
       amount: result.details?.amount || result.amount,
-      paymentDate: result.date,
+      paymentDate: formatLocal(result.date),
       paymentMethod: result.method,
       reference: result.details?.reference || '',
       notes: result.details?.notes || ''
@@ -415,9 +441,9 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
         bank: result.details.bank,
         owner: result.details.owner,
         porter: result.details.porter,
-        issueDate: result.details.paymentDate || result.date,
-        dueDate: result.details.dueDate,
-        expirationDate: result.details.expirationDate,
+        issueDate: formatLocal(result.details.paymentDate || result.date),
+        dueDate: formatLocal(result.details.dueDate),
+        expirationDate: formatLocal(result.details.expirationDate),
         isPaidAtBank: false
       };
     }

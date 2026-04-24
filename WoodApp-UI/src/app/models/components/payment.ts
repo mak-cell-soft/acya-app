@@ -1,12 +1,12 @@
 
 export class Payment {
     id: number = 0;
-    paymentId: number = 0; // Added to match backend DTO
-    documentid: number = 0;
-    customerid: number = 0;
-    paymentdate!: Date;
+    paymentId: number = 0;
+    documentId: number = 0;
+    customerId: number = 0;
+    paymentDate!: Date;
     amount: number = 0;
-    paymentmethod: string = '';
+    paymentMethod: string = '';
     reference: string = '';
     notes: string = '';
     createdat!: Date;

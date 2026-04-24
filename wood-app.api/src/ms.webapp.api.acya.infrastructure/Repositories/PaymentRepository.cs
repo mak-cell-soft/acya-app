@@ -121,7 +121,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                         PaymentId = pi.PaymentId,
                         DocumentId = pi.Payment?.DocumentId ?? 0,
                         DocumentNumber = pi.Payment?.Document?.DocNumber,
-                        SupplierName = pi.Payment?.Customer?.Fullname,
+                        SupplierName = !string.IsNullOrEmpty(pi.Payment?.Customer?.Name) ? pi.Payment.Customer.Name : pi.Payment?.Customer?.Fullname,
                         InstrumentNumber = pi.InstrumentNumber,
                         Bank = pi.Bank,
                         Amount = pi.Payment?.Amount ?? 0,

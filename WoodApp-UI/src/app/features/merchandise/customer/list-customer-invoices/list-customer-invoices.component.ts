@@ -93,7 +93,6 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
             next: (response: Document[]) => {
                 let filteredData = response;
                 console.log(filteredData);
-                this.allCustomerInvoices.data = filteredData;
                 // Filter by Date (Single Date)
                 if (this.filterDate && !this.filterStartDate && !this.filterEndDate) {
                     filteredData = filteredData.filter(d => isSameDay(d.updatedate, this.filterDate!));
@@ -135,6 +134,31 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
 
     onFilterChange() {
         this.fetchInvoices();
+    }
+
+    /** Reset filters to current-day default */
+    clearFilters(): void {
+        this.filterClient = '';
+        this.filterDate = new Date(); // Today
+        this.filterStartDate = undefined;
+        this.filterEndDate = undefined;
+        this.fetchInvoices();
+    }
+
+    onSingleDateSelected(date: Date | null) {
+        if (date) {
+            this.filterStartDate = undefined;
+            this.filterEndDate = undefined;
+        }
+        this.filterDate = date;
+        this.onFilterChange();
+    }
+
+    onRangeDateSelected() {
+        if (this.filterStartDate || this.filterEndDate) {
+            this.filterDate = null;
+        }
+        this.onFilterChange();
     }
 
     updateSummary() {

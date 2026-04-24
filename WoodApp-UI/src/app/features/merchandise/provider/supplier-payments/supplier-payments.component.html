@@ -148,11 +148,11 @@
       </mat-card-header>
       <mat-card-content>
         <table mat-table [dataSource]="traitesDataSource" matSort #traiteSort="matSort">
-          <ng-container matColumnDef="paymentmethod">
+          <ng-container matColumnDef="paymentMethod">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Mode </th>
             <td mat-cell *matCellDef="let element">
-              <span class="method-badge" [ngClass]="element.paymentmethod?.toLowerCase()">
-                {{element.paymentmethod}}
+              <span class="method-badge" [ngClass]="element.paymentMethod?.toLowerCase()">
+                {{element.paymentMethod}}
               </span>
             </td>
           </ng-container>

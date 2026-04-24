@@ -252,11 +252,11 @@ export class DocumentConversionModalComponent implements OnInit {
     savePayment(paymentResult: any) {
         const doc = this.documents[0];
         const payment = new Payment();
-        payment.documentid = doc.id;
-        payment.customerid = doc.counterpart.id;
-        payment.paymentdate = paymentResult.date;
+        payment.documentId = doc.id;
+        payment.customerId = doc.counterpart.id;
+        payment.paymentDate = paymentResult.date;
         payment.amount = paymentResult.amount;
-        payment.paymentmethod = paymentResult.method;
+        payment.paymentMethod = paymentResult.method;
 
         if (paymentResult.details) {
             if (paymentResult.method === 'ESPECE') {
