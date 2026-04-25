@@ -101,7 +101,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
     public async Task<bool> updateStockByMerchandises(Document document)
     {
       if (document?.DocumentMerchandises?.Any() != true) // Combined null/empty check
-        throw new ArgumentException("Document or its merchandises are invalid.");
+        return true; // No merchandises to update, return true
 
       var idAppUser = document.UpdatedById;
       var appuser = await context.AppUsers

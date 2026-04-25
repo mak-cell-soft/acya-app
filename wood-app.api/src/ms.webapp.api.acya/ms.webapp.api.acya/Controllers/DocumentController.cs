@@ -366,9 +366,15 @@ namespace ms.webapp.api.acya.api.Controllers
     public async Task<ActionResult> Add(DocumentDto dto)
     {
       // Validate the DTO
-      if (dto == null || dto.type == null || dto.merchandises == null || !dto.merchandises.Any())
+      if (dto == null || dto.type == null)
       {
-        return BadRequest("Invalid document data or no merchandises provided.");
+        return BadRequest("Invalid document data.");
+      }
+
+      // If it's NOT a service document, it MUST have merchandises
+      if (!dto.isservice && (dto.merchandises == null || !dto.merchandises.Any()))
+      {
+        return BadRequest("Non-service documents must have at least one merchandise line.");
       }
 
       // Validate the updatedbyid
@@ -462,6 +468,7 @@ namespace ms.webapp.api.acya.api.Controllers
             IsInvoiced = dto.isinvoiced,
             BillingStatus = dto.billingstatus,
             WithHoldingTax = dto.withholdingtax,
+            Isservice = dto.isservice,
 
           };
 
@@ -483,13 +490,29 @@ namespace ms.webapp.api.acya.api.Controllers
           }
 
           // Ensure HoldingTaxeId is null if HoldingTaxes is null
-          if (doc.HoldingTaxes == null)
+          if (dto.holdingtax?.id > 0)
           {
-            doc.HoldingTaxId = null;
+            doc.HoldingTaxes = await _context.HoldingTaxes.FindAsync(dto.holdingtax.id);
+            doc.HoldingTaxId = dto.holdingtax.id;
+            if (doc.HoldingTaxes != null)
+              _context.Entry(doc.HoldingTaxes).State = EntityState.Unchanged;
           }
           else
           {
-            _context.Entry(doc.HoldingTaxes).State = EntityState.Unchanged;
+            doc.HoldingTaxId = null;
+          }
+
+          // Handle Taxe (Droit de timbre)
+          if (dto.taxe?.id > 0)
+          {
+            doc.Taxes = await _context.AppVariables.FindAsync(dto.taxe.id);
+            doc.TaxeId = dto.taxe.id;
+            if (doc.Taxes != null)
+              _context.Entry(doc.Taxes).State = EntityState.Unchanged;
+          }
+          else
+          {
+            doc.TaxeId = null;
           }
 
           // Handle AppUser relationship
@@ -506,183 +529,175 @@ namespace ms.webapp.api.acya.api.Controllers
            */
           #region Process with Merchandises
 
-          if (dto.merchandises.Any(m => m.article?.id == null))
+          if (dto.merchandises != null && dto.merchandises.Any())
           {
-            return BadRequest("All merchandises must have an article ID.");
-          }
-
-          // Get existing merchandises by matching ArticleId and PackageReference
-          var existingMerchandiseIds = await _merchandiseRepository.GetIdsByPackageReference(dto);
-          var existingMerchandises = await _merchandiseRepository.GetByIdsAsync(existingMerchandiseIds);
-
-          // Create a dictionary for quick lookup of existing merchandises by ArticleId and PackageReference
-          var existingMerchDict = existingMerchandises
-                .Where(m => m.Articles != null)
-                .GroupBy(m => new { ArticleId = m.Articles!.Id, m.PackageReference })
-                .ToDictionary(
-                  g => g.Key,
-                  g => g.First() // Take the first merchandise for each unique key
-                );
-
-          var newMerchandises = new List<Merchandise>();
-
-          if (!existingMerchandises.Any() && !dto.merchandises.Any(m => m.id == 0))
-          {
-            return BadRequest("Invalid merchandise data provided.");
-          }
-
-          foreach (var merchDto in dto.merchandises)
-          {
-            // Skip if no article (should be validated earlier)
-            if (merchDto.article == null) continue;
-
-            Merchandise? merchandise;
-
-            // Case 1: Explicit ID provided - use that (existing or throw error)
-            if (merchDto.id > 0)
+            if (dto.merchandises.Any(m => m.article?.id == null))
             {
-              merchandise = await _merchandiseRepository.GetById(merchDto.id);
-              if (merchandise == null)
-              {
-                await transaction.RollbackAsync();
-                return BadRequest($"Merchandise with ID {merchDto.id} not found.");
-              }
-
-              // Update merchandise properties
-              merchandise.UpdateFromDto(merchDto);
-              _context.Entry(merchandise).State = EntityState.Modified;
+              return BadRequest("All merchandises must have an article ID.");
             }
-            // Case 2: No ID provided - try to find existing by ArticleId+PackageReference or create new
-            else
+
+            // Get existing merchandises by matching ArticleId and PackageReference
+            var existingMerchandiseIds = await _merchandiseRepository.GetIdsByPackageReference(dto);
+            var existingMerchandises = await _merchandiseRepository.GetByIdsAsync(existingMerchandiseIds);
+
+            // Create a dictionary for quick lookup of existing merchandises by ArticleId and PackageReference
+            var existingMerchDict = existingMerchandises
+                  .Where(m => m.Articles != null)
+                  .GroupBy(m => new { ArticleId = m.Articles!.Id, m.PackageReference })
+                  .ToDictionary(
+                    g => g.Key,
+                    g => g.First() // Take the first merchandise for each unique key
+                  );
+
+            var newMerchandises = new List<Merchandise>();
+
+            foreach (var merchDto in dto.merchandises)
             {
-              var key = new { ArticleId = merchDto.article.id!.Value, PackageReference = merchDto.packagereference };
+              // Skip if no article (should be validated earlier)
+              if (merchDto.article == null) continue;
 
-              if (existingMerchDict.TryGetValue(key, out var existingMerch))
+              Merchandise? merchandise;
+
+              // Case 1: Explicit ID provided - use that (existing or throw error)
+              if (merchDto.id > 0)
               {
-                // Use existing merchandise
-                merchandise = existingMerch;
-
-                // First detach the existing entity if it's being tracked
-                var existingEntry = _context.Entry(merchandise);
-                if (existingEntry.State != EntityState.Detached)
+                merchandise = await _merchandiseRepository.GetById(merchDto.id);
+                if (merchandise == null)
                 {
-                  existingEntry.State = EntityState.Detached;
+                  await transaction.RollbackAsync();
+                  return BadRequest($"Merchandise with ID {merchDto.id} not found.");
                 }
-                
+
+                // Update merchandise properties
+                merchandise.UpdateFromDto(merchDto);
                 _context.Entry(merchandise).State = EntityState.Modified;
               }
+              // Case 2: No ID provided - try to find existing by ArticleId+PackageReference or create new
               else
               {
-                // Create new merchandise
-                merchandise = new Merchandise(merchDto)
+                var key = new { ArticleId = merchDto.article.id!.Value, PackageReference = merchDto.packagereference };
+
+                if (existingMerchDict.TryGetValue(key, out var existingMerch))
                 {
-                  PackageReference = merchDto.packagereference,
-                  Description = merchDto.description,
-                  IsInvoicible = merchDto.isinvoicible,
-                  AllowNegativStock = merchDto.allownegativstock,
-                  IsMergedWith = merchDto.ismergedwith,
-                  IdMergedMerchandise = merchDto.ismergedwith ? merchDto.idmergedmerchandise : 0,
-                  IsDeleted = merchDto.isdeleted,
-                  UpdatedById = merchDto.updatedbyid
-                };
+                  // Use existing merchandise
+                  merchandise = existingMerch;
 
-                // Reset the Articles navigation property to avoid tracking conflicts
-                var articleId = merchDto.article.id;
-                merchandise.Articles = null;
+                  // First detach the existing entity if it's being tracked
+                  var existingEntry = _context.Entry(merchandise);
+                  if (existingEntry.State != EntityState.Detached)
+                  {
+                    existingEntry.State = EntityState.Detached;
+                  }
+                  
+                  _context.Entry(merchandise).State = EntityState.Modified;
+                }
+                else
+                {
+                  // Create new merchandise
+                  merchandise = new Merchandise(merchDto)
+                  {
+                    PackageReference = merchDto.packagereference,
+                    Description = merchDto.description,
+                    IsInvoicible = merchDto.isinvoicible,
+                    AllowNegativStock = merchDto.allownegativstock,
+                    IsMergedWith = merchDto.ismergedwith,
+                    IdMergedMerchandise = merchDto.ismergedwith ? merchDto.idmergedmerchandise : 0,
+                    IsDeleted = merchDto.isdeleted,
+                    UpdatedById = merchDto.updatedbyid
+                  };
 
-                _context.Merchandises.Add(merchandise);
+                  // Reset the Articles navigation property to avoid tracking conflicts
+                  var articleId = merchDto.article.id;
+                  merchandise.Articles = null;
 
-                // Then set the foreign key directly
-                merchandise.ArticleId = articleId.Value;
-                _context.Entry(merchandise).Reference(m => m.Articles).IsModified = false;
+                  _context.Merchandises.Add(merchandise);
 
-                newMerchandises.Add(merchandise);
+                  // Then set the foreign key directly
+                  merchandise.ArticleId = articleId.Value;
+                  _context.Entry(merchandise).Reference(m => m.Articles).IsModified = false;
+
+                  newMerchandises.Add(merchandise);
+                }
               }
-            }
 
-            // Create DocumentMerchandise record
-            var docMerchandise = new DocumentMerchandise
-            {
-              Document = doc,
-              //MerchandiseId = merchandise.Id, // Set the foreign key directly
-              Merchandise = merchandise,
-              Quantity = merchDto.quantity,
-              UnitPriceHT = merchDto.unit_price_ht,
-              CostHT = merchDto.cost_ht,
-              CostDiscountValue = merchDto.cost_discount_value,
-              CostNetHT = merchDto.cost_net_ht,
-              CostTTC = merchDto.cost_ttc,
-              DiscountPercentage = merchDto.discount_percentage,
-              CreationDate = DateTime.UtcNow,
-              UpdateDate = DateTime.UtcNow
-            };
-
-            // Handle merchandise entity state
-            if (merchandise.Id > 0) // Existing merchandise
-            {
-              // Ensure merchandise is properly attached and marked as unchanged
-              var entry = _context.Entry(merchandise);
-              if (entry.State == EntityState.Detached)
+              // Create DocumentMerchandise record
+              var docMerchandise = new DocumentMerchandise
               {
-                _context.Merchandises.Attach(merchandise);
-              }
-              entry.State = EntityState.Unchanged;
-
-              // Alternative: Fetch fresh from DB to ensure proper tracking
-              // merchandise = await _context.Merchandises.FindAsync(merchandise.Id);
-              // docMerchandise.Merchandise = merchandise;
-            }
-            else // New merchandise
-            {
-              _context.Merchandises.Add(merchandise);
-              // Consider saving new merch first if needed
-              // await _context.SaveChangesAsync();
-            }
-
-            // Handle QuantityMovement if lengths exist
-            if (merchDto.lisoflengths != null && merchDto.lisoflengths.Any())
-            {
-              var newQtyMovement = new QuantityMovement
-              {
+                Document = doc,
+                //MerchandiseId = merchandise.Id, // Set the foreign key directly
+                Merchandise = merchandise,
                 Quantity = merchDto.quantity,
-                LengthIds = string.Join(",", merchDto.lisoflengths.Select(l => l.length?.id)),
+                UnitPriceHT = merchDto.unit_price_ht,
+                CostHT = merchDto.cost_ht,
+                CostDiscountValue = merchDto.cost_discount_value,
+                CostNetHT = merchDto.cost_net_ht,
+                CostTTC = merchDto.cost_ttc,
+                DiscountPercentage = merchDto.discount_percentage,
                 CreationDate = DateTime.UtcNow,
-                UpdateDate = DateTime.UtcNow,
-                DocumentMerchandise = docMerchandise // Set the navigation property
+                UpdateDate = DateTime.UtcNow
               };
 
-              foreach (var lengthDto in merchDto.lisoflengths)
+              // Handle merchandise entity state
+              if (merchandise.Id > 0) // Existing merchandise
               {
-                var newLength = new ListOfLength
+                // Ensure merchandise is properly attached and marked as unchanged
+                var entry = _context.Entry(merchandise);
+                if (entry.State == EntityState.Detached)
                 {
-                  NumberOfPieces = lengthDto.nbpieces!,
-                  Quantity = lengthDto.quantity,
-                  QuantityMovements = newQtyMovement
-                };
-
-                if (lengthDto.length != null && lengthDto.length.id > 0)
-                {
-                  newLength.AppVarLength = await _context.AppVariables.FindAsync(lengthDto.length.id);
-                  _context.Entry(newLength.AppVarLength!).State = EntityState.Unchanged;
+                  _context.Merchandises.Attach(merchandise);
                 }
-
-                if (newLength.NumberOfPieces > 0)
-                {
-                  newQtyMovement.ListOfLengths.Add(newLength);
-                }
+                entry.State = EntityState.Unchanged;
+              }
+              else // New merchandise
+              {
+                _context.Merchandises.Add(merchandise);
               }
 
-              docMerchandise.QuantityMovements = newQtyMovement;
-            }
+              // Handle QuantityMovement if lengths exist
+              if (merchDto.lisoflengths != null && merchDto.lisoflengths.Any())
+              {
+                var newQtyMovement = new QuantityMovement
+                {
+                  Quantity = merchDto.quantity,
+                  LengthIds = string.Join(",", merchDto.lisoflengths.Select(l => l.length?.id)),
+                  CreationDate = DateTime.UtcNow,
+                  UpdateDate = DateTime.UtcNow,
+                  DocumentMerchandise = docMerchandise // Set the navigation property
+                };
 
-            // Ensure the merchandise is properly attached
-            if (_context.Entry(merchandise).State == EntityState.Detached)
-            {
-              _context.Merchandises.Attach(merchandise);
-              _context.Entry(merchandise).State = EntityState.Unchanged;
-            }
+                foreach (var lengthDto in merchDto.lisoflengths)
+                {
+                  var newLength = new ListOfLength
+                  {
+                    NumberOfPieces = lengthDto.nbpieces!,
+                    Quantity = lengthDto.quantity,
+                    QuantityMovements = newQtyMovement
+                  };
 
-            _context.DocumentMerchandises.Add(docMerchandise);
+                  if (lengthDto.length != null && lengthDto.length.id > 0)
+                  {
+                    newLength.AppVarLength = await _context.AppVariables.FindAsync(lengthDto.length.id);
+                    _context.Entry(newLength.AppVarLength!).State = EntityState.Unchanged;
+                  }
+
+                  if (newLength.NumberOfPieces > 0)
+                  {
+                    newQtyMovement.ListOfLengths.Add(newLength);
+                  }
+                }
+
+                docMerchandise.QuantityMovements = newQtyMovement;
+              }
+
+              // Ensure the merchandise is properly attached
+              if (_context.Entry(merchandise).State == EntityState.Detached)
+              {
+                _context.Merchandises.Attach(merchandise);
+                _context.Entry(merchandise).State = EntityState.Unchanged;
+              }
+
+              _context.DocumentMerchandises.Add(docMerchandise);
+            }
           }
           #endregion
 

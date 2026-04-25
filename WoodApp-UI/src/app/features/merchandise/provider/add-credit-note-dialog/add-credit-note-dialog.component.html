@@ -36,6 +36,37 @@
                 </mat-form-field>
             </div>
 
+            <!-- Invoice Details Display -->
+            <div class="selected-invoice-details" *ngIf="selectedInvoice">
+                <div class="detail-grid">
+                    <!-- Date & TVA %: Horizontal -->
+                    <div class="detail-tile-group">
+                        <div class="detail-tile horizontal">
+                            <span class="tile-label">Date:</span>
+                            <span class="tile-value">{{selectedInvoice.updatedate | date:'dd/MM/yyyy'}}</span>
+                        </div>
+                        <div class="detail-tile horizontal tva-percent">
+                            <span class="tile-label">TVA (%):</span>
+                            <span class="tile-value">{{ (selectedInvoice.total_tva_doc / selectedInvoice.total_ht_net_doc) * 100 | number:'1.0-2' }}%</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Others: Vertical -->
+                    <div class="detail-tile vertical">
+                        <span class="tile-label">Montant HT</span>
+                        <span class="tile-value">{{selectedInvoice.total_ht_net_doc | number:'1.3-3'}} TND</span>
+                    </div>
+                    <div class="detail-tile vertical">
+                        <span class="tile-label">Valeur TVA</span>
+                        <span class="tile-value">{{selectedInvoice.total_tva_doc | number:'1.3-3'}} TND</span>
+                    </div>
+                    <div class="detail-tile vertical ttc-tile">
+                        <span class="tile-label">Total TTC</span>
+                        <span class="tile-value">{{selectedInvoice.total_net_ttc | number:'1.3-3'}} TND</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Description -->
             <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Description / Motif</mat-label>
@@ -47,24 +78,22 @@
                 <h3>Montants de l'avoir</h3>
                 <div class="form-row">
                     <mat-form-field appearance="outline" class="flex-1">
+                        <mat-label>Remise (%)</mat-label>
+                        <input matInput type="number" formControlName="discountPercentage" min="0" max="100">
+                        <span matSuffix>%</span>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="flex-1">
                         <mat-label>Montant HT</mat-label>
                         <input matInput type="number" formControlName="amountHT" step="0.001">
                         <span matSuffix>TND</span>
                     </mat-form-field>
+                </div>
 
-                    <mat-form-field appearance="outline" class="flex-1">
-                        <mat-label>Taux TVA</mat-label>
-                        <mat-select formControlName="tva">
-                            <mat-option *ngFor="let t of tvas" [value]="t">
-                                {{t.name}} ({{t.value}}%)
-                            </mat-option>
-                        </mat-select>
-                    </mat-form-field>
-
-                    <div class="ttc-display">
-                        <span class="label">Total TTC</span>
-                        <span class="value">{{form.get('amountTTC')?.value | number:'1.3-3'}} TND</span>
-                    </div>
+                <!-- TTC Display: Horizontal & Bottom -->
+                <div class="ttc-display-bottom">
+                    <span class="label">Total TTC de l'avoir:</span>
+                    <span class="value">{{form.get('amountTTC')?.value | number:'1.3-3'}} TND</span>
                 </div>
             </div>
         </form>

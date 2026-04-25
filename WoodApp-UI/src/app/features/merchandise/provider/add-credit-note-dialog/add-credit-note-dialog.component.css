@@ -45,6 +45,71 @@ mat-dialog-content {
     padding: 24px !important;
 }
 
+.selected-invoice-details {
+    background: #f1f5f9;
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    border-left: 4px solid #3b82f6;
+}
+
+.detail-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+}
+
+.detail-tile-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1.5;
+}
+
+.detail-tile {
+    display: flex;
+    gap: 4px;
+}
+
+.detail-tile.horizontal {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.detail-tile.vertical {
+    flex-direction: column;
+}
+
+.detail-tile.horizontal .tile-label {
+    min-width: 45px;
+}
+
+.tva-percent .tile-value {
+    color: #ef4444; /* Reddish color for TVA percentage to distinguish it */
+    font-size: 14px;
+}
+
+.tile-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tile-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.ttc-tile .tile-value {
+    color: #3b82f6;
+}
+
 .credit-note-form {
     display: flex;
     flex-direction: column;
@@ -54,6 +119,7 @@ mat-dialog-content {
 .form-row {
     display: flex;
     gap: 16px;
+    align-items: center;
 }
 
 .flex-1 { flex: 1; }
@@ -62,7 +128,7 @@ mat-dialog-content {
 
 .financial-section {
     background: #f8fafc;
-    padding: 20px;
+    padding: 24px;
     border-radius: 16px;
     margin-top: 8px;
 }
@@ -76,24 +142,26 @@ mat-dialog-content {
     letter-spacing: 0.5px;
 }
 
-.ttc-display {
-    flex: 1;
+.ttc-display-bottom {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-end;
-    padding-right: 12px;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed #cbd5e1;
 }
 
-.ttc-display .label {
-    font-size: 12px;
+.ttc-display-bottom .label {
+    font-size: 13px;
     font-weight: 600;
     color: #64748b;
     text-transform: uppercase;
 }
 
-.ttc-display .value {
-    font-size: 24px;
+.ttc-display-bottom .value {
+    font-size: 28px;
     font-weight: 800;
     color: #16a34a;
 }
