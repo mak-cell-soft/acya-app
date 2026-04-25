@@ -55,13 +55,15 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
   displayedInvoicessColumns: string[] = ['number', 'LastModified', 'counterpart', 'supplierreference', 'amount', 'payment', 'status', 'site', 'action'];
   columnsToDisplayWithExpand = [...this.displayedInvoicessColumns, 'expand'];
 
-  expandedElement: Document | null = null;
+  expandedElement: DocumentsRelationship | null = null;
 
   // Summary
   totalHt: number = 0;
   totalTva: number = 0;
   totalTtc: number = 0;
   totalNetPayable: number = 0;
+  totalCreditNotes: number = 0;
+  totalRemaining: number = 0;
   invoiceCount: number = 0;
 
   @ViewChild(MatPaginator) PaginationInvoices!: MatPaginator;
@@ -234,12 +236,22 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
     this.totalHt = this.allInvoices.data.reduce((acc, curr) => acc + (curr.parentDocument?.total_ht_net_doc || 0), 0);
     this.totalTva = this.allInvoices.data.reduce((acc, curr) => acc + (curr.parentDocument?.total_tva_doc || 0), 0);
     this.totalTtc = this.totalHt + this.totalTva;
-    // NOTE: Calculer le Net à Payer global (TTC - RS pour chaque facture)
+    
+    // Theoretical net (TTC - RS)
     this.totalNetPayable = this.allInvoices.data.reduce((acc, curr) => {
       const doc = curr.parentDocument;
       if (!doc) return acc;
-      // Utiliser total_net_payable s'il est déjà calculé par le back, sinon TTC
       return acc + (doc.total_net_payable ?? doc.total_net_ttc ?? 0);
+    }, 0);
+
+    // Sum of all credit notes linked to these invoices
+    this.totalCreditNotes = this.allInvoices.data.reduce((acc, curr) => {
+        return acc + (curr.parentDocument?.total_credit_notes || 0);
+    }, 0);
+
+    // Actual remaining balance (NetPayable - Paid - CreditNotes)
+    this.totalRemaining = this.allInvoices.data.reduce((acc, curr) => {
+        return acc + (curr.parentDocument?.remaining_balance || 0);
     }, 0);
   }
 
@@ -263,6 +275,14 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
         });
       }
     });
+  }
+
+  getReceipts(element: DocumentsRelationship) {
+    return element.childDocuments?.filter(d => d.type === 2) || []; // supplierReceipt
+  }
+
+  getCreditNotes(element: DocumentsRelationship) {
+    return element.childDocuments?.filter(d => d.type === 8) || []; // supplierInvoiceReturn
   }
 
   // Helpers for Status
@@ -291,8 +311,8 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
       return 'Non payé';
   }
 
-  displaySettings() {
-    this.invoiceSettings = !this.invoiceSettings;
+  toggleExpand(element: DocumentsRelationship) {
+    this.expandedElement = this.expandedElement === element ? null : element;
   }
 
   onExport() {
@@ -345,7 +365,7 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
   createCreditNote(doc: Document | null) {
     const dialogRef = this.dialog.open(AddCreditNoteDialogComponent, {
       width: '800px',
-      data: { type: 'supplier' }
+      data: { type: 'supplier', invoice: doc }
     });
 
     dialogRef.afterClosed().subscribe(result => {

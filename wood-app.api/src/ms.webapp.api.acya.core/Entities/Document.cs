@@ -36,6 +36,7 @@ namespace ms.webapp.api.acya.core.Entities
     public double TotalCostNetTTCDoc { get; set; }
     public double TotalCostTvaDoc { get; set; } = 0;
     public double TotalCostDiscountDoc { get; set; }
+    public double TotalCreditNotes { get; set; } = 0;
 
     /**
     * Holding Taxe : Retenue à la source

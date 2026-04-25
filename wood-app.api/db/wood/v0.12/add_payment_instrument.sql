@@ -35,3 +35,6 @@ ALTER TABLE tbl_stock ADD COLUMN minimumstock numeric(19,4) DEFAULT 0;
 
 -- Add reference column to tbl_holding_tax table
 ALTER TABLE tbl_holding_tax ADD COLUMN reference text;
+
+-- Add total_credit_notes column to tbl_document table with default value of 0
+ALTER TABLE tbl_document ADD COLUMN total_credit_notes numeric(19,4) DEFAULT 0;

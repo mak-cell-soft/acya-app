@@ -29,6 +29,7 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
             entity.Property(e => e.TotalCostNetTTCDoc).HasColumnName("totalcostpricettc").HasColumnType("numeric(19,4)");
             entity.Property(e => e.TotalCostTvaDoc).HasColumnName("totalcosttva").HasColumnType("numeric(19,4)");
             entity.Property(e => e.TotalCostDiscountDoc).HasColumnName("totalcostdiscount").HasColumnType("numeric(19,4)");
+            entity.Property(e => e.TotalCreditNotes).HasColumnName("total_credit_notes").HasColumnType("numeric(19,4)");
             // End Cost Doc Details
             entity.Property(e => e.HoldingTaxId).HasColumnName("holdingtaxid");
             entity.Property(e => e.TaxeId).HasColumnName("taxeid");

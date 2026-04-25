@@ -15,6 +15,8 @@ export interface PaymentModalData {
     totalNetPayable?: number;
     withholdingtax?: boolean;
     remainingAmount: number;
+    // Credit notes (Avoirs financiers) already applied to this invoice
+    totalCreditNotes?: number;
     ownerFullName: string;
     porterName: string;
     porterId: number;
@@ -31,6 +33,8 @@ export class PaymentModalComponent implements OnInit {
     paymentForm: FormGroup;
     selectedPaymentMethod: 'ESPECE' | 'CHEQUE' | 'TRAITE' | 'VIREMENT' | 'CARTE' = 'ESPECE';
     isLoading: boolean = false;
+    // Guard against double-click on confirm button
+    isSubmitting: boolean = false;
 
     abort_button_text: string = ABORT_BUTTON;
     register_button_text: string = REGISTER_BUTTON;
@@ -74,23 +78,27 @@ export class PaymentModalComponent implements OnInit {
             .subscribe({
                 next: (payments) => {
                     const totalPaid = (payments || []).reduce((acc, curr) => acc + (curr.amount || 0), 0);
+                    // Credit notes (Avoirs financiers) already applied to this invoice
+                    const totalCreditNotes = this.data.totalCreditNotes || 0;
                     // If RS is applied, target the net payable amount, otherwise target total TTC
-                    const targetTotal = (this.data.withholdingtax && this.data.totalNetPayable) ? this.data.totalNetPayable : this.data.totalAmount;
-                    this.data.remainingAmount = Number((Number(targetTotal) - totalPaid).toFixed(3));
-                    
+                    const targetTotal = (this.data.withholdingtax && this.data.totalNetPayable)
+                        ? this.data.totalNetPayable
+                        : this.data.totalAmount;
+                    // Remaining = Net payable - cash payments already made - credit notes applied
+                    this.data.remainingAmount = Number((Number(targetTotal) - totalPaid - totalCreditNotes).toFixed(3));
+                    // Clamp to zero (cannot go negative)
+                    if (this.data.remainingAmount < 0) this.data.remainingAmount = 0;
+
                     // Add validator for maximum amount (cannot pay more than remaining balance)
                     this.paymentForm.get('amount')?.setValidators([
-                        Validators.required, 
-                        Validators.min(0), 
+                        Validators.required,
+                        Validators.min(0.001),
                         Validators.max(this.data.remainingAmount)
                     ]);
-                    
-                    // Update form amount to the calculated remaining amount
+
+                    // Pre-fill form with the calculated remaining amount
                     const suggestedAmount = this.data.remainingAmount > 0 ? this.data.remainingAmount.toFixed(3) : '0.000';
-                    this.paymentForm.patchValue({
-                        amount: suggestedAmount
-                    });
-                    
+                    this.paymentForm.patchValue({ amount: suggestedAmount });
                     this.paymentForm.get('amount')?.updateValueAndValidity();
                 },
                 error: (err) => {
@@ -118,7 +126,11 @@ export class PaymentModalComponent implements OnInit {
     }
 
     onConfirm(): void {
-        if (!this.isValid()) return;
+        // Guard: block if form invalid, balance still loading, or already submitted
+        if (!this.isValid() || this.isLoading || this.isSubmitting) return;
+
+        // Lock the button immediately to prevent double-click
+        this.isSubmitting = true;
 
         let result: any = {
             method: this.selectedPaymentMethod,
@@ -140,7 +152,7 @@ export class PaymentModalComponent implements OnInit {
                 notes: this.paymentForm.get('notes')?.value
             };
         } else {
-            // Cash
+            // Cash / Espèce
             result.details = {
                 notes: this.paymentForm.get('notes')?.value
             };

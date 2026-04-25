@@ -34,7 +34,7 @@ export class AddCreditNoteDialogComponent implements OnInit {
     private appVarService: AppVariableService,
     private toastr: ToastrService,
     private dialogRef: MatDialogRef<AddCreditNoteDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { type: 'supplier' | 'customer' }
+    @Inject(MAT_DIALOG_DATA) public data: { type: 'supplier' | 'customer', invoice?: Document }
   ) {
     this.createForm();
   }
@@ -42,6 +42,16 @@ export class AddCreditNoteDialogComponent implements OnInit {
   ngOnInit(): void {
     this.loadSuppliers();
     this.loadTVAs();
+
+    // If an invoice is passed, pre-select the supplier and the invoice
+    if (this.data.invoice) {
+      // We need to wait for suppliers to be loaded if we want to match the object reference,
+      // but here we can just set it directly as CounterpartDto
+      this.form.patchValue({
+          counterpart: this.data.invoice.counterpart,
+          parentInvoice: this.data.invoice
+      });
+    }
     
     // Listen to supplier changes to load their invoices
     this.form.get('counterpart')?.valueChanges.subscribe(supplier => {
@@ -112,6 +122,14 @@ export class AddCreditNoteDialogComponent implements OnInit {
     const docType = this.data.type === 'supplier' ? DocumentTypes.supplierInvoice : DocumentTypes.customerInvoice;
     this.docService.GetByType(docType).subscribe(res => {
       this.invoices = res.filter(d => d.counterpart?.id === supplierId);
+      
+      // Ensure pre-selected invoice is correctly matched from the new list
+      if (this.data.invoice) {
+        const match = this.invoices.find(inv => inv.id === this.data.invoice?.id);
+        if (match) {
+          this.form.get('parentInvoice')?.setValue(match);
+        }
+      }
     });
   }
 
@@ -216,5 +234,9 @@ export class AddCreditNoteDialogComponent implements OnInit {
 
   onCancel() {
     this.dialogRef.close();
+  }
+
+  compareById(c1: any, c2: any): boolean {
+    return c1 && c2 ? c1.id === c2.id : c1 === c2;
   }
 }

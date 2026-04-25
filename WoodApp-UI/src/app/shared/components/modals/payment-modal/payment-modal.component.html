@@ -121,9 +121,13 @@
         <button mat-button (click)="onCancel()" class="btn-cancel">
             {{abort_button_text}}
         </button>
-        <button mat-raised-button color="primary" [disabled]="!isValid()" (click)="onConfirm()" class="btn-confirm">
-            <mat-icon>check_circle</mat-icon>
-            Confirmer le paiement
+        <button mat-raised-button color="primary" 
+                [disabled]="!isValid() || isLoading || isSubmitting" 
+                (click)="onConfirm()" 
+                class="btn-confirm"
+                [class.submitting]="isSubmitting">
+            <mat-icon>{{ isSubmitting ? 'hourglass_empty' : 'check_circle' }}</mat-icon>
+            {{ isSubmitting ? 'Traitement...' : 'Confirmer le paiement' }}
         </button>
     </div>
 </div>

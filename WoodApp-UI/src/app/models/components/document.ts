@@ -27,6 +27,7 @@ export class Document {
     total_net_ttc: number = 0;
     total_net_payable?: number;
     total_paid?: number;
+    total_credit_notes?: number;
     remaining_balance?: number;
 
     /**

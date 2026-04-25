@@ -231,7 +231,19 @@
     background: #0ea5e9;
     color: white;
     box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
-    &:hover { background: #0284c7; }
+    &:hover:not([disabled]) { background: #0284c7; }
+    
+    // Locked state after first click — prevents double-submission
+    &.submitting, &[disabled] {
+      opacity: 0.65;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    
+    // Subtle pulse animation while processing
+    &.submitting {
+      animation: pulse-lock 1.5s infinite ease-in-out;
+    }
   }
 
   button {
@@ -275,4 +287,10 @@
     box-shadow: none !important;
     border: 1px solid #e2e8f0 !important;
   }
+}
+
+// Pulse animation for the confirm button while in submitting state
+@keyframes pulse-lock {
+  0%, 100% { box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2); }
+  50% { box-shadow: 0 4px 24px rgba(14, 165, 233, 0.45); }
 }

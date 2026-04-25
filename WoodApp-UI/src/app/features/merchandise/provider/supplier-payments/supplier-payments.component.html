@@ -64,6 +64,17 @@
         <span class="value">{{kpis.paidInBank | number:'1.3-3'}} TND</span>
       </div>
     </div>
+
+    <!-- Total Avoirs KPI -->
+    <div class="summary-item" style="background: #fdf2f8; border-color: #fbcfe8;">
+      <div class="summary-icon-wrapper" style="background: #fce4ec; color: #c2185b;">
+        <mat-icon>money_off</mat-icon>
+      </div>
+      <div class="summary-data">
+        <span class="label">Total Avoirs</span>
+        <span class="value" style="color: #c2185b;">{{kpis.totalCreditNotes | number:'1.3-3'}} TND</span>
+      </div>
+    </div>
   </div>
 
   <!-- Projection Chart -->

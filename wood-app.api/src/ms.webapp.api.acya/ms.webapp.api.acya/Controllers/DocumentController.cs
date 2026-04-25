@@ -760,6 +760,59 @@ namespace ms.webapp.api.acya.api.Controllers
     }
     #endregion
 
+    #region Delete
+    /**
+     * Soft delete a document.
+     * If the document is a Credit Note, update parent's TotalCreditNotes.
+     */
+    [HttpDelete("DeleteSoft/{id}")]
+    public async Task<ActionResult> DeleteSoft(int id)
+    {
+        var doc = await _context.Documents
+            .FirstOrDefaultAsync(d => d.Id == id);
+            
+        if (doc == null)
+        {
+            return NotFound();
+        }
+
+        // 1. Handle Credit Note rollback (update parent balance)
+        if (doc.Type == DocumentTypes.supplierInvoiceReturn || doc.Type == DocumentTypes.customerInvoiceReturn)
+        {
+             var relationships = await _context.DocumentDocumentRelationships
+                 .Where(r => r.ChildDocumentId == id)
+                 .ToListAsync();
+                 
+             foreach(var rel in relationships)
+             {
+                 var parent = await _context.Documents.FindAsync(rel.ParentDocumentId);
+                 if (parent != null)
+                 {
+                     parent.TotalCreditNotes -= doc.TotalCostNetTTCDoc;
+                     _context.Entry(parent).State = EntityState.Modified;
+                 }
+             }
+        }
+
+        // 2. Mark as deleted
+        doc.IsDeleted = true;
+        _context.Entry(doc).State = EntityState.Modified;
+        
+        // 3. Delete Ledger Entry
+        await _accountService.DeleteLedgerEntryAsync(doc.Id, doc.Type.ToString()!);
+
+        await _context.SaveChangesAsync();
+
+        // 4. Update persistent balance
+        if (doc.CounterPartId > 0)
+        {
+            await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId, doc.Type.ToString()!, doc.UpdateDate ?? DateTime.UtcNow);
+        }
+
+        return Ok();
+    }
+    #endregion
+
     #region Create Invoice
     /**
      * Invoice is a list of added Reciept supplier Documents
@@ -1365,6 +1418,15 @@ namespace ms.webapp.api.acya.api.Controllers
             
             if (registerResult is OkObjectResult)
             {
+                // 4. Update parent document's TotalCreditNotes
+                var parentDoc = await _context.Documents.FindAsync(parentId);
+                if (parentDoc != null)
+                {
+                    parentDoc.TotalCreditNotes += dto.total_net_ttc;
+                    _context.Entry(parentDoc).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+                }
+
                 return okResult; // Return the successful document creation result
             }
             else

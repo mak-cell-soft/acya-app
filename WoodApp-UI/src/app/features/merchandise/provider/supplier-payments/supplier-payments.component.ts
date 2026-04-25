@@ -111,7 +111,8 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
     remaining: 0,      // Total remaining balance across unpaid invoices
     pendingTraites: 0, // Sum of traite amounts not yet paid at bank
     overdue: 0,        // Sum of traite amounts past their due date
-    paidInBank: 0      // Sum of traite amounts confirmed paid at bank
+    paidInBank: 0,     // Sum of traite amounts confirmed paid at bank
+    totalCreditNotes: 0 // Sum of credit notes applied
   };
 
   // UI state
@@ -271,6 +272,10 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
     this.kpis.remaining = this.invoicesDataSource.data
       .reduce((acc, curr) => acc + (curr.remaining_balance || 0), 0);
 
+    // Sum of credit notes applied
+    this.kpis.totalCreditNotes = this.invoicesDataSource.data
+      .reduce((acc, curr) => acc + (curr.total_credit_notes || 0), 0);
+
     // Sum of traite amounts not yet confirmed as paid at bank
     this.kpis.pendingTraites = this.traitesDataSource.data
       .filter(t => !t.instrument?.isPaidAtBank)
@@ -392,6 +397,8 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
         documentNumber: invoice.docnumber,
         totalAmount: invoice.total_net_ttc,
         remainingAmount: invoice.remaining_balance,
+        // Pass credit notes so the modal can deduct avoirs from the remaining balance
+        totalCreditNotes: invoice.total_credit_notes || 0,
         ownerFullName: invoice.counterpart?.name ||
           `${invoice.counterpart?.firstname} ${invoice.counterpart?.lastname}`.trim(),
         withholdingtax: invoice.holdingtax,

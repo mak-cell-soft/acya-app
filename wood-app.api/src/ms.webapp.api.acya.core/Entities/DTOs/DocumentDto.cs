@@ -66,6 +66,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public bool isservice { get; set; }
     public bool isPaid { get; set; }
     public double total_paid { get; set; }
+    public double total_credit_notes { get; set; }
     public double remaining_balance { get; set; }
 
     public ICollection<DocumentDto>? childdocuments { get; set; } = new List<DocumentDto>();
@@ -128,12 +129,14 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
           holdingtax = null;
       }
 
-      // Calculate total_paid and remaining_balance
+      // Calculate total_paid, total_credit_notes and remaining_balance
       total_paid = entity.Payments != null && entity.Payments.Any(p => !p.IsDeleted) 
           ? (double)entity.Payments.Where(p => !p.IsDeleted).Sum(p => p.Amount ?? 0) 
           : 0;
       
-      remaining_balance = (total_net_payable ?? total_net_ttc) - total_paid;
+      total_credit_notes = entity.TotalCreditNotes;
+
+      remaining_balance = (total_net_payable ?? total_net_ttc) - total_paid - total_credit_notes;
 
       // Populate childdocuments if navigation property is loaded
       if (entity.ChildDocuments != null && entity.ChildDocuments.Any())
