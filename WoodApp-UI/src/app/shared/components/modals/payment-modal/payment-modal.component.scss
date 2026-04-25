@@ -287,6 +287,21 @@
     box-shadow: none !important;
     border: 1px solid #e2e8f0 !important;
   }
+
+  .warning-hint {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #d97706 !important; // Amber-600
+    font-weight: 500;
+    font-size: 0.75rem;
+
+    mat-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+    }
+  }
 }
 
 // Pulse animation for the confirm button while in submitting state

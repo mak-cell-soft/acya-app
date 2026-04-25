@@ -15,6 +15,7 @@ export class PayslipModalComponent implements OnInit {
   payslips: MatTableDataSource<any> = new MatTableDataSource<any>();
   displayedColumns: string[] = ['period', 'base', 'bonuses', 'deductions', 'net', 'actions'];
   loading = false;
+  isSubmitting = false;
 
   months = [
     { id: 1, name: 'Janvier' }, { id: 2, name: 'Février' }, { id: 3, name: 'Mars' },
@@ -78,15 +79,29 @@ export class PayslipModalComponent implements OnInit {
     this.payslipForm.get('netsalary')?.setValue(net > 0 ? net : 0);
   }
 
-  onSubmit(): void {
-    if (this.payslipForm.valid) {
+  onConfirm(): void {
+    if (this.payslipForm.valid && !this.isSubmitting) {
+      this.isSubmitting = true;
       const payload = this.payslipForm.getRawValue();
       this.payslipService.generate(payload).subscribe({
         next: () => {
           this.snackBar.open('Fiche de paie générée', 'OK', { duration: 3000 });
           this.loadPayslips();
+          this.isSubmitting = false;
+          this.payslipForm.reset({
+            employeeId: this.data.employeeId,
+            periodmonth: new Date().getMonth() + 1,
+            periodyear: new Date().getFullYear(),
+            basesalary: 0,
+            bonuses: 0,
+            deductions: 0,
+            netsalary: 0
+          });
         },
-        error: () => this.snackBar.open('Erreur lors de la génération', 'OK', { duration: 3000 })
+        error: () => {
+          this.snackBar.open('Erreur lors de la génération', 'OK', { duration: 3000 });
+          this.isSubmitting = false;
+        }
       });
     }
   }

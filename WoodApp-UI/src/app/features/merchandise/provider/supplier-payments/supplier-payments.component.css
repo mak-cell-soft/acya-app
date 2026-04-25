@@ -99,7 +99,7 @@ mat-card {
 /* KPI Summary Cards - Dashboard Style */
 .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 20px;
     margin: 0 24px 24px;
 }
@@ -224,6 +224,19 @@ mat-card-title {
     font-weight: 700 !important;
     color: #1e293b;
     margin: 0 !important;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.supplier-badge {
+    font-size: 0.8rem;
+    background: #eff6ff;
+    color: #2563eb;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid #dbeafe;
+    font-weight: 600;
 }
 
 /* Payment Method Badges */

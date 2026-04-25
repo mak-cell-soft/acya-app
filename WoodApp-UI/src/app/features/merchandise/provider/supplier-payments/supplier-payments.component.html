@@ -101,7 +101,12 @@
     <!-- Invoices Table -->
     <mat-card class="table-card">
       <mat-card-header>
-        <mat-card-title>Factures non réglées</mat-card-title>
+        <mat-card-title>
+          Factures non réglées
+          <span class="supplier-badge" *ngIf="selectedSupplier">
+            {{selectedSupplier.name || (selectedSupplier.firstname + ' ' + selectedSupplier.lastname)}}
+          </span>
+        </mat-card-title>
         <span class="spacer"></span>
         <mat-slide-toggle [checked]="showSettledInvoices" (change)="toggleSettledInvoices()" color="primary">
           <span style="font-size: 0.8rem; color: #64748b;">Afficher les réglées</span>
@@ -155,7 +160,12 @@
     <!-- Traites History Table -->
     <mat-card class="table-card" style="border-left: 2px dashed #e2e8f0 !important;">
       <mat-card-header>
-        <mat-card-title>Suivi des Traites / Chèques</mat-card-title>
+        <mat-card-title>
+          Suivi des Traites / Chèques
+          <span class="supplier-badge" *ngIf="selectedSupplier">
+            {{selectedSupplier.name || (selectedSupplier.firstname + ' ' + selectedSupplier.lastname)}}
+          </span>
+        </mat-card-title>
       </mat-card-header>
       <mat-card-content>
         <table mat-table [dataSource]="traitesDataSource" matSort #traiteSort="matSort">

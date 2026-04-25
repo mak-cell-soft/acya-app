@@ -4,6 +4,9 @@
             <mat-label>Numéro de Chèque</mat-label>
             <input matInput formControlName="number" placeholder="1234567">
             <mat-error *ngIf="paymentForm.get('number')?.hasError('required')">Requis</mat-error>
+            <mat-hint *ngIf="!paymentForm.get('number')?.value" class="warning-hint">
+                <mat-icon>warning_amber</mat-icon> Saisissez le numéro
+            </mat-hint>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="half-width">
@@ -14,6 +17,9 @@
                 </mat-option>
             </mat-select>
             <mat-error *ngIf="paymentForm.get('bank')?.hasError('required')">Requis</mat-error>
+            <mat-hint *ngIf="!paymentForm.get('bank')?.value" class="warning-hint">
+                <mat-icon>warning_amber</mat-icon> Sélectionnez une banque
+            </mat-hint>
         </mat-form-field>
     </div>
 

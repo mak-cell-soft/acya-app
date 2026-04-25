@@ -158,7 +158,10 @@ export class PaymentModalComponent implements OnInit {
             };
         }
 
-        this.dialogRef.close(result);
+        // Artificial delay to show "Traitement..." state and ensure the user sees the confirmation
+        setTimeout(() => {
+            this.dialogRef.close(result);
+        }, 800);
     }
 
     isValid(): boolean {
