@@ -386,4 +386,14 @@ export class ListSupplierReceiptsComponent implements OnInit, AfterViewInit {
     return TrueFalseTranslate_FR[value.toString() as keyof typeof TrueFalseTranslate_FR];
   }
 
+  scrollToTop(): void {
+    this.toastr.info('Retour en haut de page', '', { timeOut: 1000 });
+    const header = document.querySelector('.header-container');
+    if (header) {
+      header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
 }

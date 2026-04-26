@@ -1,3 +1,8 @@
+<!-- Floating Scroll to Top Button -->
+<button mat-fab color="primary" class="scroll-to-top" (click)="scrollToTop()" matTooltip="Retour en haut">
+    <mat-icon>keyboard_arrow_up</mat-icon>
+</button>
+
 <mat-toolbar class="header-container">
     <!-- Text on the top left -->
     <div class="header-text">
@@ -30,6 +35,8 @@
             Ajouter un nouveau document</button>
     </div>
 </mat-toolbar>
+
+
 
 <!-- Head : list of months of the current Year -->
 <mat-card class="card-details">
@@ -125,8 +132,8 @@
                         [indeterminate]="selection.hasValue() && !isAllSelected()">
                     </mat-checkbox>
                 </th>
-                <td mat-cell *matCellDef="let element" class="article-table-cell">
-                    <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? toggleSelection(element) : null"
+                <td mat-cell *matCellDef="let element" class="article-table-cell" (click)="$event.stopPropagation()">
+                    <mat-checkbox (change)="$event ? toggleSelection(element) : null"
                         [checked]="selection.isSelected(element)" [disabled]="element.isinvoiced">
                     </mat-checkbox>
                 </td>
@@ -346,3 +353,8 @@
 <div style="display: none;">
     <app-delivery-note-print #printTemplate [document]="selectedDocumentForPrint"></app-delivery-note-print>
 </div>
+
+
+
+
+

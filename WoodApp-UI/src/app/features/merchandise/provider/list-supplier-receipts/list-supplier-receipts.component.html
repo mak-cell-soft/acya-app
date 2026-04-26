@@ -1,3 +1,8 @@
+<!-- Floating Scroll to Top Button -->
+<button mat-fab color="primary" class="scroll-to-top" (click)="scrollToTop()" matTooltip="Retour en haut">
+    <mat-icon>keyboard_arrow_up</mat-icon>
+</button>
+
 <mat-toolbar class="header-container mat-elevation-z2">
     <div class="header-text">
         <h2>Documents Fournisseur</h2>
@@ -8,20 +13,20 @@
             [disabled]="selection.selected.length === 0"
             matTooltip="Générer une facture pour les documents sélectionnés">
             <mat-icon>receipt</mat-icon>
-            Facturer ({{selection.selected.length}})
+            Facturer ({{ selection.selected.length }})
         </button>
-
-        <button mat-stroked-button class="pill-button btn-view-invoices" [routerLink]="['/home/merchandise/sinvoices']">
-            <mat-icon>view_list</mat-icon>
-            Voir Mes Factures
+        <button mat-flat-button class="pill-button btn-view-invoices" routerLink="/home/merchandise/supplierinvoice">
+            <mat-icon>list_alt</mat-icon>
+            Voir Factures
         </button>
-
-        <button mat-flat-button color="primary" class="pill-button btn-new-doc" [routerLink]="['../']">
-            <mat-icon>add</mat-icon>
+        <button mat-flat-button class="pill-button btn-new-doc" routerLink="/home/merchandise/reception/add">
+            <mat-icon>add_circle</mat-icon>
             Nouveau Document
         </button>
     </div>
 </mat-toolbar>
+
+
 
 <!-- Filter Card -->
 <mat-card class="filter-card">
@@ -69,6 +74,7 @@
     </mat-card-content>
 </mat-card>
 
+
 <p class="error-msg-header" *ngIf="errorMessage"><span>{{errorMessage}}</span></p>
 
 <!-- Data Table Card -->
@@ -99,7 +105,7 @@
                         [indeterminate]="isSomeSelected()">
                     </mat-checkbox>
                 </th>
-                <td mat-cell *matCellDef="let element" class="checkbox-width">
+                <td mat-cell *matCellDef="let element" class="checkbox-width" (click)="$event.stopPropagation()">
                     <mat-checkbox (change)="$event ? toggleSelection(element) : null"
                         [checked]="selection.isSelected(element)" [disabled]="element.isinvoiced">
                     </mat-checkbox>
@@ -277,3 +283,8 @@
         </div>
     </div>
 </mat-card>
+
+
+
+
+

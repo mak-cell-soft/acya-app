@@ -423,4 +423,18 @@ mat-card {
     --mdc-checkbox-selected-hover-icon-color: #0f172a;
     --mdc-checkbox-selected-icon-color: #0f172a;
     --mdc-checkbox-selected-pressed-icon-color: #0f172a;
-}
+}
+
+.scroll-to-top {
+    position: fixed !important;
+    bottom: 40px !important;
+    right: 40px !important;
+    z-index: 9999 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+.scroll-to-top:hover {
+    transform: translateY(-5px) scale(1.1);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important;
+}

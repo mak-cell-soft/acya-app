@@ -560,4 +560,13 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
 
 
   //#endregion
+  scrollToTop(): void {
+    this.toastr.info('Retour en haut de page', '', { timeOut: 1000 });
+    const header = document.querySelector('.header-container');
+    if (header) {
+      header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
 }

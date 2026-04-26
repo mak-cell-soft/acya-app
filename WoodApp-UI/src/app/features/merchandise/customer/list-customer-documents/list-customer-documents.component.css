@@ -685,3 +685,17 @@ Added Now
 .premium-paginator { border-radius: 0 0 16px 16px; overflow: hidden; }
 .empty-state { padding: 64px; text-align: center; color: #94a3b8; display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .empty-state mat-icon { font-size: 48px; width: 48px; height: 48px; }
+
+.scroll-to-top {
+    position: fixed !important;
+    bottom: 40px !important;
+    right: 40px !important;
+    z-index: 9999 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+.scroll-to-top:hover {
+    transform: translateY(-5px) scale(1.1);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important;
+}
