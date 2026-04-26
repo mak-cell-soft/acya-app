@@ -1,5 +1,5 @@
 <div class="auth-page-container">
-  
+
   <mat-toolbar class="auth-toolbar">
     <div class="brand">
       <mat-icon>forest</mat-icon>
@@ -33,10 +33,11 @@
             Format invalide
           </mat-error>
         </mat-form-field>
-        
+
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Mot de Passe</mat-label>
-          <input matInput type="{{hide ? 'password' : 'text'}}" placeholder="Saisir votre mot de passe" formControlName="password" />
+          <input matInput type="{{hide ? 'password' : 'text'}}" placeholder="Saisir votre mot de passe"
+            formControlName="password" />
           <mat-icon matPrefix class="input-icon">lock</mat-icon>
           <mat-icon class="toggle-pwd" (click)="hide = !hide" matSuffix>
             {{hide ? 'visibility_off' : 'visibility'}}
@@ -45,10 +46,10 @@
             Mot de passe requis
           </mat-error>
         </mat-form-field>
-        
+
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Référence de l'Entreprise</mat-label>
-          <input matInput placeholder="Ex: SOCOFEB" formControlName="enterpriseRef" />
+          <input matInput placeholder="Ex: 1e3f09a2-2cc3-4c5e-8e6b-..." formControlName="enterpriseRef" />
           <mat-icon matPrefix class="input-icon">business</mat-icon>
           <mat-error *ngIf="enterpriseRef?.errors?.['required']">
             Référence Entreprise requise

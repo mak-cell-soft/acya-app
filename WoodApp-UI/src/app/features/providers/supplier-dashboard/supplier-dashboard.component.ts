@@ -1,9 +1,9 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CounterpartService } from '../../../services/components/counterpart.service';
 import { SupplierDashboard } from '../../../models/components/supplier-dashboard';
 import { BehaviorSubject } from 'rxjs';
-import { DocStatus, DocStatus_FR, DocTypes_FR } from '../../../models/components/document';
+import { DocStatus, DocStatus_FR, DocumentTypes, DocTypes_FR } from '../../../models/components/document';
 
 @Component({
   selector: 'app-supplier-dashboard',
@@ -20,6 +20,7 @@ export class SupplierDashboardComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private counterpartService: CounterpartService
   ) {}
 
@@ -49,11 +50,15 @@ export class SupplierDashboardComponent implements OnInit {
     return new Date(date).toLocaleDateString('fr-FR');
   }
 
-  getDocTypeLabel(type: string | number): string {
-    return this.docTypes_FR[type as keyof typeof DocTypes_FR] || type.toString();
+  getDocTypeLabel(type: any): string {
+    return DocTypes_FR[DocumentTypes[type] as keyof typeof DocTypes_FR] || type?.toString() || '-';
   }
 
   getDocStatusLabel(status: any): string {
     return DocStatus_FR[DocStatus[status] as keyof typeof DocStatus_FR] || status?.toString() || '-';
+  }
+
+  onBack(): void {
+    this.router.navigate(['/home/providers']);
   }
 }

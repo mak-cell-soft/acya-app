@@ -456,6 +456,8 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     this.loading = true;
+    //TODO: The Payment is wrong, all payments for supplier are registered as debt. It should be the opposite.
+    //TODO: Review the Payment DTO and the Payment Controller in the backend and fix it.
     this.paymentService.Add(payment).pipe(
       takeUntil(this.destroy$),
       finalize(() => this.loading = false)
