@@ -171,6 +171,20 @@ td.mat-cell {
     color: #0f172a;
 }
 
+.parent-ref {
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.85rem;
+    color: #2563eb;
+    background: #eff6ff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.no-parent {
+    color: #cbd5e1;
+}
+
 /* Badges */
 .type-badge {
     display: inline-flex;

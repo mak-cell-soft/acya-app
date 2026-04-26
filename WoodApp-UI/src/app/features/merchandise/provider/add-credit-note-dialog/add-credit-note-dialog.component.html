@@ -2,8 +2,11 @@
     <div class="dialog-header">
         <mat-icon class="header-icon">receipt_long</mat-icon>
         <div class="header-titles">
-            <h2 mat-dialog-title>Nouvel Avoir {{data.type === 'supplier' ? 'Fournisseur' : 'Client'}}</h2>
-            <p>Saisie d'un avoir financier sans mouvement de stock</p>
+            <h2 mat-dialog-title>
+                {{data.isReadOnly ? 'Détails Avoir' : (data.creditNote ? 'Modifier l\'Avoir' : 'Nouvel Avoir')}} 
+                {{data.type === 'supplier' ? 'Fournisseur' : 'Client'}}
+            </h2>
+            <p>{{data.isReadOnly ? 'Consultation des informations de l\'avoir' : 'Saisie d\'un avoir financier sans mouvement de stock'}}</p>
         </div>
         <button mat-icon-button (click)="onCancel()" class="close-btn">
             <mat-icon>close</mat-icon>
@@ -73,6 +76,11 @@
                 <textarea matInput formControlName="description" rows="3" placeholder="Ex: Remise exceptionnelle, erreur facturation..."></textarea>
             </mat-form-field>
 
+            <div *ngIf="noInvoicesAvailable && form.get('counterpart')?.value" class="warning-hint no-invoice-alert">
+                <mat-icon>warning</mat-icon>
+                Toutes les factures de ce fournisseur ont déjà un avoir associé.
+            </div>
+
             <!-- Financials -->
             <div class="financial-section">
                 <h3>Montants de l'avoir</h3>
@@ -100,8 +108,8 @@
     </mat-dialog-content>
 
     <mat-dialog-actions align="end">
-        <button mat-button (click)="onCancel()" class="pill-button">Annuler</button>
-        <button mat-flat-button color="primary" class="pill-button" 
+        <button mat-button (click)="onCancel()" class="pill-button">{{data.isReadOnly ? 'Fermer' : 'Annuler'}}</button>
+        <button mat-flat-button color="primary" class="pill-button" *ngIf="!data.isReadOnly"
                 [disabled]="form.invalid || loading" (click)="onSubmit()">
             <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
             <span *ngIf="!loading">Enregistrer l'avoir</span>

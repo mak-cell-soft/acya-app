@@ -42,7 +42,7 @@ export class ListSupplierCreditNotesComponent implements OnInit, AfterViewInit {
   filterEndDate: Date | undefined = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
 
   dataSource: MatTableDataSource<Document> = new MatTableDataSource<Document>();
-  displayedColumns: string[] = ['number', 'date', 'counterpart', 'amount', 'type', 'status', 'action'];
+  displayedColumns: string[] = ['number', 'parentDoc', 'date', 'counterpart', 'amount', 'type', 'status', 'action'];
   
   // Summary
   totalHt: number = 0;
@@ -132,6 +132,26 @@ export class ListSupplierCreditNotesComponent implements OnInit, AfterViewInit {
       if (result) {
         this.fetchCreditNotes();
       }
+    });
+  }
+
+  openEditCreditNoteDialog(creditNote: Document) {
+    const dialogRef = this.dialog.open(AddCreditNoteDialogComponent, {
+      width: '800px',
+      data: { type: 'supplier', creditNote: creditNote }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.fetchCreditNotes();
+      }
+    });
+  }
+
+  viewDetails(creditNote: Document) {
+    this.dialog.open(AddCreditNoteDialogComponent, {
+      width: '800px',
+      data: { type: 'supplier', creditNote: creditNote, isReadOnly: true }
     });
   }
 

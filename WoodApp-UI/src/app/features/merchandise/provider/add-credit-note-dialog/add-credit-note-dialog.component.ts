@@ -24,6 +24,7 @@ export class AddCreditNoteDialogComponent implements OnInit {
   invoices: Document[] = [];
   selectedInvoice: Document | null = null;
   tvas: AppVariable[] = [];
+  noInvoicesAvailable = false;
   
   user = inject(AuthenticationService).getUserDetail();
 
@@ -34,7 +35,7 @@ export class AddCreditNoteDialogComponent implements OnInit {
     private appVarService: AppVariableService,
     private toastr: ToastrService,
     private dialogRef: MatDialogRef<AddCreditNoteDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { type: 'supplier' | 'customer', invoice?: Document }
+    @Inject(MAT_DIALOG_DATA) public data: { type: 'supplier' | 'customer', invoice?: Document, creditNote?: Document, isReadOnly?: boolean }
   ) {
     this.createForm();
   }
@@ -43,14 +44,12 @@ export class AddCreditNoteDialogComponent implements OnInit {
     this.loadSuppliers();
     this.loadTVAs();
 
-    // If an invoice is passed, pre-select the supplier and the invoice
+    // If an invoice is passed (Creation mode from a specific invoice)
     if (this.data.invoice) {
-      // We need to wait for suppliers to be loaded if we want to match the object reference,
-      // but here we can just set it directly as CounterpartDto
       this.form.patchValue({
           counterpart: this.data.invoice.counterpart,
           parentInvoice: this.data.invoice
-      });
+      }, { emitEvent: true });
     }
     
     // Listen to supplier changes to load their invoices
@@ -63,6 +62,33 @@ export class AddCreditNoteDialogComponent implements OnInit {
         this.form.get('parentInvoice')?.setValue(null);
       }
     });
+
+    // Handle Edit Mode Initial Data
+    if (this.data.creditNote) {
+      const cn = this.data.creditNote;
+      const parent = cn.parentdocuments && cn.parentdocuments.length > 0 ? cn.parentdocuments[0] : null;
+      
+      // Patch counterpart first to trigger invoice loading
+      this.form.patchValue({ counterpart: cn.counterpart }, { emitEvent: true });
+      
+      // Calculate discount percentage
+      let discount = 0;
+      if (parent && parent.total_ht_net_doc > 0) {
+        discount = Math.round((cn.total_ht_net_doc / parent.total_ht_net_doc) * 100);
+      }
+
+      // Patch other values
+      this.form.patchValue({
+        description: cn.description,
+        discountPercentage: discount,
+        amountHT: cn.total_ht_net_doc,
+        amountTVA: cn.total_tva_doc,
+        amountTTC: cn.total_net_ttc
+      }, { emitEvent: false }); // Avoid triggering auto-description/calc yet
+      
+      // Force selected invoice display
+      this.selectedInvoice = parent;
+    }
 
     // Listen to invoice changes to show details and update description
     this.form.get('parentInvoice')?.valueChanges.subscribe((invoice: Document) => {
@@ -86,6 +112,10 @@ export class AddCreditNoteDialogComponent implements OnInit {
          this.calculateTotals(true);
       }
     });
+
+    if (this.data.isReadOnly) {
+      this.form.disable();
+    }
   }
 
   isCalculating = false;
@@ -121,13 +151,24 @@ export class AddCreditNoteDialogComponent implements OnInit {
   loadInvoices(supplierId: number) {
     const docType = this.data.type === 'supplier' ? DocumentTypes.supplierInvoice : DocumentTypes.customerInvoice;
     this.docService.GetByType(docType).subscribe(res => {
-      this.invoices = res.filter(d => d.counterpart?.id === supplierId);
+      // Filter by supplier AND ensure no credit note already exists for this invoice
+      // (Except if it's the parent of the credit note we are currently editing)
+      const currentParentId = this.data.creditNote?.parentdocuments?.[0]?.id;
+      
+      this.invoices = res.filter(d => 
+        d.counterpart?.id === supplierId && 
+        ((d.total_credit_notes || 0) === 0 || d.id === currentParentId)
+      );
+      
+      this.noInvoicesAvailable = this.invoices.length === 0;
       
       // Ensure pre-selected invoice is correctly matched from the new list
-      if (this.data.invoice) {
-        const match = this.invoices.find(inv => inv.id === this.data.invoice?.id);
+      const invoiceToMatch = this.data.invoice || this.data.creditNote?.parentdocuments?.[0];
+      if (invoiceToMatch) {
+        const match = this.invoices.find(inv => inv.id === invoiceToMatch.id);
         if (match) {
-          this.form.get('parentInvoice')?.setValue(match);
+          this.form.get('parentInvoice')?.setValue(match, { emitEvent: false });
+          this.selectedInvoice = match; // Ensure details are shown
         }
       }
     });
@@ -181,9 +222,9 @@ export class AddCreditNoteDialogComponent implements OnInit {
     const parentInvoice = formValue.parentInvoice as Document;
 
     const creditNote: any = {
-      id: 0,
+      id: this.data.creditNote ? this.data.creditNote.id : 0,
       type: this.data.type === 'supplier' ? DocumentTypes.supplierInvoiceReturn : DocumentTypes.customerInvoiceReturn,
-      docnumber: '', 
+      docnumber: this.data.creditNote ? this.data.creditNote.docnumber : '', 
       description: formValue.description,
       isinvoiced: true,
       isservice: true, 
@@ -193,39 +234,47 @@ export class AddCreditNoteDialogComponent implements OnInit {
       total_net_ttc: formValue.amountTTC,
       total_net_payable: formValue.amountTTC,
       updatedbyid: this.user?.id ? +this.user.id : 0,
-      creationdate: new Date(),
+      creationdate: this.data.creditNote ? this.data.creditNote.creationdate : new Date(),
       updatedate: new Date(),
-      docstatus: DocStatus.Created,
-      billingstatus: BillingStatus.NotBilled,
+      docstatus: this.data.creditNote ? this.data.creditNote.docstatus : DocStatus.Created,
+      billingstatus: this.data.creditNote ? this.data.creditNote.billingstatus : BillingStatus.NotBilled,
       isdeleted: false,
       merchandises: [],
-      sales_site: parentInvoice.sales_site
+      sales_site: parentInvoice ? parentInvoice.sales_site : (this.data.creditNote?.sales_site || null)
     };
 
     if (parentInvoice) {
-      this.docService.CreateCreditNote(parentInvoice.id, creditNote).subscribe({
+      const request = this.data.creditNote 
+        ? this.docService.Update(creditNote.id, creditNote) 
+        : this.docService.CreateCreditNote(parentInvoice.id, creditNote);
+
+      request.subscribe({
         next: () => {
-          this.toastr.success('Avoir créé avec succès');
+          this.toastr.success(this.data.creditNote ? 'Avoir mis à jour' : 'Avoir créé avec succès');
           this.dialogRef.close(true);
           this.loading = false;
         },
         error: (err) => {
           console.error(err);
-          this.toastr.error('Erreur lors de la création de l\'avoir');
+          this.toastr.error('Erreur lors de l\'opération');
           this.loading = false;
         }
       });
     } else {
-      // Manual creation without parent invoice link (if allowed)
-      this.docService.Add(creditNote).subscribe({
+      // Manual creation or update without parent invoice link
+      const request = this.data.creditNote 
+        ? this.docService.Update(creditNote.id, creditNote) 
+        : this.docService.Add(creditNote);
+
+      request.subscribe({
         next: () => {
-          this.toastr.success('Avoir créé avec succès');
+          this.toastr.success(this.data.creditNote ? 'Avoir mis à jour' : 'Avoir créé avec succès');
           this.dialogRef.close(true);
           this.loading = false;
         },
         error: (err) => {
           console.error(err);
-          this.toastr.error('Erreur lors de la création de l\'avoir');
+          this.toastr.error('Erreur lors de l\'opération');
           this.loading = false;
         }
       });

@@ -21,7 +21,7 @@
     <mat-card-header>
         <mat-card-title>Recherche & Filtres</mat-card-title>
     </mat-card-header>
-    <mat-card-content class="filter-content">
+    <mat-card-content class="filter-content" style="padding: 16px 24px;">
         <div class="filter-fields-group">
             <mat-form-field appearance="outline">
                 <mat-label>Fournisseur</mat-label>
@@ -110,6 +110,16 @@
                 <td mat-cell *matCellDef="let element"><strong>{{element.docnumber}}</strong></td>
             </ng-container>
 
+            <ng-container matColumnDef="parentDoc">
+                <th mat-header-cell *matHeaderCellDef> N° Document </th>
+                <td mat-cell *matCellDef="let element">
+                    <span *ngIf="element.parentdocuments && element.parentdocuments.length > 0" class="parent-ref">
+                        {{element.parentdocuments[0].docnumber}}
+                    </span>
+                    <span *ngIf="!element.parentdocuments || element.parentdocuments.length === 0" class="no-parent">-</span>
+                </td>
+            </ng-container>
+
             <ng-container matColumnDef="date">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header> Date </th>
                 <td mat-cell *matCellDef="let element"> {{element.updatedate | date: 'dd/MM/yyyy'}} </td>
@@ -153,8 +163,11 @@
                 <th mat-header-cell *matHeaderCellDef> Actions </th>
                 <td mat-cell *matCellDef="let element">
                     <div class="action-buttons">
-                        <button mat-icon-button color="primary" matTooltip="Voir détails">
+                        <button mat-icon-button color="primary" (click)="viewDetails(element)" matTooltip="Voir détails">
                             <mat-icon>visibility</mat-icon>
+                        </button>
+                        <button mat-icon-button color="accent" (click)="openEditCreditNoteDialog(element)" matTooltip="Modifier">
+                            <mat-icon>edit</mat-icon>
                         </button>
                         <button mat-icon-button color="warn" (click)="deleteDocument(element)" matTooltip="Supprimer">
                             <mat-icon>delete</mat-icon>
@@ -167,7 +180,7 @@
             <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
 
             <tr class="mat-row" *matNoDataRow>
-                <td class="mat-cell" colspan="7" class="no-data">
+                <td class="mat-cell" colspan="8" class="no-data">
                     <mat-icon>search_off</mat-icon>
                     <span>Aucun avoir trouvé pour les critères sélectionnés.</span>
                 </td>
