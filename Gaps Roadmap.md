@@ -181,7 +181,7 @@ Débloque  :  §5.1 · §5.12
 
 ### ✅ §5.8 — Tableau de bord fournisseur
 - **Pourquoi après §5.9 :** Le dashboard fournisseur affiche le solde en cours, les paiements effectués et le montant net avec RS. Ces données viennent de §5.9 et §5.3.
-- **Ce que ça touche :** Nouvelle vue `/dashboard/fournisseur/{id}`, composant Angular, endpoint `/api/counterparts/{id}/supplier-dashboard`
+- **Ce que ça touche :** Nouvelle vue `/dashboard/suppliers/{id}`, composant Angular, endpoint `/api/counterparts/{id}/supplier-dashboard`
 - **Conflits évités :** Sans §5.9, le solde affiché serait incomplet (pas de détail partiel)
 
 ```

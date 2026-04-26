@@ -5,6 +5,8 @@ using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.infrastructure.Repositories;
 using ms.webapp.api.acya.infrastructure;
 using Microsoft.EntityFrameworkCore;
+using ms.webapp.api.acya.api.Interfaces;
+using ms.webapp.api.acya.common;
 
 namespace ms.webapp.api.acya.api.Controllers
 {
@@ -12,11 +14,60 @@ namespace ms.webapp.api.acya.api.Controllers
   {
     private readonly CounterPartRepository _repository;
     private readonly WoodAppContext _context;
+    private readonly IAccountService _accountService;
 
-    public CounterPartController(CounterPartRepository repository, WoodAppContext context)
+    public CounterPartController(CounterPartRepository repository, WoodAppContext context, IAccountService accountService)
     {
       _repository = repository;
       _context = context;
+      _accountService = accountService;
+    }
+
+    [HttpGet("{id}/supplier-dashboard")]
+    public async Task<ActionResult<SupplierDashboardDto>> GetSupplierDashboard(int id)
+    {
+      var supplier = await _repository.Get(id);
+      if (supplier == null) return NotFound();
+
+      var dashboard = new SupplierDashboardDto();
+
+      // 1. Current Balance
+      dashboard.CurrentBalance = await _accountService.GetCurrentBalanceAsync(id);
+
+      // 2. Total Paid (to supplier)
+      var ledgerEntries = await _context.AccountLedgers
+          .Where(l => l.CounterPartId == id)
+          .ToListAsync();
+      
+      dashboard.TotalPaid = ledgerEntries.Where(l => l.Type == "Payment" || l.Type == "RS").Sum(l => l.Debit);
+
+      // 3. Pending Orders (BC-F not fully completed/validated)
+      var pendingOrders = await _context.Documents
+          .Include(d => d.Payments)
+          .Include(d => d.HoldingTaxes)
+          .Where(d => d.CounterPartId == id && d.Type == DocumentTypes.supplierOrder && d.DocStatus != DocStatus.Validated)
+          .OrderByDescending(d => d.CreationDate)
+          .ToListAsync();
+
+      dashboard.PendingOrders = pendingOrders.Select(d => new DocumentDto(d)).ToList();
+          
+      // 4. Pending Receipts (BR not fully invoiced)
+      var pendingReceipts = await _context.Documents
+          .Include(d => d.Payments)
+          .Include(d => d.HoldingTaxes)
+          .Where(d => d.CounterPartId == id && d.Type == DocumentTypes.supplierReceipt && !d.IsInvoiced)
+          .OrderByDescending(d => d.CreationDate)
+          .ToListAsync();
+
+      dashboard.PendingReceipts = pendingReceipts.Select(d => new DocumentDto(d)).ToList();
+
+      // 5. Recent History (last 30 days or last 10 transactions)
+      var startDate = DateTime.UtcNow.AddDays(-30);
+      var endDate = DateTime.UtcNow;
+      var statement = await _accountService.GetStatementAsync(id, startDate, endDate);
+      dashboard.RecentTransactions = statement.Transactions.OrderByDescending(t => t.TransactionDate).Take(10).ToList();
+
+      return Ok(dashboard);
     }
 
     [HttpPost("Add")]

@@ -346,7 +346,8 @@
                         <span class="value">{{ totalTVA_doc$ | async | number: '1.3-3' }}</span>
                     </div>
                     <mat-divider></mat-divider>
-                    <div class="summary-line rs-section">
+
+                    <!-- <div class="summary-line rs-section">
                         <span class="label">Retenue à la Source (RS)</span>
                         <mat-select [value]="selectedRS" (selectionChange)="onRSChange($event.value)"
                             placeholder="Aucune" class="rs-select">
@@ -354,7 +355,8 @@
                             <mat-option *ngFor="let rs of rsList" [value]="rs">{{ rs.name }} ({{ rs.value
                                 }}%)</mat-option>
                         </mat-select>
-                    </div>
+                    </div> -->
+
                     <mat-divider></mat-divider>
                     <div class="summary-line total">
                         <span class="label">Net TTC Total</span>

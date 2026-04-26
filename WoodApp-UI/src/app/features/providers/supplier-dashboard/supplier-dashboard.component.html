@@ -1,0 +1,149 @@
+<div class="dashboard-container">
+  <mat-progress-bar mode="indeterminate" *ngIf="loading$ | async"></mat-progress-bar>
+
+  <div class="dashboard-content" *ngIf="dashboard$ | async as data">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-main">
+        <h1>Tableau de bord Fournisseur</h1>
+        <p class="supplier-name" *ngIf="data.recentTransactions.length > 0">
+          Activité récente et situation financière
+        </p>
+      </div>
+      <div class="header-balance">
+        <span class="label">Solde en cours</span>
+        <span class="value" [class.negative]="data.currentBalance > 0">
+          {{ data.currentBalance | number:'1.2-2' }} TND
+        </span>
+        <small class="balance-hint" *ngIf="data.currentBalance > 0">Vous devez ce montant</small>
+        <small class="balance-hint positive" *ngIf="data.currentBalance < 0">Crédit en votre faveur</small>
+      </div>
+    </header>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <mat-card class="kpi-card">
+        <mat-card-header>
+          <div mat-card-avatar class="kpi-icon payments">
+            <mat-icon>payments</mat-icon>
+          </div>
+          <mat-card-subtitle>Paiements effectués</mat-card-subtitle>
+          <mat-card-title>{{ data.totalPaid | number:'1.2-2' }} TND</mat-card-title>
+        </mat-card-header>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <mat-card-header>
+          <div mat-card-avatar class="kpi-icon orders">
+            <mat-icon>shopping_cart</mat-icon>
+          </div>
+          <mat-card-subtitle>Commandes en cours</mat-card-subtitle>
+          <mat-card-title>{{ data.pendingOrders.length }}</mat-card-title>
+        </mat-card-header>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <mat-card-header>
+          <div mat-card-avatar class="kpi-icon receipts">
+            <mat-icon>receipt_long</mat-icon>
+          </div>
+          <mat-card-subtitle>Réceptions à facturer</mat-card-subtitle>
+          <mat-card-title>{{ data.pendingReceipts.length }}</mat-card-title>
+        </mat-card-header>
+      </mat-card>
+    </div>
+
+    <div class="main-grid">
+      <!-- Pending Documents -->
+      <div class="documents-section">
+        <mat-tab-group animationDuration="0ms">
+          <mat-tab label="Commandes en cours (BC-F)">
+            <div class="table-container">
+              <table mat-table [dataSource]="data.pendingOrders" class="mat-elevation-z0">
+                <ng-container matColumnDef="docnumber">
+                  <th mat-header-cell *matHeaderCellDef>N° Document</th>
+                  <td mat-cell *matCellDef="let doc"><strong>{{ doc.docnumber }}</strong></td>
+                </ng-container>
+                <ng-container matColumnDef="date">
+                  <th mat-header-cell *matHeaderCellDef>Date</th>
+                  <td mat-cell *matCellDef="let doc">{{ formatDate(doc.creationdate) }}</td>
+                </ng-container>
+                <ng-container matColumnDef="total">
+                  <th mat-header-cell *matHeaderCellDef>Total TTC</th>
+                  <td mat-cell *matCellDef="let doc">{{ doc.total_net_ttc | number:'1.2-2' }}</td>
+                </ng-container>
+                <ng-container matColumnDef="status">
+                  <th mat-header-cell *matHeaderCellDef>Statut</th>
+                  <td mat-cell *matCellDef="let doc">
+                    <span class="status-chip" [ngClass]="'status-' + doc.docstatus">
+                      {{ getDocStatusLabel(doc.docstatus) }}
+                    </span>
+                  </td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="['docnumber', 'date', 'total', 'status']"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['docnumber', 'date', 'total', 'status'];"></tr>
+              </table>
+              <div class="empty-state" *ngIf="data.pendingOrders.length === 0">
+                <mat-icon>info_outline</mat-icon>
+                <p>Aucune commande fournisseur en cours.</p>
+              </div>
+            </div>
+          </mat-tab>
+
+          <mat-tab label="Réceptions en attente (BR)">
+            <div class="table-container">
+              <table mat-table [dataSource]="data.pendingReceipts" class="mat-elevation-z0">
+                <ng-container matColumnDef="docnumber">
+                  <th mat-header-cell *matHeaderCellDef>N° Document</th>
+                  <td mat-cell *matCellDef="let doc"><strong>{{ doc.docnumber }}</strong></td>
+                </ng-container>
+                <ng-container matColumnDef="date">
+                  <th mat-header-cell *matHeaderCellDef>Date</th>
+                  <td mat-cell *matCellDef="let doc">{{ formatDate(doc.creationdate) }}</td>
+                </ng-container>
+                <ng-container matColumnDef="total">
+                  <th mat-header-cell *matHeaderCellDef>Total TTC</th>
+                  <td mat-cell *matCellDef="let doc">{{ doc.total_net_ttc | number:'1.2-2' }}</td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="['docnumber', 'date', 'total']"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['docnumber', 'date', 'total'];"></tr>
+              </table>
+              <div class="empty-state" *ngIf="data.pendingReceipts.length === 0">
+                <mat-icon>info_outline</mat-icon>
+                <p>Toutes les réceptions sont facturées.</p>
+              </div>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </div>
+
+      <!-- Recent History -->
+      <div class="history-section">
+        <div class="section-header">
+          <h3>Flux Financier (30j)</h3>
+          <button mat-icon-button><mat-icon>history</mat-icon></button>
+        </div>
+        
+        <div class="timeline">
+          <div class="timeline-item" *ngFor="let item of data.recentTransactions">
+            <div class="timeline-marker"></div>
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <span class="type">{{ item.type }}</span>
+                <span class="date">{{ formatDate(item.transactionDate) }}</span>
+              </div>
+              <div class="desc">{{ item.description }}</div>
+              <div class="amounts">
+                <span class="debit" *ngIf="item.debit > 0">-{{ item.debit | number:'1.2-2' }}</span>
+                <span class="credit" *ngIf="item.credit > 0">+{{ item.credit | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="empty-state" *ngIf="data.recentTransactions.length === 0">
+            Pas de transactions récentes.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

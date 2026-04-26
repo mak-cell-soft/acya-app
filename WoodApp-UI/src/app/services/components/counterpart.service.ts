@@ -3,6 +3,7 @@ import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { CounterPart } from '../../models/components/counterpart';
 import { Observable } from 'rxjs';
+import { SupplierDashboard } from '../../models/components/supplier-dashboard';
 
 @Injectable({
   providedIn: 'root'
@@ -15,6 +16,10 @@ export class CounterpartService {
   baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
+
+  getSupplierDashboard(id: number): Observable<SupplierDashboard> {
+    return this.http.get<SupplierDashboard>(this.baseUrl + 'CounterPart/' + id + '/supplier-dashboard');
+  }
 
   /**
 * Appel de la méthode Post endpoint : CounterPart/Post du serveur avec paramètre : l'objet CounterPart.

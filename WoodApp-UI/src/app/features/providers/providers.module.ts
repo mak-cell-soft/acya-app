@@ -7,6 +7,7 @@ import { AddProviderComponent } from './add-provider/add-provider.component';
 import { ListSuppliersComponent } from './list-suppliers/list-suppliers.component';
 import { ProviderDetailsModalComponent } from './provider-details-modal/provider-details-modal.component';
 import { ProviderEditModalComponent } from './provider-edit-modal/provider-edit-modal.component';
+import { SupplierDashboardComponent } from './supplier-dashboard/supplier-dashboard.component';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -33,7 +34,8 @@ import { MatTabsModule } from '@angular/material/tabs';
     AddProviderComponent,
     ListSuppliersComponent,
     ProviderDetailsModalComponent,
-    ProviderEditModalComponent
+    ProviderEditModalComponent,
+    SupplierDashboardComponent
   ],
   imports: [
     CommonModule,

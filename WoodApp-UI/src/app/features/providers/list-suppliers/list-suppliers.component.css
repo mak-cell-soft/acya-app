@@ -110,6 +110,11 @@ table {
     /* Google Blue */
 }
 
+.btn-dashboard {
+    color: #673ab7 !important;
+    /* Deep Purple */
+}
+
 .btn-edit {
     color: #34a853 !important;
     /* Google Green */

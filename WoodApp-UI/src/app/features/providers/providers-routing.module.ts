@@ -3,12 +3,17 @@ import { RouterModule, Routes } from '@angular/router';
 
 import { ListSuppliersComponent } from './list-suppliers/list-suppliers.component';
 import { AddProviderComponent } from './add-provider/add-provider.component';
+import { SupplierDashboardComponent } from './supplier-dashboard/supplier-dashboard.component';
 import { roleGuard } from '../../guards/role.guard';
 
 const routes: Routes = [
   {
     path: '',
     component: ListSuppliersComponent
+  },
+  {
+    path: 'dashboard/:id',
+    component: SupplierDashboardComponent
   },
   {
     path: 'add',
