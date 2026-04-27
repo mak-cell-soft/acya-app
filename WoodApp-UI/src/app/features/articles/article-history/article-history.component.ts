@@ -26,7 +26,7 @@ export class ArticleHistoryComponent implements OnInit, AfterViewInit {
   @ViewChild('salesPaginator') salesPaginator!: MatPaginator;
   @ViewChild('catalogPaginator') catalogPaginator!: MatPaginator;
   
-  purchaseColumns = ['transactiondate', 'docnumber', 'updatedby', 'pricevalueHT', 'pricevalue'];
+  purchaseColumns = ['transactiondate', 'docnumber', 'counterpartname', 'updatedby', 'pricevalueHT', 'pricevalue'];
   salesColumns = ['transactiondate', 'docnumber', 'updatedby', 'pricevalueHT', 'pricevalue'];
   catalogColumns = ['creationdate', 'updatedby', 'pricevalueHT', 'pricevalue'];
 

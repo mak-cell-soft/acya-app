@@ -15,4 +15,6 @@ export interface PurchasePriceHistory {
     article?: Article;
     supplier?: CounterPart;
     document?: Document;
+    counterpartname?: string;
+    updatedby_name?: string;
 }

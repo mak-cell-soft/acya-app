@@ -156,6 +156,13 @@
                 <span class="doc-badge">{{element.docnumber}}</span>
               </td>
             </ng-container>
+            
+            <ng-container matColumnDef="counterpartname">
+              <th mat-header-cell *matHeaderCellDef>Fournisseur</th>
+              <td mat-cell *matCellDef="let element" class="supplier-cell highlight-text">
+                {{element.counterpartname || '---'}}
+              </td>
+            </ng-container>
 
             <ng-container matColumnDef="updatedby">
               <th mat-header-cell *matHeaderCellDef>Modifié par</th>

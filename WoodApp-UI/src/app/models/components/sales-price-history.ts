@@ -15,4 +15,6 @@ export interface SalesPriceHistory {
     article?: Article;
     customer?: CounterPart;
     document?: Document;
+    counterpartname?: string;
+    updatedby_name?: string;
 }
