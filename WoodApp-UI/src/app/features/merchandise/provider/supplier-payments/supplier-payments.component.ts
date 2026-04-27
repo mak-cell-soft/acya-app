@@ -20,12 +20,14 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 // Router
 import { ActivatedRoute, Router } from '@angular/router';
 
 // RxJS — Subject and operators must all be imported
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, forkJoin } from 'rxjs';
 
 // Chart.js
 import { Chart, registerables } from 'chart.js';
@@ -74,7 +76,9 @@ Chart.register(...registerables);
     MatSelectModule,
     MatSlideToggleModule,
     MatButtonToggleModule,
-    MatToolbar
+    MatToolbar,
+    MatProgressBarModule,
+    MatProgressSpinnerModule
 ]
 })
 export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -224,26 +228,31 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
     if (!this.selectedSupplier) return;
     this.loading = true;
 
-    // Use GetByType and filter locally to ensure compatibility with all backend versions
-    this.docService.GetByType(DocumentTypes.supplierInvoice).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (docs) => {
-        this.invoicesDataSource.data = docs.filter(d =>
+    // Use forkJoin to wait for both invoices and payments history
+    forkJoin({
+      invoices: this.docService.GetByType(DocumentTypes.supplierInvoice),
+      payments: this.paymentService.GetTraitesBySupplierId(this.selectedSupplier.id)
+    }).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loading = false)
+    ).subscribe({
+      next: ({ invoices, payments }) => {
+        // Filter invoices for the selected supplier and status
+        this.invoicesDataSource.data = invoices.filter(d =>
           d.counterpart?.id === this.selectedSupplier?.id &&
           (this.showSettledInvoices || (d.remaining_balance || 0) > 0)
         );
-        this.calculateKPIs();
-        this.loading = false;
-      },
-      error: () => {
-        this.loading = false;
-        this.snackBar.open('Erreur lors du chargement des factures', 'Fermer', { duration: 3000 });
-      }
-    });
 
-    // Load traite/chèque history for this supplier
-    this.paymentService.GetTraitesBySupplierId(this.selectedSupplier.id).pipe(takeUntil(this.destroy$)).subscribe(payments => {
-      this.traitesDataSource.data = payments;
-      this.calculateKPIs();
+        // Update traite/chèque history
+        this.traitesDataSource.data = payments;
+
+        // Recalculate KPIs based on new data
+        this.calculateKPIs();
+      },
+      error: (err) => {
+        console.error('Error loading supplier data:', err);
+        this.snackBar.open('Erreur lors du chargement des données', 'Fermer', { duration: 3000 });
+      }
     });
   }
 
@@ -252,7 +261,11 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
     const toDate = new Date();
     toDate.setDate(toDate.getDate() + this.projectionDays);
 
-    this.paymentService.GetEcheances(fromDate, toDate).pipe(takeUntil(this.destroy$)).subscribe(data => {
+    this.loading = true;
+    this.paymentService.GetEcheances(fromDate, toDate).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loading = false)
+    ).subscribe(data => {
       this.initChart(data);
     });
   }

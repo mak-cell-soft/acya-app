@@ -1,4 +1,12 @@
-<div class="supplier-payments-container">
+<div class="supplier-payments-container" [class.is-loading]="loading">
+  <!-- Centered Loading Overlay -->
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="loading-content">
+      <mat-progress-spinner mode="indeterminate" diameter="50" color="primary"></mat-progress-spinner>
+      <span class="loading-text">Chargement ...</span>
+    </div>
+  </div>
+
   <!-- Standard Header Toolbar -->
   <mat-toolbar class="header-container">
     <div class="header-left">
@@ -13,12 +21,13 @@
       <mat-form-field appearance="outline" class="supplier-selector" subscriptSizing="dynamic">
         <mat-label>Choisir un Fournisseur</mat-label>
         <mat-select [(ngModel)]="selectedSupplier" (selectionChange)="onSupplierSelect($event.value)"
-          placeholder="Sélectionner...">
+          placeholder="Sélectionner..." [disabled]="loading">
           <mat-option *ngFor="let supplier of allSuppliers" [value]="supplier">
             {{supplier.name || (supplier.firstname + ' ' + supplier.lastname)}}
           </mat-option>
         </mat-select>
-        <mat-icon matSuffix style="color: white;">business</mat-icon>
+        <mat-icon matSuffix *ngIf="!loading" style="color: white;">business</mat-icon>
+        <mat-progress-spinner matSuffix *ngIf="loading" mode="indeterminate" diameter="20" color="accent" style="margin-right: 8px;"></mat-progress-spinner>
       </mat-form-field>
     </div>
   </mat-toolbar>
@@ -108,7 +117,7 @@
           </span>
         </mat-card-title>
         <span class="spacer"></span>
-        <mat-slide-toggle [checked]="showSettledInvoices" (change)="toggleSettledInvoices()" color="primary">
+        <mat-slide-toggle [checked]="showSettledInvoices" (change)="toggleSettledInvoices()" color="primary" [disabled]="loading">
           <span style="font-size: 0.8rem; color: #64748b;">Afficher les réglées</span>
         </mat-slide-toggle>
       </mat-card-header>
