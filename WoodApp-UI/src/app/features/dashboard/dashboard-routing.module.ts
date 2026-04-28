@@ -57,6 +57,10 @@ const routes: Routes = [
       {
         path: 'vehicles',
         loadChildren: () => import('../vehicles/vehicles.module').then(m => m.VehiclesModule)
+      },
+      {
+        path: 'construction-sites',
+        loadChildren: () => import('../../construction-site-modal/construction-site-modal.module').then(m => m.ConstructionSiteModalModule)
       }
     ]
   }

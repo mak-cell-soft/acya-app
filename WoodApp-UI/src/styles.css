@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&family=Lato:wght@400;700&display=swap');
 
 html,
 body {
@@ -8,7 +8,7 @@ body {
 body {
     margin: 0;
     font-family: 'Plus Jakarta Sans', sans-serif;
-    --mat-toolbar-container-background-color: ghostwite;
+    --mat-toolbar-container-background-color: ghostwhite;
 }
 
 h1, h2, h3, h4, .page-title, .mat-card-title {

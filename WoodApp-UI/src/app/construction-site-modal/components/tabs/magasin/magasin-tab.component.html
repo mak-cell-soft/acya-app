@@ -1,0 +1,108 @@
+<div class="magasin-container">
+  <!-- Responsible Header -->
+  <mat-card class="responsible-card">
+    <div class="card-content">
+      <div class="manager-info">
+        <div class="avatar-box">
+          <mat-icon>engineering</mat-icon>
+        </div>
+        <div class="manager-details">
+          <span class="label">Responsable Magasin</span>
+          <h3 class="name">{{ site.magasin.responsable.firstName }} {{ site.magasin.responsable.lastName }}</h3>
+          <span class="phone" *ngIf="site.magasin.responsable.phone">
+            <mat-icon>phone</mat-icon> {{ site.magasin.responsable.phone }}
+          </span>
+        </div>
+      </div>
+      
+      <div class="stats-box">
+        <div class="stat">
+          <span class="val">{{ site.magasin.tools.length }}</span>
+          <span class="lbl">Outils</span>
+        </div>
+        <div class="stat">
+          <span class="val">{{ site.vehicles.length }}</span>
+          <span class="lbl">Véhicules</span>
+        </div>
+      </div>
+    </div>
+  </mat-card>
+
+  <div class="magasin-grid">
+    <!-- Tools Section -->
+    <div class="tools-column">
+      <section class="tool-group">
+        <div class="group-header">
+          <mat-icon>home_repair_service</mat-icon>
+          <h3>Outils fixes</h3>
+        </div>
+        <div class="tool-list">
+          <div *ngFor="let tool of getFixedTools()" class="tool-item">
+            <div class="tool-main">
+              <span class="name">{{ tool.name }}</span>
+              <span class="loc">{{ tool.location }}</span>
+            </div>
+            <span class="qty">× {{ tool.quantity }}</span>
+          </div>
+          <div *ngIf="getFixedTools().length === 0" class="empty-list">Aucun outil fixe</div>
+        </div>
+      </section>
+
+      <section class="tool-group mobile-group">
+        <div class="group-header">
+          <mat-icon>delivery_dining</mat-icon>
+          <h3>Outils mobiles</h3>
+        </div>
+        <div class="tool-list">
+          <div *ngFor="let tool of getMobileTools()" class="tool-item">
+            <div class="tool-main">
+              <span class="name">{{ tool.name }}</span>
+              <span class="vehicle" *ngIf="getVehicleForTool(tool)">
+                <mat-icon>local_shipping</mat-icon> {{ getVehicleForTool(tool)?.label }}
+              </span>
+            </div>
+            <span class="qty">× {{ tool.quantity }}</span>
+          </div>
+          <div *ngIf="getMobileTools().length === 0" class="empty-list">Aucun outil mobile</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Vehicles Section -->
+    <div class="vehicles-column">
+      <div class="group-header">
+        <mat-icon>local_shipping</mat-icon>
+        <h3>Véhicules assignés</h3>
+      </div>
+      
+      <div class="vehicle-cards">
+        <mat-card *ngFor="let v of site.vehicles" class="vehicle-card">
+          <div class="v-header">
+            <div class="v-title">
+              <span class="plate">{{ v.plateNumber }}</span>
+              <h4 class="label">{{ v.label }}</h4>
+            </div>
+            <mat-icon class="v-icon">local_shipping</mat-icon>
+          </div>
+          
+          <div class="v-driver">
+            <span class="lbl">Livreur</span>
+            <span class="name">{{ v.livreur.firstName }} {{ v.livreur.lastName }}</span>
+          </div>
+          
+          <div class="v-cargo">
+            <span class="lbl">Cargaison</span>
+            <div class="tags">
+              <span *ngFor="let item of v.mobileMaterials" class="tag">{{ item }}</span>
+            </div>
+          </div>
+        </mat-card>
+        
+        <div *ngIf="site.vehicles.length === 0" class="empty-state-large">
+          <mat-icon>no_transportation</mat-icon>
+          <span>Aucun véhicule assigné au chantier</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

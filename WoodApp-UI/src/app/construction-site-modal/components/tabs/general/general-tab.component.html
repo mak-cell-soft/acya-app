@@ -1,0 +1,85 @@
+<div class="tab-grid">
+  <!-- Left Column: Description & Notes -->
+  <div class="col-left">
+    <mat-card class="info-card info-main">
+      <mat-card-header>
+        <mat-card-title>À propos du projet</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="description">{{ site.description }}</p>
+        
+        <div *ngIf="site.internalNote" class="note-box" [attr.data-flag]="site.flag">
+          <mat-icon>sticky_note_2</mat-icon>
+          <div class="note-content">
+            <span class="note-label">Note interne</span>
+            <p>{{ site.internalNote }}</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="info-card map-card">
+      <mat-card-header>
+        <mat-card-title>Localisation</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="map-placeholder">
+          <mat-icon>map</mat-icon>
+          <span>Visualisation de la carte</span>
+          <small>{{ site.location }}</small>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Right Column: Timeline & Architect -->
+  <div class="col-right">
+    <mat-card class="info-card architect-card">
+      <mat-card-header>
+        <mat-card-title>Architecte</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="architect-info" *ngIf="site.architect; else noArchitect">
+          <div class="avatar-large">{{ site.architect.firstName[0] }}{{ site.architect.lastName[0] }}</div>
+          <div class="arch-details">
+            <div class="name">{{ site.architect.firstName }} {{ site.architect.lastName }}</div>
+            <div class="company">{{ site.architect.company || 'Indépendant' }}</div>
+            <div class="contact-links">
+              <a [href]="'tel:' + site.architect.phone" *ngIf="site.architect.phone">
+                <mat-icon>phone</mat-icon> Appeler
+              </a>
+              <a [href]="'mailto:' + site.architect.email" *ngIf="site.architect.email">
+                <mat-icon>email</mat-icon> Email
+              </a>
+            </div>
+          </div>
+        </div>
+        <ng-template #noArchitect>
+          <div class="empty-state">
+            <mat-icon>person_add</mat-icon>
+            <span>Aucun architecte assigné</span>
+            <button mat-button color="primary">Assigner maintenant</button>
+          </div>
+        </ng-template>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="info-card dates-card">
+      <mat-card-header>
+        <mat-card-title>Échéancier</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="date-row">
+          <div class="date-item">
+            <span class="label">Début</span>
+            <span class="val">{{ site.createdAt | date:'mediumDate' }}</span>
+          </div>
+          <div class="date-item">
+            <span class="label">Fin estimée</span>
+            <span class="val">{{ site.estimatedEndDate ? (site.estimatedEndDate | date:'mediumDate') : 'Non définie' }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

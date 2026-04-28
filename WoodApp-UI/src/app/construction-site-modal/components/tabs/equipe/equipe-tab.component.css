@@ -1,0 +1,119 @@
+.equipe-container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.role-section {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.role-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.role-title h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.count {
+  background: #f0f0f0;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #888780;
+}
+
+.role-badge {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.role-badge[data-role="chef_chantier"] { background: #ef9f27; } /* amber */
+.role-badge[data-role="menuisier"] { background: #1d9e75; } /* teal */
+.role-badge[data-role="macon"] { background: #378add; } /* blue */
+.role-badge[data-role="ouvrier"] { background: #888780; } /* gray */
+.role-badge[data-role="electricien"], 
+.role-badge[data-role="plombier"], 
+.role-badge[data-role="peintre"] { background: #d85a30; } /* coral */
+
+.employee-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.employee-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fdfdfd;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s ease;
+}
+
+.employee-card:hover {
+  transform: translateY(-2px);
+  background: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.avatar-mini {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e1f5ee;
+  color: #1d9e75;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.emp-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.emp-info .name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #1a1a1a;
+}
+
+.emp-info .date {
+  font-size: 0.75rem;
+  color: #888780;
+}
+
+.empty-role {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 24px;
+  color: #888780;
+  font-style: italic;
+  font-size: 0.9rem;
+  background: rgba(0, 0, 0, 0.01);
+  border-radius: 12px;
+}

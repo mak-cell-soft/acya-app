@@ -1,0 +1,176 @@
+.magasin-container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.responsible-card {
+  border-radius: 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.card-content {
+  padding: 24px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.manager-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.avatar-box {
+  width: 56px;
+  height: 56px;
+  background: #faeeda; /* amber-50 */
+  color: #ef9f27; /* amber-200 */
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-box mat-icon { font-size: 32px; width: 32px; height: 32px; }
+
+.manager-details .label { font-size: 0.75rem; color: #888780; font-weight: 700; text-transform: uppercase; }
+.manager-details .name { margin: 2px 0; font-weight: 800; font-size: 1.25rem; color: #1a1a1a; }
+.manager-details .phone { font-size: 0.85rem; color: #888780; display: flex; align-items: center; gap: 4px; }
+.manager-details .phone mat-icon { font-size: 14px; width: 14px; height: 14px; }
+
+.stats-box {
+  display: flex;
+  gap: 32px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat .val { font-size: 1.75rem; font-weight: 900; color: #1a1a1a; }
+.stat .lbl { font-size: 0.75rem; color: #888780; font-weight: 700; text-transform: uppercase; }
+
+/* Grid Layout */
+.magasin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 32px;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  color: #1a1a1a;
+}
+
+.mobile-group {
+  margin-top: 24px;
+}
+
+.group-header mat-icon { color: #888780; }
+.group-header h3 { margin: 0; font-size: 1.1rem; font-weight: 700; }
+
+/* Tools */
+.tool-list {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.tool-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.02);
+}
+
+.tool-item:last-child { border-bottom: none; }
+
+.tool-main { display: flex; flex-direction: column; }
+.tool-main .name { font-weight: 600; color: #1a1a1a; }
+.tool-main .loc, .tool-main .vehicle { font-size: 0.75rem; color: #888780; display: flex; align-items: center; gap: 4px; }
+.tool-main .vehicle mat-icon { font-size: 12px; width: 12px; height: 12px; }
+
+.tool-item .qty { font-weight: 800; color: #ef9f27; font-family: monospace; font-size: 1rem; }
+
+/* Vehicles */
+.vehicle-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vehicle-card {
+  padding: 20px;
+  border-radius: 16px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.v-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.plate {
+  font-family: 'Outfit', sans-serif;
+  background: #1a1a1a;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.v-header .label { margin: 4px 0 0 0; font-weight: 700; font-size: 1rem; }
+.v-icon { font-size: 32px; width: 32px; height: 32px; color: #f0f0f0; }
+
+.v-driver, .v-cargo {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.v-driver .lbl, .v-cargo .lbl { font-size: 0.7rem; color: #888780; font-weight: 700; text-transform: uppercase; }
+.v-driver .name { font-weight: 600; color: #1a1a1a; font-size: 0.9rem; }
+
+.tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.tag {
+  background: #f5f5f5;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4a4a4a;
+}
+
+.empty-list, .empty-state-large {
+  padding: 24px;
+  text-align: center;
+  color: #888780;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.empty-state-large {
+  padding: 60px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.empty-state-large mat-icon { font-size: 48px; width: 48px; height: 48px; opacity: 0.2; }

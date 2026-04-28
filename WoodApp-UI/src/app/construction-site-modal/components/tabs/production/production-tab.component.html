@@ -1,0 +1,38 @@
+<div class="production-container">
+  <div *ngFor="let cat of categories" class="cat-section">
+    <div class="section-header">
+      <div class="cat-title">
+        <span class="cat-dot" [attr.data-cat]="cat"></span>
+        <h3>{{ getCategoryLabel(cat) }}</h3>
+      </div>
+      <button mat-stroked-button class="add-btn">
+        <mat-icon>add</mat-icon> Ajouter
+      </button>
+    </div>
+
+    <div class="production-list">
+      <div *ngFor="let prod of getProductionsByCategory(cat)" class="prod-row">
+        <div class="prod-label">
+          <span class="label">{{ prod.label }}</span>
+          <span class="sub" *ngIf="prod.subCategory">{{ prod.subCategory }}</span>
+        </div>
+        
+        <div class="prod-status">
+          <span class="status-badge" [attr.data-status]="prod.status">
+            {{ prod.status === 'planifie' ? 'Planifié' : prod.status === 'en_cours' ? 'En cours' : 'Terminé' }}
+          </span>
+        </div>
+        
+        <div class="prod-dates" *ngIf="prod.startDate">
+          {{ prod.startDate | date:'shortDate' }} - {{ prod.endDate ? (prod.endDate | date:'shortDate') : '...' }}
+        </div>
+        
+        <button mat-icon-button><mat-icon>settings</mat-icon></button>
+      </div>
+
+      <div *ngIf="getProductionsByCategory(cat).length === 0" class="empty-cat">
+        Aucune production de type {{ getCategoryLabel(cat) }}
+      </div>
+    </div>
+  </div>
+</div>

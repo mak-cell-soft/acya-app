@@ -1,0 +1,35 @@
+<div class="equipe-container">
+  <div *ngFor="let role of roles" class="role-section">
+    <div class="section-header">
+      <div class="role-title">
+        <span class="role-badge" [attr.data-role]="role"></span>
+        <h3>{{ getRoleLabel(role) }}</h3>
+        <span class="count">{{ getEmployeesByRole(role).length }}</span>
+      </div>
+      <button mat-icon-button class="add-btn" matTooltip="Ajouter un {{ getRoleLabel(role) }}">
+        <mat-icon>add_circle_outline</mat-icon>
+      </button>
+    </div>
+
+    <div class="employee-grid">
+      <div *ngFor="let emp of getEmployeesByRole(role)" class="employee-card">
+        <div class="avatar-mini">{{ emp.firstName[0] }}{{ emp.lastName[0] }}</div>
+        <div class="emp-info">
+          <span class="name">{{ emp.firstName }} {{ emp.lastName }}</span>
+          <span class="date">Rejoint le {{ emp.joinedAt | date:'shortDate' }}</span>
+        </div>
+        <button mat-icon-button [matMenuTriggerFor]="empMenu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #empMenu="matMenu">
+          <button mat-menu-item><mat-icon>edit</mat-icon> Modifier</button>
+          <button mat-menu-item color="warn"><mat-icon>delete</mat-icon> Retirer</button>
+        </mat-menu>
+      </div>
+      
+      <div *ngIf="getEmployeesByRole(role).length === 0" class="empty-role">
+        Aucun {{ getRoleLabel(role) }} assigné
+      </div>
+    </div>
+  </div>
+</div>

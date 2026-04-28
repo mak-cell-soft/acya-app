@@ -1,0 +1,61 @@
+<div class="materiaux-container">
+  <!-- Materials Section -->
+  <section class="materials-section">
+    <div class="section-header">
+      <h3>Matériaux principaux</h3>
+      <button mat-flat-button color="primary">Réapprovisionner</button>
+    </div>
+
+    <div class="materials-grid">
+      <mat-card *ngFor="let item of site.materials" class="material-card">
+        <div class="card-top">
+          <div class="mat-name">
+            <span class="name">{{ item.name }}</span>
+            <span class="cat">{{ item.category }}</span>
+          </div>
+          <div class="qty">
+            <span class="val">{{ item.quantity }}</span>
+            <span class="unit">{{ item.unit }}</span>
+          </div>
+        </div>
+        
+        <div class="stock-progress">
+          <div class="progress-bar" 
+               [style.width.%]="(item.quantity / (item.minThreshold * 2)) * 100"
+               [class.low]="isLowStock(item)">
+          </div>
+        </div>
+        
+        <div class="alert-info" *ngIf="isLowStock(item)">
+          <mat-icon>warning</mat-icon> Stock critique (< {{ item.minThreshold }})
+        </div>
+      </mat-card>
+      
+      <div *ngIf="site.materials.length === 0" class="empty-state">
+        <mat-icon>inventory_2</mat-icon>
+        <span>Aucun matériau répertorié</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Consumables Section -->
+  <section class="consumables-section">
+    <div class="section-header">
+      <h3>Consommables</h3>
+    </div>
+
+    <div class="consumables-list">
+      <div *ngFor="let item of site.consumables" class="consumable-item">
+        <div class="status-dot" [class.alert]="isLowStock(item)"></div>
+        <span class="name">{{ item.name }}</span>
+        <span class="qty">{{ item.quantity }} {{ item.unit }}</span>
+        <span class="threshold">Seuil: {{ item.minThreshold }}</span>
+        <button mat-icon-button><mat-icon>add_shopping_cart</mat-icon></button>
+      </div>
+      
+      <div *ngIf="site.consumables.length === 0" class="empty-list">
+        Aucun consommable répertorié
+      </div>
+    </div>
+  </section>
+</div>

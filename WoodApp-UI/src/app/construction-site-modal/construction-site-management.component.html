@@ -1,0 +1,34 @@
+<div class="management-container">
+  <!-- Sites Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Mes Chantiers</h2>
+      <button mat-flat-button color="primary" class="add-site-btn">
+        <mat-icon>add</mat-icon>
+        Nouveau Chantier
+      </button>
+    </div>
+    
+    <div class="sites-list">
+      <app-sites-sidebar 
+        [sites]="sites()" 
+        [selectedId]="selectedSiteId()" 
+        (siteSelected)="selectSite($event)">
+      </app-sites-sidebar>
+    </div>
+  </aside>
+
+  <!-- Site Detail Content -->
+  <main class="detail-content">
+    <div *ngIf="activeSite(); else noSelection" class="fade-in-up">
+      <app-site-detail [site]="activeSite()!"></app-site-detail>
+    </div>
+    
+    <ng-template #noSelection>
+      <div class="empty-selection">
+        <mat-icon class="empty-icon">business</mat-icon>
+        <p class="empty-text">Sélectionnez un chantier pour voir les détails</p>
+      </div>
+    </ng-template>
+  </main>
+</div>

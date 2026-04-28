@@ -178,6 +178,16 @@
         <mat-icon>help</mat-icon>
         <span class="menu-text" *ngIf="!isCollapsed">{{menu_help}}</span>
       </button>
+        
+      <mat-divider class="my-3"></mat-divider>
+      <!-- Gestion de Chantier-->
+
+      <button mat-button class="menu-item" routerLink="/home/construction-sites" routerLinkActive="active-route"
+              [matTooltip]="isCollapsed ? 'Gestion de Chantier' : ''" matTooltipPosition="right">
+        <mat-icon>business</mat-icon>
+        <span class="menu-text" *ngIf="!isCollapsed">Gestion de Chantier</span>
+      </button>
+      
     </div>
 
     <!-- Collapse Toggle (Bottom) -->

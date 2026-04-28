@@ -1,0 +1,141 @@
+.tab-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+}
+
+.info-card {
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.mat-mdc-card-header {
+  padding: 24px 24px 16px;
+}
+
+.mat-mdc-card-title {
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  color: #1a1a1a;
+}
+
+.description {
+  color: #4a4a4a;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+/* Note Box */
+.note-box {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 24px;
+  align-items: flex-start;
+}
+
+.note-box[data-flag="green"] { background: #e1f5ee; border-left: 4px solid #639922; }
+.note-box[data-flag="orange"] { background: #faeeda; border-left: 4px solid #ef9f27; }
+.note-box[data-flag="red"] { background: #fee2e2; border-left: 4px solid #e24b4a; }
+
+.note-box mat-icon {
+  color: inherit;
+  opacity: 0.8;
+}
+
+.note-label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.note-content p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Map */
+.map-placeholder {
+  height: 200px;
+  background: #e1f5ee; /* teal-50 */
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #1d9e75;
+  gap: 8px;
+}
+
+.map-placeholder mat-icon { font-size: 48px; width: 48px; height: 48px; opacity: 0.3; }
+
+/* Architect */
+.architect-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar-large {
+  width: 64px;
+  height: 64px;
+  background: #f0f0f0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  border: 2px solid white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.arch-details .name { font-weight: 700; font-size: 1.1rem; }
+.arch-details .company { font-size: 0.85rem; color: #888780; margin-bottom: 12px; }
+
+.contact-links {
+  display: flex;
+  gap: 16px;
+}
+
+.contact-links a {
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #ef9f27;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Dates */
+.date-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.date-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.date-item .label { font-size: 0.7rem; color: #888780; font-weight: 700; text-transform: uppercase; }
+.date-item .val { font-weight: 600; font-size: 1rem; }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+  color: #888780;
+  gap: 12px;
+}

@@ -1,0 +1,94 @@
+<div class="site-detail-wrapper">
+  <!-- Page Header -->
+  <header class="page-header">
+    <div class="header-main">
+      <div class="title-group">
+        <h1 class="site-title">{{ site.name }}</h1>
+        <div class="site-meta">
+          <span class="location">
+            <mat-icon>place</mat-icon> {{ site.location }}
+          </span>
+          <span class="divider">•</span>
+          <span class="date">Créé le {{ site.createdAt | date:'mediumDate' }}</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button mat-stroked-button class="action-btn">
+          <mat-icon>edit</mat-icon> Modifier
+        </button>
+        <button mat-flat-button color="primary" class="action-btn">
+          <mat-icon>share</mat-icon> Exporter
+        </button>
+      </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <div class="status-item">
+        <span class="label">Drapeau</span>
+        <div class="value">
+          <div class="flag-indicator" [attr.data-flag]="site.flag"></div>
+          {{ site.flag === 'green' ? 'Sain' : site.flag === 'orange' ? 'Attention' : 'Critique' }}
+        </div>
+      </div>
+
+      <div class="status-item">
+        <span class="label">Statut</span>
+        <span class="value badge" [class.active]="site.progressPercent < 100"
+          [class.finished]="site.progressPercent === 100">
+          {{ site.progressPercent < 100 ? 'En cours' : 'Terminé' }} </span>
+      </div>
+
+      <div class="status-item">
+        <span class="label">Équipe</span>
+        <span class="value">{{ site.employees.length }} employés</span>
+      </div>
+
+      <div class="status-item">
+        <span class="label">Architecte</span>
+        <span class="value">{{ site.architect?.firstName || 'Non assigné' }}</span>
+      </div>
+
+      <div class="status-item progress-item">
+        <span class="label">Avancement ({{ site.progressPercent }}%)</span>
+        <div class="value">
+          <mat-progress-bar mode="determinate" [value]="site.progressPercent"
+            class="modern-progress"></mat-progress-bar>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Tabs Navigation -->
+  <nav class="tabs-nav">
+    <button class="tab-link" [class.active]="activeTab === 0" (click)="setTab(0)">
+      <mat-icon>info</mat-icon> Général
+    </button>
+    <button class="tab-link" [class.active]="activeTab === 1" (click)="setTab(1)">
+      <mat-icon>groups</mat-icon> Équipe
+    </button>
+    <button class="tab-link" [class.active]="activeTab === 2" (click)="setTab(2)">
+      <mat-icon>build</mat-icon> Production
+    </button>
+    <button class="tab-link" [class.active]="activeTab === 3" (click)="setTab(3)">
+      <mat-icon>category</mat-icon> Matériaux
+    </button>
+    <button class="tab-link" [class.active]="activeTab === 4" (click)="setTab(4)">
+      <mat-icon>storefront</mat-icon> Magasin
+    </button>
+    <button class="tab-link" [class.active]="activeTab === 5" (click)="setTab(5)">
+      <mat-icon>timeline</mat-icon> Suivi
+    </button>
+  </nav>
+
+  <!-- Tab Content -->
+  <div class="tab-content-area">
+    <app-general-tab *ngIf="activeTab === 0" [site]="site"></app-general-tab>
+    <app-equipe-tab *ngIf="activeTab === 1" [site]="site"></app-equipe-tab>
+    <app-production-tab *ngIf="activeTab === 2" [site]="site"></app-production-tab>
+    <app-materiaux-tab *ngIf="activeTab === 3" [site]="site"></app-materiaux-tab>
+    <app-magasin-tab *ngIf="activeTab === 4" [site]="site"></app-magasin-tab>
+    <app-suivi-tab *ngIf="activeTab === 5" [site]="site"></app-suivi-tab>
+  </div>
+</div>

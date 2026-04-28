@@ -1,0 +1,21 @@
+<div class="site-items">
+  <div *ngFor="let site of sites" 
+       class="site-item" 
+       [class.active]="site.id === selectedId"
+       (click)="onSelect(site.id)">
+    
+    <div class="status-indicator" [attr.data-flag]="site.flag"></div>
+    
+    <div class="site-info">
+      <div class="site-name">{{ site.name }}</div>
+      <div class="site-location">
+        <mat-icon>location_on</mat-icon>
+        {{ site.location }}
+      </div>
+    </div>
+    
+    <div class="progress-circle">
+      <span class="percent">{{ site.progressPercent }}%</span>
+    </div>
+  </div>
+</div>

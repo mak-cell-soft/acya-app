@@ -1,0 +1,67 @@
+<div class="suivi-grid">
+  <!-- Lifecycle Timeline -->
+  <div class="timeline-column">
+    <mat-card class="suivi-card">
+      <mat-card-header>
+        <mat-card-title>Cycle de vie du chantier</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="vertical-timeline">
+          <div *ngFor="let event of site.lifecycle" class="timeline-item" [attr.data-status]="event.status">
+            <div class="dot-box">
+              <div class="dot"></div>
+              <div class="line"></div>
+            </div>
+            <div class="content">
+              <div class="date">{{ event.date | date:'mediumDate' }}</div>
+              <div class="title">{{ event.title }}</div>
+              <div class="desc">{{ event.description }}</div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="metrics-column">
+    <!-- Progress by Trade -->
+    <mat-card class="suivi-card trade-card">
+      <mat-card-header>
+        <mat-card-title>Avancement par corps de métier</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="trade-list">
+          <div *ngFor="let trade of tradeProgress" class="trade-item">
+            <div class="trade-meta">
+              <span class="label">{{ trade.label }}</span>
+              <span class="val">{{ trade.value }}%</span>
+            </div>
+            <div class="progress-container">
+              <div class="progress-fill" [style.width.%]="trade.value" [style.background-color]="trade.color"></div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Alerts Card -->
+    <mat-card class="suivi-card alerts-card">
+      <mat-card-header>
+        <mat-card-title>Alertes & Vigilance</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="alerts-list">
+          <div *ngFor="let alert of alerts" class="alert-item" [attr.data-type]="alert.type">
+            <mat-icon>{{ alert.type === 'critical' ? 'error' : 'warning' }}</mat-icon>
+            <span class="msg">{{ alert.msg }}</span>
+          </div>
+          
+          <div *ngIf="alerts.length === 0" class="no-alerts">
+            <mat-icon>check_circle</mat-icon>
+            Aucune alerte en cours
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
