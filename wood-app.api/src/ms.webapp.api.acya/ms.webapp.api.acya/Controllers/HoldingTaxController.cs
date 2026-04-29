@@ -87,13 +87,15 @@ namespace ms.webapp.api.acya.api.Controllers
             await _accountService.DeleteLedgerEntryAsync(document.HoldingTaxes.Id, "RS");
 
             // Add new ledger entry
+            bool isSupplier = document.Type == DocumentTypes.supplierInvoice || document.Type == DocumentTypes.supplierReceipt || document.Type == DocumentTypes.supplierInvoiceReturn;
             string description = $"Retenue à la source ({document.HoldingTaxes.TaxPercentage}%) - document {document.DocNumber}";
             await _accountService.AddLedgerEntryAsync(
                 document.CounterPartId,
                 "RS",
                 (decimal)document.HoldingTaxes.TaxValue,
                 document.HoldingTaxes.Id,
-                description
+                description,
+                isSupplier
             );
 
             // Update persistent balance

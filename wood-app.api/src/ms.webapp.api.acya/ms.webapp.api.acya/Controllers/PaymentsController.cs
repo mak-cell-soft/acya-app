@@ -112,7 +112,7 @@ namespace ms.webapp.api.acya.api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -140,7 +140,7 @@ namespace ms.webapp.api.acya.api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {

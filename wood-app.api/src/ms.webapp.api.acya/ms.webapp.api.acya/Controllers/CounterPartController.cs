@@ -30,7 +30,7 @@ namespace ms.webapp.api.acya.api.Controllers
       if (supplier == null) return NotFound();
 
       var dashboard = new SupplierDashboardDto();
-      dashboard.SupplierName = supplier.Name;
+      dashboard.SupplierName = !string.IsNullOrEmpty(supplier.Name) ? supplier.Name : (supplier.Fullname ?? "Inconnu");
 
       // 1. Current Balance
       dashboard.CurrentBalance = await _accountService.GetCurrentBalanceAsync(id);

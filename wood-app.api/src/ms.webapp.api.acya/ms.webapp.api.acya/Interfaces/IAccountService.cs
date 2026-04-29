@@ -1,13 +1,18 @@
+using System;
+using System.Threading.Tasks;
+using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs;
 
 namespace ms.webapp.api.acya.api.Interfaces
 {
     public interface IAccountService
     {
-        Task AddLedgerEntryAsync(int counterpartId, string type, decimal amount, int? relatedId, string? description = null);
+        Task AddLedgerEntryAsync(int counterpartId, string type, decimal amount, int? relatedId, string? description = null, bool? isSupplierSide = null);
         Task DeleteLedgerEntryAsync(int relatedId, string type);
         Task UpdateLedgerEntryAsync(int oldRelatedId, string oldType, int newRelatedId, string newType, string newDescription);
         Task<decimal> GetCurrentBalanceAsync(int counterpartId);
         Task<AccountStatementDto> GetStatementAsync(int counterpartId, DateTime startDate, DateTime endDate);
+        Task SyncLedgerForInvoiceAsync(Document invoice);
+        Task ResyncAllLedgerAsync();
     }
 }

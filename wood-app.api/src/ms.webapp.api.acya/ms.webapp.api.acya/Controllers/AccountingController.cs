@@ -10,10 +10,12 @@ namespace ms.webapp.api.acya.api.Controllers
     public class AccountingController : BaseApiController
     {
         private readonly IAccountService _accountService;
+        private readonly IBalanceService _balanceService;
 
-        public AccountingController(IAccountService accountService)
+        public AccountingController(IAccountService accountService, IBalanceService balanceService)
         {
             _accountService = accountService;
+            _balanceService = balanceService;
         }
 
         [HttpGet("balance/{counterpartId}")]
@@ -35,14 +37,29 @@ namespace ms.webapp.api.acya.api.Controllers
         {
             try
             {
-                if (startDate > endDate) return BadRequest("Start date cannot be after end date.");
+                if (startDate > endDate) return BadRequest(new { message = "Start date cannot be after end date." });
                 
                 var statement = await _accountService.GetStatementAsync(counterpartId, startDate, endDate);
                 return Ok(statement);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("resync-all")]
+        public async Task<ActionResult> ResyncAll()
+        {
+            try
+            {
+                await _accountService.ResyncAllLedgerAsync();
+                await _balanceService.RefreshAllBalancesAsync();
+                return Ok(new { message = "Ledger and balances re-synced successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
         }
     }

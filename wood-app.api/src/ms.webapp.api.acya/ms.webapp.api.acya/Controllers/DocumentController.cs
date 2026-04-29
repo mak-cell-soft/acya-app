@@ -460,10 +460,10 @@ namespace ms.webapp.api.acya.api.Controllers
             UpdateDate = DateTime.UtcNow,
             UpdatedById = dto.updatedbyid,
             DocStatus = dto.docstatus,
-            TotalCostHTNetDoc = dto.total_ht_net_doc,
-            TotalCostNetTTCDoc = dto.total_net_ttc,
-            TotalCostDiscountDoc = dto.total_discount_doc,
-            TotalCostTvaDoc = dto.total_tva_doc,
+            TotalCostHTNetDoc = Math.Round(dto.total_ht_net_doc, 3, MidpointRounding.AwayFromZero),
+            TotalCostNetTTCDoc = Math.Round(dto.total_net_ttc, 3, MidpointRounding.AwayFromZero),
+            TotalCostDiscountDoc = Math.Round(dto.total_discount_doc, 3, MidpointRounding.AwayFromZero),
+            TotalCostTvaDoc = Math.Round(dto.total_tva_doc, 3, MidpointRounding.AwayFromZero),
             IsDeleted = dto.isdeleted,
             IsInvoiced = dto.isinvoiced,
             BillingStatus = dto.billingstatus,
@@ -714,12 +714,14 @@ namespace ms.webapp.api.acya.api.Controllers
               doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt ||
               doc.Type == DocumentTypes.customerInvoiceReturn || doc.Type == DocumentTypes.supplierInvoiceReturn)
           {
+              bool isSupplier = doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt || doc.Type == DocumentTypes.supplierInvoiceReturn;
               await _accountService.AddLedgerEntryAsync(
                   doc.CounterPartId, 
                   doc.Type.ToString()!, 
                   (decimal)doc.TotalCostNetTTCDoc, 
                   doc.Id, 
-                  $"Movement - document {doc.DocNumber}");
+                  $"Movement - document {doc.DocNumber}",
+                  isSupplier);
           }
           #endregion
 
@@ -788,7 +790,7 @@ namespace ms.webapp.api.acya.api.Controllers
                  var parent = await _context.Documents.FindAsync(rel.ParentDocumentId);
                  if (parent != null)
                  {
-                     parent.TotalCreditNotes -= doc.TotalCostNetTTCDoc;
+                     parent.TotalCreditNotes = (double)Math.Round((decimal)parent.TotalCreditNotes - (decimal)doc.TotalCostNetTTCDoc, 3, MidpointRounding.AwayFromZero);
                      _context.Entry(parent).State = EntityState.Modified;
                  }
              }
@@ -806,7 +808,11 @@ namespace ms.webapp.api.acya.api.Controllers
         // 4. Update persistent balance
         if (doc.CounterPartId > 0)
         {
-            await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId, doc.Type.ToString()!, doc.UpdateDate ?? DateTime.UtcNow);
+            string lastTxType = doc.Type.ToString()!;
+            if (doc.CounterPart?.Type == CounterPartType.Customer)
+                await _balanceService.UpdateCustomerBalanceAsync(doc.CounterPartId, lastTxType, DateTime.UtcNow);
+            else
+                await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId, lastTxType, DateTime.UtcNow);
         }
 
         return Ok();
@@ -889,6 +895,11 @@ namespace ms.webapp.api.acya.api.Controllers
 
       // Create the invoice document
       Document invoice = new Document(genDto.invoiceDoc);
+      
+      invoice.TotalCostHTNetDoc = Math.Round(invoice.TotalCostHTNetDoc, 3, MidpointRounding.AwayFromZero);
+      invoice.TotalCostTvaDoc = Math.Round(invoice.TotalCostTvaDoc, 3, MidpointRounding.AwayFromZero);
+      invoice.TotalCostDiscountDoc = Math.Round(invoice.TotalCostDiscountDoc, 3, MidpointRounding.AwayFromZero);
+      invoice.TotalCostNetTTCDoc = Math.Round(invoice.TotalCostNetTTCDoc, 3, MidpointRounding.AwayFromZero);
 
       // Calculate totals based on the selected documents
       //foreach (var id in genDto.docChildrenIds!)
@@ -987,6 +998,9 @@ namespace ms.webapp.api.acya.api.Controllers
 
         // Record Price History for the newly created invoice
         await RecordPriceHistory(invoice);
+
+        // Sync ledger for invoice and its children
+        await _accountService.SyncLedgerForInvoiceAsync(invoice);
 
         // Update persistent balance
         if (invoice.CounterPartId > 0)
@@ -1184,10 +1198,10 @@ namespace ms.webapp.api.acya.api.Controllers
           doc.Description = dto.description;
           doc.UpdateDate = DateTime.UtcNow;
           doc.UpdatedById = dto.updatedbyid;
-          doc.TotalCostHTNetDoc = dto.total_ht_net_doc;
-          doc.TotalCostNetTTCDoc = dto.total_net_ttc;
-          doc.TotalCostDiscountDoc = dto.total_discount_doc;
-          doc.TotalCostTvaDoc = dto.total_tva_doc;
+          doc.TotalCostHTNetDoc = Math.Round(dto.total_ht_net_doc, 3, MidpointRounding.AwayFromZero);
+          doc.TotalCostNetTTCDoc = Math.Round(dto.total_net_ttc, 3, MidpointRounding.AwayFromZero);
+          doc.TotalCostDiscountDoc = Math.Round(dto.total_discount_doc, 3, MidpointRounding.AwayFromZero);
+          doc.TotalCostTvaDoc = Math.Round(dto.total_tva_doc, 3, MidpointRounding.AwayFromZero);
 
           // Process Merchandises
           // Remove existing DocumentMerchandises (they will be re-added from the DTO)
@@ -1292,12 +1306,14 @@ namespace ms.webapp.api.acya.api.Controllers
           {
               string docTypeStr = doc.Type.ToString()!;
               await _accountService.DeleteLedgerEntryAsync(doc.Id, docTypeStr);
-              await _accountService.AddLedgerEntryAsync(
-                  doc.CounterPartId, 
-                  docTypeStr, 
-                  (decimal)doc.TotalCostNetTTCDoc, 
-                  doc.Id, 
-                  $"Updated movement for document {doc.DocNumber}");
+               bool isSupplier = doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt || doc.Type == DocumentTypes.supplierInvoiceReturn;
+               await _accountService.AddLedgerEntryAsync(
+                   doc.CounterPartId, 
+                   docTypeStr, 
+                   (decimal)doc.TotalCostNetTTCDoc, 
+                   doc.Id, 
+                   $"Updated movement for document {doc.DocNumber}",
+                   isSupplier);
           }
 
           // Update Stock and Length IDs
@@ -1422,7 +1438,7 @@ namespace ms.webapp.api.acya.api.Controllers
                 var parentDoc = await _context.Documents.FindAsync(parentId);
                 if (parentDoc != null)
                 {
-                    parentDoc.TotalCreditNotes += dto.total_net_ttc;
+                    parentDoc.TotalCreditNotes = (double)Math.Round((decimal)parentDoc.TotalCreditNotes + (decimal)dto.total_net_ttc, 3, MidpointRounding.AwayFromZero);
                     _context.Entry(parentDoc).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
                 }

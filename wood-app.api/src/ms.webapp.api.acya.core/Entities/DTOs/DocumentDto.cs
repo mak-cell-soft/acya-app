@@ -131,12 +131,12 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
 
       // Calculate total_paid, total_credit_notes and remaining_balance
       total_paid = entity.Payments != null && entity.Payments.Any(p => !p.IsDeleted) 
-          ? (double)entity.Payments.Where(p => !p.IsDeleted).Sum(p => p.Amount ?? 0) 
+          ? (double)Math.Round(entity.Payments.Where(p => !p.IsDeleted).Sum(p => p.Amount ?? 0), 3, MidpointRounding.AwayFromZero) 
           : 0;
       
-      total_credit_notes = entity.TotalCreditNotes;
+      total_credit_notes = (double)Math.Round((decimal)entity.TotalCreditNotes, 3, MidpointRounding.AwayFromZero);
 
-      remaining_balance = (total_net_payable ?? total_net_ttc) - total_paid - total_credit_notes;
+      remaining_balance = (double)Math.Round((decimal)(total_net_payable ?? total_net_ttc) - (decimal)total_paid - (decimal)total_credit_notes, 3, MidpointRounding.AwayFromZero);
 
       // Populate childdocuments if navigation property is loaded
       if (entity.ChildDocuments != null && entity.ChildDocuments.Any())

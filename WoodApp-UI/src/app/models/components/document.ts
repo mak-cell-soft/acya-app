@@ -101,7 +101,13 @@ export enum DocTypes_FR {
     stockTransfer = 'Transfert stock',
     customerInvoiceReturn = 'Retour Client',
     supplierInvoiceReturn = 'Avoir Fournisseur',
-    inventory = 'Inventaire'
+    inventory = 'Inventaire',
+    Payment = 'Paiement',
+    RS = 'Retenue à la source',
+    customerPayment = 'Paiement Client',
+    supplierPayment = 'Paiement Fournisseur',
+    customerRS = 'Retenue à la source Client',
+    supplierRS = 'Retenue à la source Fournisseur'
 }
 
 export enum DocStatus {

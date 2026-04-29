@@ -118,12 +118,14 @@ namespace ms.webapp.api.acya.api.Services
                 throw new ArgumentException("Invalid or deleted document.");
 
             // Validate Document total
-            var totalPaid = await _paymentRepository.GetTotalByDocumentIdAsync(createDto.DocumentId);
-            decimal rsValue = (document.WithHoldingTax && document.HoldingTaxes != null) ? (decimal)document.HoldingTaxes.TaxValue : 0;
-            var remainingBalance = (decimal)document.TotalCostNetTTCDoc - rsValue - totalPaid;
+            var totalPaid = Math.Round(await _paymentRepository.GetTotalByDocumentIdAsync(createDto.DocumentId), 3, MidpointRounding.AwayFromZero);
+            decimal rsValue = (document.WithHoldingTax && document.HoldingTaxes != null) ? Math.Round((decimal)document.HoldingTaxes.TaxValue, 3, MidpointRounding.AwayFromZero) : 0;
+            var totalCreditNotes = (decimal)document.TotalCreditNotes;
+            var remainingBalance = Math.Round((decimal)document.TotalCostNetTTCDoc - rsValue - totalPaid - totalCreditNotes, 3, MidpointRounding.AwayFromZero);
+            var paymentAmount = Math.Round(createDto.Amount, 3, MidpointRounding.AwayFromZero);
 
-            if (createDto.Amount > remainingBalance + (decimal)0.001) // Small epsilon for float/decimal conversion issues
-                throw new ArgumentException($"Payment amount ({createDto.Amount}) exceeds remaining balance ({remainingBalance}).");
+            if (paymentAmount > remainingBalance)
+                throw new ArgumentException($"Payment amount ({paymentAmount}) exceeds remaining balance ({remainingBalance}).");
 
             // Fetch generic user name if needed or let DB handle UpdatedById relation
             var user = await _appUserRepository.Get(createdById);
@@ -138,7 +140,7 @@ namespace ms.webapp.api.acya.api.Services
                         DocumentId = createDto.DocumentId,
                         CustomerId = createDto.CustomerId,
                         PaymentDate = createDto.PaymentDate,
-                        Amount = createDto.Amount,
+                        Amount = paymentAmount,
                         PaymentMethod = createDto.PaymentMethod,
                         Reference = createDto.Reference,
                         Notes = createDto.Notes,
@@ -170,7 +172,7 @@ namespace ms.webapp.api.acya.api.Services
                     var createdPayment = await _paymentRepository.Add(payment);
 
                     // Update document billing status
-                    if (createDto.Amount < remainingBalance) {
+                    if (paymentAmount < remainingBalance) {
                         document.BillingStatus = (BillingStatus)3; 
                     } else {
                         document.BillingStatus = (BillingStatus)2; 
@@ -178,20 +180,22 @@ namespace ms.webapp.api.acya.api.Services
                     await _documentRepository.Update(document);
                     
                     // Integrate Ledger Entry
+                    bool isSupplier = IsSupplierDocument(document.Type);
                     await _accountService.AddLedgerEntryAsync(
                         createDto.CustomerId, 
                         "Payment", 
-                        createDto.Amount, 
+                        paymentAmount, 
                         createdPayment.Id, 
-                        $"Payment - document {document.DocNumber}");
+                        $"Payment - document {document.DocNumber}",
+                        isSupplier);
 
                     // Sync Account Ledger for converted delivery notes if applicable
-                    await SyncLedgerForInvoiceAsync(document);
+                    await _accountService.SyncLedgerForInvoiceAsync(document);
                                 
                     await transaction.CommitAsync();
 
                     // Update persistent balance after transaction success
-                    await _balanceService.UpdateCustomerBalanceAsync(createDto.CustomerId, "payment", DateTime.UtcNow);
+                    await UpdateBalanceByDocumentTypeAsync(document.Type?.ToString(), createDto.CustomerId, "payment", DateTime.UtcNow);
 
                     createdPayment.Document = document;
                     createdPayment.Customer = customer; 
@@ -218,34 +222,67 @@ namespace ms.webapp.api.acya.api.Services
 
             if (payment.Amount != updateDto.Amount)
             {
-                var totalPaid = await _paymentRepository.GetTotalByDocumentIdAsync(payment.DocumentId);
-                var totalPaidExcludingThis = totalPaid - (payment.Amount ?? 0);
+                var totalPaid = Math.Round(await _paymentRepository.GetTotalByDocumentIdAsync(payment.DocumentId), 3, MidpointRounding.AwayFromZero);
+                var totalPaidExcludingThis = totalPaid - Math.Round((payment.Amount ?? 0), 3, MidpointRounding.AwayFromZero);
                 
                 var document = await _documentRepository.Get(payment.DocumentId);
-                var remainingBalance = (decimal)document!.TotalCostNetTTCDoc - totalPaidExcludingThis;
-                
-                 if (updateDto.Amount > remainingBalance)
-                    throw new ArgumentException($"New payment amount ({updateDto.Amount}) exceeds remaining balance ({remainingBalance}).");
+                var rsValue = (document!.WithHoldingTax && document.HoldingTaxes != null) ? Math.Round((decimal)document.HoldingTaxes.TaxValue, 3, MidpointRounding.AwayFromZero) : 0;
+                var totalCreditNotes = (decimal)document.TotalCreditNotes;
+                var remainingBalance = Math.Round((decimal)document.TotalCostNetTTCDoc - rsValue - totalPaidExcludingThis - totalCreditNotes, 3, MidpointRounding.AwayFromZero);
+                var updateAmount = Math.Round(updateDto.Amount ?? 0, 3, MidpointRounding.AwayFromZero);
+
+                 if (updateAmount > remainingBalance)
+                    throw new ArgumentException($"New payment amount ({updateAmount}) exceeds remaining balance ({remainingBalance}).");
             }
 
-            payment.PaymentDate = updateDto.PaymentDate;
-            payment.Amount = updateDto.Amount;
-            payment.PaymentMethod = updateDto.PaymentMethod;
-            payment.Reference = updateDto.Reference;
-            payment.Notes = updateDto.Notes;
-            
-            payment.UpdatedById = updatedById; 
-            payment.UpdatedAt = DateTime.UtcNow;
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    payment.PaymentDate = updateDto.PaymentDate;
+                    payment.Amount = updateDto.Amount;
+                    payment.PaymentMethod = updateDto.PaymentMethod;
+                    payment.Reference = updateDto.Reference;
+                    payment.Notes = updateDto.Notes;
+                    
+                    payment.UpdatedById = updatedById; 
+                    payment.UpdatedAt = DateTime.UtcNow;
 
-            var updatedPayment = await _paymentRepository.Update(payment);
-            
-            // Update persistent balance
-            await _balanceService.UpdateCustomerBalanceAsync(payment.CustomerId, "payment", DateTime.UtcNow);
+                    var updatedPayment = await _paymentRepository.Update(payment);
+                    
+                    // Sync Ledger Entry
+                    var document = await _documentRepository.Get(payment.DocumentId);
+                    bool isSupplier = IsSupplierDocument(document?.Type);
 
-            // Re-fetch or attach user for mapping if needed
-            // For now mapping uses what's available
-            
-            return MapToDto(updatedPayment);
+                    await _accountService.DeleteLedgerEntryAsync(payment.Id, "Payment");
+                    await _accountService.AddLedgerEntryAsync(
+                        payment.CustomerId, 
+                        "Payment", 
+                        updateDto.Amount ?? 0, 
+                        payment.Id, 
+                        $"Payment - document {document?.DocNumber}",
+                        isSupplier);
+
+                    await transaction.CommitAsync();
+
+                    // Update persistent balance
+                    if (document != null)
+                    {
+                        await UpdateBalanceByDocumentTypeAsync(document.Type?.ToString(), payment.CustomerId, "payment", DateTime.UtcNow);
+                    }
+                    else
+                    {
+                        await _balanceService.UpdateCustomerBalanceAsync(payment.CustomerId, "payment", DateTime.UtcNow);
+                    }
+
+                    return MapToDto(updatedPayment);
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
         }
 
         public async Task<bool> DeleteAsync(int paymentId, int deletedById)
@@ -253,14 +290,41 @@ namespace ms.webapp.api.acya.api.Services
             var payment = await _paymentRepository.GetByIdAsync(paymentId);
             if (payment == null) return false;
 
-            payment.UpdatedById = deletedById;
-            
-            var result = await _paymentRepository.DeleteAsync(paymentId);
-            if (result)
+            using (var transaction = await _context.Database.BeginTransactionAsync())
             {
-                await _balanceService.UpdateCustomerBalanceAsync(payment.CustomerId, "payment", DateTime.UtcNow);
+                try
+                {
+                    payment.UpdatedById = deletedById;
+                    var result = await _paymentRepository.DeleteAsync(paymentId);
+                    if (result)
+                    {
+                        // Delete Ledger Entry
+                        await _accountService.DeleteLedgerEntryAsync(paymentId, "Payment");
+
+                        await transaction.CommitAsync();
+
+                        // Update persistent balance
+                        if (payment.Document != null)
+                        {
+                            await UpdateBalanceByDocumentTypeAsync(payment.Document.Type?.ToString(), payment.CustomerId, "payment", DateTime.UtcNow);
+                        }
+                        else
+                        {
+                            var document = await _documentRepository.Get(payment.DocumentId);
+                            if (document != null)
+                                await UpdateBalanceByDocumentTypeAsync(document.Type?.ToString(), payment.CustomerId, "payment", DateTime.UtcNow);
+                            else
+                                await _balanceService.UpdateCustomerBalanceAsync(payment.CustomerId, "payment", DateTime.UtcNow);
+                        }
+                    }
+                    return result;
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
             }
-            return result;
         }
 
         public async Task<bool> LinkPaymentToInvoiceAsync(int paymentId, int newInvoiceId)
@@ -284,12 +348,12 @@ namespace ms.webapp.api.acya.api.Services
                     await _paymentRepository.Update(payment);
 
                     // Sync Account Ledger for converted delivery notes if applicable
-                    await SyncLedgerForInvoiceAsync(document);
+                    await _accountService.SyncLedgerForInvoiceAsync(document);
 
                     await transaction.CommitAsync();
 
                     // Update persistent balance
-                    await _balanceService.UpdateCustomerBalanceAsync(payment.CustomerId, "payment", DateTime.UtcNow);
+                    await UpdateBalanceByDocumentTypeAsync(document.Type?.ToString(), payment.CustomerId, "payment", DateTime.UtcNow);
 
                     return true;
                 }
@@ -301,28 +365,6 @@ namespace ms.webapp.api.acya.api.Services
             }
         }
 
-        private async Task SyncLedgerForInvoiceAsync(Document invoice)
-        {
-            if (invoice.Type != DocumentTypes.customerInvoice) return;
-
-            if (invoice.ChildDocuments != null && invoice.ChildDocuments.Any())
-            {
-                foreach (var rel in invoice.ChildDocuments)
-                {
-                    var child = rel.ChildDocument;
-                    if (child != null && child.Type == DocumentTypes.customerDeliveryNote)
-                    {
-                        await _accountService.UpdateLedgerEntryAsync(
-                            child.Id,
-                            "customerDeliveryNote",
-                            invoice.Id,
-                            "customerInvoice",
-                            $"Movement - document {invoice.DocNumber} related to {child.DocNumber}"
-                        );
-                    }
-                }
-            }
-        }
 
         public async Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int userId, string? documentSide = null)
         {
@@ -366,6 +408,30 @@ namespace ms.webapp.api.acya.api.Services
                     BankSettlementStatus = payment.PaymentInstrument.BankSettlementStatus
                 } : null
             };
+        }
+
+        private async Task UpdateBalanceByDocumentTypeAsync(string? docType, int counterpartId, string lastTxType, DateTime txDate)
+        {
+            bool isSupplier = docType == DocumentTypes.supplierInvoice.ToString() || 
+                             docType == DocumentTypes.supplierReceipt.ToString() || 
+                             docType == DocumentTypes.supplierInvoiceReturn.ToString();
+
+            if (isSupplier)
+            {
+                await _balanceService.UpdateSupplierBalanceAsync(counterpartId, lastTxType, txDate);
+            }
+            else
+            {
+                await _balanceService.UpdateCustomerBalanceAsync(counterpartId, lastTxType, txDate);
+            }
+        }
+
+        private bool IsSupplierDocument(DocumentTypes? type)
+        {
+            if (type == null) return false;
+            return type == DocumentTypes.supplierInvoice || 
+                   type == DocumentTypes.supplierReceipt || 
+                   type == DocumentTypes.supplierInvoiceReturn;
         }
     }
 }
