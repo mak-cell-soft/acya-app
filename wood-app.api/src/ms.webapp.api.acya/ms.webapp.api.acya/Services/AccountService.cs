@@ -264,20 +264,10 @@ namespace ms.webapp.api.acya.api.Services
         {
             if (invoice == null || invoice.CounterPartId <= 0) return;
 
-            // 1. Add the Invoice itself to the ledger
             bool isSupplier = invoice.Type == DocumentTypes.supplierInvoice || invoice.Type == DocumentTypes.supplierReceipt;
-            await AddLedgerEntryAsync(
-                invoice.CounterPartId,
-                invoice.Type.ToString()!,
-                (decimal)invoice.TotalCostNetTTCDoc,
-                invoice.Id,
-                $"Invoice - document {invoice.DocNumber}",
-                isSupplier);
 
-            // 2. Handle linked documents (Delivery Notes / Receipts)
-            // If this invoice is created from children, we must update their ledger entries 
-            // to show they are now part of this invoice (or remove them if we want a single entry).
-            // Based on existing patterns, we'll update them to point to the invoice.
+            // 1. For invoices generated from receipts/delivery-notes,
+            //    remove the child documents' ledger entries (they are now superseded by the invoice).
             var children = await _context.Documents
                 .Where(d => _context.DocumentDocumentRelationships
                     .Where(r => r.ParentDocumentId == invoice.Id)
@@ -287,15 +277,23 @@ namespace ms.webapp.api.acya.api.Services
 
             foreach (var child in children)
             {
-                string oldType = child.Type.ToString()!;
-                await UpdateLedgerEntryAsync(
-                    child.Id,
-                    oldType,
-                    invoice.Id,
-                    invoice.Type.ToString()!,
-                    $"Movement - document {invoice.DocNumber} related to {child.DocNumber}"
-                );
+                // Delete the receipt/BL ledger entry so it is not double-counted
+                await DeleteLedgerEntryAsync(child.Id, child.Type.ToString()!);
             }
+
+            // 2. Build a description mentioning source documents
+            string description = children.Any()
+                ? $"Facture - document {invoice.DocNumber} (depuis: {string.Join(", ", children.Select(c => c.DocNumber))})"
+                : $"Facture - document {invoice.DocNumber}";
+
+            // 3. Add a SINGLE ledger entry for the invoice itself
+            await AddLedgerEntryAsync(
+                invoice.CounterPartId,
+                invoice.Type.ToString()!,
+                (decimal)invoice.TotalCostNetTTCDoc,
+                invoice.Id,
+                description,
+                isSupplier);
         }
         public async Task ResyncAllLedgerAsync()
         {
@@ -315,6 +313,13 @@ namespace ms.webapp.api.acya.api.Services
                     doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt ||
                     doc.Type == DocumentTypes.customerInvoiceReturn || doc.Type == DocumentTypes.supplierInvoiceReturn)
                 {
+                    // Skip receipts/delivery notes that are already invoiced, 
+                    // as they will be covered by the invoice entry itself.
+                    if ((doc.Type == DocumentTypes.supplierReceipt || doc.Type == DocumentTypes.customerDeliveryNote) && doc.IsInvoiced)
+                    {
+                        continue;
+                    }
+
                     bool isSupplier = doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt || doc.Type == DocumentTypes.supplierInvoiceReturn;
                     
                     // Add document entry
@@ -323,7 +328,7 @@ namespace ms.webapp.api.acya.api.Services
                         doc.Type.ToString()!, 
                         Math.Round((decimal)doc.TotalCostNetTTCDoc, 3, MidpointRounding.AwayFromZero), 
                         doc.Id, 
-                        $"Movement - document {doc.DocNumber}",
+                        $"Mouvement - document {doc.DocNumber}",
                         isSupplier);
 
                     // Add Holding Tax entry if exists
@@ -368,7 +373,7 @@ namespace ms.webapp.api.acya.api.Services
                     "Payment",
                     Math.Round((decimal)(payment.Amount ?? 0), 3, MidpointRounding.AwayFromZero),
                     payment.Id,
-                    $"Payment - document {payment.Document?.DocNumber ?? payment.Reference}",
+                    $"Paiement - document {payment.Document?.DocNumber ?? payment.Reference}",
                     isSupplier);
             }
 

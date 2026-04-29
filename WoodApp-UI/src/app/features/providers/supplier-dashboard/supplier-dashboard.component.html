@@ -145,7 +145,7 @@
             <div class="timeline-marker"></div>
             <div class="timeline-content">
               <div class="timeline-header">
-                <span class="type">{{ item.type }}</span>
+                <span class="type">{{ getTransactionTypeLabel(item.type) }}</span>
                 <span class="date">{{ formatDate(item.transactionDate) }}</span>
               </div>
               <div class="desc">{{ item.description }}</div>

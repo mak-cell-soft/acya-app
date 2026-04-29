@@ -58,6 +58,11 @@ export class SupplierDashboardComponent implements OnInit {
     return DocStatus_FR[DocStatus[status] as keyof typeof DocStatus_FR] || status?.toString() || '-';
   }
 
+  getTransactionTypeLabel(type: string): string {
+    if (!type) return '-';
+    return this.docTypes_FR[type as keyof typeof DocTypes_FR] || type;
+  }
+
   onBack(): void {
     this.router.navigate(['/home/providers']);
   }
