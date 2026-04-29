@@ -505,6 +505,89 @@ export class SupplierPaymentsComponent implements OnInit, AfterViewInit, OnDestr
     }
   }
 
+  /**
+   * Open the PaymentModalComponent in EDIT mode for an existing payment row.
+   * Pre-fills all fields from the payment; on confirm sends PUT /Payments/{id}.
+   */
+  editPayment(payment: Payment) {
+    const pid = payment.paymentId || payment.id; // backend returns PaymentId → camelCase paymentId
+
+    const dialogRef = this.dialog.open(PaymentModalComponent, {
+      width: '1000px',
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      data: {
+        // Edit mode: existing payment data
+        isEditMode: true,
+        paymentId: pid,
+        documentId: payment.documentId,
+        documentNumber: payment.reference || '',
+        // Pass the full invoice amount so remaining can be re-evaluated with this payment excluded
+        totalAmount: payment.amount || 0,
+        // In edit mode we allow changing the amount freely up to the original amount
+        remainingAmount: payment.amount || 0,
+        totalCreditNotes: 0,
+        ownerFullName: this.selectedSupplier?.name ||
+          `${this.selectedSupplier?.firstname ?? ''} ${this.selectedSupplier?.lastname ?? ''}`.trim(),
+        porterName: this.enterpriseName || 'Moi-même',
+        porterId: this.enterpriseId,
+        // Pre-fill fields for the modal
+        prefillAmount: payment.amount,
+        prefillDate: payment.paymentDate,
+        prefillMethod: payment.paymentMethod,
+        prefillReference: payment.reference,
+        prefillNotes: payment.notes,
+        prefillInstrument: payment.instrument
+      }
+    });
+
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (!result) return; // User cancelled
+
+      const user = this.authService.getUserDetail();
+      const formatLocal = (d: any) => {
+        if (!d) return null;
+        const date = new Date(d);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+
+      const updatePayload: any = {
+        paymentId: pid,
+        amount: result.details?.amount || result.amount,
+        paymentDate: formatLocal(result.date),
+        paymentMethod: result.method,
+        reference: result.details?.reference || '',
+        notes: result.details?.notes || '',
+        instrumentDetails: result.method === 'CHEQUE' || result.method === 'TRAITE' ? {
+          instrumentNumber: result.details?.number,
+          bank: result.details?.bank,
+          owner: result.details?.owner,
+          porter: result.details?.porter,
+          issueDate: formatLocal(result.details?.issueDate),
+          dueDate: formatLocal(result.details?.dueDate),
+          expirationDate: formatLocal(result.details?.expirationDate)
+        } : null
+      };
+
+      this.loading = true;
+      this.paymentService.Update(pid, updatePayload)
+        .pipe(takeUntil(this.destroy$), finalize(() => this.loading = false))
+        .subscribe({
+          next: () => {
+            this.snackBar.open('Paiement modifié avec succès', 'Fermer', { duration: 3000 });
+            this.loadSupplierData();
+          },
+          error: (err) => {
+            console.error('Error updating payment:', err);
+            this.snackBar.open(err?.error?.message || 'Erreur lors de la modification', 'Fermer', { duration: 4000 });
+          }
+        });
+    });
+  }
+
   // Returns true when a traite is past its due date and not yet paid at bank
   isOverdue(traite: Payment): boolean {
     if (!traite.instrument?.dueDate || traite.instrument.isPaidAtBank) return false;

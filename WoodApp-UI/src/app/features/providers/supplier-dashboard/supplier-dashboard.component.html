@@ -21,7 +21,7 @@
       <div class="header-balance">
         <span class="label">Solde en cours</span>
         <span class="value" [class.negative]="data.currentBalance > 0">
-          {{ data.currentBalance | number:'1.2-2' }} TND
+          {{ data.currentBalance | number:'1.3-3' }} TND
         </span>
         <small class="balance-hint" *ngIf="data.currentBalance > 0">Vous devez ce montant</small>
         <small class="balance-hint positive" *ngIf="data.currentBalance < 0">Crédit en votre faveur</small>
@@ -36,7 +36,7 @@
             <mat-icon>payments</mat-icon>
           </div>
           <mat-card-subtitle>Paiements effectués</mat-card-subtitle>
-          <mat-card-title>{{ data.totalPaid | number:'1.2-2' }} TND</mat-card-title>
+          <mat-card-title>{{ data.totalPaid | number:'1.3-3' }} TND</mat-card-title>
         </mat-card-header>
       </mat-card>
 
@@ -82,7 +82,7 @@
                 </ng-container>
                 <ng-container matColumnDef="total">
                   <th mat-header-cell *matHeaderCellDef>Total TTC</th>
-                  <td mat-cell *matCellDef="let doc">{{ doc.total_net_ttc | number:'1.2-2' }}</td>
+                  <td mat-cell *matCellDef="let doc">{{ doc.total_net_ttc | number:'1.3-3' }}</td>
                 </ng-container>
                 <ng-container matColumnDef="status">
                   <th mat-header-cell *matHeaderCellDef>Statut</th>
@@ -119,7 +119,7 @@
                 </ng-container>
                 <ng-container matColumnDef="total">
                   <th mat-header-cell *matHeaderCellDef>Total TTC</th>
-                  <td mat-cell *matCellDef="let doc">{{ doc.total_net_ttc | number:'1.2-2' }}</td>
+                  <td mat-cell *matCellDef="let doc">{{ doc.total_net_ttc | number:'1.3-3' }}</td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="['docnumber', 'type', 'date', 'total']"></tr>
                 <tr mat-row *matRowDef="let row; columns: ['docnumber', 'type', 'date', 'total'];"></tr>
@@ -141,17 +141,23 @@
         </div>
         
         <div class="timeline">
-          <div class="timeline-item" *ngFor="let item of data.recentTransactions">
+          <div class="timeline-item" *ngFor="let item of data.recentTransactions"
+               [ngClass]="{'is-payment': item.type.toLowerCase().includes('payment'), 'is-document': !item.type.toLowerCase().includes('payment')}">
             <div class="timeline-marker"></div>
             <div class="timeline-content">
               <div class="timeline-header">
-                <span class="type">{{ getTransactionTypeLabel(item.type) }}</span>
+                <div class="type-container">
+                  <span class="type">{{ getTransactionTypeLabel(item.type) }}</span>
+                  <span class="method-badge" *ngIf="getPaymentMethod(item.description) as method">
+                    {{ method }}
+                  </span>
+                </div>
                 <span class="date">{{ formatDate(item.transactionDate) }}</span>
               </div>
-              <div class="desc">{{ item.description }}</div>
+              <div class="desc">{{ getCleanDescription(item) }}</div>
               <div class="amounts">
-                <span class="debit" *ngIf="item.debit > 0">-{{ item.debit | number:'1.2-2' }}</span>
-                <span class="credit" *ngIf="item.credit > 0">+{{ item.credit | number:'1.2-2' }}</span>
+                <span class="debit" *ngIf="item.debit > 0">-{{ item.debit | number:'1.3-3' }}</span>
+                <span class="credit" *ngIf="item.credit > 0">+{{ item.credit | number:'1.3-3' }}</span>
               </div>
             </div>
           </div>

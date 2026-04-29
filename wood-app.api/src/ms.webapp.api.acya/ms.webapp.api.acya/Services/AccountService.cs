@@ -373,7 +373,7 @@ namespace ms.webapp.api.acya.api.Services
                     "Payment",
                     Math.Round((decimal)(payment.Amount ?? 0), 3, MidpointRounding.AwayFromZero),
                     payment.Id,
-                    $"Paiement - document {payment.Document?.DocNumber ?? payment.Reference}",
+                    $"Paiement ({payment.PaymentMethod}) - document {payment.Document?.DocNumber ?? payment.Reference}",
                     isSupplier);
             }
 

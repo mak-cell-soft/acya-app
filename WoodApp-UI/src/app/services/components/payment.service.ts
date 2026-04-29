@@ -36,6 +36,14 @@ export class PaymentService {
     }
 
     /**
+     * Update an existing Payment (amount, date, method, reference, notes)
+     * Calls PUT /Payments/{id} → UpdatePaymentDto on the backend.
+     */
+    Update(id: number, model: Partial<Payment> & { paymentId: number }): Observable<any> {
+        return this.http.put<any>(`${this.baseUrl}Payments/${id}`, model);
+    }
+
+    /**
      * Delete a Payment (Soft delete)
      */
     Delete(id: number): Observable<any> {

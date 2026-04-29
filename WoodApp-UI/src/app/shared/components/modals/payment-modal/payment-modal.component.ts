@@ -22,6 +22,16 @@ export interface PaymentModalData {
     porterId: number;
     billingStatus: number;
     documentType: number;
+    // --- Edit mode ---
+    // When true, the modal pre-fills from existing payment and skips balance recalculation
+    isEditMode?: boolean;
+    paymentId?: number;
+    prefillAmount?: number;
+    prefillDate?: Date;
+    prefillMethod?: string;
+    prefillReference?: string;
+    prefillNotes?: string;
+    prefillInstrument?: any;
 }
 
 @Component({
@@ -59,16 +69,25 @@ export class PaymentModalComponent implements OnInit {
         private paymentService: PaymentService
     ) {
         this.paymentForm = this.fb.group({
-            // Common fields or Cash specific fields
-            amount: [this.data.remainingAmount?.toFixed(3) || '0.000', [Validators.required, Validators.min(0)]],
-            paymentDate: [new Date(), Validators.required],
-            reference: [''], // For Virement/Carte
-            notes: ['']
+            // Common fields — pre-filled with existing data when in edit mode
+            amount: [this.data.prefillAmount?.toFixed(3) ?? this.data.remainingAmount?.toFixed(3) ?? '0.000',
+                     [Validators.required, Validators.min(0)]],
+            paymentDate: [this.data.prefillDate ? new Date(this.data.prefillDate) : new Date(), Validators.required],
+            reference: [this.data.prefillReference || ''],
+            notes: [this.data.prefillNotes || '']
         });
+
+        // In edit mode, pre-select the payment method so the correct sub-form renders
+        if (this.data.isEditMode && this.data.prefillMethod) {
+            this.selectedPaymentMethod = this.data.prefillMethod as any;
+        }
     }
 
     ngOnInit(): void {
-        this.calculateRemainingAmount();
+        // Skip live balance recalculation in edit mode — user is correcting an existing payment
+        if (!this.data.isEditMode) {
+            this.calculateRemainingAmount();
+        }
     }
 
     calculateRemainingAmount(): void {

@@ -186,7 +186,7 @@ namespace ms.webapp.api.acya.api.Services
                         "Payment", 
                         paymentAmount, 
                         createdPayment.Id, 
-                        $"Payment - document {document.DocNumber}",
+                        $"Paiement ({createDto.PaymentMethod}) - document {document.DocNumber}",
                         isSupplier);
 
                     // Sync Account Ledger for converted delivery notes if applicable
@@ -248,6 +248,39 @@ namespace ms.webapp.api.acya.api.Services
                     payment.UpdatedById = updatedById; 
                     payment.UpdatedAt = DateTime.UtcNow;
 
+                    // Update Instrument if provided
+                    if (updateDto.InstrumentDetails != null)
+                    {
+                        if (payment.PaymentInstrument != null)
+                        {
+                            payment.PaymentInstrument.InstrumentNumber = updateDto.InstrumentDetails.InstrumentNumber;
+                            payment.PaymentInstrument.Bank = updateDto.InstrumentDetails.Bank;
+                            payment.PaymentInstrument.Owner = updateDto.InstrumentDetails.Owner;
+                            payment.PaymentInstrument.Porter = updateDto.InstrumentDetails.Porter;
+                            payment.PaymentInstrument.IssueDate = updateDto.InstrumentDetails.IssueDate ?? payment.PaymentDate;
+                            payment.PaymentInstrument.DueDate = updateDto.InstrumentDetails.DueDate;
+                            payment.PaymentInstrument.ExpirationDate = updateDto.InstrumentDetails.ExpirationDate;
+                            payment.PaymentInstrument.UpdatedAt = DateTime.UtcNow;
+                        }
+                        else if (updateDto.PaymentMethod == "TRAITE" || updateDto.PaymentMethod == "CHEQUE")
+                        {
+                            payment.PaymentInstrument = new PaymentInstrument
+                            {
+                                PaymentId = payment.Id,
+                                InstrumentNumber = updateDto.InstrumentDetails.InstrumentNumber,
+                                Type = updateDto.PaymentMethod,
+                                Bank = updateDto.InstrumentDetails.Bank,
+                                Owner = updateDto.InstrumentDetails.Owner,
+                                Porter = updateDto.InstrumentDetails.Porter,
+                                IssueDate = updateDto.InstrumentDetails.IssueDate ?? payment.PaymentDate,
+                                DueDate = updateDto.InstrumentDetails.DueDate,
+                                ExpirationDate = updateDto.InstrumentDetails.ExpirationDate,
+                                CreatedAt = DateTime.UtcNow,
+                                CreatedBy = payment.CreatedBy
+                            };
+                        }
+                    }
+
                     var updatedPayment = await _paymentRepository.Update(payment);
                     
                     // Sync Ledger Entry
@@ -260,7 +293,7 @@ namespace ms.webapp.api.acya.api.Services
                         "Payment", 
                         updateDto.Amount ?? 0, 
                         payment.Id, 
-                        $"Payment - document {document?.DocNumber}",
+                        $"Paiement ({payment.PaymentMethod}) - document {document?.DocNumber}",
                         isSupplier);
 
                     await transaction.CommitAsync();

@@ -63,6 +63,20 @@ export class SupplierDashboardComponent implements OnInit {
     return this.docTypes_FR[type as keyof typeof DocTypes_FR] || type;
   }
 
+  getPaymentMethod(description: string | undefined): string | null {
+    if (!description) return null;
+    // Look for "Paiement (METHOD)" pattern
+    const match = description.match(/Paiement \((.*?)\)/);
+    return match ? match[1] : null;
+  }
+
+  getCleanDescription(item: any): string {
+    if (!item.description) return '';
+    // If it has the "Paiement (METHOD) - " prefix, we might want to keep just the rest for the body
+    // but the user might want both. Let's keep it simple for now or strip the prefix.
+    return item.description.replace(/Paiement \(.*?\)\s*-\s*/, '');
+  }
+
   onBack(): void {
     this.router.navigate(['/home/providers']);
   }

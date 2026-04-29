@@ -56,7 +56,7 @@
                                             class="header-icon">account_balance_wallet</mat-icon> Solde Clôture </th>
                                     <td mat-cell *matCellDef="let element" class="text-end fw-bold"
                                         [class.text-danger]="element.closingBalance > 0">
-                                        {{element.closingBalance | number:'1.2-2'}} TND
+                                        {{element.closingBalance | number:'1.3-3'}} TND
                                     </td>
                                 </ng-container>
 
@@ -126,7 +126,7 @@
                                             class="header-icon">account_balance_wallet</mat-icon> Solde Clôture </th>
                                     <td mat-cell *matCellDef="let element" class="text-end fw-bold"
                                         [class.text-success]="element.closingBalance < 0">
-                                        {{element.closingBalance | number:'1.2-2'}} TND
+                                        {{element.closingBalance | number:'1.3-3'}} TND
                                     </td>
                                 </ng-container>
 

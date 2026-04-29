@@ -102,6 +102,7 @@
                     [porterId]="data.porterId" 
                     [porterName]="data.porterName" 
                     [defaultAmount]="data.remainingAmount"
+                    [prefillInstrument]="data.prefillInstrument"
                     (formReady)="onCustomFormReady($event, 'CHEQUE')">
                 </app-cheque-payment-form>
 
@@ -111,6 +112,7 @@
                     [porterId]="data.porterId" 
                     [porterName]="data.porterName" 
                     [defaultAmount]="data.remainingAmount"
+                    [prefillInstrument]="data.prefillInstrument"
                     (formReady)="onCustomFormReady($event, 'TRAITE')">
                 </app-traite-payment-form>
             </div>

@@ -346,10 +346,80 @@ tr.mat-row:hover td.mat-cell {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
 }
 
+/* Payment (Green) and Document (Red) Styles */
+.timeline-item.is-payment .timeline-marker {
+  border-color: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+.timeline-item.is-payment:hover .timeline-marker {
+  background: #10b981;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+}
+
+.timeline-item.is-payment .timeline-content {
+  border-left: 4px solid #10b981;
+  background: rgba(16, 185, 129, 0.02);
+}
+
+.timeline-item.is-payment .type {
+  color: #059669;
+}
+
+.timeline-item.is-document .timeline-marker {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.timeline-item.is-document:hover .timeline-marker {
+  background: #ef4444;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+}
+
+.timeline-item.is-document .timeline-content {
+  border-left: 4px solid #ef4444;
+  background: rgba(239, 68, 68, 0.02);
+}
+
+.timeline-item.is-document .type {
+  color: #dc2626;
+}
+
 .timeline-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 0.5rem;
+}
+
+.type-container {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.method-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.05);
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.is-payment .method-badge {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.is-document .method-badge {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.2);
 }
 
 .timeline-header .type {

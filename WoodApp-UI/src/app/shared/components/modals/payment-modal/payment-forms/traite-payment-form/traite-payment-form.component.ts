@@ -14,6 +14,7 @@ export class TraitePaymentFormComponent implements OnInit, OnDestroy {
     @Input() porterId: number = 0;
     @Input() porterName: string = '';
     @Input() defaultAmount: number = 0;
+    @Input() prefillInstrument?: any;
     @Output() formReady = new EventEmitter<FormGroup>();
 
     paymentForm: FormGroup;
@@ -41,6 +42,19 @@ export class TraitePaymentFormComponent implements OnInit, OnDestroy {
             porter: this.porterName || 'Moi-même',
             amount: this.defaultAmount?.toFixed(3) || '0.000'
         });
+
+        if (this.prefillInstrument) {
+            this.paymentForm.patchValue({
+                number: this.prefillInstrument.instrumentNumber,
+                bank: this.prefillInstrument.bank,
+                owner: this.prefillInstrument.owner,
+                porter: this.prefillInstrument.porter,
+                amount: this.prefillInstrument.amount?.toFixed(3) || this.defaultAmount?.toFixed(3),
+                paymentDate: this.prefillInstrument.issueDate ? new Date(this.prefillInstrument.issueDate) : new Date(),
+                dueDate: this.prefillInstrument.dueDate ? new Date(this.prefillInstrument.dueDate) : new Date(),
+                expirationDate: this.prefillInstrument.expirationDate ? new Date(this.prefillInstrument.expirationDate) : new Date()
+            });
+        }
 
         this.formReady.emit(this.paymentForm);
 

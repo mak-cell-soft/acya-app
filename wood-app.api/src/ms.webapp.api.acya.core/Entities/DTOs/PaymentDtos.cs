@@ -23,6 +23,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public string? PaymentMethod { get; set; }
         public string? Reference { get; set; }
         public string? Notes { get; set; }
+        public PaymentInstrumentDto? InstrumentDetails { get; set; }
     }
 
     public class PaymentDto
