@@ -11,9 +11,13 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Workflow
             builder.ToTable("approval_configs");
 
             builder.HasKey(x => x.Id);
-
-            builder.Property(x => x.ThresholdAmount)
-                .HasPrecision(18, 3);
+            builder.Property(x => x.Id).HasColumnName("id");
+            builder.Property(x => x.EnterpriseId).HasColumnName("enterprise_id");
+            builder.Property(x => x.ThresholdAmount).HasColumnName("threshold_amount").HasPrecision(18, 3);
+            builder.Property(x => x.ApproverEmails).HasColumnName("approver_emails");
+            builder.Property(x => x.ApproverRoles).HasColumnName("approver_roles");
+            builder.Property(x => x.CreatedAt).HasColumnName("created_at");
+            builder.Property(x => x.UpdatedAt).HasColumnName("updated_at");
 
             builder.HasOne(x => x.Enterprise)
                 .WithMany()

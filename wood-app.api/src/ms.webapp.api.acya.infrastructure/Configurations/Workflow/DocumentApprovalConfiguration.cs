@@ -11,6 +11,14 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Workflow
             builder.ToTable("document_approvals");
 
             builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).HasColumnName("id");
+            builder.Property(x => x.DocumentId).HasColumnName("document_id");
+            builder.Property(x => x.SubmittedByUserId).HasColumnName("submitted_by_user_id");
+            builder.Property(x => x.DecidedByUserId).HasColumnName("decided_by_user_id");
+            builder.Property(x => x.Decision).HasColumnName("decision").HasConversion<int>();
+            builder.Property(x => x.RejectionReason).HasColumnName("rejection_reason");
+            builder.Property(x => x.SubmittedAt).HasColumnName("submitted_at");
+            builder.Property(x => x.DecidedAt).HasColumnName("decided_at");
 
             builder.HasOne(x => x.Document)
                 .WithMany()
@@ -26,9 +34,6 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Workflow
                 .WithMany()
                 .HasForeignKey(x => x.DecidedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Property(x => x.Decision)
-                .HasConversion<int>();
 
             builder.HasIndex(x => x.DocumentId);
             builder.HasIndex(x => x.Decision);
