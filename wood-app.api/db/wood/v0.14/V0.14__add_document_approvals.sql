@@ -1,8 +1,8 @@
 CREATE TABLE document_approvals (
     id                    SERIAL PRIMARY KEY,
-    document_id           INTEGER NOT NULL REFERENCES documents(id),
-    submitted_by_user_id  INTEGER NOT NULL REFERENCES app_users(id),
-    decided_by_user_id    INTEGER REFERENCES app_users(id),
+    document_id           INTEGER NOT NULL REFERENCES tbl_document(id),
+    submitted_by_user_id  INTEGER NOT NULL REFERENCES tbl_app_user(id),
+    decided_by_user_id    INTEGER REFERENCES tbl_app_user(id),
     decision              INTEGER NOT NULL DEFAULT 1, -- 1=Pending, 2=Approved, 3=Rejected
     rejection_reason      TEXT,
     submitted_at          TIMESTAMP NOT NULL DEFAULT NOW(),

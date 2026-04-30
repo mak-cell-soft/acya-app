@@ -1,6 +1,6 @@
 CREATE TABLE approval_configs (
     id                SERIAL PRIMARY KEY,
-    enterprise_id     INTEGER NOT NULL REFERENCES enterprises(id),
+    enterprise_id     INTEGER NOT NULL REFERENCES tbl_enterprise(id),
     threshold_amount  NUMERIC(18,3),
     approver_emails   TEXT,
     approver_roles    TEXT,
