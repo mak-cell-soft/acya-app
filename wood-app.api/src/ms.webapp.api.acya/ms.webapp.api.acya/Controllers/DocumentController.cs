@@ -9,6 +9,7 @@ using ms.webapp.api.acya.core.Entities.DTOs.Config;
 using ms.webapp.api.acya.core.Entities.Product;
 using ms.webapp.api.acya.infrastructure;
 using ms.webapp.api.acya.infrastructure.Repositories;
+using ms.webapp.api.acya.core.Interfaces;
 using Document = ms.webapp.api.acya.core.Entities.Document;
 
 namespace ms.webapp.api.acya.api.Controllers
@@ -21,7 +22,8 @@ namespace ms.webapp.api.acya.api.Controllers
     private readonly WoodAppContext _context;
     private readonly IAccountService _accountService;
     private readonly IBalanceService _balanceService;
-    public DocumentController(DocumentRepository repository, MerchandiseRepository merchandiseRepository, StockRepository stockRepository, WoodAppContext context, IAccountService accountService, IBalanceService balanceService)
+    private readonly IApprovalService _approvalService;
+    public DocumentController(DocumentRepository repository, MerchandiseRepository merchandiseRepository, StockRepository stockRepository, WoodAppContext context, IAccountService accountService, IBalanceService balanceService, IApprovalService approvalService)
     {
       _repository = repository;
       _merchandiseRepository = merchandiseRepository;
@@ -29,6 +31,7 @@ namespace ms.webapp.api.acya.api.Controllers
       _context = context;
       _accountService = accountService;
       _balanceService = balanceService;
+      _approvalService = approvalService;
     }
 
     [HttpGet("_type")]
@@ -750,6 +753,21 @@ namespace ms.webapp.api.acya.api.Controllers
                   await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId, lastTxType, DateTime.UtcNow);
           }
 
+          // §5.15 — Auto-submit si BC dépasse le seuil d'approbation configuré
+          if (doc.Type == DocumentTypes.supplierOrder || doc.Type == DocumentTypes.customerOrder)
+          {
+              var enterpriseId = user?.EnterpriseId ?? 0;
+              if (enterpriseId > 0)
+              {
+                  bool requiresApproval = await _approvalService
+                      .RequiresApprovalAsync(enterpriseId, (decimal)doc.TotalCostNetTTCDoc);
+                  if (requiresApproval)
+                  {
+                      await _approvalService.SubmitForApprovalAsync(doc.Id, dto.updatedbyid);
+                  }
+              }
+          }
+
           return Ok(new { id = doc.Id, docRef = doc.DocNumber, message = "Document added successfully" });
         }
         catch (Exception ex)
@@ -1358,10 +1376,44 @@ namespace ms.webapp.api.acya.api.Controllers
             return NotFound($"Parent document with ID {parentId} not found.");
         }
 
-        // 2. Perform the normal 'Add' logic, but inside the same transaction
-        // NOTE: We could refactor 'Add' but to keep it simple and safe for now, 
-        // we'll follow the pattern and include relationship registration.
-        
+        // 2. Check for "Ghost" documents (failed previous conversion attempts)
+        // If a document with the same supplier reference already exists, it might be 
+        // a remnant from a previous call where Add() succeeded but RegisterRelationship() failed.
+        if (!string.IsNullOrEmpty(dto.supplierReference))
+        {
+            var existingChild = await _context.Documents
+                .Where(d => d.Type == dto.type && d.SupplierReference == dto.supplierReference && !d.IsDeleted)
+                .OrderByDescending(d => d.Id)
+                .FirstOrDefaultAsync();
+
+            if (existingChild != null)
+            {
+                var relationshipExists = await _context.DocumentDocumentRelationships
+                    .AnyAsync(r => r.ParentDocumentId == parentId && r.ChildDocumentId == existingChild.Id);
+
+                if (relationshipExists)
+                {
+                    // Already converted and linked! Just return the existing document.
+                    return Ok(new { id = existingChild.Id, docRef = existingChild.DocNumber, message = "Already converted." });
+                }
+                else 
+                {
+                    // Ghost found: Document exists with correct reference but NO link to this parent.
+                    // Validate that the parent is indeed the source (parent number == child reference)
+                    var parent = await _context.Documents.FindAsync(parentId);
+                    if (parent != null && parent.DocNumber == dto.supplierReference)
+                    {
+                        var rel = new DocumentDocumentRelationship { ParentDocumentId = parentId, ChildDocumentId = existingChild.Id };
+                        var regResult = await RegisterRelationship(rel);
+                        
+                        if (regResult is OkObjectResult)
+                            return Ok(new { id = existingChild.Id, docRef = existingChild.DocNumber, message = "Conversion relationship restored." });
+                    }
+                }
+            }
+        }
+
+        // 3. Perform the normal 'Add' logic
         var result = await Add(dto);
 
         if (result is OkObjectResult okResult)
@@ -1506,40 +1558,47 @@ namespace ms.webapp.api.acya.api.Controllers
 
     private async Task UpdateParentQuantities(int parentId, int childId)
     {
-        var parent = await _context.Documents
-            .Include(d => d.DocumentMerchandises)
-                .ThenInclude(dm => dm.Merchandise)
-            .FirstOrDefaultAsync(d => d.Id == parentId);
-
-        var child = await _context.Documents
-            .Include(d => d.DocumentMerchandises)
-                .ThenInclude(dm => dm.Merchandise)
-            .FirstOrDefaultAsync(d => d.Id == childId);
-
-        if (parent == null || child == null) return;
-
-        // For each item in the child document, find a corresponding item in the parent
-        foreach (var childMerch in child.DocumentMerchandises)
+        try 
         {
-            // Match logic:
-            // 1. Precise MerchandiseId match (best)
-            // 2. OR ArticleId + PackageReference match (common when converting Quote -> Order or Order -> BL)
-            var parentMerch = parent.DocumentMerchandises
-                .FirstOrDefault(pm => 
-                    pm.MerchandiseId == childMerch.MerchandiseId || 
-                    (pm.MerchandiseId > 0 && pm.MerchandiseId == childMerch.MerchandiseId) ||
-                    (pm.Merchandise != null && childMerch.Merchandise != null &&
-                     pm.Merchandise.ArticleId == childMerch.Merchandise.ArticleId && 
-                     pm.Merchandise.PackageReference == childMerch.Merchandise.PackageReference));
+            var parent = await _context.Documents
+                .Include(d => d.DocumentMerchandises)
+                    .ThenInclude(dm => dm.Merchandise)
+                .FirstOrDefaultAsync(d => d.Id == parentId);
 
-            if (parentMerch != null)
+            var child = await _context.Documents
+                .Include(d => d.DocumentMerchandises)
+                    .ThenInclude(dm => dm.Merchandise)
+                .FirstOrDefaultAsync(d => d.Id == childId);
+
+            if (parent == null || child == null) return;
+
+            // For each item in the child document, find a corresponding item in the parent
+            foreach (var childMerch in child.DocumentMerchandises)
             {
-                parentMerch.QuantityDelivered += childMerch.Quantity;
-                _context.Entry(parentMerch).State = EntityState.Modified;
-            }
-        }
+                // Match logic:
+                // 1. Precise MerchandiseId match (best)
+                // 2. OR ArticleId + PackageReference match
+                var parentMerch = parent.DocumentMerchandises
+                    .FirstOrDefault(pm => 
+                        (pm.MerchandiseId > 0 && pm.MerchandiseId == childMerch.MerchandiseId) ||
+                        (pm.Merchandise != null && childMerch.Merchandise != null &&
+                         pm.Merchandise.ArticleId == childMerch.Merchandise.ArticleId && 
+                         pm.Merchandise.PackageReference == childMerch.Merchandise.PackageReference));
 
-        await _context.SaveChangesAsync();
+                if (parentMerch != null)
+                {
+                    parentMerch.QuantityDelivered += childMerch.Quantity;
+                    _context.Entry(parentMerch).State = EntityState.Modified;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception)
+        {
+            // Fail gracefully for now to avoid blocking the main conversion flow
+            // Ideally log this error to an audit table
+        }
     }
     private async Task RecordPriceHistory(Document doc)
     {
@@ -1601,6 +1660,15 @@ namespace ms.webapp.api.acya.api.Controllers
                   IsDeleted = false
               };
               _context.PurchasePriceHistories.Add(history);
+
+              // §5.16 — Mettre à jour le dernier prix d'achat sur l'article
+              var article = await _context.Articles.FindAsync(articleId);
+              if (article != null && dm.Quantity > 0)
+              {
+                  // On stocke le prix TTC (ou HT selon le besoin, ici l'entité semble attendre TTC par convention dans ACYA)
+                  article.LastPurchasePriceTTC = (double)(dm.CostTTC / dm.Quantity);
+                  _context.Entry(article).State = EntityState.Modified;
+              }
           }
           else if (doc.Type == DocumentTypes.customerDeliveryNote || doc.Type == DocumentTypes.customerInvoice)
           {

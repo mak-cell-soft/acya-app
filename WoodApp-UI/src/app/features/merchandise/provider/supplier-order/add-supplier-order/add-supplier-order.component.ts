@@ -181,6 +181,12 @@ export class AddSupplierOrderComponent implements OnInit {
 
 
 
+  openDropdown() {
+    if (this.articleSelect) {
+      this.articleSelect.open();
+    }
+  }
+
   onOptionSelected(article: Article): void {
     if (article) {
       this.selectedArticle = article;
@@ -192,15 +198,31 @@ export class AddSupplierOrderComponent implements OnInit {
 
       this.articleService.GetLastPurchasePrice(article.id).subscribe({
         next: (price) => {
-          this.merchandiseForm.get('last_purchase_price')?.setValue(price > 0 ? price : (article.lastpurchaseprice_ttc || 0));
+          // Si le prix de l'historique est 0, on prend celui de la fiche article
+          const lastPrice = price > 0 ? price : (article.lastpurchaseprice_ttc || 0);
+          const formattedPrice = parseFloat(Number(lastPrice).toFixed(3));
+          
+          this.merchandiseForm.patchValue({
+            last_purchase_price: formattedPrice,
+            unit_price_ht: formattedPrice
+          });
+          
+          // Mettre à jour l'objet pour l'affichage tableau
+          this.selectedArticle.lastpurchaseprice_ttc = formattedPrice;
         },
         error: () => {
-          this.merchandiseForm.get('last_purchase_price')?.setValue(article.lastpurchaseprice_ttc);
+          const fallbackPrice = parseFloat(Number(article.lastpurchaseprice_ttc || 0).toFixed(3));
+          this.merchandiseForm.patchValue({
+            last_purchase_price: fallbackPrice,
+            unit_price_ht: fallbackPrice
+          });
+          this.selectedArticle.lastpurchaseprice_ttc = fallbackPrice;
         }
       });
       this.merchandiseForm.get('last_purchase_price')?.enable();
 
       this.isArticleTypeWood = this.selectedArticle.iswood;
+      this.filteredArticles = this.articles; // Reset filtered articles for next search
     }
   }
 
@@ -238,8 +260,11 @@ export class AddSupplierOrderComponent implements OnInit {
         documentid: 0,
         isinvoicible: true,
         allownegativstock: false,
-        article: this.selectedArticle,
-        lisoflengths: this.isArticleTypeWood ? this.responseFromModalLengths : [],
+        article: { 
+          ...this.selectedArticle, 
+          lastpurchaseprice_ttc: this.merchandiseForm.get('last_purchase_price')?.value 
+        },
+        lisoflengths: this.isArticleTypeWood ? [...this.responseFromModalLengths] : [],
         ismergedwith: false,
         idmergedmerchandise: 0,
         isdeleted: false
@@ -356,17 +381,24 @@ export class AddSupplierOrderComponent implements OnInit {
   }
 
   openAddQuantityModal(article: Article) {
-    const dialogRef = this.dialog.open(AddLengthsModalComponent, {
-      width: '800px',
-      data: { article: article }
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.responseFromModalLengths = result.lengths;
-        this.responseFromModalTotQuantity = result.totalQuantity;
-        this.merchandiseForm.patchValue({ quantity: result.totalQuantity });
-      }
-    });
+    if (article != null) {
+      const dialogRef = this.dialog.open(AddLengthsModalComponent, {
+        width: '800px',
+        maxWidth: '90vw',
+        maxHeight: '90vh',
+        data: {
+          article: article,
+          isPurchase: true
+        }
+      });
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.responseFromModalLengths = result.lengths;
+          this.responseFromModalTotQuantity = result.totalQuantity;
+          this.merchandiseForm.patchValue({ quantity: result.totalQuantity });
+        }
+      });
+    }
   }
 
   printOrder() {

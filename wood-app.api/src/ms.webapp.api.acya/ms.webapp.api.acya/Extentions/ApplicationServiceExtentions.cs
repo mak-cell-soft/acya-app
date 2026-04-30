@@ -67,6 +67,7 @@ namespace ms.webapp.api.acya.api.Extentions
       services.Configure<ms.webapp.api.acya.api.Models.SmtpSettings>(config.GetSection("SmtpSettings"));
       services.AddScoped<IEmailService, EmailService>();
       services.AddScoped<IAppNotificationService, AppNotificationService>();
+      services.AddScoped<IApprovalService, ApprovalService>();
 
       services.AddDbContext<WoodAppContext>((sp, options) =>
       {

@@ -122,7 +122,11 @@ export enum DocStatus {
     Pending = 9,
     Sent = 10,
     PartiallyDelivered = 11,
-    Validated = 12
+    Validated = 12,
+    Submitted = 13,        // BC soumis à approbation (montant > seuil)
+    PendingApproval = 14,  // En attente d'une action de l'approbateur
+    Approved = 15,         // Approuvé — peut être converti
+    Rejected = 16          // Rejeté — avec motif obligatoire
 }
 
 

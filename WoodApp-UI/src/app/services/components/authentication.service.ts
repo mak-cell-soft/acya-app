@@ -108,6 +108,10 @@ export class AuthenticationService {
     return userDetail;
   }
 
+  getCurrentUser() {
+    return this.getUserDetail();
+  }
+
   isLoggedIn = (): boolean => {
     const token = this.getToken();
     // console.log('Token:', token);

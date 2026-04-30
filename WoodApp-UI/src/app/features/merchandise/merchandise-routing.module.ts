@@ -21,6 +21,8 @@ import { AddCustomerQuoteComponent } from './customer/customer-quote/add-custome
 import { ListCustomerOrdersComponent } from './customer/customer-order/list-customer-orders/list-customer-orders.component';
 import { AddCustomerOrderComponent } from './customer/customer-order/add-customer-order/add-customer-order.component';
 
+import { PendingApprovalsComponent } from './approval/pending-approvals.component';
+
 import { roleGuard } from '../../guards/role.guard';
 import { CanDeactivateGuard } from '../../guards/can-deactivate.guard';
 import { SupplierPaymentsComponent } from './provider/supplier-payments/supplier-payments.component';
@@ -123,6 +125,12 @@ const routes: Routes = [
   {
     path: 'bc/add',
     component: AddCustomerOrderComponent
+  },
+  {
+    path: 'pending-approvals',
+    component: PendingApprovalsComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['Admin'] }
   }
 ];
 

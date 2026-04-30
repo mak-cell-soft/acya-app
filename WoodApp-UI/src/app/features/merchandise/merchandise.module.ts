@@ -27,6 +27,11 @@ import { AddCustomerOrderComponent } from './customer/customer-order/add-custome
 import { ListSupplierCreditNotesComponent } from './provider/list-supplier-credit-notes/list-supplier-credit-notes.component';
 import { AddCreditNoteDialogComponent } from './provider/add-credit-note-dialog/add-credit-note-dialog.component';
 
+// ── Approval Workflow (§5.15) ──────────────────────────────────────────────
+import { ApprovalBadgeComponent } from '../../shared/components/approval-badge/approval-badge.component';
+import { ApprovalActionsDialogComponent } from '../../shared/components/modals/approval-actions-dialog/approval-actions-dialog.component';
+import { PendingApprovalsComponent } from './approval/pending-approvals.component';
+
 
 
 // Modals inside merchandise
@@ -90,7 +95,11 @@ import { MatRadioModule } from '@angular/material/radio';
     AddCustomerOrderComponent,
     // ── Credit Notes (Avoirs)
     ListSupplierCreditNotesComponent,
-    AddCreditNoteDialogComponent
+    AddCreditNoteDialogComponent,
+    // ── Approval Workflow
+    ApprovalBadgeComponent,
+    ApprovalActionsDialogComponent,
+    PendingApprovalsComponent
   ],
   imports: [
     CommonModule,

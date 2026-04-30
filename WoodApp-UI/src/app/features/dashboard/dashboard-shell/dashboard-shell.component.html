@@ -39,6 +39,13 @@
         <span class="menu-text" *ngIf="!isCollapsed">{{button_administration}}</span>
       </button>
 
+      <!-- Approbations (§5.15) -->
+      <button mat-button class="menu-item" *ngIf="isAdmin" routerLink="merchandise/pending-approvals" routerLinkActive="active-route"
+              [matTooltip]="isCollapsed ? 'Approbations' : ''" matTooltipPosition="right">
+        <mat-icon>verified_user</mat-icon>
+        <span class="menu-text" *ngIf="!isCollapsed">Approbations</span>
+      </button>
+
       <!-- Home -->
       <button mat-button class="menu-item" routerLink="dashboard" routerLinkActive="active-route"
               [matTooltip]="isCollapsed ? button_home : ''" matTooltipPosition="right">

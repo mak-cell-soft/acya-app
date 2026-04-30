@@ -98,7 +98,8 @@
                     <mat-form-field appearance="outline" class="flex-2" subscriptSizing="dynamic">
                         <mat-label>Rechercher un article</mat-label>
                         <input matInput [formControl]="searchControl" placeholder="Référence ou désignation..."
-                            [class.selected-article-input]="!!selectedArticle" [readonly]="!!selectedArticle"/>
+                            [class.selected-article-input]="!!selectedArticle" [readonly]="!!selectedArticle"
+                            (focus)="openDropdown()"/>
                         <mat-icon matSuffix *ngIf="!selectedArticle">search</mat-icon>
 
                         <button mat-icon-button matSuffix *ngIf="selectedArticle" (click)="clearArticle()"
@@ -129,7 +130,7 @@
 
                     <mat-form-field appearance="outline" class="flex-1" subscriptSizing="dynamic">
                         <mat-label>Dernier prix d'achat</mat-label>
-                        <input matInput formControlName="last_purchase_price" type="number">
+                        <input matInput formControlName="last_purchase_price" type="number" step="0.001">
                         <span matSuffix>TND</span>
                     </mat-form-field>
                 </div>
