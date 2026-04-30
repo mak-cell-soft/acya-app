@@ -101,6 +101,7 @@ namespace ms.webapp.api.acya.api.Services
         {
             return await _context.AppNotifications
                 .Where(n => !n.IsRead)
+                .Where(n => n.Type != NotificationType.Email) // Exclude email logs from in-app notifications
                 .Where(n => (n.TargetUserId == userId) || 
                             (n.TargetRole != null && n.TargetRole == role) ||
                             (n.TargetSiteId != null && n.TargetSiteId == siteId) ||

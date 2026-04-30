@@ -149,7 +149,8 @@ import { TaxRegistrationModalComponent } from './shared/components/modals/tax-re
     ToastrModule.forRoot({
       positionClass: 'toast-bottom-right',
       closeButton: true,
-      timeOut: 3000
+      timeOut: 5000,
+      enableHtml: true
     }),
     AppRoutingModule,
     StoreModule.forRoot({ appVariableState: appVariableReducer }),

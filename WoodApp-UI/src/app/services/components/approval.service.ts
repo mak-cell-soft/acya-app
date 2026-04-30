@@ -35,7 +35,7 @@ export interface DocumentApproval {
   providedIn: 'root'
 })
 export class ApprovalService {
-  private apiUrl = `${environment.apiUrl}/api/approval`;
+  private apiUrl = `${environment.apiUrl}Approval`;
 
   constructor(private http: HttpClient) { }
 

@@ -31,6 +31,7 @@ import { AddCreditNoteDialogComponent } from './provider/add-credit-note-dialog/
 import { ApprovalBadgeComponent } from '../../shared/components/approval-badge/approval-badge.component';
 import { ApprovalActionsDialogComponent } from '../../shared/components/modals/approval-actions-dialog/approval-actions-dialog.component';
 import { PendingApprovalsComponent } from './approval/pending-approvals.component';
+import { ApprovalSettingsComponent } from './approval/approval-settings/approval-settings.component';
 
 
 
@@ -99,7 +100,8 @@ import { MatRadioModule } from '@angular/material/radio';
     // ── Approval Workflow
     ApprovalBadgeComponent,
     ApprovalActionsDialogComponent,
-    PendingApprovalsComponent
+    PendingApprovalsComponent,
+    ApprovalSettingsComponent
   ],
   imports: [
     CommonModule,

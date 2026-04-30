@@ -22,6 +22,7 @@ import { ListCustomerOrdersComponent } from './customer/customer-order/list-cust
 import { AddCustomerOrderComponent } from './customer/customer-order/add-customer-order/add-customer-order.component';
 
 import { PendingApprovalsComponent } from './approval/pending-approvals.component';
+import { ApprovalSettingsComponent } from './approval/approval-settings/approval-settings.component';
 
 import { roleGuard } from '../../guards/role.guard';
 import { CanDeactivateGuard } from '../../guards/can-deactivate.guard';

@@ -7,6 +7,8 @@ using ms.webapp.api.acya.api.Controllers;
 using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs;
+using ms.webapp.api.acya.core.Entities.DTOs.Authentication;
+using ms.webapp.api.acya.core.Entities.DTOs.Config;
 using ms.webapp.api.acya.core.Interfaces;
 
 namespace ms.webapp.api.acya.api.Controllers
@@ -71,10 +73,56 @@ namespace ms.webapp.api.acya.api.Controllers
 
         [HttpGet("pending/{enterpriseId}")]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<ActionResult<IEnumerable<DocumentApproval>>> GetPending(int enterpriseId)
+        public async Task<ActionResult<IEnumerable<DocumentApprovalDto>>> GetPending(int enterpriseId)
         {
             var approvals = await _approvalService.GetPendingApprovalsAsync(enterpriseId);
-            return Ok(approvals);
+            
+            var dtos = new List<DocumentApprovalDto>();
+            foreach (var app in approvals)
+            {
+                var docDto = new DocumentDto(app.Document!);
+                
+                // Manually map merchandises from DocumentMerchandises lines
+                if (app.Document!.DocumentMerchandises != null)
+                {
+                    docDto.merchandises = app.Document.DocumentMerchandises.Select(dm => new MerchandiseDto
+                    {
+                        id = dm.MerchandiseId,
+                        packagereference = dm.Merchandise?.PackageReference,
+                        description = dm.Merchandise?.Description,
+                        isinvoicible = dm.Merchandise?.IsInvoicible ?? false,
+                        quantity = dm.Quantity,
+                        unit_price_ht = dm.UnitPriceHT,
+                        cost_ht = dm.CostHT,
+                        discount_percentage = dm.DiscountPercentage,
+                        cost_net_ht = dm.CostNetHT,
+                        cost_discount_value = dm.CostDiscountValue,
+                        tva_value = dm.TvaValue,
+                        cost_ttc = dm.CostTTC,
+                        article = dm.Merchandise?.Articles != null ? new ArticleDto(dm.Merchandise.Articles) : null,
+                        lisoflengths = dm.QuantityMovements?.ListOfLengths?
+                            .Select(ll => new ListOflengthDto
+                            {
+                                nbpieces = ll.NumberOfPieces,
+                                quantity = ll.Quantity,
+                                length = ll.AppVarLength != null ? new AppVariableDto(ll.AppVarLength) : null
+                            }).ToArray()
+                    }).ToArray();
+                }
+
+                dtos.Add(new DocumentApprovalDto
+                {
+                    id = app.Id,
+                    documentId = app.DocumentId,
+                    document = docDto,
+                    submittedByUserId = app.SubmittedByUserId,
+                    submittedBy = app.SubmittedBy != null ? new AppUserDto(app.SubmittedBy) : null,
+                    decision = app.Decision,
+                    submittedAt = app.SubmittedAt
+                });
+            }
+
+            return Ok(dtos);
         }
 
         [HttpGet("history/{documentId}")]

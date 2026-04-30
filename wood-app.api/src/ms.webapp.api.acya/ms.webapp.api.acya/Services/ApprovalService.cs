@@ -66,14 +66,28 @@ namespace ms.webapp.api.acya.api.Services
             string title = "Nouvelle demande d'approbation";
             string message = $"Document {doc.DocNumber} pour {doc.CounterPart?.Name} ({doc.TotalCostNetTTCDoc:N3} TND) nécessite votre approbation.";
 
-            await _notificationService.NotifyAsync(
-                title: title,
-                message: message,
-                type: NotificationType.Warning,
-                targetRole: "Admin",
-                relatedEntityId: doc.Id.ToString(),
-                relatedEntityType: "Document"
-            );
+            // Notify Approvers (Roles)
+            var approverRoles = new List<string> { "Admin", "SuperAdmin" };
+            if (config != null && !string.IsNullOrEmpty(config.ApproverRoles))
+            {
+                var customRoles = config.ApproverRoles.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                if (customRoles.Length > 0)
+                {
+                    approverRoles = customRoles.Select(r => r.Trim()).ToList();
+                }
+            }
+
+            foreach (var role in approverRoles)
+            {
+                await _notificationService.NotifyAsync(
+                    title: title,
+                    message: message,
+                    type: NotificationType.Warning,
+                    targetRole: role,
+                    relatedEntityId: doc.Id.ToString(),
+                    relatedEntityType: "Document"
+                );
+            }
 
             // Send Emails if configured
             if (config != null && !string.IsNullOrEmpty(config.ApproverEmails))
@@ -174,6 +188,15 @@ namespace ms.webapp.api.acya.api.Services
             return await _context.DocumentApprovals
                 .Include(a => a.Document)
                     .ThenInclude(d => d!.CounterPart)
+                .Include(a => a.Document)
+                    .ThenInclude(d => d!.DocumentMerchandises)
+                        .ThenInclude(dm => dm.Merchandise)
+                            .ThenInclude(m => m!.Articles)
+                .Include(a => a.Document)
+                    .ThenInclude(d => d!.DocumentMerchandises)
+                        .ThenInclude(dm => dm.QuantityMovements)
+                            .ThenInclude(qm => qm!.ListOfLengths)
+                                .ThenInclude(ll => ll.AppVarLength)
                 .Include(a => a.SubmittedBy)
                     .ThenInclude(u => u!.Persons)
                 .Where(a => a.Decision == ApprovalDecision.Pending && a.Document!.AppUsers!.EnterpriseId == enterpriseId)
