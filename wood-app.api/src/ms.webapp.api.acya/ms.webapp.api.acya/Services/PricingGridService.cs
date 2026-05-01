@@ -117,17 +117,35 @@ namespace ms.webapp.api.acya.api.Services
         {
             if (!providedId.HasValue) return null;
 
-            // Check if it's a valid Merchandise ID
-            var exists = await _context.Merchandises.AnyAsync(m => m.Id == providedId.Value);
-            if (exists) return providedId;
+            // 1. Check if it's already a valid Merchandise ID
+            var merchandise = await _context.Merchandises.FirstOrDefaultAsync(m => m.Id == providedId.Value);
+            if (merchandise != null) return merchandise.Id;
 
-            // If not found, check if it's an Article ID and find its first/standard merchandise
-            var merchId = await _context.Merchandises
-                .Where(m => m.ArticleId == providedId.Value && !m.IsDeleted)
-                .Select(m => (int?)m.Id)
-                .FirstOrDefaultAsync();
+            // 2. Check if it's an Article ID
+            var article = await _context.Articles.FirstOrDefaultAsync(a => a.Id == providedId.Value);
+            if (article != null)
+            {
+                // Find existing merchandise for this article
+                var existingMerch = await _context.Merchandises
+                    .FirstOrDefaultAsync(m => m.ArticleId == article.Id && !m.IsDeleted);
+                
+                if (existingMerch != null) return existingMerch.Id;
 
-            return merchId;
+                // Create a new merchandise for this article if missing (data integrity fallback)
+                var newMerch = new Merchandise
+                {
+                    ArticleId = article.Id,
+                    Description = article.Description,
+                    PackageReference = article.Reference,
+                    IsInvoicible = true,
+                    UpdatedById = 1 // Default system user
+                };
+                _context.Merchandises.Add(newMerch);
+                await _context.SaveChangesAsync();
+                return newMerch.Id;
+            }
+
+            return null;
         }
     }
 }

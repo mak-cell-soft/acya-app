@@ -199,16 +199,18 @@ export class CustomerDetailsModalComponent implements OnInit {
         return `${element.prefix} - ${element.name}`;
     }
 
-    /** Lookup article reference for a given rule's merchandiseid (for display in the table) */
-    getArticleForRule(rule: PricingGrid): string {
-        if (rule.merchandisereference) {
-            return rule.merchandisename
-                ? `${rule.merchandisereference} — ${rule.merchandisename}`
-                : rule.merchandisereference;
-        }
-        // Fallback: try to find article in local catalog by id
-        const article = this.articles.find(a => a.id === rule.merchandiseid);
-        return article ? this.getArticleLabel(article) : `ID #${rule.merchandiseid}`;
+    /** Lookup article reference for a given rule */
+    getArticleRefFallback(rule: PricingGrid): string {
+        if (rule.merchandisereference) return rule.merchandisereference;
+        const article = this.articles.find(a => a.id === rule.merchandiseid || a.id === rule.articleid);
+        return article ? article.reference : '—';
+    }
+
+    /** Lookup article name for a given rule */
+    getArticleNameFallback(rule: PricingGrid): string {
+        if (rule.merchandisename) return rule.merchandisename;
+        const article = this.articles.find(a => a.id === rule.merchandiseid || a.id === rule.articleid);
+        return article ? article.description || '' : '—';
     }
 
     /** Generate 1-2 letter initials from the customer's name for the avatar */

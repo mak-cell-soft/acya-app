@@ -11,9 +11,17 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Partners
             builder.ToTable("tbl_pricing_grid");
 
             builder.HasKey(x => x.Id);
-
-            builder.Property(x => x.DiscountRate)
-                .IsRequired();
+            builder.Property(x => x.Id).HasColumnName("id");
+            builder.Property(x => x.CounterPartId).HasColumnName("counterpart_id");
+            builder.Property(x => x.MerchandiseId).HasColumnName("merchandise_id");
+            builder.Property(x => x.DiscountRate).HasColumnName("discount_rate");
+            builder.Property(x => x.ValidFrom).HasColumnName("valid_from");
+            builder.Property(x => x.ValidUntil).HasColumnName("valid_until");
+            builder.Property(x => x.IsActive).HasColumnName("is_active");
+            builder.Property(x => x.Notes).HasColumnName("notes");
+            builder.Property(x => x.CreationDate).HasColumnName("creation_date");
+            builder.Property(x => x.UpdateDate).HasColumnName("update_date");
+            builder.Property(x => x.UpdatedById).HasColumnName("updated_by_id");
 
             builder.HasOne(x => x.CounterPart)
                 .WithMany()

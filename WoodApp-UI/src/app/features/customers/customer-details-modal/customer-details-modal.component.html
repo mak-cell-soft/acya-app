@@ -206,8 +206,8 @@
                         <th mat-header-cell *matHeaderCellDef>Article</th>
                         <td mat-cell *matCellDef="let rule">
                             <div class="article-cell">
-                                <span class="ref-badge">{{rule.merchandisereference || '—'}}</span>
-                                <span class="article-name">{{rule.merchandisename || '—'}}</span>
+                                <span class="ref-badge">{{getArticleRefFallback(rule)}}</span>
+                                <span class="article-name">{{getArticleNameFallback(rule)}}</span>
                             </div>
                         </td>
                     </ng-container>

@@ -25,8 +25,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
             counterpartid = entity.CounterPartId;
             merchandiseid = entity.MerchandiseId;
             articleid = entity.Merchandise?.ArticleId;
-            merchandisename = entity.Merchandise?.Articles?.Description;
-            merchandisereference = entity.Merchandise?.Articles?.Reference;
+            merchandisename = entity.Merchandise?.Articles?.Description ?? entity.Merchandise?.Description ?? "Article inconnu";
+            merchandisereference = entity.Merchandise?.Articles?.Reference ?? entity.Merchandise?.PackageReference ?? "REF-ERR";
             discountrate = entity.DiscountRate;
             validfrom = entity.ValidFrom;
             validuntil = entity.ValidUntil;

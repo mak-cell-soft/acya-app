@@ -6,6 +6,8 @@ using System.Text.Json.Serialization;
 using ms.webapp.api.acya.api.Extentions;
 using ms.webapp.api.acya.api.Services;
 using ms.webapp.api.acya.infrastructure.Repositories;
+using ms.webapp.api.acya.infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -96,5 +98,21 @@ app.MapControllers();
 // Add to app configuration (after app.UseRouting() and before app.UseEndpoints())
 app.MapHub<NotificationHub>("/api/notificationHub");
 
+
+// Apply migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<WoodAppContext>();
+        context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+    }
+}
 
 app.Run();

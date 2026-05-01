@@ -8,7 +8,7 @@ import { PricingGrid, PricingGridLookup } from '../../models/components/pricing-
   providedIn: 'root'
 })
 export class PricingGridService {
-  private apiUrl = `${environment.apiUrl}/PricingGrid`;
+  private apiUrl = `${environment.apiUrl}PricingGrid`;
 
   constructor(private http: HttpClient) { }
 
