@@ -34,3 +34,19 @@ h1, h2, h3, h4, .page-title, .mat-card-title {
   font-weight: 500;
   display: block;
 }
+
+/* Loading Spinner inside buttons */
+.button-spinner {
+  margin-right: 12px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.button-spinner circle {
+  stroke: currentColor !important;
+}
+
+.btn-save:disabled, .save-btn:disabled, button:disabled {
+  cursor: not-allowed !important;
+  opacity: 0.8 !important;
+}

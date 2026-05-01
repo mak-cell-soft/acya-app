@@ -66,6 +66,7 @@ export class AddInvoiceComponent implements OnInit {
     selectedTransporter: any = {};
     selectedDate: Date = new Date();
     SalesSite!: Site;
+    isLoading: boolean = false;
     articles: Article[] = [];
     filteredArticles: Article[] = [];
     TVAs: AppVariable[] = [];
@@ -518,14 +519,17 @@ export class AddInvoiceComponent implements OnInit {
 
         console.log("Facture à enregistrer : ", doc);
 
+        this.isLoading = true;
         this.docService.Add(doc).subscribe({
             next: (response) => {
+                this.isLoading = false;
                 const docRef = response.docRef;
                 this.toastr.success(`Facture ${docRef} créée avec succès`);
 
                 this.router.navigateByUrl('home/merchandise/customerinvoices');
             },
             error: (err) => {
+                this.isLoading = false;
                 this.toastr.error('Erreur lors de la création de la facture');
                 console.error(err);
             }

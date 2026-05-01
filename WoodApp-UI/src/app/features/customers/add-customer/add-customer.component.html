@@ -257,9 +257,10 @@
 
                 <div class="action-buttons">
                     <button mat-button color="warn" routerLink="../">{{abort_button}}</button>
-                    <button mat-raised-button color="primary" (click)="onSubmit(customerForm)">
-                        <mat-icon class="me-2">save</mat-icon>
-                        {{register_button}}
+                    <button mat-raised-button color="primary" (click)="onSubmit(customerForm)" [disabled]="isLoading">
+                        <mat-spinner *ngIf="isLoading" diameter="18" class="button-spinner"></mat-spinner>
+                        <mat-icon *ngIf="!isLoading" class="me-2">save</mat-icon>
+                        {{ isLoading ? 'Enregistrement...' : register_button }}
                     </button>
                 </div>
             </div>
@@ -500,9 +501,10 @@
 
                 <div class="action-buttons">
                     <button mat-button color="warn" routerLink="../">{{abort_button}}</button>
-                    <button mat-raised-button color="primary" (click)="onSubmit(societyForm)">
-                        <mat-icon class="me-2">save</mat-icon>
-                        {{register_button}}
+                    <button mat-raised-button color="primary" (click)="onSubmit(societyForm)" [disabled]="isLoading">
+                        <mat-spinner *ngIf="isLoading" diameter="18" class="button-spinner"></mat-spinner>
+                        <mat-icon *ngIf="!isLoading" class="me-2">save</mat-icon>
+                        {{ isLoading ? 'Enregistrement...' : register_button }}
                     </button>
                 </div>
             </div>

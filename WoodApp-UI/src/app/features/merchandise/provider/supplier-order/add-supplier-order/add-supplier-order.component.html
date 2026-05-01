@@ -247,8 +247,10 @@
             </div>
 
             <div class="form-final-actions">
-                <button mat-raised-button color="primary" (click)="onSubmit()">
-                    <mat-icon>save</mat-icon> Enregistrer la Commande
+                <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="isLoading">
+                    <mat-spinner *ngIf="isLoading" diameter="18" class="button-spinner"></mat-spinner>
+                    <mat-icon *ngIf="!isLoading">save</mat-icon> 
+                    {{ isLoading ? 'Enregistrement...' : 'Enregistrer la Commande' }}
                 </button>
             </div>
         </mat-card-content>

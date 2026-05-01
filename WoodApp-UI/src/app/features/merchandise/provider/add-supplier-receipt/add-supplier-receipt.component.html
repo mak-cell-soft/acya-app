@@ -373,9 +373,10 @@
                 <button mat-stroked-button color="warn" class="xl-btn" routerLink="/home/merchandise/reception/list">
                     Abandonner
                 </button>
-                <button mat-raised-button color="primary" class="xl-btn" (click)="onSubmit()">
-                    <mat-icon>save</mat-icon>
-                    Enregistrer le Document
+                <button mat-raised-button color="primary" class="xl-btn" (click)="onSubmit()" [disabled]="isLoading">
+                    <mat-spinner *ngIf="isLoading" diameter="18" class="button-spinner"></mat-spinner>
+                    <mat-icon *ngIf="!isLoading">save</mat-icon>
+                    {{ isLoading ? 'Enregistrement...' : 'Enregistrer le Document' }}
                 </button>
             </div>
         </mat-card-content>

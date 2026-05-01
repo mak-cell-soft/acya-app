@@ -865,6 +865,7 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
         return;
       }
 
+      this.isLoading = true;
       doc.sales_site = newSalesSite;
       console.log("New Sales Site:", newSalesSite);  // Log the entire object
       console.log("New Sales Site Address:", newSalesSite.address);  // Specific property
@@ -872,6 +873,7 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
       // Proceed with saving
       this.docService.Add(doc).subscribe({
         next: (response) => {
+          this.isLoading = false;
           // Access the docRef property from the response
           const docRef = response.docRef;
 
@@ -891,6 +893,7 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
           this.router.navigateByUrl('home/merchandise/reception/list');
         },
         error: (err) => {
+          this.isLoading = false;
           if (err.status === 409) {
             this.toastr.error('Un document avec la même référence fournisseur existe déjà.');
           } else if (err.status === 400) {
@@ -904,6 +907,7 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
         }
       });
     } catch (error) {
+      this.isLoading = false;
       console.error('Error in sales site selection:', error);
     }
   }

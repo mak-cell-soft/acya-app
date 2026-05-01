@@ -157,8 +157,9 @@
 
 <mat-dialog-actions align="end" class="modal-footer">
     <button mat-button (click)="onNoClick()">{{ abort_button }}</button>
-    <button mat-raised-button color="primary" (click)="onSubmit()" class="save-btn">
-        <mat-icon>{{ isEditMode ? 'check' : 'save' }}</mat-icon>
-        {{ isEditMode ? 'Mettre à jour' : 'Enregistrer' }}
+    <button mat-raised-button color="primary" (click)="onSubmit()" class="save-btn" [disabled]="isLoading">
+        <mat-spinner *ngIf="isLoading" diameter="18" class="button-spinner"></mat-spinner>
+        <mat-icon *ngIf="!isLoading">{{ isEditMode ? 'check' : 'save' }}</mat-icon>
+        {{ isLoading ? 'Traitement...' : (isEditMode ? 'Mettre à jour' : 'Enregistrer') }}
     </button>
 </mat-dialog-actions>

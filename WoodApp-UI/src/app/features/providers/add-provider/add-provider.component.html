@@ -35,14 +35,16 @@
                         <mat-label>Raison Sociale</mat-label>
                         <input matInput formControlName="name" placeholder="Nom du Fournisseur">
                         <mat-icon matPrefix>apartment</mat-icon>
-                        <mat-error *ngIf="supplierForm.get('name')?.hasError('required')">Ce champ est obligatoire</mat-error>
+                        <mat-error *ngIf="supplierForm.get('name')?.hasError('required')">Ce champ est
+                            obligatoire</mat-error>
                     </mat-form-field>
 
                     <mat-form-field appearance="outline">
                         <mat-label>Description</mat-label>
                         <input matInput formControlName="description" placeholder="Description complète">
                         <mat-icon matPrefix>info</mat-icon>
-                        <mat-error *ngIf="supplierForm.get('description')?.hasError('required')">Ce champ est obligatoire</mat-error>
+                        <mat-error *ngIf="supplierForm.get('description')?.hasError('required')">Ce champ est
+                            obligatoire</mat-error>
                     </mat-form-field>
                 </div>
 
@@ -61,7 +63,8 @@
                         <mat-label>Email Professionnel</mat-label>
                         <input matInput formControlName="email" placeholder="exemple@fournisseur.com">
                         <mat-icon matPrefix>email</mat-icon>
-                        <mat-error *ngIf="supplierForm.get('email')?.hasError('email')">Format d'email invalide</mat-error>
+                        <mat-error *ngIf="supplierForm.get('email')?.hasError('email')">Format d'email
+                            invalide</mat-error>
                     </mat-form-field>
                 </div>
             </mat-card-content>
@@ -79,14 +82,16 @@
                         <mat-label>Prénom du responsable</mat-label>
                         <input matInput formControlName="representedBySurname">
                         <mat-icon matPrefix>person</mat-icon>
-                        <mat-error *ngIf="supplierForm.get('representedBySurname')?.hasError('required')">Ce champ est obligatoire</mat-error>
+                        <mat-error *ngIf="supplierForm.get('representedBySurname')?.hasError('required')">Ce champ est
+                            obligatoire</mat-error>
                     </mat-form-field>
 
                     <mat-form-field appearance="outline">
                         <mat-label>Nom du responsable</mat-label>
                         <input matInput formControlName="representedByName">
                         <mat-icon matPrefix>person</mat-icon>
-                        <mat-error *ngIf="supplierForm.get('representedByName')?.hasError('required')">Ce champ est obligatoire</mat-error>
+                        <mat-error *ngIf="supplierForm.get('representedByName')?.hasError('required')">Ce champ est
+                            obligatoire</mat-error>
                     </mat-form-field>
                 </div>
 
@@ -95,7 +100,8 @@
                         <mat-label>Téléphone 1</mat-label>
                         <input matInput formControlName="phoneOne">
                         <mat-icon matPrefix>phone</mat-icon>
-                        <mat-error *ngIf="supplierForm.get('phoneOne')?.hasError('required')">Ce champ est obligatoire</mat-error>
+                        <mat-error *ngIf="supplierForm.get('phoneOne')?.hasError('required')">Ce champ est
+                            obligatoire</mat-error>
                     </mat-form-field>
 
                     <mat-form-field appearance="outline">
@@ -118,20 +124,26 @@
                     <mat-form-field appearance="outline">
                         <mat-label>Matricule Fiscal</mat-label>
                         <input matInput formControlName="taxRegistration" placeholder="1234567A /B/M/ 000">
-                        <button type="button" mat-icon-button matSuffix (click)="openTaxRegistrationModal()" matTooltip="Utiliser l'assistant de saisie">
+                        <button type="button" mat-icon-button matSuffix (click)="openTaxRegistrationModal()"
+                            matTooltip="Utiliser l'assistant de saisie">
                             <mat-icon color="primary">app_registration</mat-icon>
                         </button>
-                        <mat-hint class="blue-hint">Utilisez l'assistant (icône à droite) pour un formatage parfait.</mat-hint>
+                        <mat-hint class="blue-hint">Utilisez l'assistant (icône à droite) pour un formatage
+                            parfait.</mat-hint>
                         <mat-icon matPrefix>receipt</mat-icon>
-                        <mat-error *ngIf="supplierForm.get('taxRegistration')?.hasError('invalidMatriculeFiscal')">Format : 7 chiffres, 1 lettre, /lettre/lettre/, 3 chiffres</mat-error>
-                        <mat-error *ngIf="supplierForm.get('taxRegistration')?.hasError('required')">Matricule fiscal requis</mat-error>
+                        <mat-error
+                            *ngIf="supplierForm.get('taxRegistration')?.hasError('invalidMatriculeFiscal')">Format : 7
+                            chiffres, 1 lettre, /lettre/lettre/, 3 chiffres</mat-error>
+                        <mat-error *ngIf="supplierForm.get('taxRegistration')?.hasError('required')">Matricule fiscal
+                            requis</mat-error>
                     </mat-form-field>
 
                     <mat-form-field appearance="outline">
                         <mat-label>Adresse Siège</mat-label>
                         <input matInput formControlName="address">
                         <mat-icon matPrefix>location_on</mat-icon>
-                        <mat-error *ngIf="supplierForm.get('address')?.hasError('required')">Ce champ est obligatoire</mat-error>
+                        <mat-error *ngIf="supplierForm.get('address')?.hasError('required')">Ce champ est
+                            obligatoire</mat-error>
                     </mat-form-field>
                 </div>
 
@@ -161,14 +173,16 @@
                             </mat-option>
                         </mat-select>
                         <mat-icon matPrefix>account_balance</mat-icon>
-                        <mat-error *ngIf="supplierForm.get('bank')?.hasError('required')">Ce champ est obligatoire</mat-error>
+                        <mat-error *ngIf="supplierForm.get('bank')?.hasError('required')">Ce champ est
+                            obligatoire</mat-error>
                     </mat-form-field>
 
                     <mat-form-field appearance="outline">
                         <mat-label>RIB Bancaire</mat-label>
                         <input matInput formControlName="bankAccountNumber" placeholder="RIB / Compte Courant">
                         <mat-icon matPrefix>credit_card</mat-icon>
-                        <mat-error *ngIf="supplierForm.get('bankAccountNumber')?.hasError('required')">Ce champ est obligatoire</mat-error>
+                        <mat-error *ngIf="supplierForm.get('bankAccountNumber')?.hasError('required')">Ce champ est
+                            obligatoire</mat-error>
                     </mat-form-field>
                 </div>
 
@@ -182,10 +196,11 @@
 
         <div class="action-buttons">
             <button mat-button color="warn" routerLink="../">{{abort_button}}</button>
-            <button mat-raised-button color="primary" (click)="onSubmit()">
-                <mat-icon class="me-2">save</mat-icon>
-                {{register_button}}
+            <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="isLoading">
+                <mat-spinner *ngIf="isLoading" diameter="18" class="button-spinner"></mat-spinner>
+                <mat-icon *ngIf="!isLoading" class="me-2">save</mat-icon>
+                {{ isLoading ? 'Enregistrement...' : register_button }}
             </button>
         </div>
     </div>
-</div>
+</div>

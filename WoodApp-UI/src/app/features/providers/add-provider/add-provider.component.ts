@@ -47,6 +47,7 @@ export class AddProviderComponent implements OnInit {
   allBanks = Object.values(BANKS_TN);
   userconnected = this.authService.getUserDetail();
   transporters: _Transporter[] = [];
+  isLoading: boolean = false;
 
   constructor() { }
 
@@ -166,12 +167,15 @@ export class AddProviderComponent implements OnInit {
 
   addSupplier(supplier: CounterPart): void {
     if (supplier) {
+      this.isLoading = true;
       this.counterPartService.Add(supplier).subscribe({
         next: (response) => {
+          this.isLoading = false;
           this.toastr.success('Fournisseur ' + response.name + ' ajouté avec succès.');
           this.router.navigateByUrl('home/providers');
         },
         error: (error) => {
+          this.isLoading = false;
           if (error.status === 409) {
             // Conflict Error: Article already exists
             this.toastr.error('Un Fournisseur du même nom existe déjà.');

@@ -89,6 +89,7 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
 
   articleForm!: FormGroup;
   isEditMode: boolean = false;
+  isLoading: boolean = false;
 
   constructor(
     @Optional() public dialogRef: MatDialogRef<AddArticleComponent>,
@@ -162,14 +163,17 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
   }
 
   updateArticle(article: Article): void {
+    this.isLoading = true;
     this.articleService.Put(article.id, article).subscribe({
       next: (response) => {
+        this.isLoading = false;
         this.toastr.success('Article mis à jour avec succès');
         if (this.dialogRef) {
           this.dialogRef.close(true);
         }
       },
       error: (error) => {
+        this.isLoading = false;
         this.toastr.error('Erreur lors de la mise à jour');
         console.error(error);
       }
@@ -396,8 +400,10 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
   addArticle(article: Article): void {
     if (article) {
       console.log("ARTICLE TO SEND : ", article);
+      this.isLoading = true;
       this.articleService.AddArticle(article).subscribe({
         next: (response) => {
+          this.isLoading = false;
           this.toastr.success('Article ajouté avec succès: ' + response.reference);
           if (this.dialogRef) {
             this.dialogRef.close(true);
@@ -406,6 +412,7 @@ export class AddArticleComponent implements OnInit, AfterViewInit {
           }
         },
         error: (error) => {
+          this.isLoading = false;
           if (error.status === 409) {
             // Conflict Error: Article already exists
             this.toastr.error('Error: Article with this reference already exists.');

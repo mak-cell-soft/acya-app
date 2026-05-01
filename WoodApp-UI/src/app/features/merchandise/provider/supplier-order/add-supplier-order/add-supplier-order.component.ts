@@ -85,6 +85,7 @@ export class AddSupplierOrderComponent implements OnInit {
   userconnected = this.authService.getUserDetail();
   SalesSite!: Site;
   appUser!: AppUser;
+  isLoading: boolean = false;
 
   register_button: string = REGISTER_BUTTON;
   abort_button: string = ABORT_BUTTON;
@@ -363,13 +364,18 @@ export class AddSupplierOrderComponent implements OnInit {
   }
 
   async saveDocument(doc: Document) {
+    this.isLoading = true;
     this.docService.Add(doc).subscribe({
       next: (response) => {
+        this.isLoading = false;
         this.toastr.success(`Commande ${response.docRef} créée`);
         this.hasUnsavedChanges = false;
         this.router.navigateByUrl('home/merchandise/supplierorder/list');
       },
-      error: () => this.toastr.error('Erreur lors de la création')
+      error: () => {
+        this.isLoading = false;
+        this.toastr.error('Erreur lors de la création');
+      }
     });
   }
 

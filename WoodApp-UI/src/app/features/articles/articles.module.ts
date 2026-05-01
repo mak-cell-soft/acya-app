@@ -25,6 +25,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
 
 @NgModule({
   declarations: [
@@ -54,7 +55,8 @@ import { MatTabsModule } from '@angular/material/tabs';
     MatChipsModule,
     MatProgressBarModule,
     MatCheckboxModule,
-    MatTabsModule
-  ]
+    MatTabsModule,
+    MatProgressSpinner
+]
 })
 export class ArticlesModule { }

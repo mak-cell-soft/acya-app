@@ -390,8 +390,10 @@
             </div>
 
             <div class="action-buttons">
-                <button mat-flat-button color="primary" class="btn-save" (click)="onSubmit()">
-                    <mat-icon>save</mat-icon> {{ register_button }}
+                <button mat-flat-button color="primary" class="btn-save" (click)="onSubmit()" [disabled]="isLoading">
+                    <mat-spinner *ngIf="isLoading" diameter="18" class="button-spinner"></mat-spinner>
+                    <mat-icon *ngIf="!isLoading">save</mat-icon> 
+                    {{ isLoading ? 'Enregistrement...' : register_button }}
                 </button>
             </div>
         </mat-card>

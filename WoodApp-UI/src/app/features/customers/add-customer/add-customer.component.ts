@@ -66,6 +66,7 @@ export class AddCustomerComponent implements OnInit {
   societyActivities = Object.values(CounterPartActivities_FR);
   gouvernorate = Object.values(GOV_TN);
   userconnected = this.authService.getUserDetail();
+  isLoading: boolean = false;
 
   constructor() { }
 
@@ -142,13 +143,16 @@ export class AddCustomerComponent implements OnInit {
     const counterpart = this.createCounterPartInstance(counterPartForm);
 
     if (counterpart != null) {
+      this.isLoading = true;
       this.counterPartService.Add(counterpart).subscribe({
         next: (response) => {
+          this.isLoading = false;
           console.log('Added CounterPart:', response);
           this.toastr.success('Client ajouté avec Succés');
           this.router.navigateByUrl('home/customers');
         },
         error: (error) => {
+          this.isLoading = false;
           console.error('Error adding CounterPart:', error);
           this.toastr.error('Erreur lors de l\'ajout du client');
         }

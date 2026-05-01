@@ -316,7 +316,7 @@
             </div>
             <div class="action-buttons">
                 <button mat-flat-button class="btn-save" (click)="onSubmit()" [disabled]="isLoading">
-                    <mat-spinner diameter="18" *ngIf="isLoading"></mat-spinner>
+                    <mat-spinner diameter="18" *ngIf="isLoading" class="button-spinner"></mat-spinner>
                     <mat-icon *ngIf="!isLoading">save</mat-icon>
                     {{ isLoading ? 'Enregistrement...' : register_button }}
                 </button>
