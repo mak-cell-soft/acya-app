@@ -20,6 +20,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
     public new async Task<IEnumerable<MerchandiseDto>> GetAllAsync()
     {
       var all = await context.Merchandises
+          .Include(m => m.Articles)
           .Where(_s => _s.IsDeleted == false)
           .ToListAsync();
 

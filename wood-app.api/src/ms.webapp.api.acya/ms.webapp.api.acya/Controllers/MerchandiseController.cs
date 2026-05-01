@@ -18,7 +18,7 @@ namespace ms.webapp.api.acya.api.Controllers
     [HttpGet]
     public async Task<ActionResult<IEnumerable<MerchandiseDto>>> GetAll()
     {
-      var result = await _repository.GetAll();
+      var result = await _repository.GetAllAsync();
       return Ok(result);
     }
 

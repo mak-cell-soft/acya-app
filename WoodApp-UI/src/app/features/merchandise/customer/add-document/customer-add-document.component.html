@@ -288,10 +288,14 @@
                 <ng-container matColumnDef="discount">
                     <th mat-header-cell *matHeaderCellDef> Remise % </th>
                     <td mat-cell *matCellDef="let element">
-                        <mat-form-field appearance="outline" class="compact-field tva-field-compact">
+                        <mat-form-field appearance="outline" class="compact-field tva-field-compact" [class.negotiated-field]="element.isNegotiated">
                             <input matInput [(ngModel)]="element.selldiscountpercentage" type="number"
                                 (input)="updateTotals(element)">
                             <span matSuffix>%</span>
+                            <mat-icon matSuffix *ngIf="element.isNegotiated" class="negotiated-icon" 
+                                matTooltip="Remise négociée appliquée automatiquement">
+                                verified
+                            </mat-icon>
                         </mat-form-field>
                     </td>
                 </ng-container>

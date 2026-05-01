@@ -21,6 +21,7 @@ export class Merchand {
     filteredArticles?: Article[];
     isWoodArticle?: boolean;
     selectedStock: StockQuantity | null = null; // Store the selected stock
+    isNegotiated?: boolean; // Flag for customer pricing grid
 
 }
 

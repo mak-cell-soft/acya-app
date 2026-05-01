@@ -131,7 +131,8 @@ export class ListCustomersComponent implements OnInit, AfterViewInit {
 
   onDetail(customer: CounterPart): void {
     this.dialog.open(CustomerDetailsModalComponent, {
-      width: '800px',
+      width: '920px',
+      maxWidth: '95vw',
       maxHeight: '90vh',
       data: { customer }
     });

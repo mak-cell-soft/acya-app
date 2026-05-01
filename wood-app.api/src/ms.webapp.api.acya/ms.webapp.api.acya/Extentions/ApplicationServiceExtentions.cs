@@ -68,6 +68,7 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<IEmailService, EmailService>();
       services.AddScoped<IAppNotificationService, AppNotificationService>();
       services.AddScoped<IApprovalService, ApprovalService>();
+      services.AddScoped<IPricingGridService, PricingGridService>();
 
       services.AddDbContext<WoodAppContext>((sp, options) =>
       {

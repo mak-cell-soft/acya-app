@@ -32,6 +32,8 @@ import { DocumentService } from '../../../../services/components/document.servic
 import { ListOfLength } from '../../../../models/components/listoflength';
 import { ConfirmDeleteModalComponent } from '../../../../shared/components/modals/confirm-delete-modal/confirm-delete-modal.component';
 import { isQuantityValid } from '../../../../shared/validators/naturalNumberValidator';
+import { PricingGridService } from '../../../../services/components/pricing-grid.service';
+import { PricingGridLookup } from '../../../../models/components/pricing-grid';
 
 @Component({
   selector: 'customer-app-add-document',
@@ -54,6 +56,9 @@ export class CustomerAddDocumentComponent {
   appUserService = inject(AppuserService);
   docService = inject(DocumentService);
   route = inject(ActivatedRoute);
+  pricingGridService = inject(PricingGridService);
+
+  negotiatedDiscounts: Map<number, number> = new Map();
 
   typeDoc: string = '';
   selected = model<Date | null>(null);
@@ -499,7 +504,28 @@ export class CustomerAddDocumentComponent {
         const transpDisplayName = selectedCustomer.transporter.firstname + ' ' + selectedCustomer.transporter.lastname;
         this.searchTransporterControl.setValue(transpDisplayName, { emitEvent: false });
       }
+
+      // Fetch negotiated pricing grid for this customer
+      this.loadNegotiatedDiscounts(customerId);
     }
+  }
+
+  loadNegotiatedDiscounts(customerId: number): void {
+    this.pricingGridService.getLookup(customerId).subscribe({
+      next: (lookups) => {
+        this.negotiatedDiscounts.clear();
+        lookups.forEach(l => this.negotiatedDiscounts.set(l.merchandiseid, l.discountrate));
+        
+        // Re-apply discounts to existing rows if articles were already selected
+        this.dataMerchand.data.forEach(row => {
+          if (row.selectedStock && this.negotiatedDiscounts.has(row.selectedStock.merchandiseId)) {
+            row.selldiscountpercentage = this.negotiatedDiscounts.get(row.selectedStock.merchandiseId)!;
+            this.updateTotals(row);
+          }
+        });
+      },
+      error: () => console.error('Erreur lors du chargement de la grille tarifaire')
+    });
   }
 
   clearCustomer(): void {
@@ -605,6 +631,15 @@ export class CustomerAddDocumentComponent {
 
           if (!element.selectedStock.allowNegativeStock && element.selectedStock.stockQuantity <= 0) {
             console.log("Quantity input disabled: allowNegativStock is false and no stock found");
+          }
+
+          // Apply negotiated discount if available
+          if (this.negotiatedDiscounts.has(element.selectedStock.merchandiseId)) {
+            element.selldiscountpercentage = this.negotiatedDiscounts.get(element.selectedStock.merchandiseId)!;
+            element.isNegotiated = true; // Flag for visual cue
+            this.updateTotals(element);
+          } else {
+            element.isNegotiated = false;
           }
         }
       } else {
