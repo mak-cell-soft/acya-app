@@ -672,7 +672,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
           .Include(l => l.QuantityMovements)
               .ThenInclude(qm => qm!.DocumentMerchandise)
                   .ThenInclude(dm => dm!.Document)
-          .Where(l => merchandiseIds.Contains(l.QuantityMovements!.DocumentMerchandise!.MerchandiseId) &&
+          .Where(l => l.QuantityMovements!.DocumentMerchandise!.MerchandiseId.HasValue &&
+                     merchandiseIds.Contains(l.QuantityMovements.DocumentMerchandise.MerchandiseId.Value) &&
                      l.QuantityMovements.DocumentMerchandise.Document!.SalesSiteId == salesSiteId)
           .Select(l => new
           {

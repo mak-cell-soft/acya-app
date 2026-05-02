@@ -174,28 +174,31 @@ namespace ms.webapp.api.acya.api.Controllers
                 {
                     foreach (var dm in doc.DocumentMerchandises)
                     {
-                        var stock = await _context.Stocks
-                            .FirstOrDefaultAsync(s => s.MerchandiseId == dm.MerchandiseId && s.SalesSiteId == doc.SalesSiteId);
+                        if (dm.MerchandiseId.HasValue)
+                        {
+                            var stock = await _context.Stocks
+                                .FirstOrDefaultAsync(s => s.MerchandiseId == dm.MerchandiseId.Value && s.SalesSiteId == doc.SalesSiteId);
 
-                        if (stock == null)
-                        {
-                            stock = new Stock
+                            if (stock == null)
                             {
-                                MerchandiseId = dm.MerchandiseId,
-                                SalesSiteId = doc.SalesSiteId,
-                                Quantity = dm.Quantity,
-                                CreationDate = DateTime.UtcNow,
-                                UpdateDate = DateTime.UtcNow,
-                                UpdatedById = doc.UpdatedById ?? 0,
-                                Type = TransactionType.Add
-                            };
-                            _context.Stocks.Add(stock);
-                        }
-                        else
-                        {
-                            stock.Quantity = dm.Quantity;
-                            stock.UpdateDate = DateTime.UtcNow;
-                            stock.UpdatedById = doc.UpdatedById ?? 0;
+                                stock = new Stock
+                                {
+                                    MerchandiseId = dm.MerchandiseId.Value,
+                                    SalesSiteId = doc.SalesSiteId,
+                                    Quantity = dm.Quantity,
+                                    CreationDate = DateTime.UtcNow,
+                                    UpdateDate = DateTime.UtcNow,
+                                    UpdatedById = doc.UpdatedById ?? 0,
+                                    Type = TransactionType.Add
+                                };
+                                _context.Stocks.Add(stock);
+                            }
+                            else
+                            {
+                                stock.Quantity = dm.Quantity;
+                                stock.UpdateDate = DateTime.UtcNow;
+                                stock.UpdatedById = doc.UpdatedById ?? 0;
+                            }
                         }
                     }
 

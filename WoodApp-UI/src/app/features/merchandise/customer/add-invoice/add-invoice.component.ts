@@ -3,7 +3,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { ToastrService } from 'ngx-toastr';
 import { ArticleService } from '../../../../services/components/article.service';
 import { AppVariableService } from '../../../../services/configuration/app-variable.service';
-import { Merchand, Merchandise } from '../../../../models/components/merchandise';
+import { LineType, Merchand, Merchandise } from '../../../../models/components/merchandise';
 import { MatTableDataSource } from '@angular/material/table';
 import { Article } from '../../../../models/components/article';
 import { DocStatus, Document, DocumentTypes, BillingStatus } from '../../../../models/components/document';
@@ -290,10 +290,55 @@ export class AddInvoiceComponent implements OnInit {
             totalWithTax: 0,
             articleSearchInput: '',
             filteredArticles: [...this.articles],
-            selectedStock: null
+            selectedStock: null,
+            line_type: LineType.Merchandise
         };
         this.dataMerchand.data = [...this.dataMerchand.data, newRow];
         this.calculateTotals(this.dataMerchand.data);
+    }
+
+    addTransportRow() {
+        const newRow: Merchand = {
+            selectedArticle: null,
+            unit_price_ht: 0,
+            merchandise_cost_ht: 0,
+            quantity: 1, // Default quantity for transport
+            listLengths: [],
+            selldiscountpercentage: 0,
+            sellcostprice_discountValue: 0,
+            sellcostprice_net_ht: 0,
+            sellcostprice_taxValue: 0,
+            totalWithTax: 0,
+            articleSearchInput: '',
+            filteredArticles: [],
+            selectedStock: null,
+            line_type: LineType.TransportFee,
+            description: 'Frais de transport'
+        };
+
+        // Try to pre-select current transporter if available
+        if (this.selectedTransporter && this.selectedTransporter.id) {
+            newRow.transporter_id = this.selectedTransporter.id;
+            newRow.transporter = this.selectedTransporter;
+        }
+
+        this.dataMerchand.data = [...this.dataMerchand.data, newRow];
+        this.calculateTotals(this.dataMerchand.data);
+    }
+
+    onTransporterChangeInRow(element: Merchand, transporter: Transporter) {
+        element.transporter_id = transporter.id;
+        element.transporter = transporter;
+        // Optionally update selectedTransporter at doc level if this is the first one?
+        // User request: "Lors de l'enregistrement... mettre à jour la relation client/fournisseur - transporteur"
+        // We'll handle that on submit.
+        this.selectedTransporter = transporter;
+    }
+
+    openArticleDropdown(element: Merchand) {
+        const articleRows = this.dataMerchand.data.filter(r => r.line_type !== LineType.TransportFee);
+        const index = articleRows.indexOf(element);
+        this.articleSelects.toArray()[index]?.open();
     }
 
     deleteRow(element: Merchand) {
@@ -320,12 +365,6 @@ export class AddInvoiceComponent implements OnInit {
             article.reference.toLowerCase().includes(filterValue) ||
             (article.description && article.description.toLowerCase().includes(filterValue))
         );
-    }
-
-    openArticleDropdown(element: Merchand) {
-        const index = this.dataMerchand.data.indexOf(element);
-        const select = this.articleSelects.toArray()[index];
-        if (select) select.open();
     }
 
     onArticleChange(element: Merchand, selectedArticle: Article) {
@@ -359,7 +398,22 @@ export class AddInvoiceComponent implements OnInit {
     }
 
     updateRowTotals(element: Merchand) {
-        if (element.selectedArticle) {
+        if (element.line_type === LineType.TransportFee) {
+            const netBeforeDiscount = (element.quantity || 0) * (element.unit_price_ht || 0);
+            const discountValue = netBeforeDiscount * ((element.selldiscountpercentage || 0) / 100);
+            element.sellcostprice_net_ht = netBeforeDiscount - discountValue;
+            
+            // For transport, we might use a default TVA (e.g. 19% or 0% depending on business)
+            // Or use the one from a virtual article if we had one.
+            // Let's assume 19% default or 0% for now. 
+            // In ACYA, usually it follows the same logic. Let's see if we can pick a TVA.
+            const tva19 = this.TVAs.find(v => v.value.toString().includes('19'));
+            const tvaRate = tva19 ? 19 : 0;
+            
+            element.totalWithTax = element.sellcostprice_net_ht * (1 + (tvaRate / 100));
+            element.sellcostprice_discountValue = discountValue;
+            element.sellcostprice_taxValue = element.sellcostprice_net_ht * (tvaRate / 100);
+        } else if (element.selectedArticle) {
             const netBeforeDiscount = (element.quantity || 0) * (element.unit_price_ht || 0);
             const discountValue = netBeforeDiscount * ((element.selldiscountpercentage || 0) / 100);
             element.sellcostprice_net_ht = netBeforeDiscount - discountValue;
@@ -563,29 +617,36 @@ export class AddInvoiceComponent implements OnInit {
     private transformMerchandToMerchandise(dataMerchand: MatTableDataSource<Merchand>): Merchandise[] {
         return dataMerchand.data.map(merchand => {
             const m = new Merchandise();
-            // Map the properties from Merchand to Merchandise
-            m.article = merchand.selectedArticle || new Article();
+            // Map common properties
             m.unit_price_ht = merchand.unit_price_ht;
-            m.cost_ht = merchand.merchandise_cost_ht;
+            m.cost_ht = (merchand.unit_price_ht || 0) * (merchand.quantity || 0);
             m.quantity = merchand.quantity;
-            m.lisoflengths = merchand.listLengths;
             m.discount_percentage = merchand.selldiscountpercentage;
             m.cost_discount_value = merchand.sellcostprice_discountValue;
             m.cost_net_ht = merchand.sellcostprice_net_ht;
             m.tva_value = merchand.sellcostprice_taxValue;
             m.cost_ttc = merchand.totalWithTax;
+            m.line_type = merchand.line_type;
+            m.description = merchand.description || '';
 
-            // Set default values for other required properties
-            m.id = merchand.selectedStock?.merchandiseId || 0; // Assuming this is a new merchandise
-            m.packagereference = merchand.selectedStock?.packageReference || '';
-            m.description = merchand.selectedStock?.MerchandiseDescription || '';
+            if (merchand.line_type === LineType.TransportFee) {
+                m.transporter_id = merchand.transporter_id;
+                // Virtual article for transport (or null if backend allows)
+                m.article = null as any; 
+            } else {
+                m.article = merchand.selectedArticle || new Article();
+                m.lisoflengths = merchand.listLengths;
+                m.packagereference = merchand.selectedStock?.packageReference || '';
+                m.isinvoicible = merchand.selectedStock?.isInvoicible || true;
+                m.allownegativstock = merchand.selectedStock?.allowNegativeStock || false;
+                m.ismergedwith = merchand.selectedStock?.isMergedWith || false;
+            }
+
+            m.id = 0; 
             m.creationdate = new Date();
             m.updatedate = new Date();
             m.updatedbyid = Number(this.userconnected?.id) || 0;
             m.documentid = 0;
-            m.isinvoicible = merchand.selectedStock?.isInvoicible || true;
-            m.allownegativstock = merchand.selectedStock?.allowNegativeStock || false;
-            m.ismergedwith = merchand.selectedStock?.isMergedWith || false;
             m.isdeleted = false;
 
             return m;

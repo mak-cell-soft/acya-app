@@ -12,7 +12,8 @@ export const CounterPartList_FR = [
 export enum CounterPartType_FR {
     customer = 'Customer',
     supplier = 'Supplier',
-    both = 'Both'
+    both = 'Both',
+    transporter = 'Transporter'
 }
 
 

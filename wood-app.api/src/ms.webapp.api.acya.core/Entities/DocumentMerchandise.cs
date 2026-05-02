@@ -1,3 +1,4 @@
+using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities.Product;
 using ms.webapp.api.acya.core.Interfaces;
 
@@ -75,8 +76,13 @@ namespace ms.webapp.api.acya.core.Entities
     public int DocumentId { get; set; }
     public Document? Document { get; set; }
 
-    public int MerchandiseId { get; set; }
+    public int? MerchandiseId { get; set; }
     public Merchandise? Merchandise { get; set; }
+
+    public LineType Type { get; set; } = LineType.Merchandise;
+    public int? TransporterId { get; set; }
+    public Transporter? Transporter { get; set; }
+    public string? Description { get; set; } // Custom label for the fee
 
     public QuantityMovement? QuantityMovements { get; set; }
   }

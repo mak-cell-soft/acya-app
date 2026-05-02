@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.Product;
 
@@ -35,7 +36,10 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
 
             // Foreign keys
             entity.Property(e => e.DocumentId).HasColumnName("documentid");
-            entity.Property(e => e.MerchandiseId).HasColumnName("merchandiseid");
+            entity.Property(e => e.MerchandiseId).HasColumnName("merchandiseid").IsRequired(false);
+            entity.Property(e => e.TransporterId).HasColumnName("transporterid").IsRequired(false);
+            entity.Property(e => e.Type).HasColumnName("line_type").HasDefaultValue(LineType.Merchandise);
+            entity.Property(e => e.Description).HasColumnName("description");
 
             // Relationships
             entity.HasOne(dm => dm.Document)
@@ -46,7 +50,13 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
             entity.HasOne(dm => dm.Merchandise)
                 .WithMany(m => m.DocumentMerchandises)
                 .HasForeignKey(dm => dm.MerchandiseId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(dm => dm.Transporter)
+                .WithMany()
+                .HasForeignKey(dm => dm.TransporterId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // Fix the relationship naming (remove the 's' from DocumentMerchandises)
             entity.HasOne(dm => dm.QuantityMovements)

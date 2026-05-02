@@ -46,7 +46,7 @@ namespace ms.webapp.api.acya.api.Services
             var movementsQuery = from dm in _context.DocumentMerchandises
                                  join d in _context.Documents on dm.DocumentId equals d.Id
                                  join m in _context.Merchandises on dm.MerchandiseId equals m.Id
-                                 where matchingMerchandiseIds.Contains(dm.MerchandiseId) 
+                                 where dm.MerchandiseId.HasValue && matchingMerchandiseIds.Contains(dm.MerchandiseId.Value) 
                                        && d.SalesSiteId == salesSiteId 
                                        && !d.IsDeleted 
                                        && !m.IsDeleted

@@ -154,9 +154,12 @@ namespace ms.webapp.api.acya.api.Controllers
             .Select(dm => new MerchandiseDto
             {
               id = dm.MerchandiseId,
+              line_type = dm.Type,
+              transporter_id = dm.TransporterId,
+              transporter_name = dm.Transporter?.FullName,
               packagereference = dm.Merchandise?.PackageReference,
-              description = dm.Merchandise?.Description,
-              isinvoicible = dm.Merchandise?.IsInvoicible ?? false,
+              description = dm.Type == LineType.TransportFee ? (dm.Description ?? "Frais de transport") : dm.Merchandise?.Description,
+              isinvoicible = dm.Type == LineType.TransportFee || (dm.Merchandise?.IsInvoicible ?? false),
               allownegativstock = dm.Merchandise?.AllowNegativStock ?? false,
               quantity = dm.Quantity,
               // §5.5 — Reliquats
@@ -329,9 +332,12 @@ namespace ms.webapp.api.acya.api.Controllers
             .Select(dm => new MerchandiseDto
             {
               id = dm.MerchandiseId,
+              line_type = dm.Type,
+              transporter_id = dm.TransporterId,
+              transporter_name = dm.Transporter?.FullName,
               packagereference = dm.Merchandise?.PackageReference,
-              description = dm.Merchandise?.Description,
-              isinvoicible = dm.Merchandise?.IsInvoicible ?? false,
+              description = dm.Type == LineType.TransportFee ? (dm.Description ?? "Frais de transport") : dm.Merchandise?.Description,
+              isinvoicible = dm.Type == LineType.TransportFee || (dm.Merchandise?.IsInvoicible ?? false),
               allownegativstock = dm.Merchandise?.AllowNegativStock ?? false,
               quantity = dm.Quantity,
               // §5.5 — Reliquats
@@ -534,9 +540,9 @@ namespace ms.webapp.api.acya.api.Controllers
 
           if (dto.merchandises != null && dto.merchandises.Any())
           {
-            if (dto.merchandises.Any(m => m.article?.id == null))
+            if (dto.merchandises.Any(m => m.line_type == LineType.Merchandise && m.article?.id == null))
             {
-              return BadRequest("All merchandises must have an article ID.");
+              return BadRequest("All merchandise lines must have an article ID.");
             }
 
             // Get existing merchandises by matching ArticleId and PackageReference
@@ -575,10 +581,15 @@ namespace ms.webapp.api.acya.api.Controllers
                 merchandise.UpdateFromDto(merchDto);
                 _context.Entry(merchandise).State = EntityState.Modified;
               }
+              // Case 3: Transport Fee line
+              else if (merchDto.line_type == LineType.TransportFee)
+              {
+                merchandise = null; // No physical merchandise for transport fee
+              }
               // Case 2: No ID provided - try to find existing by ArticleId+PackageReference or create new
               else
               {
-                var key = new { ArticleId = merchDto.article.id!.Value, PackageReference = merchDto.packagereference };
+                var key = new { ArticleId = merchDto.article!.id!.Value, PackageReference = merchDto.packagereference };
 
                 if (existingMerchDict.TryGetValue(key, out var existingMerch))
                 {
@@ -627,8 +638,10 @@ namespace ms.webapp.api.acya.api.Controllers
               var docMerchandise = new DocumentMerchandise
               {
                 Document = doc,
-                //MerchandiseId = merchandise.Id, // Set the foreign key directly
                 Merchandise = merchandise,
+                Type = merchDto.line_type,
+                TransporterId = merchDto.transporter_id,
+                Description = merchDto.line_type == LineType.TransportFee ? merchDto.description : null,
                 Quantity = merchDto.quantity,
                 UnitPriceHT = merchDto.unit_price_ht,
                 CostHT = merchDto.cost_ht,
@@ -640,20 +653,30 @@ namespace ms.webapp.api.acya.api.Controllers
                 UpdateDate = DateTime.UtcNow
               };
 
-              // Handle merchandise entity state
-              if (merchandise.Id > 0) // Existing merchandise
+              // Update counterpart's transporter if this is a transport fee
+              if (merchDto.line_type == LineType.TransportFee && merchDto.transporter_id > 0 && doc.CounterPart != null)
               {
-                // Ensure merchandise is properly attached and marked as unchanged
-                var entry = _context.Entry(merchandise);
-                if (entry.State == EntityState.Detached)
-                {
-                  _context.Merchandises.Attach(merchandise);
-                }
-                entry.State = EntityState.Unchanged;
+                doc.CounterPart.TransporterId = merchDto.transporter_id;
+                _context.Entry(doc.CounterPart).Property(c => c.TransporterId).IsModified = true;
               }
-              else // New merchandise
+
+              // Handle merchandise entity state
+              if (merchandise != null)
               {
-                _context.Merchandises.Add(merchandise);
+                if (merchandise.Id > 0) // Existing merchandise
+                {
+                  // Ensure merchandise is properly attached and marked as unchanged
+                  var entry = _context.Entry(merchandise);
+                  if (entry.State == EntityState.Detached)
+                  {
+                    _context.Merchandises.Attach(merchandise);
+                  }
+                  entry.State = EntityState.Unchanged;
+                }
+                else // New merchandise
+                {
+                  _context.Merchandises.Add(merchandise);
+                }
               }
 
               // Handle QuantityMovement if lengths exist
@@ -693,7 +716,7 @@ namespace ms.webapp.api.acya.api.Controllers
               }
 
               // Ensure the merchandise is properly attached
-              if (_context.Entry(merchandise).State == EntityState.Detached)
+              if (merchandise != null && _context.Entry(merchandise).State == EntityState.Detached)
               {
                 _context.Merchandises.Attach(merchandise);
                 _context.Entry(merchandise).State = EntityState.Unchanged;
@@ -1088,9 +1111,12 @@ namespace ms.webapp.api.acya.api.Controllers
           .Select(dm => new MerchandiseDto
           {
             id = dm.MerchandiseId,
+            line_type = dm.Type,
+            transporter_id = dm.TransporterId,
+            transporter_name = dm.Transporter?.FullName,
             packagereference = dm.Merchandise?.PackageReference,
-            description = dm.Merchandise?.Description,
-            isinvoicible = dm.Merchandise?.IsInvoicible ?? false,
+            description = dm.Type == LineType.TransportFee ? (dm.Description ?? "Frais de transport") : dm.Merchandise?.Description,
+            isinvoicible = dm.Type == LineType.TransportFee || (dm.Merchandise?.IsInvoicible ?? false),
             allownegativstock = dm.Merchandise?.AllowNegativStock ?? false,
             quantity = dm.Quantity,
             unit_price_ht = dm.UnitPriceHT,
@@ -1234,28 +1260,34 @@ namespace ms.webapp.api.acya.api.Controllers
                 merchDto.updatedbyid = dto.updatedbyid;
             }
 
-            Merchandise? merchandise;
-            if (merchDto.id > 0)
+            Merchandise? merchandise = null;
+            if (merchDto.line_type == LineType.Merchandise)
             {
-              merchandise = await _context.Merchandises.FindAsync(merchDto.id);
-              if (merchandise != null)
+              if (merchDto.id > 0)
               {
-                merchandise.UpdateFromDto(merchDto);
-                _context.Entry(merchandise).State = EntityState.Modified;
+                merchandise = await _context.Merchandises.FindAsync(merchDto.id);
+                if (merchandise != null)
+                {
+                  merchandise.UpdateFromDto(merchDto);
+                  _context.Entry(merchandise).State = EntityState.Modified;
+                }
+              }
+              else
+              {
+                merchandise = new Merchandise(merchDto);
+                _context.Merchandises.Add(merchandise);
               }
             }
-            else
-            {
-              merchandise = new Merchandise(merchDto);
-              _context.Merchandises.Add(merchandise);
-            }
 
-            if (merchandise != null)
+            if (merchandise != null || merchDto.line_type == LineType.TransportFee)
             {
               var docMerchandise = new DocumentMerchandise
               {
                 Document = doc,
                 Merchandise = merchandise,
+                Type = merchDto.line_type,
+                TransporterId = merchDto.transporter_id,
+                Description = merchDto.line_type == LineType.TransportFee ? merchDto.description : null,
                 Quantity = merchDto.quantity,
                 UnitPriceHT = merchDto.unit_price_ht,
                 CostHT = merchDto.cost_ht,
@@ -1266,6 +1298,13 @@ namespace ms.webapp.api.acya.api.Controllers
                 CreationDate = DateTime.UtcNow,
                 UpdateDate = DateTime.UtcNow
               };
+
+              // Update counterpart's transporter if this is a transport fee
+              if (merchDto.line_type == LineType.TransportFee && merchDto.transporter_id > 0 && doc.CounterPart != null)
+              {
+                doc.CounterPart.TransporterId = merchDto.transporter_id;
+                _context.Entry(doc.CounterPart).Property(c => c.TransporterId).IsModified = true;
+              }
 
               // Handle QuantityMovement if lengths exist
               if (merchDto.lisoflengths != null && merchDto.lisoflengths.Any())
@@ -1304,7 +1343,7 @@ namespace ms.webapp.api.acya.api.Controllers
               }
 
               // Ensure the merchandise is properly attached
-              if (_context.Entry(merchandise).State == EntityState.Detached)
+              if (merchandise != null && _context.Entry(merchandise).State == EntityState.Detached)
               {
                 _context.Merchandises.Attach(merchandise);
                 _context.Entry(merchandise).State = EntityState.Unchanged;
@@ -1578,12 +1617,15 @@ namespace ms.webapp.api.acya.api.Controllers
                 // Match logic:
                 // 1. Precise MerchandiseId match (best)
                 // 2. OR ArticleId + PackageReference match
+                // 3. OR Type + Description/Transporter for transport fees
                 var parentMerch = parent.DocumentMerchandises
                     .FirstOrDefault(pm => 
-                        (pm.MerchandiseId > 0 && pm.MerchandiseId == childMerch.MerchandiseId) ||
-                        (pm.Merchandise != null && childMerch.Merchandise != null &&
-                         pm.Merchandise.ArticleId == childMerch.Merchandise.ArticleId && 
-                         pm.Merchandise.PackageReference == childMerch.Merchandise.PackageReference));
+                        (pm.Type == childMerch.Type && pm.Type == LineType.TransportFee && 
+                         (pm.TransporterId == childMerch.TransporterId || pm.Description == childMerch.Description)) ||
+                        ((pm.MerchandiseId > 0 && pm.MerchandiseId == childMerch.MerchandiseId) ||
+                         (pm.Merchandise != null && childMerch.Merchandise != null &&
+                          pm.Merchandise.ArticleId == childMerch.Merchandise.ArticleId && 
+                          pm.Merchandise.PackageReference == childMerch.Merchandise.PackageReference)));
 
                 if (parentMerch != null)
                 {
@@ -1637,10 +1679,11 @@ namespace ms.webapp.api.acya.api.Controllers
       // Fetch merchandises directly from DB to ensure we have ArticleId and latest data
       var merchandises = await _context.DocumentMerchandises
           .Include(dm => dm.Merchandise)
+          .Include(dm => dm.Transporter)
           .Where(dm => dm.DocumentId == doc.Id)
           .ToListAsync();
 
-      foreach (var dm in merchandises)
+      foreach (var dm in merchandises.Where(m => m.Type == LineType.Merchandise))
       {
           int articleId = dm.Merchandise?.ArticleId ?? 0;
           if (articleId == 0) continue;

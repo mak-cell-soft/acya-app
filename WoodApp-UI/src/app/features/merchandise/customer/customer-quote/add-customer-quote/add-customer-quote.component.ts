@@ -3,7 +3,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { ToastrService } from 'ngx-toastr';
 import { ArticleService } from '../../../../../services/components/article.service';
 import { AppVariableService } from '../../../../../services/configuration/app-variable.service';
-import { Merchand, Merchandise } from '../../../../../models/components/merchandise';
+import { Merchand, Merchandise, LineType } from '../../../../../models/components/merchandise';
 import { MatTableDataSource } from '@angular/material/table';
 import { Article } from '../../../../../models/components/article';
 import { BillingStatus, DocStatus, Document, DocumentTypes } from '../../../../../models/components/document';
@@ -78,9 +78,11 @@ export class AddCustomerQuoteComponent {
   // Article type flag for wood/wood-lengths UI
   isArticleTypeWood = false;
   isLoading = false;
+  hasUnsavedChanges = false;
   responseFromModalLengths!: ListOfLength[];
   responseFromModalTotQuantity!: number;
   sourceDocumentId = 0;
+  allTransporters: any[] = [];
 
   @ViewChild('customerSelect') customerSelect!: MatSelect;
   @ViewChild('articleSelect')  articleSelect!: MatSelect;
@@ -124,6 +126,7 @@ export class AddCustomerQuoteComponent {
     this.getArticles();
     this.getStocks();
     this.getTaxes();
+    this.getAllTransporters();
 
     if (this.sourceDocumentId > 0) {
       this.loadSourceDocument(this.sourceDocumentId);
@@ -222,6 +225,12 @@ export class AddCustomerQuoteComponent {
     });
   }
 
+  getAllTransporters() {
+    this.counterPartService.GetAll(CounterPartType_FR.transporter).subscribe({
+      next: (res) => { this.allTransporters = res; }
+    });
+  }
+
   getArticles() {
     this.articleService.GetAll().subscribe({
       next: (res) => { this.articles = res; this.filteredArticles = [...res]; },
@@ -281,7 +290,8 @@ export class AddCustomerQuoteComponent {
   }
 
   openArticleDropdown(element: Merchand) {
-    const index = this.dataMerchand.data.indexOf(element);
+    const articleRows = this.dataMerchand.data.filter(r => r.line_type !== LineType.TransportFee);
+    const index = articleRows.indexOf(element);
     this.articleSelects.toArray()[index]?.open();
   }
 
@@ -375,7 +385,14 @@ export class AddCustomerQuoteComponent {
   // ── Totals calculation ───────────────────────────────────────────────────
 
   updateTotals(element: Merchand) {
-    if (element.selectedArticle) {
+    if (element.line_type === LineType.TransportFee) {
+        element.quantity = 1;
+        element.sellcostprice_net_ht = element.unit_price_ht;
+        element.sellcostprice_discountValue = 0;
+        element.selldiscountpercentage = 0;
+        element.sellcostprice_taxValue = parseFloat((element.sellcostprice_net_ht * 0.19).toFixed(3));
+        element.totalWithTax = parseFloat((element.sellcostprice_net_ht + element.sellcostprice_taxValue).toFixed(3));
+    } else if (element.selectedArticle) {
       const net = element.quantity * element.unit_price_ht;
       const disc = net * (element.selldiscountpercentage / 100);
       element.sellcostprice_net_ht = parseFloat((net - disc).toFixed(3));
@@ -426,6 +443,38 @@ export class AddCustomerQuoteComponent {
     };
     this.dataMerchand.data = [...this.dataMerchand.data, newRow];
     this.calculateTotals(this.dataMerchand.data);
+    this.hasUnsavedChanges = true;
+  }
+
+  addTransportRow() {
+    const newRow: Merchand = {
+      selectedArticle: null as any,
+      unit_price_ht: 0,
+      merchandise_cost_ht: 0,
+      quantity: 1,
+      listLengths: [],
+      selldiscountpercentage: 0,
+      sellcostprice_discountValue: 0,
+      sellcostprice_net_ht: 0,
+      sellcostprice_taxValue: 0,
+      totalWithTax: 0,
+      articleSearchInput: '',
+      filteredArticles: [],
+      selectedStock: null,
+      line_type: LineType.TransportFee,
+      description: 'Frais de transport'
+    };
+    this.dataMerchand.data = [...this.dataMerchand.data, newRow];
+    this.calculateTotals(this.dataMerchand.data);
+    this.hasUnsavedChanges = true;
+  }
+
+  onTransporterChangeInRow(element: Merchand, transporterId: number) {
+    element.transporter_id = transporterId;
+    const t = this.allTransporters.find(x => x.id === transporterId);
+    if (t) {
+        element.transporter_name = t.name || (t.firstname + ' ' + t.lastname);
+    }
   }
 
   deleteRow(element: Merchand) {
@@ -540,6 +589,11 @@ export class AddCustomerQuoteComponent {
       merch.allownegativstock     = m.selectedStock?.allowNegativeStock || false;
       merch.ismergedwith          = m.selectedStock?.isMergedWith || false;
       merch.isdeleted             = false;
+      merch.line_type = m.line_type || LineType.Merchandise;
+      merch.transporter_id = m.transporter_id;
+      if (m.line_type === LineType.TransportFee) {
+          merch.description = m.description || 'Frais de transport';
+      }
       return merch;
     });
   }

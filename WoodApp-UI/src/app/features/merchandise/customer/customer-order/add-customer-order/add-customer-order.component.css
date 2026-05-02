@@ -190,3 +190,48 @@ td { padding: 8px; color: #1e293b; border-bottom: 1px solid #f1f5f9; }
 .btn-save:hover:not([disabled]) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(22, 163, 74, 0.3); }
 .btn-save[disabled] { opacity: 0.6; }
 ::ng-deep .has-selection .mat-mdc-form-field-outline { border-left: 4px solid #22c55e !important; }
+
+/* Transport Specific UI */
+.add-transport-btn {
+    background-color: #f59e0b !important;
+    color: white !important;
+    margin-right: 8px;
+    border-radius: 24px;
+}
+
+.index-cell-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.transport-indicator-icon {
+    font-size: 14px !important;
+    width: 14px !important;
+    height: 14px !important;
+    color: #f59e0b;
+}
+
+.transport-cell-content {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    padding: 4px 0;
+}
+
+.transport-cell-content mat-form-field {
+    flex: 1;
+}
+
+.header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/* junk */
+.old-header {
+    display: flex;
+    gap: 12px;
+}

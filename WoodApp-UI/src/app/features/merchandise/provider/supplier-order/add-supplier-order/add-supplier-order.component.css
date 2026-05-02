@@ -298,3 +298,55 @@
     color: #3f51b5 !important;
     font-size: 1rem !important;
 }
+
+/* Transport Specific UI */
+.add-transport-button {
+    background-color: #f59e0b !important;
+    color: white !important;
+    margin-right: 8px;
+    border-radius: 24px;
+    height: 48px;
+    padding: 0 24px;
+}
+
+.index-cell-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.transport-indicator-icon {
+    font-size: 14px !important;
+    width: 14px !important;
+    height: 14px !important;
+    color: #f59e0b;
+}
+
+.transport-cell-content {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    padding: 4px 0;
+}
+
+.transport-cell-content mat-form-field {
+    flex: 1;
+}
+
+.inline-edit-input {
+    width: 100px;
+    padding: 6px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.inline-edit-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}

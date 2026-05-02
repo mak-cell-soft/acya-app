@@ -233,26 +233,27 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
 
   updateSummary() {
     this.invoiceCount = this.allInvoices.data.length;
-    this.totalHt = this.allInvoices.data.reduce((acc, curr) => acc + (curr.parentDocument?.total_ht_net_doc || 0), 0);
-    this.totalTva = this.allInvoices.data.reduce((acc, curr) => acc + (curr.parentDocument?.total_tva_doc || 0), 0);
-    this.totalTtc = this.totalHt + this.totalTva;
     
-    // Theoretical net (TTC - RS)
-    this.totalNetPayable = this.allInvoices.data.reduce((acc, curr) => {
-      const doc = curr.parentDocument;
-      if (!doc) return acc;
-      return acc + (doc.total_net_payable ?? doc.total_net_ttc ?? 0);
-    }, 0);
+    const summary = this.allInvoices.data.reduce((acc, curr) => {
+        const doc = curr.parentDocument;
+        if (!doc) return acc;
 
-    // Sum of all credit notes linked to these invoices
-    this.totalCreditNotes = this.allInvoices.data.reduce((acc, curr) => {
-        return acc + (curr.parentDocument?.total_credit_notes || 0);
-    }, 0);
+        acc.ht += (doc.total_ht_net_doc || 0);
+        acc.tva += (doc.total_tva_doc || 0);
+        acc.ttc += (doc.total_net_ttc || 0);
+        acc.payable += (doc.total_net_payable ?? doc.total_net_ttc ?? 0);
+        acc.credits += (doc.total_credit_notes || 0);
+        acc.remaining += (doc.remaining_balance || 0);
+        
+        return acc;
+    }, { ht: 0, tva: 0, ttc: 0, payable: 0, credits: 0, remaining: 0 });
 
-    // Actual remaining balance (NetPayable - Paid - CreditNotes)
-    this.totalRemaining = this.allInvoices.data.reduce((acc, curr) => {
-        return acc + (curr.parentDocument?.remaining_balance || 0);
-    }, 0);
+    this.totalHt = summary.ht;
+    this.totalTva = summary.tva;
+    this.totalTtc = summary.ttc;
+    this.totalNetPayable = summary.payable;
+    this.totalCreditNotes = summary.credits;
+    this.totalRemaining = summary.remaining;
   }
 
   deleteDocument(element: Document | null) {

@@ -757,7 +757,10 @@ namespace ms.webapp.api.acya.api.Services
 
                 foreach (var dm in doc.DocumentMerchandises)
                 {
-                    await CheckAndNotifyLowStockAsync(doc.SalesSiteId, dm.MerchandiseId);
+                    if (dm.MerchandiseId.HasValue)
+                    {
+                        await CheckAndNotifyLowStockAsync(doc.SalesSiteId, dm.MerchandiseId.Value);
+                    }
                 }
             }
             catch (Exception ex)

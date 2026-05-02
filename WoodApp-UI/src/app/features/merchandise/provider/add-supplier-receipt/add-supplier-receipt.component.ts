@@ -7,7 +7,7 @@ import { AppVariableService } from '../../../../services/configuration/app-varia
 import { AppVariable } from '../../../../models/configuration/appvariable';
 import { Article } from '../../../../models/components/article';
 import { MatTableDataSource } from '@angular/material/table';
-import { Merchand, Merchandise } from '../../../../models/components/merchandise';
+import { Merchand, Merchandise, LineType } from '../../../../models/components/merchandise';
 import { MatSelect } from '@angular/material/select';
 import { CounterPart } from '../../../../models/components/counterpart';
 import { CounterpartService } from '../../../../services/components/counterpart.service';
@@ -114,6 +114,8 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
   totalRemise_doc: number = 0;
   totalTVA_doc: number = 0;
   netTTC_doc: number = 0;
+  allTransporters: any[] = [];
+  selectedTransporterInRow: any = null;
 
   /**
    * Control Buttons
@@ -167,6 +169,7 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
   loadData() {
     this.getArticles();
     this.getTVAs();
+    this.getAllTransporters();
   }
 
   addMerchandise() {
@@ -209,7 +212,8 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
         lisoflengths: list_lengths,
         ismergedwith: false,
         idmergedmerchandise: 0,
-        isdeleted: false
+        isdeleted: false,
+        line_type: LineType.Merchandise
       };
 
       // Add or Update the Merchandise in the data source
@@ -231,6 +235,49 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
       this.resetMerchandiseForm();
     } else {
       this.toastr.info('Terminez les champs et remplissez tous les champs de la marchandise');
+    }
+  }
+
+  addTransportFee() {
+    const newMerchandise: Merchandise = {
+      id: 0,
+      packagereference: 'Standard',
+      description: 'Frais de transport',
+      creationdate: new Date(),
+      updatedate: new Date(),
+      updatedbyid: Number(this.userconnected?.id),
+      unit_price_ht: 0,
+      quantity: 1,
+      cost_ht: 0,
+      discount_percentage: 0,
+      cost_net_ht: 0,
+      tva_value: 0,
+      cost_discount_value: 0,
+      cost_ttc: 0,
+      documentid: 0,
+      isinvoicible: true,
+      allownegativstock: false,
+      article: null as any,
+      lisoflengths: null as any,
+      ismergedwith: false,
+      idmergedmerchandise: 0,
+      isdeleted: false,
+      line_type: LineType.TransportFee
+    };
+
+    const currentData = this.merchandisDocument.data;
+    currentData.push(newMerchandise);
+    this.merchandisDocument.data = [...currentData];
+    this.hasUnsavedChanges = true;
+    this.toastr.success('Ligne de transport ajoutée');
+  }
+
+  onTransporterChangeInRow(element: Merchandise, transporterId: number) {
+    element.transporter_id = transporterId;
+    // Find transporter object for display if needed
+    const transporter = this.allTransporters.find(t => t.id === transporterId);
+    if (transporter) {
+        element.transporter_name = transporter.firstname + ' ' + transporter.lastname;
     }
   }
 
@@ -308,7 +355,10 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
   }
 
   deleteRow(element: Merchandise) {
-    const item = { id: element.article.reference, name: element.article.description };
+    const item = { 
+      id: element.line_type === LineType.TransportFee ? 'Transport' : element.article?.reference, 
+      name: element.line_type === LineType.TransportFee ? element.description : element.article?.description 
+    };
     const dialogRef = this.dialog.open(ConfirmDeleteModalComponent, {
       width: '400px',
       data: { item }
@@ -413,6 +463,14 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
       error: (error) => {
         console.error('Error fetching providers', error);
         this.toastr.error('Erreur chargement Fournisseurs');
+      }
+    });
+  }
+
+  getAllTransporters() {
+    this.counterpartService.GetAll(CounterPartType_FR.transporter).subscribe({
+      next: (response: any[]) => {
+        this.allTransporters = response;
       }
     });
   }
@@ -730,6 +788,18 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
       },
     });
 
+    data.forEach(item => {
+      if (item.line_type === LineType.TransportFee) {
+        item.quantity = 1;
+        item.cost_ht = item.unit_price_ht;
+        item.discount_percentage = 0;
+        item.cost_discount_value = 0;
+        item.cost_net_ht = item.cost_ht;
+        item.tva_value = parseFloat((item.cost_net_ht * 0.19).toFixed(3));
+        item.cost_ttc = parseFloat((item.cost_net_ht + item.tva_value).toFixed(3));
+      }
+    });
+
     const totalHTNet = data.reduce((sum, item) => sum + item.cost_net_ht, 0);
     const totalRemise = data.reduce((sum, item) => sum + item.cost_discount_value, 0);
     const totalTVA = data.reduce((sum, item) => sum + item.tva_value, 0);
@@ -743,13 +813,6 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
     this.totalTVA_doc$.next(totalTVA);
     this.netTTC_doc$.next(netTTC);
     this.total_net_payable$.next(netPayable);
-
-    /**
-     * Exemple ecriture chiffre en lettres.
-     */
-    // const number = 26041.402; // Your number
-    // const words = toWords.convert(number, { currency: true });
-    // console.log(words);
   }
 
   freeAllCalculatedDocumentFields() {

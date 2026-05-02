@@ -7,7 +7,7 @@ import { AppVariableService } from '../../../../../services/configuration/app-va
 import { AppVariable } from '../../../../../models/configuration/appvariable';
 import { Article } from '../../../../../models/components/article';
 import { MatTableDataSource } from '@angular/material/table';
-import { Merchand, Merchandise } from '../../../../../models/components/merchandise';
+import { Merchand, Merchandise, LineType } from '../../../../../models/components/merchandise';
 import { MatSelect } from '@angular/material/select';
 import { CounterPart } from '../../../../../models/components/counterpart';
 import { CounterpartService } from '../../../../../services/components/counterpart.service';
@@ -86,6 +86,7 @@ export class AddSupplierOrderComponent implements OnInit {
   SalesSite!: Site;
   appUser!: AppUser;
   isLoading: boolean = false;
+  allTransporters: any[] = [];
 
   register_button: string = REGISTER_BUTTON;
   abort_button: string = ABORT_BUTTON;
@@ -117,6 +118,7 @@ export class AddSupplierOrderComponent implements OnInit {
   loadData() {
     this.getArticles();
     this.getTVAs();
+    this.getAllTransporters();
   }
 
   createDocumentForm() {
@@ -151,6 +153,14 @@ export class AddSupplierOrderComponent implements OnInit {
 
   onSupplierChange(supplier: CounterPart): void {
     this.selectedSupplier = supplier;
+  }
+
+  getAllTransporters() {
+    this.counterpartService.GetAll(CounterPartType_FR.transporter).subscribe({
+      next: (response: any[]) => {
+        this.allTransporters = response;
+      }
+    });
   }
 
   getArticles() {
@@ -281,6 +291,48 @@ export class AddSupplierOrderComponent implements OnInit {
     }
   }
 
+  addTransportRow() {
+    const newMerchandise: Merchandise = {
+      id: 0,
+      packagereference: 'Standard',
+      description: 'Frais de transport',
+      creationdate: new Date(),
+      updatedate: new Date(),
+      updatedbyid: Number(this.userconnected?.id),
+      unit_price_ht: 0,
+      quantity: 1,
+      cost_ht: 0,
+      discount_percentage: 0,
+      cost_net_ht: 0,
+      tva_value: 0,
+      cost_discount_value: 0,
+      cost_ttc: 0,
+      documentid: 0,
+      isinvoicible: true,
+      allownegativstock: false,
+      article: null as any,
+      lisoflengths: null as any,
+      ismergedwith: false,
+      idmergedmerchandise: 0,
+      isdeleted: false,
+      line_type: LineType.TransportFee
+    };
+
+    const currentData = this.merchandisDocument.data;
+    currentData.push(newMerchandise);
+    this.merchandisDocument.data = [...currentData];
+    this.hasUnsavedChanges = true;
+    this.toastr.success('Ligne de transport ajoutée');
+  }
+
+  onTransporterChangeInRow(element: Merchandise, transporterId: number) {
+    element.transporter_id = transporterId;
+    const transporter = this.allTransporters.find(t => t.id === transporterId);
+    if (transporter) {
+        element.transporter_name = transporter.firstname + ' ' + transporter.lastname;
+    }
+  }
+
   resetMerchandiseForm() {
     this.merchandiseForm.reset({
       unit_price_ht: '',
@@ -310,6 +362,18 @@ export class AddSupplierOrderComponent implements OnInit {
   }
 
   calculateTotals(data: Merchandise[]): void {
+    data.forEach(item => {
+      if (item.line_type === LineType.TransportFee) {
+        item.quantity = 1;
+        item.cost_ht = item.unit_price_ht;
+        item.discount_percentage = 0;
+        item.cost_discount_value = 0;
+        item.cost_net_ht = item.cost_ht;
+        item.tva_value = parseFloat((item.cost_net_ht * 0.19).toFixed(3));
+        item.cost_ttc = parseFloat((item.cost_net_ht + item.tva_value).toFixed(3));
+      }
+    });
+
     const totalHTNet = data.reduce((sum, item) => sum + item.cost_net_ht, 0);
     const totalTVA = data.reduce((sum, item) => sum + item.tva_value, 0);
     const netTTC = data.reduce((sum, item) => sum + item.cost_ttc, 0);

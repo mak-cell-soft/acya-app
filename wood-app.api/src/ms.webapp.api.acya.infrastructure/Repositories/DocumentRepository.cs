@@ -110,7 +110,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
       var transactionType = Helpers.GetTransactionType((DocumentTypes)document.Type!);
 
-      foreach (var merchandise in document.DocumentMerchandises)
+      foreach (var merchandise in document.DocumentMerchandises.Where(dm => dm.Type == LineType.Merchandise))
       {
         var stockTransaction = new Stock
         {
@@ -141,11 +141,10 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
             appuser = await context.AppUsers.FindAsync(idAppUser);
         }
         
-        // Get the transaction type for the document and then invert it
         var originalType = Helpers.GetTransactionType((DocumentTypes)document.Type!);
         var reverseType = originalType == TransactionType.Add ? TransactionType.Retrieve : TransactionType.Add;
 
-        foreach (var merchandise in document.DocumentMerchandises)
+        foreach (var merchandise in document.DocumentMerchandises.Where(dm => dm.Type == LineType.Merchandise))
         {
             var stockTransaction = new Stock
             {
@@ -168,7 +167,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
     */
     public async Task<bool> updateListOfIdsListOfLengths(Document document)
     {
-      foreach (var merchandise in document.DocumentMerchandises)
+      foreach (var merchandise in document.DocumentMerchandises.Where(dm => dm.Type == LineType.Merchandise))
       {
         if (merchandise.QuantityMovements != null)
         {

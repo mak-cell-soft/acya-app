@@ -272,6 +272,12 @@ mat-card {
     font-weight: 600;
 }
 
+.header-action-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
 .add-merchandise-button {
     margin-top: 15px;
 }
@@ -1012,4 +1018,42 @@ table td.mat-cell {
     color: #22c55e !important;
     font-size: 16px !important;
     margin-left: 4px;
+}
+
+/* Transport Specific UI */
+.add-transport-button {
+    background-color: #f59e0b !important;
+    color: white !important;
+    margin-right: 8px;
+}
+
+.index-cell-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.transport-indicator-icon {
+    font-size: 14px !important;
+    width: 14px !important;
+    height: 14px !important;
+    color: #f59e0b;
+}
+
+.transport-cell-content {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    padding: 4px 0;
+}
+
+.transport-cell-content mat-form-field {
+    flex: 1;
+}
+
+.header-action-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
 }

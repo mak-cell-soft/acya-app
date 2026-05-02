@@ -3,6 +3,11 @@ import { Document } from "./document";
 import { ListOfLength } from "./listoflength";
 import { Stock, StockQuantity } from "./stock";
 
+export enum LineType {
+    Merchandise = 1,
+    TransportFee = 2
+}
+
 export class Merchand {
     selectedArticle: Article | null = null; // Store the selected article
     unit_price_ht: number = 0;
@@ -23,6 +28,12 @@ export class Merchand {
     selectedStock: StockQuantity | null = null; // Store the selected stock
     isNegotiated?: boolean; // Flag for customer pricing grid
 
+    // §5.17 — Frais de transport
+    line_type?: LineType = LineType.Merchandise;
+    description?: string = '';
+    transporter_id?: number;
+    transporter_name?: string;
+    transporter?: any; // To store the selected transporter object for UI
 }
 
 export class Merchandise {
@@ -77,6 +88,11 @@ export class Merchandise {
     ismergedwith: boolean = false;
     idmergedmerchandise!: number;
     isdeleted: boolean = false;
+
+    // §5.17 — Frais de transport
+    line_type?: LineType = LineType.Merchandise;
+    transporter_id?: number;
+    transporter_name?: string;
 }
 
 

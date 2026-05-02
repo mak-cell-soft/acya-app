@@ -169,6 +169,24 @@ mat-card {
     background: transparent !important;
     box-shadow: none !important;
     border: none !important;
+    margin-top: -12px !important; /* Pull up towards filters */
+}
+
+.summary-header {
+    margin: 0 24px 16px !important;
+    padding: 0 !important;
+}
+
+.summary-header mat-card-title {
+    font-size: 1.1rem !important;
+    font-weight: 800 !important;
+    color: #1e293b !important;
+    letter-spacing: -0.025em !important;
+}
+
+.summary-header mat-card-subtitle {
+    font-size: 0.85rem !important;
+    color: #64748b !important;
 }
 
 .summary-content {
@@ -232,8 +250,18 @@ mat-card {
 }
 
 .total-ttc {
-    color: #3f51b5 !important;
+    color: #2563eb !important;
 }
+
+.total-remaining {
+    color: #b45309 !important;
+}
+
+.summary-item.theme-primary .summary-icon-wrapper { background: #eff6ff; color: #2563eb; }
+.summary-item.theme-success .summary-icon-wrapper { background: #ecfdf5; color: #059669; }
+.summary-item.theme-danger .summary-icon-wrapper { background: #fff1f2; color: #e11d48; }
+.summary-item.theme-warning .summary-icon-wrapper { background: #fffbeb; color: #d97706; }
+.summary-item.theme-info .summary-icon-wrapper { background: #f8fafc; color: #475569; }
 
 /* Table Design */
 .table-card {

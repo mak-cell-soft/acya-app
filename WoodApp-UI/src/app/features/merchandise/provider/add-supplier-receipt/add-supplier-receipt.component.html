@@ -205,6 +205,10 @@
                 <button mat-button color="warn" *ngIf="isEditing" (click)="resetMerchandiseForm()">
                     Annuler
                 </button>
+                <button mat-flat-button class="add-transport-button" (click)="addTransportFee()">
+                    <mat-icon>local_shipping</mat-icon>
+                    Frais Transport
+                </button>
                 <button mat-raised-button [color]="isEditing ? 'accent' : 'primary'" class="add-article-btn"
                     (click)="addMerchandise()">
                     <mat-icon>{{ isEditing ? 'done' : 'add' }}</mat-icon>
@@ -225,22 +229,47 @@
                 <table mat-table [dataSource]="merchandisDocument" class="modern-table">
                     <ng-container matColumnDef="index">
                         <th mat-header-cell *matHeaderCellDef> # </th>
-                        <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
+                        <td mat-cell *matCellDef="let element; let i = index">
+                            <div class="index-cell-wrapper">
+                                <span>{{ i + 1 }}</span>
+                                <mat-icon *ngIf="element.line_type === 2" class="transport-indicator-icon" 
+                                          matTooltip="Frais de transport">local_shipping</mat-icon>
+                            </div>
+                        </td>
                     </ng-container>
 
                     <ng-container matColumnDef="article">
                         <th mat-header-cell *matHeaderCellDef> Article </th>
                         <td mat-cell *matCellDef="let element">
-                            <div class="article-cell">
-                                <span class="art-ref">{{ element.article.reference }}</span>
-                                <span class="art-desc">{{ element.article.description }}</span>
+                            <div class="article-cell" *ngIf="element.line_type !== 2">
+                                <span class="art-ref">{{ element.article?.reference }}</span>
+                                <span class="art-desc">{{ element.article?.description }}</span>
+                            </div>
+                            <div class="transport-cell-content" *ngIf="element.line_type === 2">
+                                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="flex-2">
+                                    <mat-label>Description des frais</mat-label>
+                                    <input matInput [(ngModel)]="element.description">
+                                </mat-form-field>
+                                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="flex-1">
+                                    <mat-label>Transporteur</mat-label>
+                                    <mat-select [value]="element.transporter_id" 
+                                                (selectionChange)="onTransporterChangeInRow(element, $event.value)">
+                                        <mat-option *ngFor="let t of allTransporters" [value]="t.id">
+                                            {{ t.firstname }} {{ t.lastname }}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
                             </div>
                         </td>
                     </ng-container>
 
                     <ng-container matColumnDef="sellCostPriceHT">
                         <th mat-header-cell *matHeaderCellDef> Prix Un. HT </th>
-                        <td mat-cell *matCellDef="let element">{{ element.unit_price_ht | number: '1.3-3' }}</td>
+                        <td mat-cell *matCellDef="let element">
+                            <input *ngIf="element.line_type === 2" type="number" [(ngModel)]="element.unit_price_ht" 
+                                   class="inline-edit-input" (change)="calculateTotals(merchandisDocument.data)">
+                            <span *ngIf="element.line_type !== 2">{{ element.unit_price_ht | number: '1.3-3' }}</span>
+                        </td>
                     </ng-container>
 
                     <ng-container matColumnDef="quantity">

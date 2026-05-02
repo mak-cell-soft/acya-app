@@ -1,3 +1,5 @@
+using ms.webapp.api.acya.common;
+
 namespace ms.webapp.api.acya.core.Entities.DTOs
 {
   public class MerchandiseDto
@@ -8,6 +10,9 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public DateTime? creationdate { get; set; }
     public DateTime? updatedate { get; set; }
     public int updatedbyid { get; set; }
+    public bool ismergedwith { get; set; }
+    public int? idmergedmerchandise { get; set; }
+    public bool isdeleted { get; set; }
 
     /**
      * Inititial quantity will be stored separately
@@ -76,13 +81,9 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public int? documentid { get; set; }
     public ListOflengthDto[]? lisoflengths { get; set; }
 
-    /**
-     * A Merchandise is merged with another 
-     */
-    public bool ismergedwith { get; set; }
-    public int? idmergedmerchandise { get; set; }
-    public bool isdeleted { get; set; }
-
+    public LineType line_type { get; set; } = LineType.Merchandise;
+    public int? transporter_id { get; set; }
+    public string? transporter_name { get; set; }
 
     public MerchandiseDto() { }
     public MerchandiseDto(Merchandise entity)
@@ -95,6 +96,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       ismergedwith = entity.IsMergedWith;
       idmergedmerchandise = entity.IdMergedMerchandise;
       isdeleted = entity.IsDeleted;
+      line_type = LineType.Merchandise;
       
       if(entity.Articles != null)
       {
@@ -131,6 +133,13 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       }
 
       documentid = line.DocumentId;
+      line_type = line.Type;
+      transporter_id = line.TransporterId;
+      transporter_name = line.Transporter?.FullName;
+      if (line.Type == LineType.TransportFee && string.IsNullOrEmpty(description))
+      {
+          description = line.Description ?? "Frais de transport";
+      }
       
       // Populate quantity fields from DocumentMerchandise
       quantity = line.Quantity;

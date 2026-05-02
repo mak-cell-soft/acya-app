@@ -80,9 +80,14 @@
     <mat-card class="merchandise-card">
         <div class="card-header">
             <h3>Lignes de Facture</h3>
-            <button mat-raised-button color="primary" class="add-merchandise-button" (click)="addRow()">
-                <mat-icon>add</mat-icon> Ajouter un Article
-            </button>
+            <div class="header-actions">
+                <button mat-raised-button color="accent" class="add-transport-button" (click)="addTransportRow()">
+                    <mat-icon>local_shipping</mat-icon> Frais Transport
+                </button>
+                <button mat-raised-button color="primary" class="add-merchandise-button" (click)="addRow()">
+                    <mat-icon>add</mat-icon> Article
+                </button>
+            </div>
         </div>
 
         <div class="table-wrapper mat-elevation-z8">
@@ -90,14 +95,18 @@
                 <!-- Index Column -->
                 <ng-container matColumnDef="index">
                     <th mat-header-cell *matHeaderCellDef> # </th>
-                    <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
+                    <td mat-cell *matCellDef="let element; let i = index">
+                        <mat-icon *ngIf="element.line_type === 2" class="transport-icon" matTooltip="Frais de transport">local_shipping</mat-icon>
+                        <span *ngIf="element.line_type !== 2">{{ i + 1 }}</span>
+                    </td>
                 </ng-container>
 
                 <!-- Article Column -->
                 <ng-container matColumnDef="article">
-                    <th mat-header-cell *matHeaderCellDef> Article </th>
+                    <th mat-header-cell *matHeaderCellDef> Article / Désignation </th>
                     <td mat-cell *matCellDef="let element">
-                        <div class="article-cell">
+                        <!-- Merchandise Mode -->
+                        <div class="article-cell" *ngIf="element.line_type === 1">
                             <input matInput [(ngModel)]="element.articleSearchInput" placeholder="Recherche article"
                                 autocomplete="off" (input)="applyArticleFilter($event, element)"
                                 (focus)="openArticleDropdown(element)" />
@@ -151,6 +160,23 @@
                                 </mat-option>
                             </mat-select>
                         </div>
+
+                        <!-- Transport Mode -->
+                        <div class="transport-cell" *ngIf="element.line_type === 2">
+                            <mat-form-field appearance="outline" class="full-width compact-field">
+                                <mat-label>Désignation Frais</mat-label>
+                                <input matInput [(ngModel)]="element.description" placeholder="Ex: Frais de port">
+                            </mat-form-field>
+                            
+                            <mat-form-field appearance="outline" class="full-width compact-field">
+                                <mat-label>Transporteur</mat-label>
+                                <mat-select [ngModel]="element.transporter_id" (selectionChange)="onTransporterChangeInRow(element, $event.value)">
+                                    <mat-option *ngFor="let t of allTransporters" [value]="t.id">
+                                        {{ t.firstname }} {{ t.lastname }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
                     </td>
                 </ng-container>
 
@@ -169,10 +195,10 @@
                     <td mat-cell *matCellDef="let element">
                         <div class="quantity-container">
                             <input matInput [(ngModel)]="element.quantity" type="number"
-                                (input)="updateRowTotals(element)" [disabled]="shouldDisableQuantityInput(element)"
+                                (input)="updateRowTotals(element)" [disabled]="element.line_type === 1 && shouldDisableQuantityInput(element)"
                                 class="quantity-input number-input">
 
-                            <div class="icon-group">
+                            <div class="icon-group" *ngIf="element.line_type === 1">
                                 <!-- Wood length button -->
                                 <button mat-icon-button *ngIf="element.isWoodArticle"
                                     (click)="openWoodLengthDialog(element)" matTooltip="Gérer les longueurs"
@@ -210,7 +236,8 @@
                 <ng-container matColumnDef="tva">
                     <th mat-header-cell *matHeaderCellDef> TVA </th>
                     <td mat-cell *matCellDef="let element">
-                        <span class="tva-text">{{ element.selectedArticle?.tva?.value || '0%' }}</span>
+                        <span class="tva-text" *ngIf="element.line_type === 1">{{ element.selectedArticle?.tva?.value || '0%' }}</span>
+                        <span class="tva-text" *ngIf="element.line_type === 2">19%</span>
                     </td>
                 </ng-container>
 
