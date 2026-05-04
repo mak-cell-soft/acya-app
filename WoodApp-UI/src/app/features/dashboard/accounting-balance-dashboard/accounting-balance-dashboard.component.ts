@@ -1,4 +1,5 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { MatPaginator } from '@angular/material/paginator';
 import { AdminDashService } from '../../../services/components/admin-dash.service';
 import { BalanceEntry } from '../../../models/balance-entry';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
@@ -7,6 +8,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
 import { CustomerAccountModalComponent } from '../../customers/customer-account-modal/customer-account-modal.component';
 import { CounterPart } from '../../../models/components/counterpart';
+import { AnalyticsService } from '../../../services/components/analytics.service';
+import { DashboardKpi } from '../../../models/analytics';
 
 @Component({
   selector: 'app-accounting-balance-dashboard',
@@ -19,8 +22,13 @@ export class AccountingBalanceDashboardComponent implements OnInit {
     loading = false;
     activeTab: 'customers' | 'suppliers' = 'customers';
     displayedColumns: string[] = ['label', 'closingBalance', 'lastTransaction', 'lastTxDate', 'action'];
+    kpis: DashboardKpi | undefined;
+    customerFilter: string = '';
+    supplierFilter: string = '';
 
     @ViewChild(BaseChartDirective) chart: BaseChartDirective | undefined;
+    @ViewChild('customerPaginator') customerPaginator!: MatPaginator;
+    @ViewChild('supplierPaginator') supplierPaginator!: MatPaginator;
 
     // Chart Properties
     public barChartOptions: ChartConfiguration['options'] = {
@@ -41,10 +49,15 @@ export class AccountingBalanceDashboardComponent implements OnInit {
         ]
     };
 
-    constructor(private adminDashService: AdminDashService, private dialog: MatDialog) { }
+    constructor(
+        private adminDashService: AdminDashService, 
+        private analyticsService: AnalyticsService,
+        private dialog: MatDialog
+    ) { }
 
     ngOnInit(): void {
         this.loadData();
+        this.loadKpis();
     }
 
     loadData(): void {
@@ -52,6 +65,7 @@ export class AccountingBalanceDashboardComponent implements OnInit {
         this.adminDashService.getCustomerBalances().subscribe({
             next: (data) => {
                 this.customerBalances.data = data;
+                this.customerBalances.paginator = this.customerPaginator;
                 if (this.activeTab === 'customers') this.updateChart();
                 this.loading = false;
             },
@@ -61,8 +75,25 @@ export class AccountingBalanceDashboardComponent implements OnInit {
         this.adminDashService.getSupplierBalances().subscribe({
             next: (data) => {
                 this.supplierBalances.data = data;
+                this.supplierBalances.paginator = this.supplierPaginator;
                 if (this.activeTab === 'suppliers') this.updateChart();
             }
+        });
+    }
+
+    applyFilter(event: Event): void {
+        const filterValue = (event.target as HTMLInputElement).value;
+        if (this.activeTab === 'customers') {
+            this.customerBalances.filter = filterValue.trim().toLowerCase();
+        } else {
+            this.supplierBalances.filter = filterValue.trim().toLowerCase();
+        }
+    }
+
+    loadKpis(): void {
+        this.analyticsService.getDashboardKpis().subscribe({
+            next: (data) => this.kpis = data,
+            error: (err) => console.error('Failed to load KPIs', err)
         });
     }
 

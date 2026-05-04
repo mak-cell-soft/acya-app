@@ -32,17 +32,30 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
     public async Task<IEnumerable<CounterPartDto>> GetAllAsync(string _t)
     {
-      // Parse the string into an enum value
-      var enumValue = (CounterPartType)Enum.Parse(typeof(CounterPartType), _t, true);
+      CounterPartType enumValue;
+      
+      // Handle common aliases and pluralization
+      if (string.Equals(_t, "customers", StringComparison.OrdinalIgnoreCase))
+      {
+          enumValue = CounterPartType.Customer;
+      }
+      else if (string.Equals(_t, "suppliers", StringComparison.OrdinalIgnoreCase) || string.Equals(_t, "providers", StringComparison.OrdinalIgnoreCase))
+      {
+          enumValue = CounterPartType.Supplier;
+      }
+      else if (!Enum.TryParse(_t, true, out enumValue))
+      {
+          // If parsing fails, return empty list instead of crashing
+          return new List<CounterPartDto>();
+      }
 
-      // Convert enum to its integer value
       int enumIntValue = (int)enumValue;
 
       var allCP = await context.CounterParts
           .Include(cp => cp.Transporter)
           .ThenInclude(tr => tr!.Vehicle)
-          .Where(cp => (bool)!cp.IsDeleted!)
-          .Where(cp => (int)cp.Type == enumIntValue) // Compare as integer
+          .Where(cp => cp.IsDeleted != true)
+          .Where(cp => (int)cp.Type == enumIntValue)
           .ToListAsync();
 
       var allDtos = allCP.Select(cp => new CounterPartDto(cp)).ToList();

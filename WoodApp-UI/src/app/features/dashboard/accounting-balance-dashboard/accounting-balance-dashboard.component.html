@@ -11,6 +11,49 @@
         </button>
     </div>
 
+    <!-- KPI Ribbon (§5.2) -->
+    <div class="kpi-ribbon mb-4" *ngIf="kpis">
+        <div class="kpi-card sales">
+            <div class="kpi-icon">
+                <mat-icon>trending_up</mat-icon>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Chiffre d'Affaires Mensuel</span>
+                <span class="kpi-value">{{ kpis.monthlySales | number:'1.3-3' }} <small>TND</small></span>
+                <div class="kpi-sub">
+                    <span class="sub-label">Aujourd'hui:</span>
+                    <span class="sub-value">{{ kpis.dailySales | number:'1.3-3' }} TND</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="kpi-card payments">
+            <div class="kpi-icon">
+                <mat-icon>payments</mat-icon>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Recaissements du Jour</span>
+                <span class="kpi-value">{{ kpis.dailyPaymentsTotal | number:'1.3-3' }} <small>TND</small></span>
+                <div class="kpi-sub">
+                    <span class="sub-label">Semaine:</span>
+                    <span class="sub-value">{{ kpis.weeklySales | number:'1.3-3' }} TND</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="kpi-card stock" [class.alert]="kpis.stockAlertCount > 0">
+            <div class="kpi-icon">
+                <mat-icon>inventory_2</mat-icon>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Alertes de Stock</span>
+                <span class="kpi-value">{{ kpis.stockAlertCount }}</span>
+                <span class="kpi-status" *ngIf="kpis.stockAlertCount > 0">Seuils critiques atteints!</span>
+                <span class="kpi-status success" *ngIf="kpis.stockAlertCount === 0">Stock optimal</span>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <!-- Summary Chart Card -->
         <div class="col-12 mb-4">
@@ -41,7 +84,15 @@
                             Soldes Clients
                         </ng-template>
 
-                        <div class="table-container pt-3">
+                        <div class="search-container">
+                            <mat-form-field appearance="outline" class="search-field">
+                                <mat-label>Rechercher un client...</mat-label>
+                                <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Mohamed" #customerInput>
+                                <mat-icon matSuffix>search</mat-icon>
+                            </mat-form-field>
+                        </div>
+
+                        <div class="table-container">
                             <table mat-table [dataSource]="customerBalances" class="w-100 custom-table">
                                 <!-- Label Column -->
                                 <ng-container matColumnDef="label">
@@ -102,16 +153,26 @@
                                     </td>
                                 </tr>
                             </table>
+
+                            <mat-paginator #customerPaginator [pageSizeOptions]="[5, 10, 25, 50]" aria-label="Page des clients"></mat-paginator>
                         </div>
                     </mat-tab>
 
                     <mat-tab>
                         <ng-template mat-tab-label>
-                            <mat-icon class="me-2">business</mat-icon>
+                            <mat-icon class="me-2">local_shipping</mat-icon>
                             Soldes Fournisseurs
                         </ng-template>
 
-                        <div class="table-container pt-3">
+                        <div class="search-container">
+                            <mat-form-field appearance="outline" class="search-field">
+                                <mat-label>Rechercher un fournisseur...</mat-label>
+                                <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Bois S.A." #supplierInput>
+                                <mat-icon matSuffix>search</mat-icon>
+                            </mat-form-field>
+                        </div>
+
+                        <div class="table-container">
                             <table mat-table [dataSource]="supplierBalances" class="w-100 custom-table">
                                 <!-- Label Column -->
                                 <ng-container matColumnDef="label">
@@ -170,6 +231,7 @@
                                     </td>
                                 </tr>
                             </table>
+                            <mat-paginator #supplierPaginator [pageSizeOptions]="[5, 10, 25, 50]" aria-label="Page des fournisseurs"></mat-paginator>
                         </div>
                     </mat-tab>
                 </mat-tab-group>
