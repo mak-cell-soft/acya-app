@@ -6,6 +6,8 @@ export class Payment {
     customerId: number = 0;
     paymentDate!: Date;
     amount: number = 0;
+    currency?: string;
+    exchangeRate?: number;
     paymentMethod: string = '';
     reference: string = '';
     notes: string = '';

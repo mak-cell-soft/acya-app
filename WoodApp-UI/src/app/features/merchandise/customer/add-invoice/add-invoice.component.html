@@ -304,10 +304,27 @@
                 </form>
             </div>
 
-            <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Référence Interne / Client</mat-label>
                 <input matInput [formControl]="$any(form).get('customerReference')" placeholder="Optionnel">
-            </mat-form-field>
+            <!-- </mat-form-field> -->
+
+            <div class="multi-currency-row">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Devise</mat-label>
+                    <mat-select [formControl]="$any(form).get('currency')" (selectionChange)="onCurrencyChange($event.value)">
+                        <mat-option *ngFor="let curr of currencies | async" [value]="curr.code">
+                            {{ curr.code }} - {{ curr.name }}
+                        </mat-option>
+                    </mat-select>
+                    <mat-icon matSuffix>payments</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width" *ngIf="form.get('currency')?.value !== baseCurrency">
+                    <mat-label>Taux de Change</mat-label>
+                    <input matInput [formControl]="$any(form).get('exchangeRate')" type="number" step="0.000001">
+                    <mat-icon matSuffix>trending_up</mat-icon>
+                </mat-form-field>
+            </div>
         </mat-card>
         <mat-card class="summary-card">
             <div class="summary-row">
@@ -331,10 +348,18 @@
             </div>
             <div class="summary-row editable-ttc">
                 <span class="label">Net TTC Final</span>
-                <mat-form-field appearance="outline" class="ttc-input">
-                    <input matInput [ngModel]="netTTC_doc$ | async" (ngModelChange)="onTTCAmountChange($event)"
-                        type="number">
-                </mat-form-field>
+                <div class="ttc-value-container">
+                    <mat-form-field appearance="outline" class="ttc-input">
+                        <input matInput [ngModel]="netTTC_doc$ | async" (ngModelChange)="onTTCAmountChange($event)"
+                            type="number">
+                    </mat-form-field>
+                    <span class="currency-label">{{ form.get('currency')?.value }}</span>
+                </div>
+            </div>
+
+            <!-- Total in Base Currency (TND) -->
+            <div class="base-total" *ngIf="form.get('currency')?.value !== baseCurrency">
+                Total en {{ baseCurrency }} : <strong>{{ (netTTC_doc$ | async)! * form.get('exchangeRate')?.value | number:'1.3-3' }}</strong>
             </div>
             <div class="summary-row net-payable" *ngIf="selectedRS">
                 <span class="label">Net à Payer (NAP)</span>

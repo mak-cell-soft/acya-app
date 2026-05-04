@@ -290,7 +290,7 @@ namespace ms.webapp.api.acya.api.Services
             await AddLedgerEntryAsync(
                 invoice.CounterPartId,
                 invoice.Type.ToString()!,
-                (decimal)invoice.TotalCostNetTTCDoc,
+                (decimal)invoice.TotalCostNetTTCDoc * (decimal)(invoice.ExchangeRate),
                 invoice.Id,
                 description,
                 isSupplier);
@@ -326,7 +326,7 @@ namespace ms.webapp.api.acya.api.Services
                     await AddLedgerEntryAsync(
                         doc.CounterPartId, 
                         doc.Type.ToString()!, 
-                        Math.Round((decimal)doc.TotalCostNetTTCDoc, 3, MidpointRounding.AwayFromZero), 
+                        Math.Round((decimal)doc.TotalCostNetTTCDoc * (decimal)(doc.ExchangeRate), 3, MidpointRounding.AwayFromZero), 
                         doc.Id, 
                         $"Mouvement - document {doc.DocNumber}",
                         isSupplier);
@@ -337,7 +337,7 @@ namespace ms.webapp.api.acya.api.Services
                         await AddLedgerEntryAsync(
                             doc.CounterPartId,
                             "RS",
-                            Math.Round((decimal)doc.HoldingTaxes.TaxValue, 3, MidpointRounding.AwayFromZero),
+                            Math.Round((decimal)doc.HoldingTaxes.TaxValue * (decimal)(doc.ExchangeRate), 3, MidpointRounding.AwayFromZero),
                             doc.HoldingTaxes.Id,
                             $"Retenue à la source ({doc.HoldingTaxes.TaxPercentage}%) - document {doc.DocNumber}",
                             isSupplier
@@ -371,7 +371,7 @@ namespace ms.webapp.api.acya.api.Services
                 await AddLedgerEntryAsync(
                     payment.CustomerId,
                     "Payment",
-                    Math.Round((decimal)(payment.Amount ?? 0), 3, MidpointRounding.AwayFromZero),
+                    Math.Round((decimal)(payment.Amount ?? 0) * payment.ExchangeRate, 3, MidpointRounding.AwayFromZero),
                     payment.Id,
                     $"Paiement ({payment.PaymentMethod}) - document {payment.Document?.DocNumber ?? payment.Reference}",
                     isSupplier);

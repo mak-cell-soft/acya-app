@@ -18,6 +18,8 @@ namespace ms.webapp.api.acya.core.Entities
 
         public DateTime? PaymentDate { get; set; }
         public decimal? Amount { get; set; }
+        public string? Currency { get; set; }
+        public decimal ExchangeRate { get; set; } = 1.0m;
         public string? PaymentMethod { get; set; }
         public string? Reference { get; set; }
         public string? Notes { get; set; }
@@ -51,6 +53,8 @@ namespace ms.webapp.api.acya.core.Entities
             CustomerId = dto.CustomerId;
             PaymentDate = dto.PaymentDate;
             Amount = dto.Amount;
+            Currency = dto.Currency;
+            ExchangeRate = dto.ExchangeRate;
             PaymentMethod = dto.PaymentMethod;
             Reference = dto.Reference;
             Notes = dto.Notes;

@@ -5,6 +5,10 @@
     <span>Gestion des Fournisseurs</span>
     <span class="customer-count-badge">{{allSuppliers.data.length}}</span>
     <span class="spacer"></span>
+    <button mat-raised-button color="accent" (click)="openImportDialog()" style="margin-right: 8px;">
+        <mat-icon>cloud_upload</mat-icon>
+        Importer
+    </button>
     <button mat-raised-button class="add-button" [routerLink]="['add']">
         <mat-icon>add</mat-icon>
         Ajouter un Fournisseur

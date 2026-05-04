@@ -9,6 +9,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public int updatedbyid { get; set; }
         public DateTime PaymentDate { get; set; }
         public decimal Amount { get; set; }
+        public string? Currency { get; set; }
+        public decimal ExchangeRate { get; set; } = 1.0m;
         public string? PaymentMethod { get; set; }
         public string? Reference { get; set; }
         public string? Notes { get; set; }
@@ -20,6 +22,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public int PaymentId { get; set; }
         public DateTime? PaymentDate { get; set; }
         public decimal? Amount { get; set; }
+        public string? Currency { get; set; }
+        public decimal? ExchangeRate { get; set; }
         public string? PaymentMethod { get; set; }
         public string? Reference { get; set; }
         public string? Notes { get; set; }
@@ -35,6 +39,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public string? CustomerName { get; set; }
         public DateTime PaymentDate { get; set; }
         public decimal Amount { get; set; }
+        public string? Currency { get; set; }
+        public decimal ExchangeRate { get; set; } = 1.0m;
         public string? PaymentMethod { get; set; }
         public string? Reference { get; set; }
         public string? Notes { get; set; }

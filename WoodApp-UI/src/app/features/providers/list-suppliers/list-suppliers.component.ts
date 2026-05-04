@@ -14,6 +14,7 @@ import { CounterPart } from '../../../models/components/counterpart';
 import { AuthenticationService } from '../../../services/components/authentication.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDeleteModalComponent } from '../../../shared/components/modals/confirm-delete-modal/confirm-delete-modal.component';
+import { DataImportModalComponent } from '../../../shared/components/modals/data-import-modal/data-import-modal.component';
 import { Router } from '@angular/router';
 import { ProviderEditModalComponent } from '../provider-edit-modal/provider-edit-modal.component';
 import { ProviderDetailsModalComponent } from '../provider-details-modal/provider-details-modal.component';
@@ -110,6 +111,19 @@ export class ListSuppliersComponent implements OnInit, AfterViewInit {
       width: '800px',
       maxHeight: '90vh',
       data: { supplier }
+    });
+  }
+
+  openImportDialog() {
+    const dialogRef = this.dialog.open(DataImportModalComponent, {
+      width: '550px',
+      data: { type: 'provider' }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.getSuppliers();
+      }
     });
   }
 

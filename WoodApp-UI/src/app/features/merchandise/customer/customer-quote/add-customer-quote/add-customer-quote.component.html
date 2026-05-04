@@ -92,6 +92,24 @@
                     <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
                     <mat-datepicker #picker></mat-datepicker>
                 </mat-form-field>
+
+                <div class="multi-currency-row">
+                    <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+                        <mat-label>Devise</mat-label>
+                        <mat-select [formControl]="$any(form).get('currency')" (selectionChange)="onCurrencyChange($event.value)">
+                        <mat-option *ngFor="let curr of currencies | async" [value]="curr.code">
+                                {{ curr.code }} - {{ curr.name }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-icon matSuffix>payments</mat-icon>
+                    </mat-form-field>
+    
+                    <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic" *ngIf="form.get('currency')?.value !== baseCurrency">
+                        <mat-label>Taux de Change</mat-label>
+                        <input matInput [formControl]="$any(form).get('exchangeRate')" type="number" step="0.000001">
+                        <mat-icon matSuffix>trending_up</mat-icon>
+                    </mat-form-field>
+                </div>
                 <!-- INFO badge: no stock impact -->
                 <div class="no-stock-badge">
                     <mat-icon>info</mat-icon>
@@ -211,7 +229,7 @@
                     <th mat-header-cell *matHeaderCellDef>PU. HT</th>
                     <td mat-cell *matCellDef="let element">
                         <mat-form-field appearance="outline" class="compact-field price-field-compact">
-                            <span matPrefix>TND&nbsp;</span>
+                            <span matPrefix>{{ form.get('currency')?.value }}&nbsp;</span>
                             <input matInput [(ngModel)]="element.unit_price_ht" type="number"
                                 (input)="updateTotals(element)">
                         </mat-form-field>
@@ -327,18 +345,24 @@
             </div>
             <div class="summary-row ttc-final-row">
                 <span class="label">Net TTC Final</span>
-                <div class="ttc-value-container">
-                    <input type="number"
-                        [ngModel]="netTTC_doc$ | async"
-                        (ngModelChange)="onFinalPriceChange($event)"
-                        class="ttc-final-input" step="0.001">
-                    <span class="currency-label-large">TND</span>
-                </div>
-            </div>
-            <div class="rounding-note" *ngIf="extraDiscount !== 0">
-                <mat-icon>info</mat-icon>
-                <span>Ajustement: {{ extraDiscount | number:'1.3-3' }} TND</span>
-            </div>
+                        <div class="ttc-value-container">
+                            <input type="number"
+                                [ngModel]="netTTC_doc$ | async"
+                                (ngModelChange)="onFinalPriceChange($event)"
+                                class="ttc-final-input" step="0.001">
+                            <span class="currency-label-large">{{ form.get('currency')?.value }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Total in Base Currency (TND) -->
+                    <div class="base-total" *ngIf="form.get('currency')?.value !== baseCurrency">
+                        Total en {{ baseCurrency }} : <strong>{{ (netTTC_doc$ | async)! * form.get('exchangeRate')?.value | number:'1.3-3' }}</strong>
+                    </div>
+
+                    <div class="rounding-note" *ngIf="extraDiscount !== 0">
+                        <mat-icon>info</mat-icon>
+                        <span>Ajustement: {{ extraDiscount | number:'1.3-3' }} {{ form.get('currency')?.value }}</span>
+                    </div>
             <div class="action-buttons">
                 <button mat-flat-button class="btn-save" (click)="onSubmit()" [disabled]="isLoading">
                     <mat-spinner diameter="18" *ngIf="isLoading" class="button-spinner"></mat-spinner>

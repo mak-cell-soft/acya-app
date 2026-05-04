@@ -456,3 +456,28 @@ td { padding: 8px; color: #1e293b; border-bottom: 1px solid #f1f5f9; }
     gap: 12px;
     align-items: center;
 }
+
+.multi-currency-row {
+  margin-top: 8px;
+  gap: 16px;
+  display: flex;
+}
+
+.base-total {
+  background: rgba(251, 191, 36, 0.08);
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: #92400e;
+  border: 1px dashed rgba(251, 191, 36, 0.3);
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+}
+
+.currency-label-large {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-weight: 600;
+}

@@ -27,6 +27,8 @@ import { AddLengthsModalComponent } from '../../../../shared/components/modals/a
 import { AuthenticationService } from '../../../../services/components/authentication.service';
 import { AppuserService } from '../../../../services/components/appuser.service';
 import { Site } from '../../../../models/components/sites';
+import { ExchangeRateService } from '../../../../services/components/exchange-rate.service';
+import { EnterpriseService } from '../../../../services/components/enterprise.service';
 
 import { DocumentService } from '../../../../services/components/document.service';
 import { ListOfLength } from '../../../../models/components/listoflength';
@@ -57,6 +59,8 @@ export class CustomerAddDocumentComponent {
   docService = inject(DocumentService);
   route = inject(ActivatedRoute);
   pricingGridService = inject(PricingGridService);
+  exchangeRateService = inject(ExchangeRateService);
+  enterpriseService = inject(EnterpriseService);
 
   negotiatedDiscounts: Map<number, number> = new Map();
 
@@ -83,6 +87,10 @@ export class CustomerAddDocumentComponent {
   responseFromModalLengths!: ListOfLength[];
   responseFromModalTotQuantity!: number;
   sourceDocumentId = 0;
+
+  // Multi-currency
+  baseCurrency: string = 'TND';
+  currencies = this.exchangeRateService.getCurrencies();
 
   @ViewChild('customerSelect') customerSelect!: MatSelect;
   @ViewChild('transporterSelect') transporterSelect!: MatSelect;
@@ -136,6 +144,7 @@ export class CustomerAddDocumentComponent {
     this.getStocks();
     this.getTaxes();
     this.getAllTransporters();
+    this.getEnterpriseInfo();
 
     if (this.sourceDocumentId > 0) {
       this.loadSourceDocument(this.sourceDocumentId);
@@ -161,6 +170,32 @@ export class CustomerAddDocumentComponent {
         this.toastr.error('Site de Vente non trouvé.');
       }
     });
+  }
+
+  getEnterpriseInfo() {
+    this.enterpriseService.getEnterpriseInfo(1).subscribe({
+      next: (ent) => {
+        if (ent && ent.devise) {
+          this.baseCurrency = ent.devise;
+          this.form.patchValue({ currency: this.baseCurrency });
+        }
+      }
+    });
+  }
+
+  onCurrencyChange(newCurrency: string) {
+    if (newCurrency === this.baseCurrency) {
+      this.form.get('exchangeRate')?.setValue(1.0);
+    } else {
+      this.exchangeRateService.getExchangeRate(newCurrency, this.baseCurrency).subscribe({
+        next: (rate: number) => {
+          this.form.get('exchangeRate')?.setValue(rate);
+        },
+        error: (err: any) => {
+          this.toastr.warning('Impossible de récupérer le taux de change.');
+        }
+      });
+    }
   }
 
   loadSourceDocument(id: number) {
@@ -854,7 +889,9 @@ export class CustomerAddDocumentComponent {
   createForm() {
     this.form = this.fb.group({
       customer: ['', Validators.required],
-      customerReference: ['', Validators.required]
+      customerReference: ['', Validators.required],
+      currency: ['TND', Validators.required],
+      exchangeRate: [1.0, [Validators.required, Validators.min(0.000001)]]
     });
   }
 
@@ -898,7 +935,9 @@ export class CustomerAddDocumentComponent {
         isservice: false,
         isPaid: false,
         billingstatus: BillingStatus.NotBilled,
-        deliveryNoteDocNumbers: []
+        deliveryNoteDocNumbers: [],
+        currency: this.form.get('currency')?.value,
+        exchangeRate: this.form.get('exchangeRate')?.value
       };
 
       console.log('Created Document : ', doc);

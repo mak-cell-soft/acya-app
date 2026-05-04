@@ -25,6 +25,8 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
             entity.Property(e => e.UpdatedAt).HasColumnName("updatedat");
             entity.Property(e => e.UpdatedById).HasColumnName("updatedbyid");
             entity.Property(e => e.IsDeleted).HasColumnName("isdeleted").HasDefaultValue(false);
+            entity.Property(e => e.Currency).HasColumnName("Currency");
+            entity.Property(e => e.ExchangeRate).HasColumnName("ExchangeRate").HasDefaultValue(1.0m);
 
             // Relationships
             entity.HasOne(e => e.Document)

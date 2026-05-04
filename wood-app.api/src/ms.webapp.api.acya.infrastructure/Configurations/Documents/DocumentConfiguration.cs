@@ -37,6 +37,8 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
             entity.Property(e => e.CounterPartId).HasColumnName("counterpartid");
             entity.Property(e => e.SalesSiteId).HasColumnName("salessiteid");
             entity.Property(e => e.IsDeleted).HasColumnName("isdeleted").HasDefaultValue(false);
+            entity.Property(e => e.Currency).HasColumnName("Currency");
+            entity.Property(e => e.ExchangeRate).HasColumnName("ExchangeRate").HasDefaultValue(1.0);
 
             // Relationships
             entity.HasOne(e => e.AppUsers) // Navigation property to AppUser

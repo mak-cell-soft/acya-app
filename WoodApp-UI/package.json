@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:WoodApp-UI": "node dist/wood-app-ui/server/server.mjs"
+    "serve:ssr:WoodApp-UI": "node dist/wood-app-ui/server/server.mjs",
+    "generate-templates": "node gen-templates.js"
   },
   "private": true,
   "dependencies": {

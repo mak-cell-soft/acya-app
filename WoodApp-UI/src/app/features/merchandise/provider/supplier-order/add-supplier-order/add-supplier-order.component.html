@@ -81,6 +81,24 @@
                             </mat-option>
                         </mat-select>
                     </mat-form-field>
+
+                    <div class="multi-currency-row">
+                        <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+                            <mat-label>Devise</mat-label>
+                            <mat-select formControlName="currency" (selectionChange)="onCurrencyChange($event.value)">
+                                <mat-option *ngFor="let curr of currencies | async" [value]="curr.code">
+                                    {{ curr.code }} - {{ curr.name }}
+                                </mat-option>
+                            </mat-select>
+                            <mat-icon matSuffix>payments</mat-icon>
+                        </mat-form-field>
+        
+                        <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic" *ngIf="documentForm.get('currency')?.value !== baseCurrency">
+                            <mat-label>Taux de Change</mat-label>
+                            <input matInput formControlName="exchangeRate" type="number" step="0.000001">
+                            <mat-icon matSuffix>trending_up</mat-icon>
+                        </mat-form-field>
+                    </div>
                 </div>
             </mat-card-content>
         </mat-card>
@@ -131,7 +149,7 @@
                     <mat-form-field appearance="outline" class="flex-1" subscriptSizing="dynamic">
                         <mat-label>Dernier prix d'achat</mat-label>
                         <input matInput formControlName="last_purchase_price" type="number" step="0.001">
-                        <span matSuffix>TND</span>
+                        <span matSuffix>{{ documentForm.get('currency')?.value }}</span>
                     </mat-form-field>
                 </div>
 
@@ -151,7 +169,7 @@
                     <mat-form-field appearance="outline" class="flex-1" subscriptSizing="dynamic">
                         <mat-label>Prix Unitaire HT</mat-label>
                         <input matInput formControlName="unit_price_ht" type="number" step="0.001">
-                        <span matSuffix>TND</span>
+                        <span matSuffix>{{ documentForm.get('currency')?.value }}</span>
                     </mat-form-field>
 
                     <mat-form-field appearance="outline" class="flex-1" subscriptSizing="dynamic">
@@ -274,7 +292,15 @@
                     </div>
                     <div class="summary-line total">
                         <span>Net TTC Total</span>
-                        <span>{{ netTTC_doc$ | async | number: '1.3-3' }}</span>
+                        <div class="ttc-display">
+                            <span>{{ netTTC_doc$ | async | number: '1.3-3' }}</span>
+                            <span class="currency-label-small">{{ documentForm.get('currency')?.value }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Total in Base Currency (TND) -->
+                    <div class="base-total" *ngIf="documentForm.get('currency')?.value !== baseCurrency">
+                        Total en {{ baseCurrency }} : <strong>{{ (netTTC_doc$ | async)! * documentForm.get('exchangeRate')?.value | number:'1.3-3' }}</strong>
                     </div>
                 </div>
             </div>

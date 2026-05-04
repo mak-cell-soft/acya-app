@@ -29,6 +29,8 @@ export class Document {
     total_paid?: number;
     total_credit_notes?: number;
     remaining_balance?: number;
+  currency?: string;
+  exchangeRate?: number;
 
     /**
     * Taxe : Droit de Timbre

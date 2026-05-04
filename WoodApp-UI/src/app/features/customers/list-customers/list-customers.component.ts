@@ -19,6 +19,7 @@ import { CustomerDetailsModalComponent } from '../customer-details-modal/custome
 import { CustomerEditModalComponent } from '../customer-edit-modal/customer-edit-modal.component';
 import { CustomerAccountModalComponent } from '../customer-account-modal/customer-account-modal.component';
 import { ConfirmDeleteModalComponent } from '../../../shared/components/modals/confirm-delete-modal/confirm-delete-modal.component';
+import { DataImportModalComponent } from '../../../shared/components/modals/data-import-modal/data-import-modal.component';
 
 
 export enum CounterPartType {
@@ -157,6 +158,19 @@ export class ListCustomersComponent implements OnInit, AfterViewInit {
       width: '90vw',
       maxWidth: '1200px',
       data: { customer }
+    });
+  }
+
+  openImportDialog() {
+    const dialogRef = this.dialog.open(DataImportModalComponent, {
+      width: '550px',
+      data: { type: 'customer' }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.getCustomers();
+      }
     });
   }
 

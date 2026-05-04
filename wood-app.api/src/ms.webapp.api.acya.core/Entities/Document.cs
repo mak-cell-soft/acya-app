@@ -39,6 +39,12 @@ namespace ms.webapp.api.acya.core.Entities
     public double TotalCreditNotes { get; set; } = 0;
 
     /**
+     * Multi-currency support
+     */
+    public string? Currency { get; set; }
+    public double ExchangeRate { get; set; } = 1.0;
+
+    /**
     * Holding Taxe : Retenue à la source
     */
     public int? HoldingTaxId { get; set; }

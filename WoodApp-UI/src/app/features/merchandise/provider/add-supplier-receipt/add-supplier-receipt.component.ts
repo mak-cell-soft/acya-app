@@ -4,6 +4,8 @@ import { ProviderService } from '../../../../services/components/provider.servic
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ArticleService } from '../../../../services/components/article.service';
 import { AppVariableService } from '../../../../services/configuration/app-variable.service';
+import { ExchangeRateService } from '../../../../services/components/exchange-rate.service';
+import { EnterpriseService } from '../../../../services/components/enterprise.service';
 import { AppVariable } from '../../../../models/configuration/appvariable';
 import { Article } from '../../../../models/components/article';
 import { MatTableDataSource } from '@angular/material/table';
@@ -19,11 +21,12 @@ import { ListOfLength } from '../../../../models/components/listoflength';
 import { DecimalPipe } from '@angular/common';
 import { parse } from 'node:path';
 import { ABORT_BUTTON, REGISTER_BUTTON } from '../../../../shared/Text_Buttons';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { ConfirmDeleteModalComponent } from '../../../../shared/components/modals/confirm-delete-modal/confirm-delete-modal.component';
 import { ToWords } from 'to-words';
 import { CanComponentDeactivate } from '../../../../guards/can-deactivate.guard';
 import { Document, DocumentTypes, BillingStatus, DocStatus } from '../../../../models/components/document';
+import { Currency } from '../../../../models/components/exchange-rate';
 import { DocumentService } from '../../../../services/components/document.service';
 import { DocumentsRelationship } from '../../../../models/components/documentsrelationship';
 import { AppuserService } from '../../../../services/components/appuser.service';
@@ -60,6 +63,8 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
   merchandiseService = inject(MerchandiseService);
   router = inject(Router);
   route = inject(ActivatedRoute);
+  exchangeRateService = inject(ExchangeRateService);
+  enterpriseService = inject(EnterpriseService);
 
   @ViewChild('articleSelect') articleSelect!: MatSelect;
 
@@ -127,8 +132,12 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
   editIndex: number | null = null;
   originOrderId: number | null = null;
 
+  // Multi-currency
+  baseCurrency: string = 'TND';
+  currencies!: Observable<Currency[]>;
 
   constructor() {
+    this.currencies = this.exchangeRateService.getCurrencies();
     // Watch for data changes and recalculate totals
     this.merchandisDocument.connect().subscribe((data) => {
       this.calculateTotals(data);
@@ -162,6 +171,8 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
           this.loadFromOrder(this.originOrderId);
         }
       });
+
+      this.loadEnterpriseInfo();
     }
 
   }
@@ -384,7 +395,8 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
     this.documentForm = this.fb.group({
       supplier: ['', Validators.required],
       supplierReference: ['', Validators.required],
-
+      currency: ['TND', Validators.required],
+      exchangeRate: [1.0, [Validators.required, Validators.min(0.000001)]]
     });
   }
   // unit_price_ht: number = 0;
@@ -534,6 +546,31 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
         this.toastr.error("Erreur Serveur");
       }
     });
+  }
+  
+  loadEnterpriseInfo() {
+    this.enterpriseService.getEnterpriseInfo(1).subscribe({
+      next: (ent) => {
+        if (ent && ent.devise) {
+          this.baseCurrency = ent.devise;
+        }
+      }
+    });
+  }
+
+  onCurrencyChange(newCurrency: string) {
+    if (newCurrency === this.baseCurrency) {
+      this.documentForm.get('exchangeRate')?.setValue(1.0);
+    } else {
+      this.exchangeRateService.getExchangeRate(newCurrency, this.baseCurrency).subscribe({
+        next: (rate: number) => {
+          this.documentForm.get('exchangeRate')?.setValue(rate);
+        },
+        error: (err: any) => {
+          this.toastr.warning('Impossible de récupérer le taux de change.');
+        }
+      });
+    }
   }
 
   loadFromOrder(orderId: number) {
@@ -881,7 +918,9 @@ export class AddSupplierReceiptComponent implements OnInit, CanComponentDeactiva
           isPaid: false,
           docstatus: 3,
           isservice: false,
-          billingstatus: BillingStatus.NotBilled
+          billingstatus: BillingStatus.NotBilled,
+          currency: docformValues.currency,
+          exchangeRate: docformValues.exchangeRate
         };
 
         console.log('Created Document : ', doc);

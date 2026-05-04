@@ -33,6 +33,11 @@ export class EnterpriseService {
     return this.http.get<Enterprise>(this.baseUrl + 'Enterprise/getbyid/' + id);
   }
 
+  getEnterprise() {
+    // Usually the app handles one enterprise, we'll fetch ID 1 as default
+    return this.http.get<Enterprise>(this.baseUrl + 'Enterprise/getbyid/1');
+  }
+
   Update(id: number, model: Enterprise) {
     return this.http.put<any>(this.baseUrl + 'Enterprise/' + id, model);
   }

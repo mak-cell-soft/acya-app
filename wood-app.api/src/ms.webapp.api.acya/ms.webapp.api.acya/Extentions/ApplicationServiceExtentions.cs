@@ -9,6 +9,7 @@ using ms.webapp.api.acya.infrastructure;
 using ms.webapp.api.acya.infrastructure.Repositories;
 using ms.webapp.api.acya.api.Interfaces;
 using ms.webapp.api.acya.infrastructure.Configurations.Audit;
+using ms.webapp.api.acya.Services;
 
 namespace ms.webapp.api.acya.api.Extentions
 {
@@ -69,6 +70,8 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<IAppNotificationService, AppNotificationService>();
       services.AddScoped<IApprovalService, ApprovalService>();
       services.AddScoped<IPricingGridService, PricingGridService>();
+      services.AddScoped<IImportService, ImportService>();
+      services.AddHttpClient<IExchangeRateService, ExchangeRateService>();
 
       services.AddDbContext<WoodAppContext>((sp, options) =>
       {

@@ -495,3 +495,32 @@ table td.mat-cell {
     font-size: 0.75rem;
     font-weight: 600;
 }
+
+.multi-currency-row {
+    margin-top: 16px;
+    gap: 16px;
+    display: flex;
+}
+
+.ttc-value-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.currency-label {
+    font-weight: 700;
+    color: #3f51b5;
+    font-size: 1rem;
+}
+
+.base-total {
+    background: rgba(63, 81, 181, 0.05);
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: #3f51b5;
+    border: 1px dashed rgba(63, 81, 181, 0.2);
+    font-weight: 500;
+}

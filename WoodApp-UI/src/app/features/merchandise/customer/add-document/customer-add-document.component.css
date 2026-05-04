@@ -1057,3 +1057,20 @@ table td.mat-cell {
     gap: 12px;
     align-items: center;
 }
+
+.multi-currency-row {
+    margin-top: 16px;
+    gap: 16px;
+    display: flex;
+}
+
+.base-total {
+    background: rgba(99, 102, 241, 0.05); /* Using #6366f1 (indigo) */
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: #4f46e5;
+    border: 1px dashed rgba(99, 102, 241, 0.2);
+    font-weight: 500;
+}

@@ -617,6 +617,9 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("creationdate");
 
+                    b.Property<string>("Currency")
+                        .HasColumnType("text");
+
                     b.Property<string>("Description")
                         .HasColumnType("text")
                         .HasColumnName("description");
@@ -628,6 +631,9 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                     b.Property<int>("DocStatus")
                         .HasColumnType("integer")
                         .HasColumnName("docstatus");
+
+                    b.Property<double>("ExchangeRate")
+                        .HasColumnType("double precision");
 
                     b.Property<int?>("HoldingTaxId")
                         .HasColumnType("integer")
@@ -1301,6 +1307,9 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("createdby");
 
+                    b.Property<string>("Currency")
+                        .HasColumnType("text");
+
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer")
                         .HasColumnName("customerid");
@@ -1308,6 +1317,9 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                     b.Property<int>("DocumentId")
                         .HasColumnType("integer")
                         .HasColumnName("documentid");
+
+                    b.Property<decimal>("ExchangeRate")
+                        .HasColumnType("numeric");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()

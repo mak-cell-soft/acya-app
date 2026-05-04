@@ -68,6 +68,24 @@
                             Numéro de la pièce requis
                         </mat-error>
                     </mat-form-field>
+
+                    <div class="form-row multi-currency-row">
+                        <mat-form-field appearance="outline" class="flex-1" subscriptSizing="dynamic">
+                            <mat-label>Devise</mat-label>
+                            <mat-select formControlName="currency" (selectionChange)="onCurrencyChange($event.value)">
+                                <mat-option *ngFor="let curr of currencies | async" [value]="curr.code">
+                                    {{ curr.code }} - {{ curr.name }}
+                                </mat-option>
+                            </mat-select>
+                            <mat-icon matSuffix>payments</mat-icon>
+                        </mat-form-field>
+                
+                        <mat-form-field appearance="outline" class="flex-1" subscriptSizing="dynamic" *ngIf="documentForm.get('currency')?.value !== baseCurrency">
+                            <mat-label>Taux de Change</mat-label>
+                            <input matInput formControlName="exchangeRate" type="number" step="0.000001">
+                            <mat-icon matSuffix>trending_up</mat-icon>
+                        </mat-form-field>
+                    </div>
                 </div>
             </mat-card-content>
         </mat-card>
@@ -124,7 +142,7 @@
                     <mat-form-field appearance="outline" class="flex-1" subscriptSizing="dynamic">
                         <mat-label>Prix Unitaire HT</mat-label>
                         <input matInput formControlName="unit_price_ht" type="number" step="0.001">
-                        <span matSuffix>TND</span>
+                        <span matSuffix>{{ documentForm.get('currency')?.value }}</span>
                     </mat-form-field>
                 </div>
 
@@ -388,8 +406,12 @@
 
                     <mat-divider></mat-divider>
                     <div class="summary-line total">
-                        <span class="label">Net TTC Total</span>
+                        <span class="label">Net TTC Total ({{ documentForm.get('currency')?.value }})</span>
                         <span class="value">{{ netTTC_doc$ | async | number: '1.3-3' }}</span>
+                    </div>
+                    <div class="summary-line base-total" *ngIf="documentForm.get('currency')?.value !== baseCurrency">
+                        <span class="label">Total en {{ baseCurrency }}</span>
+                        <span class="value">{{ (netTTC_doc$ | async)! * (documentForm.get('exchangeRate')?.value || 1) | number: '1.3-3' }}</span>
                     </div>
                     <div class="summary-line net-payable" *ngIf="selectedRS">
                         <span class="label">Net à Payer (NAP)</span>

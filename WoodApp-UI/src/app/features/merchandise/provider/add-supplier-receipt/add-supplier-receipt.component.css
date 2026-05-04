@@ -531,3 +531,19 @@ table.modern-table {
     border-color: #3b82f6;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
+
+.multi-currency-row {
+    margin-top: 16px;
+    gap: 16px;
+    display: flex;
+}
+
+.base-total {
+    background: rgba(63, 81, 181, 0.05); /* Using primary color rgb */
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-top: 4px;
+    font-size: 0.9em;
+    color: #3f51b5;
+    border: 1px dashed rgba(63, 81, 181, 0.2);
+}

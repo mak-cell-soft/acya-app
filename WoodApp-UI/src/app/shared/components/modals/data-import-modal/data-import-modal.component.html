@@ -1,0 +1,80 @@
+<div class="modal-container">
+  <div class="modal-header">
+    <h2 mat-dialog-title>Importer des {{ importTypeLabel }}</h2>
+    <button mat-icon-button (click)="onClose()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <div class="import-stepper" *ngIf="!report">
+      <div class="template-section">
+        <p>Veuillez utiliser notre modèle strict pour garantir le succès de l'importation.</p>
+        <div class="template-buttons">
+          <button mat-stroked-button color="primary" (click)="downloadTemplate('xlsx')" matTooltip="Format Excel recommandé">
+            <mat-icon>table_view</mat-icon> Modèle .xlsx
+          </button>
+          <button mat-stroked-button color="primary" (click)="downloadTemplate('csv')" style="margin-left: 8px;">
+            <mat-icon>description</mat-icon> Modèle .csv
+          </button>
+        </div>
+      </div>
+
+      <div class="drop-zone" 
+           [class.dragging]="isDragging"
+           (dragover)="onDragOver($event)"
+           (dragleave)="onDragLeave($event)"
+           (drop)="onDrop($event)"
+           (click)="fileInput.click()">
+        <mat-icon class="upload-icon">cloud_upload</mat-icon>
+        <p *ngIf="!selectedFile">Glissez-déposez votre fichier ici ou <span>cliquez pour parcourir</span></p>
+        <p *ngIf="selectedFile" class="file-name">{{ selectedFile.name }}</p>
+        <input type="file" #fileInput hidden (change)="onFileSelected($event)" accept=".xlsx,.csv">
+      </div>
+    </div>
+
+    <div class="report-section" *ngIf="report">
+      <div class="summary-cards">
+        <div class="card success">
+          <span class="count">{{ report.successCount }}</span>
+          <span class="label">Réussis</span>
+        </div>
+        <div class="card error">
+          <span class="count">{{ report.errorCount }}</span>
+          <span class="label">Échecs</span>
+        </div>
+      </div>
+
+      <div class="error-list" *ngIf="report.errors.length > 0">
+        <h3>Détails des erreurs</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Ligne</th>
+              <th>Message</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let err of report.errors">
+              <td>{{ err.rowIndex }}</td>
+              <td>{{ err.message }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onClose()" *ngIf="!report">Annuler</button>
+    <button mat-flat-button color="primary" 
+            [disabled]="!selectedFile || isLoading" 
+            (click)="onImport()" 
+            *ngIf="!report">
+      <mat-spinner diameter="20" *ngIf="isLoading" style="margin-right: 8px;"></mat-spinner>
+      <span *ngIf="!isLoading">Lancer l'importation</span>
+      <span *ngIf="isLoading">Traitement...</span>
+    </button>
+    <button mat-flat-button color="primary" (click)="onClose()" *ngIf="report">Terminer</button>
+  </mat-dialog-actions>
+</div>

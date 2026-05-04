@@ -350,3 +350,33 @@
     border-color: #3b82f6;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
+
+.multi-currency-row {
+    margin-top: 8px;
+    gap: 16px;
+    display: flex;
+}
+
+.ttc-display {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.currency-label-small {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #3f51b5;
+    opacity: 0.7;
+}
+
+.base-total {
+    background: rgba(63, 81, 181, 0.05);
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: #3f51b5;
+    border: 1px dashed rgba(63, 81, 181, 0.2);
+    font-weight: 500;
+}

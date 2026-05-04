@@ -16,9 +16,8 @@ import { AuthenticationService } from '../../../../../services/components/authen
 import { MatDialog } from '@angular/material/dialog';
 import { AddLengthsModalComponent } from '../../../../../shared/components/modals/add-lengths-modal/add-lengths-modal.component';
 import { ListOfLength } from '../../../../../models/components/listoflength';
-import { DecimalPipe } from '@angular/common';
 import { ABORT_BUTTON, REGISTER_BUTTON } from '../../../../../shared/Text_Buttons';
-import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
 import { ConfirmDeleteModalComponent } from '../../../../../shared/components/modals/confirm-delete-modal/confirm-delete-modal.component';
 import { Document, DocumentTypes, BillingStatus, DocStatus } from '../../../../../models/components/document';
 import { DocumentService } from '../../../../../services/components/document.service';
@@ -29,6 +28,9 @@ import { AppUser } from '../../../../../models/components/appuser';
 import { MerchandiseService } from '../../../../../services/components/merchandise.service';
 import { SalesSiteModalComponent } from '../../../../../shared/components/modals/sales-site-modal/sales-site-modal.component';
 import { TransactionType } from '../../../../../models/components/stock';
+import { ExchangeRateService } from '../../../../../services/components/exchange-rate.service';
+import { EnterpriseService } from '../../../../../services/components/enterprise.service';
+import { Currency } from '../../../../../models/components/exchange-rate';
 
 @Component({
   selector: 'app-add-supplier-order',
@@ -41,17 +43,17 @@ export class AddSupplierOrderComponent implements OnInit {
   providerService = inject(ProviderService);
   toastr = inject(ToastrService);
   fb = inject(FormBuilder);
-  fb2 = inject(FormBuilder);
   articleService = inject(ArticleService);
   appVarService = inject(AppVariableService);
   appUserService = inject(AppuserService);
   counterpartService = inject(CounterpartService);
   authService = inject(AuthenticationService);
   dialog = inject(MatDialog);
-  decimalPipe = inject(DecimalPipe);
   docService = inject(DocumentService);
-  merchandiseService = inject(MerchandiseService);
   router = inject(Router);
+  exchangeRateService = inject(ExchangeRateService);
+  enterpriseService = inject(EnterpriseService);
+  currencies!: Observable<Currency[]>;
 
   @ViewChild('articleSelect') articleSelect!: MatSelect;
 
@@ -88,6 +90,8 @@ export class AddSupplierOrderComponent implements OnInit {
   isLoading: boolean = false;
   allTransporters: any[] = [];
 
+  baseCurrency: string = 'TND';
+
   register_button: string = REGISTER_BUTTON;
   abort_button: string = ABORT_BUTTON;
 
@@ -112,6 +116,27 @@ export class AddSupplierOrderComponent implements OnInit {
       this.createMerchandiseForm();
       this.loadData();
       this.watchForQuantity();
+      this.getEnterpriseInfo();
+      this.currencies = this.exchangeRateService.getCurrencies();
+    }
+  }
+
+  getEnterpriseInfo() {
+    this.enterpriseService.getEnterprise().subscribe(enterprise => {
+        if (enterprise && enterprise.devise) {
+            this.baseCurrency = enterprise.devise;
+            this.documentForm.patchValue({ currency: this.baseCurrency });
+        }
+    });
+  }
+
+  onCurrencyChange(currencyCode: string) {
+    if (currencyCode === this.baseCurrency) {
+        this.documentForm.patchValue({ exchangeRate: 1 });
+    } else {
+        this.exchangeRateService.getExchangeRate(currencyCode, this.baseCurrency).subscribe(rate => {
+            this.documentForm.patchValue({ exchangeRate: rate });
+        });
     }
   }
 
@@ -126,12 +151,14 @@ export class AddSupplierOrderComponent implements OnInit {
       supplier: ['', Validators.required],
       supplierReference: [''], // Header level supplier reference
       status: [DocStatus.Pending, Validators.required],
-      notes: ['']
+      notes: [''],
+      currency: ['TND', Validators.required],
+      exchangeRate: [1, [Validators.required, Validators.min(0.000001)]]
     });
   }
 
   createMerchandiseForm() {
-    this.merchandiseForm = this.fb2.group({
+    this.merchandiseForm = this.fb.group({
       unit_price_ht: ['', Validators.required],
       quantity: ['', Validators.required],
       tva: ['', Validators.required],
@@ -418,7 +445,9 @@ export class AddSupplierOrderComponent implements OnInit {
         isPaid: false,
         docstatus: formValues.status,
         isservice: false,
-        billingstatus: BillingStatus.NotBilled
+        billingstatus: BillingStatus.NotBilled,
+        currency: formValues.currency,
+        exchangeRate: formValues.exchangeRate
       };
 
       this.saveDocument(doc);

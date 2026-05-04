@@ -16,19 +16,22 @@ import { CounterPartType_FR } from '../../../../shared/constants/list_of_constan
 import { MatSelect } from '@angular/material/select';
 import { Transporter } from '../../../../models/components/customer';
 import { Router } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { ABORT_BUTTON, REGISTER_BUTTON } from '../../../../shared/Text_Buttons';
 import { MatDialog } from '@angular/material/dialog';
 import { AddLengthsModalComponent } from '../../../../shared/components/modals/add-lengths-modal/add-lengths-modal.component';
 import { AuthenticationService } from '../../../../services/components/authentication.service';
 import { AppuserService } from '../../../../services/components/appuser.service';
 import { Site } from '../../../../models/components/sites';
+import { TransporterService } from '../../../../services/components/transporter.service';
 import { DocumentService } from '../../../../services/components/document.service';
 import { ListOfLength } from '../../../../models/components/listoflength';
 import { ConfirmDeleteModalComponent } from '../../../../shared/components/modals/confirm-delete-modal/confirm-delete-modal.component';
 import { PaymentModalComponent } from '../../../../shared/components/modals/payment-modal/payment-modal.component';
-import { TransporterService } from '../../../../services/components/transporter.service';
 import { AddTransporterModalComponent } from '../../../../shared/components/modals/add-transporter-modal/add-transporter-modal.component';
+import { ExchangeRateService } from '../../../../services/components/exchange-rate.service';
+import { EnterpriseService } from '../../../../services/components/enterprise.service';
+import { Currency } from '../../../../models/components/exchange-rate';
 
 @Component({
     selector: 'app-add-invoice',
@@ -49,6 +52,8 @@ export class AddInvoiceComponent implements OnInit {
     authService = inject(AuthenticationService);
     appUserService = inject(AppuserService);
     docService = inject(DocumentService);
+    exchangeRateService = inject(ExchangeRateService);
+    enterpriseService = inject(EnterpriseService);
 
     // Forms
     form!: FormGroup;
@@ -72,6 +77,10 @@ export class AddInvoiceComponent implements OnInit {
     TVAs: AppVariable[] = [];
     appvariablesTaxes: AppVariable[] = [];
     allStocks: MatTableDataSource<StockQuantity> = new MatTableDataSource<StockQuantity>([]);
+    
+    // Multi-currency support
+    baseCurrency: string = 'TND';
+    currencies!: Observable<Currency[]>;
 
     // Table
     displayedColumns: string[] = ['index', 'article', 'sellPrice', 'quantity', 'discount', 'tva', 'totalWithoutTva', 'totalWithTva', 'actions'];
@@ -108,13 +117,36 @@ export class AddInvoiceComponent implements OnInit {
             this.searchCustomerControl.valueChanges.subscribe(() => this.applyCustomerFilter());
             this.getAllTaxes();
             this.loadAppVariables(); // Load RS
+            this.getEnterpriseInfo();
+            this.currencies = this.exchangeRateService.getCurrencies();
+        }
+    }
+
+    getEnterpriseInfo() {
+        this.enterpriseService.getEnterprise().subscribe(enterprise => {
+            if (enterprise && enterprise.devise) {
+                this.baseCurrency = enterprise.devise;
+                this.form.patchValue({ currency: this.baseCurrency });
+            }
+        });
+    }
+
+    onCurrencyChange(currencyCode: string) {
+        if (currencyCode === this.baseCurrency) {
+            this.form.patchValue({ exchangeRate: 1 });
+        } else {
+            this.exchangeRateService.getExchangeRate(currencyCode, this.baseCurrency).subscribe(rate => {
+                this.form.patchValue({ exchangeRate: rate });
+            });
         }
     }
 
     createForms() {
         this.form = this.fb.group({
             customer: ['', Validators.required],
-            customerReference: ['']
+            customerReference: [''],
+            currency: ['TND', Validators.required],
+            exchangeRate: [1, [Validators.required, Validators.min(0.000001)]]
         });
 
         this.taxeForm = this.fb.group({
@@ -568,7 +600,9 @@ export class AddInvoiceComponent implements OnInit {
             billingstatus: this.pendingPayment ? BillingStatus.Billed : BillingStatus.NotBilled,
             isservice: false,
             isPaid: false,
-            deliveryNoteDocNumbers: []
+            deliveryNoteDocNumbers: [],
+            currency: this.form.get('currency')?.value,
+            exchangeRate: this.form.get('exchangeRate')?.value
         };
 
         console.log("Facture à enregistrer : ", doc);

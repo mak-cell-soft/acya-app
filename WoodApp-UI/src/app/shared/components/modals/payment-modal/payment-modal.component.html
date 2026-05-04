@@ -69,7 +69,7 @@
                         <mat-form-field appearance="outline">
                             <mat-label>Montant</mat-label>
                             <input matInput type="text" formControlName="amount" inputmode="decimal">
-                            <span matSuffix>TND</span>
+                            <span matSuffix>{{ paymentForm.get('currency')?.value }}</span>
                             <mat-icon matPrefix>account_balance_wallet</mat-icon>
                             <mat-error *ngIf="paymentForm.get('amount')?.hasError('required')">Requis</mat-error>
                             <mat-error *ngIf="paymentForm.get('amount')?.hasError('max')">Le montant dépasse le reste à payer ({{data.remainingAmount | number:'1.3-3'}})</mat-error>
@@ -80,6 +80,24 @@
                             <input matInput [matDatepicker]="picker" formControlName="paymentDate">
                             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                             <mat-datepicker #picker></mat-datepicker>
+                        </mat-form-field>
+                    </div>
+
+                    <div class="form-row">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Devise</mat-label>
+                            <mat-select formControlName="currency" (selectionChange)="onCurrencyChange($event.value)">
+                                <mat-option *ngFor="let curr of currencies | async" [value]="curr.code">
+                                    {{ curr.code }} - {{ curr.name }}
+                                </mat-option>
+                            </mat-select>
+                            <mat-icon matSuffix>payments</mat-icon>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" *ngIf="paymentForm.get('currency')?.value !== baseCurrency">
+                            <mat-label>Taux de Change</mat-label>
+                            <input matInput formControlName="exchangeRate" type="number" step="0.000001">
+                            <mat-icon matSuffix>trending_up</mat-icon>
                         </mat-form-field>
                     </div>
 

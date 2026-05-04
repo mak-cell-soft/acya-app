@@ -1,4 +1,4 @@
-import { Component, inject, model, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { Component, inject, model, QueryList, ViewChild, ViewChildren, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { ArticleService } from '../../../../../services/components/article.service';
@@ -15,7 +15,7 @@ import { CounterpartService } from '../../../../../services/components/counterpa
 import { CounterPartType_FR } from '../../../../../shared/constants/list_of_constants';
 import { MatSelect } from '@angular/material/select';
 import { Router, ActivatedRoute } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { ABORT_BUTTON, REGISTER_BUTTON } from '../../../../../shared/Text_Buttons';
 import { MatDialog } from '@angular/material/dialog';
 import { AddLengthsModalComponent } from '../../../../../shared/components/modals/add-lengths-modal/add-lengths-modal.component';
@@ -26,6 +26,9 @@ import { DocumentService } from '../../../../../services/components/document.ser
 import { ListOfLength } from '../../../../../models/components/listoflength';
 import { ConfirmDeleteModalComponent } from '../../../../../shared/components/modals/confirm-delete-modal/confirm-delete-modal.component';
 import { isQuantityValid } from '../../../../../shared/validators/naturalNumberValidator';
+import { ExchangeRateService } from '../../../../../services/components/exchange-rate.service';
+import { EnterpriseService } from '../../../../../services/components/enterprise.service';
+import { Currency } from '../../../../../models/components/exchange-rate';
 
 /**
  * AddCustomerQuoteComponent — Create a new customer quote (Devis).
@@ -43,7 +46,7 @@ import { isQuantityValid } from '../../../../../shared/validators/naturalNumberV
   templateUrl: './add-customer-quote.component.html',
   styleUrl: './add-customer-quote.component.css'
 })
-export class AddCustomerQuoteComponent {
+export class AddCustomerQuoteComponent implements OnInit {
 
   // ── Injected services ────────────────────────────────────────────────────
   toastr         = inject(ToastrService);
@@ -58,6 +61,8 @@ export class AddCustomerQuoteComponent {
   appUserService = inject(AppuserService);
   docService     = inject(DocumentService);
   route          = inject(ActivatedRoute);
+  exchangeRateService = inject(ExchangeRateService);
+  enterpriseService = inject(EnterpriseService);
 
   isQuantityValid = isQuantityValid;
 
@@ -67,6 +72,7 @@ export class AddCustomerQuoteComponent {
   userconnected = this.authService.getUserDetail();
 
   allCustomers: CounterPart[] = [];
+  currencies!: Observable<Currency[]>;
   selectedCustomer: any = {};
   filteredArticles: Article[] = [];
   searchCustomerControl    = new FormControl('');
@@ -83,6 +89,9 @@ export class AddCustomerQuoteComponent {
   responseFromModalTotQuantity!: number;
   sourceDocumentId = 0;
   allTransporters: any[] = [];
+
+  // Multi-currency support
+  baseCurrency: string = 'TND';
 
   @ViewChild('customerSelect') customerSelect!: MatSelect;
   @ViewChild('articleSelect')  articleSelect!: MatSelect;
@@ -112,6 +121,8 @@ export class AddCustomerQuoteComponent {
     if (this.authService.isLoggedIn()) {
       this.getAppUserSiteAndThenLoadData();
       this.getCustomers();
+      this.getEnterpriseInfo();
+      this.currencies = this.exchangeRateService.getCurrencies();
       this.searchCustomerControl.valueChanges.subscribe(() => this.applyCustomerFilter());
 
       this.route.queryParams.subscribe(params => {
@@ -143,6 +154,25 @@ export class AddCustomerQuoteComponent {
       },
       error: () => this.toastr.error('Site de Vente non trouvé.')
     });
+  }
+
+  getEnterpriseInfo() {
+    this.enterpriseService.getEnterprise().subscribe(enterprise => {
+        if (enterprise && enterprise.devise) {
+            this.baseCurrency = enterprise.devise;
+            this.form.patchValue({ currency: this.baseCurrency });
+        }
+    });
+  }
+
+  onCurrencyChange(currencyCode: string) {
+    if (currencyCode === this.baseCurrency) {
+        this.form.patchValue({ exchangeRate: 1 });
+    } else {
+        this.exchangeRateService.getExchangeRate(currencyCode, this.baseCurrency).subscribe(rate => {
+            this.form.patchValue({ exchangeRate: rate });
+        });
+    }
   }
 
   loadSourceDocument(id: number) {
@@ -421,7 +451,10 @@ export class AddCustomerQuoteComponent {
     this.totalHTNet_doc$.next(data.reduce((s, m) => s + m.sellcostprice_net_ht, 0));
     this.totalRemise_doc$.next(data.reduce((s, m) => s + m.sellcostprice_discountValue, 0));
     this.totalTVA_doc$.next(data.reduce((s, m) => s + m.sellcostprice_taxValue, 0));
-    this.netTTC_doc$.next(data.reduce((s, m) => s + m.totalWithTax, 0));
+    
+    const calculatedTTC = data.reduce((s, m) => s + m.totalWithTax, 0);
+    // Re-apply extraDiscount if it exists
+    this.netTTC_doc$.next(calculatedTTC - (this.extraDiscount || 0));
   }
 
   /** Allow manual rounding adjustments on the TTC total */
@@ -513,7 +546,9 @@ export class AddCustomerQuoteComponent {
   createForm() {
     this.form = this.fb.group({
       customer: ['', Validators.required],
-      customerReference: ['']
+      customerReference: [''],
+      currency: ['TND', Validators.required],
+      exchangeRate: [1, [Validators.required, Validators.min(0.000001)]]
     });
   }
 
@@ -559,7 +594,9 @@ export class AddCustomerQuoteComponent {
       isservice: false,
       isPaid: false,
       billingstatus: BillingStatus.NotBilled,
-      deliveryNoteDocNumbers: []
+      deliveryNoteDocNumbers: [],
+      currency: this.form.get('currency')?.value,
+      exchangeRate: this.form.get('exchangeRate')?.value
     };
 
     this.saveDocument(doc);

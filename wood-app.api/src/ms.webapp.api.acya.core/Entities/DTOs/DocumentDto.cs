@@ -68,6 +68,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public double total_paid { get; set; }
     public double total_credit_notes { get; set; }
     public double remaining_balance { get; set; }
+    public string? currency { get; set; }
+    public double exchangeRate { get; set; } = 1.0;
 
     public ICollection<DocumentDto>? childdocuments { get; set; } = new List<DocumentDto>();
     public ICollection<DocumentDto>? parentdocuments { get; set; } = new List<DocumentDto>();
@@ -105,6 +107,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       isPaid = entity.BillingStatus == BillingStatus.Billed;
       isdeleted = entity.IsDeleted;
       withholdingtax = entity.WithHoldingTax;
+      currency = entity.Currency;
+      exchangeRate = entity.ExchangeRate;
 
       // Calculate total_net_payable if RS is applied
       if (entity.WithHoldingTax && entity.HoldingTaxes != null)

@@ -21,6 +21,7 @@ import { Store } from '@ngrx/store';
 import * as ArticleActions from '../../../store/actions/article.actions';
 import * as fromArticle from '../../../store/selectors/article.selector';
 import { ConfirmDeleteModalComponent } from '../../../shared/components/modals/confirm-delete-modal/confirm-delete-modal.component';
+import { DataImportModalComponent } from '../../../shared/components/modals/data-import-modal/data-import-modal.component';
 
 /**
  * @class ArticleListComponent
@@ -205,6 +206,19 @@ export class ListArticleComponent implements AfterViewInit {
       width: '1000px',
       maxWidth: '95vw',
       data: article ? { article: article } : null
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.getAllArticles();
+      }
+    });
+  }
+
+  openImportDialog() {
+    const dialogRef = this.dialog.open(DataImportModalComponent, {
+      width: '550px',
+      data: { type: 'article' }
     });
 
     dialogRef.afterClosed().subscribe(result => {

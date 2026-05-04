@@ -7,6 +7,8 @@ import { BANKS_TN } from '../../../constants/modals/bank_modal';
 import { ABORT_BUTTON, REGISTER_BUTTON } from '../../../Text_Buttons';
 import { PaymentService } from '../../../../services/components/payment.service';
 import { finalize } from 'rxjs';
+import { ExchangeRateService } from '../../../../services/components/exchange-rate.service';
+import { EnterpriseService } from '../../../../services/components/enterprise.service';
 
 export interface PaymentModalData {
     documentId: number;
@@ -62,11 +64,17 @@ export class PaymentModalComponent implements OnInit {
     chequeFormGroup: FormGroup | null = null;
     traiteFormGroup: FormGroup | null = null;
 
+    // Multi-currency
+    baseCurrency: string = 'TND';
+    currencies = this.exchangeRateService.getCurrencies();
+
     constructor(
         public dialogRef: MatDialogRef<PaymentModalComponent>,
         @Inject(MAT_DIALOG_DATA) public data: PaymentModalData,
         private fb: FormBuilder,
-        private paymentService: PaymentService
+        private paymentService: PaymentService,
+        private exchangeRateService: ExchangeRateService,
+        private enterpriseService: EnterpriseService
     ) {
         this.paymentForm = this.fb.group({
             // Common fields — pre-filled with existing data when in edit mode
@@ -74,7 +82,9 @@ export class PaymentModalComponent implements OnInit {
                      [Validators.required, Validators.min(0)]],
             paymentDate: [this.data.prefillDate ? new Date(this.data.prefillDate) : new Date(), Validators.required],
             reference: [this.data.prefillReference || ''],
-            notes: [this.data.prefillNotes || '']
+            notes: [this.data.prefillNotes || ''],
+            currency: ['TND', Validators.required],
+            exchangeRate: [1.0, [Validators.required, Validators.min(0.000001)]]
         });
 
         // In edit mode, pre-select the payment method so the correct sub-form renders
@@ -87,6 +97,32 @@ export class PaymentModalComponent implements OnInit {
         // Skip live balance recalculation in edit mode — user is correcting an existing payment
         if (!this.data.isEditMode) {
             this.calculateRemainingAmount();
+        }
+        this.loadEnterpriseInfo();
+    }
+
+    loadEnterpriseInfo() {
+        this.enterpriseService.getEnterpriseInfo(1).subscribe({
+            next: (ent) => {
+                if (ent && ent.devise) {
+                    this.baseCurrency = ent.devise;
+                }
+            }
+        });
+    }
+
+    onCurrencyChange(newCurrency: string) {
+        if (newCurrency === this.baseCurrency) {
+            this.paymentForm.get('exchangeRate')?.setValue(1.0);
+        } else {
+            this.exchangeRateService.getExchangeRate(newCurrency, this.baseCurrency).subscribe({
+                next: (rate: number) => {
+                    this.paymentForm.get('exchangeRate')?.setValue(rate);
+                },
+                error: (err: any) => {
+                    // Fallback or warning
+                }
+            });
         }
     }
 
@@ -154,7 +190,9 @@ export class PaymentModalComponent implements OnInit {
         let result: any = {
             method: this.selectedPaymentMethod,
             date: this.paymentForm.get('paymentDate')?.value,
-            amount: Number(Number(this.paymentForm.get('amount')?.value).toFixed(3))
+            amount: Number(Number(this.paymentForm.get('amount')?.value).toFixed(3)),
+            currency: this.paymentForm.get('currency')?.value,
+            exchangeRate: this.paymentForm.get('exchangeRate')?.value
         };
 
         if (this.selectedPaymentMethod === 'CHEQUE' && this.chequeFormGroup) {
