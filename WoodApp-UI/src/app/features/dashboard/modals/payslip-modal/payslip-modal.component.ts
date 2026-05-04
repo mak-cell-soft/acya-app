@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { PayslipService } from '../../../../services/components/payslip.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
+import { downloadBlob } from '../../../../utils/file-utils';
 
 @Component({
   selector: 'app-payslip-modal',
@@ -109,11 +110,7 @@ export class PayslipModalComponent implements OnInit {
   downloadPdf(payslip: any): void {
     this.payslipService.downloadPdf(payslip.id).subscribe({
       next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Fiche_Paie_${this.data.employeeName}_${payslip.periodmonth}_${payslip.periodyear}.pdf`;
-        a.click();
+        downloadBlob(blob, `Fiche_Paie_${this.data.employeeName}_${payslip.periodmonth}_${payslip.periodyear}.pdf`);
       },
       error: () => this.snackBar.open('Erreur lors du téléchargement', 'OK', { duration: 3000 })
     });

@@ -11,6 +11,7 @@ import { ConfirmDeleteModalComponent } from '../../../../shared/components/modal
 import { ToastrService } from 'ngx-toastr';
 import { AuthenticationService } from '../../../../services/components/authentication.service';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { downloadBlob } from '../../../../utils/file-utils';
 import { DocumentsRelationship } from '../../../../models/components/documentsrelationship';
 import { getStatusInfo, getBillingStatusInfo, isSameDay } from '../../../../utils/document-utils';
 import { WithholdingTaxModalComponent } from '../../../../shared/components/modals/withholding-tax-modal/withholding-tax-modal.component';
@@ -376,4 +377,19 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
     });
   }
 
+  onDownloadPdf(doc: Document | null) {
+    if (!doc) return;
+    this.loading = true;
+    this.docService.downloadPdf(doc.id).subscribe({
+      next: (blob: Blob) => {
+        downloadBlob(blob, `Facture_${doc.docnumber}.pdf`);
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.toastr.error('Erreur lors du téléchargement du PDF');
+        this.loading = false;
+      }
+    });
+  }
 }

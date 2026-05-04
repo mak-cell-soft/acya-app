@@ -7,6 +7,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
+import { downloadBlob } from '../../../../utils/file-utils';
+import { getStatusInfo, getBillingStatusInfo, isSameDay } from '../../../../utils/document-utils';
 import { AuthenticationService } from '../../../../services/components/authentication.service';
 import { MAT_HEADER_CELL_DOC_IS_INVOICED, MAT_HEADER_CELL_DOC_NUMBER, MAT_HEADER_CELL_DOC_SUPPLIER, MAT_HEADER_CELL_DOC_SUPPLIERREFERENCE, MAT_HEADER_CELL_DOC_TOTALDISCOUNTDOC, MAT_HEADER_CELL_DOC_TOTALNETHT, MAT_HEADER_CELL_DOC_TOTALNETTTC, MAT_HEADER_CELL_DOC_TOTALTVADOC, MAT_HEADER_CELL_DOC_TYPE, MAT_HEADER_CELL_DOC_UPDATEDBY, MAT_HEADER_CELL_DOC_UPDATEDDATE, NUMBER_OF_ROWS } from '../../../../shared/constants/components/reception';
 import { animate, state, style, transition, trigger } from '@angular/animations';
@@ -384,6 +386,21 @@ export class ListSupplierReceiptsComponent implements OnInit, AfterViewInit {
   // Method to translate true/false to Oui/Non
   translateTrueFalse(value: boolean): string {
     return TrueFalseTranslate_FR[value.toString() as keyof typeof TrueFalseTranslate_FR];
+  }
+
+  onDownloadPdf(doc: Document) {
+    this.isLoading = true;
+    this.docService.downloadPdf(doc.id).subscribe({
+      next: (blob: Blob) => {
+        downloadBlob(blob, `Reception_${doc.docnumber}.pdf`);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.toastr.error('Erreur lors du téléchargement du PDF');
+        this.isLoading = false;
+      }
+    });
   }
 
   scrollToTop(): void {

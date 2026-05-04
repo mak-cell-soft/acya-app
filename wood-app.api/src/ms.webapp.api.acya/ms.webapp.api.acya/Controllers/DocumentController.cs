@@ -23,7 +23,8 @@ namespace ms.webapp.api.acya.api.Controllers
     private readonly IAccountService _accountService;
     private readonly IBalanceService _balanceService;
     private readonly IApprovalService _approvalService;
-    public DocumentController(DocumentRepository repository, MerchandiseRepository merchandiseRepository, StockRepository stockRepository, WoodAppContext context, IAccountService accountService, IBalanceService balanceService, IApprovalService approvalService)
+    private readonly IPdfGenerationService _pdfService;
+    public DocumentController(DocumentRepository repository, MerchandiseRepository merchandiseRepository, StockRepository stockRepository, WoodAppContext context, IAccountService accountService, IBalanceService balanceService, IApprovalService approvalService, IPdfGenerationService pdfService)
     {
       _repository = repository;
       _merchandiseRepository = merchandiseRepository;
@@ -32,6 +33,7 @@ namespace ms.webapp.api.acya.api.Controllers
       _accountService = accountService;
       _balanceService = balanceService;
       _approvalService = approvalService;
+      _pdfService = pdfService;
     }
 
     [HttpGet("_type")]
@@ -206,6 +208,37 @@ namespace ms.webapp.api.acya.api.Controllers
 
       var documentDtos = documents.Select(d => new DocumentDto(d)).ToList();
       return Ok(documentDtos);
+    }
+
+    [HttpGet("{id}/pdf")]
+    public async Task<IActionResult> GetPdf(int id)
+    {
+      var document = await _context.Documents
+          .AsNoTracking()
+          .AsSplitQuery()
+          .Include(d => d.CounterPart)
+          .Include(d => d.SalesSite)
+          .Include(d => d.HoldingTaxes)
+          .Include(d => d.Payments)
+          .Include(d => d.Taxes)
+          .Include(d => d.AppUsers)
+              .ThenInclude(u => u!.Persons)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.Merchandise)
+                  .ThenInclude(m => m!.Articles)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.QuantityMovements)
+                  .ThenInclude(qm => qm!.ListOfLengths)
+                      .ThenInclude(ll => ll.AppVarLength)
+          .FirstOrDefaultAsync(d => d.Id == id);
+
+      if (document == null) return NotFound();
+
+      var dto = new DocumentDto(document);
+      var pdfBytes = _pdfService.GenerateCommercialDocumentPdf(dto);
+      
+      string fileName = $"{document.Type}_{document.DocNumber}.pdf";
+      return File(pdfBytes, "application/pdf", fileName);
     }
 
     [HttpPost("_typefiltered")]

@@ -18,6 +18,7 @@ import { ElementRef } from '@angular/core';
 import { getSharedPrintStyles } from '../../../../utils/print-styles.util';
 import { getStatusInfo, getBillingStatusInfo, isSameDay } from '../../../../utils/document-utils';
 import { HoldingTaxService } from '../../../../services/components/holding-tax.service';
+import { downloadBlob } from '../../../../utils/file-utils';
 
 @Component({
     selector: 'app-list-customer-invoices',
@@ -370,6 +371,21 @@ export class ListCustomerInvoicesComponent implements OnInit, AfterViewInit {
                 }, 500);
             };
         }, 100);
+    }
+
+    onDownloadPdf(doc: Document) {
+        this.isLoading = true;
+        this.docService.downloadPdf(doc.id).subscribe({
+            next: (blob: Blob) => {
+                downloadBlob(blob, `Facture_${doc.docnumber}.pdf`);
+                this.isLoading = false;
+            },
+            error: (err) => {
+                console.error(err);
+                this.toastr.error('Erreur lors du téléchargement du PDF');
+                this.isLoading = false;
+            }
+        });
     }
 
 }

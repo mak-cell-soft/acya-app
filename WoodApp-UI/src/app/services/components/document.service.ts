@@ -120,4 +120,8 @@ export class DocumentService {
   CreateCreditNote(parentId: number, model: Document): Observable<{ id: number, docRef: string, message: string }> {
     return this.http.post<{ id: number, docRef: string, message: string }>(this.baseUrl + 'Document/' + parentId + '/credit-note', model);
   }
+
+  downloadPdf(id: number): Observable<Blob> {
+    return this.http.get(this.baseUrl + 'Document/' + id + '/pdf', { responseType: 'blob' });
+  }
 }

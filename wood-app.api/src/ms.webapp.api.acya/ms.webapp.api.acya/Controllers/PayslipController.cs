@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.Dtos;
 using ms.webapp.api.acya.infrastructure.Repositories;
+using ms.webapp.api.acya.api.Interfaces;
 
 namespace ms.webapp.api.acya.api.Controllers
 {
@@ -9,10 +10,12 @@ namespace ms.webapp.api.acya.api.Controllers
     public class PayslipController : BaseApiController
     {
         private readonly EmployeePayslipRepository _repository;
+        private readonly IPdfGenerationService _pdfService;
 
-        public PayslipController(EmployeePayslipRepository repository)
+        public PayslipController(EmployeePayslipRepository repository, IPdfGenerationService pdfService)
         {
             _repository = repository;
+            _pdfService = pdfService;
         }
 
         [HttpGet]
@@ -43,10 +46,8 @@ namespace ms.webapp.api.acya.api.Controllers
             var payslip = await _repository.Get(id);
             if (payslip == null) return NotFound();
 
-            // Placeholder for PDF generation
-            // In a real scenario, we would use a library like QuestPDF or iText
-            byte[] dummyPdf = System.Text.Encoding.UTF8.GetBytes("%PDF-1.4 Dummy PDF Content for Payslip " + id);
-            return File(dummyPdf, "application/pdf", $"Payslip_{id}.pdf");
+            var pdfBytes = _pdfService.GeneratePayslipPdf(new EmployeePayslipDto(payslip));
+            return File(pdfBytes, "application/pdf", $"Payslip_{id}.pdf");
         }
     }
 }

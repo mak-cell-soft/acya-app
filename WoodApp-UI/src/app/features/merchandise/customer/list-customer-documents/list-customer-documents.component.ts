@@ -20,7 +20,8 @@ import { Payment } from '../../../../models/components/payment';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
 import { getSharedPrintStyles } from '../../../../utils/print-styles.util';
-import { getStatusInfo, getBillingStatusInfo, getMonthIndex } from '../../../../utils/document-utils';
+import { downloadBlob } from '../../../../utils/file-utils';
+import { getStatusInfo, getBillingStatusInfo, isSameDay } from '../../../../utils/document-utils';
 
 
 
@@ -135,11 +136,16 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
     return Object.values(this.months);
   }
 
+  private getMonthIndex(monthName: string, months: any): number {
+    const entry = Object.entries(months).find(([key, value]) => value === monthName);
+    return entry ? parseInt(entry[0]) - 1 : 0; // JS months are 0-11
+  }
+
   selectMonth(month: string) {
     this.selectedMonth = month;
     console.log('Month selected:', month);
 
-    const monthIndex = getMonthIndex(month, this.months);
+    const monthIndex = this.getMonthIndex(month, this.months);
     this.currentDate = new Date(this.currentYear, monthIndex, 1);
 
     this.updateMonthHeader();
@@ -151,7 +157,7 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
   }
 
   getMonthKey(monthName: string): number {
-    return getMonthIndex(monthName, this.months);
+    return this.getMonthIndex(monthName, this.months);
   }
 
   getMonthValues(): string[] {
@@ -554,6 +560,21 @@ export class ListCustomerDocumentsComponent implements OnInit, AfterViewInit {
         }, 500);
       };
     }, 100);
+  }
+
+  onDownloadPdf(doc: Document) {
+    this.isLoading = true;
+    this.docService.downloadPdf(doc.id).subscribe({
+      next: (blob: Blob) => {
+        downloadBlob(blob, `Document_${doc.docnumber}.pdf`);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.toastr.error('Erreur lors du téléchargement du PDF');
+        this.isLoading = false;
+      }
+    });
   }
 
 

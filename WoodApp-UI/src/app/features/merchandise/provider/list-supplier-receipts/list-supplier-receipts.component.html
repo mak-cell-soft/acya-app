@@ -203,6 +203,9 @@
                         color="warn" matTooltip="Supprimer">
                         <mat-icon>delete</mat-icon>
                     </button>
+                    <button mat-icon-button (click)="onDownloadPdf(element); $event.stopPropagation()" color="primary" matTooltip="Télécharger PDF">
+                        <mat-icon>picture_as_pdf</mat-icon>
+                    </button>
                 </td>
             </ng-container>
 
