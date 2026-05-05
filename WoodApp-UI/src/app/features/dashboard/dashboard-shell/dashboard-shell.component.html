@@ -177,6 +177,13 @@
         <mat-icon>credit_score</mat-icon>
         <span class="menu-text" *ngIf="!isCollapsed">{{menu_accounting}}</span>
       </button>
+
+      <!-- RH -->
+      <button mat-button class="menu-item" routerLink="hr/calendar" routerLinkActive="active-route"
+              [matTooltip]="isCollapsed ? 'Calendrier des Congés' : ''" matTooltipPosition="right">
+        <mat-icon>calendar_month</mat-icon>
+        <span class="menu-text" *ngIf="!isCollapsed">Calendrier des Congés</span>
+      </button>
       
       <mat-divider class="my-3"></mat-divider>
       <!-- Help -->

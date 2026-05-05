@@ -134,7 +134,9 @@ export class AddEmployeesModalComponent implements OnInit {
       selectedRole: ['', Validators.required],
       bankname: [''],
       bankaccount: [''],
-      phonenumber: ['', Validators.required]
+      phonenumber: ['', Validators.required],
+      basesalary: [0, [Validators.required, Validators.min(0)]],
+      overtimehours: [0, Validators.min(0)]
     });
   }
 
@@ -183,7 +185,9 @@ export class AddEmployeesModalComponent implements OnInit {
         idcnss: this.inputdata.idcnss || '',
         hiredate: this.toValidDate(this.inputdata.hiredate),
         firedate: this.toValidDate(this.inputdata.firedate),
-        selectedRole: this.inputdata.role || ''
+        selectedRole: this.inputdata.role || '',
+        basesalary: this.inputdata.basesalary || 0,
+        overtimehours: this.inputdata.overtimehours || 0
       });
     } else if (this.inputType === 'updateAppUser') {
       // NOTE: After JSON.parse(JSON.stringify(...)), Date fields arrive as ISO strings.
@@ -202,7 +206,9 @@ export class AddEmployeesModalComponent implements OnInit {
         idcnss: this.inputdata.person.idcnss || '',
         hiredate: this.toValidDate(this.inputdata.person.hiredate),
         firedate: this.toValidDate(this.inputdata.person.firedate),
-        selectedRole: this.inputdata.person.role || ''
+        selectedRole: this.inputdata.person.role || '',
+        basesalary: this.inputdata.person.basesalary || 0,
+        overtimehours: this.inputdata.person.overtimehours || 0
       });
       this.userForm.patchValue({
         login: this.inputdataUser.login || '',
@@ -296,6 +302,8 @@ export class AddEmployeesModalComponent implements OnInit {
       isappuser: false,
       updatedate: _updateDate,
       role: Number(formValues.selectedRole),
+      basesalary: formValues.basesalary,
+      overtimehours: formValues.overtimehours,
       updatedby: Number(this.authService.getUserDetail()!.id)
     };
   }

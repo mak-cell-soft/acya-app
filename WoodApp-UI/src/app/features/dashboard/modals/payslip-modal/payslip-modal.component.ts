@@ -2,6 +2,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { PayslipService } from '../../../../services/components/payslip.service';
+import { EmployeeService } from '../../../../services/components/employee.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { downloadBlob } from '../../../../utils/file-utils';
@@ -14,7 +15,7 @@ import { downloadBlob } from '../../../../utils/file-utils';
 export class PayslipModalComponent implements OnInit {
   payslipForm: FormGroup;
   payslips: MatTableDataSource<any> = new MatTableDataSource<any>();
-  displayedColumns: string[] = ['period', 'base', 'bonuses', 'deductions', 'net', 'actions'];
+  displayedColumns: string[] = ['period', 'base', 'brut', 'cnss', 'irpp', 'css', 'bonuses', 'deductions', 'net', 'actions'];
   loading = false;
   isSubmitting = false;
 
@@ -31,6 +32,7 @@ export class PayslipModalComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: { employeeId: number, employeeName: string },
     private fb: FormBuilder,
     private payslipService: PayslipService,
+    private employeeService: EmployeeService,
     private snackBar: MatSnackBar
   ) {
     const currentYear = new Date().getFullYear();
@@ -50,7 +52,19 @@ export class PayslipModalComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadEmployeeSalary();
     this.loadPayslips();
+  }
+
+  loadEmployeeSalary(): void {
+    this.employeeService.GetEmployeeById(this.data.employeeId).subscribe({
+      next: (emp: any) => {
+        this.payslipForm.patchValue({
+          basesalary: emp.basesalary || 0
+        });
+        this.calculateNet();
+      }
+    });
   }
 
   loadPayslips(): void {

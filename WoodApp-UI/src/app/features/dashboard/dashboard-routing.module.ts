@@ -61,6 +61,10 @@ const routes: Routes = [
       {
         path: 'construction-sites',
         loadChildren: () => import('../../construction-site-modal/construction-site-modal.module').then(m => m.ConstructionSiteModalModule)
+      },
+      {
+        path: 'hr',
+        loadChildren: () => import('../hr/hr.module').then(m => m.HRModule)
       }
     ]
   }

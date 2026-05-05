@@ -11,6 +11,10 @@ namespace ms.webapp.api.acya.core.Entities
     public int PeriodMonth { get; set; }
     public int PeriodYear { get; set; }
     public decimal BaseSalary { get; set; }
+    public decimal BrutSalary { get; set; }
+    public decimal CnssAmount { get; set; }
+    public decimal IrppAmount { get; set; }
+    public decimal CssAmount { get; set; }
     public decimal Bonuses { get; set; }
     public decimal Deductions { get; set; }
     public decimal NetSalary { get; set; }
@@ -30,6 +34,10 @@ namespace ms.webapp.api.acya.core.Entities
       PeriodMonth = dto.periodmonth;
       PeriodYear = dto.periodyear;
       BaseSalary = dto.basesalary;
+      BrutSalary = dto.brutsalary;
+      CnssAmount = dto.cnssamount;
+      IrppAmount = dto.irppamount;
+      CssAmount = dto.cssamount;
       Bonuses = dto.bonuses;
       Deductions = dto.deductions;
       NetSalary = dto.netsalary;

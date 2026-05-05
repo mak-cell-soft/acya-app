@@ -63,6 +63,7 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<IStockMovementService, StockMovementService>();
       services.AddScoped<IAuditService, AuditService>();
       services.AddScoped<IAnalyticsService, AnalyticsService>();
+      services.AddScoped<ISalaryCalculationService, SalaryCalculationService>();
       services.AddScoped<AuditTrailInterceptor>();
 
       // Notifications & Reminders (§5.19)
@@ -72,6 +73,7 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<IApprovalService, ApprovalService>();
       services.AddScoped<IPricingGridService, PricingGridService>();
       services.AddScoped<IImportService, ImportService>();
+      services.AddScoped<IReportService, ReportService>();
       services.AddHttpClient<IExchangeRateService, ExchangeRateService>();
 
       services.AddDbContext<WoodAppContext>((sp, options) =>

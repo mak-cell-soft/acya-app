@@ -30,8 +30,8 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Salaire de Base</mat-label>
-          <input matInput type="number" formControlName="basesalary" (input)="calculateNet()">
+          <mat-label>Salaire de Base (Auto)</mat-label>
+          <input matInput type="number" formControlName="basesalary" readonly>
           <mat-icon matPrefix>payments</mat-icon>
         </mat-form-field>
 
@@ -42,13 +42,13 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Déductions</mat-label>
+          <mat-label>Déductions Suppl.</mat-label>
           <input matInput type="number" formControlName="deductions" (input)="calculateNet()">
           <mat-icon matPrefix>remove_card</mat-icon>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Salaire Net</mat-label>
+          <mat-label>Est. Net</mat-label>
           <input matInput type="number" formControlName="netsalary">
           <mat-icon matPrefix>account_balance_wallet</mat-icon>
         </mat-form-field>
@@ -59,10 +59,11 @@
                   [disabled]="payslipForm.invalid || isSubmitting || loading"
                   [class.submitting]="isSubmitting">
              <mat-icon>{{ isSubmitting ? 'hourglass_empty' : 'check_circle' }}</mat-icon>
-             {{ isSubmitting ? 'Traitement...' : 'Générer' }}
+             {{ isSubmitting ? 'Calculer & Générer' : 'Générer' }}
           </button>
         </div>
       </form>
+      <small class="text-muted">* Les taux CNSS (9.18%), IRPP et CSS sont appliqués automatiquement lors de la génération.</small>
     </mat-card-content>
   </mat-card>
 
@@ -78,7 +79,7 @@
     </mat-form-field>
   </div>
 
-  <div class="table-container mat-elevation-z2">
+  <div class="table-container mat-elevation-z2 overflow-auto">
     <table mat-table [dataSource]="payslips" class="w-100">
       <ng-container matColumnDef="period">
         <th mat-header-cell *matHeaderCellDef> Période </th>
@@ -90,14 +91,36 @@
         <td mat-cell *matCellDef="let p"> {{p.basesalary | number:'1.3-3'}} </td>
       </ng-container>
 
+      <ng-container matColumnDef="brut">
+        <th mat-header-cell *matHeaderCellDef> Brut </th>
+        <td mat-cell *matCellDef="let p"> {{p.brutsalary | number:'1.3-3'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="cnss">
+        <th mat-header-cell *matHeaderCellDef> CNSS </th>
+        <td mat-cell *matCellDef="let p" class="text-danger"> -{{p.cnssamount | number:'1.3-3'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="irpp">
+        <th mat-header-cell *matHeaderCellDef> IRPP </th>
+        <td mat-cell *matCellDef="let p" class="text-danger"> -{{p.irppamount | number:'1.3-3'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="css">
+        <th mat-header-cell *matHeaderCellDef> CSS </th>
+        <td mat-cell *matCellDef="let p" class="text-danger"> -{{p.cssamount | number:'1.3-3'}} </td>
+      </ng-container>
+
       <ng-container matColumnDef="bonuses">
         <th mat-header-cell *matHeaderCellDef> Primes </th>
         <td mat-cell *matCellDef="let p"> {{p.bonuses | number:'1.3-3'}} </td>
       </ng-container>
 
       <ng-container matColumnDef="deductions">
-        <th mat-header-cell *matHeaderCellDef> Déduct. </th>
-        <td mat-cell *matCellDef="let p"> {{p.deductions | number:'1.3-3'}} </td>
+        <th mat-header-cell *matHeaderCellDef> Autres </th>
+        <td mat-cell *matCellDef="let p"> 
+          {{(p.deductions - p.cnssamount - p.irppamount - p.cssamount) | number:'1.3-3'}} 
+        </td>
       </ng-container>
 
       <ng-container matColumnDef="net">

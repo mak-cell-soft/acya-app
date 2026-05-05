@@ -91,17 +91,30 @@ namespace ms.webapp.api.acya.api.Services.PdfTemplates
                     table.Cell().Element(CellStyle).AlignRight().Text("-");
                     table.Cell().Element(CellStyle).AlignRight().Text(_model.basesalary.ToString("N3"));
 
-                    table.Cell().Element(CellStyle).Text("Heures Supplémentaires");
+                    table.Cell().Element(CellStyle).Text("Salaire Brut");
                     table.Cell().Element(CellStyle).AlignRight().Text("-");
-                    table.Cell().Element(CellStyle).AlignRight().Text("0.000");
+                    table.Cell().Element(CellStyle).AlignRight().Text(_model.brutsalary.ToString("N3"));
+
+                    table.Cell().Element(CellStyle).Text("CNSS (9.18%)");
+                    table.Cell().Element(CellStyle).AlignRight().Text("-");
+                    table.Cell().Element(CellStyle).AlignRight().Text($"-{_model.cnssamount:N3}");
+
+                    table.Cell().Element(CellStyle).Text("IRPP");
+                    table.Cell().Element(CellStyle).AlignRight().Text("-");
+                    table.Cell().Element(CellStyle).AlignRight().Text($"-{_model.irppamount:N3}");
+
+                    table.Cell().Element(CellStyle).Text("CSS (1%)");
+                    table.Cell().Element(CellStyle).AlignRight().Text("-");
+                    table.Cell().Element(CellStyle).AlignRight().Text($"-{_model.cssamount:N3}");
 
                     table.Cell().Element(CellStyle).Text("Primes");
                     table.Cell().Element(CellStyle).AlignRight().Text("-");
                     table.Cell().Element(CellStyle).AlignRight().Text(_model.bonuses.ToString("N3"));
 
-                    table.Cell().Element(CellStyle).Text("Déductions / Avances");
+                    table.Cell().Element(CellStyle).Text("Autres Déductions");
                     table.Cell().Element(CellStyle).AlignRight().Text("-");
-                    table.Cell().Element(CellStyle).AlignRight().Text($"-{_model.deductions:N3}");
+                    decimal otherDeductions = _model.deductions - _model.cnssamount - _model.irppamount - _model.cssamount;
+                    table.Cell().Element(CellStyle).AlignRight().Text($"-{(otherDeductions > 0 ? otherDeductions : 0):N3}");
 
                     static IContainer CellStyle(IContainer container)
                     {

@@ -23,6 +23,8 @@ namespace ms.webapp.api.acya.core.Entities.Dtos
     public DateTime? firedate { get; set; }
     public DateTime? creationdate { get; set; }
     public DateTime? updatedate { get; set; }
+    public decimal basesalary { get; set; }
+    public decimal overtimehours { get; set; }
     public int updatedby { get; set; }
 
     public PersonDto() { }
@@ -48,6 +50,8 @@ namespace ms.webapp.api.acya.core.Entities.Dtos
       firedate = entity.FireDate;
       creationdate = entity.CreationDate;
       updatedate = entity.UpdateDate;
+      basesalary = entity.BaseSalary;
+      overtimehours = entity.OvertimeHours;
       updatedby = (int)entity.UpdadatedById!;
     }
   }

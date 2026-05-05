@@ -30,6 +30,11 @@ export class AccountingBalanceDashboardComponent implements OnInit {
     @ViewChild('customerPaginator') customerPaginator!: MatPaginator;
     @ViewChild('supplierPaginator') supplierPaginator!: MatPaginator;
 
+    // Reporting Properties
+    reportStartDate: Date | null = null;
+    reportEndDate: Date | null = null;
+    isExporting = false;
+
     // Chart Properties
     public barChartOptions: ChartConfiguration['options'] = {
         responsive: true,
@@ -129,5 +134,29 @@ export class AccountingBalanceDashboardComponent implements OnInit {
         this.barChartData.datasets[0].backgroundColor = this.activeTab === 'customers' ? '#3f51b5' : '#ff4081';
 
         this.chart?.update();
+    }
+
+    onExport(type: string, format: string): void {
+        this.isExporting = true;
+        const filters = {
+            startDate: this.reportStartDate?.toISOString(),
+            endDate: this.reportEndDate?.toISOString()
+        };
+
+        this.adminDashService.exportReport(type, format, filters).subscribe({
+            next: (blob) => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Report_${type}_${new Date().getTime()}.${format}`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+                this.isExporting = false;
+            },
+            error: (err) => {
+                console.error('Export failed', err);
+                this.isExporting = false;
+            }
+        });
     }
 }

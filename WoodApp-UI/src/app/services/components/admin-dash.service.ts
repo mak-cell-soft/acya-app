@@ -23,4 +23,16 @@ export class AdminDashService {
     refreshBalances(): Observable<void> {
         return this.http.post<void>(this.baseUrl + 'refresh-balances', {});
     }
+
+    exportReport(type: string, format: string, filters: any): Observable<Blob> {
+        let params: any = { format };
+        if (filters.startDate) params.startDate = filters.startDate;
+        if (filters.endDate) params.endDate = filters.endDate;
+        if (filters.salesSiteId) params.salesSiteId = filters.salesSiteId;
+
+        return this.http.get(`${environment.apiUrl}Reports/${type}/export`, {
+            params,
+            responseType: 'blob'
+        });
+    }
 }

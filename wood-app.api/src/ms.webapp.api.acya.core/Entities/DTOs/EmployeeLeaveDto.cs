@@ -13,6 +13,7 @@ namespace ms.webapp.api.acya.core.Entities.Dtos
     public string status { get; set; } = "Pending";
     public DateTime? createdat { get; set; }
     public DateTime? updatedat { get; set; }
+    public string employeename { get; set; } = string.Empty;
 
     public EmployeeLeaveDto() { }
 
@@ -28,6 +29,10 @@ namespace ms.webapp.api.acya.core.Entities.Dtos
       status = entity.Status;
       createdat = entity.CreatedAt;
       updatedat = entity.UpdatedAt;
+      if (entity.Employee != null)
+      {
+          employeename = entity.Employee.FullName ?? $"{entity.Employee.Firstname} {entity.Employee.Lastname}";
+      }
     }
   }
 }

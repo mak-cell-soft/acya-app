@@ -28,6 +28,8 @@ export class Person {
     hiredate!: Date | null;
     firedate!: Date | null;
     isappuser: boolean = false;
+    basesalary: number = 0;
+    overtimehours: number = 0;
     creationdate!: Date | null;
     updatedate!: Date | null;
     updatedby!: number;

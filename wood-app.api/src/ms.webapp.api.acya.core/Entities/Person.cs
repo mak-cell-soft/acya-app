@@ -24,6 +24,8 @@ namespace ms.webapp.api.acya.core.Entities
     public bool IsAppUser { get; set; }
     public DateTime? HireDate { get; set; }
     public DateTime? FireDate { get; set; }
+    public decimal BaseSalary { get; set; }
+    public decimal OvertimeHours { get; set; }
     public DateTime? CreationDate { get; set; }
     public DateTime? UpdateDate { get; set; }
     public int? UpdadatedById { get; set; } 
@@ -66,6 +68,8 @@ namespace ms.webapp.api.acya.core.Entities
       FireDate = !string.IsNullOrEmpty(dto.firedate.ToString()) ? DateTime.Parse(dto.firedate.ToString()!) : DateTime.MaxValue;
       CreationDate = !string.IsNullOrEmpty(dto.creationdate.ToString()) ? DateTime.Parse(dto.creationdate.ToString()!) : DateTime.Now;
       UpdateDate = !string.IsNullOrEmpty(dto.updatedate.ToString()) ? DateTime.Parse(dto.updatedate.ToString()!) : DateTime.Now;
+      BaseSalary = dto.basesalary;
+      OvertimeHours = dto.overtimehours;
       UpdadatedById = dto.updatedby;
     }
   }

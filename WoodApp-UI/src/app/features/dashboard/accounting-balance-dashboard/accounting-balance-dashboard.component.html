@@ -73,8 +73,10 @@
             </mat-card>
         </div>
 
+
+
         <!-- Data Tables -->
-        <div class="col-12">
+        <div class="col-12 mb-4">
             <mat-card class="table-card mat-elevation-z4">
                 <mat-tab-group (selectedTabChange)="switchTab($any($event).index === 0 ? 'customers' : 'suppliers')"
                     mat-stretch-tabs="false" mat-align-tabs="start">
@@ -154,7 +156,8 @@
                                 </tr>
                             </table>
 
-                            <mat-paginator #customerPaginator [pageSizeOptions]="[5, 10, 25, 50]" aria-label="Page des clients"></mat-paginator>
+                            <mat-paginator #customerPaginator [pageSizeOptions]="[5, 10, 25, 50]"
+                                aria-label="Page des clients"></mat-paginator>
                         </div>
                     </mat-tab>
 
@@ -167,7 +170,8 @@
                         <div class="search-container">
                             <mat-form-field appearance="outline" class="search-field">
                                 <mat-label>Rechercher un fournisseur...</mat-label>
-                                <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Bois S.A." #supplierInput>
+                                <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Bois S.A."
+                                    #supplierInput>
                                 <mat-icon matSuffix>search</mat-icon>
                             </mat-form-field>
                         </div>
@@ -231,10 +235,75 @@
                                     </td>
                                 </tr>
                             </table>
-                            <mat-paginator #supplierPaginator [pageSizeOptions]="[5, 10, 25, 50]" aria-label="Page des fournisseurs"></mat-paginator>
+                            <mat-paginator #supplierPaginator [pageSizeOptions]="[5, 10, 25, 50]"
+                                aria-label="Page des fournisseurs"></mat-paginator>
                         </div>
                     </mat-tab>
                 </mat-tab-group>
+            </mat-card>
+        </div>
+        <!-- Reporting & Exports (§5.12) -->
+        <div class="col-12 mb-4">
+            <mat-card class="reporting-card mat-elevation-z4">
+                <mat-card-header>
+                    <mat-card-title>
+                        <mat-icon>assessment</mat-icon>
+                        Reporting & Exports Avancés
+                    </mat-card-title>
+                    <mat-card-subtitle>Générez vos rapports financiers et logistiques au format Excel ou
+                        CSV</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content class="pt-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <mat-form-field appearance="outline" class="w-100">
+                                <mat-label>Période du rapport</mat-label>
+                                <mat-date-range-input [rangePicker]="picker">
+                                    <input matStartDate placeholder="Début" [(ngModel)]="reportStartDate">
+                                    <input matEndDate placeholder="Fin" [(ngModel)]="reportEndDate">
+                                </mat-date-range-input>
+                                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                                <mat-date-range-picker #picker></mat-date-range-picker>
+                            </mat-form-field>
+                        </div>
+                        <div class="col-md-8 d-flex flex-wrap gap-2 justify-content-end">
+                            <!-- Sales Report -->
+                            <div class="report-group">
+                                <span class="group-label">Ventes:</span>
+                                <button mat-stroked-button color="primary" (click)="onExport('sales', 'xlsx')"
+                                    [disabled]="isExporting">
+                                    <mat-icon>table_view</mat-icon> Excel
+                                </button>
+                                <button mat-stroked-button (click)="onExport('sales', 'csv')" [disabled]="isExporting">
+                                    <mat-icon>list_alt</mat-icon> CSV
+                                </button>
+                            </div>
+
+                            <!-- Profitability Report -->
+                            <div class="report-group">
+                                <span class="group-label">Rentabilité:</span>
+                                <button mat-stroked-button color="accent" (click)="onExport('profitability', 'xlsx')"
+                                    [disabled]="isExporting">
+                                    <mat-icon>account_balance</mat-icon> Marges
+                                </button>
+                            </div>
+
+                            <!-- Stock Report -->
+                            <div class="report-group">
+                                <span class="group-label">Stock:</span>
+                                <button mat-stroked-button color="warn" (click)="onExport('stock', 'xlsx')"
+                                    [disabled]="isExporting">
+                                    <mat-icon>inventory</mat-icon> Inventaire
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="export-loading" *ngIf="isExporting">
+                        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+                        <p class="text-center mt-2 text-muted">Génération du fichier en cours...</p>
+                    </div>
+                </mat-card-content>
             </mat-card>
         </div>
     </div>

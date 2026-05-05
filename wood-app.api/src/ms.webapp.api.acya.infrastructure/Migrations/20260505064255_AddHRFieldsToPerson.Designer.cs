@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ms.webapp.api.acya.infrastructure;
@@ -11,9 +12,11 @@ using ms.webapp.api.acya.infrastructure;
 namespace ms.webapp.api.acya.infrastructure.Migrations
 {
     [DbContext(typeof(WoodAppContext))]
-    partial class WoodAppContextModelSnapshot : ModelSnapshot
+    [Migration("20260505064255_AddHRFieldsToPerson")]
+    partial class AddHRFieldsToPerson
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -988,27 +991,15 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("BaseSalary")
-                        .HasColumnType("decimal(18,3)")
+                        .HasColumnType("numeric")
                         .HasColumnName("basesalary");
 
                     b.Property<decimal>("Bonuses")
-                        .HasColumnType("decimal(18,3)")
+                        .HasColumnType("numeric")
                         .HasColumnName("bonuses");
 
-                    b.Property<decimal>("BrutSalary")
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("brutsalary");
-
-                    b.Property<decimal>("CnssAmount")
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("cnssamount");
-
-                    b.Property<decimal>("CssAmount")
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("cssamount");
-
                     b.Property<decimal>("Deductions")
-                        .HasColumnType("decimal(18,3)")
+                        .HasColumnType("numeric")
                         .HasColumnName("deductions");
 
                     b.Property<int>("EmployeeId")
@@ -1019,12 +1010,8 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("generatedat");
 
-                    b.Property<decimal>("IrppAmount")
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("irppamount");
-
                     b.Property<decimal>("NetSalary")
-                        .HasColumnType("decimal(18,3)")
+                        .HasColumnType("numeric")
                         .HasColumnName("netsalary");
 
                     b.Property<int>("PeriodMonth")

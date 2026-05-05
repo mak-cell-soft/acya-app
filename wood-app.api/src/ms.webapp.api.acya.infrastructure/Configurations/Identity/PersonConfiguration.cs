@@ -29,6 +29,8 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Identity
             entity.Property(e => e.UpdateDate).HasColumnName("updatedate");
             entity.Property(e => e.HireDate).HasColumnName("hiredate");
             entity.Property(e => e.FireDate).HasColumnName("firedate");
+            entity.Property(e => e.BaseSalary).HasColumnName("basesalary").HasColumnType("decimal(18,3)");
+            entity.Property(e => e.OvertimeHours).HasColumnName("overtimehours").HasColumnType("decimal(18,3)");
             entity.Property(e => e.UpdadatedById).HasColumnName("idappuser");
         }
     }

@@ -18,7 +18,7 @@ namespace ms.webapp.api.acya.api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EmployeeLeaveDto>>> GetAll()
         {
-            var leaves = await _repository.GetAllAsync();
+            var leaves = await _repository.GetAllWithEmployeeAsync();
             return Ok(leaves.Select(l => new EmployeeLeaveDto(l)));
         }
 

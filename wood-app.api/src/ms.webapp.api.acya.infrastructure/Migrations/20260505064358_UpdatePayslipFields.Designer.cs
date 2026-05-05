@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ms.webapp.api.acya.infrastructure;
@@ -11,9 +12,11 @@ using ms.webapp.api.acya.infrastructure;
 namespace ms.webapp.api.acya.infrastructure.Migrations
 {
     [DbContext(typeof(WoodAppContext))]
-    partial class WoodAppContextModelSnapshot : ModelSnapshot
+    [Migration("20260505064358_UpdatePayslipFields")]
+    partial class UpdatePayslipFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1002,10 +1005,6 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                     b.Property<decimal>("CnssAmount")
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("cnssamount");
-
-                    b.Property<decimal>("CssAmount")
-                        .HasColumnType("decimal(18,3)")
-                        .HasColumnName("cssamount");
 
                     b.Property<decimal>("Deductions")
                         .HasColumnType("decimal(18,3)")

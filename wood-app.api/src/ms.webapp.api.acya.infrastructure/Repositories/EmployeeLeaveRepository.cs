@@ -10,9 +10,18 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
     {
     }
 
+    public async Task<IEnumerable<EmployeeLeave>> GetAllWithEmployeeAsync()
+    {
+      return await context.EmployeeLeaves
+        .Include(l => l.Employee)
+        .OrderByDescending(l => l.StartDate)
+        .ToListAsync();
+    }
+
     public async Task<IEnumerable<EmployeeLeave>> GetByEmployeeId(int employeeId)
     {
       return await context.EmployeeLeaves
+        .Include(l => l.Employee)
         .Where(l => l.EmployeeId == employeeId)
         .OrderByDescending(l => l.StartDate)
         .ToListAsync();

@@ -32,6 +32,10 @@ export class EmployeeService {
     return this.http.get<Person[]>(this.baseUrl + 'Person');
   }
 
+  GetEmployeeById(id: number) {
+    return this.http.get<Person>(this.baseUrl + 'Person/' + id);
+  }
+
   /**
  * Appel de la méthode Put endpoint : Person/Put du serveur avec paramètre : l'objet Person.
  * @param model 

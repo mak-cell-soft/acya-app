@@ -104,6 +104,19 @@
         <mat-icon matPrefix>admin_panel_settings</mat-icon>
       </mat-form-field>
     </div>
+
+    <div class="form-grid">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Salaire de Base (TND)</mat-label>
+        <input type="number" matInput formControlName="basesalary" step="0.001" />
+        <mat-icon matPrefix>payments</mat-icon>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Solde Heures Supplémentaires</mat-label>
+        <input type="number" matInput formControlName="overtimehours" step="0.01" />
+        <mat-icon matPrefix>schedule</mat-icon>
+      </mat-form-field>
+    </div>
   </div>
 
   <!-- User Credentials Info (Visible only if role suggests a user) -->

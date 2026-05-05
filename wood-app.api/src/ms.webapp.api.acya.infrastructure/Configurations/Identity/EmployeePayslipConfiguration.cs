@@ -13,10 +13,14 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Identity
             entity.Property(e => e.EmployeeId).HasColumnName("employeeid");
             entity.Property(e => e.PeriodMonth).HasColumnName("periodmonth");
             entity.Property(e => e.PeriodYear).HasColumnName("periodyear");
-            entity.Property(e => e.BaseSalary).HasColumnName("basesalary");
-            entity.Property(e => e.Bonuses).HasColumnName("bonuses");
-            entity.Property(e => e.Deductions).HasColumnName("deductions");
-            entity.Property(e => e.NetSalary).HasColumnName("netsalary");
+            entity.Property(e => e.BaseSalary).HasColumnName("basesalary").HasColumnType("decimal(18,3)");
+            entity.Property(e => e.BrutSalary).HasColumnName("brutsalary").HasColumnType("decimal(18,3)");
+            entity.Property(e => e.CnssAmount).HasColumnName("cnssamount").HasColumnType("decimal(18,3)");
+            entity.Property(e => e.IrppAmount).HasColumnName("irppamount").HasColumnType("decimal(18,3)");
+            entity.Property(e => e.CssAmount).HasColumnName("cssamount").HasColumnType("decimal(18,3)");
+            entity.Property(e => e.Bonuses).HasColumnName("bonuses").HasColumnType("decimal(18,3)");
+            entity.Property(e => e.Deductions).HasColumnName("deductions").HasColumnType("decimal(18,3)");
+            entity.Property(e => e.NetSalary).HasColumnName("netsalary").HasColumnType("decimal(18,3)");
             entity.Property(e => e.GeneratedAt).HasColumnName("generatedat");
 
             entity.HasOne(d => d.Employee)
