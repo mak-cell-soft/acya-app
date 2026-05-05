@@ -14,6 +14,6 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public class ImportError
     {
         public int RowIndex { get; set; }
-        public string Message { get; set; }
+        public string? Message { get; set; }
     }
 }

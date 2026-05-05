@@ -52,7 +52,7 @@ namespace ms.webapp.api.acya.Services
                 .ThenInclude(m => m!.Articles)
                 .Include(l => l.Document!.SalesSite)
                 .Where(l => l.Document!.Type == DocumentTypes.customerInvoice || l.Document.Type == DocumentTypes.customerDeliveryNote)
-                .Where(l => !l.Document.IsDeleted);
+                .Where(l => !l.Document!.IsDeleted);
 
             if (start.HasValue) query = query.Where(l => l.Document!.CreationDate >= start.Value);
             if (end.HasValue) query = query.Where(l => l.Document!.CreationDate <= end.Value);
@@ -61,10 +61,10 @@ namespace ms.webapp.api.acya.Services
             return await query.Select(l => new SalesReportRow
             {
                 DocumentReference = l.Document!.DocNumber ?? "",
-                Date = l.Document.CreationDate ?? DateTime.MinValue,
-                ClientName = l.Document.CounterPart != null ? (l.Document.CounterPart.Name ?? l.Document.CounterPart.Fullname) : "",
+                Date = l.Document!.CreationDate ?? DateTime.MinValue,
+                ClientName = l.Document!.CounterPart != null ? (l.Document!.CounterPart!.Name ?? l.Document!.CounterPart!.Fullname) : "",
                 ArticleReference = l.Merchandise!.Articles!.Reference ?? "",
-                ArticleDescription = l.Merchandise.Articles.Description ?? "",
+                ArticleDescription = l.Merchandise!.Articles!.Description ?? "",
                 Quantity = l.Quantity,
                 UnitPriceHT = l.UnitPriceHT,
                 Discount = l.DiscountPercentage,
@@ -80,7 +80,7 @@ namespace ms.webapp.api.acya.Services
                 .Include(l => l.Merchandise)
                 .ThenInclude(m => m!.Articles)
                 .Where(l => l.Document!.Type == DocumentTypes.customerInvoice || l.Document.Type == DocumentTypes.customerDeliveryNote)
-                .Where(l => !l.Document.IsDeleted);
+                .Where(l => !l.Document!.IsDeleted);
 
             if (start.HasValue) query = query.Where(l => l.Document!.CreationDate >= start.Value);
             if (end.HasValue) query = query.Where(l => l.Document!.CreationDate <= end.Value);

@@ -4,7 +4,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
 {
     public class SupplierDashboardDto
     {
-        public string SupplierName { get; set; }
+        public string? SupplierName { get; set; }
         public decimal CurrentBalance { get; set; }
         public decimal TotalPaid { get; set; }
         public List<DocumentDto> PendingOrders { get; set; } = new List<DocumentDto>();
