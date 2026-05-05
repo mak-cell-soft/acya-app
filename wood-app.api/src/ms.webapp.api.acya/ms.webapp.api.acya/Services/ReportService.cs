@@ -62,7 +62,7 @@ namespace ms.webapp.api.acya.Services
             {
                 DocumentReference = l.Document!.DocNumber ?? "",
                 Date = l.Document!.CreationDate ?? DateTime.MinValue,
-                ClientName = l.Document!.CounterPart != null ? (l.Document!.CounterPart!.Name ?? l.Document!.CounterPart!.Fullname) : "",
+                ClientName = l.Document!.CounterPart != null ? (l.Document!.CounterPart!.Name ?? l.Document!.CounterPart!.Fullname!) : "",
                 ArticleReference = l.Merchandise!.Articles!.Reference ?? "",
                 ArticleDescription = l.Merchandise!.Articles!.Description ?? "",
                 Quantity = l.Quantity,

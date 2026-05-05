@@ -30,11 +30,11 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Audit
       return result;
     }
 
-    public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
-      if (eventData.Context == null) return result;
+      if (eventData.Context == null) return new ValueTask<InterceptionResult<int>>(result);
       OnBeforeSaveChanges(eventData.Context);
-      return result;
+      return new ValueTask<InterceptionResult<int>>(result);
     }
 
     public override int SavedChanges(SaveChangesCompletedEventData eventData, int result)

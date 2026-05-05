@@ -290,7 +290,7 @@ namespace ms.webapp.api.acya.Services
             var list = new List<CounterPartImportDto>();
             using var workbook = new XLWorkbook(stream);
             var worksheet = workbook.Worksheet(1);
-            var rows = worksheet.RangeUsed().RowsUsed().Skip(1);
+            var rows = worksheet.RangeUsed()!.RowsUsed().Skip(1);
 
             foreach (var row in rows)
             {
