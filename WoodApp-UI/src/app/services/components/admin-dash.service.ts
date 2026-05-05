@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { BalanceEntry } from '../../models/balance-entry';
+import { AuditLog } from '../../models/audit-log';
 
 @Injectable({
     providedIn: 'root'
@@ -34,5 +35,12 @@ export class AdminDashService {
             params,
             responseType: 'blob'
         });
+    }
+
+    getRecentAuditLogs(count: number = 50, userName?: string, date?: string): Observable<AuditLog[]> {
+        let params: any = { count };
+        if (userName) params.userName = userName;
+        if (date) params.date = date;
+        return this.http.get<AuditLog[]>(`${environment.apiUrl}Audit/recent`, { params });
     }
 }

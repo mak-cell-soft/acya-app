@@ -323,3 +323,51 @@ button[mat-icon-button]:hover {
     background: #f1f5f9;
     border-radius: 8px;
 }
+
+/* Audit Card Styles */
+.audit-card {
+    border-left: 5px solid #ff9800;
+    margin-bottom: 24px;
+}
+
+.bg-success {
+    background-color: #d1fae5 !important;
+    color: #065f46 !important;
+}
+
+.bg-info {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+}
+
+.bg-danger {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important;
+}
+
+.filter-field.mini {
+    width: 220px;
+}
+
+::ng-deep .filter-field.no-subscript .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+}
+
+::ng-deep .filter-field.mini .mat-mdc-text-field-wrapper {
+    background-color: #ffffff !important;
+    height: 44px !important;
+    border-radius: 8px !important;
+}
+
+::ng-deep .filter-field.mini .mat-mdc-form-field-flex {
+    height: 44px !important;
+}
+
+::ng-deep .filter-field.mini .mat-mdc-form-field-infix {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+}
+
+::ng-deep .filter-field.mini .mat-mdc-floating-label {
+    top: 22px !important;
+}

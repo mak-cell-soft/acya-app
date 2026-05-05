@@ -24,7 +24,7 @@ import { PayslipModalComponent } from './modals/payslip-modal/payslip-modal.comp
 import { AdvanceManagementModalComponent } from './modals/advance-management-modal/advance-management-modal.component';
 import { ProfileModalComponent } from './modals/profile-modal/profile-modal.component';
 import { ListHoldingTaxesModalComponent } from './modals/holding-tax/list-holding-taxes-modal/list-holding-taxes-modal.component';
-
+import { AuditDetailsModalComponent } from './modals/audit-details-modal/audit-details-modal.component';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -73,8 +73,8 @@ import { BaseChartDirective } from 'ng2-charts';
     PayslipModalComponent,
     AdvanceManagementModalComponent,
     ProfileModalComponent,
-    ListHoldingTaxesModalComponent
-
+    ListHoldingTaxesModalComponent,
+    AuditDetailsModalComponent
   ],
   imports: [
     CommonModule,

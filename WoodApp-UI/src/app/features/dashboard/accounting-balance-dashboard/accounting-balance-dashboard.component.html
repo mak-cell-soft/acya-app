@@ -242,6 +242,95 @@
                 </mat-tab-group>
             </mat-card>
         </div>
+
+        <!-- Audit Trail Card -->
+        <div class="col-12 mb-4">
+            <mat-card class="audit-card mat-elevation-z4">
+                <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <mat-icon class="text-primary" style="font-size: 24px; width: 24px; height: 24px;">manage_search</mat-icon>
+                        <span style="font-size: 1.25rem; font-weight: 500;">Journal d'Audit</span>
+                        
+                        <button mat-icon-button color="primary" (click)="refreshAudit()" [disabled]="loadingAudit" matTooltip="Actualiser">
+                            <mat-icon *ngIf="!loadingAudit">refresh</mat-icon>
+                            <mat-spinner diameter="20" *ngIf="loadingAudit"></mat-spinner>
+                        </button>
+                    </div>
+                    
+                    <div class="d-flex align-items-center gap-4">
+                        <!-- Search by User -->
+                        <mat-form-field appearance="outline" class="filter-field mini no-subscript">
+                            <mat-label>Utilisateur</mat-label>
+                            <input matInput [(ngModel)]="auditUserFilter" (keyup.enter)="loadAuditLogs()" placeholder="Chercher...">
+                            <mat-icon matSuffix>person_search</mat-icon>
+                        </mat-form-field>
+
+                        <!-- Filter by Date -->
+                        <mat-form-field appearance="outline" class="filter-field mini no-subscript">
+                            <mat-label>Date</mat-label>
+                            <input matInput [matDatepicker]="auditPicker" [(ngModel)]="auditDateFilter" (dateChange)="loadAuditLogs()">
+                            <mat-datepicker-toggle matSuffix [for]="auditPicker"></mat-datepicker-toggle>
+                            <mat-datepicker #auditPicker></mat-datepicker>
+                        </mat-form-field>
+                    </div>
+                </div>
+                <mat-card-content class="pt-3">
+                    <div class="table-container">
+                        <table mat-table [dataSource]="auditLogs" class="w-100 custom-table">
+                            
+                            <ng-container matColumnDef="userName">
+                                <th mat-header-cell *matHeaderCellDef> <mat-icon class="header-icon">person</mat-icon> Utilisateur </th>
+                                <td mat-cell *matCellDef="let element"> 
+                                    <span class="fw-bold">{{element.userName || 'Système'}}</span>
+                                </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="action">
+                                <th mat-header-cell *matHeaderCellDef> <mat-icon class="header-icon">bolt</mat-icon> Action </th>
+                                <td mat-cell *matCellDef="let element">
+                                    <span class="status-badge"
+                                        [class.bg-success]="element.action === 'Insert'"
+                                        [class.bg-info]="element.action === 'Update'"
+                                        [class.bg-danger]="element.action === 'Delete'">
+                                        {{translateAction(element.action)}}
+                                    </span>
+                                </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="tableName">
+                                <th mat-header-cell *matHeaderCellDef> <mat-icon class="header-icon">table_chart</mat-icon> Entité </th>
+                                <td mat-cell *matCellDef="let element"> {{getEntityName(element.tableName)}} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="timestamp">
+                                <th mat-header-cell *matHeaderCellDef> <mat-icon class="header-icon">schedule</mat-icon> Date & Heure </th>
+                                <td mat-cell *matCellDef="let element"> {{element.timestamp | date:'dd/MM/yyyy HH:mm:ss'}} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="details">
+                                <th mat-header-cell *matHeaderCellDef class="text-center"> <mat-icon class="header-icon">visibility</mat-icon> Détails </th>
+                                <td mat-cell *matCellDef="let element" class="text-center">
+                                    <button mat-icon-button color="accent" (click)="showAuditDetails(element)" matTooltip="Voir les détails">
+                                        <mat-icon>search</mat-icon>
+                                    </button>
+                                </td>
+                            </ng-container>
+
+                            <tr mat-header-row *matHeaderRowDef="displayedAuditColumns"></tr>
+                            <tr mat-row *matRowDef="let row; columns: displayedAuditColumns;"></tr>
+
+                            <tr class="mat-row" *matNoDataRow>
+                                <td class="mat-cell text-center p-4" colspan="5">
+                                    Aucune activité trouvée pour ces critères.
+                                </td>
+                            </tr>
+                        </table>
+                        <mat-paginator #auditPaginator [pageSizeOptions]="[5, 10, 25]" aria-label="Page de l'audit"></mat-paginator>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+
         <!-- Reporting & Exports (§5.12) -->
         <div class="col-12 mb-4">
             <mat-card class="reporting-card mat-elevation-z4">

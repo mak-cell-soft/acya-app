@@ -10,6 +10,8 @@ import { CustomerAccountModalComponent } from '../../customers/customer-account-
 import { CounterPart } from '../../../models/components/counterpart';
 import { AnalyticsService } from '../../../services/components/analytics.service';
 import { DashboardKpi } from '../../../models/analytics';
+import { AuditLog } from '../../../models/audit-log';
+import { AuditDetailsModalComponent } from '../modals/audit-details-modal/audit-details-modal.component';
 
 @Component({
   selector: 'app-accounting-balance-dashboard',
@@ -26,9 +28,17 @@ export class AccountingBalanceDashboardComponent implements OnInit {
     customerFilter: string = '';
     supplierFilter: string = '';
 
+    // Audit logs
+    auditLogs = new MatTableDataSource<AuditLog>();
+    loadingAudit = false;
+    displayedAuditColumns: string[] = ['userName', 'action', 'tableName', 'timestamp', 'details'];
+    auditUserFilter: string = '';
+    auditDateFilter: Date | null = null;
+
     @ViewChild(BaseChartDirective) chart: BaseChartDirective | undefined;
     @ViewChild('customerPaginator') customerPaginator!: MatPaginator;
     @ViewChild('supplierPaginator') supplierPaginator!: MatPaginator;
+    @ViewChild('auditPaginator') auditPaginator!: MatPaginator;
 
     // Reporting Properties
     reportStartDate: Date | null = null;
@@ -63,6 +73,7 @@ export class AccountingBalanceDashboardComponent implements OnInit {
     ngOnInit(): void {
         this.loadData();
         this.loadKpis();
+        this.loadAuditLogs();
     }
 
     loadData(): void {
@@ -115,6 +126,87 @@ export class AccountingBalanceDashboardComponent implements OnInit {
         this.adminDashService.refreshBalances().subscribe({
             next: () => this.loadData(),
             error: () => this.loading = false
+        });
+    }
+
+    loadAuditLogs(): void {
+        this.loadingAudit = true;
+        const dateStr = this.auditDateFilter ? this.auditDateFilter.toISOString() : undefined;
+        this.adminDashService.getRecentAuditLogs(50, this.auditUserFilter, dateStr).subscribe({
+            next: (data) => {
+                this.auditLogs.data = data;
+                this.auditLogs.paginator = this.auditPaginator;
+                this.loadingAudit = false;
+            },
+            error: (err) => {
+                console.error('Failed to load audit logs', err);
+                this.loadingAudit = false;
+            }
+        });
+    }
+
+    translateAction(action: string): string {
+        switch (action) {
+            case 'Insert': return 'Ajout';
+            case 'Update': return 'Modification';
+            case 'Delete': return 'Suppression';
+            default: return action;
+        }
+    }
+
+    getEntityName(tableName: string): string {
+        const mapping: { [key: string]: string } = {
+            'tbl_document': 'Document',
+            'tbl_counter_part': 'Tiers',
+            'tbl_stock': 'Stock',
+            'tbl_payments': 'Paiement',
+            'tbl_article': 'Article',
+            'tbl_merchandise': 'Marchandise',
+            'AuditLogs': 'Journal d\'Audit',
+            'EmployeePayslip': 'Fiche de paie',
+            'Enterprise': 'Entreprise'
+        };
+        return mapping[tableName] || tableName;
+    }
+
+    humanizeAudit(log: AuditLog): string {
+        const entity = this.getEntityName(log.tableName);
+        const action = this.translateAction(log.action);
+        
+        if (log.action === 'Insert') {
+            return `${action} d'un nouveau ${entity}`;
+        }
+        
+        if (log.action === 'Delete') {
+            return `${action} du ${entity} ID: ${log.keyValues}`;
+        }
+
+        if (log.action === 'Update' && log.changedColumns) {
+            try {
+                const changed = JSON.parse(log.changedColumns) as string[];
+                return `Mise à jour des champs [${changed.join(', ')}] sur le ${entity}`;
+            } catch {
+                return `${action} sur le ${entity}`;
+            }
+        }
+
+        return `${action} sur le ${entity}`;
+    }
+
+    refreshAudit(): void {
+        this.loadAuditLogs();
+    }
+
+    showAuditDetails(log: AuditLog): void {
+        // Implement dialogue or expansion for details
+        console.log('Audit Details', log);
+        // For now, a simple alert or ideally a dialog.
+        // A dialog showing oldValues and newValues JSON would go here.
+        // I will use MatDialog for a simple component or just alert if we don't have a component.
+        // Let's create a dynamic dialog to show JSON.
+        this.dialog.open(AuditDetailsModalComponent, {
+            width: '600px',
+            data: log
         });
     }
 

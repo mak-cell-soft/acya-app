@@ -63,5 +63,30 @@ namespace ms.webapp.api.acya.api.Services
         throw;
       }
     }
+
+    /**
+     * Retrieves the most recent audit logs with optional filtering.
+     */
+    public async Task<IEnumerable<AuditLog>> GetRecentLogsAsync(int count = 50, string? userName = null, DateTime? date = null)
+    {
+        var query = _context.AuditLogs.AsQueryable();
+
+        if (!string.IsNullOrEmpty(userName))
+        {
+            query = query.Where(l => l.UserName != null && l.UserName.Contains(userName));
+        }
+
+        if (date.HasValue)
+        {
+            var startOfDay = date.Value.Date;
+            var endOfDay = startOfDay.AddDays(1);
+            query = query.Where(l => l.Timestamp >= startOfDay && l.Timestamp < endOfDay);
+        }
+
+        return await query
+            .OrderByDescending(l => l.Timestamp)
+            .Take(count)
+            .ToListAsync();
+    }
   }
 }
