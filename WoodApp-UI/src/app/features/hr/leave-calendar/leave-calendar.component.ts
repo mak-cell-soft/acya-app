@@ -29,7 +29,6 @@ export class LeaveCalendarComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadLeaves();
-    this.generateCalendar();
   }
 
   loadLeaves(): void {
@@ -37,9 +36,11 @@ export class LeaveCalendarComponent implements OnInit {
     this.leaveService.getAll().subscribe({
       next: (res) => {
         this.leaves = res;
+        this.generateCalendar();
         this.loading = false;
       },
       error: () => {
+        this.generateCalendar();
         this.loading = false;
       }
     });

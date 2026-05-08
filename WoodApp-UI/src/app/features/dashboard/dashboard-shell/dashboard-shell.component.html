@@ -112,9 +112,12 @@
           </a>
           <button mat-icon-button class="add-btn" routerLink="merchandise/reception"><mat-icon>add_circle_outline</mat-icon></button>
         </div>
-        <a class="sub-menu-item" routerLink="merchandise/sinvoices" routerLinkActive="active-sub">
-          <span>{{menu_sub_purchase_fact}}</span>
-        </a>
+        <div class="sub-menu-row">
+          <a class="sub-menu-item flex-item" routerLink="merchandise/sinvoices" routerLinkActive="active-sub">
+            <span>{{menu_sub_purchase_fact}}</span>
+          </a>
+          <button mat-icon-button class="add-btn" routerLink="merchandise/sinvoices/add"><mat-icon>add_circle_outline</mat-icon></button>
+        </div>
         <a class="sub-menu-item" routerLink="merchandise/scredit-notes" routerLinkActive="active-sub">
           <span>{{menu_sub_purchase_avoir}}</span>
         </a>

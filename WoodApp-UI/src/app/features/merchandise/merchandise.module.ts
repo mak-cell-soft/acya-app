@@ -14,6 +14,7 @@ import { AddSupplierOrderComponent } from './provider/supplier-order/add-supplie
 import { ListSupplierOrderComponent } from './provider/supplier-order/list-supplier-order/list-supplier-order.component';
 import { EditSupplierReceiptComponent } from './provider/edit-supplier-receipt/edit-supplier-receipt.component';
 import { EditCustomerDocumentComponent } from './customer/edit-document/edit-customer-document.component';
+import { AddSupplierInvoiceComponent } from './provider/add-supplier-invoice/add-supplier-invoice.component';
 
 // ── Customer Quote (Devis) ────────────────────────────────────────────────
 import { ListCustomerQuotesComponent } from './customer/customer-quote/list-customer-quotes/list-customer-quotes.component';
@@ -82,6 +83,7 @@ import { MatRadioModule } from '@angular/material/radio';
     AddSupplierOrderComponent,
     ListSupplierOrderComponent,
     EditSupplierReceiptComponent,
+    AddSupplierInvoiceComponent,
     EditCustomerDocumentComponent,
     DocumentDetailModalComponent,
     DocumentConversionModalComponent,
