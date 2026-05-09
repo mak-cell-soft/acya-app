@@ -125,27 +125,6 @@ export class ListSupplierInvoicesComponent implements AfterViewInit, OnInit {
     }
   }
 
-  // getAllDocumentsByType() {
-  //   this.allInvoices.data = [];
-  //   this.docService.GetByType(DocumentTypes.supplierInvoice).subscribe({
-  //     next: (response: Document[]) => {
-  //       // Handle the data here
-  //       // console.log('Data received:', response);
-  //       // You can assign the data to a property in your component if needed
-  //       // Sort the documents by docnumber in descending order
-  //       const sortedDocuments = response.sort((a, b) => b.docnumber.localeCompare(a.docnumber));
-
-  //       // Assign the sorted data to the property in your component
-  //       this.allInvoices.data = sortedDocuments;
-  //       console.log('this.allInvoices.data : ', this.allInvoices.data)
-  //       //this.allDocuments.data = response; // Assuming you have a property named 'documents' in your component
-  //     },
-  //     error: (error) => {
-  //       console.log(error)
-  //     }
-  //   });
-  // }
-
   fetchInvoices() {
     this.loading = true;
     this.docService.GetParentsWithChildren().subscribe({

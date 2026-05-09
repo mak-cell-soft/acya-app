@@ -251,6 +251,7 @@ namespace ms.webapp.api.acya.api.Controllers
           .Include(d => d.CounterPart)
           .Include(d => d.SalesSite)
           .Include(d => d.HoldingTaxes)
+          .Include(d => d.Taxes)
           .Include(d => d.Payments)
           .Include(d => d.AppUsers)
               .ThenInclude(u => u!.Persons)
@@ -296,9 +297,9 @@ namespace ms.webapp.api.acya.api.Controllers
                       .ThenInclude(cdm => cdm.QuantityMovements)
                           .ThenInclude(qm => qm!.ListOfLengths)
                               .ThenInclude(ll => ll.AppVarLength)
-          .Where(d => d.Type == _type.typeDoc)
+          .Where(d => !d.IsDeleted && d.Type == _type.typeDoc)
           .Where(d => d.CreationDate.HasValue
-                   && d.CreationDate.Value.Day == _type.day
+                   && (_type.day == 0 || d.CreationDate.Value.Day == _type.day)
                    && d.CreationDate.Value.Month == _type.month
                    && d.CreationDate.Value.Year == _type.year)
           .ToListAsync();

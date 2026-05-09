@@ -23,32 +23,20 @@ export class AccountingDashboardComponent implements OnInit {
 
   // Achats (Purchase)
   achatsData: MatTableDataSource<Document> = new MatTableDataSource<Document>();
-  achatsColumns = ['date', 'supplier', 'ht', 'tva', 'tax', 'ttc'];
+  achatsColumns = ['date', 'supplier', 'reference', 'ht', 'tva', 'tax', 'rs', 'ttc'];
   isLoadingAchats = false;
   achatsFilter: string = '';
 
-  achatsTotals = {
-    ht: 0,
-    tva: 0,
-    tax: 0,
-    ttc: 0,
-    count: 0
-  };
+  achatsTotals = { ht: 0, tva: 0, tax: 0, rs: 0, ttc: 0, count: 0 };
+  ventesTotals = { ht: 0, tva: 0, tax: 0, rs: 0, ttc: 0, count: 0 };
 
   // Ventes (Sell)
   ventesData: MatTableDataSource<Document> = new MatTableDataSource<Document>();
-  ventesColumns = ['date', 'customer', 'number', 'ht', 'tva_pct', 'tva_val', 'tax', 'ttc'];
+  ventesColumns = ['date', 'customer', 'number', 'ht', 'tva_pct', 'tva_val', 'tax', 'rs', 'ttc'];
   isLoadingVentes = false;
   ventesFilter: string = '';
   ventesNumberFilter: string = '';
 
-  ventesTotals = {
-    ht: 0,
-    tva: 0,
-    tax: 0,
-    ttc: 0,
-    count: 0
-  };
 
   @ViewChild('achatsPaginator') achatsPaginator!: MatPaginator;
   @ViewChild('achatsSort') achatsSort!: MatSort;
@@ -161,10 +149,11 @@ export class AccountingDashboardComponent implements OnInit {
       acc.ht += doc.total_ht_net_doc || 0;
       acc.tva += doc.total_tva_doc || 0;
       acc.tax += parseFloat(doc.taxe?.value || '0');
+      acc.rs += doc.holdingtax?.taxvalue || 0;
       acc.ttc += doc.total_net_ttc || 0;
       acc.count++;
       return acc;
-    }, { ht: 0, tva: 0, tax: 0, ttc: 0, count: 0 });
+    }, { ht: 0, tva: 0, tax: 0, rs: 0, ttc: 0, count: 0 });
   }
 
   calculateVentesTotals(): void {
@@ -172,10 +161,11 @@ export class AccountingDashboardComponent implements OnInit {
       acc.ht += doc.total_ht_net_doc || 0;
       acc.tva += doc.total_tva_doc || 0;
       acc.tax += parseFloat(doc.taxe?.value || '0');
+      acc.rs += doc.holdingtax?.taxvalue || 0;
       acc.ttc += doc.total_net_ttc || 0;
       acc.count++;
       return acc;
-    }, { ht: 0, tva: 0, tax: 0, ttc: 0, count: 0 });
+    }, { ht: 0, tva: 0, tax: 0, rs: 0, ttc: 0, count: 0 });
   }
 
   onMonthSelected(monthIndex: number): void {

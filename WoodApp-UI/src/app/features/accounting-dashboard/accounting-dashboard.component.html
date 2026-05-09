@@ -36,22 +36,38 @@
           <h2>Achats (Factures Fournisseur)</h2>
         </div>
         
-        <div class="summary-kpis">
-          <div class="kpi-chip debit">
-            <span class="kpi-label">Total HT</span>
-            <span class="kpi-value">{{ achatsTotals.ht | number:'1.3-3' }} TND</span>
+        <div class="summary-board">
+          <div class="summary-card accent-debit">
+            <span class="label">Total HT</span>
+            <div class="kpi-row">
+              <span class="value">{{ achatsTotals.ht | number:'1.3-3' }}</span>
+              <mat-icon class="kpi-icon">payments</mat-icon>
+            </div>
+            <span class="sub-value">TND</span>
           </div>
-          <div class="kpi-chip debit">
-            <span class="kpi-label">Total TVA</span>
-            <span class="kpi-value">{{ achatsTotals.tva | number:'1.3-3' }} TND</span>
+          <div class="summary-card accent-fiscal">
+            <span class="label">Total TVA</span>
+            <div class="kpi-row">
+              <span class="value">{{ achatsTotals.tva | number:'1.3-3' }}</span>
+              <mat-icon class="kpi-icon">account_balance</mat-icon>
+            </div>
+            <span class="sub-value">TND</span>
           </div>
-          <div class="kpi-chip debit">
-            <span class="kpi-label">Timbre</span>
-            <span class="kpi-value">{{ achatsTotals.tax | number:'1.3-3' }} TND</span>
+          <div class="summary-card accent-fiscal">
+            <span class="label">Fiscal (Timbre & RS)</span>
+            <div class="kpi-row">
+              <span class="value">{{ (achatsTotals.tax + achatsTotals.rs) | number:'1.3-3' }}</span>
+              <mat-icon class="kpi-icon">description</mat-icon>
+            </div>
+            <span class="sub-value">Timbre: {{ achatsTotals.tax | number:'1.3-3' }} | RS: {{ achatsTotals.rs | number:'1.3-3' }}</span>
           </div>
-          <div class="kpi-chip debit highlighted">
-            <span class="kpi-label">Total TTC</span>
-            <span class="kpi-value">{{ achatsTotals.ttc | number:'1.3-3' }} TND</span>
+          <div class="summary-card accent-highlight">
+            <span class="label">Total TTC</span>
+            <div class="kpi-row">
+              <span class="value">{{ achatsTotals.ttc | number:'1.3-3' }}</span>
+              <mat-icon class="kpi-icon">account_balance_wallet</mat-icon>
+            </div>
+            <span class="sub-value">Sur {{ achatsTotals.count }} factures</span>
           </div>
         </div>
       </div>
@@ -70,32 +86,82 @@
         <div class="table-container">
           <table mat-table [dataSource]="achatsData" #achatsSort="matSort" matSort>
             <ng-container matColumnDef="date">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                <div class="header-with-icon">
+                  <mat-icon>calendar_today</mat-icon>
+                  <span>DATE FACTURE</span>
+                </div>
+              </th>
               <td mat-cell *matCellDef="let doc">{{ doc.updatedate | date: 'dd/MM/yyyy' }}</td>
             </ng-container>
 
             <ng-container matColumnDef="supplier">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Fournisseur</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                <div class="header-with-icon">
+                  <mat-icon>business</mat-icon>
+                  <span>FOURNISSEUR</span>
+                </div>
+              </th>
               <td mat-cell *matCellDef="let doc">{{ doc.counterpart?.name }}</td>
             </ng-container>
 
+            <ng-container matColumnDef="reference">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                <div class="header-with-icon">
+                  <mat-icon>tag</mat-icon>
+                  <span>RÉFÉRENCE</span>
+                </div>
+              </th>
+              <td mat-cell *matCellDef="let doc">{{ doc.supplierReference || '—' }}</td>
+            </ng-container>
+
             <ng-container matColumnDef="ht">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">Net HT</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">
+                <div class="header-with-icon">
+                  <mat-icon>payments</mat-icon>
+                  <span>MONTANT HT</span>
+                </div>
+              </th>
               <td mat-cell *matCellDef="let doc" class="numeric">{{ doc.total_ht_net_doc | number:'1.3-3' }}</td>
             </ng-container>
 
             <ng-container matColumnDef="tva">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">TVA</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">
+                <div class="header-with-icon">
+                  <mat-icon>account_balance</mat-icon>
+                  <span>TVA</span>
+                </div>
+              </th>
               <td mat-cell *matCellDef="let doc" class="numeric">{{ doc.total_tva_doc | number:'1.3-3' }}</td>
             </ng-container>
 
             <ng-container matColumnDef="tax">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">Timbre</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">
+                <div class="header-with-icon">
+                  <mat-icon>description</mat-icon>
+                  <span>TIMBRE</span>
+                </div>
+              </th>
               <td mat-cell *matCellDef="let doc" class="numeric">{{ doc.taxe?.value | number:'1.3-3' }}</td>
             </ng-container>
 
+            <ng-container matColumnDef="rs">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">
+                <div class="header-with-icon">
+                  <mat-icon>money_off</mat-icon>
+                  <span>RS</span>
+                </div>
+              </th>
+              <td mat-cell *matCellDef="let doc" class="numeric">{{ doc.holdingtax?.taxvalue | number:'1.3-3' }}</td>
+            </ng-container>
+
             <ng-container matColumnDef="ttc">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">TTC</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">
+                <div class="header-with-icon">
+                  <mat-icon>account_balance_wallet</mat-icon>
+                  <span>NET TTC</span>
+                </div>
+              </th>
               <td mat-cell *matCellDef="let doc" class="numeric strong">{{ doc.total_net_ttc | number:'1.3-3' }}</td>
             </ng-container>
 
@@ -122,22 +188,38 @@
           <h2>Ventes (Factures Client)</h2>
         </div>
         
-        <div class="summary-kpis">
-          <div class="kpi-chip credit">
-            <span class="kpi-label">Total HT</span>
-            <span class="kpi-value">{{ ventesTotals.ht | number:'1.3-3' }} TND</span>
+        <div class="summary-board">
+          <div class="summary-card accent-credit">
+            <span class="label">Total HT</span>
+            <div class="kpi-row">
+              <span class="value">{{ ventesTotals.ht | number:'1.3-3' }}</span>
+              <mat-icon class="kpi-icon">payments</mat-icon>
+            </div>
+            <span class="sub-value">TND</span>
           </div>
-          <div class="kpi-chip credit">
-            <span class="kpi-label">Total TVA</span>
-            <span class="kpi-value">{{ ventesTotals.tva | number:'1.3-3' }} TND</span>
+          <div class="summary-card accent-fiscal">
+            <span class="label">Total TVA</span>
+            <div class="kpi-row">
+              <span class="value">{{ ventesTotals.tva | number:'1.3-3' }}</span>
+              <mat-icon class="kpi-icon">account_balance</mat-icon>
+            </div>
+            <span class="sub-value">TND</span>
           </div>
-          <div class="kpi-chip credit">
-            <span class="kpi-label">Timbre</span>
-            <span class="kpi-value">{{ ventesTotals.tax | number:'1.3-3' }} TND</span>
+          <div class="summary-card accent-fiscal">
+            <span class="label">Fiscal (Timbre & RS)</span>
+            <div class="kpi-row">
+              <span class="value">{{ (ventesTotals.tax + ventesTotals.rs) | number:'1.3-3' }}</span>
+              <mat-icon class="kpi-icon">description</mat-icon>
+            </div>
+            <span class="sub-value">Timbre: {{ ventesTotals.tax | number:'1.3-3' }} | RS: {{ ventesTotals.rs | number:'1.3-3' }}</span>
           </div>
-          <div class="kpi-chip credit highlighted">
-            <span class="kpi-label">Total TTC</span>
-            <span class="kpi-value">{{ ventesTotals.ttc | number:'1.3-3' }} TND</span>
+          <div class="summary-card accent-highlight">
+            <span class="label">Total TTC</span>
+            <div class="kpi-row">
+              <span class="value">{{ ventesTotals.ttc | number:'1.3-3' }}</span>
+              <mat-icon class="kpi-icon">account_balance_wallet</mat-icon>
+            </div>
+            <span class="sub-value">Sur {{ ventesTotals.count }} factures</span>
           </div>
         </div>
       </div>
@@ -161,44 +243,94 @@
         <div class="table-container">
           <table mat-table [dataSource]="ventesData" #ventesSort="matSort" matSort>
             <ng-container matColumnDef="date">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                <div class="header-with-icon">
+                  <mat-icon>calendar_today</mat-icon>
+                  <span>DATE FACTURE</span>
+                </div>
+              </th>
               <td mat-cell *matCellDef="let doc">{{ doc.updatedate | date: 'dd/MM/yyyy' }}</td>
             </ng-container>
 
             <ng-container matColumnDef="customer">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Client</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                <div class="header-with-icon">
+                  <mat-icon>person</mat-icon>
+                  <span>CLIENT</span>
+                </div>
+              </th>
               <td mat-cell *matCellDef="let doc">
                 {{ doc.counterpart?.name || (doc.counterpart?.firstname + ' ' + doc.counterpart?.lastname) }}
               </td>
             </ng-container>
 
             <ng-container matColumnDef="number">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>N° Facture</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                <div class="header-with-icon">
+                  <mat-icon>receipt</mat-icon>
+                  <span>N° FACTURE</span>
+                </div>
+              </th>
               <td mat-cell *matCellDef="let doc">{{ doc.docnumber }}</td>
             </ng-container>
 
             <ng-container matColumnDef="ht">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">Net HT</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">
+                <div class="header-with-icon">
+                  <mat-icon>payments</mat-icon>
+                  <span>MONTANT HT</span>
+                </div>
+              </th>
               <td mat-cell *matCellDef="let doc" class="numeric">{{ doc.total_ht_net_doc | number:'1.3-3' }}</td>
             </ng-container>
 
             <ng-container matColumnDef="tva_pct">
-              <th mat-header-cell *matHeaderCellDef class="numeric">TVA %</th>
+              <th mat-header-cell *matHeaderCellDef class="numeric">
+                <div class="header-with-icon">
+                  <mat-icon>percent</mat-icon>
+                  <span>TAUX TVA</span>
+                </div>
+              </th>
               <td mat-cell *matCellDef="let doc" class="numeric">{{ getTvaRate(doc) }}</td>
             </ng-container>
 
             <ng-container matColumnDef="tva_val">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">TVA Val</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">
+                <div class="header-with-icon">
+                  <mat-icon>account_balance</mat-icon>
+                  <span>MONTANT TVA</span>
+                </div>
+              </th>
               <td mat-cell *matCellDef="let doc" class="numeric">{{ doc.total_tva_doc | number:'1.3-3' }}</td>
             </ng-container>
 
             <ng-container matColumnDef="tax">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">Timbre</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">
+                <div class="header-with-icon">
+                  <mat-icon>description</mat-icon>
+                  <span>TIMBRE</span>
+                </div>
+              </th>
               <td mat-cell *matCellDef="let doc" class="numeric">{{ doc.taxe?.value | number:'1.3-3' }}</td>
             </ng-container>
 
+            <ng-container matColumnDef="rs">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">
+                <div class="header-with-icon">
+                  <mat-icon>money_off</mat-icon>
+                  <span>RS</span>
+                </div>
+              </th>
+              <td mat-cell *matCellDef="let doc" class="numeric">{{ doc.holdingtax?.taxvalue | number:'1.3-3' }}</td>
+            </ng-container>
+
             <ng-container matColumnDef="ttc">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">Valeur TTC</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="numeric">
+                <div class="header-with-icon">
+                  <mat-icon>account_balance_wallet</mat-icon>
+                  <span>NET TTC</span>
+                </div>
+              </th>
               <td mat-cell *matCellDef="let doc" class="numeric strong">{{ doc.total_net_ttc | number:'1.3-3' }}</td>
             </ng-container>
 
@@ -218,4 +350,3 @@
     </section>
   </div>
 </div>
-

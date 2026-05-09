@@ -100,6 +100,68 @@ h2 {
 }
 
 /* KPI Chips */
+.summary-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.summary-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  border: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+.summary-card.accent-debit { border-left: 4px solid #f87171; }
+.summary-card.accent-credit { border-left: 4px solid #4ade80; }
+.summary-card.accent-fiscal { border-left: 4px solid #6366f1; }
+.summary-card.accent-highlight { border-left: 4px solid #f59e0b; background: #fffcf0; }
+
+.summary-card .label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.summary-card .value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.summary-card .sub-value {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.kpi-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.kpi-icon {
+  color: #cbd5e1;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
 .summary-kpis {
   display: flex;
   gap: 12px;
@@ -155,7 +217,7 @@ h2 {
 }
 
 .search-field {
-  width: 300px;
+  width: 600px;
 }
 
 .loading-bar {
@@ -194,6 +256,24 @@ tr.mat-row:hover {
 .numeric {
   text-align: right !important;
   font-family: 'DM Mono', monospace;
+}
+
+/* Ensure sort headers also align correctly under the column name */
+th.numeric ::ng-deep .mat-sort-header-container {
+  justify-content: flex-end !important;
+}
+
+.header-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-with-icon mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
 }
 
 .strong {
