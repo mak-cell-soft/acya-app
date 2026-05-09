@@ -168,8 +168,8 @@ export class AccountingDashboardComponent implements OnInit {
     }, { ht: 0, tva: 0, tax: 0, rs: 0, ttc: 0, count: 0 });
   }
 
-  onMonthSelected(monthIndex: number): void {
-    this.selectedMonth = monthIndex;
+  onMonthSelected(event: any): void {
+    this.selectedMonth = event.value;
     this.loadAllData();
   }
 

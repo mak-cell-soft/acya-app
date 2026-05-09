@@ -17,6 +17,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 @NgModule({
   declarations: [
@@ -37,8 +38,9 @@ import { MatDividerModule } from '@angular/material/divider';
     MatButtonModule,
     MatChipsModule,
     MatCardModule,
-    MatDividerModule
-  ]
+    MatDividerModule,
+    MatButtonToggleModule
+]
 })
 export class AccountingDashboardModule { }
 

@@ -14,16 +14,15 @@
       </div>
     </div>
     
-    <!-- Month Chip Selection -->
+    <!-- Month Selection centered -->
     <div class="month-navigator">
-      <mat-chip-listbox [value]="selectedMonth">
-        <mat-chip-option *ngFor="let month of months; let i = index" 
-                         [value]="i" 
-                         (selectableChange)="onMonthSelected(i)"
-                         [selected]="selectedMonth === i">
+      <mat-button-toggle-group class="month-toggle-group" 
+                               [value]="selectedMonth" 
+                               (change)="onMonthSelected($event)">
+        <mat-button-toggle *ngFor="let month of months; let i = index" [value]="i">
           {{ month }}
-        </mat-chip-option>
-      </mat-chip-listbox>
+        </mat-button-toggle>
+      </mat-button-toggle-group>
     </div>
   </header>
 
@@ -92,7 +91,7 @@
                   <span>DATE FACTURE</span>
                 </div>
               </th>
-              <td mat-cell *matCellDef="let doc">{{ doc.updatedate | date: 'dd/MM/yyyy' }}</td>
+              <td mat-cell *matCellDef="let doc">{{ doc.creationdate | date: 'dd/MM/yyyy' }}</td>
             </ng-container>
 
             <ng-container matColumnDef="supplier">
@@ -249,7 +248,7 @@
                   <span>DATE FACTURE</span>
                 </div>
               </th>
-              <td mat-cell *matCellDef="let doc">{{ doc.updatedate | date: 'dd/MM/yyyy' }}</td>
+              <td mat-cell *matCellDef="let doc">{{ doc.creationdate | date: 'dd/MM/yyyy' }}</td>
             </ng-container>
 
             <ng-container matColumnDef="customer">
