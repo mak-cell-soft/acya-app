@@ -9,23 +9,26 @@
 :host {
   display: block;
 
-  /* ── Design Tokens (mirroring elance-landing.html :root vars) ── */
-  --purple-50:  #EEEDFE;
-  --purple-100: #CECBF6;
-  --purple-600: #534AB7;
-  --purple-800: #3C3489;
-  --purple-900: #26215C;
-  --teal-100:   #9FE1CB;
-  --teal-400:   #1D9E75;
-  --teal-600:   #0F6E56;
-  --gray-50:    #F8F7FF;
-  --gray-100:   #F1EFE8;
-  --gray-400:   #888780;
-  --gray-800:   #2C2C2A;
+  /* ── Design Tokens — Timber & Forest palette matching sign-in aesthetic ── */
+  /* Primary forest green replacing cold purple */
+  --purple-50:  #EAF3EE;        /* was #EEEDFE — now warm mint-white  */
+  --purple-100: #B6D5C4;        /* was #CECBF6 — now sage border      */
+  --purple-600: #0B3B24;        /* was #534AB7 — now primary-forest   */
+  --purple-800: #082d1b;        /* was #3C3489 — now dark forest      */
+  --purple-900: #061a10;        /* was #26215C — now deepest forest   */
+  /* Timber accent replacing teal */
+  --teal-100:   #D4B896;        /* was #9FE1CB — now light timber     */
+  --teal-400:   #8C6239;        /* was #1D9E75 — now secondary-timber */
+  --teal-600:   #6B4825;        /* was #0F6E56 — now dark timber      */
+  /* Warm sand backgrounds replacing cold grays */
+  --gray-50:    #F5F5F0;        /* was #F8F7FF — now bg-sand          */
+  --gray-100:   #EDEEE8;        /* was #F1EFE8 — now warm off-white   */
+  --gray-400:   #7A7870;        /* was #888780 — warm muted text      */
+  --gray-800:   #2A2820;        /* was #2C2C2A — warm dark text       */
   --white:      #FFFFFF;
 
   font-family: 'DM Sans', sans-serif;
-  background: var(--white);
+  background: var(--gray-50);   /* warm sand instead of cold white    */
   color: var(--gray-800);
   overflow-x: hidden;
 }
@@ -40,7 +43,8 @@
 /* ── NAV ── */
 .top-nav {
   position: sticky; top: 0; z-index: 100;
-  background: rgba(255,255,255,0.92);
+  /* Warm sand glass — matches sign-in bg-sand palette */
+  background: rgba(245,245,240,0.94);
   backdrop-filter: blur(12px);
   border-bottom: 0.5px solid var(--purple-100);
   padding: 0 2.5rem;
@@ -89,19 +93,22 @@
   min-height: 90vh;
   display: flex; align-items: center;
   position: relative; overflow: hidden;
-  background: linear-gradient(135deg, var(--gray-50) 0%, var(--purple-50) 60%, #E1F5EE 100%);
+  /* Warm gradient: sand → soft mint → light timber — mirrors sign-in warmth */
+  background: linear-gradient(135deg, #F5F5F0 0%, #EAF3EE 55%, #F0E8DC 100%);
 }
 .hero-bg-circle {
   position: absolute; border-radius: 50%; pointer-events: none;
 }
 .hero-bg-circle.c1 {
   width: 600px; height: 600px;
-  background: radial-gradient(circle, rgba(83,74,183,0.08) 0%, transparent 70%);
+  /* Forest green ambient glow */
+  background: radial-gradient(circle, rgba(11,59,36,0.07) 0%, transparent 70%);
   top: -100px; right: -100px;
 }
 .hero-bg-circle.c2 {
   width: 400px; height: 400px;
-  background: radial-gradient(circle, rgba(29,158,117,0.08) 0%, transparent 70%);
+  /* Timber amber ambient glow */
+  background: radial-gradient(circle, rgba(140,98,57,0.08) 0%, transparent 70%);
   bottom: -80px; left: 5%;
 }
 .hero-inner {
@@ -189,7 +196,8 @@
 
 /* ── MODULES SECTION ── */
 .modules-section {
-  padding: 6rem 2.5rem; background: white;
+  /* Warm white instead of cold pure white */
+  padding: 6rem 2.5rem; background: #FAFAF7;
 }
 .section-inner { max-width: 1200px; margin: 0 auto; }
 .section-label {
@@ -284,6 +292,7 @@
 
 /* ── WHY SECTION ── */
 .why-section {
+  /* Warm sand section background */
   padding: 6rem 2.5rem; background: var(--gray-50);
 }
 .why-grid {
