@@ -170,25 +170,13 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
       }
 
       var ent = await _context.Enterprises.FindAsync(user.EnterpriseId);
-      if (ent == null) return Ok(new UserAuthDto
-      {
-        fullname = user.Persons!.FullName,
-        isSuccess = false,
-        message = "Entreprise introuvable"
-      });
-
-      if (ent.Guid.ToString() != loginDto.enterpriseRef) return Ok(new UserAuthDto
-      {
-        fullname = user.Persons!.FullName,
-        isSuccess = false,
-        message = "Référence de l'entreprise non valide"
-      });
-
+      
       return Ok(new UserAuthDto
       {
         fullname = user.Persons!.FullName,
         isSuccess = true,
         message = "Authentification avec Succés",
+        enterpriseName = ent?.Name,
         token = _tokenService.CreateToken(user)
       });
     }

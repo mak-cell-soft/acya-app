@@ -8,5 +8,6 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Authentication
     public string? token { get; set; }
     public bool isSuccess { get; set; }
     public string? message { get; set; }
+    public string? enterpriseName { get; set; }
   }
 }

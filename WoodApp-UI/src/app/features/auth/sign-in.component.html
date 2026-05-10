@@ -47,14 +47,7 @@
           </mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Référence de l'Entreprise</mat-label>
-          <input matInput placeholder="Ex: 1e3f09a2-2cc3-4c5e-8e6b-..." formControlName="enterpriseRef" />
-          <mat-icon matPrefix class="input-icon">business</mat-icon>
-          <mat-error *ngIf="enterpriseRef?.errors?.['required']">
-            Référence Entreprise requise
-          </mat-error>
-        </mat-form-field>
+
 
         <div class="form-actions">
           <div class="action-links">

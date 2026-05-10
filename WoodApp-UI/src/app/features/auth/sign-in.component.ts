@@ -37,15 +37,12 @@ export class SignInComponent implements OnInit {
     return this.loginForm.get('password');
   }
 
-  get enterpriseRef() {
-    return this.loginForm.get('enterpriseRef');
-  }
+
 
   createForm() {
     this.loginForm = this.fb.group({
       login: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required],
-      enterpriseRef: ['', Validators.required]
+      password: ['', Validators.required]
     });
   }
 
@@ -62,7 +59,7 @@ export class SignInComponent implements OnInit {
            * We check the isSuccess flag to determine if the login actually succeeded.
            */
           if (response.isSuccess) {
-            this.toastr.success(response.message || "Authentification avec succès", "Succès");
+            this.toastr.success(`Authentification avec succès à ${response.enterpriseName}`, "Succès");
             this.router.navigateByUrl('home/dashboard');
           } else {
             // Business logic failures (incorrect password/email/enterprise)

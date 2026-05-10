@@ -8,4 +8,5 @@ export class UserAuth {
     token!: string | null;
     isSuccess: boolean = false;
     message: string = '';
+    enterpriseName: string = '';
 }
