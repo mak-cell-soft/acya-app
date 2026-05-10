@@ -180,6 +180,48 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
         token = _tokenService.CreateToken(user)
       });
     }
+
+    [AllowAnonymous]
+    [HttpPost("forgot-password")]
+    public async Task<ActionResult> ForgotPassword(PasswordResetRequestDto dto)
+    {
+      var user = await _context.AppUsers.SingleOrDefaultAsync(u => u.Email == dto.Email);
+      if (user == null) return Ok(new { message = "Si cet email existe, un code a été généré." });
+
+      user.PasswordResetToken = Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper();
+      user.PasswordResetTokenExpiry = DateTime.UtcNow.AddMinutes(15);
+
+      await _context.SaveChangesAsync();
+
+      return Ok(new
+      {
+        token = user.PasswordResetToken,
+        expiresAt = user.PasswordResetTokenExpiry,
+        message = "Code de réinitialisation généré avec succès."
+      });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("reset-password")]
+    public async Task<ActionResult> ResetPassword(PasswordResetDto dto)
+    {
+      var user = await _context.AppUsers.SingleOrDefaultAsync(u =>
+          u.PasswordResetToken == dto.Token && u.PasswordResetTokenExpiry > DateTime.UtcNow);
+
+      if (user == null) return BadRequest("Code invalide ou expiré.");
+
+      if (dto.NewPassword != dto.ConfirmPassword) return BadRequest("Les mots de passe ne correspondent pas.");
+
+      using var hmac = new HMACSHA512();
+      user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.NewPassword!));
+      user.PasswordSalt = hmac.Key;
+      user.PasswordResetToken = null;
+      user.PasswordResetTokenExpiry = null;
+
+      await _context.SaveChangesAsync();
+
+      return Ok(new { message = "Mot de passe réinitialisé avec succès." });
+    }
     private async Task<bool> UserExists(string login)
     {
       return await _context.AppUsers.AnyAsync(x => x.Email!.ToLower() == login.ToLower());

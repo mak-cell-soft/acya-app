@@ -52,7 +52,33 @@
         <div class="form-actions">
           <div class="action-links">
             <mat-checkbox color="primary" class="custom-checkbox">Se souvenir de moi</mat-checkbox>
-            <a href="#" class="forgot-pwd" (click)="$event.preventDefault()">Mot de passe oublié ?</a>
+            <a href="javascript:void(0)" class="forgot-pwd" (click)="openForgotPanel()">Mot de passe oublié ?</a>
+          </div>
+
+          <!-- Forgot Password Panel -->
+          <div class="forgot-panel" [class.show]="showForgotPanel">
+            <div class="panel-content">
+              <p class="panel-hint">Entrez votre email pour générer un code de réinitialisation.</p>
+              <div class="forgot-input-group">
+                <mat-form-field appearance="outline" class="full-width compact">
+                  <mat-label>Email</mat-label>
+                  <input matInput [(ngModel)]="forgotEmail" [ngModelOptions]="{standalone: true}" placeholder="votre@email.com" />
+                </mat-form-field>
+                <button type="button" mat-flat-button class="mini-submit" (click)="submitForgotPassword()" [disabled]="isForgotLoading">
+                  <span *ngIf="!isForgotLoading">Générer</span>
+                  <mat-spinner diameter="18" *ngIf="isForgotLoading"></mat-spinner>
+                </button>
+              </div>
+
+              <div class="token-display" *ngIf="resetToken">
+                <div class="token-label">Votre code de réinitialisation :</div>
+                <div class="token-value">{{resetToken}}</div>
+                <p class="token-expiry">Valide pendant 15 minutes. Communiquez-le à votre administrateur si nécessaire.</p>
+                <a [routerLink]="['/login/reset-password']" [queryParams]="{token: resetToken}" class="reset-link-btn">
+                  Aller à la page de réinitialisation
+                </a>
+              </div>
+            </div>
           </div>
 
           <!-- Submit button with loading spinner integration -->

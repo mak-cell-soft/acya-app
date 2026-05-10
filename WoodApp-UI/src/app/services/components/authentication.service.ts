@@ -158,4 +158,12 @@ export class AuthenticationService {
     this.userSubject.next(this.getUserDetail());
   }
 
+  forgotPassword(email: string): Observable<{ token: string; expiresAt: string; message: string }> {
+    return this.http.post<{ token: string; expiresAt: string; message: string }>(this.baseUrl + 'Account/forgot-password', { email });
+  }
+
+  resetPassword(dto: any): Observable<{ isSuccess: boolean; message: string }> {
+    return this.http.post<{ isSuccess: boolean; message: string }>(this.baseUrl + 'Account/reset-password', dto);
+  }
+
 }

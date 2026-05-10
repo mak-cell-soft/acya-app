@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { AuthRoutingModule } from './auth-routing.module';
 import { SignInComponent } from './sign-in.component';
+import { ResetPasswordComponent } from './reset-password/reset-password.component';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -17,7 +18,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @NgModule({
   declarations: [
-    SignInComponent
+    SignInComponent,
+    ResetPasswordComponent
   ],
   imports: [
     CommonModule,

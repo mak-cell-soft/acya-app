@@ -15,6 +15,8 @@ namespace ms.webapp.api.acya.core.Entities
     public bool IsActive { get; set; }
     public byte[]? PasswordHash { get; set; }
     public byte[]? PasswordSalt { get; set; }
+    public string? PasswordResetToken { get; set; }
+    public DateTime? PasswordResetTokenExpiry { get; set; }
 
     public int IdPerson { get; set; }
     public Person? Persons { get; set; }

@@ -20,6 +20,13 @@ export class SignInComponent implements OnInit {
   hide: boolean = true;
   loginForm!: FormGroup;
   loading: boolean = false;
+  
+  // Forgot password feature
+  showForgotPanel: boolean = false;
+  forgotEmail: string = '';
+  isForgotLoading: boolean = false;
+  resetToken: string | null = null;
+  tokenExpiry: string | null = null;
 
   constructor(
     private fb: NonNullableFormBuilder
@@ -81,7 +88,36 @@ export class SignInComponent implements OnInit {
       });
     }
   }
+  
+  openForgotPanel() {
+    this.showForgotPanel = !this.showForgotPanel;
+    this.resetToken = null;
+    this.cdr.markForCheck();
+  }
 
+  submitForgotPassword() {
+    if (!this.forgotEmail || !this.forgotEmail.includes('@')) {
+      this.toastr.warning("Veuillez saisir un email valide.", "Attention");
+      return;
+    }
 
+    this.isForgotLoading = true;
+    this.cdr.markForCheck();
+
+    this.authService.forgotPassword(this.forgotEmail).subscribe({
+      next: (res) => {
+        this.resetToken = res.token;
+        this.tokenExpiry = res.expiresAt;
+        this.isForgotLoading = false;
+        this.toastr.success(res.message, "Succès");
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.isForgotLoading = false;
+        this.toastr.error("Une erreur est survenue.", "Erreur");
+        this.cdr.markForCheck();
+      }
+    });
+  }
 
 }
