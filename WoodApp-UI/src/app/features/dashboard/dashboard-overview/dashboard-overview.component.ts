@@ -9,11 +9,14 @@ import { forkJoin } from 'rxjs';
 import { ChartConfiguration, ChartData, ChartOptions } from 'chart.js';
 import { AuthenticationService } from '../../../services/components/authentication.service';
 import { PaymentService } from '../../../services/components/payment.service';
+import { CaisseService } from '../../../services/treasury/caisse.service';
 import { DashboardPaymentDto } from '../../../models/components/payment';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-dashboard-overview',
@@ -27,6 +30,9 @@ export class DashboardOverviewComponent implements OnInit {
   authService = inject(AuthenticationService);
   paymentService = inject(PaymentService);
   stockService = inject(StockService);
+  caisseService = inject(CaisseService);
+  dialog = inject(MatDialog);
+  snackBar = inject(MatSnackBar);
   router = inject(Router);
 
   selectedDate: Date = new Date();
@@ -34,6 +40,11 @@ export class DashboardOverviewComponent implements OnInit {
   dataSource = new MatTableDataSource<DashboardPaymentDto>([]);
   paymentMethodTotals: { method: string, total: number, icon: string, color: string }[] = [];
   paymentsLoading: boolean = false;
+  caisseBalance: number = 0;
+  caisseMovements: any[] = [];
+  caisseLoading: boolean = false;
+  /** Date currently shown in the timeline — defaults to today */
+  timelineDate: Date = new Date();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -88,11 +99,102 @@ export class DashboardOverviewComponent implements OnInit {
 
   loading: boolean = true;
   userName: string = 'Utilisateur'; // Could fetch from AuthService
+  siteName: string = '';
 
   ngOnInit() {
     this.loadDashboardData();
     this.loadDashboardPayments();
-    this.userName = this.authService.getUserDetail()?.fullname || 'Utilisateur';
+    this.loadCaisseBalance();
+    this.loadRecentMovements();
+    const userDetail = this.authService.getUserDetail();
+    this.userName = userDetail?.fullname || 'Utilisateur';
+    this.siteName = userDetail?.defaultSite || '';
+  }
+
+  get isAdmin(): boolean {
+    return this.authService.getRole() === 'Admin';
+  }
+
+  loadCaisseBalance() {
+    const user = this.authService.getUserDetail();
+    if (user?.defaultSiteId) {
+      this.caisseLoading = true;
+      this.caisseService.getSiteBalance(Number(user.defaultSiteId)).subscribe({
+        next: (res) => {
+          this.caisseBalance = res.currentBalance;
+          this.caisseLoading = false;
+        },
+        error: (err) => {
+          console.error('Error loading caisse balance', err);
+          this.caisseLoading = false;
+        }
+      });
+    }
+  }
+
+  loadRecentMovements() {
+    const user = this.authService.getUserDetail();
+    if (user?.defaultSiteId) {
+      // Pass the selected timeline date for backend-side filtering
+      this.caisseService.getMovements(Number(user.defaultSiteId), 100, this.timelineDate).subscribe({
+        next: (movements) => {
+          this.caisseMovements = movements;
+        },
+        error: (err) => console.error('Error loading movements', err)
+      });
+    }
+  }
+
+  /** Navigate the timeline one day backward */
+  prevTimelineDay(): void {
+    const d = new Date(this.timelineDate);
+    d.setDate(d.getDate() - 1);
+    this.timelineDate = d;
+    this.loadRecentMovements();
+  }
+
+  /** Navigate the timeline one day forward — blocked on today */
+  nextTimelineDay(): void {
+    if (this.isTimelineToday) return;
+    const next = new Date(this.timelineDate);
+    next.setDate(next.getDate() + 1);
+    this.timelineDate = next;
+    this.loadRecentMovements();
+  }
+
+  /** True when the timeline is showing today — disables the forward arrow */
+  get isTimelineToday(): boolean {
+    const today = new Date();
+    return this.timelineDate.toDateString() === today.toDateString();
+  }
+
+  /** Expose today's date for template use */
+  get today(): Date { return new Date(); }
+
+  /** Jump the timeline back to today */
+  goToToday(): void {
+    this.timelineDate = new Date();
+    this.loadRecentMovements();
+  }
+
+  openCaisseMovementDialog(type: 'ENTREE' | 'SORTIE') {
+    const user = this.authService.getUserDetail();
+    if (!user?.defaultSiteId) return;
+
+    import('../modals/caisse-movement-modal/caisse-movement-modal.component').then(m => {
+      const dialogRef = this.dialog.open(m.CaisseMovementModalComponent, {
+        width: '500px',
+        maxWidth: '95vw',
+        data: { siteId: Number(user.defaultSiteId), type: type }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.loadCaisseBalance();
+          this.loadRecentMovements();
+        }
+      });
+    });
   }
 
   loadDashboardPayments() {
@@ -285,6 +387,37 @@ export class DashboardOverviewComponent implements OnInit {
         }
       ]
     };
+  }
+
+  /** Format reason string: REMISE_CENTRALE → Remise Centrale */
+  formatReason(reason: string): string {
+    if (!reason) return '';
+    return reason
+      .split('_')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(' ');
+  }
+
+  /**
+   * Suppression hard-delete d'un mouvement manuel depuis la timeline.
+   * Uniquement disponible pour les mouvements sans PaymentId (Appro/Remise).
+   */
+  deleteMovement(movementId: number, reason: string): void {
+    if (!confirm(`Supprimer définitivement "${this.formatReason(reason)}" ?\nCette action est irréversible.`)) {
+      return;
+    }
+
+    this.caisseService.deleteMovement(movementId).subscribe({
+      next: () => {
+        this.snackBar.open('Mouvement supprimé', 'OK', { duration: 3000, panelClass: ['snack-success'] });
+        this.loadCaisseBalance();
+        this.loadRecentMovements();
+      },
+      error: (err) => {
+        const msg = err?.error?.message || 'Erreur lors de la suppression';
+        this.snackBar.open(msg, 'Fermer', { duration: 5000 });
+      }
+    });
   }
 
   navigateTo(path: string) {

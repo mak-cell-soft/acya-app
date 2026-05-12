@@ -52,6 +52,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { BaseChartDirective } from 'ng2-charts';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 @NgModule({
   declarations: [
@@ -105,6 +106,7 @@ import { BaseChartDirective } from 'ng2-charts';
     MatProgressSpinnerModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatSnackBarModule,
     BaseChartDirective
   ]
 })

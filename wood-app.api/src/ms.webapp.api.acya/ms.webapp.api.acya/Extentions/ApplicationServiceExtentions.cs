@@ -64,6 +64,8 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<IAuditService, AuditService>();
       services.AddScoped<IAnalyticsService, AnalyticsService>();
       services.AddScoped<ISalaryCalculationService, SalaryCalculationService>();
+      services.AddScoped<BankDepositRepository>();
+      services.AddScoped<CaisseMovementRepository>();
       services.AddScoped<AuditTrailInterceptor>();
 
       // Notifications & Reminders (§5.19)

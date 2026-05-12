@@ -15,6 +15,12 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Config
     public bool? isdeleted { get; set; }
     public bool? editing { get; set; }
 
+    public decimal chequeDepositFeeHT { get; set; }
+    public decimal traiteDepositFeeHT { get; set; }
+    public decimal wireTransferFeeHT { get; set; }
+    public decimal miscFeeHT { get; set; }
+    public decimal initialBalance { get; set; }
+
     public BankDto()
     {
 
@@ -38,6 +44,12 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Config
       creationdate = entity.CreationDate; 
       updatedate = entity.UpdateDate;
       isdeleted = entity.IsDeleted;
+      
+      chequeDepositFeeHT = entity.ChequeDepositFeeHT;
+      traiteDepositFeeHT = entity.TraiteDepositFeeHT;
+      wireTransferFeeHT = entity.WireTransferFeeHT;
+      miscFeeHT = entity.MiscFeeHT;
+      initialBalance = entity.InitialBalance;
     }
   }
 }

@@ -12,6 +12,9 @@ import { AnalyticsService } from '../../../services/components/analytics.service
 import { DashboardKpi } from '../../../models/analytics';
 import { AuditLog } from '../../../models/audit-log';
 import { AuditDetailsModalComponent } from '../modals/audit-details-modal/audit-details-modal.component';
+import { BankDepositService } from '../../../services/treasury/bank-deposit.service';
+import { CaisseService } from '../../../services/treasury/caisse.service';
+import { BankBalance } from '../../../models/bank-deposit';
 
 @Component({
   selector: 'app-accounting-balance-dashboard',
@@ -21,6 +24,12 @@ import { AuditDetailsModalComponent } from '../modals/audit-details-modal/audit-
 export class AccountingBalanceDashboardComponent implements OnInit {
     customerBalances: MatTableDataSource<BalanceEntry> = new MatTableDataSource<BalanceEntry>();
     supplierBalances: MatTableDataSource<BalanceEntry> = new MatTableDataSource<BalanceEntry>();
+    
+    // Treasury data
+    bankBalances: BankBalance[] = [];
+    siteBalances: any[] = [];
+    totalCaissePrincipale: number = 0;
+    loadingTreasury = false;
     loading = false;
     activeTab: 'customers' | 'suppliers' = 'customers';
     displayedColumns: string[] = ['label', 'closingBalance', 'lastTransaction', 'lastTxDate', 'action'];
@@ -67,6 +76,8 @@ export class AccountingBalanceDashboardComponent implements OnInit {
     constructor(
         private adminDashService: AdminDashService, 
         private analyticsService: AnalyticsService,
+        private bankService: BankDepositService,
+        private caisseService: CaisseService,
         private dialog: MatDialog
     ) { }
 
@@ -74,6 +85,7 @@ export class AccountingBalanceDashboardComponent implements OnInit {
         this.loadData();
         this.loadKpis();
         this.loadAuditLogs();
+        this.loadTreasuryData();
     }
 
     loadData(): void {
@@ -121,11 +133,51 @@ export class AccountingBalanceDashboardComponent implements OnInit {
         });
     }
 
+    openDepositDialog() {
+        import('../modals/bank-deposit-modal/bank-deposit-modal.component').then(m => {
+            const dialogRef = this.dialog.open(m.BankDepositModalComponent, {
+                width: '550px',
+                maxWidth: '95vw',
+                data: { siteId: null } // null for admin/main caisse or let them choose?
+            });
+
+            dialogRef.afterClosed().subscribe(result => {
+                if (result) this.loadTreasuryData();
+            });
+        });
+    }
+
     refresh(): void {
         this.loading = true;
         this.adminDashService.refreshBalances().subscribe({
-            next: () => this.loadData(),
+            next: () => {
+                this.loadData();
+                this.loadTreasuryData();
+            },
             error: () => this.loading = false
+        });
+    }
+
+    loadTreasuryData(): void {
+        this.loadingTreasury = true;
+        
+        // Load Bank Balances
+        this.bankService.getAllBankBalances().subscribe({
+            next: (balances) => this.bankBalances = balances,
+            error: (err) => console.error('Failed to load bank balances', err)
+        });
+
+        // Load Site Caisse Balances
+        this.caisseService.getAllBalances().subscribe({
+            next: (sites) => {
+                this.siteBalances = sites;
+                this.totalCaissePrincipale = sites.reduce((sum, s) => sum + s.currentBalance, 0);
+                this.loadingTreasury = false;
+            },
+            error: (err) => {
+                console.error('Failed to load site balances', err);
+                this.loadingTreasury = false;
+            }
         });
     }
 

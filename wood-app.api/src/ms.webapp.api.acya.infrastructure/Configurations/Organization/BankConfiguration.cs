@@ -20,6 +20,12 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Organization
             entity.Property(e => e.UpdateDate).HasColumnName("updatedate");
             entity.Property(e => e.IsDeleted).HasColumnName("isdeleted");
             entity.Property(e => e.UpdatedBy).HasColumnName("idappuser");
+            
+            entity.Property(e => e.ChequeDepositFeeHT).HasColumnName("ChequeDepositFeeHT");
+            entity.Property(e => e.TraiteDepositFeeHT).HasColumnName("TraiteDepositFeeHT");
+            entity.Property(e => e.WireTransferFeeHT).HasColumnName("WireTransferFeeHT");
+            entity.Property(e => e.MiscFeeHT).HasColumnName("MiscFeeHT");
+            entity.Property(e => e.InitialBalance).HasColumnName("InitialBalance");
 
             entity.HasOne(e => e.AppUser)
                .WithMany()

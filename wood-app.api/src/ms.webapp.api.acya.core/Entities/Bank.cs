@@ -15,6 +15,12 @@ namespace ms.webapp.api.acya.core.Entities
     public DateTime UpdateDate { get; set; }
     public bool? IsDeleted { get; set; }
 
+    public decimal ChequeDepositFeeHT { get; set; }
+    public decimal TraiteDepositFeeHT { get; set; }
+    public decimal WireTransferFeeHT { get; set; }
+    public decimal MiscFeeHT { get; set; }
+    public decimal InitialBalance { get; set; }
+
     public int? UpdatedBy { get; set; }
     public AppUser? AppUser { get; set; }
     
@@ -30,7 +36,7 @@ namespace ms.webapp.api.acya.core.Entities
 
     public void UpdateFromDto(BankDto dto)
     {
-      Id = (int)dto.id!;
+      Id = dto.id ?? 0;
       UpdatedBy = dto.updatedby;
       Reference= dto.reference;
       Designation= dto.designation;
@@ -40,7 +46,13 @@ namespace ms.webapp.api.acya.core.Entities
       Iban = dto.iban;
       CreationDate= dto.creationdate;
       UpdateDate= dto.updatedate;
-      IsDeleted = dto.isdeleted;
+      IsDeleted = dto.isdeleted ?? false;
+      
+      ChequeDepositFeeHT = dto.chequeDepositFeeHT;
+      TraiteDepositFeeHT = dto.traiteDepositFeeHT;
+      WireTransferFeeHT = dto.wireTransferFeeHT;
+      MiscFeeHT = dto.miscFeeHT;
+      InitialBalance = dto.initialBalance;
     }
   }
 

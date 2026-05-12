@@ -45,6 +45,42 @@
                     <input matInput formControlName="iban" placeholder="{{mat_placeholder_iban}}">
                     <mat-icon matPrefix>language</mat-icon>
                 </mat-form-field>
+
+                <div class="section-divider">
+                    <span>Frais d'Opérations (HT) & Solde</span>
+                </div>
+
+                <div class="form-grid mt-3">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Frais Chèque HT</mat-label>
+                        <input matInput type="number" formControlName="chequeDepositFeeHT">
+                        <mat-icon matPrefix>payments</mat-icon>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Frais Traite HT</mat-label>
+                        <input matInput type="number" formControlName="traiteDepositFeeHT">
+                        <mat-icon matPrefix>description</mat-icon>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Frais Virement HT</mat-label>
+                        <input matInput type="number" formControlName="wireTransferFeeHT">
+                        <mat-icon matPrefix>sync_alt</mat-icon>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Frais Divers HT</mat-label>
+                        <input matInput type="number" formControlName="miscFeeHT">
+                        <mat-icon matPrefix>more_horiz</mat-icon>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Solde Initial</mat-label>
+                        <input matInput type="number" formControlName="initialBalance">
+                        <mat-icon matPrefix>account_balance_wallet</mat-icon>
+                    </mat-form-field>
+                </div>
             </div>
         </form>
     </div>

@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using ms.webapp.api.acya.api.Interfaces;
 using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities;
@@ -171,6 +172,26 @@ namespace ms.webapp.api.acya.api.Services
 
                     var createdPayment = await _paymentRepository.Add(payment);
 
+                    // Automate Caisse Movement for CASH/ESPECE
+                    if ((createDto.PaymentMethod?.ToUpper() == "CASH" || createDto.PaymentMethod?.ToUpper() == "ESPECE") && user?.IdSalesSite != null)
+                    {
+                        var caisseMovement = new CaisseMovement
+                        {
+                            SalesSiteId = user.IdSalesSite.Value,
+                            MovementDate = DateTime.UtcNow,
+                            Type = "ENTREE",
+                            Reason = "ENCAISSEMENT",
+                            Amount = paymentAmount,
+                            Reference = document.DocNumber,
+                            Notes = $"Encaissement automatique pour la facture {document.DocNumber}",
+                            PaymentId = createdPayment.Id,
+                            CreatedByUserId = createdById,
+                            CreatedAt = DateTime.UtcNow,
+                            IsDeleted = false
+                        };
+                        await _context.CaisseMovements.AddAsync(caisseMovement);
+                    }
+
                     // Update document billing status
                     if (paymentAmount < remainingBalance) {
                         document.BillingStatus = (BillingStatus)3; 
@@ -331,6 +352,15 @@ namespace ms.webapp.api.acya.api.Services
                     var result = await _paymentRepository.DeleteAsync(paymentId);
                     if (result)
                     {
+                        // Delete linked CaisseMovement
+                        var caisseMovement = await _context.CaisseMovements.FirstOrDefaultAsync(m => m.PaymentId == paymentId);
+                        if (caisseMovement != null)
+                        {
+                            caisseMovement.IsDeleted = true;
+                            caisseMovement.UpdatedAt = DateTime.UtcNow;
+                            _context.CaisseMovements.Update(caisseMovement);
+                        }
+
                         // Delete Ledger Entry
                         await _accountService.DeleteLedgerEntryAsync(paymentId, "Payment");
 

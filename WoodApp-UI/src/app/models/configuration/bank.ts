@@ -11,4 +11,10 @@ export class Bank {
     updatedate: Date = new Date();
     isdeleted: boolean = false;
     editing?: boolean = false;
+
+    chequeDepositFeeHT: number = 0;
+    traiteDepositFeeHT: number = 0;
+    wireTransferFeeHT: number = 0;
+    miscFeeHT: number = 0;
+    initialBalance: number = 0;
 }

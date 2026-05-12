@@ -50,6 +50,29 @@
   }
 }
 
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0 16px;
+  
+  span {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #b45309;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, #e2e8f0, transparent);
+  }
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

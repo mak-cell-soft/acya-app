@@ -73,6 +73,8 @@ namespace ms.webapp.api.acya.infrastructure
     public virtual DbSet<ApprovalConfig> ApprovalConfigs { get; set; }
     public virtual DbSet<DocumentApproval> DocumentApprovals { get; set; }
     public virtual DbSet<PricingGrid> PricingGrids { get; set; }
+    public virtual DbSet<BankDeposit> BankDeposits { get; set; }
+    public virtual DbSet<CaisseMovement> CaisseMovements { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

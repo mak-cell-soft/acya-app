@@ -1127,6 +1127,34 @@
                                     <mat-icon matPrefix>language</mat-icon>
                                 </mat-form-field>
 
+                                <div class="edit-sub-section">
+                                    <h6>Frais d'Opérations (HT)</h6>
+                                    <div class="fees-grid">
+                                        <mat-form-field appearance="outline">
+                                            <mat-label>Chèque HT</mat-label>
+                                            <input matInput type="number" [(ngModel)]="element.chequeDepositFeeHT">
+                                        </mat-form-field>
+                                        <mat-form-field appearance="outline">
+                                            <mat-label>Traite HT</mat-label>
+                                            <input matInput type="number" [(ngModel)]="element.traiteDepositFeeHT">
+                                        </mat-form-field>
+                                        <mat-form-field appearance="outline">
+                                            <mat-label>Virement HT</mat-label>
+                                            <input matInput type="number" [(ngModel)]="element.wireTransferFeeHT">
+                                        </mat-form-field>
+                                        <mat-form-field appearance="outline">
+                                            <mat-label>Divers HT</mat-label>
+                                            <input matInput type="number" [(ngModel)]="element.miscFeeHT">
+                                        </mat-form-field>
+                                    </div>
+                                </div>
+
+                                <mat-form-field appearance="outline">
+                                    <mat-label>Solde Initial</mat-label>
+                                    <input matInput type="number" [(ngModel)]="element.initialBalance">
+                                    <mat-icon matPrefix>account_balance_wallet</mat-icon>
+                                </mat-form-field>
+
                                 <div class="edit-actions">
                                     <button mat-button color="warn" (click)="cancelEditBankAccount(element)">
                                         Annuler

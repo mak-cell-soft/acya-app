@@ -69,7 +69,12 @@ export class AddBankModalComponent implements OnInit {
       designation: ['', Validators.required],
       agency: ['', Validators.required],
       rib: ['', Validators.required],
-      iban: ['', Validators.required]
+      iban: ['', Validators.required],
+      chequeDepositFeeHT: [0],
+      traiteDepositFeeHT: [0],
+      wireTransferFeeHT: [0],
+      miscFeeHT: [0],
+      initialBalance: [0]
     });
   }
 
@@ -102,7 +107,12 @@ export class AddBankModalComponent implements OnInit {
       bank.designation = formValues.designation;
       bank.agency = formValues.agency;
       bank.rib = formValues.rib;
-      bank.iban = formValues.iban
+      bank.iban = formValues.iban;
+      bank.chequeDepositFeeHT = formValues.chequeDepositFeeHT;
+      bank.traiteDepositFeeHT = formValues.traiteDepositFeeHT;
+      bank.wireTransferFeeHT = formValues.wireTransferFeeHT;
+      bank.miscFeeHT = formValues.miscFeeHT;
+      bank.initialBalance = formValues.initialBalance;
 
       this.addBank(bank);
     } else {

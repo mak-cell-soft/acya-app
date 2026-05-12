@@ -684,6 +684,34 @@ $hover-color: #f1f3f5;
             gap: 12px;
             margin-top: 16px;
         }
+
+        .edit-sub-section {
+            margin: 16px 0;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px dashed #cbd5e1;
+
+            h6 {
+                margin: 0 0 12px 0;
+                font-size: 0.75rem;
+                font-weight: 700;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .fees-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+
+                mat-form-field {
+                    width: 100%;
+                    margin-bottom: 0;
+                }
+            }
+        }
     }
 }
 
