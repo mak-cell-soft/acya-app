@@ -43,7 +43,7 @@ namespace ms.webapp.api.acya.api.Controllers
                     "CHEQUE" => bank.ChequeDepositFeeHT,
                     "TRAITE" => bank.TraiteDepositFeeHT,
                     "VIREMENT" => bank.WireTransferFeeHT,
-                    "ESPECE" => 0, // En général pas de frais pour versement espèces ? Le prompt dit "chaque opération en banque a un coût"
+                    "ESPECE" or "CASH" => 0, // En général pas de frais pour versement espèces ? Le prompt dit "chaque opération en banque a un coût"
                     _ => bank.MiscFeeHT
                 };
                 
@@ -78,8 +78,8 @@ namespace ms.webapp.api.acya.api.Controllers
 
                 var addedDeposit = await _depositRepository.Add(deposit);
 
-                // 5. If ESPECE, create CaisseMovement (SORTIE)
-                if (createDto.DepositType.ToUpper() == "ESPECE" && createDto.SalesSiteId.HasValue)
+                // 5. If ESPECE or CASH, create CaisseMovement (SORTIE)
+                if ((createDto.DepositType.ToUpper() == "ESPECE" || createDto.DepositType.ToUpper() == "CASH") && createDto.SalesSiteId.HasValue)
                 {
                     var caisseMovement = new CaisseMovement
                     {

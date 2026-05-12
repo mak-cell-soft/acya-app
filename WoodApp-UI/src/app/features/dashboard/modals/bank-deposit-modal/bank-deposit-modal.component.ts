@@ -49,13 +49,17 @@ export class BankDepositModalComponent implements OnInit {
   currentBalance: number = 0;
   loading = false;
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: { siteId: number | null }) {
+  constructor(@Inject(MAT_DIALOG_DATA) public data: { siteId: number | null, isCentral?: boolean }) {
     this.initForm();
   }
 
   ngOnInit(): void {
     this.loadBanks();
-    if (this.data.siteId) {
+    if (this.data.isCentral) {
+      this.caisseService.getCaissePrincipaleBalance().subscribe(res => {
+        this.currentBalance = res;
+      });
+    } else if (this.data.siteId) {
       this.loadCurrentBalance(this.data.siteId);
     } else {
       this.loadSites();
@@ -63,10 +67,11 @@ export class BankDepositModalComponent implements OnInit {
   }
 
   private initForm() {
+    const siteValidators = this.data.isCentral ? [] : [Validators.required];
     this.depositForm = this.fb.group({
       bankId: ['', Validators.required],
-      salesSiteId: [this.data.siteId, Validators.required],
-      depositType: ['Cash', Validators.required],
+      salesSiteId: [this.data.siteId, siteValidators],
+      depositType: ['ESPECE', Validators.required],
       amount: [0, [Validators.required, Validators.min(0.001)]],
       reference: [''],
       notes: ['']
@@ -74,7 +79,7 @@ export class BankDepositModalComponent implements OnInit {
 
     // If site changes, update balance
     this.depositForm.get('salesSiteId')?.valueChanges.subscribe(siteId => {
-      if (siteId) this.loadCurrentBalance(siteId);
+      if (siteId && !this.data.isCentral) this.loadCurrentBalance(siteId);
     });
   }
 
@@ -96,7 +101,7 @@ export class BankDepositModalComponent implements OnInit {
     if (this.depositForm.valid) {
       const formValue = this.depositForm.value;
       
-      if (formValue.amount > this.currentBalance && formValue.depositType === 'Cash') {
+      if (formValue.amount > this.currentBalance && formValue.depositType === 'ESPECE') {
         this.snackBar.open('Solde insuffisant dans la caisse', 'Fermer', { duration: 3000 });
         return;
       }
@@ -108,7 +113,7 @@ export class BankDepositModalComponent implements OnInit {
         amountHT: formValue.amount,
         reference: formValue.reference,
         notes: formValue.notes,
-        salesSiteId: formValue.salesSiteId,
+        salesSiteId: this.data.isCentral ? null : formValue.salesSiteId,
         createdByUserId: null // The backend should handle this or fetch from claims
       };
 

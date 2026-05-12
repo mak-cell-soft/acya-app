@@ -2,7 +2,7 @@
     <div class="modal-header">
         <div class="title-group">
             <mat-icon color="primary">account_balance</mat-icon>
-            <h2>Nouveau Versement en Banque</h2>
+            <h2>{{ data.isCentral ? 'Versement Caisse Principale' : 'Nouveau Versement en Banque' }}</h2>
         </div>
         <button mat-icon-button (click)="dialogRef.close()">
             <mat-icon>close</mat-icon>
@@ -13,7 +13,7 @@
 
     <div class="balance-banner">
         <div class="info">
-            <span class="label">Solde Caisse Actuel</span>
+            <span class="label">{{ data.isCentral ? 'Solde Caisse Principale' : 'Solde Caisse Actuel' }}</span>
             <span class="value">{{ currentBalance | number:'1.3-3' }} TND</span>
         </div>
         <mat-icon class="watermark">payments</mat-icon>
@@ -22,7 +22,7 @@
     <form [formGroup]="depositForm" (ngSubmit)="onSubmit()" class="modal-content">
         <div class="form-grid">
             <!-- Site Selection (only if not provided) -->
-            <mat-form-field appearance="outline" class="full-width" *ngIf="!data.siteId">
+            <mat-form-field appearance="outline" class="full-width" *ngIf="!data.siteId && !data.isCentral">
                 <mat-label>Site de provenance</mat-label>
                 <mat-select formControlName="salesSiteId">
                     <mat-option *ngFor="let site of sites" [value]="site.salesSiteId">
@@ -47,9 +47,9 @@
             <mat-form-field appearance="outline">
                 <mat-label>Type de versement</mat-label>
                 <mat-select formControlName="depositType">
-                    <mat-option value="Cash">Espèces</mat-option>
-                    <mat-option value="Cheque">Chèque</mat-option>
-                    <mat-option value="Traite">Traite</mat-option>
+                    <mat-option value="ESPECE">Espèces</mat-option>
+                    <mat-option value="CHEQUE">Chèque</mat-option>
+                    <mat-option value="TRAITE">Traite</mat-option>
                 </mat-select>
                 <mat-icon matPrefix>category</mat-icon>
             </mat-form-field>

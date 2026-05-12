@@ -32,6 +32,6 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public string? Notes { get; set; }
         public int? PaymentInstrumentId { get; set; }
         public int? SalesSiteId { get; set; }
-        public int CreatedByUserId { get; set; }
+        public int? CreatedByUserId { get; set; }
     }
 }

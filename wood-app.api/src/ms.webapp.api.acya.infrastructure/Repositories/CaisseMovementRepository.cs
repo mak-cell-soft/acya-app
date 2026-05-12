@@ -100,5 +100,22 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                          && m.MovementDate < tomorrow)
                 .SumAsync(m => (decimal?)m.Amount ?? 0m);
         }
+
+        /// <summary>
+        /// Solde consolidé de la Caisse Principale :
+        /// Somme des remises centrales (entrées coffre) - Somme des versements espèces en banque depuis le coffre central.
+        /// </summary>
+        public async Task<decimal> GetCaissePrincipaleBalanceAsync()
+        {
+            var totalRemises = await context.CaisseMovements
+                .Where(m => m.Reason == "REMISE_CENTRALE" && !m.IsDeleted)
+                .SumAsync(m => (decimal?)m.Amount ?? 0m);
+
+            var totalVersements = await context.BankDeposits
+                .Where(d => (d.DepositType.ToUpper() == "ESPECE" || d.DepositType.ToUpper() == "CASH") && d.SalesSiteId == null && !d.IsDeleted)
+                .SumAsync(d => (decimal?)d.AmountHT ?? 0m);
+
+            return totalRemises - totalVersements;
+        }
     }
 }

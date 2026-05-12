@@ -29,6 +29,10 @@ export class AccountingBalanceDashboardComponent implements OnInit {
     bankBalances: BankBalance[] = [];
     siteBalances: any[] = [];
     totalCaissePrincipale: number = 0;
+    totalCaissesSites: number = 0;
+    get totalBankBalances(): number {
+        return this.bankBalances.reduce((sum, b) => sum + b.currentBalance, 0);
+    }
     loadingTreasury = false;
     loading = false;
     activeTab: 'customers' | 'suppliers' = 'customers';
@@ -138,7 +142,7 @@ export class AccountingBalanceDashboardComponent implements OnInit {
             const dialogRef = this.dialog.open(m.BankDepositModalComponent, {
                 width: '550px',
                 maxWidth: '95vw',
-                data: { siteId: null } // null for admin/main caisse or let them choose?
+                data: { siteId: null, isCentral: true }
             });
 
             dialogRef.afterClosed().subscribe(result => {
@@ -167,11 +171,17 @@ export class AccountingBalanceDashboardComponent implements OnInit {
             error: (err) => console.error('Failed to load bank balances', err)
         });
 
+        // Load Caisse Principale Balance
+        this.caisseService.getCaissePrincipaleBalance().subscribe({
+            next: (bal) => this.totalCaissePrincipale = bal,
+            error: (err) => console.error('Failed to load caisse principale balance', err)
+        });
+
         // Load Site Caisse Balances
         this.caisseService.getAllBalances().subscribe({
             next: (sites) => {
                 this.siteBalances = sites;
-                this.totalCaissePrincipale = sites.reduce((sum, s) => sum + s.currentBalance, 0);
+                this.totalCaissesSites = sites.reduce((sum, s) => sum + s.currentBalance, 0);
                 this.loadingTreasury = false;
             },
             error: (err) => {

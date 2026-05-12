@@ -20,6 +20,11 @@ export class CaisseService {
     return this.http.get<CaisseBalance[]>(this.baseUrl + 'Caisse/all');
   }
 
+  getCaissePrincipaleBalance(): Observable<number> {
+    return this.http.get<number>(this.baseUrl + 'Caisse/principale/balance');
+  }
+
+
   addMovement(movement: any): Observable<CaisseMovement> {
     return this.http.post<CaisseMovement>(this.baseUrl + 'Caisse/movement', movement);
   }

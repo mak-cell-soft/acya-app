@@ -52,6 +52,8 @@ namespace ms.webapp.api.acya.api.Controllers
 
             foreach (var site in sites)
             {
+                if (!site.IsForSale) continue;
+
                 var balance = await _caisseRepository.GetBalanceBySiteAsync(site.Id);
                 results.Add(new CaisseBalanceDto
                 {
@@ -62,6 +64,13 @@ namespace ms.webapp.api.acya.api.Controllers
             }
 
             return Ok(results);
+        }
+
+        [HttpGet("principale/balance")]
+        public async Task<ActionResult<decimal>> GetCaissePrincipaleBalance()
+        {
+            var balance = await _caisseRepository.GetCaissePrincipaleBalanceAsync();
+            return Ok(balance);
         }
 
         [HttpPost("movement")]

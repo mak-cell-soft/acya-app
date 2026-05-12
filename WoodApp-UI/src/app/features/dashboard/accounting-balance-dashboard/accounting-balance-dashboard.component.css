@@ -371,3 +371,222 @@ button[mat-icon-button]:hover {
 ::ng-deep .filter-field.mini .mat-mdc-floating-label {
     top: 22px !important;
 }
+
+/* Premium Treasury Summary Ribbon */
+.treasury-summary-ribbon {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+    animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.treasury-summary-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    padding: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.06);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1;
+}
+
+.treasury-summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    z-index: 2;
+    transition: height 0.3s ease;
+}
+
+.treasury-summary-card:hover {
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.12);
+}
+
+.treasury-summary-card:hover::before {
+    height: 8px;
+}
+
+/* Card Specific Themes */
+.card-vault::before {
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+}
+.card-vault .card-icon-wrapper {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.12));
+    color: #6366f1;
+}
+
+.card-pos::before {
+    background: linear-gradient(90deg, #10b981, #059669);
+}
+.card-pos .card-icon-wrapper {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.12));
+    color: #10b981;
+}
+
+.card-bank::before {
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+.card-bank .card-icon-wrapper {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(37, 99, 235, 0.12));
+    color: #3b82f6;
+}
+
+.card-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.card-title-area {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.card-title-text {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+}
+
+.card-subtitle-text {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+.card-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.treasury-summary-card:hover .card-icon-wrapper {
+    transform: rotate(5deg) scale(1.08);
+}
+
+.card-value-area {
+    margin-top: 24px;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.card-amount {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+    line-height: 1;
+}
+
+.card-currency {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #64748b;
+}
+
+/* Action Floating Button for Vault */
+.action-fab-custom {
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+    transition: all 0.2s ease !important;
+}
+
+.action-fab-custom:hover {
+    transform: scale(1.1) rotate(15deg);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
+}
+
+/* Detailed Treasury Grid Below Summary */
+.treasury-details-container {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+@media (max-width: 992px) {
+    .treasury-details-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+.detail-card {
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.detail-card-header mat-icon {
+    color: #64748b;
+}
+
+.detail-card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+.detail-card-content {
+    padding: 20px 24px;
+    flex: 1;
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+.site-breakdown-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.site-breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.site-breakdown-item:hover {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.border-bottom-dashed {
+    border-bottom: 1px dashed #e2e8f0;
+}
