@@ -15,5 +15,6 @@ export interface PricingGrid {
 
 export interface PricingGridLookup {
     merchandiseid: number;
+    articleid?: number;
     discountrate: number;
 }

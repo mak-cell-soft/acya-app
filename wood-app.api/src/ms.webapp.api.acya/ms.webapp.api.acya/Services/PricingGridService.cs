@@ -34,6 +34,7 @@ namespace ms.webapp.api.acya.api.Services
         {
             var now = DateTime.UtcNow;
             var rules = await _context.PricingGrids
+                .Include(p => p.Merchandise)
                 .Where(p => p.CounterPartId == counterPartId 
                             && p.IsActive 
                             && p.MerchandiseId != null
@@ -44,6 +45,7 @@ namespace ms.webapp.api.acya.api.Services
             return rules.Select(r => new PricingGridLookupDto 
             { 
                 merchandiseid = r.MerchandiseId!.Value, 
+                articleid = r.Merchandise?.ArticleId,
                 discountrate = r.DiscountRate 
             });
         }

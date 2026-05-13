@@ -39,6 +39,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public class PricingGridLookupDto
     {
         public int merchandiseid { get; set; }
+        public int? articleid { get; set; }
         public double discountrate { get; set; }
     }
 }

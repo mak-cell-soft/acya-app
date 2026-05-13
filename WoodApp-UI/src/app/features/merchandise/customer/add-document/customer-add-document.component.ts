@@ -62,7 +62,7 @@ export class CustomerAddDocumentComponent {
   exchangeRateService = inject(ExchangeRateService);
   enterpriseService = inject(EnterpriseService);
 
-  negotiatedDiscounts: Map<number, number> = new Map();
+  negotiatedDiscounts: Map<any, number> = new Map();
 
   typeDoc: string = '';
   selected = model<Date | null>(null);
@@ -615,18 +615,48 @@ export class CustomerAddDocumentComponent {
     this.pricingGridService.getLookup(customerId).subscribe({
       next: (lookups) => {
         this.negotiatedDiscounts.clear();
-        lookups.forEach(l => this.negotiatedDiscounts.set(l.merchandiseid, l.discountrate));
+        lookups.forEach(l => {
+          this.negotiatedDiscounts.set(l.merchandiseid, l.discountrate);
+          if (l.articleid) {
+            this.negotiatedDiscounts.set('article_' + l.articleid, l.discountrate);
+          }
+        });
         
         // Re-apply discounts to existing rows if articles were already selected
         this.dataMerchand.data.forEach(row => {
-          if (row.selectedStock && this.negotiatedDiscounts.has(row.selectedStock.merchandiseId)) {
-            row.selldiscountpercentage = this.negotiatedDiscounts.get(row.selectedStock.merchandiseId)!;
-            this.updateTotals(row);
-          }
+          this.applyNegotiatedDiscountToRow(row);
         });
       },
       error: () => console.error('Erreur lors du chargement de la grille tarifaire')
     });
+  }
+
+  applyNegotiatedDiscountToRow(element: Merchand): void {
+    if (!element.selectedArticle) return;
+
+    let discountRate: number | undefined = undefined;
+
+    // Check by article id first
+    if (this.negotiatedDiscounts.has('article_' + element.selectedArticle.id)) {
+      discountRate = this.negotiatedDiscounts.get('article_' + element.selectedArticle.id);
+    }
+    // Check by merchandise id if available
+    else if (element.selectedStock && this.negotiatedDiscounts.has(element.selectedStock.merchandiseId)) {
+      discountRate = this.negotiatedDiscounts.get(element.selectedStock.merchandiseId);
+    }
+
+    if (discountRate !== undefined) {
+      element.selldiscountpercentage = discountRate;
+      element.isNegotiated = true;
+      this.updateTotals(element);
+    } else {
+      // Only reset if it was previously marked as negotiated, so we don't overwrite manual discounts if unrelated
+      if (element.isNegotiated) {
+        element.selldiscountpercentage = 0;
+        element.isNegotiated = false;
+        this.updateTotals(element);
+      }
+    }
   }
 
   clearCustomer(): void {
@@ -727,6 +757,9 @@ export class CustomerAddDocumentComponent {
           element.listLengths = [];
         }
 
+        // Apply negotiated discount helper
+        this.applyNegotiatedDiscountToRow(element);
+
         // Update calculations if we have a selected stock
         if (element.selectedStock) {
           this.updateTotals(element);
@@ -734,15 +767,8 @@ export class CustomerAddDocumentComponent {
           if (!element.selectedStock.allowNegativeStock && element.selectedStock.stockQuantity <= 0) {
             console.log("Quantity input disabled: allowNegativStock is false and no stock found");
           }
-
-          // Apply negotiated discount if available
-          if (this.negotiatedDiscounts.has(element.selectedStock.merchandiseId)) {
-            element.selldiscountpercentage = this.negotiatedDiscounts.get(element.selectedStock.merchandiseId)!;
-            element.isNegotiated = true; // Flag for visual cue
-            this.updateTotals(element);
-          } else {
-            element.isNegotiated = false;
-          }
+        } else {
+          this.updateTotals(element);
         }
       } else {
         element.selectedStock = null;
@@ -753,6 +779,10 @@ export class CustomerAddDocumentComponent {
       element.articleSearchInput = '';
       element.isWoodArticle = false;
       element.selectedStock = null;
+      if (element.isNegotiated) {
+        element.selldiscountpercentage = 0;
+        element.isNegotiated = false;
+      }
       this.updateTotals(element);
     }
   }
@@ -777,6 +807,9 @@ export class CustomerAddDocumentComponent {
     if (element.selectedStock) {
       // Update the unit price (you might want to customize this based on merchandise)
       element.unit_price_ht = element.selectedArticle?.sellprice_ht || 0;
+
+      // Apply negotiated discount helper if stock selection maps to one
+      this.applyNegotiatedDiscountToRow(element);
 
       // Update calculations
       this.updateTotals(element);
