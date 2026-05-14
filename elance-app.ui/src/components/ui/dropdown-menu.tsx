@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { Menu as MenuPrimitive } from "@base-ui/react/menu"
-import { Slot } from "@radix-ui/react-slot"
 
 import { cn } from "@/lib/utils"
 import { ChevronRightIcon, CheckIcon } from "lucide-react"
@@ -15,8 +14,20 @@ function DropdownMenuPortal({ ...props }: MenuPrimitive.Portal.Props) {
   return <MenuPrimitive.Portal data-slot="dropdown-menu-portal" {...props} />
 }
 
-function DropdownMenuTrigger({ ...props }: MenuPrimitive.Trigger.Props) {
-  return <MenuPrimitive.Trigger data-slot="dropdown-menu-trigger" {...props} />
+function DropdownMenuTrigger({ 
+  asChild,
+  children,
+  ...props 
+}: MenuPrimitive.Trigger.Props & { asChild?: boolean }) {
+  return (
+    <MenuPrimitive.Trigger 
+      data-slot="dropdown-menu-trigger" 
+      {...props} 
+      render={asChild ? (children as React.ReactElement) : undefined}
+    >
+      {asChild ? null : children}
+    </MenuPrimitive.Trigger>
+  )
 }
 
 function DropdownMenuContent({
@@ -105,9 +116,11 @@ function DropdownMenuSubTrigger({
   className,
   inset,
   children,
+  asChild,
   ...props
 }: MenuPrimitive.SubmenuTrigger.Props & {
   inset?: boolean
+  asChild?: boolean
 }) {
   return (
     <MenuPrimitive.SubmenuTrigger
@@ -118,9 +131,14 @@ function DropdownMenuSubTrigger({
         className
       )}
       {...props}
+      render={asChild ? (children as React.ReactElement) : undefined}
     >
-      {children}
-      <ChevronRightIcon className="ml-auto" />
+      {asChild ? null : (
+        <>
+          {children}
+          <ChevronRightIcon className="ml-auto" />
+        </>
+      )}
     </MenuPrimitive.SubmenuTrigger>
   )
 }

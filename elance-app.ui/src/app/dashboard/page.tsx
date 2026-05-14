@@ -20,30 +20,31 @@ import {
   CreditCard, 
   Activity, 
   DollarSign,
-  Plus
+  Plus,
+  Package
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 // Mock Data
 const chartData = [
-  { name: 'Jan', total: 1500 },
-  { name: 'Feb', total: 2300 },
-  { name: 'Mar', total: 3200 },
-  { name: 'Apr', total: 2800 },
-  { name: 'May', total: 4800 },
-  { name: 'Jun', total: 5200 },
+  { name: 'Jan', total: 15400 },
+  { name: 'Feb', total: 23200 },
+  { name: 'Mar', total: 31800 },
+  { name: 'Apr', total: 28900 },
+  { name: 'May', total: 48500 },
+  { name: 'Jun', total: 52100 },
 ];
 
 const recentSales = [
-  { name: 'Olivia Martin', email: 'olivia.martin@email.com', amount: '+$1,999.00', initial: 'OM' },
-  { name: 'Jackson Lee', email: 'jackson.lee@email.com', amount: '+$39.00', initial: 'JL' },
-  { name: 'Isabella Nguyen', email: 'isabella.nguyen@email.com', amount: '+$299.00', initial: 'IN' },
-  { name: 'William Kim', email: 'will@email.com', amount: '+$99.00', initial: 'WK' },
+  { name: 'Menuiserie Moderne', email: 'BL-2405-001', amount: '4,500.500 TND', initial: 'MM' },
+  { name: 'Bati Plus', email: 'BL-2405-002', amount: '12,500.000 TND', initial: 'BP' },
+  { name: 'Espace Décor', email: 'DE-2405-045', amount: '850.500 TND', initial: 'ED' },
+  { name: 'Construction Pro', email: 'BC-2405-012', amount: '3,200.000 TND', initial: 'CP' },
 ];
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
-  const { data: liveStats, isLoading } = useDashboardStats();
   const [isMounted, setIsMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -52,129 +53,139 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 md:p-8 space-y-8 max-w-[1600px] mx-auto">
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="space-y-10 animate-in fade-in duration-700">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
           >
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground mt-1">
-              Welcome back, <span className="text-foreground font-medium">{user?.name}</span>. Here's what's happening.
+            <h1 className="text-3xl md:text-4xl font-heading font-bold tracking-tight text-forest-900">Tableau de bord</h1>
+            <p className="text-sand-400 mt-2 font-medium">
+              Bienvenue, <span className="text-forest-600 font-bold">{user?.name}</span>. Voici l'état global de votre parc et de vos stocks.
             </p>
           </motion.div>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline">Download Report</Button>
-            <Button size="sm" className="gap-2">
-              <Plus className="w-4 h-4" /> New Project
+          <div className="flex items-center gap-3">
+            <Button size="lg" variant="outline" className="h-12 rounded-xl border-forest-100 text-forest-600 hover:bg-forest-50 font-bold">Exporter</Button>
+            <Button size="lg" className="h-12 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 gap-2 px-6">
+              <Plus className="w-5 h-5" /> Nouvelle Vente
             </Button>
           </div>
         </header>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {isLoading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-32 w-full rounded-xl" />
-            ))
-          ) : (
-            <>
-              {[
-                { title: 'Total Revenue', value: liveStats?.revenue, change: '+20.1%', icon: DollarSign, trend: 'up' },
-                { title: 'Subscriptions', value: liveStats?.subscriptions, change: '+180.1%', icon: Users, trend: 'up' },
-                { title: 'Sales', value: liveStats?.sales, change: '+19%', icon: CreditCard, trend: 'up' },
-                { title: 'Active Now', value: liveStats?.activeNow, change: '+201 since last hour', icon: Activity, trend: 'up' },
-              ].map((stat, i) => (
-                <motion.div
-                  key={stat.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                >
-                  <Card className="border-muted/50 bg-card/50 backdrop-blur-sm">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                      <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                      <stat.icon className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{stat.value}</div>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                        <span className={stat.trend === 'up' ? 'text-emerald-500 font-medium' : 'text-rose-500 font-medium'}>
-                          {stat.change}
-                        </span>
-                        from last month
-                      </p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </>
-          )}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {[
+            { title: 'Chiffre d\'Affaires (MAI)', value: '48,500 TND', change: '+20.1%', icon: DollarSign, trend: 'up' },
+            { title: 'Stock Global M³', value: '1,240 M³', change: '-4.2%', icon: Package, trend: 'down' },
+            { title: 'Bons en attente', value: '12', change: '+2', icon: CreditCard, trend: 'up' },
+            { title: 'Chantiers Actifs', value: '8', change: 'Stable', icon: Activity, trend: 'neutral' },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1, duration: 0.5 }}
+            >
+              <Card className="border-forest-100/50 bg-white shadow-[0_10px_40px_rgba(11,59,36,0.04)] rounded-[24px] overflow-hidden group hover:border-forest-600 transition-all duration-500">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">{stat.title}</CardTitle>
+                  <div className="p-2 rounded-lg bg-forest-50 text-forest-600 group-hover:bg-forest-600 group-hover:text-white transition-colors">
+                    <stat.icon className="h-4 w-4" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-forest-900 tracking-tight">{stat.value}</div>
+                  <p className="text-xs flex items-center gap-1 mt-2">
+                    <span className={cn(
+                      "font-bold",
+                      stat.trend === 'up' ? 'text-forest-600' : stat.trend === 'down' ? 'text-rose-500' : 'text-sand-400'
+                    )}>
+                      {stat.change}
+                    </span>
+                    <span className="text-sand-300 font-medium">vs mois dernier</span>
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-          <Card className="md:col-span-4 border-muted/50">
-            <CardHeader>
-              <CardTitle>Overview</CardTitle>
-              <CardDescription>Monthly revenue growth and performance.</CardDescription>
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-7">
+          <Card className="md:col-span-4 border-forest-100 rounded-[32px] shadow-xl shadow-forest-900/[0.02] bg-white overflow-hidden">
+            <CardHeader className="p-8 pb-0">
+              <CardTitle className="font-heading text-2xl text-forest-900">Volume de Ventes Mensuel</CardTitle>
+              <CardDescription className="text-sand-400 font-medium">Performance financière consolidée sur l'année 2026.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="h-[300px] w-full min-w-0">
+            <CardContent className="p-8">
+              <div className="h-[320px] w-full min-w-0 relative min-h-0">
                 {isMounted ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData}>
                       <XAxis 
                         dataKey="name" 
-                        stroke="#888888" 
+                        stroke="#94A3B8" 
                         fontSize={12} 
                         tickLine={false} 
                         axisLine={false} 
+                        dy={10}
                       />
                       <YAxis 
-                        stroke="#888888" 
+                        stroke="#94A3B8" 
                         fontSize={12} 
                         tickLine={false} 
                         axisLine={false} 
-                        tickFormatter={(value) => `$${value}`}
+                        tickFormatter={(value) => `${value}`}
                       />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: '1px solid hsl(var(--border))' }}
-                        itemStyle={{ color: 'hsl(var(--primary))' }}
+                        contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}
+                        itemStyle={{ color: '#0B3B24', fontWeight: 'bold' }}
+                        cursor={{ fill: '#F1F5F9', radius: 8 }}
                       />
                       <Bar 
                         dataKey="total" 
-                        fill="currentColor" 
-                        radius={[4, 4, 0, 0]} 
-                        className="fill-primary"
+                        fill="#1D9E75" 
+                        radius={[6, 6, 0, 0]} 
+                        className="fill-forest-600"
+                        barSize={40}
                       />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="h-full w-full bg-muted/20 animate-pulse rounded-lg" />
+                  <div className="h-full w-full bg-forest-50/30 animate-pulse rounded-2xl" />
                 )}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="md:col-span-3 border-muted/50">
-            <CardHeader>
-              <CardTitle>Recent Sales</CardTitle>
-              <CardDescription>You made 265 sales this month.</CardDescription>
+          <Card className="md:col-span-3 border-forest-100 rounded-[32px] shadow-xl shadow-forest-900/[0.02] bg-white overflow-hidden">
+            <CardHeader className="p-8 pb-4">
+              <CardTitle className="font-heading text-2xl text-forest-900">Transactions Récentes</CardTitle>
+              <CardDescription className="text-sand-400 font-medium">Bons de livraison et devis récents.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-8">
-                {recentSales.map((sale) => (
-                  <div key={sale.email} className="flex items-center">
-                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary text-sm">
+            <CardContent className="px-8 pb-8">
+              <div className="space-y-6">
+                {recentSales.map((sale, i) => (
+                  <motion.div 
+                    key={sale.email} 
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 + 0.3 }}
+                    className="flex items-center p-4 rounded-2xl hover:bg-forest-50 transition-all duration-300 cursor-pointer group border border-transparent hover:border-forest-100"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-forest-100 flex items-center justify-center font-bold text-forest-600 group-hover:bg-forest-600 group-hover:text-white transition-all duration-500">
                       {sale.initial}
                     </div>
-                    <div className="ml-4 space-y-1">
-                      <p className="text-sm font-medium leading-none">{sale.name}</p>
-                      <p className="text-sm text-muted-foreground">{sale.email}</p>
+                    <div className="ml-4 flex-1">
+                      <p className="text-sm font-bold text-forest-900 leading-none">{sale.name}</p>
+                      <p className="text-[0.65rem] text-sand-300 font-bold mt-1 uppercase tracking-wider">{sale.email}</p>
                     </div>
-                    <div className="ml-auto font-medium">{sale.amount}</div>
-                  </div>
+                    <div className="text-sm font-bold text-forest-800 bg-sand-50 px-3 py-1.5 rounded-xl border border-forest-50">{sale.amount}</div>
+                  </motion.div>
                 ))}
               </div>
+              <Button variant="ghost" className="w-full mt-10 text-forest-600 font-bold hover:bg-forest-50 rounded-xl h-12">
+                Voir toutes les transactions
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -182,3 +193,5 @@ export default function DashboardPage() {
     </DashboardLayout>
   );
 }
+
+

@@ -8,19 +8,16 @@ import {
   Filter, 
   MoreHorizontal, 
   Download, 
-  Users, 
+  User, 
   ChevronDown,
   Phone,
   Mail,
-  Calendar,
-  Briefcase,
+  MapPin,
   FileText,
+  CreditCard,
   Edit,
   Trash2,
-  HardHat,
-  BadgeCheck,
-  Clock,
-  MapPin
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,15 +32,15 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-const TEAM = [
-  { id: 1, name: 'Sami Trabelsi', role: 'Chef de Chantier', dept: 'Opérations', email: 'sami.t@elance.tn', phone: '22 111 222', status: 'Active', hireDate: '2023-01-15' },
-  { id: 2, name: 'Mounir Gmati', role: 'Chauffeur Poids Lourd', dept: 'Logistique', email: 'mounir.g@elance.tn', phone: '55 333 444', status: 'Active', hireDate: '2024-03-10' },
-  { id: 3, name: 'Ines Ben Salem', role: 'Comptable', dept: 'Admin', email: 'ines.bs@elance.tn', phone: '98 555 666', status: 'On Leave', hireDate: '2022-06-01' },
-  { id: 4, name: 'Hichem Mejri', role: 'Responsable Dépôt', dept: 'Stock', email: 'hichem.m@elance.tn', phone: '21 777 888', status: 'Active', hireDate: '2023-11-20' },
-  { id: 5, name: 'Amel Karoui', role: 'Assistante Commerciale', dept: 'Ventes', email: 'amel.k@elance.tn', phone: '20 999 000', status: 'Active', hireDate: '2024-01-05' },
+const CUSTOMERS = [
+  { id: 1, name: 'Sarl Menuiserie Moderne', manager: 'Ahmed Ben Salem', mf: '1234567/A/P/M/000', email: 'ahmed@menuiserie.tn', phone: '71 123 456', balance: 4500.500, status: 'Active' },
+  { id: 2, name: 'Entreprise Bati Plus', manager: 'Sonia Mansour', mf: '9876543/B/C/H/000', email: 'contact@batiplus.com.tn', phone: '22 456 789', balance: -1250.000, status: 'Credit' },
+  { id: 3, name: 'Espace Décoration', manager: 'Karim Jaziri', mf: '4561237/X/Z/R/000', email: 'karim@espacedecor.tn', phone: '55 789 123', balance: 0.000, status: 'Active' },
+  { id: 4, name: 'Construction Pro', manager: 'Mohamed Ali', mf: '3216549/K/L/M/000', email: 'm.ali@procon.tn', phone: '98 321 654', balance: 12400.750, status: 'Active' },
+  { id: 5, name: 'Atelier Artisanat', manager: 'Faten Amri', mf: '7893214/M/N/P/000', email: 'faten@atelier.tn', phone: '21 987 654', balance: 850.000, status: 'Active' },
 ];
 
-export default function TeamPage() {
+export default function CustomersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
@@ -52,15 +49,15 @@ export default function TeamPage() {
       <div className="space-y-8 animate-in fade-in duration-700">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-heading font-bold text-forest-900 tracking-tight">Équipe & RH</h1>
-            <p className="text-sand-400 font-medium mt-1">Gérez vos collaborateurs, leurs contrats et leur présence.</p>
+            <h1 className="text-3xl font-heading font-bold text-forest-900 tracking-tight">Gestion des Clients</h1>
+            <p className="text-sand-400 font-medium mt-1">Gérez votre base client, les soldes et l'historique des ventes.</p>
           </div>
           <div className="flex items-center gap-3">
             <Button variant="outline" className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50">
-              <Calendar className="w-4 h-4 mr-2" /> Planning Congés
+              <Download className="w-4 h-4 mr-2" /> Exporter
             </Button>
             <Button className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20">
-              <Plus className="w-4 h-4 mr-2" /> Ajouter un Membre
+              <Plus className="w-4 h-4 mr-2" /> Nouveau Client
             </Button>
           </div>
         </div>
@@ -71,7 +68,7 @@ export default function TeamPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400" />
                 <Input 
-                  placeholder="Rechercher par nom, rôle, département..." 
+                  placeholder="Rechercher par nom, MF, téléphone..." 
                   className="pl-10 h-11 rounded-xl border-forest-50 bg-sand-50/50 focus:border-forest-600 focus:ring-forest-600 transition-all"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -83,8 +80,8 @@ export default function TeamPage() {
                 </Button>
                 <div className="h-6 w-[1px] bg-forest-100 mx-2 hidden md:block" />
                 <div className="flex items-center gap-2 px-3 py-2 bg-forest-50 rounded-lg">
-                  <Users className="w-4 h-4 text-forest-600" />
-                  <span className="text-sm font-bold text-forest-900">{TEAM.length} Membres</span>
+                  <User className="w-4 h-4 text-forest-600" />
+                  <span className="text-sm font-bold text-forest-900">{CUSTOMERS.length} Clients</span>
                 </div>
               </div>
             </div>
@@ -94,16 +91,16 @@ export default function TeamPage() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-sand-50/50 border-b border-forest-50">
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Collaborateur</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Département</th>
+                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Client</th>
+                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Matricule Fiscal</th>
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Contact</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-center">Ancienneté</th>
+                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-right">Solde Actuel (TND)</th>
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-center">Statut</th>
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-forest-50">
-                  {TEAM.map((item) => (
+                  {CUSTOMERS.map((item) => (
                     <React.Fragment key={item.id}>
                       <tr 
                         className={cn(
@@ -114,19 +111,17 @@ export default function TeamPage() {
                       >
                         <td className="p-5">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-forest-100 flex items-center justify-center text-forest-600 font-bold text-xs">
-                              {item.name.split(' ').map(n => n[0]).join('')}
+                            <div className="w-10 h-10 rounded-xl bg-forest-100 flex items-center justify-center text-forest-600 font-bold text-xs uppercase">
+                              {item.name.substring(0, 2)}
                             </div>
                             <div>
                               <div className="font-bold text-forest-900">{item.name}</div>
-                              <div className="text-[0.75rem] text-sand-400 font-medium">{item.role}</div>
+                              <div className="text-[0.75rem] text-sand-400 font-medium">{item.manager}</div>
                             </div>
                           </div>
                         </td>
                         <td className="p-5">
-                          <Badge variant="outline" className="bg-white border-forest-100 text-forest-600 font-bold rounded-lg px-2.5">
-                            {item.dept}
-                          </Badge>
+                          <span className="font-mono text-xs text-sand-600">{item.mf}</span>
                         </td>
                         <td className="p-5">
                           <div className="flex flex-col gap-1">
@@ -138,14 +133,19 @@ export default function TeamPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="p-5 text-center">
-                          <span className="text-xs font-bold text-sand-600">{new Date(item.hireDate).getFullYear()}</span>
+                        <td className="p-5 text-right">
+                          <span className={cn(
+                            "font-bold",
+                            item.balance < 0 ? "text-rose-600" : "text-forest-900"
+                          )}>
+                            {item.balance.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}
+                          </span>
                         </td>
                         <td className="p-5 text-center">
                           <Badge 
                             className={cn(
                               "rounded-full px-3 py-1 font-bold text-[0.7rem]",
-                              item.status === 'Active' ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"
+                              item.status === 'Active' ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
                             )}
                           >
                             {item.status}
@@ -153,8 +153,8 @@ export default function TeamPage() {
                         </td>
                         <td className="p-5 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-sand-400 hover:text-forest-600">
-                              <FileText className="w-4 h-4" />
+                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-sand-400 hover:text-forest-600 hover:bg-forest-100/50">
+                              <ExternalLink className="w-4 h-4" />
                             </Button>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -164,10 +164,10 @@ export default function TeamPage() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="rounded-xl border-forest-100 w-44">
                                 <DropdownMenuItem className="gap-2 font-bold text-forest-900 cursor-pointer">
-                                  <BadgeCheck className="w-4 h-4" /> Contrats
+                                  <CreditCard className="w-4 h-4" /> État de Compte
                                 </DropdownMenuItem>
                                 <DropdownMenuItem className="gap-2 font-bold text-forest-900 cursor-pointer">
-                                  <Clock className="w-4 h-4" /> Pointage
+                                  <FileText className="w-4 h-4" /> Documents
                                 </DropdownMenuItem>
                                 <DropdownMenuItem className="gap-2 font-bold text-forest-900 cursor-pointer">
                                   <Edit className="w-4 h-4" /> Modifier
@@ -194,35 +194,33 @@ export default function TeamPage() {
                               >
                                 <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
                                   <div className="space-y-4">
-                                    <h4 className="text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">Assignations</h4>
-                                    <div className="flex items-center gap-3">
-                                      <div className="p-2 bg-forest-100 rounded-lg text-forest-600">
-                                        <HardHat className="w-5 h-5" />
-                                      </div>
-                                      <div>
-                                        <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Chantier Actuel</div>
-                                        <div className="text-sm font-bold text-forest-900">Résidence El Mansour</div>
+                                    <h4 className="text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">Coordonnées</h4>
+                                    <div className="flex items-start gap-3">
+                                      <MapPin className="w-4 h-4 text-sand-400 mt-1" />
+                                      <div className="text-sm font-medium text-sand-800 leading-relaxed">
+                                        Zone Industrielle de Mornag,<br />
+                                        Lot n°45, Ben Arous, Tunisie
                                       </div>
                                     </div>
                                   </div>
                                   <div className="space-y-4 border-l border-forest-100 pl-8">
-                                    <h4 className="text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">Congés Restants</h4>
-                                    <div className="flex items-center gap-4">
-                                      <div className="w-12 h-12 rounded-full border-4 border-forest-600 flex items-center justify-center text-[0.7rem] font-bold text-forest-600">
-                                        12 J
+                                    <h4 className="text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">Statistiques Ventes</h4>
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Total Commandé</div>
+                                        <div className="text-sm font-bold text-forest-900">45,800 TND</div>
                                       </div>
                                       <div>
-                                        <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Solde 2026</div>
-                                        <div className="text-sm font-bold text-forest-900">À prendre avant fin d'année</div>
+                                        <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Dernière Vente</div>
+                                        <div className="text-sm font-bold text-forest-900">10/05/2026</div>
                                       </div>
                                     </div>
                                   </div>
                                   <div className="space-y-4 border-l border-forest-100 pl-8">
-                                    <h4 className="text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">Documents RH</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                      <Badge className="bg-white text-sand-600 border-forest-50 font-bold rounded-lg py-1">Contrat CDI</Badge>
-                                      <Badge className="bg-white text-sand-600 border-forest-50 font-bold rounded-lg py-1">CIN / Passport</Badge>
-                                      <Badge className="bg-white text-sand-600 border-forest-50 font-bold rounded-lg py-1">Diplôme</Badge>
+                                    <h4 className="text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">Documents en attente</h4>
+                                    <div className="flex gap-2">
+                                      <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 rounded-lg px-2">2 BL à facturer</Badge>
+                                      <Badge className="bg-forest-100 text-forest-700 hover:bg-forest-100 rounded-lg px-2">1 Devis actif</Badge>
                                     </div>
                                   </div>
                                 </div>
@@ -235,6 +233,14 @@ export default function TeamPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="p-6 border-t border-forest-50 flex items-center justify-between">
+              <p className="text-sm text-sand-400 font-medium">Affichage de 1 à 5 sur {CUSTOMERS.length} clients</p>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold border-forest-50 text-forest-600" disabled>Précédent</Button>
+                <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold bg-forest-600 text-white border-forest-600">1</Button>
+                <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold border-forest-50 text-forest-600">Suivant</Button>
+              </div>
             </div>
           </CardContent>
         </Card>

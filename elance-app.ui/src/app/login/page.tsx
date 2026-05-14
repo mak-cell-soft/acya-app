@@ -32,74 +32,90 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4 relative overflow-hidden">
+    <div className="flex min-h-screen items-center justify-center bg-sand-50 px-4 relative overflow-hidden font-sans">
       {/* Background patterns */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)] opacity-50" />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(var(--color-forest-100)_1px,transparent_1px)] [background-size:24px_24px] opacity-30" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-forest-50/50 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-timber-100/20 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
       
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="w-full max-w-md relative z-10"
       >
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-primary/20">
-            <Sparkles className="w-7 h-7 text-primary-foreground" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">Enterprise Starter</h1>
+        <div className="flex flex-col items-center mb-10">
+          <Link href="/" className="group transition-transform hover:scale-105">
+            <svg className="w-16 h-16 md:w-20 md:h-20" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="18" cy="18" r="17" stroke="url(#ng_login)" strokeWidth="1.5"/>
+              <rect x="15.5" y="10" width="5" height="12" rx="2.5" fill="url(#ng_login)"/>
+              <polygon points="18,6 10,15.5 26,15.5" fill="url(#ng_login)"/>
+              <rect x="14" y="24" width="8" height="2" rx="1" fill="#1D9E75"/>
+              <rect x="11" y="28" width="14" height="2" rx="1" fill="#94A3B8"/>
+              <defs>
+                <linearGradient id="ng_login" x1="0" y1="0" x2="36" y2="36">
+                  <stop offset="0%" stopColor="#534AB7"/>
+                  <stop offset="100%" stopColor="#1D9E75"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </Link>
+          <h1 className="text-3xl font-heading font-bold text-forest-900 mt-6 tracking-tight">Élancé ERP</h1>
+          <p className="text-sand-400 font-medium text-sm uppercase tracking-[0.1em] mt-1">Propulsé par ACYA Consulting</p>
         </div>
 
-        <Card className="border-muted/50 shadow-2xl backdrop-blur-sm bg-card/80">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
-            <CardDescription className="text-center">
-              Enter your credentials to access your dashboard
+        <Card className="border-forest-100 shadow-[0_20px_60px_rgba(11,59,36,0.08)] bg-white/80 backdrop-blur-md rounded-[32px] overflow-hidden">
+          <CardHeader className="space-y-2 pt-10 pb-6">
+            <CardTitle className="text-2xl font-bold text-center text-forest-900">Content de vous revoir</CardTitle>
+            <CardDescription className="text-center text-sand-400">
+              Connectez-vous pour accéder à votre espace
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleLogin}>
-            <CardContent className="grid gap-4">
+            <CardContent className="grid gap-6 px-8">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-forest-800 font-bold ml-1">Email</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="contact@entreprise.com"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-muted/50 border-muted"
+                  className="h-12 bg-sand-50/50 border-forest-100 rounded-xl focus:border-forest-600 focus:ring-forest-600 transition-all px-4"
                   disabled={isLoading}
                 />
               </div>
               <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link href="/forgot-password" className="text-xs text-primary hover:underline">Forgot password?</Link>
+                <div className="flex items-center justify-between ml-1">
+                  <Label htmlFor="password" className="text-forest-800 font-bold">Mot de passe</Label>
+                  <Link href="/forgot-password" opacity-60 className="text-xs text-timber-600 hover:text-timber-800 font-bold hover:underline transition-colors">Oublié ?</Link>
                 </div>
                 <Input
                   id="password"
                   type="password"
                   required
-                  className="bg-muted/50 border-muted"
+                  placeholder="••••••••"
+                  className="h-12 bg-sand-50/50 border-forest-100 rounded-xl focus:border-forest-600 focus:ring-forest-600 transition-all px-4"
                   disabled={isLoading}
                 />
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col gap-4">
+            <CardFooter className="flex flex-col gap-6 px-8 pb-10 pt-4">
               <Button 
                 type="submit" 
-                className="w-full h-11 text-base font-semibold shadow-lg shadow-primary/20"
+                className="w-full h-14 rounded-xl bg-forest-600 text-white text-lg font-bold shadow-lg shadow-forest-600/20 hover:bg-forest-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 ) : null}
-                Sign In
+                Se connecter
               </Button>
-              <div className="text-center text-sm text-muted-foreground">
-                Don&apos;t have an account?{' '}
-                <Link href="#" className="text-primary font-semibold hover:underline">
-                  Sign up
+              <div className="text-center text-sm text-sand-400">
+                Pas encore de compte ?{' '}
+                <Link href="#" className="text-forest-600 font-bold hover:text-forest-800 hover:underline transition-all">
+                  Contactez-nous
                 </Link>
               </div>
             </CardFooter>

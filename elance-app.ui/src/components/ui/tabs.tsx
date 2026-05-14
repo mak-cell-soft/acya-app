@@ -53,7 +53,12 @@ function TabsList({
   )
 }
 
-function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
+function TabsTrigger({ 
+  className, 
+  asChild,
+  children,
+  ...props 
+}: TabsPrimitive.Tab.Props & { asChild?: boolean }) {
   return (
     <TabsPrimitive.Tab
       data-slot="tabs-trigger"
@@ -65,7 +70,10 @@ function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
         className
       )}
       {...props}
-    />
+      render={asChild ? (children as React.ReactElement) : undefined}
+    >
+      {asChild ? null : children}
+    </TabsPrimitive.Tab>
   )
 }
 

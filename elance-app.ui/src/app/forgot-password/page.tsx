@@ -28,102 +28,118 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4 relative overflow-hidden">
+    <div className="flex min-h-screen items-center justify-center bg-sand-50 px-4 relative overflow-hidden font-sans">
       {/* Background patterns */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)] opacity-50" />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(#1D9E75_0.5px,transparent_0.5px)] [background-size:24px_24px] opacity-[0.03]" />
+      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-forest-50/20 via-transparent to-timber-50/20 pointer-events-none" />
       
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        transition={{ duration: 0.8 }}
+        className="w-full max-w-md relative z-10"
       >
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-primary/20">
-            <Sparkles className="w-7 h-7 text-primary-foreground" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">Enterprise Starter</h1>
+        <div className="flex flex-col items-center mb-10">
+          <Link href="/" className="flex items-center gap-3 mb-4 group">
+            <svg className="w-12 h-12 transition-transform duration-500 group-hover:rotate-[360deg]" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="18" cy="18" r="17" stroke="url(#fg_fp)" strokeWidth="1.5"/>
+              <rect x="15.5" y="10" width="5" height="12" rx="2.5" fill="url(#fg_fp)"/>
+              <polygon points="18,6 10,15.5 26,15.5" fill="url(#fg_fp)"/>
+              <rect x="14" y="24" width="8" height="2" rx="1" fill="#1D9E75"/>
+              <rect x="11" y="28" width="14" height="2" rx="1" fill="#94A3B8"/>
+              <defs>
+                <linearGradient id="fg_fp" x1="0" y1="0" x2="36" y2="36">
+                  <stop offset="0%" stopColor="#534AB7"/>
+                  <stop offset="100%" stopColor="#1D9E75"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <span className="text-3xl font-heading font-bold text-forest-900 tracking-tight">Élancé</span>
+          </Link>
+          <div className="h-1 w-12 bg-timber-400 rounded-full" />
         </div>
 
-        <Card className="border-muted/50 shadow-2xl backdrop-blur-sm bg-card/80">
+        <Card className="border-forest-100/50 shadow-2xl shadow-forest-900/5 rounded-[32px] overflow-hidden bg-white/80 backdrop-blur-xl">
           {isSubmitted ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.5 }}
             >
-              <CardHeader className="space-y-1 text-center">
-                <div className="mx-auto w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mb-2">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+              <CardHeader className="space-y-4 p-8 text-center">
+                <div className="mx-auto w-16 h-16 rounded-2xl bg-forest-50 flex items-center justify-center mb-2">
+                  <CheckCircle2 className="w-9 h-9 text-forest-600" />
                 </div>
-                <CardTitle className="text-2xl font-bold">Check your email</CardTitle>
-                <CardDescription>
-                  We sent a password reset link to<br />
-                  <span className="font-medium text-foreground">{email}</span>
-                </CardDescription>
+                <div>
+                  <CardTitle className="text-2xl font-heading font-bold text-forest-900">Vérifiez vos emails</CardTitle>
+                  <CardDescription className="text-sand-400 font-medium mt-2">
+                    Nous avons envoyé un lien de réinitialisation à<br />
+                    <span className="font-bold text-forest-600 underline decoration-timber-400/30 underline-offset-4">{email}</span>
+                  </CardDescription>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground text-center">
-                  Didn&apos;t receive the email? Check your spam folder or{' '}
+              <CardContent className="px-8 pb-4">
+                <p className="text-sm text-sand-400 text-center font-medium leading-relaxed">
+                  Vous n'avez pas reçu l'email ? Vérifiez vos spams ou{' '}
                   <button
                     onClick={() => setIsSubmitted(false)}
-                    className="text-primary font-semibold hover:underline"
+                    className="text-forest-600 font-bold hover:text-forest-800 transition-colors"
                   >
-                    try another email address
+                    réessayez avec une autre adresse
                   </button>
                 </p>
               </CardContent>
-              <CardFooter>
-                <Button asChild variant="outline" className="w-full">
+              <CardFooter className="p-8 pt-6">
+                <Button asChild variant="outline" className="w-full h-12 rounded-xl border-forest-100 text-forest-600 hover:bg-forest-50 font-bold">
                   <Link href="/login" className="gap-2">
-                    <ArrowLeft className="w-4 h-4" /> Back to login
+                    <ArrowLeft className="w-4 h-4" /> Retour à la connexion
                   </Link>
                 </Button>
               </CardFooter>
             </motion.div>
           ) : (
             <>
-              <CardHeader className="space-y-1">
-                <CardTitle className="text-2xl font-bold text-center">Forgot password?</CardTitle>
-                <CardDescription className="text-center">
-                  Enter your email and we&apos;ll send you a reset link
+              <CardHeader className="space-y-2 p-8 pb-6">
+                <CardTitle className="text-2xl font-heading font-bold text-center text-forest-900">Mot de passe oublié ?</CardTitle>
+                <CardDescription className="text-center text-sand-400 font-medium">
+                  Saisissez votre email et nous vous enverrons un lien de réinitialisation.
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleSubmit}>
-                <CardContent className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
+                <CardContent className="px-8 space-y-4">
+                  <div className="space-y-2.5">
+                    <Label htmlFor="email" className="text-sm font-bold text-forest-900 ml-1">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-sand-300" />
                       <Input
                         id="email"
                         type="email"
-                        placeholder="m@example.com"
+                        placeholder="nom@entreprise.com"
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="bg-muted/50 border-muted pl-9"
+                        className="h-12 rounded-xl bg-sand-50 border-forest-100 pl-12 focus:border-forest-600 focus:ring-forest-600 outline-none transition-all font-medium"
                         disabled={isLoading}
                       />
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="flex flex-col gap-4">
+                <CardFooter className="p-8 pt-8 flex flex-col gap-6">
                   <Button 
                     type="submit" 
-                    className="w-full h-11 text-base font-semibold shadow-lg shadow-primary/20"
+                    className="w-full h-12 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 text-[1rem] transition-all duration-300 active:scale-95"
                     disabled={isLoading}
                   >
                     {isLoading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                     ) : null}
-                    Send Reset Link
+                    Envoyer le lien
                   </Button>
                   <Link 
                     href="/login" 
-                    className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className="flex items-center justify-center gap-2 text-sm font-bold text-sand-400 hover:text-forest-600 transition-all group"
                   >
-                    <ArrowLeft className="w-4 h-4" /> Back to login
+                    <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" /> Retour à la connexion
                   </Link>
                 </CardFooter>
               </form>
