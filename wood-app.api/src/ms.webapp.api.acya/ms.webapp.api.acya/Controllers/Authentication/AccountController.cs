@@ -49,7 +49,7 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
 
       var user = await _context.AppUsers
         .Include(u => u.Persons)
-        .SingleOrDefaultAsync(u => u.Id == userId);
+        .FirstOrDefaultAsync(u => u.Id == userId);
 
       if (user == null) return NotFound();
 
@@ -148,7 +148,7 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
       var user = await _context.AppUsers
         .Include(u => u.SalesSite)
         .Include(u => u.Persons)
-        .SingleOrDefaultAsync(u => u.Email == loginDto.login || u.Login == loginDto.login);
+        .FirstOrDefaultAsync(u => (u.Email == loginDto.login || u.Login == loginDto.login) && u.IsActive == true);
 
       if (user == null) return Ok(new UserAuthDto
       {
@@ -185,7 +185,7 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
     [HttpPost("forgot-password")]
     public async Task<ActionResult> ForgotPassword(PasswordResetRequestDto dto)
     {
-      var user = await _context.AppUsers.SingleOrDefaultAsync(u => u.Email == dto.Email);
+      var user = await _context.AppUsers.FirstOrDefaultAsync(u => u.Email == dto.Email);
       if (user == null) return Ok(new { message = "Si cet email existe, un code a été généré." });
 
       user.PasswordResetToken = Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper();
@@ -205,7 +205,7 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
     [HttpPost("reset-password")]
     public async Task<ActionResult> ResetPassword(PasswordResetDto dto)
     {
-      var user = await _context.AppUsers.SingleOrDefaultAsync(u =>
+      var user = await _context.AppUsers.FirstOrDefaultAsync(u =>
           u.PasswordResetToken == dto.Token && u.PasswordResetTokenExpiry > DateTime.UtcNow);
 
       if (user == null) return BadRequest("Code invalide ou expiré.");

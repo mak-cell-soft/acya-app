@@ -62,7 +62,7 @@ export default function DashboardPage() {
           >
             <h1 className="text-3xl md:text-4xl font-heading font-bold tracking-tight text-forest-900">Tableau de bord</h1>
             <p className="text-sand-400 mt-2 font-medium">
-              Bienvenue, <span className="text-forest-600 font-bold">{user?.name}</span>. Voici l'état global de votre parc et de vos stocks.
+              Bienvenue, <span className="text-forest-600 font-bold">{user?.fullname}</span>. Voici l'état global de votre parc et de vos stocks.
             </p>
           </motion.div>
           <div className="flex items-center gap-3">

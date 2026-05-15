@@ -90,7 +90,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
             <div className="w-8 h-8 rounded-full bg-forest-100 flex items-center justify-center border border-forest-200">
               <User className="h-4 w-4 text-forest-600" />
             </div>
-            <span className="hidden md:inline-block font-bold text-sm text-forest-800">{user?.name || 'Utilisateur'}</span>
+            <span className="hidden md:inline-block font-bold text-sm text-forest-800">{user?.fullname || 'Utilisateur'}</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-60 rounded-2xl border-forest-100 shadow-xl p-2">
             <DropdownMenuGroup>

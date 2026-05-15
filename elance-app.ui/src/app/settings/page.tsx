@@ -46,7 +46,7 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2.5">
                     <Label htmlFor="name" className="text-sm font-bold text-forest-900">Nom Complet</Label>
-                    <Input id="name" defaultValue={user?.name} className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 focus:ring-forest-600 outline-none transition-all font-medium" />
+                    <Input id="name" defaultValue={user?.fullname} className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 focus:ring-forest-600 outline-none transition-all font-medium" />
                   </div>
                   <div className="space-y-2.5">
                     <Label htmlFor="email" className="text-sm font-bold text-forest-900">Adresse Email</Label>
