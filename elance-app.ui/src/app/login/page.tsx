@@ -11,6 +11,7 @@ import { useAuthStore } from '@/store/use-auth-store';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { Sparkles, Loader2 } from 'lucide-react';
+import { authService } from '@/services/auth.service';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -22,13 +23,26 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      login({ id: '1', email, name: email.split('@')[0] || 'John Doe' });
-      toast.success('Welcome back!');
+    try {
+      // In a real scenario, you would pass { email, password }
+      // const response = await authService.login({ email, password });
+      // login(response.user, response.token);
+
+      // For now, we simulate but use the structure we've set up
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      login(
+        { id: '1', email, name: email.split('@')[0] || 'John Doe' },
+        'sample-jwt-token'
+      );
+
+      toast.success('Bienvenue !');
       router.push('/dashboard');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Erreur lors de la connexion');
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -37,7 +51,7 @@ export default function LoginPage() {
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(var(--color-forest-100)_1px,transparent_1px)] [background-size:24px_24px] opacity-30" />
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-forest-50/50 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-timber-100/20 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
-      
+
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -47,15 +61,15 @@ export default function LoginPage() {
         <div className="flex flex-col items-center mb-10">
           <Link href="/" className="group transition-transform hover:scale-105">
             <svg className="w-16 h-16 md:w-20 md:h-20" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="18" cy="18" r="17" stroke="url(#ng_login)" strokeWidth="1.5"/>
-              <rect x="15.5" y="10" width="5" height="12" rx="2.5" fill="url(#ng_login)"/>
-              <polygon points="18,6 10,15.5 26,15.5" fill="url(#ng_login)"/>
-              <rect x="14" y="24" width="8" height="2" rx="1" fill="#1D9E75"/>
-              <rect x="11" y="28" width="14" height="2" rx="1" fill="#94A3B8"/>
+              <circle cx="18" cy="18" r="17" stroke="url(#ng_login)" strokeWidth="1.5" />
+              <rect x="15.5" y="10" width="5" height="12" rx="2.5" fill="url(#ng_login)" />
+              <polygon points="18,6 10,15.5 26,15.5" fill="url(#ng_login)" />
+              <rect x="14" y="24" width="8" height="2" rx="1" fill="#1D9E75" />
+              <rect x="11" y="28" width="14" height="2" rx="1" fill="#94A3B8" />
               <defs>
                 <linearGradient id="ng_login" x1="0" y1="0" x2="36" y2="36">
-                  <stop offset="0%" stopColor="#534AB7"/>
-                  <stop offset="100%" stopColor="#1D9E75"/>
+                  <stop offset="0%" stopColor="#534AB7" />
+                  <stop offset="100%" stopColor="#1D9E75" />
                 </linearGradient>
               </defs>
             </svg>
@@ -102,8 +116,8 @@ export default function LoginPage() {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-6 px-8 pb-10 pt-4">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full h-14 rounded-xl bg-forest-600 text-white text-lg font-bold shadow-lg shadow-forest-600/20 hover:bg-forest-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
                 disabled={isLoading}
               >
