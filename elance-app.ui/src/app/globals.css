@@ -21,10 +21,10 @@
   --color-timber-400: #8C6239;
   --color-timber-600: #6B4825;
 
-  --color-sand-50: #F5F5F0;
-  --color-sand-100: #EDEEE8;
-  --color-sand-400: #7A7870;
-  --color-sand-800: #2A2820;
+  --color-sand-50: #FFFFFF;
+  --color-sand-100: #F8FAFC;
+  --color-sand-400: #64748B;
+  --color-sand-800: #1E293B;
 
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -75,8 +75,8 @@
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  --muted: oklch(0.99 0 0);
+  --muted-foreground: oklch(0.45 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
