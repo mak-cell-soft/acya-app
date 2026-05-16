@@ -86,7 +86,7 @@ export default function DashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1, duration: 0.5 }}
             >
-              <Card className="border-forest-100/50 bg-white shadow-[0_10px_40px_rgba(11,59,36,0.04)] rounded-[24px] overflow-hidden group hover:border-forest-600 transition-all duration-500">
+              <Card className="border-forest-100/50 bg-transparent shadow-none rounded-[24px] overflow-hidden group hover:border-forest-600 transition-all duration-500">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">{stat.title}</CardTitle>
                   <div className="p-2 rounded-lg bg-forest-50 text-forest-600 group-hover:bg-forest-600 group-hover:text-white transition-colors">
@@ -111,7 +111,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-7">
-          <Card className="md:col-span-4 border-forest-100 rounded-[32px] shadow-xl shadow-forest-900/[0.02] bg-white overflow-hidden">
+          <Card className="md:col-span-4 border-forest-100 rounded-[32px] shadow-none bg-transparent overflow-hidden">
             <CardHeader className="p-8 pb-0">
               <CardTitle className="font-heading text-2xl text-forest-900">Volume de Ventes Mensuel</CardTitle>
               <CardDescription className="text-sand-400 font-medium">Performance financière consolidée sur l'année 2026.</CardDescription>
@@ -157,7 +157,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="md:col-span-3 border-forest-100 rounded-[32px] shadow-xl shadow-forest-900/[0.02] bg-white overflow-hidden">
+          <Card className="md:col-span-3 border-forest-100 rounded-[32px] shadow-none bg-transparent overflow-hidden">
             <CardHeader className="p-8 pb-4">
               <CardTitle className="font-heading text-2xl text-forest-900">Transactions Récentes</CardTitle>
               <CardDescription className="text-sand-400 font-medium">Bons de livraison et devis récents.</CardDescription>

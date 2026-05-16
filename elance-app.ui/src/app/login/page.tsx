@@ -63,7 +63,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-sand-50 px-4 relative overflow-hidden font-sans">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 relative overflow-hidden font-sans">
       {/* Background patterns */}
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(var(--color-forest-100)_1px,transparent_1px)] [background-size:24px_24px] opacity-30" />
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-forest-50/50 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
@@ -95,7 +95,7 @@ export default function LoginPage() {
           <p className="text-sand-400 font-medium text-sm uppercase tracking-[0.1em] mt-1">by ACYA Consulting</p>
         </div>
 
-        <Card className="border-forest-100 shadow-[0_20px_60px_rgba(11,59,36,0.08)] bg-white/80 backdrop-blur-md rounded-[32px] overflow-hidden">
+        <Card className="border-forest-100 shadow-[0_20px_60px_rgba(11,59,36,0.08)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
           <CardHeader className="space-y-2 pt-10 pb-6">
             <CardTitle className="text-2xl font-bold text-center text-forest-900">Bienvenue</CardTitle>
             <CardDescription className="text-center text-sand-400">
@@ -162,7 +162,7 @@ export default function LoginPage() {
                       placeholder="votre@email.com" 
                       value={forgotEmail}
                       onChange={(e) => setForgotEmail(e.target.value)}
-                      className="h-10 bg-white border-sand-200 text-sm"
+                      className="h-10 bg-background border-border text-sm"
                     />
                     <Button 
                       type="button"
@@ -174,9 +174,9 @@ export default function LoginPage() {
                     </Button>
                   </div>
                   {resetToken && (
-                    <div className="mt-3 p-3 bg-white rounded-lg border border-forest-100 animate-in fade-in slide-in-from-top-2">
+                    <div className="mt-3 p-3 bg-card rounded-lg border border-border animate-in fade-in slide-in-from-top-2">
                       <div className="text-[10px] uppercase tracking-wider text-forest-600 font-bold mb-1">Votre code :</div>
-                      <div className="text-lg font-mono font-bold text-center tracking-widest text-forest-900 bg-sand-50 py-2 rounded">
+                      <div className="text-lg font-mono font-bold text-center tracking-widest text-forest-900 bg-background py-2 rounded">
                         {resetToken}
                       </div>
                       <p className="text-[10px] text-sand-400 mt-2 text-center">

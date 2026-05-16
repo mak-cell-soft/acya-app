@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -48,9 +48,11 @@ import {
   Supplier, 
   SOCIETY_PREFIXES, 
   SUPPLIER_CATEGORIES, 
-  BANKS_TN 
+  BANKS_TN,
+  GOUVERNORATES_TN 
 } from "@/types/customer";
 import { cn } from "@/lib/utils";
+import { TaxRegistrationDialog } from "@/components/shared/tax-registration-dialog";
 
 const supplierSchema = z.object({
   prefix: z.string().min(1, "Le titre est requis"),
@@ -61,6 +63,7 @@ const supplierSchema = z.object({
   email: z.string().email("Email invalide").optional().or(z.literal("")),
   taxregistrationnumber: z.string().min(1, "Le matricule fiscal est requis"),
   address: z.string().min(1, "L'adresse est requise"),
+  gouvernorate: z.string().min(1, "Le gouvernorat est requis"),
   phonenumberone: z.string().min(8, "8 chiffres minimum"),
   phonenumbertwo: z.string().optional(),
   jobtitle: z.string().min(1, "La catégorie est requise"),
@@ -87,6 +90,7 @@ export function SupplierFormDialog({
   editSupplier,
   isLoading
 }: SupplierFormDialogProps) {
+  const [isTaxModalOpen, setIsTaxModalOpen] = useState(false);
 
   const form = useForm<SupplierFormValues>({
     resolver: zodResolver(supplierSchema) as any,
@@ -99,9 +103,10 @@ export function SupplierFormDialog({
       email: "",
       taxregistrationnumber: "",
       address: "",
+      gouvernorate: "23",
       phonenumberone: "",
       phonenumbertwo: "",
-      jobtitle: "2", // Default to Matériaux if needed, or index 0
+      jobtitle: "1", // Default to Matériaux if needed, or index 0
       bankname: "",
       bankaccountnumber: "",
       openingbalance: 0,
@@ -121,6 +126,7 @@ export function SupplierFormDialog({
           email: editSupplier.email || "",
           taxregistrationnumber: editSupplier.taxregistrationnumber || "",
           address: editSupplier.address,
+          gouvernorate: editSupplier.gouvernorate?.toString() || "23",
           phonenumberone: editSupplier.phonenumberone,
           phonenumbertwo: editSupplier.phonenumbertwo || "",
           jobtitle: editSupplier.jobtitle?.toString() || "1",
@@ -139,6 +145,7 @@ export function SupplierFormDialog({
           email: "",
           taxregistrationnumber: "",
           address: "",
+          gouvernorate: "23",
           phonenumberone: "",
           phonenumbertwo: "",
           jobtitle: "1",
@@ -162,24 +169,24 @@ export function SupplierFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white">
-        <DialogHeader className="p-8 bg-forest-900 text-white relative">
+      <DialogContent className="w-full max-w-full sm:max-w-xl md:max-w-3xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background h-full sm:h-auto max-h-screen sm:max-h-[90vh] flex flex-col">
+        <DialogHeader className="p-6 sm:p-8 bg-forest-900 text-white relative shrink-0">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700 text-emerald-400">
-              {editSupplier ? <UserPen className="w-6 h-6" /> : <UserPlus className="w-6 h-6" />}
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700 text-emerald-400 shrink-0">
+              {editSupplier ? <UserPen className="w-5 h-5 sm:w-6 sm:h-6" /> : <UserPlus className="w-5 h-5 sm:w-6 sm:h-6" />}
             </div>
             <div>
-              <DialogTitle className="font-heading text-2xl font-bold tracking-tight">
+              <DialogTitle className="font-heading text-xl sm:text-2xl font-bold tracking-tight">
                 {editSupplier ? "Modifier le Fournisseur" : "Nouveau Fournisseur"}
               </DialogTitle>
-              <p className="text-forest-300 text-sm font-medium mt-1">
+              <p className="text-forest-300 text-[0.7rem] sm:text-sm font-medium mt-1">
                 {editSupplier ? `ID: ${editSupplier.id} — ${editSupplier.name}` : "Enregistrez un nouveau fournisseur dans votre catalogue d'achat."}
               </p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all text-white"
+            className="absolute right-4 top-4 sm:right-6 sm:top-6 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all text-white"
           >
             <X className="w-4 h-4" />
           </button>
@@ -205,7 +212,7 @@ export function SupplierFormDialog({
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Titre</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-white">
+                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
                                 <SelectValue placeholder="Titre" />
                               </SelectTrigger>
                             </FormControl>
@@ -247,15 +254,32 @@ export function SupplierFormDialog({
                     )}
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="taxregistrationnumber"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Matricule Fiscal</FormLabel>
+                          <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Matricule Fiscal</FormLabel>
                           <FormControl>
-                            <Input className="h-12 rounded-xl border-forest-100 font-mono" placeholder="MF" {...field} onChange={e => field.onChange(e.target.value.toUpperCase())} />
+                            <div className="relative group">
+                              <Input 
+                                className="h-12 rounded-xl border-forest-100 bg-background font-mono cursor-pointer pr-12" 
+                                placeholder="Cliquez pour saisir le MF" 
+                                {...field} 
+                                readOnly
+                                onClick={() => setIsTaxModalOpen(true)}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-1 top-1 h-10 w-10 rounded-lg text-forest-600 group-hover:bg-forest-50"
+                                onClick={() => setIsTaxModalOpen(true)}
+                              >
+                                <BadgeInfo className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -266,16 +290,16 @@ export function SupplierFormDialog({
                       name="jobtitle"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Catégorie</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Catégorie</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value?.toString()}>
                             <FormControl>
-                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-white">
+                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
                                 <SelectValue placeholder="Catégorie" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="rounded-xl border-forest-100">
                               {SUPPLIER_CATEGORIES.map(c => (
-                                <SelectItem key={c.id} value={c.id.toString()}>{c.value}</SelectItem>
+                                <SelectItem key={c.id} value={c.value}>{c.value}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -297,7 +321,7 @@ export function SupplierFormDialog({
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input className="h-11 rounded-xl border-forest-100 bg-white" placeholder="Prénom" {...field} />
+                              <Input className="h-11 rounded-xl border-forest-100 bg-background" placeholder="Prénom" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -309,7 +333,7 @@ export function SupplierFormDialog({
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input className="h-11 rounded-xl border-forest-100 bg-white" placeholder="Nom" {...field} />
+                              <Input className="h-11 rounded-xl border-forest-100 bg-background" placeholder="Nom" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -329,10 +353,32 @@ export function SupplierFormDialog({
                     name="address"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Adresse Siège</FormLabel>
+                        <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Adresse Siège</FormLabel>
                         <FormControl>
-                          <Input className="h-12 rounded-xl border-forest-100" placeholder="Numéro, Rue, Ville..." {...field} />
+                          <Input className="h-12 rounded-xl border-forest-100 bg-background" placeholder="Numéro, Rue, Ville..." {...field} />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="gouvernorate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Gouvernorat</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                          <FormControl>
+                            <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
+                              <SelectValue placeholder="Sélectionner" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="rounded-xl border-forest-100 h-64">
+                            {GOUVERNORATES_TN.map(g => (
+                              <SelectItem key={g.key} value={g.value}>{g.value}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -410,7 +456,7 @@ export function SupplierFormDialog({
                           <FormItem>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
-                                <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-white">
+                                <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
                                   <SelectValue placeholder="Choisir la banque" />
                                 </SelectTrigger>
                               </FormControl>
@@ -429,7 +475,7 @@ export function SupplierFormDialog({
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input className="h-12 rounded-xl border-forest-100 bg-white font-mono uppercase" placeholder="RIB / Numéro de compte" {...field} />
+                              <Input className="h-12 rounded-xl border-forest-100 bg-background font-mono uppercase" placeholder="RIB / Numéro de compte" {...field} />
                             </FormControl>
                           </FormItem>
                         )}
@@ -486,6 +532,12 @@ export function SupplierFormDialog({
             </DialogFooter>
           </form>
         </Form>
+        <TaxRegistrationDialog 
+          isOpen={isTaxModalOpen}
+          onClose={() => setIsTaxModalOpen(false)}
+          onConfirm={(val) => form.setValue('taxregistrationnumber', val)}
+          initialValue={form.getValues('taxregistrationnumber')}
+        />
       </DialogContent>
     </Dialog>
   );

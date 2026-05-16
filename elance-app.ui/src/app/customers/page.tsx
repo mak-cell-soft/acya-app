@@ -138,14 +138,14 @@ export default function CustomersPage() {
           </div>
         </div>
 
-        <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-[24px] overflow-hidden bg-white/80 backdrop-blur-sm">
+        <Card className="border-forest-100/50 shadow-none rounded-[24px] overflow-hidden bg-transparent">
           <CardHeader className="border-b border-forest-50 p-6">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400" />
                 <Input 
                   placeholder="Rechercher par nom, MF, téléphone..." 
-                  className="pl-10 h-11 rounded-xl border-forest-50 bg-sand-50/50 focus:border-forest-600 focus:ring-forest-600 transition-all"
+                  className="pl-10 h-11 rounded-xl border-forest-50 bg-transparent focus:border-forest-600 focus:ring-forest-600 transition-all"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -166,7 +166,7 @@ export default function CustomersPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-sand-50/50 border-b border-forest-50">
+                  <tr className="bg-transparent border-b border-forest-50">
                     <th className="p-5 text-[0.7rem] font-bold text-forest-900/50 uppercase tracking-widest">Client</th>
                     <th className="p-5 text-[0.7rem] font-bold text-forest-900/50 uppercase tracking-widest">Matricule Fiscal</th>
                     <th className="p-5 text-[0.7rem] font-bold text-forest-900/50 uppercase tracking-widest">Contact</th>
@@ -294,7 +294,7 @@ export default function CustomersPage() {
                                       <MapPin className="w-4 h-4 text-sand-400 mt-1" />
                                       <div className="text-sm font-medium text-sand-800 leading-relaxed">
                                         {item.address},<br />
-                                        {GOUVERNORATES_TN.find(g => g.key.toString() === item.gouvernorate)?.value}
+                                        {GOUVERNORATES_TN.find(g => g.key.toString() === item.gouvernorate || g.value === item.gouvernorate)?.value || item.gouvernorate}
                                       </div>
                                     </div>
                                   </div>

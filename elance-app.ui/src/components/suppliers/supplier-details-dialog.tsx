@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Supplier, SUPPLIER_CATEGORIES } from "@/types/customer";
+import { Supplier, SUPPLIER_CATEGORIES, GOUVERNORATES_TN } from "@/types/customer";
 import { cn } from "@/lib/utils";
 import { Button } from '../ui/button';
 
@@ -43,7 +43,8 @@ export function SupplierDetailsDialog({
 }: SupplierDetailsDialogProps) {
   if (!supplier) return null;
 
-  const categoryLabel = SUPPLIER_CATEGORIES.find(c => c.id.toString() === supplier.jobtitle)?.value || "Non classé";
+  const categoryLabel = SUPPLIER_CATEGORIES.find(c => c.id.toString() === supplier.jobtitle || c.value === supplier.jobtitle)?.value || supplier.jobtitle || "Non classé";
+  const govLabel = GOUVERNORATES_TN.find(g => g.key.toString() === supplier.gouvernorate || g.value === supplier.gouvernorate)?.value || supplier.gouvernorate || "—";
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -113,11 +114,17 @@ export function SupplierDetailsDialog({
                       <div className="flex items-center gap-2 text-forest-600 font-bold text-xs uppercase tracking-widest">
                         <MapPin className="w-4 h-4" /> Localisation
                       </div>
-                      <div className="space-y-1">
-                        <div className="text-sm font-bold text-forest-900 leading-snug">
-                          {supplier.address || "Adresse non renseignée"}
+                      <div className="space-y-4">
+                        <div>
+                          <div className="text-[0.6rem] text-sand-300 uppercase font-bold">Adresse</div>
+                          <div className="text-sm font-bold text-forest-900 leading-snug">
+                            {supplier.address || "Adresse non renseignée"}
+                          </div>
                         </div>
-                        <div className="text-xs text-sand-400 font-medium">Tunisie</div>
+                        <div>
+                          <div className="text-[0.6rem] text-sand-300 uppercase font-bold">Gouvernorat</div>
+                          <div className="text-sm font-bold text-forest-900">{govLabel}</div>
+                        </div>
                       </div>
                       <Button variant="ghost" className="h-8 rounded-lg text-forest-600 hover:bg-forest-50 p-0 font-bold text-xs">
                         Voir sur Maps <ArrowUpRight className="w-3 h-3 ml-1" />

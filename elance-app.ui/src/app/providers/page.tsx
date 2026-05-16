@@ -38,7 +38,7 @@ import { cn } from '@/lib/utils';
 
 // Hooks & Types
 import { useSuppliers, useCreateSupplier, useUpdateSupplier, useDeleteSupplier } from '@/hooks/use-suppliers';
-import { Supplier, SUPPLIER_CATEGORIES } from '@/types/customer';
+import { Supplier, SUPPLIER_CATEGORIES, GOUVERNORATES_TN } from '@/types/customer';
 
 // Components
 import { SupplierFormDialog } from '@/components/suppliers/supplier-form-dialog';
@@ -315,7 +315,12 @@ export default function ProvidersPage() {
                                           <div className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-forest-600 group-hover:scale-110 transition-transform">
                                             <MapPin className="w-4 h-4" />
                                           </div>
-                                          <span className="leading-tight pt-1">{item.address || "Adresse non renseignée"}</span>
+                                          <div className="flex flex-col">
+                                            <span className="leading-tight">{item.address || "Adresse non renseignée"}</span>
+                                            <span className="text-[0.65rem] text-sand-400 font-bold uppercase mt-1">
+                                              {GOUVERNORATES_TN.find(g => g.key.toString() === item.gouvernorate || g.value === item.gouvernorate)?.value || item.gouvernorate || "—"}
+                                            </span>
+                                          </div>
                                         </div>
                                         <div className="flex items-center gap-4 text-sm text-sand-600 font-bold group">
                                           <div className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-forest-600 group-hover:scale-110 transition-transform">

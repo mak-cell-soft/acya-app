@@ -55,6 +55,7 @@ import {
 } from "@/types/customer";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TaxRegistrationDialog } from "@/components/shared/tax-registration-dialog";
 
 const customerSchema = z.object({
   prefix: z.string().min(1, "Le préfixe est requis"),
@@ -98,6 +99,7 @@ export function CustomerFormDialog({
   isLoading
 }: CustomerFormDialogProps) {
   const [mode, setMode] = useState<"society" | "individual">("individual");
+  const [isTaxModalOpen, setIsTaxModalOpen] = useState(false);
 
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema) as any,
@@ -200,7 +202,7 @@ export function CustomerFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-full sm:max-w-xl md:max-w-3xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-white h-full sm:h-auto max-h-screen sm:max-h-[90vh] flex flex-col">
+      <DialogContent className="w-full max-w-full sm:max-w-xl md:max-w-3xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background h-full sm:h-auto max-h-screen sm:max-h-[90vh] flex flex-col">
         <DialogHeader className="p-6 sm:p-8 bg-forest-900 text-white relative shrink-0">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700 text-emerald-400 shrink-0">
@@ -250,16 +252,16 @@ export function CustomerFormDialog({
                     <h3 className="font-heading font-bold text-forest-900">Identité</h3>
                   </div>
                   
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <FormField
                       control={form.control}
                       name="prefix"
                       render={({ field }) => (
                         <FormItem className="col-span-1">
-                          <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Civilité</FormLabel>
+                          <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Civilité</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-white">
+                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background transition-all">
                                 <SelectValue placeholder="Titre" />
                               </SelectTrigger>
                             </FormControl>
@@ -274,12 +276,12 @@ export function CustomerFormDialog({
                     />
                     <FormField
                       control={form.control}
-                      name="firstname"
+                      name="lastname"
                       render={({ field }) => (
                         <FormItem className="col-span-1">
-                          <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Prénom</FormLabel>
+                          <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Nom</FormLabel>
                           <FormControl>
-                            <Input className="h-12 rounded-xl border-forest-100" placeholder="Prénom" {...field} />
+                            <Input className="h-12 rounded-xl border-forest-100 bg-background transition-all" placeholder="Nom" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -287,12 +289,12 @@ export function CustomerFormDialog({
                     />
                     <FormField
                       control={form.control}
-                      name="lastname"
+                      name="firstname"
                       render={({ field }) => (
                         <FormItem className="col-span-1">
-                          <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Nom</FormLabel>
+                          <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Prénom</FormLabel>
                           <FormControl>
-                            <Input className="h-12 rounded-xl border-forest-100" placeholder="Nom" {...field} />
+                            <Input className="h-12 rounded-xl border-forest-100 bg-background transition-all" placeholder="Prénom" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -350,16 +352,15 @@ export function CustomerFormDialog({
                       name="jobtitle"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Activité</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value?.toString()}>
                             <FormControl>
-                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-white">
+                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
                                 <SelectValue placeholder="Activité" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="rounded-xl border-forest-100">
                               {CUSTOMER_ACTIVITIES.map(a => (
-                                <SelectItem key={a.key} value={a.key.toString()}>{a.value}</SelectItem>
+                                <SelectItem key={a.key} value={a.value}>{a.value}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -369,15 +370,32 @@ export function CustomerFormDialog({
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="taxregistrationnumber"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Matricule Fiscal</FormLabel>
+                          <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Matricule Fiscal</FormLabel>
                           <FormControl>
-                            <Input className="h-12 rounded-xl border-forest-100" placeholder="MF" {...field} onChange={e => field.onChange(e.target.value.toUpperCase())} />
+                            <div className="relative group">
+                              <Input 
+                                className="h-12 rounded-xl border-forest-100 bg-background font-mono cursor-pointer pr-12" 
+                                placeholder="Cliquez pour saisir le MF" 
+                                {...field} 
+                                readOnly
+                                onClick={() => setIsTaxModalOpen(true)}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-1 top-1 h-10 w-10 rounded-lg text-forest-600 group-hover:bg-forest-50"
+                                onClick={() => setIsTaxModalOpen(true)}
+                              >
+                                <BadgeInfo className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </FormControl>
                         </FormItem>
                       )}
@@ -387,9 +405,9 @@ export function CustomerFormDialog({
                       name="patentecode"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Patente</FormLabel>
+                          <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Patente</FormLabel>
                           <FormControl>
-                            <Input className="h-12 rounded-xl border-forest-100" placeholder="Code Patente" {...field} onChange={e => field.onChange(e.target.value.toUpperCase())} />
+                            <Input className="h-12 rounded-xl border-forest-100 bg-background" placeholder="Code Patente" {...field} onChange={e => field.onChange(e.target.value.toUpperCase())} />
                           </FormControl>
                         </FormItem>
                       )}
@@ -421,15 +439,15 @@ export function CustomerFormDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Gouvernorat</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value?.toString()}>
                           <FormControl>
-                            <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-white">
+                            <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
                               <SelectValue placeholder="Sélectionner" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className="rounded-xl border-forest-100 h-64">
                             {GOUVERNORATES_TN.map(g => (
-                              <SelectItem key={g.key} value={g.key.toString()}>{g.value}</SelectItem>
+                              <SelectItem key={g.key} value={g.value}>{g.value}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -539,7 +557,7 @@ export function CustomerFormDialog({
                           <FormItem>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
-                                <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-white">
+                                <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
                                   <SelectValue placeholder="Banque" />
                                 </SelectTrigger>
                               </FormControl>
@@ -558,7 +576,7 @@ export function CustomerFormDialog({
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input className="h-12 rounded-xl border-forest-100 bg-white font-mono" placeholder="RIB / Numéro de compte" {...field} />
+                              <Input className="h-12 rounded-xl border-forest-100 bg-background font-mono" placeholder="RIB / Numéro de compte" {...field} />
                             </FormControl>
                           </FormItem>
                         )}
@@ -625,6 +643,12 @@ export function CustomerFormDialog({
             </DialogFooter>
           </form>
         </Form>
+        <TaxRegistrationDialog 
+          isOpen={isTaxModalOpen}
+          onClose={() => setIsTaxModalOpen(false)}
+          onConfirm={(val) => form.setValue('taxregistrationnumber', val)}
+          initialValue={form.getValues('taxregistrationnumber')}
+        />
       </DialogContent>
     </Dialog>
   );

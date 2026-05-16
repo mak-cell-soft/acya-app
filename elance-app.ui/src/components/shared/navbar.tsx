@@ -31,7 +31,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   };
 
   return (
-    <header className="h-16 border-b border-forest-100 bg-sand-50/80 flex items-center justify-between px-6 sticky top-0 z-10 backdrop-blur-md font-sans">
+    <header className="h-16 border-b border-border bg-background/80 flex items-center justify-between px-6 sticky top-0 z-10 backdrop-blur-md font-sans">
       <div className="flex items-center gap-4 flex-1">
         <Button 
           variant="ghost" 
@@ -46,7 +46,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
           <Input
             type="search"
             placeholder="Rechercher..."
-            className="pl-10 bg-white border-forest-100 h-10 w-full rounded-xl focus:border-forest-600 focus:ring-4 focus:ring-forest-600/10 transition-all shadow-sm"
+            className="pl-10 bg-background border-forest-100 h-10 w-full rounded-xl focus:border-forest-600 focus:ring-4 focus:ring-forest-600/10 transition-all shadow-sm"
           />
         </div>
       </div>
@@ -55,7 +55,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         <DropdownMenu>
           <DropdownMenuTrigger className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "relative cursor-pointer hover:bg-forest-50 rounded-xl text-forest-800")}>
             <Bell className="h-5 w-5" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-timber-400 rounded-full border-2 border-sand-50" />
+            <span className="absolute top-2 right-2 w-2 h-2 bg-timber-400 rounded-full border-2 border-background" />
             <span className="sr-only">Notifications</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80 rounded-2xl border-forest-100 shadow-xl">

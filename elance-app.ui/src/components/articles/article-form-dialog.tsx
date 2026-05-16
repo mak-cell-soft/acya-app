@@ -219,7 +219,7 @@ export function ArticleFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white scrollbar-hide">
+      <DialogContent className="max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-background scrollbar-hide">
         <DialogHeader className="p-8 bg-forest-900 text-white relative">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700">
@@ -301,7 +301,7 @@ export function ArticleFormDialog({
                         <FormItem>
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Référence</FormLabel>
                           <FormControl>
-                            <Input placeholder="Ex: RF163100..." className="h-12 rounded-xl border-forest-100 bg-white" {...field} />
+                            <Input placeholder="Ex: RF163100..." className="h-12 rounded-xl border-forest-100 bg-background" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -314,7 +314,7 @@ export function ArticleFormDialog({
                         <FormItem>
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Désignation</FormLabel>
                           <FormControl>
-                            <Input placeholder="Ex: Bois Rouge Finlandais..." className="h-12 rounded-xl border-forest-100 bg-white" {...field} />
+                            <Input placeholder="Ex: Bois Rouge Finlandais..." className="h-12 rounded-xl border-forest-100 bg-background" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -331,7 +331,7 @@ export function ArticleFormDialog({
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Catégorie</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                             <FormControl>
-                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-white">
+                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
                                 <SelectValue placeholder="Choisir une catégorie" />
                               </SelectTrigger>
                             </FormControl>
@@ -353,7 +353,7 @@ export function ArticleFormDialog({
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Sous-catégorie</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!selectedCategoryId}>
                             <FormControl>
-                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-white">
+                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
                                 <SelectValue placeholder="Choisir une sous-catégorie" />
                               </SelectTrigger>
                             </FormControl>
@@ -388,7 +388,7 @@ export function ArticleFormDialog({
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Épaisseur (mm)</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value || undefined}>
                           <FormControl>
-                            <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-white">
+                            <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
                               <SelectValue placeholder="Choisir une épaisseur" />
                             </SelectTrigger>
                           </FormControl>
@@ -410,7 +410,7 @@ export function ArticleFormDialog({
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Largeur (mm)</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value || undefined}>
                           <FormControl>
-                            <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-white">
+                            <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
                               <SelectValue placeholder="Choisir une largeur" />
                             </SelectTrigger>
                           </FormControl>
@@ -464,7 +464,7 @@ export function ArticleFormDialog({
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Prix Vente TTC</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input type="number" step="0.001" className="h-12 rounded-xl border-forest-100 bg-white pr-12 font-bold" {...field} />
+                          <Input type="number" step="0.001" className="h-12 rounded-xl border-forest-100 bg-background pr-12 font-bold" {...field} />
                           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sand-300 font-bold text-xs uppercase">TND</span>
                         </div>
                       </FormControl>
@@ -480,7 +480,7 @@ export function ArticleFormDialog({
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">TVA (%)</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-white font-bold">
+                          <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background font-bold">
                             <SelectValue placeholder="Choisir TVA" />
                           </SelectTrigger>
                         </FormControl>
@@ -512,7 +512,7 @@ export function ArticleFormDialog({
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Unité</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value} disabled={selectedCategoryId === "1"}>
                         <FormControl>
-                          <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-white font-bold">
+                          <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background font-bold">
                             <SelectValue placeholder="Unité" />
                           </SelectTrigger>
                         </FormControl>
@@ -533,7 +533,7 @@ export function ArticleFormDialog({
                     <FormItem>
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Quantité Min.</FormLabel>
                       <FormControl>
-                        <Input type="number" className="h-12 rounded-xl border-forest-100 bg-white font-bold" {...field} />
+                        <Input type="number" className="h-12 rounded-xl border-forest-100 bg-background font-bold" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -547,7 +547,7 @@ export function ArticleFormDialog({
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Marge (%)</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input type="number" className="h-12 rounded-xl border-forest-100 bg-white pr-8 font-bold" {...field} />
+                          <Input type="number" className="h-12 rounded-xl border-forest-100 bg-background pr-8 font-bold" {...field} />
                           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sand-300 font-bold">%</span>
                         </div>
                       </FormControl>

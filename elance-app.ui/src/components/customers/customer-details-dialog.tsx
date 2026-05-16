@@ -76,8 +76,8 @@ export function CustomerDetailsDialog({
   if (!customer) return null;
 
   const initials = (customer.firstname?.[0] || "") + (customer.lastname?.[0] || "");
-  const activityLabel = CUSTOMER_ACTIVITIES.find(a => a.key.toString() === customer.jobtitle)?.value || "—";
-  const govLabel = GOUVERNORATES_TN.find(g => g.key.toString() === customer.gouvernorate)?.value || "—";
+  const activityLabel = CUSTOMER_ACTIVITIES.find(a => a.key.toString() === customer.jobtitle || a.value === customer.jobtitle)?.value || customer.jobtitle || "—";
+  const govLabel = GOUVERNORATES_TN.find(g => g.key.toString() === customer.gouvernorate || g.value === customer.gouvernorate)?.value || customer.gouvernorate || "—";
 
   const handleAddRule = () => {
     if (!selectedArticleId || discountRate <= 0) return;
