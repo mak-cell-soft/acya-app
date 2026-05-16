@@ -65,7 +65,11 @@ export function ArticleFilters({
       <div className="flex flex-wrap items-center gap-3">
         <Select value={selectedCategory} onValueChange={(val) => { if (val) onCategoryChange(val); onSubCategoryChange('all'); }}>
           <SelectTrigger className="w-[200px] h-11 rounded-xl border-forest-50 bg-white font-bold text-forest-900">
-            <SelectValue placeholder="Toutes les catégories" />
+            <SelectValue placeholder="Toutes les catégories">
+              {selectedCategory === 'all' 
+                ? 'Toutes les catégories' 
+                : categories?.find(c => c.id.toString() === selectedCategory)?.description}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent className="rounded-xl border-forest-100 shadow-xl">
             <SelectItem value="all" className="font-bold">
@@ -88,7 +92,11 @@ export function ArticleFilters({
           disabled={selectedCategory === 'all' || filteredSubCategories.length === 0}
         >
           <SelectTrigger className="w-[200px] h-11 rounded-xl border-forest-50 bg-white font-bold text-forest-900">
-            <SelectValue placeholder="Toutes les sous-catégories" />
+            <SelectValue placeholder="Toutes les sous-catégories">
+              {selectedSubCategory === 'all' 
+                ? 'Toutes les sous-catégories' 
+                : filteredSubCategories.find(sub => sub.id.toString() === selectedSubCategory)?.description}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent className="rounded-xl border-forest-100 shadow-xl">
             <SelectItem value="all" className="font-bold">Toutes les sous-catégories</SelectItem>

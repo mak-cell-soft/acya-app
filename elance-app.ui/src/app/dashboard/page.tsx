@@ -5,8 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/use-auth-store';
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
-import { useDashboardStats } from '@/hooks/use-dashboard-stats';
-import { Skeleton } from '@/components/ui/skeleton';
+
 import { 
   BarChart, 
   Bar, 

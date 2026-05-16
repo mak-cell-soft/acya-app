@@ -35,12 +35,17 @@ import { ArticleHistoryDialog } from '@/components/articles/article-history-dial
 import { ArticleFormDialog } from '@/components/articles/article-form-dialog';
 import { Article } from '@/types/article';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TablePagination } from '@/components/shared/table-pagination';
 
 export default function ArticlesPage() {
   // State for filtering
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubCategory, setSelectedSubCategory] = useState('all');
+  
+  // State for pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   
   // State for expand/collapse
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -72,6 +77,12 @@ export default function ArticlesPage() {
       return matchesSearch && matchesCategory && matchesSubCategory;
     });
   }, [articles, searchTerm, selectedCategory, selectedSubCategory]);
+
+  // Paginated articles
+  const paginatedArticles = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredArticles.slice(startIndex, startIndex + pageSize);
+  }, [filteredArticles, currentPage, pageSize]);
 
   // Handlers
   const handleCreate = (model: any) => {
@@ -106,6 +117,7 @@ export default function ArticlesPage() {
     setSearchTerm('');
     setSelectedCategory('all');
     setSelectedSubCategory('all');
+    setCurrentPage(1);
   };
 
   const scrollToTop = () => {
@@ -138,11 +150,11 @@ export default function ArticlesPage() {
         <Card className="border-forest-100/50 shadow-2xl shadow-forest-900/5 rounded-[32px] overflow-hidden bg-white/80 backdrop-blur-md">
           <ArticleFilters 
             searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
+            onSearchChange={(val) => { setSearchTerm(val); setCurrentPage(1); }}
             selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
+            onCategoryChange={(val) => { setSelectedCategory(val); setCurrentPage(1); }}
             selectedSubCategory={selectedSubCategory}
-            onSubCategoryChange={setSelectedSubCategory}
+            onSubCategoryChange={(val) => { setSelectedSubCategory(val); setCurrentPage(1); }}
             onReset={handleResetFilters}
             count={filteredArticles.length}
           />
@@ -169,7 +181,7 @@ export default function ArticlesPage() {
                   ) : filteredArticles.length === 0 ? (
                     <EmptyState />
                   ) : (
-                    filteredArticles.map((item) => (
+                    paginatedArticles.map((item) => (
                       <React.Fragment key={item.id}>
                         <tr 
                           className={cn(
@@ -334,15 +346,17 @@ export default function ArticlesPage() {
             
             {/* Pagination / Footer */}
             {!isArticlesLoading && filteredArticles.length > 0 && (
-              <div className="p-8 border-t border-forest-50 flex flex-col md:flex-row items-center justify-between gap-6">
-                <p className="text-sm text-sand-400 font-bold">
-                  Affichage de <span className="text-forest-900">1</span> à <span className="text-forest-900">{filteredArticles.length}</span> sur <span className="text-forest-600">{articles?.length}</span> articles
-                </p>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="rounded-xl h-10 px-4 font-bold border-forest-50 text-sand-400 hover:text-forest-600" disabled>Précédent</Button>
-                  <Button variant="outline" size="sm" className="rounded-xl h-10 w-10 font-bold bg-forest-600 text-white border-forest-600 shadow-lg shadow-forest-600/20">1</Button>
-                  <Button variant="outline" size="sm" className="rounded-xl h-10 px-4 font-bold border-forest-50 text-forest-600 hover:bg-forest-50">Suivant</Button>
-                </div>
+              <div className="p-6 border-t border-forest-50 bg-white/50 backdrop-blur-sm">
+                <TablePagination
+                  currentPage={currentPage}
+                  totalItems={filteredArticles.length}
+                  pageSize={pageSize}
+                  onPageChange={setCurrentPage}
+                  onPageSizeChange={(size) => {
+                    setPageSize(size);
+                    setCurrentPage(1);
+                  }}
+                />
               </div>
             )}
           </CardContent>
