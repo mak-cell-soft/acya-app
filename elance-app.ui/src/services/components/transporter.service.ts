@@ -14,5 +14,10 @@ export const transporterService = {
   delete: async (id: number) => {
     const response = await api.delete(`/Transporter/${id}`);
     return response.data;
+  },
+
+  put: async (id: number, model: any) => {
+    const response = await api.put(`/Transporter/${id}`, model);
+    return response.data;
   }
 };

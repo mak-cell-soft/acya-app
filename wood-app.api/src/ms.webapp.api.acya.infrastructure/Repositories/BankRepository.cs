@@ -16,5 +16,10 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
     {
       return await context.Banks.FirstOrDefaultAsync(u => u.Rib! == _rib);
     }
+
+    public new async Task<IEnumerable<Bank>> GetAllAsync()
+    {
+      return await context.Banks.Where(b => b.IsDeleted != true).ToListAsync();
+    }
   }
 }

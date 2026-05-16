@@ -1,7 +1,7 @@
 import api from '@/lib/axios';
 
 export const bankService = {
-  addBank: async (model: any) => {
+  add: async (model: any) => {
     const response = await api.post('/Bank/Add', model);
     return response.data;
   },

@@ -67,5 +67,25 @@ namespace ms.webapp.api.acya.api.Controllers.AppConfiguration
       }
       return NotFound();
     }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> Delete(int id)
+    {
+      var existingBank = await _repository.Get(id);
+      if (existingBank == null)
+      {
+        return NotFound();
+      }
+
+      existingBank.IsDeleted = true;
+      existingBank.UpdateDate = DateTime.Now;
+
+      var updatedEntity = await _repository.Update(existingBank);
+      if (updatedEntity != null)
+      {
+        return Ok();
+      }
+      return BadRequest("Failed to delete the bank.");
+    }
   }
 }

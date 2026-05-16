@@ -1,7 +1,7 @@
 import api from '@/lib/axios';
 
 export const categoryService = {
-  addCategory: async (model: any) => {
+  add: async (model: any) => {
     const response = await api.post('/Category/Add', model);
     return response.data;
   },

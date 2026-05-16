@@ -9,5 +9,10 @@ export const subCategoryService = {
   delete: async (id: number) => {
     const response = await api.delete(`/FirstChild/${id}`);
     return response.data;
+  },
+
+  add: async (model: any) => {
+    const response = await api.post('/FirstChild', model);
+    return response.data;
   }
 };
