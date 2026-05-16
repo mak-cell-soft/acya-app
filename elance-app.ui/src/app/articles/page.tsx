@@ -1,23 +1,24 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
 import { 
-  Search, 
   Plus, 
-  Filter, 
   MoreHorizontal, 
   Download, 
-  Package, 
-  ChevronDown,
   History,
   Edit,
   Trash2,
-  AlertCircle
+  AlertCircle,
+  ChevronDown,
+  QrCode,
+  Package,
+  Layers,
+  ArrowUpCircle,
+  TreeDeciduous
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   DropdownMenu, 
@@ -27,213 +28,394 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-
-const ARTICLES = [
-  { id: 1, ref: 'BOIS-001', name: 'Sapin du Nord 25x150', category: 'Bois Blanc', subCategory: 'Sciage', price: 1250.000, stock: 45.5, unit: 'M³', status: 'In Stock' },
-  { id: 2, ref: 'BOIS-002', name: 'Chêne Rouge 50x200', category: 'Bois Rouge', subCategory: 'Sciage', price: 4800.000, stock: 12.2, unit: 'M³', status: 'Low Stock' },
-  { id: 3, ref: 'ACC-045', name: 'Colle Bois D3 5kg', category: 'Accessoires', subCategory: 'Colles', price: 85.500, stock: 120, unit: 'PCS', status: 'In Stock' },
-  { id: 4, ref: 'BOIS-088', name: 'Frêne Blanc 32mm', category: 'Bois Noble', subCategory: 'Plateaux', price: 3200.000, stock: 8.4, unit: 'M³', status: 'In Stock' },
-  { id: 5, ref: 'PAN-012', name: 'MDF 18mm 2800x2070', category: 'Panneaux', subCategory: 'MDF', price: 145.000, stock: 65, unit: 'Feuille', status: 'In Stock' },
-];
+import { useArticles, useCreateArticle, useUpdateArticle, useDeleteArticle } from '@/hooks/use-articles';
+import { ArticleFilters } from '@/components/articles/article-filters';
+import { DeleteConfirmDialog } from '@/components/articles/delete-confirm-dialog';
+import { ArticleHistoryDialog } from '@/components/articles/article-history-dialog';
+import { ArticleFormDialog } from '@/components/articles/article-form-dialog';
+import { Article } from '@/types/article';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ArticlesPage() {
+  // State for filtering
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedSubCategory, setSelectedSubCategory] = useState('all');
+  
+  // State for expand/collapse
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  
+  // State for dialogs
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+
+  // Queries and Mutations
+  const { data: articles, isLoading: isArticlesLoading } = useArticles();
+  const createArticle = useCreateArticle();
+  const updateArticle = useUpdateArticle();
+  const deleteArticle = useDeleteArticle();
+
+  // Client-side filtering
+  const filteredArticles = useMemo(() => {
+    if (!articles) return [];
+    
+    return articles.filter(article => {
+      const matchesSearch = 
+        article.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        article.description.toLowerCase().includes(searchTerm.toLowerCase());
+        
+      const matchesCategory = selectedCategory === 'all' || article.categoryid.toString() === selectedCategory;
+      const matchesSubCategory = selectedSubCategory === 'all' || article.subcategoryid.toString() === selectedSubCategory;
+      
+      return matchesSearch && matchesCategory && matchesSubCategory;
+    });
+  }, [articles, searchTerm, selectedCategory, selectedSubCategory]);
+
+  // Handlers
+  const handleCreate = (model: any) => {
+    createArticle.mutate(model, {
+      onSuccess: () => setIsFormOpen(false)
+    });
+  };
+
+  const handleUpdate = (model: any) => {
+    if (selectedArticle) {
+      updateArticle.mutate({ id: selectedArticle.id, model }, {
+        onSuccess: () => {
+          setIsFormOpen(false);
+          setSelectedArticle(null);
+        }
+      });
+    }
+  };
+
+  const handleDelete = () => {
+    if (selectedArticle) {
+      deleteArticle.mutate(selectedArticle.id, {
+        onSuccess: () => {
+          setIsDeleteOpen(false);
+          setSelectedArticle(null);
+        }
+      });
+    }
+  };
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setSelectedCategory('all');
+    setSelectedSubCategory('all');
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <DashboardLayout>
       <div className="space-y-8 animate-in fade-in duration-700">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Header Section */}
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-heading font-bold text-forest-900 tracking-tight">Gestion des Articles</h1>
+            <h1 className="text-3xl md:text-4xl font-heading font-bold tracking-tight text-forest-900">Gestion des Articles</h1>
             <p className="text-sand-400 font-medium mt-1">Gérez votre catalogue de bois, panneaux et accessoires.</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50">
+            <Button variant="outline" className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6">
               <Download className="w-4 h-4 mr-2" /> Exporter
             </Button>
-            <Button className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20">
+            <Button 
+              className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-6"
+              onClick={() => { setSelectedArticle(null); setIsFormOpen(true); }}
+            >
               <Plus className="w-4 h-4 mr-2" /> Nouvel Article
             </Button>
           </div>
-        </div>
+        </header>
 
-        <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-[24px] overflow-hidden bg-white/80 backdrop-blur-sm">
-          <CardHeader className="border-b border-forest-50 p-6">
-            <div className="flex flex-col md:flex-row md:items-center gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400" />
-                <Input 
-                  placeholder="Rechercher par référence, désignation..." 
-                  className="pl-10 h-11 rounded-xl border-forest-50 bg-sand-50/50 focus:border-forest-600 focus:ring-forest-600 transition-all"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="flex items-center gap-3">
-                <Button variant="ghost" className="h-11 rounded-xl text-sand-400 font-bold hover:bg-sand-100">
-                  <Filter className="w-4 h-4 mr-2" /> Filtres
-                </Button>
-                <div className="h-6 w-[1px] bg-forest-100 mx-2 hidden md:block" />
-                <div className="flex items-center gap-2 px-3 py-2 bg-forest-50 rounded-lg">
-                  <Package className="w-4 h-4 text-forest-600" />
-                  <span className="text-sm font-bold text-forest-900">{ARTICLES.length} Articles</span>
-                </div>
-              </div>
-            </div>
-          </CardHeader>
+        {/* Filters and Table Card */}
+        <Card className="border-forest-100/50 shadow-2xl shadow-forest-900/5 rounded-[32px] overflow-hidden bg-white/80 backdrop-blur-md">
+          <ArticleFilters 
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            selectedSubCategory={selectedSubCategory}
+            onSubCategoryChange={setSelectedSubCategory}
+            onReset={handleResetFilters}
+            count={filteredArticles.length}
+          />
+
           <CardContent className="p-0">
-            <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full min-w-[900px] text-left border-collapse">
+            <div className="overflow-x-auto scrollbar-hide">
+              <table className="w-full min-w-[1000px] text-left border-collapse">
                 <thead>
                   <tr className="bg-sand-50/50 border-b border-forest-50">
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Référence</th>
+                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest pl-8">
+                      <div className="flex items-center gap-2"><QrCode className="w-3 h-3" /> Référence</div>
+                    </th>
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Désignation</th>
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Catégorie</th>
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-right">P.U TTC (TND)</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-center">Stock</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-center">Statut</th>
+                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-center">TVA</th>
+                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-right">P.U HT</th>
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-forest-50">
-                  {ARTICLES.map((item) => (
-                    <React.Fragment key={item.id}>
-                      <tr 
-                        className={cn(
-                          "group hover:bg-forest-50/30 transition-all duration-300 cursor-pointer",
-                          expandedId === item.id && "bg-forest-50/50"
-                        )}
-                        onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                      >
-                        <td className="p-5">
-                          <span className="font-bold text-forest-900">{item.ref}</span>
-                        </td>
-                        <td className="p-5">
-                          <div className="font-medium text-sand-800">{item.name}</div>
-                          <div className="text-[0.75rem] text-sand-400 font-medium">{item.subCategory}</div>
-                        </td>
-                        <td className="p-5">
-                          <Badge variant="outline" className="bg-white border-forest-100 text-forest-600 font-bold rounded-lg px-2.5 py-0.5">
-                            {item.category}
-                          </Badge>
-                        </td>
-                        <td className="p-5 text-right">
-                          <span className="font-bold text-forest-900">{item.price.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}</span>
-                        </td>
-                        <td className="p-5 text-center">
-                          <div className="flex flex-col items-center">
-                            <span className="font-bold text-forest-900">{item.stock}</span>
-                            <span className="text-[0.65rem] text-sand-400 font-bold uppercase">{item.unit}</span>
-                          </div>
-                        </td>
-                        <td className="p-5 text-center">
-                          <Badge 
-                            className={cn(
-                              "rounded-full px-3 py-1 font-bold text-[0.7rem]",
-                              item.status === 'In Stock' ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"
-                            )}
-                          >
-                            {item.status}
-                          </Badge>
-                        </td>
-                        <td className="p-5 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-sand-400 hover:text-forest-600 hover:bg-forest-100/50">
-                              <History className="w-4 h-4" />
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-sand-400">
-                                  <MoreHorizontal className="w-4 h-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="rounded-xl border-forest-100 w-40">
-                                <DropdownMenuItem className="gap-2 font-bold text-forest-900 cursor-pointer">
-                                  <Edit className="w-4 h-4" /> Modifier
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="gap-2 font-bold text-rose-600 cursor-pointer hover:text-rose-700 hover:bg-rose-50">
-                                  <Trash2 className="w-4 h-4" /> Supprimer
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                            <ChevronDown className={cn("w-4 h-4 text-sand-300 transition-transform duration-300", expandedId === item.id && "rotate-180")} />
-                          </div>
-                        </td>
-                      </tr>
-                      <AnimatePresence>
-                        {expandedId === item.id && (
-                          <tr>
-                            <td colSpan={7} className="p-0">
-                              <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.3 }}
-                                className="overflow-hidden bg-sand-50/30"
+                  {isArticlesLoading ? (
+                    <TableSkeleton />
+                  ) : filteredArticles.length === 0 ? (
+                    <EmptyState />
+                  ) : (
+                    filteredArticles.map((item) => (
+                      <React.Fragment key={item.id}>
+                        <tr 
+                          className={cn(
+                            "group hover:bg-forest-50/30 transition-all duration-300 cursor-pointer border-l-4 border-transparent",
+                            expandedId === item.id && "bg-forest-50/50 border-forest-600"
+                          )}
+                          onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
+                        >
+                          <td className="p-5 pl-8">
+                            <span className="font-bold text-forest-900">{item.reference}</span>
+                          </td>
+                          <td className="p-5">
+                            <div className="font-medium text-sand-800">{item.description}</div>
+                            <div className="text-[0.7rem] text-sand-400 font-bold uppercase tracking-wider mt-0.5">{item.subcategory?.description}</div>
+                          </td>
+                          <td className="p-5">
+                            <Badge variant="outline" className="bg-white border-forest-100 text-forest-600 font-bold rounded-lg px-2.5 py-1">
+                              {item.category?.description}
+                            </Badge>
+                          </td>
+                          <td className="p-5 text-right">
+                            <span className="font-bold text-forest-900">{item.sellprice_ttc.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}</span>
+                          </td>
+                          <td className="p-5 text-center">
+                            <Badge className="bg-forest-100 text-forest-600 hover:bg-forest-200 border-none font-bold rounded-lg">
+                              {item.tva?.value}%
+                            </Badge>
+                          </td>
+                          <td className="p-5 text-right">
+                            <span className="font-medium text-sand-400">{item.sellprice_ht.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}</span>
+                          </td>
+                          <td className="p-5 text-right pr-8">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-9 w-9 rounded-xl text-sand-300 hover:text-forest-600 hover:bg-forest-100/50 transition-all"
+                                onClick={(e) => { e.stopPropagation(); setSelectedArticle(item); setIsHistoryOpen(true); }}
                               >
-                                <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-                                  <div className="space-y-4">
-                                    <h4 className="text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">Détails Techniques</h4>
-                                    <div className="grid grid-cols-2 gap-4">
-                                      <div>
-                                        <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Épaisseur</div>
-                                        <div className="text-sm font-bold text-forest-900">25 mm</div>
+                                <History className="w-4 h-4" />
+                              </Button>
+                              
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-sand-300 hover:text-forest-900">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="rounded-2xl border-forest-100 w-48 shadow-xl p-2">
+                                  <DropdownMenuItem 
+                                    className="gap-2 font-bold text-forest-900 cursor-pointer rounded-xl h-11"
+                                    onClick={() => { setSelectedArticle(item); setIsFormOpen(true); }}
+                                  >
+                                    <Edit className="w-4 h-4" /> Modifier
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    className="gap-2 font-bold text-rose-600 cursor-pointer hover:text-rose-700 hover:bg-rose-50 rounded-xl h-11"
+                                    onClick={() => { setSelectedArticle(item); setIsDeleteOpen(true); }}
+                                  >
+                                    <Trash2 className="w-4 h-4" /> Supprimer
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+
+                              <div className="p-1 rounded-full bg-forest-50/50">
+                                <ChevronDown className={cn("w-4 h-4 text-forest-300 transition-transform duration-500", expandedId === item.id && "rotate-180 text-forest-600")} />
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        
+                        <AnimatePresence>
+                          {expandedId === item.id && (
+                            <tr>
+                              <td colSpan={7} className="p-0 border-none">
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: 'auto', opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                                  className="overflow-hidden bg-gradient-to-b from-forest-50/50 to-transparent border-b border-forest-50"
+                                >
+                                  <div className="p-10 grid grid-cols-1 md:grid-cols-3 gap-12 ml-4">
+                                    {item.iswood ? (
+                                      <div className="space-y-4">
+                                        <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
+                                          <TreeDeciduous className="w-3 h-3" /> Propriétés Bois
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-8">
+                                          <div className="bg-white p-4 rounded-2xl border border-forest-100 shadow-sm">
+                                            <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-tighter">Épaisseur</div>
+                                            <div className="text-lg font-bold text-forest-900 mt-1">{item.thickness?.name || '--'} <small className="text-sand-300 font-medium">mm</small></div>
+                                          </div>
+                                          <div className="bg-white p-4 rounded-2xl border border-forest-100 shadow-sm">
+                                            <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-tighter">Largeur</div>
+                                            <div className="text-lg font-bold text-forest-900 mt-1">{item.width?.name || '--'} <small className="text-sand-300 font-medium">mm</small></div>
+                                          </div>
+                                        </div>
+                                        <div className="bg-white p-4 rounded-2xl border border-forest-100 shadow-sm">
+                                          <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-tighter">Longueurs</div>
+                                          <div className="text-sm font-bold text-forest-900 mt-2 flex flex-wrap gap-2">
+                                            {item.lengths?.replace('[', '').replace(']', '').split(',').map((l, i) => (
+                                              <Badge key={i} className="bg-forest-50 text-forest-600 border-forest-100 rounded-lg">{l.trim()} cm</Badge>
+                                            )) || '--'}
+                                          </div>
+                                        </div>
                                       </div>
-                                      <div>
-                                        <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Largeur</div>
-                                        <div className="text-sm font-bold text-forest-900">150 mm</div>
+                                    ) : (
+                                      <div className="space-y-4">
+                                        <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
+                                          <Package className="w-3 h-3" /> Unité & Stock
+                                        </div>
+                                        <div className="bg-white p-5 rounded-2xl border border-forest-100 shadow-sm flex items-center justify-between">
+                                          <div>
+                                            <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Unité de vente</div>
+                                            <div className="text-xl font-bold text-forest-900 mt-1">{item.unit}</div>
+                                          </div>
+                                          <div className="w-12 h-12 rounded-xl bg-forest-50 flex items-center justify-center">
+                                            <Layers className="w-6 h-6 text-forest-600" />
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    <div className="space-y-4 border-l border-forest-100/50 pl-12">
+                                      <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
+                                        <AlertCircle className="w-3 h-3" /> Seuil & Profit
+                                      </div>
+                                      <div className="space-y-4">
+                                        <div className="flex items-center justify-between p-4 bg-amber-50/50 rounded-2xl border border-amber-100">
+                                          <span className="text-sm font-bold text-amber-700">Seuil d&apos;alerte</span>
+                                          <span className="text-lg font-bold text-amber-600">{item.minquantity} <small className="text-[0.6rem]">{item.unit}</small></span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-4 bg-forest-50/50 rounded-2xl border border-forest-100">
+                                          <span className="text-sm font-bold text-forest-700">Marge Profit</span>
+                                          <span className="text-lg font-bold text-forest-600">{item.profitmarginpercentage}%</span>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div className="space-y-4 border-l border-forest-100/50 pl-12">
+                                      <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
+                                        <History className="w-3 h-3" /> Aperçu Stock
+                                      </div>
+                                      <div className="flex flex-col items-center justify-center h-32 bg-white rounded-3xl border border-forest-50 shadow-sm">
+                                        <div className="text-3xl font-bold text-forest-900 tracking-tighter">0.000</div>
+                                        <div className="text-[0.65rem] font-bold text-sand-300 uppercase mt-1 tracking-widest">En Stock Actuel</div>
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="space-y-4 border-l border-forest-100 pl-8">
-                                    <h4 className="text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">Stock & Seuil</h4>
-                                    <div className="flex items-center gap-3">
-                                      <div className="p-2 bg-amber-50 rounded-lg">
-                                        <AlertCircle className="w-5 h-5 text-amber-600" />
-                                      </div>
-                                      <div>
-                                        <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Seuil d'alerte</div>
-                                        <div className="text-sm font-bold text-forest-900">5.0 M³</div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="space-y-4 border-l border-forest-100 pl-8">
-                                    <h4 className="text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">Dernière Opération</h4>
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-10 h-10 rounded-full bg-forest-100 flex items-center justify-center text-forest-600 font-bold text-xs">
-                                        BL
-                                      </div>
-                                      <div>
-                                        <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Vente #2405-012</div>
-                                        <div className="text-sm font-bold text-forest-900">12/05/2026 - 2.5 M³</div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </motion.div>
-                            </td>
-                          </tr>
-                        )}
-                      </AnimatePresence>
-                    </React.Fragment>
-                  ))}
+                                </motion.div>
+                              </td>
+                            </tr>
+                          )}
+                        </AnimatePresence>
+                      </React.Fragment>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
-            <div className="p-6 border-t border-forest-50 flex items-center justify-between">
-              <p className="text-sm text-sand-400 font-medium">Affichage de 1 à 5 sur {ARTICLES.length} articles</p>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold border-forest-50 text-forest-600" disabled>Précédent</Button>
-                <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold bg-forest-600 text-white border-forest-600">1</Button>
-                <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold border-forest-50 text-forest-600">Suivant</Button>
+            
+            {/* Pagination / Footer */}
+            {!isArticlesLoading && filteredArticles.length > 0 && (
+              <div className="p-8 border-t border-forest-50 flex flex-col md:flex-row items-center justify-between gap-6">
+                <p className="text-sm text-sand-400 font-bold">
+                  Affichage de <span className="text-forest-900">1</span> à <span className="text-forest-900">{filteredArticles.length}</span> sur <span className="text-forest-600">{articles?.length}</span> articles
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" className="rounded-xl h-10 px-4 font-bold border-forest-50 text-sand-400 hover:text-forest-600" disabled>Précédent</Button>
+                  <Button variant="outline" size="sm" className="rounded-xl h-10 w-10 font-bold bg-forest-600 text-white border-forest-600 shadow-lg shadow-forest-600/20">1</Button>
+                  <Button variant="outline" size="sm" className="rounded-xl h-10 px-4 font-bold border-forest-50 text-forest-600 hover:bg-forest-50">Suivant</Button>
+                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Floating Scroll Top */}
+      <button 
+        onClick={scrollToTop}
+        className="fixed bottom-8 right-8 w-12 h-12 rounded-2xl bg-forest-900 text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-all group z-50 border border-forest-700"
+      >
+        <ArrowUpCircle className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
+      </button>
+
+      {/* Dialogs */}
+      <ArticleFormDialog 
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSave={selectedArticle ? handleUpdate : handleCreate}
+        editArticle={selectedArticle}
+        isLoading={createArticle.isPending || updateArticle.isPending}
+      />
+
+      <ArticleHistoryDialog 
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        article={selectedArticle}
+      />
+
+      <DeleteConfirmDialog 
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onConfirm={handleDelete}
+        title="Supprimer l'article"
+        description={`Êtes-vous sûr de vouloir supprimer l'article "${selectedArticle?.reference}" ? Cette action est irréversible.`}
+        isLoading={deleteArticle.isPending}
+      />
     </DashboardLayout>
   );
 }
 
+function TableSkeleton() {
+  return (
+    <>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <tr key={i}>
+          <td className="p-5 pl-8"><Skeleton className="h-6 w-24 rounded-lg" /></td>
+          <td className="p-5"><Skeleton className="h-6 w-48 rounded-lg" /><Skeleton className="h-4 w-32 mt-2 rounded-lg" /></td>
+          <td className="p-5"><Skeleton className="h-8 w-24 rounded-lg" /></td>
+          <td className="p-5"><Skeleton className="h-6 w-20 ml-auto rounded-lg" /></td>
+          <td className="p-5 text-center"><Skeleton className="h-6 w-12 mx-auto rounded-lg" /></td>
+          <td className="p-5"><Skeleton className="h-6 w-20 ml-auto rounded-lg" /></td>
+          <td className="p-5"><Skeleton className="h-10 w-24 ml-auto rounded-xl" /></td>
+        </tr>
+      ))}
+    </>
+  );
+}
 
+function EmptyState() {
+  return (
+    <tr>
+      <td colSpan={7} className="p-20 text-center">
+        <div className="flex flex-col items-center justify-center">
+          <div className="w-20 h-20 rounded-[32px] bg-sand-50 flex items-center justify-center mb-6">
+            <Package className="w-10 h-10 text-sand-200" />
+          </div>
+          <h3 className="text-forest-900 font-heading text-xl font-bold">Aucun article trouvé</h3>
+          <p className="text-sand-400 font-medium max-w-[300px] mt-2">
+            Nous n&apos;avons trouvé aucun article correspondant à vos critères de recherche.
+          </p>
+        </div>
+      </td>
+    </tr>
+  );
+}
