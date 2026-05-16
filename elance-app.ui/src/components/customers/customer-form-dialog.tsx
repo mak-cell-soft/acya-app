@@ -196,6 +196,8 @@ export function CustomerFormDialog({
       ...values,
       type: values.isTypeBoth ? 'Both' : 'Customer',
       updatedbyid: 1, // Mock
+      id: editCustomer ? editCustomer.id : 0,
+      guid: editCustomer ? editCustomer.guid : undefined,
     };
     onSave(model);
   };

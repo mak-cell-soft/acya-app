@@ -38,6 +38,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
+import Link from 'next/link';
+
 const DOCUMENTS = [
   { id: 1, number: 'BL-2405-001', date: '14/05/2026', client: 'Menuiserie Moderne', amount_ttc: 4500.500, amount_ht: 3781.932, status: 'Livré', isInvoiced: true, type: 'BL' },
   { id: 2, number: 'BL-2405-002', date: '13/05/2026', client: 'Bati Plus', amount_ttc: 12500.000, amount_ht: 10504.201, status: 'En cours', isInvoiced: false, type: 'BL' },
@@ -65,9 +67,11 @@ export default function SalesPage() {
             <Button variant="outline" className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50">
               <Download className="w-4 h-4 mr-2" /> Exporter
             </Button>
-            <Button className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20">
-              <Plus className="w-4 h-4 mr-2" /> Nouveau Document
-            </Button>
+            <Link href="/sales/new">
+              <Button className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20">
+                <Plus className="w-4 h-4 mr-2" /> Nouveau Document
+              </Button>
+            </Link>
           </div>
         </div>
 

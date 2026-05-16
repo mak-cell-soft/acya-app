@@ -69,7 +69,7 @@ export function NumberingTab() {
               </Label>
               <Select 
                 value={(config.yearFormat || 2).toString()} 
-                onValueChange={(val) => setConfig({ ...config, yearFormat: parseInt(val) })}
+                onValueChange={(val) => setConfig({ ...config, yearFormat: parseInt(val || '2') })}
               >
                 <SelectTrigger className="h-12 rounded-xl bg-sand-50 border-forest-100 font-medium">
                   <SelectValue />
@@ -84,7 +84,7 @@ export function NumberingTab() {
               <Label className="text-sm font-bold text-forest-900">Longueur de l'incrément</Label>
               <Select 
                 value={(config.incrementLength || 3).toString()} 
-                onValueChange={(val) => setConfig({ ...config, incrementLength: parseInt(val) })}
+                onValueChange={(val) => setConfig({ ...config, incrementLength: parseInt(val || '3') })}
               >
                 <SelectTrigger className="h-12 rounded-xl bg-sand-50 border-forest-100 font-medium">
                   <SelectValue />

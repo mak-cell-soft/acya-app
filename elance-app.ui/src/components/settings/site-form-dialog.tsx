@@ -45,7 +45,7 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
     control,
     formState: { errors },
   } = useForm<SiteFormValues>({
-    resolver: zodResolver(siteSchema),
+    resolver: zodResolver(siteSchema) as any,
     defaultValues: {
       address: '',
       codepost: '',
@@ -122,7 +122,7 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
                   name="gov"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={(val) => field.onChange(val || '')} value={field.value}>
                       <SelectTrigger className="h-12 rounded-xl bg-sand-50 border-forest-100">
                         <SelectValue placeholder="Choisir" />
                       </SelectTrigger>

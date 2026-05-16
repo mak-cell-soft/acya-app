@@ -77,12 +77,12 @@ export function TransporterTable() {
                 <TableCell className="font-medium text-sand-600">
                   {editingId === t.id ? (
                     <Input 
-                      value={typeof editValues.car === 'object' ? (editValues.car?.serialnumber || '') : (editValues.car || '')} 
+                      value={typeof editValues.car === 'object' && editValues.car !== null ? ((editValues.car as any).serialnumber || '') : (editValues.car || '')} 
                       onChange={e => setEditValues({...editValues, car: e.target.value})} 
                       className="h-8" 
                     />
                   ) : (
-                    typeof t.car === 'object' ? `${t.car?.type || ''} ${t.car?.serialnumber || ''}` : t.car
+                    typeof t.car === 'object' && t.car !== null ? `${(t.car as any).type || ''} ${(t.car as any).serialnumber || ''}` : (t.car as any)
                   )}
                 </TableCell>
                 <TableCell className="text-right">

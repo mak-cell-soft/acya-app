@@ -4,7 +4,6 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronRight, Home } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 const routeMap: Record<string, string> = {
   dashboard: 'Tableau de bord',
@@ -19,6 +18,7 @@ const routeMap: Record<string, string> = {
   vehicles: 'Véhicules',
   team: 'Équipe & RH',
   settings: 'Paramètres',
+  new: 'Nouveau',
 };
 
 export function Breadcrumbs() {
@@ -40,7 +40,7 @@ export function Breadcrumbs() {
       {segments.map((segment, index) => {
         const href = `/${segments.slice(0, index + 1).join('/')}`;
         const isLast = index === segments.length - 1;
-        const label = routeMap[segment] || segment;
+        const label = routeMap[segment.toLowerCase()] || segment;
 
         // Skip 'dashboard' if it's the first segment and not the last (redundant with Home)
         if (segment === 'dashboard' && segments.length > 1 && index === 0) return null;

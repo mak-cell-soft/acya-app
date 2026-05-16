@@ -166,7 +166,7 @@ export function EnterpriseTab() {
                   <Label className="text-sm font-bold text-forest-900">Devise</Label>
                   <Select 
                     value={watch('devise') || ''} 
-                    onValueChange={(val) => setValue('devise', val, { shouldDirty: true })}
+                    onValueChange={(val) => setValue('devise', val || '', { shouldDirty: true })}
                   >
                     <SelectTrigger className="h-12 rounded-xl bg-sand-50 border-forest-100">
                       <SelectValue placeholder="Choisir une devise" />
@@ -226,7 +226,7 @@ export function EnterpriseTab() {
                   <Label className="text-sm font-bold text-forest-900">Poste / Fonction</Label>
                   <Select 
                     value={watch('positionResponsable') || ''} 
-                    onValueChange={(val) => setValue('positionResponsable', val, { shouldDirty: true })}
+                    onValueChange={(val) => setValue('positionResponsable', val || '', { shouldDirty: true })}
                   >
                     <SelectTrigger className="h-12 rounded-xl bg-sand-50 border-forest-100">
                       <SelectValue placeholder="Choisir un poste" />

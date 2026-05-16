@@ -55,7 +55,7 @@ export function BankFormDialog({ isOpen, onClose, bank }: BankFormDialogProps) {
     watch,
     formState: { errors },
   } = useForm<BankFormValues>({
-    resolver: zodResolver(bankSchema),
+    resolver: zodResolver(bankSchema) as any,
     defaultValues: {
       reference: '',
       designation: '',
@@ -104,7 +104,8 @@ export function BankFormDialog({ isOpen, onClose, bank }: BankFormDialogProps) {
     }
   }, [isOpen, bank, reset]);
 
-  const handleBankChange = (value: string) => {
+  const handleBankChange = (value: string | null) => {
+    if (!value) return;
     setValue('reference', value);
     const selectedBank = BANKS_TN.find(b => b.key === value);
     if (selectedBank) {
