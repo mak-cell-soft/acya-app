@@ -79,7 +79,7 @@ export default function CustomersPage() {
 
   const handleUpdate = (data: any) => {
     if (!selectedCustomer) return;
-    updateCustomer.mutate({ id: selectedCustomer.id, model: data }, {
+    updateCustomer.mutate({ id: selectedCustomer.id, data: data }, {
       onSuccess: () => {
         setIsFormOpen(false);
         setSelectedCustomer(null);
@@ -167,12 +167,12 @@ export default function CustomersPage() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-sand-50/50 border-b border-forest-50">
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Client</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Matricule Fiscal</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Contact</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-right">Solde Actuel (TND)</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-center">Type</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest"></th>
+                    <th className="p-5 text-[0.7rem] font-bold text-forest-900/50 uppercase tracking-widest">Client</th>
+                    <th className="p-5 text-[0.7rem] font-bold text-forest-900/50 uppercase tracking-widest">Matricule Fiscal</th>
+                    <th className="p-5 text-[0.7rem] font-bold text-forest-900/50 uppercase tracking-widest">Contact</th>
+                    <th className="p-5 text-[0.7rem] font-bold text-forest-900/50 uppercase tracking-widest text-right">Solde Actuel (TND)</th>
+                    <th className="p-5 text-[0.7rem] font-bold text-forest-900/50 uppercase tracking-widest text-center">Type</th>
+                    <th className="p-5 text-[0.7rem] font-bold text-forest-900/50 uppercase tracking-widest"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-forest-50">

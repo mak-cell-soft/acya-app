@@ -288,7 +288,7 @@ export function CustomerDetailsDialog({
                         </div>
                         <div className="space-y-2">
                           <label className="text-[0.65rem] font-bold text-sand-400 uppercase">Sélection Article</label>
-                          <Select onValueChange={setSelectedArticleId} value={selectedArticleId}>
+                          <Select onValueChange={(val) => setSelectedArticleId(val || "")} value={selectedArticleId}>
                             <SelectTrigger className="h-10 rounded-xl bg-white border-forest-50">
                               <SelectValue placeholder="Choisir un article" />
                             </SelectTrigger>

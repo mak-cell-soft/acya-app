@@ -20,7 +20,7 @@ export function useCreatePricingRule() {
       queryClient.invalidateQueries({ queryKey: ['pricing-grid', variables.counterpartid] });
       toast.success('Règle tarifaire ajoutée avec succès');
     },
-    error: (error: any) => {
+    onError: (error: any) => {
       console.error('Error creating pricing rule:', error);
       toast.error('Erreur lors de l\'ajout de la règle tarifaire');
     },
@@ -37,7 +37,7 @@ export function useDeletePricingRule() {
       queryClient.invalidateQueries({ queryKey: ['pricing-grid', variables.counterPartId] });
       toast.success('Règle tarifaire supprimée avec succès');
     },
-    error: (error: any) => {
+    onError: (error: any) => {
       console.error('Error deleting pricing rule:', error);
       toast.error('Erreur lors de la suppression de la règle tarifaire');
     },

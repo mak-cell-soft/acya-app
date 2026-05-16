@@ -41,12 +41,12 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         >
           <Menu className="h-6 w-6" />
         </Button>
-        <div className="relative w-full max-w-sm">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-sand-400" />
+        <div className="relative w-full max-w-sm hidden sm:block">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-sand-400" />
           <Input
             type="search"
             placeholder="Rechercher..."
-            className="pl-10 bg-white/50 border-forest-100 h-10 w-full rounded-xl focus:border-forest-600 focus:ring-forest-600 transition-all shadow-sm"
+            className="pl-10 bg-white border-forest-100 h-10 w-full rounded-xl focus:border-forest-600 focus:ring-4 focus:ring-forest-600/10 transition-all shadow-sm"
           />
         </div>
       </div>

@@ -19,7 +19,7 @@ export function useCreateSupplier() {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
       toast.success('Fournisseur ajouté avec succès');
     },
-    error: (error: any) => {
+    onError: (error: any) => {
       console.error('Error creating supplier:', error);
       toast.error('Erreur lors de l\'ajout du fournisseur');
     },
@@ -36,7 +36,7 @@ export function useUpdateSupplier() {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
       toast.success('Fournisseur mis à jour avec succès');
     },
-    error: (error: any) => {
+    onError: (error: any) => {
       console.error('Error updating supplier:', error);
       toast.error('Erreur lors de la mise à jour du fournisseur');
     },
@@ -52,7 +52,7 @@ export function useDeleteSupplier() {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
       toast.success('Fournisseur supprimé avec succès');
     },
-    error: (error: any) => {
+    onError: (error: any) => {
       console.error('Error deleting supplier:', error);
       toast.error('Erreur lors de la suppression du fournisseur');
     },

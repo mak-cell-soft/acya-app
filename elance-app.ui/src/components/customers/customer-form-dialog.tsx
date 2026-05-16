@@ -200,48 +200,48 @@ export function CustomerFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white">
-        <DialogHeader className="p-8 bg-forest-900 text-white relative">
+      <DialogContent className="w-full max-w-full sm:max-w-xl md:max-w-3xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-white h-full sm:h-auto max-h-screen sm:max-h-[90vh] flex flex-col">
+        <DialogHeader className="p-6 sm:p-8 bg-forest-900 text-white relative shrink-0">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700 text-emerald-400">
-              {editCustomer ? <UserPen className="w-6 h-6" /> : <UserPlus className="w-6 h-6" />}
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700 text-emerald-400 shrink-0">
+              {editCustomer ? <UserPen className="w-5 h-5 sm:w-6 sm:h-6" /> : <UserPlus className="w-5 h-5 sm:w-6 sm:h-6" />}
             </div>
             <div>
-              <DialogTitle className="font-heading text-2xl font-bold tracking-tight">
+              <DialogTitle className="font-heading text-xl sm:text-2xl font-bold tracking-tight">
                 {editCustomer ? "Modifier le Client" : "Nouveau Client"}
               </DialogTitle>
-              <p className="text-forest-300 text-sm font-medium mt-1">
-                {editCustomer ? `ID: ${editCustomer.id} — ${editCustomer.firstname} ${editCustomer.lastname}` : "Enregistrez un nouveau client régulier dans votre système."}
+              <p className="text-forest-300 text-[0.7rem] sm:text-sm font-medium mt-1">
+                {editCustomer ? `ID: ${editCustomer.id} — ${editCustomer.firstname} ${editCustomer.lastname}` : "Enregistrez un nouveau client régulier."}
               </p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all text-white"
+            className="absolute right-4 top-4 sm:right-6 sm:top-6 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all text-white"
           >
             <X className="w-4 h-4" />
           </button>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="p-8 space-y-8 overflow-y-auto max-h-[75vh]">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-8">
             {/* Mode Selection */}
             {!editCustomer && (
               <div className="flex justify-center">
                 <Tabs value={mode} onValueChange={handleModeChange} className="w-full max-w-md">
                   <TabsList className="grid w-full grid-cols-2 rounded-2xl p-1 bg-sand-50 border border-forest-50 h-12">
-                    <TabsTrigger value="individual" className="rounded-xl font-bold data-[state=active]:bg-white data-[state=active]:text-forest-900 data-[state=active]:shadow-sm gap-2">
-                      <User className="w-4 h-4" /> Personne Physique
+                    <TabsTrigger value="individual" className="rounded-xl font-bold gap-2">
+                      <User className="w-4 h-4" /> <span className="hidden xs:inline">Personne Physique</span><span className="xs:hidden">Physique</span>
                     </TabsTrigger>
-                    <TabsTrigger value="society" className="rounded-xl font-bold data-[state=active]:bg-white data-[state=active]:text-forest-900 data-[state=active]:shadow-sm gap-2">
-                      <Building2 className="w-4 h-4" /> Société / Entreprise
+                    <TabsTrigger value="society" className="rounded-xl font-bold gap-2">
+                      <Building2 className="w-4 h-4" /> <span className="hidden xs:inline">Société / Entreprise</span><span className="xs:hidden">Société</span>
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-10">
               {/* Left Column: Core Identity */}
               <div className="space-y-8">
                 <div className="space-y-6">
@@ -596,7 +596,7 @@ export function CustomerFormDialog({
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
-                          <FormLabel className="text-sm font-bold text-forest-900">Client et Fournisseur</h4 >
+                          <FormLabel className="text-sm font-bold text-forest-900">Client et Fournisseur</FormLabel>
                           <p className="text-[0.7rem] text-sand-400 font-medium">Ce client sera également visible dans le module Fournisseurs.</p>
                         </div>
                       </FormItem>

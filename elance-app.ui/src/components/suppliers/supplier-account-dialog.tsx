@@ -90,7 +90,7 @@ export function SupplierAccountDialog({
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 rounded-2xl border-forest-100 shadow-xl" align="end">
                   <Calendar
-                    initialFocus
+                    autoFocus
                     mode="range"
                     defaultMonth={dateRange.from}
                     selected={{ from: dateRange.from, to: dateRange.to }}

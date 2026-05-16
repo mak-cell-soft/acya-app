@@ -19,7 +19,7 @@ export function useCreateCustomer() {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       toast.success('Client ajouté avec succès');
     },
-    error: (error: any) => {
+    onError: (error: any) => {
       console.error('Error creating customer:', error);
       toast.error('Erreur lors de l\'ajout du client');
     },
@@ -36,7 +36,7 @@ export function useUpdateCustomer() {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       toast.success('Client mis à jour avec succès');
     },
-    error: (error: any) => {
+    onError: (error: any) => {
       console.error('Error updating customer:', error);
       toast.error('Erreur lors de la mise à jour du client');
     },
@@ -52,7 +52,7 @@ export function useDeleteCustomer() {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       toast.success('Client supprimé avec succès');
     },
-    error: (error: any) => {
+    onError: (error: any) => {
       console.error('Error deleting customer:', error);
       toast.error('Erreur lors de la suppression du client');
     },

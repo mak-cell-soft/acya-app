@@ -25,14 +25,14 @@ export function HeroSection() {
           <h1 className="font-heading text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[3.8rem] leading-[1.1] text-forest-900 font-bold tracking-tight">
             Gérez toute votre entreprise depuis <em className="italic text-timber-400 not-italic">une seule plateforme</em>
           </h1>
-          <p className="text-[1rem] md:text-[1.1rem] leading-relaxed text-sand-400 max-w-[520px] mx-auto lg:mx-0">
+          <p className="text-[1rem] md:text-[1.1rem] leading-relaxed text-forest-800/80 max-w-[520px] mx-auto lg:mx-0 font-medium">
             Élancé centralise vos achats, ventes, chantiers, flotte et comptabilité dans un ERP conçu pour les entreprises du secteur du bois et des matériaux.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 pt-2 justify-center lg:justify-start">
             <Button asChild className="h-14 px-8 rounded-xl bg-forest-600 text-white hover:bg-forest-800 hover:scale-[1.02] active:scale-[0.98] text-[1rem] font-bold transition-all duration-300 shadow-xl shadow-forest-600/20">
               <Link href="/register">Demander une démo gratuite</Link>
             </Button>
-            <Button asChild variant="outline" className="h-14 px-8 rounded-xl border-forest-100 text-forest-600 hover:border-forest-600 hover:bg-forest-50 text-[1rem] font-bold transition-all duration-300">
+            <Button asChild variant="outline" className="h-14 px-8 rounded-xl border-forest-200 text-forest-700 hover:border-forest-600 hover:bg-forest-50 text-[1rem] font-bold transition-all duration-300">
               <Link href="#modules">Découvrir les modules →</Link>
             </Button>
           </div>
@@ -65,21 +65,21 @@ export function HeroSection() {
                 <text x="130" y="188" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="9.5" fill="#888780" letterSpacing="3">PROPULSEZ VOTRE ENTREPRISE</text>
               </svg>
             </div>
-            <p className="text-[0.7rem] tracking-[0.12em] text-forest-100 font-bold uppercase mt-2 opacity-60">BY ACYA CONSULTING · ACHIEVE YOUR AMBITION</p>
+            <p className="text-[0.7rem] tracking-[0.12em] text-forest-900/60 font-bold uppercase mt-2">BY ACYA CONSULTING · ACHIEVE YOUR AMBITION</p>
           </div>
 
           <div className="grid grid-cols-3 bg-forest-100 gap-[1px] rounded-2xl overflow-hidden mt-8 w-full max-w-[540px] border border-forest-100 shadow-lg">
             <div className="bg-white/80 backdrop-blur-md p-5 text-center transition-colors hover:bg-forest-50">
               <div className="font-heading text-[1.8rem] text-forest-800 font-bold">8+</div>
-              <div className="text-[0.72rem] text-sand-400 font-bold tracking-wide mt-1 uppercase">Modules</div>
+              <div className="text-[0.72rem] text-forest-900/50 font-bold tracking-wide mt-1 uppercase">Modules</div>
             </div>
             <div className="bg-white/80 backdrop-blur-md p-5 text-center transition-colors hover:bg-forest-50">
               <div className="font-heading text-[1.8rem] text-forest-800 font-bold">100%</div>
-              <div className="text-[0.72rem] text-sand-400 font-bold tracking-wide mt-1 uppercase">Secteur bois</div>
+              <div className="text-[0.72rem] text-forest-900/50 font-bold tracking-wide mt-1 uppercase">Secteur bois</div>
             </div>
             <div className="bg-white/80 backdrop-blur-md p-5 text-center transition-colors hover:bg-forest-50">
               <div className="font-heading text-[1.8rem] text-forest-800 font-bold">M³</div>
-              <div className="text-[0.72rem] text-sand-400 font-bold tracking-wide mt-1 uppercase">Automatisé</div>
+              <div className="text-[0.72rem] text-forest-900/50 font-bold tracking-wide mt-1 uppercase">Automatisé</div>
             </div>
           </div>
         </motion.div>

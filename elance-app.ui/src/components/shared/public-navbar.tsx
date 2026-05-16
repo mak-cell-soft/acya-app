@@ -72,7 +72,7 @@ export function PublicNavbar() {
             <Link 
               key={link.name} 
               href={link.href}
-              className="text-[0.88rem] font-medium text-sand-400 hover:text-forest-600 transition-all duration-300 relative group/link"
+              className="text-[0.88rem] font-bold text-forest-700/80 hover:text-forest-900 transition-all duration-300 relative group/link"
             >
               {link.name}
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-timber-400 transition-all duration-300 group-hover/link:w-full" />
