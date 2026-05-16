@@ -48,7 +48,7 @@ export function SupplierDetailsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-5xl lg:max-w-7xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-white">
         <DialogHeader className="p-8 bg-forest-900 text-white relative">
           <div className="flex items-center gap-6">
             <div className="w-16 h-16 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700 text-emerald-400 font-bold text-2xl">

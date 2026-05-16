@@ -93,8 +93,8 @@ export function ArticleFormDialog({
       description: "",
       categoryid: "",
       subcategoryid: "",
-      thicknessid: null,
-      widthid: null,
+      thicknessid: "",
+      widthid: "",
       unit: QuantityUnits.pcs.substring(0, 3),
       sellprice_ttc: 0,
       tvaid: "",
@@ -117,8 +117,8 @@ export function ArticleFormDialog({
           description: editArticle.description,
           categoryid: editArticle.categoryid.toString(),
           subcategoryid: editArticle.subcategoryid.toString(),
-          thicknessid: editArticle.thicknessid?.toString() || null,
-          widthid: editArticle.widthid?.toString() || null,
+          thicknessid: editArticle.thicknessid?.toString() || "",
+          widthid: editArticle.widthid?.toString() || "",
           unit: editArticle.unit,
           sellprice_ttc: editArticle.sellprice_ttc,
           tvaid: editArticle.tvaid.toString(),
@@ -143,8 +143,8 @@ export function ArticleFormDialog({
           description: "",
           categoryid: "",
           subcategoryid: "",
-          thicknessid: null,
-          widthid: null,
+          thicknessid: "",
+          widthid: "",
           unit: "PCS",
           sellprice_ttc: 0,
           tvaid: "",
@@ -176,7 +176,10 @@ export function ArticleFormDialog({
     if (selectedPriceTTC && selectedTvaId && tvas) {
       const tva = tvas.find(t => t.id.toString() === selectedTvaId);
       if (tva && tva.value) {
-        return selectedPriceTTC / (1 + parseFloat(tva.value) / 100);
+        const tvaVal = parseFloat(tva.value.toString().replace(',', '.'));
+        if (!isNaN(tvaVal)) {
+          return selectedPriceTTC / (1 + tvaVal / 100);
+        }
       }
     }
     return 0;
@@ -219,7 +222,7 @@ export function ArticleFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-background scrollbar-hide">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background scrollbar-hide">
         <DialogHeader className="p-8 bg-forest-900 text-white relative">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700">
@@ -251,7 +254,7 @@ export function ArticleFormDialog({
                 <h3 className="font-heading font-bold text-forest-900">Informations Générales</h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
                 {/* Image Upload */}
                 <div className="md:col-span-1 space-y-4">
                   <div 
@@ -292,7 +295,7 @@ export function ArticleFormDialog({
                 </div>
 
                 {/* Form Fields */}
-                <div className="md:col-span-3 space-y-6">
+                <div className="md:col-span-4 space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
@@ -329,10 +332,12 @@ export function ArticleFormDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Catégorie</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                             <FormControl>
                               <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
-                                <SelectValue placeholder="Choisir une catégorie" />
+                                <SelectValue placeholder="Choisir une catégorie">
+                                  {field.value && categories ? categories.find(c => c.id.toString() === field.value.toString())?.description : undefined}
+                                </SelectValue>
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="rounded-xl border-forest-100 shadow-xl">
@@ -351,10 +356,12 @@ export function ArticleFormDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Sous-catégorie</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!selectedCategoryId}>
+                          <Select onValueChange={field.onChange} value={field.value?.toString() || ""} disabled={!selectedCategoryId}>
                             <FormControl>
                               <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
-                                <SelectValue placeholder="Choisir une sous-catégorie" />
+                                <SelectValue placeholder="Choisir une sous-catégorie">
+                                  {field.value ? filteredSubCategories.find(sub => sub.id.toString() === field.value.toString())?.description : undefined}
+                                </SelectValue>
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="rounded-xl border-forest-100 shadow-xl">
@@ -386,10 +393,12 @@ export function ArticleFormDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Épaisseur (mm)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || undefined}>
+                        <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                           <FormControl>
                             <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
-                              <SelectValue placeholder="Choisir une épaisseur" />
+                              <SelectValue placeholder="Choisir une épaisseur">
+                                {field.value && thicknesses ? thicknesses.find(t => t.id.toString() === field.value!.toString())?.name : undefined}
+                              </SelectValue>
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className="rounded-xl border-forest-100 shadow-xl">
@@ -408,10 +417,12 @@ export function ArticleFormDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Largeur (mm)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || undefined}>
+                        <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                           <FormControl>
                             <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
-                              <SelectValue placeholder="Choisir une largeur" />
+                              <SelectValue placeholder="Choisir une largeur">
+                                {field.value && widths ? widths.find(w => w.id.toString() === field.value!.toString())?.name : undefined}
+                              </SelectValue>
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className="rounded-xl border-forest-100 shadow-xl">
@@ -478,16 +489,28 @@ export function ArticleFormDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">TVA (%)</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                         <FormControl>
                           <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background font-bold">
-                            <SelectValue placeholder="Choisir TVA" />
+                            <SelectValue placeholder="Choisir TVA">
+                              {field.value && tvas ? (() => {
+                                const tva = tvas.find(t => t.id.toString() === field.value.toString());
+                                if (!tva) return undefined;
+                                const numVal = parseFloat(tva.value?.toString().replace(',', '.') || '0');
+                                return `${isNaN(numVal) ? tva.value : numVal}%`;
+                              })() : undefined}
+                            </SelectValue>
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="rounded-xl border-forest-100 shadow-xl">
-                          {tvas?.map((t) => (
-                            <SelectItem key={t.id} value={t.id.toString()} className="font-bold">{t.value}%</SelectItem>
-                          ))}
+                          {tvas?.map((t) => {
+                            const numVal = parseFloat(t.value?.toString().replace(',', '.') || '0');
+                            return (
+                              <SelectItem key={t.id} value={t.id.toString()} className="font-bold">
+                                {isNaN(numVal) ? t.value : numVal}%
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -513,7 +536,9 @@ export function ArticleFormDialog({
                       <Select onValueChange={field.onChange} value={field.value} disabled={selectedCategoryId === "1"}>
                         <FormControl>
                           <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background font-bold">
-                            <SelectValue placeholder="Unité" />
+                            <SelectValue placeholder="Unité">
+                              {field.value ? Object.values(QuantityUnits).find(u => u.substring(0, 3).toUpperCase() === field.value) : undefined}
+                            </SelectValue>
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="rounded-xl border-forest-100 shadow-xl">

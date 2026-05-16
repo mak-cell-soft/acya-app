@@ -95,7 +95,7 @@ export function CustomerDetailsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[90vh] p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white flex flex-col">
+      <DialogContent showCloseButton={false} className="max-w-6xl h-[90vh] p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white flex flex-col">
         <DialogHeader className="p-8 bg-forest-900 text-white relative flex-shrink-0">
           <div className="flex items-center gap-6">
             <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-forest-800 to-forest-700 flex items-center justify-center border border-forest-600 text-emerald-400 font-heading text-2xl font-bold shadow-inner">

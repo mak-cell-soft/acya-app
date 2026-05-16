@@ -110,7 +110,13 @@ export function AppVariableTable({ nature, data }: AppVariableTableProps) {
                       className="h-9 rounded-lg bg-white border-forest-100"
                     />
                   ) : (
-                    <span className="font-bold text-forest-600">{v.value} {nature === 'Tva' || nature === 'RS' ? '%' : ''}</span>
+                    <span className="font-bold text-forest-600">
+                      {(() => {
+                        const numVal = parseFloat(v.value?.toString().replace(',', '.') || '0');
+                        return isNaN(numVal) ? v.value : numVal;
+                      })()}
+                      {(nature === 'Tva' || nature === 'RS') && v.value ? '%' : ''}
+                    </span>
                   )}
                 </TableCell>
                 <TableCell className="text-center">

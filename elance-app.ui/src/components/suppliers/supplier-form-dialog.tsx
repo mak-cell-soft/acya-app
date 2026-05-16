@@ -169,7 +169,7 @@ export function SupplierFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-full sm:max-w-xl md:max-w-3xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background h-full sm:h-auto max-h-screen sm:max-h-[90vh] flex flex-col">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-5xl lg:max-w-7xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background h-full sm:h-auto max-h-screen sm:max-h-[90vh] flex flex-col">
         <DialogHeader className="p-6 sm:p-8 bg-forest-900 text-white relative shrink-0">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700 text-emerald-400 shrink-0">
@@ -210,7 +210,7 @@ export function SupplierFormDialog({
                       render={({ field }) => (
                         <FormItem className="col-span-1">
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Titre</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
                             <FormControl>
                               <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
                                 <SelectValue placeholder="Titre" />
@@ -291,7 +291,7 @@ export function SupplierFormDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Catégorie</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                          <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                             <FormControl>
                               <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
                                 <SelectValue placeholder="Catégorie" />
@@ -367,7 +367,7 @@ export function SupplierFormDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Gouvernorat</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                        <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                           <FormControl>
                             <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
                               <SelectValue placeholder="Sélectionner" />
@@ -454,7 +454,7 @@ export function SupplierFormDialog({
                         name="bankname"
                         render={({ field }) => (
                           <FormItem>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value || ""}>
                               <FormControl>
                                 <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
                                   <SelectValue placeholder="Choisir la banque" />
