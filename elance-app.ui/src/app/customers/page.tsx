@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
 import { 
   Search, 
@@ -13,14 +13,16 @@ import {
   Phone,
   Mail,
   MapPin,
-  FileText,
   CreditCard,
   Edit,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  Loader2,
+  FileText,
+  BadgeInfo
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -31,18 +33,89 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-
-const CUSTOMERS = [
-  { id: 1, name: 'Sarl Menuiserie Moderne', manager: 'Ahmed Ben Salem', mf: '1234567/A/P/M/000', email: 'ahmed@menuiserie.tn', phone: '71 123 456', balance: 4500.500, status: 'Active' },
-  { id: 2, name: 'Entreprise Bati Plus', manager: 'Sonia Mansour', mf: '9876543/B/C/H/000', email: 'contact@batiplus.com.tn', phone: '22 456 789', balance: -1250.000, status: 'Credit' },
-  { id: 3, name: 'Espace Décoration', manager: 'Karim Jaziri', mf: '4561237/X/Z/R/000', email: 'karim@espacedecor.tn', phone: '55 789 123', balance: 0.000, status: 'Active' },
-  { id: 4, name: 'Construction Pro', manager: 'Mohamed Ali', mf: '3216549/K/L/M/000', email: 'm.ali@procon.tn', phone: '98 321 654', balance: 12400.750, status: 'Active' },
-  { id: 5, name: 'Atelier Artisanat', manager: 'Faten Amri', mf: '7893214/M/N/P/000', email: 'faten@atelier.tn', phone: '21 987 654', balance: 850.000, status: 'Active' },
-];
+import { useCustomers, useCreateCustomer, useUpdateCustomer, useDeleteCustomer } from '@/hooks/use-customers';
+import { Customer, GOUVERNORATES_TN } from '@/types/customer';
+import { CustomerFormDialog } from '@/components/customers/customer-form-dialog';
+import { CustomerDetailsDialog } from '@/components/customers/customer-details-dialog';
+import { CustomerAccountDialog } from '@/components/customers/customer-account-dialog';
+import { DeleteCustomerDialog } from '@/components/customers/delete-customer-dialog';
+import { toast } from 'sonner';
 
 export default function CustomersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  
+  // Dialog States
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+
+  const { data: customers, isLoading } = useCustomers();
+  const createCustomer = useCreateCustomer();
+  const updateCustomer = useUpdateCustomer();
+  const deleteCustomer = useDeleteCustomer();
+
+  const filteredCustomers = useMemo(() => {
+    if (!customers) return [];
+    return customers.filter(c => 
+      c.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (c.name && c.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (c.taxregistrationnumber && c.taxregistrationnumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      c.phonenumberone.includes(searchTerm)
+    );
+  }, [customers, searchTerm]);
+
+  const handleCreate = (data: any) => {
+    createCustomer.mutate(data, {
+      onSuccess: () => {
+        setIsFormOpen(false);
+        setSelectedCustomer(null);
+      }
+    });
+  };
+
+  const handleUpdate = (data: any) => {
+    if (!selectedCustomer) return;
+    updateCustomer.mutate({ id: selectedCustomer.id, model: data }, {
+      onSuccess: () => {
+        setIsFormOpen(false);
+        setSelectedCustomer(null);
+      }
+    });
+  };
+
+  const handleDelete = () => {
+    if (!selectedCustomer) return;
+    deleteCustomer.mutate(selectedCustomer.id, {
+      onSuccess: () => {
+        setIsDeleteOpen(false);
+        setSelectedCustomer(null);
+      }
+    });
+  };
+
+  const openForm = (customer: Customer | null = null) => {
+    setSelectedCustomer(customer);
+    setIsFormOpen(true);
+  };
+
+  const openDetails = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setIsDetailsOpen(true);
+  };
+
+  const openAccount = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setIsAccountOpen(true);
+  };
+
+  const openDelete = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setIsDeleteOpen(true);
+  };
 
   return (
     <DashboardLayout>
@@ -56,7 +129,10 @@ export default function CustomersPage() {
             <Button variant="outline" className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50">
               <Download className="w-4 h-4 mr-2" /> Exporter
             </Button>
-            <Button className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20">
+            <Button 
+              onClick={() => openForm()}
+              className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
+            >
               <Plus className="w-4 h-4 mr-2" /> Nouveau Client
             </Button>
           </div>
@@ -81,7 +157,7 @@ export default function CustomersPage() {
                 <div className="h-6 w-[1px] bg-forest-100 mx-2 hidden md:block" />
                 <div className="flex items-center gap-2 px-3 py-2 bg-forest-50 rounded-lg">
                   <User className="w-4 h-4 text-forest-600" />
-                  <span className="text-sm font-bold text-forest-900">{CUSTOMERS.length} Clients</span>
+                  <span className="text-sm font-bold text-forest-900">{filteredCustomers.length} Clients</span>
                 </div>
               </div>
             </div>
@@ -95,12 +171,21 @@ export default function CustomersPage() {
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Matricule Fiscal</th>
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Contact</th>
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-right">Solde Actuel (TND)</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-center">Statut</th>
+                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-center">Type</th>
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-forest-50">
-                  {CUSTOMERS.map((item) => (
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={6} className="p-20 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                          <Loader2 className="w-8 h-8 text-forest-600 animate-spin" />
+                          <p className="text-sand-400 font-bold">Chargement des clients...</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : filteredCustomers.map((item) => (
                     <React.Fragment key={item.id}>
                       <tr 
                         className={cn(
@@ -112,48 +197,55 @@ export default function CustomersPage() {
                         <td className="p-5">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-forest-100 flex items-center justify-center text-forest-600 font-bold text-xs uppercase">
-                              {item.name.substring(0, 2)}
+                              {(item.name || item.firstname).substring(0, 2)}
                             </div>
                             <div>
-                              <div className="font-bold text-forest-900">{item.name}</div>
-                              <div className="text-[0.75rem] text-sand-400 font-medium">{item.manager}</div>
+                              <div className="font-bold text-forest-900">{item.name || `${item.firstname} ${item.lastname}`}</div>
+                              <div className="text-[0.75rem] text-sand-400 font-medium">{item.firstname} {item.lastname}</div>
                             </div>
                           </div>
                         </td>
                         <td className="p-5">
-                          <span className="font-mono text-xs text-sand-600">{item.mf}</span>
+                          <span className="font-mono text-xs text-sand-600">{item.taxregistrationnumber || "—"}</span>
                         </td>
                         <td className="p-5">
                           <div className="flex flex-col gap-1">
                             <div className="flex items-center gap-2 text-xs text-sand-400 font-medium">
-                              <Phone className="w-3 h-3" /> {item.phone}
+                              <Phone className="w-3 h-3" /> {item.phonenumberone}
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-sand-400 font-medium">
-                              <Mail className="w-3 h-3" /> {item.email}
-                            </div>
+                            {item.email && (
+                              <div className="flex items-center gap-2 text-xs text-sand-400 font-medium">
+                                <Mail className="w-3 h-3" /> {item.email}
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="p-5 text-right">
                           <span className={cn(
                             "font-bold",
-                            item.balance < 0 ? "text-rose-600" : "text-forest-900"
+                            item.openingbalance < 0 ? "text-rose-600" : "text-forest-900"
                           )}>
-                            {item.balance.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}
+                            {item.openingbalance.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}
                           </span>
                         </td>
                         <td className="p-5 text-center">
                           <Badge 
                             className={cn(
-                              "rounded-full px-3 py-1 font-bold text-[0.7rem]",
-                              item.status === 'Active' ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                              "rounded-full px-3 py-1 font-bold text-[0.7rem] border-none",
+                              item.isTypeBoth ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"
                             )}
                           >
-                            {item.status}
+                            {item.isTypeBoth ? 'Client/Fournisseur' : 'Client'}
                           </Badge>
                         </td>
                         <td className="p-5 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-sand-400 hover:text-forest-600 hover:bg-forest-100/50">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-9 w-9 rounded-lg text-sand-400 hover:text-forest-600 hover:bg-forest-100/50"
+                              onClick={(e) => { e.stopPropagation(); openDetails(item); }}
+                            >
                               <ExternalLink className="w-4 h-4" />
                             </Button>
                             <DropdownMenu>
@@ -163,16 +255,16 @@ export default function CustomersPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="rounded-xl border-forest-100 w-44">
-                                <DropdownMenuItem className="gap-2 font-bold text-forest-900 cursor-pointer">
+                                <DropdownMenuItem onClick={() => openAccount(item)} className="gap-2 font-bold text-forest-900 cursor-pointer">
                                   <CreditCard className="w-4 h-4" /> État de Compte
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="gap-2 font-bold text-forest-900 cursor-pointer">
-                                  <FileText className="w-4 h-4" /> Documents
+                                <DropdownMenuItem onClick={() => openDetails(item)} className="gap-2 font-bold text-forest-900 cursor-pointer">
+                                  <FileText className="w-4 h-4" /> Détails / Grille
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="gap-2 font-bold text-forest-900 cursor-pointer">
+                                <DropdownMenuItem onClick={() => openForm(item)} className="gap-2 font-bold text-forest-900 cursor-pointer">
                                   <Edit className="w-4 h-4" /> Modifier
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="gap-2 font-bold text-rose-600 cursor-pointer hover:text-rose-700 hover:bg-rose-50">
+                                <DropdownMenuItem onClick={() => openDelete(item)} className="gap-2 font-bold text-rose-600 cursor-pointer hover:text-rose-700 hover:bg-rose-50">
                                   <Trash2 className="w-4 h-4" /> Supprimer
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -194,34 +286,42 @@ export default function CustomersPage() {
                               >
                                 <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
                                   <div className="space-y-4">
-                                    <h4 className="text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">Coordonnées</h4>
+                                    <div className="flex items-center gap-2">
+                                      <BadgeInfo className="w-4 h-4 text-forest-600" />
+                                      <h4 className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Informations Générales</h4>
+                                    </div>
                                     <div className="flex items-start gap-3">
                                       <MapPin className="w-4 h-4 text-sand-400 mt-1" />
                                       <div className="text-sm font-medium text-sand-800 leading-relaxed">
-                                        Zone Industrielle de Mornag,<br />
-                                        Lot n°45, Ben Arous, Tunisie
+                                        {item.address},<br />
+                                        {GOUVERNORATES_TN.find(g => g.key.toString() === item.gouvernorate)?.value}
                                       </div>
                                     </div>
                                   </div>
                                   <div className="space-y-4 border-l border-forest-100 pl-8">
-                                    <h4 className="text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">Statistiques Ventes</h4>
+                                    <div className="flex items-center gap-2">
+                                      <CreditCard className="w-4 h-4 text-forest-600" />
+                                      <h4 className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Finances</h4>
+                                    </div>
                                     <div className="grid grid-cols-2 gap-4">
                                       <div>
-                                        <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Total Commandé</div>
-                                        <div className="text-sm font-bold text-forest-900">45,800 TND</div>
+                                        <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Plafond Crédit</div>
+                                        <div className="text-sm font-bold text-forest-900">{item.maximumsalesbar.toLocaleString()} TND</div>
                                       </div>
                                       <div>
-                                        <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Dernière Vente</div>
-                                        <div className="text-sm font-bold text-forest-900">10/05/2026</div>
+                                        <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Remise Max.</div>
+                                        <div className="text-sm font-bold text-forest-900">{item.maximumdiscount}%</div>
                                       </div>
                                     </div>
                                   </div>
                                   <div className="space-y-4 border-l border-forest-100 pl-8">
-                                    <h4 className="text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">Documents en attente</h4>
-                                    <div className="flex gap-2">
-                                      <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 rounded-lg px-2">2 BL à facturer</Badge>
-                                      <Badge className="bg-forest-100 text-forest-700 hover:bg-forest-100 rounded-lg px-2">1 Devis actif</Badge>
+                                    <div className="flex items-center gap-2">
+                                      <FileText className="w-4 h-4 text-forest-600" />
+                                      <h4 className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Notes</h4>
                                     </div>
+                                    <p className="text-xs text-sand-500 font-medium italic">
+                                      {item.notes || "Aucune note particulière."}
+                                    </p>
                                   </div>
                                 </div>
                               </motion.div>
@@ -231,11 +331,23 @@ export default function CustomersPage() {
                       </AnimatePresence>
                     </React.Fragment>
                   ))}
+                  {!isLoading && filteredCustomers.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-20 text-center">
+                        <div className="flex flex-col items-center gap-3 opacity-20">
+                          <User className="w-12 h-12" />
+                          <p className="text-sand-400 font-bold">Aucun client trouvé</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
             <div className="p-6 border-t border-forest-50 flex items-center justify-between">
-              <p className="text-sm text-sand-400 font-medium">Affichage de 1 à 5 sur {CUSTOMERS.length} clients</p>
+              <p className="text-sm text-sand-400 font-medium">
+                Affichage de {filteredCustomers.length} clients
+              </p>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold border-forest-50 text-forest-600" disabled>Précédent</Button>
                 <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold bg-forest-600 text-white border-forest-600">1</Button>
@@ -244,9 +356,36 @@ export default function CustomersPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Dialogs */}
+        <CustomerFormDialog 
+          isOpen={isFormOpen} 
+          onClose={() => setIsFormOpen(false)} 
+          onSave={selectedCustomer ? handleUpdate : handleCreate}
+          editCustomer={selectedCustomer}
+          isLoading={createCustomer.isPending || updateCustomer.isPending}
+        />
+
+        <CustomerDetailsDialog 
+          isOpen={isDetailsOpen} 
+          onClose={() => setIsDetailsOpen(false)} 
+          customer={selectedCustomer}
+        />
+
+        <CustomerAccountDialog 
+          isOpen={isAccountOpen} 
+          onClose={() => setIsAccountOpen(false)} 
+          customer={selectedCustomer}
+        />
+
+        <DeleteCustomerDialog 
+          isOpen={isDeleteOpen} 
+          onClose={() => setIsDeleteOpen(false)} 
+          onConfirm={handleDelete}
+          customer={selectedCustomer}
+          isLoading={deleteCustomer.isPending}
+        />
       </div>
     </DashboardLayout>
   );
 }
-
-
