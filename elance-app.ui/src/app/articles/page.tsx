@@ -207,7 +207,7 @@ export default function ArticlesPage() {
                           </td>
                           <td className="p-5 text-center">
                             <Badge className="bg-forest-100 text-forest-600 hover:bg-forest-200 border-none font-bold rounded-lg">
-                              {item.tva?.value}%
+                              {item.tva?.value}
                             </Badge>
                           </td>
                           <td className="p-5 text-right">

@@ -59,12 +59,13 @@ export default function CustomersPage() {
 
   const filteredCustomers = useMemo(() => {
     if (!customers) return [];
+    const term = searchTerm.toLowerCase();
     return customers.filter(c => 
-      c.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (c.name && c.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (c.taxregistrationnumber && c.taxregistrationnumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      c.phonenumberone.includes(searchTerm)
+      (c.firstname && c.firstname.toLowerCase().includes(term)) ||
+      (c.lastname && c.lastname.toLowerCase().includes(term)) ||
+      (c.name && c.name.toLowerCase().includes(term)) ||
+      (c.taxregistrationnumber && c.taxregistrationnumber.toLowerCase().includes(term)) ||
+      (c.phonenumberone && c.phonenumberone.includes(searchTerm))
     );
   }, [customers, searchTerm]);
 

@@ -1099,8 +1099,8 @@ function NewSalesDocumentPageContent() {
                 <thead>
                   <tr className="bg-sand-50/50 border-b border-forest-50">
                     <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-12 text-center">N°</th>
-                    <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-80">Article / Description</th>
-                    <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-32 text-right">Prix Unit HT</th>
+                    <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-96">Article / Description</th>
+                    <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-24 text-right">Prix Unit HT</th>
                     <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-28 text-center">Quantité</th>
                     <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-24 text-center">Remise (%)</th>
                     <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-20 text-center">TVA</th>
@@ -1142,7 +1142,7 @@ function NewSalesDocumentPageContent() {
                           </td>
 
                           {/* Article Selection */}
-                          <td className="p-4 min-w-[280px]">
+                          <td className="p-4 min-w-[340px]">
                             {isFee ? (
                               <div className="space-y-1.5">
                                 <Input
@@ -1245,11 +1245,11 @@ function NewSalesDocumentPageContent() {
                           </td>
 
                           {/* Price Unit HT */}
-                          <td className="p-4">
+                          <td className="p-4 max-w-28">
                             <Input
                               type="number"
                               step="0.001"
-                              className="h-10 rounded-xl text-right font-bold border-forest-50 focus:ring-forest-600 bg-sand-50/40 text-forest-900"
+                              className="h-10 rounded-xl text-right font-bold border-forest-50 focus:ring-forest-600 bg-sand-50/40 text-forest-900 w-24 ml-auto"
                               value={row.unit_price_ht || ''}
                               onChange={(e) => handleRowFieldChange(index, 'unit_price_ht', parseFloat(e.target.value) || 0)}
                               placeholder="0.000"
