@@ -9,7 +9,7 @@ function NewDeliveryNotePageContent() {
     <DocumentFormShell
       docType={DocumentTypes.customerDeliveryNote}
       title="Nouveau Bon de Livraison"
-      subtitle="Création d'un bon de livraison client avec impact sur les stocks et facturation ultérieure."
+      subtitle="Création d'un bon de livraison client avec impact sur les stocks."
     />
   );
 }

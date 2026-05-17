@@ -4,17 +4,17 @@ import React, { Suspense } from 'react';
 import { DocumentFormShell } from '@/components/sales/document-form-shell';
 import { DocumentTypes } from '@/types/document';
 
-function NewDeliveryNotePageContent() {
+function NewQuotePageContent() {
   return (
     <DocumentFormShell
-      docType={DocumentTypes.customerDeliveryNote}
-      title="Nouveau Bon de Livraison"
-      subtitle="Création d'un bon de livraison client avec impact sur les stocks et facturation ultérieure."
+      docType={DocumentTypes.customerQuote}
+      title="Nouveau Devis"
+      subtitle="Création d'un devis client sans impact sur les stocks."
     />
   );
 }
 
-export default function NewDeliveryNotePage() {
+export default function NewQuotePage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center min-h-screen bg-sand-50/50">
@@ -24,7 +24,7 @@ export default function NewDeliveryNotePage() {
         </div>
       </div>
     }>
-      <NewDeliveryNotePageContent />
+      <NewQuotePageContent />
     </Suspense>
   );
 }

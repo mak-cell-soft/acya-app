@@ -10,6 +10,7 @@ import { Edit2, Check, X, Trash2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { TablePagination } from '@/components/shared/table-pagination';
 import { AppVariableFormDialog } from './app-variable-form-dialog';
+import { Badge } from '@/components/ui/badge';
 
 interface DimensionTableProps {
   nature: string;
@@ -99,6 +100,13 @@ export function DimensionTable({ nature, data }: DimensionTableProps) {
               <TableRow className="bg-forest-50/50 hover:bg-forest-50/50 border-forest-50">
                 <TableHead className="text-forest-900 font-bold">{nature === 'Length' ? 'Valeur (cm)' : 'Valeur (mm)'}</TableHead>
                 <TableHead className="text-forest-900 font-bold">Valeur (m)</TableHead>
+                {/* 
+                  Mark React-specific pattern:
+                  Only render type column if 'nature' prop is 'Dimension' (Thickness & Width combo)
+                */}
+                {nature === 'Dimension' && (
+                  <TableHead className="text-forest-900 font-bold">Épaisseur / Largeur</TableHead>
+                )}
                 <TableHead className="text-forest-900 font-bold text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -131,6 +139,23 @@ export function DimensionTable({ nature, data }: DimensionTableProps) {
                       />
                     ) : `${v.value} m`}
                   </TableCell>
+                  {/* 
+                    Intent: Display a distinctive, harmonious visual badge for the nature
+                    to allow quick visual identification between Thickness (Épaisseur) and Width (Largeur).
+                  */}
+                  {nature === 'Dimension' && (
+                    <TableCell className="font-medium">
+                      {v.nature === 'thickness' ? (
+                        <Badge className="bg-forest-50 hover:bg-forest-100 text-forest-700 border border-forest-100 font-bold px-2.5 py-0.5 rounded-lg">
+                          Épaisseur
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-sand-100 hover:bg-sand-200/50 text-sand-800 border border-sand-200 font-bold px-2.5 py-0.5 rounded-lg">
+                          Largeur
+                        </Badge>
+                      )}
+                    </TableCell>
+                  )}
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       {editingId === v.id ? (
@@ -158,7 +183,7 @@ export function DimensionTable({ nature, data }: DimensionTableProps) {
               ))}
               {paginatedData.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={3} className="h-32 text-center text-sand-400 font-medium">
+                  <TableCell colSpan={nature === 'Dimension' ? 4 : 3} className="h-32 text-center text-sand-400 font-medium">
                     Aucune donnée disponible
                   </TableCell>
                 </TableRow>

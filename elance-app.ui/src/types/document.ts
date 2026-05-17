@@ -156,4 +156,31 @@ export interface Document {
   isservice: boolean;
   deliveryNoteDocNumbers?: string[];
   transporter?: any;
+  parentdocuments?: any[];
+  childdocuments?: any[];
 }
+
+/**
+ * Filter model for date-based document filtering (matches Angular typeDocsToFilter)
+ */
+export interface TypeDocsFilter {
+  typeDoc: DocumentTypes;
+  month: number;   // 1–12
+  year: number;
+  day?: number;
+}
+
+/**
+ * Invoice-specific: Stamp Tax + Retenue à la source
+ */
+export interface HoldingTax {
+  id?: number;
+  description: string;
+  taxpercentage: number;
+  taxvalue: number;
+  newamountdocvalue: number;
+  issigned: boolean;
+  isdeleted: boolean;
+  updatedbyid: number;
+}
+

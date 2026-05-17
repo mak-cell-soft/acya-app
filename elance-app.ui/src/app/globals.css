@@ -13,9 +13,10 @@
 
   --color-forest-50: var(--forest-50);
   --color-forest-100: var(--forest-100);
-  --color-forest-600: var(--forest-600);
+  --color-forest-600: var(--color-primary);
   --color-forest-800: var(--forest-800);
   --color-forest-900: var(--forest-900);
+  --color-forest-950: var(--forest-950);
 
   --color-timber-100: var(--timber-100);
   --color-timber-400: var(--timber-400);
@@ -90,6 +91,7 @@
   --forest-600: #0B3B24;
   --forest-800: #082d1b;
   --forest-900: #061a10;
+  --forest-950: #04100a;
 
   --timber-100: #F0E8DC;
   --timber-400: #8C6239;
@@ -126,6 +128,7 @@
   --forest-600: #0B3B24;
   --forest-800: #082d1b;
   --forest-900: #061a10;
+  --forest-950: #04100a;
 
   --timber-100: #F0E8DC;
   --timber-400: #8C6239;

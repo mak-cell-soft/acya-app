@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { documentService } from '@/services/components/document.service';
-import { Document } from '@/types/document';
+import { Document, TypeDocsFilter } from '@/types/document';
 import { toast } from 'sonner';
 
 /**
@@ -25,6 +25,21 @@ export function useDocumentsByType(type: number) {
 }
 
 /**
+ * Hook to retrieve documents of a specific type filtered by date.
+ */
+export function useDocumentsByTypeFiltered(filter: TypeDocsFilter) {
+  return useQuery<Document[]>({
+    queryKey: ['documents', 'filtered', filter.typeDoc, filter.year, filter.month, filter.day],
+    queryFn: () => documentService.getByTypeDocsFiltered(filter),
+    enabled: typeof filter.typeDoc === 'number' && typeof filter.year === 'number' && typeof filter.month === 'number',
+    // Always re-fetch when the sales page is mounted (e.g. after navigating back from /bl/new)
+    // This ensures a freshly created document always appears without a manual reload.
+    refetchOnMount: 'always',
+  });
+}
+
+
+/**
  * Hook to create a new sales/purchase document.
  */
 export function useCreateDocument() {
@@ -33,9 +48,8 @@ export function useCreateDocument() {
   return useMutation({
     mutationFn: (newDoc: Partial<Document>) => documentService.add(newDoc),
     onSuccess: (response) => {
-      // Invalidate both general documents list and type-specific lists
       queryClient.invalidateQueries({ queryKey: ['documents'] });
-      queryClient.invalidateQueries({ queryKey: ['stocks'] }); // Stock levels will change due to document retrieval/storage
+      queryClient.invalidateQueries({ queryKey: ['stocks'] });
       toast.success(`Document créé avec succès (Réf: ${response.docRef || ''})`);
     },
     onError: (error: any) => {
@@ -65,3 +79,44 @@ export function useConvertDocument() {
     },
   });
 }
+
+/**
+ * Hook to create invoice from one or more Delivery Notes.
+ */
+export function useCreateInvoice() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (model: any) => documentService.createInvoice(model),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      toast.success(`Facture créée avec succès (Réf: ${response.docRef || ''})`);
+    },
+    onError: (error: any) => {
+      console.error('Error creating invoice:', error);
+      const errorMsg = error.response?.data?.message || 'Erreur lors de la création de la facture';
+      toast.error(errorMsg);
+    },
+  });
+}
+
+/**
+ * Hook to delete a document (soft delete).
+ */
+export function useDeleteDocument() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => documentService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      queryClient.invalidateQueries({ queryKey: ['stocks'] });
+      toast.success('Document supprimé avec succès');
+    },
+    onError: (error: any) => {
+      console.error('Error deleting document:', error);
+      toast.error('Erreur lors de la suppression du document');
+    },
+  });
+}
+

@@ -4,17 +4,17 @@ import React, { Suspense } from 'react';
 import { DocumentFormShell } from '@/components/sales/document-form-shell';
 import { DocumentTypes } from '@/types/document';
 
-function NewDeliveryNotePageContent() {
+function NewInvoicePageContent() {
   return (
     <DocumentFormShell
-      docType={DocumentTypes.customerDeliveryNote}
-      title="Nouveau Bon de Livraison"
-      subtitle="Création d'un bon de livraison client avec impact sur les stocks et facturation ultérieure."
+      docType={DocumentTypes.customerInvoice}
+      title="Nouvelle Facture"
+      subtitle="Création d'une facture client avec calcul du timbre fiscal et retenue à la source (RS)."
     />
   );
 }
 
-export default function NewDeliveryNotePage() {
+export default function NewInvoicePage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center min-h-screen bg-sand-50/50">
@@ -24,7 +24,7 @@ export default function NewDeliveryNotePage() {
         </div>
       </div>
     }>
-      <NewDeliveryNotePageContent />
+      <NewInvoicePageContent />
     </Suspense>
   );
 }

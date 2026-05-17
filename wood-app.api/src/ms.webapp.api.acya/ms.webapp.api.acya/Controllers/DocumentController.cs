@@ -359,6 +359,27 @@ namespace ms.webapp.api.acya.api.Controllers
             {
                 sourceMerchandises.AddRange(d.DocumentMerchandises);
             }
+
+            // Single-convert invoice: ChildDocuments is empty, but the source BL is the PARENT.
+            // Populate deliveryNoteDocNumbers by checking ParentDocuments for BL-type documents.
+            // This covers the case where Convert() was used (BL → Invoice one-to-one).
+            if (d.Type == DocumentTypes.customerInvoice && d.ParentDocuments != null)
+            {
+                var blParents = d.ParentDocuments
+                    .Where(pd => pd.ParentDocument != null && pd.ParentDocument.Type == DocumentTypes.customerDeliveryNote)
+                    .Select(pd => pd.ParentDocument!.DocNumber ?? "")
+                    .Where(num => !string.IsNullOrEmpty(num))
+                    .Distinct()
+                    .ToList();
+
+                // Fallback: if relationship data is missing but supplierReference was set on creation,
+                // use that — the user confirmed this column holds the BL reference in the DB.
+                if (blParents.Count == 0 && !string.IsNullOrEmpty(d.SupplierReference))
+                    blParents = new List<string> { d.SupplierReference };
+
+                if (blParents.Count > 0)
+                    dto.deliveryNoteDocNumbers = blParents;
+            }
         }
 
         // Map the source merchandises to the DTO
@@ -1508,6 +1529,17 @@ namespace ms.webapp.api.acya.api.Controllers
             
             if (registerResult is OkObjectResult)
             {
+                // Update parent document's IsInvoiced flag if it is a Customer Delivery Note (BL).
+                // The batch createinvoice endpoint already does this; we mirror it here for single conversions
+                // so IsInvoiced stays consistent in the database regardless of which path was used.
+                var parentDoc = await _context.Documents.FindAsync(parentId);
+                if (parentDoc != null && parentDoc.Type == DocumentTypes.customerDeliveryNote)
+                {
+                    parentDoc.IsInvoiced = true;
+                    _context.Entry(parentDoc).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+                }
+
                 return okResult; // Return the successful document creation result
             }
             else
