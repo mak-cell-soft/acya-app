@@ -66,6 +66,14 @@ interface PaymentModalProps {
     withholdingtax?: boolean;
     customerId: number;
     customerName: string;
+    isEditMode?: boolean;
+    paymentId?: number;
+    prefillAmount?: number;
+    prefillDate?: string | Date;
+    prefillMethod?: 'ESPECE' | 'CHEQUE' | 'TRAITE' | 'VIREMENT' | 'CARTE';
+    prefillReference?: string;
+    prefillNotes?: string;
+    prefillInstrument?: any;
   };
 }
 
@@ -90,30 +98,51 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
   const [porter, setPorter] = useState<string>('');
   const [dueDate, setDueDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
-  // Load existing payments to calculate remaining amount
+  // Load existing payments to calculate remaining amount or fill prefilled details
   useEffect(() => {
     if (isOpen && data.documentId) {
-      setLoading(true);
-      paymentService
-        .getByDocumentId(data.documentId)
-        .then((payments) => {
-          const totalPaid = (payments || []).reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0);
-          const targetTotal = (data.withholdingtax && data.totalNetPayable)
-            ? data.totalNetPayable
-            : data.totalAmount;
-          
-          const remaining = Math.max(0, targetTotal - totalPaid);
-          setRemainingAmount(remaining);
-          setAmount(remaining.toFixed(3));
-          setOwner(data.customerName || '');
-        })
-        .catch((err) => {
-          console.error('Failed to compute remaining balance:', err);
-          toast.error('Erreur lors du calcul du solde restant.');
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+      if (data.isEditMode) {
+        setSelectedMethod(data.prefillMethod || 'ESPECE');
+        setAmount((data.prefillAmount || 0).toFixed(3));
+        const initialDate = data.prefillDate ? new Date(data.prefillDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+        setPaymentDate(initialDate);
+        setReference(data.prefillReference || '');
+        setNotes(data.prefillNotes || '');
+        setRemainingAmount(data.prefillAmount || 0);
+        setOwner(data.customerName || '');
+
+        if (data.prefillInstrument) {
+          setInstrumentNumber(data.prefillInstrument.instrumentNumber || '');
+          setBank(data.prefillInstrument.bank || '');
+          setOwner(data.prefillInstrument.owner || data.customerName || '');
+          setPorter(data.prefillInstrument.porter || '');
+          const initialDueDate = data.prefillInstrument.dueDate ? new Date(data.prefillInstrument.dueDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+          setDueDate(initialDueDate);
+        }
+        setLoading(false);
+      } else {
+        setLoading(true);
+        paymentService
+          .getByDocumentId(data.documentId)
+          .then((payments) => {
+            const totalPaid = (payments || []).reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0);
+            const targetTotal = (data.withholdingtax && data.totalNetPayable)
+              ? data.totalNetPayable
+              : data.totalAmount;
+            
+            const remaining = Math.max(0, targetTotal - totalPaid);
+            setRemainingAmount(remaining);
+            setAmount(remaining.toFixed(3));
+            setOwner(data.customerName || '');
+          })
+          .catch((err) => {
+            console.error('Failed to compute remaining balance:', err);
+            toast.error('Erreur lors du calcul du solde restant.');
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      }
     }
   }, [isOpen, data]);
 
@@ -142,7 +171,7 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
       return;
     }
 
-    if (parsedAmount > remainingAmount + 0.005) {
+    if (!data.isEditMode && parsedAmount > remainingAmount + 0.005) {
       toast.warning(`Le montant dépasse le solde restant à payer (${remainingAmount.toFixed(3)} DT).`);
       return;
     }
@@ -150,40 +179,62 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
     setSubmitting(true);
 
     try {
-      // Build CreatePaymentDto
-      const payload: any = {
-        documentId: data.documentId,
-        customerId: data.customerId,
-        updatedbyid: 1, // Connected auditor user id default
-        paymentDate: new Date(paymentDate).toISOString(),
-        amount: parsedAmount,
-        currency: currency,
-        exchangeRate: exchangeRate,
-        paymentMethod: selectedMethod,
-        reference: reference || null,
-        notes: notes || null,
-      };
-
-      // Add instrument if Cheque or Traite
-      if (selectedMethod === 'CHEQUE' || selectedMethod === 'TRAITE') {
-        payload.instrumentDetails = {
-          type: selectedMethod,
-          instrumentNumber: instrumentNumber,
-          bank: bank,
-          owner: owner,
-          porter: porter || null,
-          dueDate: new Date(dueDate).toISOString(),
-          issueDate: new Date(paymentDate).toISOString(),
-          isPaidAtBank: false
+      if (data.isEditMode && data.paymentId) {
+        const updatePayload: any = {
+          paymentId: data.paymentId,
+          amount: parsedAmount,
+          paymentDate: new Date(paymentDate).toISOString(),
+          paymentMethod: selectedMethod,
+          reference: reference || null,
+          notes: notes || null,
+          instrumentDetails: selectedMethod === 'CHEQUE' || selectedMethod === 'TRAITE' ? {
+            instrumentNumber: instrumentNumber,
+            bank: bank,
+            owner: owner,
+            porter: porter || null,
+            issueDate: new Date(paymentDate).toISOString(),
+            dueDate: new Date(dueDate).toISOString(),
+            expirationDate: new Date(dueDate).toISOString()
+          } : null
         };
-      }
+        await paymentService.update(data.paymentId, updatePayload);
+        toast.success('Paiement modifié avec succès.');
+      } else {
+        // Build CreatePaymentDto
+        const payload: any = {
+          documentId: data.documentId,
+          customerId: data.customerId,
+          updatedbyid: 1, // Connected auditor user id default
+          paymentDate: new Date(paymentDate).toISOString(),
+          amount: parsedAmount,
+          currency: currency,
+          exchangeRate: exchangeRate,
+          paymentMethod: selectedMethod,
+          reference: reference || null,
+          notes: notes || null,
+        };
 
-      await paymentService.add(payload);
-      toast.success('Paiement enregistré avec succès.');
+        // Add instrument if Cheque or Traite
+        if (selectedMethod === 'CHEQUE' || selectedMethod === 'TRAITE') {
+          payload.instrumentDetails = {
+            type: selectedMethod,
+            instrumentNumber: instrumentNumber,
+            bank: bank,
+            owner: owner,
+            porter: porter || null,
+            dueDate: new Date(dueDate).toISOString(),
+            issueDate: new Date(paymentDate).toISOString(),
+            isPaidAtBank: false
+          };
+        }
+
+        await paymentService.add(payload);
+        toast.success('Paiement enregistré avec succès.');
+      }
       onSuccess();
       onClose();
     } catch (err: any) {
-      console.error('Failed to post payment:', err);
+      console.error('Failed to save payment:', err);
       toast.error(err.response?.data?.message || 'Erreur lors de l’enregistrement du paiement.');
     } finally {
       setSubmitting(false);

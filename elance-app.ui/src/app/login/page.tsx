@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/store/use-auth-store';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2, Eye, EyeOff } from 'lucide-react';
 import { authService } from '@/services/auth.service';
 
 export default function LoginPage() {
@@ -21,6 +21,7 @@ export default function LoginPage() {
   const [forgotEmail, setForgotEmail] = useState('');
   const [isForgotLoading, setIsForgotLoading] = useState(false);
   const [resetToken, setResetToken] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -119,16 +120,30 @@ export default function LoginPage() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password" title="password" className="text-forest-800 font-bold ml-1">Mot de passe</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-12 bg-sand-50/50 border-forest-100 rounded-xl focus:border-forest-600 focus:ring-forest-600 transition-all px-4"
-                  disabled={isLoading}
-                />
+                <div className="relative flex items-center">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-12 bg-sand-50/50 border-forest-100 rounded-xl focus:border-forest-600 focus:ring-forest-600 transition-all pl-4 pr-12 w-full"
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 text-sand-400 hover:text-forest-750 transition-colors p-1"
+                    title={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-center justify-between ml-1">

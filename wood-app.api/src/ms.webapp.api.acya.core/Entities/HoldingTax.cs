@@ -42,7 +42,7 @@ namespace ms.webapp.api.acya.core.Entities
 
     public void UpdateFromDto(HoldingTaxDto dto)
     {
-      Id = (int)dto.id!;
+      Id = dto.id ?? 0;
       Description = dto.description;
       // NOTE: Mapper la référence documentaire RS depuis le DTO
       Reference = dto.reference;

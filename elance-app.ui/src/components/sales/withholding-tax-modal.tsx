@@ -44,7 +44,7 @@ export function WithholdingTaxModal({
   document: doc
 }: WithholdingTaxModalProps) {
   const { data: rsRates, isLoading: loadingRates } = useAppVariables('RS');
-  const [selectedRateId, setSelectedRateId] = useState<string>('none');
+  const [selectedRateId, setSelectedRateId] = useState<string>('Aucune RS');
   const [reference, setReference] = useState<string>('');
   const [issigned, setIssigned] = useState<boolean>(false);
   
@@ -61,7 +61,7 @@ export function WithholdingTaxModal({
     } else if (isOpen) {
       setReference('');
       setIssigned(false);
-      setSelectedRateId('none');
+      setSelectedRateId('Aucune RS');
     }
   }, [isOpen, doc]);
 
@@ -100,7 +100,7 @@ export function WithholdingTaxModal({
   };
 
   const handleConfirm = async () => {
-    if (selectedRateId === 'none') {
+    if (selectedRateId === 'Aucune RS') {
       toast.warning('Veuillez sélectionner un taux de retenue à la source.');
       return;
     }
@@ -216,21 +216,28 @@ export function WithholdingTaxModal({
               </label>
               <Select
                 value={selectedRateId}
-                onValueChange={(val) => setSelectedRateId(val || 'none')}
+                onValueChange={(val) => setSelectedRateId(val || 'Aucune RS')}
                 disabled={loadingRates}
               >
                 <SelectTrigger className="rounded-xl border-sand-200 h-10 text-xs font-semibold focus:ring-forest-600">
-                  <SelectValue placeholder="Sélectionner un taux" />
+                  <SelectValue placeholder="Sélectionner un taux">
+                    {selectedRateId === 'Aucune RS'
+                      ? 'Aucune RS'
+                      : activeRate
+                      ? `${activeRate.name} (${Number(activeRate.value)}%)`
+                      : 'Sélectionner un taux'}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-sand-100">
-                  <SelectItem value="none" className="text-xs font-semibold">Aucune RS</SelectItem>
+                  <SelectItem value="Aucune RS" label="Aucune RS" className="text-xs font-semibold">Aucune RS</SelectItem>
                   {rsRates?.map((rate) => (
                     <SelectItem
                       key={rate.id}
                       value={rate.id.toString()}
+                      label={`${rate.name} (${Number(rate.value)}%)`}
                       className="text-xs font-semibold"
                     >
-                      {rate.name} ({rate.value}%)
+                      {rate.name} ({Number(rate.value)}%)
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -304,7 +311,7 @@ export function WithholdingTaxModal({
           </div>
 
           {/* Dynamic calculations preview or warning */}
-          {selectedRateId !== 'none' && activeRate ? (
+          {selectedRateId !== 'Aucune RS' && activeRate ? (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
@@ -346,7 +353,7 @@ export function WithholdingTaxModal({
           <Button
             type="button"
             onClick={handleConfirm}
-            disabled={submitting || selectedRateId === 'none' || !reference.trim()}
+            disabled={submitting || selectedRateId === 'Aucune RS' || !reference.trim()}
             className="bg-forest-900 hover:bg-forest-950 text-white rounded-xl px-5 h-10 font-bold text-xs gap-2 flex items-center"
           >
             {submitting ? (

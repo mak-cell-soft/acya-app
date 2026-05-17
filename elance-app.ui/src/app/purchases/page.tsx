@@ -1,14 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
-import { 
-  Search, 
-  Plus, 
-  Filter, 
-  MoreHorizontal, 
-  Download, 
-  ShoppingCart, 
+import {
+  Search,
+  Plus,
+  Filter,
+  MoreHorizontal,
+  Download,
   ChevronDown,
   Calendar,
   ArrowRight,
@@ -21,78 +20,451 @@ import {
   ChevronLeft,
   ChevronRight,
   Package,
-  BadgeCheck
+  BadgeCheck,
+  Lock,
+  LockOpen,
+  Layers,
+  Landmark,
+  FileText,
+  RotateCcw,
+  AlertTriangle,
+  Coins,
+  ChevronUp,
+  LayoutDashboard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
-const PURCHASES = [
-  { id: 1, number: 'BLA-2405-001', date: '14/05/2026', provider: 'Scierie du Nord', amount_ttc: 15400.000, amount_ht: 12941.176, status: 'Reçu', isInvoiced: true },
-  { id: 2, number: 'BLA-2405-002', date: '13/05/2026', provider: 'Import Bois S.A', amount_ttc: 8900.500, amount_ht: 7479.412, status: 'En attente', isInvoiced: false },
-  { id: 3, number: 'BCA-2405-045', date: '12/05/2026', provider: 'Quincaillerie Centrale', amount_ttc: 450.000, amount_ht: 378.151, status: 'Commandé', isInvoiced: false },
-  { id: 4, number: 'BLA-2405-003', date: '11/05/2026', provider: 'Scierie du Nord', amount_ttc: 12000.000, amount_ht: 10084.034, status: 'Reçu', isInvoiced: true },
-  { id: 5, number: 'BCA-2405-012', date: '10/05/2026', provider: 'Transport Rapide', amount_ttc: 850.000, amount_ht: 714.286, status: 'En attente', isInvoiced: false },
+// Hooks & Services
+import {
+  useDocumentsByTypeFiltered,
+  useParentsWithChildren,
+  useDeleteDocument
+} from '@/hooks/use-documents';
+import { useSuppliers } from '@/hooks/use-suppliers';
+import { documentService } from '@/services/components/document.service';
+import { DocumentTypes, DocStatus, BillingStatus, Document } from '@/types/document';
+
+// Shared / Modular Components
+import { DocumentDetailDrawer } from '@/components/sales/document-detail-drawer';
+import { WithholdingTaxModal } from '@/components/sales/withholding-tax-modal';
+import { SupplierReceiptToInvoiceModal } from '@/components/purchases/supplier-receipt-to-invoice-modal';
+import { SupplierCreditNoteModal } from '@/components/purchases/supplier-credit-note-modal';
+
+// Month names list for period filters
+const MONTHS = [
+  'Janvier',
+  'Février',
+  'Mars',
+  'Avril',
+  'Mai',
+  'Juin',
+  'Juillet',
+  'Août',
+  'Septembre',
+  'Octobre',
+  'Novembre',
+  'Décembre'
 ];
 
-const MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-
 export default function PurchasesPage() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  // Search & Expansion States
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState('Mai');
+
+  // Month & Year Filter State (initialized to current period)
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const selectedMonthIdx = currentDate.getMonth(); // 0-11
+  const selectedYear = currentDate.getFullYear();
+
+  // Day filter state - default to 0 (meaning all days of the month are listed)
+  const [selectedDay, setSelectedDay] = useState<number>(0);
+
+  // Supplier filter state - default to "all" (client-side filtering)
+  const [selectedSupplierId, setSelectedSupplierId] = useState<string>('all');
+
+  // Active Tab: Commandes, Réceptions, Factures, Avoirs
+  const [activeTab, setActiveTab] = useState<string>('invoice');
+
+  // Selected Receipts (BRs) for Batch Invoicing
+  const [selectedReceiptIds, setSelectedReceiptIds] = useState<number[]>([]);
+
+  // Modals & Details State
+  const [selectedDocIdForDetail, setSelectedDocIdForDetail] = useState<number | null>(null);
+  const [docForRS, setDocForRS] = useState<Document | null>(null);
+  const [invoiceForCreditNote, setInvoiceForCreditNote] = useState<Document | null>(null);
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+
+  // Resolves total days count in selected month to validate daily filters
+  const getDaysCountInMonth = (year: number, monthIdx: number) => {
+    return new Date(year, monthIdx + 1, 0).getDate();
+  };
+
+  // Adjust selected day if it exceeds the max days of a newly switched month
+  useEffect(() => {
+    if (selectedDay > 0) {
+      const maxDays = getDaysCountInMonth(selectedYear, selectedMonthIdx);
+      if (selectedDay > maxDays) {
+        setSelectedDay(maxDays);
+      }
+    }
+  }, [selectedMonthIdx, selectedYear, selectedDay]);
+
+  // Tab → Document Types mapper
+  const tabToDocType = (tab: string): DocumentTypes => {
+    switch (tab) {
+      case 'order':
+        return DocumentTypes.supplierOrder;
+      case 'receipt':
+        return DocumentTypes.supplierReceipt;
+      case 'invoice':
+        return DocumentTypes.supplierInvoice;
+      case 'credit-note':
+        return DocumentTypes.supplierInvoiceReturn;
+      default:
+        return DocumentTypes.supplierInvoice;
+    }
+  };
+
+  const docType = tabToDocType(activeTab);
+
+  // Fetch Documents filtered by date using React Query
+  const { data: documents, isLoading, refetch } = useDocumentsByTypeFiltered({
+    typeDoc: docType,
+    month: selectedMonthIdx + 1,
+    year: selectedYear,
+    day: selectedDay > 0 ? selectedDay : 0
+  });
+
+  // Fetch Parent-Child Document relationships for expansion rendering
+  const { data: parentsWithChildren, isLoading: loadingRelations } = useParentsWithChildren();
+
+  // Fetch list of suppliers for client-side drop-down filtering
+  const { data: suppliers = [] } = useSuppliers();
+
+  // Soft Delete mutation
+  const deleteDocMutation = useDeleteDocument();
+
+  // Navigation: Period increments
+  const handlePrevMonth = () => {
+    setCurrentDate((prev) => {
+      const d = new Date(prev);
+      d.setMonth(d.getMonth() - 1);
+      return d;
+    });
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate((prev) => {
+      const d = new Date(prev);
+      d.setMonth(d.getMonth() + 1);
+      return d;
+    });
+  };
+
+  // Soft Deletion handler
+  const handleDelete = async (id: number) => {
+    if (confirm('Voulez-vous vraiment supprimer ce document d’achat ? Cette action est irréversible.')) {
+      try {
+        await deleteDocMutation.mutateAsync(id);
+        refetch();
+      } catch (err) {
+        toast.error('Erreur lors de la suppression du document.');
+      }
+    }
+  };
+
+  // PDF Download handler
+  const handleDownloadPdf = async (doc: Document) => {
+    try {
+      const blob = await documentService.downloadPdf(doc.id);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Achat_${doc.docnumber || doc.id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success('Le téléchargement du PDF a commencé.');
+    } catch (err) {
+      console.error('Failed to download PDF:', err);
+      toast.error('Erreur lors de l’exportation du PDF.');
+    }
+  };
+
+  // Supplier invoice conversions handlers
+  const triggerSingleReceiptInvoicing = (receiptDoc: Document) => {
+    setSelectedReceiptIds([receiptDoc.id]);
+    setIsBatchModalOpen(true);
+  };
+
+  const triggerBatchInvoicing = () => {
+    if (selectedReceiptIds.length === 0) return;
+    setIsBatchModalOpen(true);
+  };
+
+  // Relationship filters for expanded Invoice panel (maps parentsWithChildren relationships)
+  const getAssociatedReceipts = (invoiceId: number): any[] => {
+    if (!parentsWithChildren) return [];
+    const rel = parentsWithChildren.find((r) => r.parentDocument?.id === invoiceId);
+    return rel?.childDocuments?.filter((d: any) => d.type === DocumentTypes.supplierReceipt) || [];
+  };
+
+  const getAssociatedCreditNotes = (invoiceId: number): any[] => {
+    if (!parentsWithChildren) return [];
+    const rel = parentsWithChildren.find((r) => r.parentDocument?.id === invoiceId);
+    return rel?.childDocuments?.filter((d: any) => d.type === DocumentTypes.supplierInvoiceReturn) || [];
+  };
+
+  // Client-Side filtering: search terms + supplier drop-down selection
+  const filteredDocuments = useMemo(() => {
+    return (documents || [])
+      .filter((doc) => {
+        const term = searchTerm.toLowerCase();
+        const supplierName = (
+          doc.counterpart?.name || 
+          `${doc.counterpart?.firstname || ''} ${doc.counterpart?.lastname || ''}`
+        ).toLowerCase();
+
+        const matchesSearch =
+          doc.docnumber?.toLowerCase().includes(term) ||
+          supplierName.includes(term) ||
+          (doc.supplierReference || '').toLowerCase().includes(term) ||
+          doc.description?.toLowerCase().includes(term);
+
+        const matchesSupplier =
+          selectedSupplierId === 'all' || 
+          doc.counterpart?.id === Number(selectedSupplierId);
+
+        return matchesSearch && matchesSupplier;
+      })
+      .sort((a, b) => (b.docnumber || '').localeCompare(a.docnumber || ''));
+  }, [documents, searchTerm, selectedSupplierId]);
+
+  // Compute live aggregates of selected receipts for batch validation
+  const selectedReceipts = useMemo(() => {
+    return (documents || []).filter((doc) => selectedReceiptIds.includes(doc.id));
+  }, [documents, selectedReceiptIds]);
+
+  // Determine if the batch conversion trigger is active and valid (same supplier + non-invoiced)
+  const isBatchTriggerValid = useMemo(() => {
+    if (selectedReceipts.length === 0) return false;
+    const firstSupplierId = selectedReceipts[0]?.counterpart?.id;
+    return selectedReceipts.every(
+      (r) => 
+        r.counterpart?.id === firstSupplierId && 
+        r.billingstatus !== BillingStatus.Billed && 
+        !r.isinvoiced
+    );
+  }, [selectedReceipts]);
+
+  // Selected supplier name for display in SelectTrigger
+  const selectedSupplierName = useMemo(() => {
+    if (selectedSupplierId === 'all') return 'Tous les Fournisseurs';
+    const found = suppliers.find((s: any) => s.id.toString() === selectedSupplierId);
+    return found ? (found.name || `${found.firstname || ''} ${found.lastname || ''}`) : 'Tous les Fournisseurs';
+  }, [selectedSupplierId, suppliers]);
+
+  // Dynamic KPI counters tailored to active workspace and tab calculations
+  const kpiData = useMemo(() => {
+    const list = filteredDocuments;
+    if (activeTab === 'invoice') {
+      return list.reduce(
+        (acc, curr) => {
+          acc.ht += curr.total_ht_net_doc || 0;
+          acc.tva += curr.total_tva_doc || 0;
+          acc.ttc += curr.total_net_ttc || 0;
+          acc.avoirs += curr.total_credit_notes || 0;
+          acc.payable += curr.total_net_payable ?? curr.total_net_ttc ?? 0;
+          acc.remaining += curr.remaining_balance || 0;
+          return acc;
+        },
+        { ht: 0, tva: 0, ttc: 0, avoirs: 0, payable: 0, remaining: 0 }
+      );
+    } else {
+      // General Tab counters
+      return list.reduce(
+        (acc, curr) => {
+          acc.ht += curr.total_ht_net_doc || 0;
+          acc.ttc += curr.total_net_ttc || 0;
+          return acc;
+        },
+        { ht: 0, tva: 0, ttc: 0, avoirs: 0, payable: 0, remaining: 0 }
+      );
+    }
+  }, [filteredDocuments, activeTab]);
+
+  const fmt = (n: number) =>
+    n.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
   return (
     <DashboardLayout>
       <div className="space-y-8 animate-in fade-in duration-700">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-heading font-bold text-forest-900 tracking-tight">Gestion des Achats</h1>
-            <p className="text-sand-400 font-medium mt-1">Gérez vos commandes fournisseurs et entrées de marchandises.</p>
+        
+        {/* Header Section: spatial tension layout with deep slate/amber styling */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-slate-100 pb-6">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="p-2 bg-amber-950/10 text-amber-900 rounded-xl">
+                <LayoutDashboard className="w-5 h-5" />
+              </span>
+              <span className="text-[10px] font-bold tracking-widest text-amber-800 uppercase font-mono">
+                Acquisitions &amp; Logistique
+              </span>
+            </div>
+            <h1 className="text-3xl font-serif font-extrabold text-slate-900 tracking-tight">
+              Gestion des Achats
+            </h1>
+            <p className="text-sm font-medium text-slate-500 max-w-2xl leading-relaxed">
+              Pilotez l’intégralité de la chaîne d’approvisionnement : commandes fournisseurs, réceptions de marchandises (BR), factures et avoirs financiers.
+            </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50">
-              <Download className="w-4 h-4 mr-2" /> Exporter
-            </Button>
-            <Button className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20">
-              <Plus className="w-4 h-4 mr-2" /> Nouvel Achat
-            </Button>
+          
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/purchases/payments" passHref>
+              <Button
+                variant="outline"
+                className="h-11 rounded-xl border-amber-900/20 text-amber-900 font-bold hover:bg-amber-50 gap-2 flex items-center transition-all duration-300"
+              >
+                <Coins className="w-4 h-4" /> Règlements Fournisseurs
+              </Button>
+            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="h-11 rounded-xl bg-amber-900 text-white hover:bg-amber-950 font-bold shadow-lg shadow-amber-900/10 gap-2 flex items-center transition-all duration-300">
+                  <Plus className="w-4 h-4" /> Nouveau Document
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="rounded-xl border-slate-100 w-48 shadow-xl">
+                <DropdownMenuItem onClick={() => router.push('/purchases/order/new')} className="font-bold text-slate-800 gap-2 cursor-pointer">
+                  <Clock className="w-4 h-4 text-amber-700" /> Commande Fournisseur
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/purchases/receipt/new')} className="font-bold text-slate-800 gap-2 cursor-pointer">
+                  <Package className="w-4 h-4 text-amber-700" /> Bon de Réception (BR)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/purchases/invoice/new')} className="font-bold text-slate-800 gap-2 cursor-pointer">
+                  <FileText className="w-4 h-4 text-amber-700" /> Facture Fournisseur
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
-        {/* Month Navigation */}
-        <Card className="border-forest-100 shadow-lg shadow-forest-900/5 rounded-[24px] bg-white overflow-hidden">
-          <div className="p-4 bg-timber-600 text-white flex items-center justify-between">
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 h-8 w-8">
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <div className="text-center">
-              <h2 className="text-lg font-heading font-bold">{selectedMonth} 2026</h2>
-              <p className="text-[0.65rem] font-bold text-white/50 uppercase tracking-[0.2em]">Période d'approvisionnement</p>
+        {/* Dynamic Period Navigator Card */}
+        <Card className="border-slate-100 shadow-md shadow-slate-900/5 rounded-[24px] bg-white overflow-hidden border">
+          <div className="px-6 py-4 bg-slate-900 text-white flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handlePrevMonth}
+                className="text-white hover:bg-white/10 h-9 w-9 rounded-xl transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+              <div className="text-left">
+                <h2 className="text-lg font-serif font-bold text-amber-50">
+                  {MONTHS[selectedMonthIdx]} {selectedYear}
+                </h2>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-mono">
+                  Période d&apos;activité comptable
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleNextMonth}
+                className="text-white hover:bg-white/10 h-9 w-9 rounded-xl transition-colors"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </Button>
             </div>
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 h-8 w-8">
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-          <div className="p-2 overflow-x-auto flex items-center gap-1 justify-center bg-sand-50/50">
-            {MONTHS.map(m => (
-              <Button 
-                key={m} 
-                variant={selectedMonth === m ? 'default' : 'ghost'}
+
+            {/* Quick Day of Month Filter Bar */}
+            <div className="flex items-center gap-2 bg-slate-850/50 p-1.5 rounded-2xl border border-slate-800 overflow-x-auto max-w-full">
+              <Button
+                variant={selectedDay === 0 ? 'default' : 'ghost'}
                 size="sm"
-                onClick={() => setSelectedMonth(m)}
+                onClick={() => setSelectedDay(0)}
                 className={cn(
-                  "rounded-lg h-9 px-4 font-bold text-[0.8rem]",
-                  selectedMonth === m ? "bg-timber-600 text-white hover:bg-timber-700" : "text-sand-400 hover:text-timber-600 hover:bg-timber-50"
+                  'rounded-xl h-8 px-4 text-xs font-bold font-mono transition-all',
+                  selectedDay === 0
+                    ? 'bg-amber-700 text-white hover:bg-amber-800'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
+                )}
+              >
+                TOUT LE MOIS
+              </Button>
+              <Separator orientation="vertical" className="h-4 bg-slate-800" />
+              <div className="flex items-center gap-1">
+                {Array.from(
+                  { length: getDaysCountInMonth(selectedYear, selectedMonthIdx) },
+                  (_, i) => i + 1
+                ).map((day) => (
+                  <Button
+                    key={day}
+                    variant={selectedDay === day ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setSelectedDay(day)}
+                    className={cn(
+                      'rounded-xl h-8 w-8 text-xs font-bold font-mono p-0 transition-all',
+                      selectedDay === day
+                        ? 'bg-amber-700 text-white hover:bg-amber-800'
+                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    )}
+                  >
+                    {day}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          <div className="px-6 py-2 bg-slate-50 overflow-x-auto flex items-center gap-1 justify-center border-t border-slate-100">
+            {MONTHS.map((m, idx) => (
+              <Button
+                key={m}
+                variant={selectedMonthIdx === idx ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => {
+                  setCurrentDate((prev) => {
+                    const d = new Date(prev);
+                    d.setMonth(idx);
+                    return d;
+                  });
+                }}
+                className={cn(
+                  'rounded-xl h-9 px-4 font-bold text-xs transition-colors',
+                  selectedMonthIdx === idx
+                    ? 'bg-amber-900 text-white hover:bg-amber-950 shadow-sm'
+                    : 'text-slate-400 hover:text-amber-900 hover:bg-amber-50/50'
                 )}
               >
                 {m.substring(0, 3)}
@@ -101,191 +473,671 @@ export default function PurchasesPage() {
           </div>
         </Card>
 
-        <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-[24px] overflow-hidden bg-white/80 backdrop-blur-sm">
-          <CardHeader className="border-b border-forest-50 p-6">
-            <div className="flex flex-col md:flex-row md:items-center gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400" />
-                <Input 
-                  placeholder="Rechercher par référence, fournisseur..." 
-                  className="pl-10 h-11 rounded-xl border-forest-50 bg-sand-50/50 focus:border-forest-600 focus:ring-forest-600 transition-all"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+        {/* Financial Counterparts & Status KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
+          <Card className="rounded-[20px] border-slate-100 shadow-sm bg-white p-5 space-y-2 border">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono">
+              Volume HT Net
+            </span>
+            <div className="flex items-baseline justify-between">
+              <span className="text-xl font-mono font-bold text-slate-800">{fmt(kpiData.ht)}</span>
+              <span className="text-[10px] font-bold text-slate-400 font-mono">DT</span>
+            </div>
+            <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-2">
+              <div className="bg-amber-700 h-full w-[65%]" />
+            </div>
+          </Card>
+
+          {activeTab === 'invoice' ? (
+            <>
+              <Card className="rounded-[20px] border-slate-100 shadow-sm bg-white p-5 space-y-2 border">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono">
+                  Volume TVA
+                </span>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-xl font-mono font-bold text-slate-800">{fmt(kpiData.tva)}</span>
+                  <span className="text-[10px] font-bold text-slate-400 font-mono">DT</span>
+                </div>
+                <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-2">
+                  <div className="bg-amber-750 h-full w-[45%]" />
+                </div>
+              </Card>
+
+              <Card className="rounded-[20px] border-slate-100 shadow-sm bg-white p-5 space-y-2 border">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono">
+                  Total TTC
+                </span>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-xl font-mono font-bold text-amber-900">{fmt(kpiData.ttc)}</span>
+                  <span className="text-[10px] font-bold text-amber-900/60 font-mono">DT</span>
+                </div>
+                <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-2">
+                  <div className="bg-amber-900 h-full w-[80%]" />
+                </div>
+              </Card>
+
+              <Card className="rounded-[20px] border-slate-100 shadow-sm bg-white p-5 space-y-2 border">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono">
+                  Avoirs financiers
+                </span>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-xl font-mono font-bold text-rose-600">-{fmt(kpiData.avoirs)}</span>
+                  <span className="text-[10px] font-bold text-rose-400 font-mono">DT</span>
+                </div>
+                <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-2">
+                  <div className="bg-rose-500 h-full w-[20%]" />
+                </div>
+              </Card>
+
+              <Card className="rounded-[20px] border-slate-100 shadow-sm bg-white p-5 space-y-2 border">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono">
+                  Reste à payer
+                </span>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-xl font-mono font-bold text-slate-900">{fmt(kpiData.remaining)}</span>
+                  <span className="text-[10px] font-bold text-slate-400 font-mono">DT</span>
+                </div>
+                <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-2">
+                  <div className="bg-amber-900 h-full w-[70%]" />
+                </div>
+              </Card>
+            </>
+          ) : (
+            <>
+              <Card className="rounded-[20px] border-slate-100 shadow-sm bg-white p-5 space-y-2 border">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono">
+                  Total TTC Cumulé
+                </span>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-xl font-mono font-bold text-amber-900">{fmt(kpiData.ttc)}</span>
+                  <span className="text-[10px] font-bold text-amber-950 font-mono">DT</span>
+                </div>
+              </Card>
+              <Card className="rounded-[20px] border-slate-150 shadow-sm bg-white p-5 space-y-2 border border-dashed col-span-3 flex items-center justify-center text-xs text-slate-400 font-serif italic">
+                Activez l&apos;onglet Factures pour voir le détail des règlements et avoirs.
+              </Card>
+            </>
+          )}
+        </div>
+
+        {/* Workspace Card: Search filters & dynamic data table */}
+        <Card className="border-slate-100 shadow-xl shadow-slate-900/5 rounded-[24px] overflow-hidden bg-white border">
+          <Tabs value={activeTab} onValueChange={(val) => {
+            setActiveTab(val);
+            setExpandedId(null);
+            setSelectedReceiptIds([]);
+          }} className="w-full">
+            
+            {/* Custom styled Tabs Header */}
+            <CardHeader className="border-b border-slate-100 p-6 space-y-4">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <TabsList className="bg-slate-100 p-1 rounded-2xl w-fit flex h-11 border border-slate-200/50">
+                  <TabsTrigger
+                    value="order"
+                    className="rounded-xl h-9 font-bold text-xs tracking-wide px-5 data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
+                  >
+                    <Clock className="w-3.5 h-3.5" /> Commandes
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="receipt"
+                    className="rounded-xl h-9 font-bold text-xs tracking-wide px-5 data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
+                  >
+                    <Layers className="w-3.5 h-3.5" /> Réceptions / BR
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="invoice"
+                    className="rounded-xl h-9 font-bold text-xs tracking-wide px-5 data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
+                  >
+                    <FileText className="w-3.5 h-3.5" /> Factures
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="credit-note"
+                    className="rounded-xl h-9 font-bold text-xs tracking-wide px-5 data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" /> Avoirs Fournisseurs
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* Batch Actions Bar for BRs */}
+                {activeTab === 'receipt' && selectedReceiptIds.length > 0 && (
+                  <motion.div
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="flex items-center gap-2 p-1.5 bg-amber-550/5 border border-amber-900/10 rounded-2xl"
+                  >
+                    <span className="text-xs font-bold text-amber-900 font-sans px-2">
+                      {selectedReceiptIds.length} Bons de Réception sélectionnés
+                    </span>
+                    <Button
+                      size="sm"
+                      onClick={triggerBatchInvoicing}
+                      disabled={!isBatchTriggerValid}
+                      className={cn(
+                        'rounded-xl text-xs font-bold shadow-sm',
+                        isBatchTriggerValid
+                          ? 'bg-amber-900 hover:bg-amber-950 text-white'
+                          : 'bg-slate-200 text-slate-400 cursor-not-allowed border'
+                      )}
+                    >
+                      <Layers className="w-3.5 h-3.5 mr-1" />
+                      Facturer la sélection
+                    </Button>
+                    {!isBatchTriggerValid && (
+                      <span className="text-[10px] text-red-600 font-bold max-w-xs leading-none mr-2">
+                        Tous les BR doivent appartenir au même fournisseur.
+                      </span>
+                    )}
+                  </motion.div>
+                )}
               </div>
-              <div className="flex items-center gap-3">
-                <Button variant="ghost" className="h-11 rounded-xl text-sand-400 font-bold hover:bg-sand-100">
-                  <Filter className="w-4 h-4 mr-2" /> Filtres
-                </Button>
-                <div className="h-6 w-[1px] bg-forest-100 mx-2 hidden md:block" />
-                <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-lg">
-                  <ShoppingCart className="w-4 h-4 text-amber-600" />
-                  <span className="text-sm font-bold text-amber-900">{PURCHASES.length} Achats</span>
+
+              {/* Filtering Controls */}
+              <div className="flex flex-col md:flex-row md:items-center gap-4 pt-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    placeholder="Rechercher par numéro de document, référence fournisseur, observations..."
+                    className="pl-10 h-11 rounded-xl border-slate-200 bg-[#fafafa] text-xs font-semibold focus:border-amber-900 focus:ring-amber-900 transition-all focus:bg-white"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="w-48">
+                    <Select value={selectedSupplierId} onValueChange={(val) => setSelectedSupplierId(val || 'all')}>
+                      <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-[#fafafa] text-xs font-semibold focus:ring-amber-900 w-full">
+                        <SelectValue placeholder="Filtrer par Fournisseur">
+                          {selectedSupplierName}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl shadow-lg">
+                        <SelectItem value="all" label="Tous les Fournisseurs" className="text-xs font-bold">
+                          Tous les Fournisseurs
+                        </SelectItem>
+                        {suppliers.map((s: any) => {
+                          const name = s.name || `${s.firstname || ''} ${s.lastname || ''}`;
+                          return (
+                            <SelectItem key={s.id} value={s.id.toString()} label={name} className="text-xs">
+                              {name}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="h-6 w-[1px] bg-slate-200 mx-1 hidden md:block" />
+                  
+                  <div className="flex items-center gap-2 px-4 py-2 bg-amber-950/5 border border-amber-900/10 rounded-xl text-xs font-bold text-amber-900">
+                    <Layers className="w-4 h-4 text-amber-700" />
+                    <span>{filteredDocuments.length} Documents trouvés</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-sand-50/50 border-b border-forest-50">
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Référence</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Date</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Fournisseur</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-right">Montant TTC</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-center">Statut</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-center">Entrée Stock</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-forest-50">
-                  {PURCHASES.map((item) => (
-                    <React.Fragment key={item.id}>
-                      <tr 
-                        className={cn(
-                          "group hover:bg-forest-50/30 transition-all duration-300 cursor-pointer",
-                          expandedId === item.id && "bg-forest-50/50"
-                        )}
-                        onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                      >
-                        <td className="p-5">
-                          <span className="font-bold text-forest-900">{item.number}</span>
-                        </td>
-                        <td className="p-5">
-                          <span className="text-xs font-bold text-sand-400">{item.date}</span>
-                        </td>
-                        <td className="p-5">
-                          <div className="font-bold text-forest-900 flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-md bg-amber-100 flex items-center justify-center text-[0.6rem] text-amber-700">
-                              {item.provider.substring(0, 1)}
-                            </div>
-                            {item.provider}
-                          </div>
-                        </td>
-                        <td className="p-5 text-right">
-                          <div className="font-bold text-forest-900">{item.amount_ttc.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}</div>
-                          <div className="text-[0.65rem] font-bold text-sand-400">{item.amount_ht.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} HT</div>
-                        </td>
-                        <td className="p-5 text-center">
-                          <Badge 
-                            className={cn(
-                              "rounded-full px-3 py-1 font-bold text-[0.7rem]",
-                              item.status === 'Reçu' ? "bg-emerald-50 text-emerald-600" : 
-                              item.status === 'Commandé' ? "bg-blue-50 text-blue-600" : "bg-amber-50 text-amber-600"
-                            )}
-                          >
-                            {item.status}
-                          </Badge>
-                        </td>
-                        <td className="p-5 text-center">
-                          {item.status === 'Reçu' ? (
-                            <BadgeCheck className="w-5 h-5 text-emerald-500 mx-auto" />
-                          ) : (
-                            <Clock className="w-4 h-4 text-amber-400 mx-auto" />
-                          )}
-                        </td>
-                        <td className="p-5 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-sand-400 hover:text-forest-600">
-                              <Printer className="w-4 h-4" />
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-sand-400">
-                                  <MoreHorizontal className="w-4 h-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="rounded-xl border-forest-100 w-44">
-                                <DropdownMenuItem className="gap-2 font-bold text-forest-900 cursor-pointer">
-                                  <Edit className="w-4 h-4" /> Modifier
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="gap-2 font-bold text-forest-900 cursor-pointer">
-                                  <Package className="w-4 h-4" /> Valider Entrée
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="gap-2 font-bold text-forest-900 cursor-pointer">
-                                  <FileDown className="w-4 h-4" /> Télécharger PDF
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="gap-2 font-bold text-rose-600 cursor-pointer hover:text-rose-700 hover:bg-rose-50">
-                                  <Trash2 className="w-4 h-4" /> Supprimer
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                            <ChevronDown className={cn("w-4 h-4 text-sand-300 transition-transform duration-300", expandedId === item.id && "rotate-180")} />
-                          </div>
+            </CardHeader>
+
+            {/* Data Table */}
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse font-sans text-xs">
+                  <thead>
+                    <tr className="bg-slate-50/70 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                      
+                      {/* Checkbox column only on receipt/BR tab */}
+                      {activeTab === 'receipt' && (
+                        <th className="p-4 w-12 text-center">
+                          <input
+                            type="checkbox"
+                            className="accent-amber-900 rounded cursor-pointer size-3.5"
+                            checked={
+                              filteredDocuments.length > 0 &&
+                              selectedReceiptIds.length === filteredDocuments.length
+                            }
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedReceiptIds(filteredDocuments.map((d) => d.id));
+                              } else {
+                                setSelectedReceiptIds([]);
+                              }
+                            }}
+                          />
+                        </th>
+                      )}
+                      
+                      {/* Toggle Expand column only on invoice tab */}
+                      {activeTab === 'invoice' && <th className="p-4 w-10"></th>}
+
+                      <th className="p-4">N° Document</th>
+                      
+                      {activeTab === 'invoice' && <th className="p-4">Réf. Fournisseur</th>}
+
+                      <th className="p-4">Date</th>
+                      <th className="p-4">Fournisseur</th>
+                      <th className="p-4 text-right">Total HT</th>
+                      <th className="p-4 text-right">Total TTC</th>
+                      <th className="p-4 text-center">Statut</th>
+
+                      {activeTab === 'receipt' && <th className="p-4 text-center">Facturation</th>}
+                      {activeTab === 'invoice' && <th className="p-4 text-center">Retenue (RS)</th>}
+
+                      <th className="p-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {isLoading ? (
+                      <tr>
+                        <td
+                          colSpan={activeTab === 'invoice' ? 10 : activeTab === 'receipt' ? 9 : 7}
+                          className="py-24 text-center text-slate-400 italic"
+                        >
+                          Chargement des documents d&apos;achat en cours...
                         </td>
                       </tr>
-                      <AnimatePresence>
-                        {expandedId === item.id && (
-                          <tr>
-                            <td colSpan={7} className="p-0">
-                              <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.3 }}
-                                className="overflow-hidden bg-sand-50/30"
-                              >
-                                <div className="p-8">
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div className="space-y-4">
-                                      <h4 className="text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">Articles Achetés</h4>
-                                      <div className="space-y-2">
-                                        {[1, 2].map(i => (
-                                          <div key={i} className="bg-white p-3 rounded-xl border border-forest-50 flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                              <div className="text-[0.65rem] font-bold text-sand-300">#{i}</div>
-                                              <div>
-                                                <div className="text-sm font-bold text-forest-900">Madrier Sapin 4m</div>
-                                                <div className="text-[0.7rem] text-sand-400 font-medium">BOIS-PUR-00{i}</div>
-                                              </div>
-                                            </div>
-                                            <div className="text-right">
-                                              <div className="text-sm font-bold text-forest-900">25.000 M³</div>
-                                              <div className="text-[0.7rem] text-sand-400 font-medium">1,100.000 TND / M³</div>
-                                            </div>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                    <div className="space-y-4 border-l border-forest-100 pl-8">
-                                      <h4 className="text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">Suivi Logistique</h4>
-                                      <div className="grid grid-cols-2 gap-6">
-                                        <div>
-                                          <div className="text-[0.65rem] font-bold text-sand-400 uppercase mb-1">Date d'arrivée</div>
-                                          <div className="text-sm font-bold text-forest-900">14/05/2026 10:15</div>
-                                        </div>
-                                        <div>
-                                          <div className="text-[0.65rem] font-bold text-sand-400 uppercase mb-1">Dépôt de réception</div>
-                                          <div className="text-sm font-bold text-forest-900">Dépôt Nord (Tabarka)</div>
-                                        </div>
-                                        <div>
-                                          <div className="text-[0.65rem] font-bold text-sand-400 uppercase mb-1">Réceptionnaire</div>
-                                          <div className="text-sm font-bold text-forest-900">Salem Mahmoud</div>
-                                        </div>
-                                        <div>
-                                          <div className="text-[0.65rem] font-bold text-sand-400 uppercase mb-1">Document Original</div>
-                                          <div className="text-sm font-bold text-timber-600 underline">FACT-SN-9982</div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
+                    ) : filteredDocuments.length > 0 ? (
+                      filteredDocuments.map((item) => {
+                        const isExpanded = expandedId === item.id;
+                        
+                        // Associated children details for expanded Row
+                        const associatedBRs = getAssociatedReceipts(item.id);
+                        const associatedAvoirs = getAssociatedCreditNotes(item.id);
+
+                        return (
+                          <React.Fragment key={item.id}>
+                            <tr
+                              className={cn(
+                                'group hover:bg-slate-50/50 transition-all duration-300 cursor-pointer border-slate-50',
+                                isExpanded && 'bg-amber-950/[0.02]'
+                              )}
+                              onClick={() => {
+                                if (activeTab === 'invoice') {
+                                  setExpandedId(isExpanded ? null : item.id);
+                                } else {
+                                  setSelectedDocIdForDetail(item.id);
+                                }
+                              }}
+                            >
+                              {/* Checkbox selector for receipt/BR batch conversions */}
+                              {activeTab === 'receipt' && (
+                                <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                  <input
+                                    type="checkbox"
+                                    className="accent-amber-900 rounded cursor-pointer size-3.5"
+                                    checked={selectedReceiptIds.includes(item.id)}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setSelectedReceiptIds((prev) => [...prev, item.id]);
+                                      } else {
+                                        setSelectedReceiptIds((prev) =>
+                                          prev.filter((id) => id !== item.id)
+                                        );
+                                      }
+                                    }}
+                                  />
+                                </td>
+                              )}
+
+                              {/* Toggle expand button only on invoice tab */}
+                              {activeTab === 'invoice' && (
+                                <td className="p-4 text-center">
+                                  {isExpanded ? (
+                                    <ChevronUp className="w-4 h-4 text-slate-400 group-hover:text-amber-800 transition-colors" />
+                                  ) : (
+                                    <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-amber-800 transition-colors" />
+                                  )}
+                                </td>
+                              )}
+
+                              <td className="p-4">
+                                <span className="font-bold text-slate-900 block group-hover:text-amber-900 transition-colors">
+                                  {item.docnumber || 'Brouillon'}
+                                </span>
+                              </td>
+
+                              {activeTab === 'invoice' && (
+                                <td className="p-4">
+                                  <span className="font-mono font-medium text-slate-500">
+                                    {item.supplierReference || '--'}
+                                  </span>
+                                </td>
+                              )}
+
+                              <td className="p-4">
+                                <span className="font-mono font-medium text-slate-500">
+                                  {new Date(item.creationdate).toLocaleDateString('fr-FR')}
+                                </span>
+                              </td>
+
+                              <td className="p-4">
+                                <div className="font-bold text-slate-800 flex items-center gap-2">
+                                  <span className="w-5 h-5 rounded-md bg-amber-50 text-amber-800 font-bold border border-amber-200/50 text-[9px] flex items-center justify-center">
+                                    {item.counterpart?.name ? item.counterpart.name.charAt(0) : 'F'}
+                                  </span>
+                                  <span>
+                                    {item.counterpart?.name ||
+                                      `${item.counterpart?.firstname || ''} ${
+                                        item.counterpart?.lastname || ''
+                                      }`}
+                                  </span>
                                 </div>
-                              </motion.div>
-                            </td>
-                          </tr>
-                        )}
-                      </AnimatePresence>
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
+                              </td>
+
+                              <td className="p-4 text-right font-mono font-medium">
+                                {fmt(item.total_ht_net_doc || 0)}
+                              </td>
+
+                              <td className="p-4 text-right font-mono font-bold text-amber-950">
+                                {fmt(item.total_net_ttc || 0)}
+                              </td>
+
+                              <td className="p-4 text-center">
+                                <Badge
+                                  className={cn(
+                                    'rounded-full px-2.5 py-0.5 font-bold text-[9px] tracking-wide uppercase',
+                                    item.docstatus === DocStatus.Validated || item.docstatus === DocStatus.Completed
+                                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/50'
+                                      : 'bg-amber-50 text-amber-800 border border-amber-200/50'
+                                  )}
+                                >
+                                  {item.docstatus === DocStatus.Validated || item.docstatus === DocStatus.Completed
+                                    ? 'Validé'
+                                    : 'Brouillon'}
+                                </Badge>
+                              </td>
+
+                              {/* BR billing lock indicators */}
+                              {activeTab === 'receipt' && (
+                                <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                  {item.isinvoiced || item.billingstatus === BillingStatus.Billed ? (
+                                    <Badge className="bg-emerald-50 text-emerald-800 border border-emerald-200/50 rounded-full font-bold text-[9px] gap-1 flex items-center w-fit mx-auto px-2">
+                                      <Lock className="w-3 h-3 text-emerald-600" /> Facturé
+                                    </Badge>
+                                  ) : (
+                                    <Badge className="bg-amber-50 text-amber-800 border border-amber-200/50 rounded-full font-bold text-[9px] gap-1 flex items-center w-fit mx-auto px-2">
+                                      <LockOpen className="w-3 h-3 text-amber-600" /> Non Facturé
+                                    </Badge>
+                                  )}
+                                </td>
+                              )}
+
+                              {/* Withholding tax RS applied status */}
+                              {activeTab === 'invoice' && (
+                                <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                  {item.withholdingtax ? (
+                                    <Badge className="bg-emerald-50 text-emerald-800 border border-emerald-200/50 rounded-full font-bold text-[9px] w-fit mx-auto px-2">
+                                      RS Appliqué
+                                    </Badge>
+                                  ) : (
+                                    <span className="text-[10px] text-slate-400 italic font-medium">Non appliqué</span>
+                                  )}
+                                </td>
+                              )}
+
+                              {/* Actions Dropdown */}
+                              <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setSelectedDocIdForDetail(item.id)}
+                                    className="h-8 w-8 rounded-lg text-slate-400 hover:text-amber-800"
+                                  >
+                                    <Printer className="w-4 h-4" />
+                                  </Button>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-800"
+                                      >
+                                        <MoreHorizontal className="w-4 h-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="rounded-xl border-slate-100 w-44 shadow-lg">
+                                      <DropdownMenuItem
+                                        onClick={() => setSelectedDocIdForDetail(item.id)}
+                                        className="gap-2 font-bold text-slate-800 cursor-pointer"
+                                      >
+                                        <FileText className="w-4 h-4 text-slate-500" /> Afficher Détails
+                                      </DropdownMenuItem>
+                                      
+                                      <DropdownMenuItem
+                                        onClick={() => handleDownloadPdf(item)}
+                                        className="gap-2 font-bold text-slate-800 cursor-pointer"
+                                      >
+                                        <FileDown className="w-4 h-4 text-slate-500" /> Télécharger PDF
+                                      </DropdownMenuItem>
+
+                                      {item.counterpart && (
+                                        <DropdownMenuItem
+                                          onClick={() => router.push(`/purchases/payments?supplierId=${item.counterpart.id}`)}
+                                          className="gap-2 font-bold text-slate-800 cursor-pointer"
+                                        >
+                                          <Coins className="w-4 h-4 text-slate-500" /> Règlements
+                                        </DropdownMenuItem>
+                                      )}
+
+                                      {/* Invoice withholding tax trigger (only if validation is complete and RS is not applied yet) */}
+                                      {activeTab === 'invoice' && !item.withholdingtax && (
+                                        <DropdownMenuItem
+                                          onClick={() => setDocForRS(item)}
+                                          className="gap-2 font-bold text-slate-800 cursor-pointer"
+                                        >
+                                          <Landmark className="w-4 h-4 text-amber-700" /> Appliquer RS (RS)
+                                        </DropdownMenuItem>
+                                      )}
+
+                                      {/* Invoice credit note generation trigger */}
+                                      {activeTab === 'invoice' && (
+                                        <DropdownMenuItem
+                                          onClick={() => setInvoiceForCreditNote(item)}
+                                          className="gap-2 font-bold text-slate-800 cursor-pointer"
+                                        >
+                                          <RotateCcw className="w-4 h-4 text-amber-700" /> Générer Avoir
+                                        </DropdownMenuItem>
+                                      )}
+
+                                      {/* Receipt conversion trigger (only if not invoiced yet) */}
+                                      {activeTab === 'receipt' && !item.isinvoiced && item.billingstatus !== BillingStatus.Billed && (
+                                        <DropdownMenuItem
+                                          onClick={() => triggerSingleReceiptInvoicing(item)}
+                                          className="gap-2 font-bold text-amber-800 cursor-pointer"
+                                        >
+                                          <Layers className="w-4 h-4 text-amber-700" /> Facturer le BR
+                                        </DropdownMenuItem>
+                                      )}
+
+                                      <DropdownMenuItem
+                                        onClick={() => handleDelete(item.id)}
+                                        className="gap-2 font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 cursor-pointer"
+                                      >
+                                        <Trash2 className="w-4 h-4" /> Supprimer
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              </td>
+                            </tr>
+
+                            {/* Detailed Row Expansion for Supplier Invoices */}
+                            {activeTab === 'invoice' && isExpanded && (
+                              <tr>
+                                <td colSpan={10} className="p-0">
+                                  <AnimatePresence initial={false}>
+                                    <motion.div
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: 'auto', opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      transition={{ duration: 0.3 }}
+                                      className="overflow-hidden bg-slate-50/40 border-y border-slate-100"
+                                    >
+                                      <div className="p-6 md:p-8 space-y-6">
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                          
+                                          {/* Associated BRs subsection */}
+                                          <div className="space-y-3">
+                                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                              <Layers className="w-3.5 h-3.5 text-amber-700" /> Bons de Réception Associés
+                                            </h4>
+                                            
+                                            {associatedBRs.length > 0 ? (
+                                              <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
+                                                {associatedBRs.map((br: any, brIdx: number) => (
+                                                  <div
+                                                    key={br.id}
+                                                    className="bg-white p-4 rounded-2xl border border-slate-150 shadow-xs flex items-center justify-between hover:border-amber-900/20 transition-all"
+                                                  >
+                                                    <div className="space-y-0.5">
+                                                      <div className="text-xs font-bold text-slate-900">
+                                                        {br.docnumber}
+                                                      </div>
+                                                      <div className="text-[10px] text-slate-400 font-medium">
+                                                        Date: {br.creationdate ? new Date(br.creationdate).toLocaleDateString('fr-FR') : '--'}
+                                                      </div>
+                                                    </div>
+                                                    <div className="text-right space-y-0.5">
+                                                      <div className="text-xs font-bold text-amber-950 font-mono">
+                                                        {fmt(br.total_net_ttc || 0)} DT
+                                                      </div>
+                                                      <div className="text-[10px] text-slate-400 font-mono">
+                                                        {fmt(br.total_ht_net_doc || 0)} DT HT
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            ) : (
+                                              <div className="py-8 text-center text-xs text-slate-400 italic bg-white border border-slate-150 border-dashed rounded-2xl">
+                                                Aucun bon de réception associé à cette facture.
+                                              </div>
+                                            )}
+                                          </div>
+
+                                          {/* Associated Credit Notes subsection */}
+                                          <div className="space-y-3 lg:border-l lg:border-slate-200 lg:pl-8">
+                                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                              <RotateCcw className="w-3.5 h-3.5 text-amber-700" /> Avoirs Financiers Appliqués
+                                            </h4>
+
+                                            {associatedAvoirs.length > 0 ? (
+                                              <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
+                                                {associatedAvoirs.map((credit: any, creditIdx: number) => (
+                                                  <div
+                                                    key={credit.id}
+                                                    className="bg-white p-4 rounded-2xl border border-slate-150 shadow-xs flex items-center justify-between hover:border-rose-900/20 transition-all"
+                                                  >
+                                                    <div className="space-y-0.5">
+                                                      <div className="text-xs font-bold text-slate-900">
+                                                        {credit.docnumber}
+                                                      </div>
+                                                      <p className="text-[10px] text-slate-400 font-medium line-clamp-1">
+                                                        {credit.description}
+                                                      </p>
+                                                    </div>
+                                                    <div className="text-right space-y-0.5">
+                                                      <div className="text-xs font-bold text-rose-600 font-mono">
+                                                        -{fmt(credit.total_net_ttc || 0)} DT
+                                                      </div>
+                                                      <div className="text-[10px] text-slate-400 font-mono">
+                                                        Date: {credit.creationdate ? new Date(credit.creationdate).toLocaleDateString('fr-FR') : '--'}
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            ) : (
+                                              <div className="py-8 text-center text-xs text-slate-400 italic bg-white border border-slate-150 border-dashed rounded-2xl">
+                                                Aucun avoir financier appliqué sur cette facture.
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+
+                                        {/* Observations section */}
+                                        {item.description && (
+                                          <div className="bg-amber-950/[0.01] border border-amber-900/5 rounded-2xl p-4 space-y-1">
+                                            <span className="text-[9px] font-bold text-amber-800 uppercase tracking-widest block font-mono">
+                                              Observations / Commentaires
+                                            </span>
+                                            <p className="text-xs font-medium text-slate-600 leading-relaxed">
+                                              {item.description}
+                                            </p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </motion.div>
+                                  </AnimatePresence>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={activeTab === 'invoice' ? 10 : activeTab === 'receipt' ? 9 : 7}
+                          className="py-24 text-center text-slate-400 italic font-medium"
+                        >
+                          Aucun document trouvé pour la période sélectionnée.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Tabs>
         </Card>
       </div>
+
+      {/* Floating Detailed Document Drawer view */}
+      <DocumentDetailDrawer
+        isOpen={selectedDocIdForDetail !== null}
+        documentId={selectedDocIdForDetail}
+        onClose={() => setSelectedDocIdForDetail(null)}
+        onNavigateToRelated={(id) => setSelectedDocIdForDetail(id)}
+      />
+
+      {/* RS Withholding Tax Modal Dialog */}
+      {docForRS && (
+        <WithholdingTaxModal
+          isOpen={docForRS !== null}
+          document={docForRS}
+          onClose={() => setDocForRS(null)}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
+            refetch();
+          }}
+        />
+      )}
+
+      {/* Batch Conversion BR → Invoice Modal Dialog */}
+      <SupplierReceiptToInvoiceModal
+        isOpen={isBatchModalOpen}
+        onClose={() => {
+          setIsBatchModalOpen(false);
+          setSelectedReceiptIds([]);
+        }}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['documents'] });
+          setActiveTab('invoice');
+          refetch();
+        }}
+        selectedReceipts={selectedReceipts}
+      />
+
+      {/* Credit Note creation Modal Dialog */}
+      <SupplierCreditNoteModal
+        isOpen={invoiceForCreditNote !== null}
+        onClose={() => setInvoiceForCreditNote(null)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['documents'] });
+          refetch();
+        }}
+        parentInvoice={invoiceForCreditNote}
+      />
     </DashboardLayout>
   );
 }
-
-

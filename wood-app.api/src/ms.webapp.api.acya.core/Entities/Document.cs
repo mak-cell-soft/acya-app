@@ -102,7 +102,7 @@ namespace ms.webapp.api.acya.core.Entities
 
     public void UpdateFromDto(DocumentDto dto)
     {
-      Id = (int)dto.id!;
+      Id = dto.id ?? 0;
       Type = dto.type;
       StockTransactionType = dto.stocktransactiontype;
       DocNumber = dto.docnumber;

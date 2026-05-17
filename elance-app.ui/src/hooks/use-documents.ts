@@ -38,6 +38,15 @@ export function useDocumentsByTypeFiltered(filter: TypeDocsFilter) {
   });
 }
 
+/**
+ * Hook to retrieve documents with parent/child relationships.
+ */
+export function useParentsWithChildren() {
+  return useQuery<any[]>({
+    queryKey: ['documents', 'parentswithchildren'],
+    queryFn: () => documentService.getParentsWithChildren(),
+  });
+}
 
 /**
  * Hook to create a new sales/purchase document.
