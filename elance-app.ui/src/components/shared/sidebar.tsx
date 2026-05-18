@@ -44,7 +44,7 @@ const navGroups = [
     title: 'Partenaires', 
     items: [
       { name: 'Clients', href: '/customers', icon: Users },
-      { name: 'Fournisseurs', href: '/providers', icon: Truck },
+      { name: 'Fournisseurs', href: '/suppliers', icon: Truck },
     ]
   },
   { 

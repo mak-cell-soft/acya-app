@@ -267,7 +267,7 @@ function NewSupplierReceiptPageContent() {
               line_type: m.line_type || LineType.Merchandise,
               description: m.description || '',
               isWoodArticle: isWood,
-              packagereference: m.packagereference || '',
+              packagereference: m.packagereference || (m.article?.categoryid === 1 ? '' : 'Standart'),
               isinvoicible: m.isinvoicible ?? true,
               allownegativstock: m.allownegativstock ?? false,
               tva_percentage: tvaVal
@@ -407,6 +407,11 @@ function NewSupplierReceiptPageContent() {
       return;
     }
 
+    if (newRowArticle.categoryid === 1 && !newRowPackageReference.trim()) {
+      toast.error("Veuillez renseigner ou générer la Référence Colis/Paquet pour cet article Bois.");
+      return;
+    }
+
     const tvaValPercent = newRowTva ? (parseFloat(newRowTva.value?.replace('%', '')) || 0) : 0;
     const isWood = !!newRowArticle.iswood;
 
@@ -425,7 +430,7 @@ function NewSupplierReceiptPageContent() {
       line_type: LineType.Merchandise,
       description: newRowDescription,
       isWoodArticle: isWood,
-      packagereference: newRowPackageReference,
+      packagereference: newRowPackageReference.trim() || (newRowArticle.categoryid === 1 ? '' : 'Standart'),
       isinvoicible: newRowIsInvoiceable,
       allownegativstock: newRowAllowNegativeStock,
       tva_percentage: tvaValPercent
@@ -605,8 +610,8 @@ function NewSupplierReceiptPageContent() {
         toast.error(`La quantité de la ligne ${i + 1} doit être supérieure à 0.`);
         return false;
       }
-      if (r.line_type === LineType.Merchandise && !r.packagereference.trim()) {
-        toast.error(`Veuillez renseigner la Référence Colis/Paquet pour la ligne ${i + 1}.`);
+      if (r.line_type === LineType.Merchandise && r.selectedArticle?.categoryid === 1 && !r.packagereference.trim()) {
+        toast.error(`Veuillez renseigner la Référence Colis/Paquet pour la ligne ${i + 1} (requis pour les articles Bois).`);
         return false;
       }
     }
@@ -648,7 +653,7 @@ function NewSupplierReceiptPageContent() {
         } else {
           item.article = r.selectedArticle;
           item.lisoflengths = r.listLengths;
-          item.packagereference = r.packagereference;
+          item.packagereference = r.packagereference.trim() || (r.selectedArticle?.categoryid === 1 ? '' : 'Standart');
           item.isinvoicible = r.isinvoicible;
           item.allownegativstock = r.allownegativstock;
           item.ismergedwith = false;
@@ -1198,7 +1203,9 @@ function NewSupplierReceiptPageContent() {
 
               {/* Package/Colis Reference */}
               <div className="space-y-1.5 relative md:col-span-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-mono">Référence Colis/Paquet *</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-mono">
+                  Référence Colis/Paquet {(!newRowArticle || newRowArticle.categoryid === 1) && '*'}
+                </label>
                 <div className="relative">
                   <Input
                     className="h-10 rounded-xl border-slate-200 pr-10 focus:ring-amber-900 text-xs font-bold text-slate-900 bg-slate-50/50"
