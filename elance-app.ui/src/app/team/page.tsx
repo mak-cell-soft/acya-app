@@ -58,6 +58,11 @@ import { Person, AppUser, ROLE_LABELS } from '@/types/team';
 import { AddEmployeeDialog } from './components/AddEmployeeDialog';
 import { EditUserDialog } from './components/EditUserDialog';
 import { DeleteConfirmDialog } from '@/components/articles/delete-confirm-dialog';
+import { LeaveManagementDialog } from './components/LeaveManagementDialog';
+import { PayslipManagementDialog } from './components/PayslipManagementDialog';
+import { AdvanceManagementDialog } from './components/AdvanceManagementDialog';
+import { LeaveCalendarDialog } from './components/LeaveCalendarDialog';
+import { Coins } from 'lucide-react';
 
 export default function TeamPage() {
   // Tabs State
@@ -71,6 +76,10 @@ export default function TeamPage() {
   const [isEmployeeDialogOpen, setIsEmployeeDialogOpen] = useState(false);
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+  const [isPayslipDialogOpen, setIsPayslipDialogOpen] = useState(false);
+  const [isAdvanceDialogOpen, setIsAdvanceDialogOpen] = useState(false);
+  const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
   
   // Selection State
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
@@ -177,9 +186,9 @@ export default function TeamPage() {
             <Button 
               variant="outline" 
               className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-5"
-              onClick={() => toast.info("planning des congés disponible prochainement")}
+              onClick={() => setIsCalendarDialogOpen(true)}
             >
-              <Calendar className="w-4 h-4 mr-2 animate-pulse" /> Planning Congés
+              <Calendar className="w-4 h-4 mr-2 text-emerald-600 animate-pulse" /> Planning Congés
             </Button>
             <Button 
               className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-5 transition-all duration-300 transform active:scale-95"
@@ -319,7 +328,7 @@ export default function TeamPage() {
                                         <MoreHorizontal className="w-4 h-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="rounded-2xl border-forest-100 w-44 p-2 shadow-xl">
+                                    <DropdownMenuContent align="end" className="rounded-2xl border-forest-100 w-48 p-2 shadow-xl">
                                       <DropdownMenuItem 
                                         className="gap-2 font-bold text-forest-900 cursor-pointer rounded-xl h-11"
                                         onClick={() => {
@@ -327,7 +336,34 @@ export default function TeamPage() {
                                           setIsEmployeeDialogOpen(true);
                                         }}
                                       >
-                                        <Edit className="w-4 h-4" /> Modifier
+                                        <Edit className="w-4 h-4 text-emerald-600" /> Modifier
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        className="gap-2 font-bold text-forest-900 cursor-pointer rounded-xl h-11"
+                                        onClick={() => {
+                                          setSelectedPerson(item);
+                                          setIsLeaveDialogOpen(true);
+                                        }}
+                                      >
+                                        <Calendar className="w-4 h-4 text-emerald-600" /> Congés
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        className="gap-2 font-bold text-forest-900 cursor-pointer rounded-xl h-11"
+                                        onClick={() => {
+                                          setSelectedPerson(item);
+                                          setIsPayslipDialogOpen(true);
+                                        }}
+                                      >
+                                        <FileText className="w-4 h-4 text-emerald-600" /> Fiches de Paie
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        className="gap-2 font-bold text-forest-900 cursor-pointer rounded-xl h-11"
+                                        onClick={() => {
+                                          setSelectedPerson(item);
+                                          setIsAdvanceDialogOpen(true);
+                                        }}
+                                      >
+                                        <Coins className="w-4 h-4 text-emerald-600" /> Avances
                                       </DropdownMenuItem>
                                       <DropdownMenuItem 
                                         className="gap-2 font-bold text-rose-600 cursor-pointer hover:text-rose-700 hover:bg-rose-50 rounded-xl h-11"
@@ -527,6 +563,42 @@ export default function TeamPage() {
         onSave={handleSaveEmployee}
         editEmployee={selectedPerson}
         isLoading={createPerson.isPending || updatePerson.isPending}
+      />
+
+      {/* --- Leave Management Dialog --- */}
+      <LeaveManagementDialog
+        isOpen={isLeaveDialogOpen}
+        onClose={() => {
+          setIsLeaveDialogOpen(false);
+          setSelectedPerson(null);
+        }}
+        employee={selectedPerson}
+      />
+
+      {/* --- Payslip Management Dialog --- */}
+      <PayslipManagementDialog
+        isOpen={isPayslipDialogOpen}
+        onClose={() => {
+          setIsPayslipDialogOpen(false);
+          setSelectedPerson(null);
+        }}
+        employee={selectedPerson}
+      />
+
+      {/* --- Advance Management Dialog --- */}
+      <AdvanceManagementDialog
+        isOpen={isAdvanceDialogOpen}
+        onClose={() => {
+          setIsAdvanceDialogOpen(false);
+          setSelectedPerson(null);
+        }}
+        employee={selectedPerson}
+      />
+
+      {/* --- Leave Calendar Dialog --- */}
+      <LeaveCalendarDialog
+        isOpen={isCalendarDialogOpen}
+        onClose={() => setIsCalendarDialogOpen(false)}
       />
 
       {/* --- Edit AppUser Dialog --- */}
