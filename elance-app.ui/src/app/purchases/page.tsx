@@ -30,7 +30,8 @@ import {
   AlertTriangle,
   Coins,
   ChevronUp,
-  LayoutDashboard
+  LayoutDashboard,
+  Gavel
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -57,6 +58,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '@/store/use-auth-store';
 
 // Hooks & Services
 import {
@@ -93,6 +95,8 @@ const MONTHS = [
 export default function PurchasesPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin';
 
   // Search & Expansion States
   const [searchTerm, setSearchTerm] = useState('');
@@ -348,6 +352,16 @@ export default function PurchasesPage() {
           </div>
           
           <div className="flex flex-wrap items-center gap-3">
+            {isAdmin && (
+              <Link href="/purchases/approvals" passHref>
+                <Button
+                  variant="outline"
+                  className="h-11 rounded-xl border-amber-900/20 text-amber-900 font-bold hover:bg-amber-50 gap-2 flex items-center transition-all duration-300"
+                >
+                  <Gavel className="w-4 h-4 text-amber-700 animate-pulse" /> Approbations
+                </Button>
+              </Link>
+            )}
             <Link href="/purchases/payments" passHref>
               <Button
                 variant="outline"

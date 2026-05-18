@@ -6,6 +6,36 @@ export enum ApprovalDecision {
   Rejected = 3
 }
 
+export interface ApprovalConfig {
+  id?: number;
+  enterpriseId: number;
+  thresholdAmount: number | null;
+  approverEmails: string | null;
+  approverRoles: string | null; // JSON string of role array
+}
+
+export interface DocumentApproval {
+  id: number;
+  documentId: number;
+  document?: any; // DocumentDto representation
+  submittedByUserId: number;
+  submittedBy?: {
+    id: number;
+    email: string;
+    fullname: string;
+    person?: {
+      firstname: string;
+      lastname: string;
+    };
+  };
+  decidedByUserId?: number;
+  decidedBy?: any;
+  decision: ApprovalDecision;
+  rejectionReason: string | null;
+  submittedAt: string;
+  decidedAt: string | null;
+}
+
 export const approvalService = {
   getConfig: async (enterpriseId: number) => {
     const response = await api.get(`/Approval/config/${enterpriseId}`);
