@@ -1,0 +1,264 @@
+'use client';
+
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { 
+  KeyRound, 
+  PencilLine, 
+  X, 
+  User, 
+  Building,
+  Mail,
+  Lock
+} from "lucide-react";
+import { AppUser } from "@/types/team";
+import { useSites } from "@/hooks/use-enterprise";
+
+const appUserSchema = z.object({
+  login: z.string().min(1, "L'identifiant est requis"),
+  email: z.string().email("L'adresse email est invalide").min(1, "L'email est requis"),
+  isactive: z.boolean(),
+  defaultsite: z.string().min(1, "Le site par défaut est requis"),
+  password: z.string().optional().nullable(),
+});
+
+type AppUserFormValues = z.infer<typeof appUserSchema>;
+
+interface EditUserDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (model: any) => void;
+  editUser: AppUser | null;
+  isLoading?: boolean;
+}
+
+export function EditUserDialog({
+  isOpen,
+  onClose,
+  onSave,
+  editUser,
+  isLoading
+}: EditUserDialogProps) {
+  const { data: sites } = useSites();
+
+  const form = useForm<AppUserFormValues>({
+    resolver: zodResolver(appUserSchema) as any,
+    defaultValues: {
+      login: "",
+      email: "",
+      isactive: true,
+      defaultsite: "",
+      password: "",
+    },
+  });
+
+  // Reset form when opening or changing editUser
+  useEffect(() => {
+    if (isOpen && editUser) {
+      form.reset({
+        login: editUser.login || "",
+        email: editUser.email || "",
+        isactive: editUser.isactive,
+        defaultsite: editUser.defaultsite ? editUser.defaultsite.toString() : "",
+        password: "", // Always clear password input on open
+      });
+    }
+  }, [isOpen, editUser, form]);
+
+  const onSubmit = (values: AppUserFormValues) => {
+    if (!editUser) return;
+    const model = {
+      id: editUser.id,
+      login: values.login,
+      email: values.email,
+      isactive: values.isactive,
+      defaultsite: parseInt(values.defaultsite),
+      password: values.password || null,
+      identerprise: editUser.identerprise,
+      // If there is an associated person, preserve it
+      person: editUser.person ? {
+        ...editUser.person,
+        firstname: editUser.person.firstname,
+        lastname: editUser.person.lastname,
+        role: editUser.person.role,
+        isappuser: true,
+        updatedby: 1, // Mock user ID
+      } : null
+    };
+    onSave(model);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent showCloseButton={false} className="w-full max-w-lg p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background scrollbar-hide">
+        <DialogHeader className="p-8 bg-forest-900 text-white relative">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700">
+              <KeyRound className="w-6 h-6 text-emerald-400" />
+            </div>
+            <div>
+              <DialogTitle className="font-heading text-2xl font-bold tracking-tight">
+                Paramètres Utilisateur App
+              </DialogTitle>
+              <p className="text-forest-300 text-sm font-medium mt-1">
+                Gérez le compte et les accès de {editUser?.person ? `${editUser.person.firstname} ${editUser.person.lastname}` : editUser?.login}
+              </p>
+            </div>
+          </div>
+          <button 
+            onClick={onClose}
+            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="p-8 space-y-6">
+            
+            <FormField
+              control={form.control}
+              name="login"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Identifiant (Login)</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input placeholder="Identifiant" className="h-12 rounded-xl border-forest-100 bg-background pl-10 font-bold text-forest-900" {...field} />
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300" />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Adresse Email</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input type="email" placeholder="Email" className="h-12 rounded-xl border-forest-100 bg-background pl-10 font-medium" {...field} />
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300" />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="defaultsite"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Site Par Défaut</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
+                    <FormControl>
+                      <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background font-bold text-forest-900">
+                        <SelectValue placeholder="Choisir un site">
+                          {field.value && sites ? sites.find(s => s.id.toString() === field.value.toString())?.address : undefined}
+                        </SelectValue>
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="rounded-xl border-forest-100 shadow-xl">
+                      {sites?.map((site) => (
+                        <SelectItem key={site.id} value={site.id.toString()}>{site.address}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Changer le mot de passe (Laisser vide pour ne pas modifier)</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input type="password" placeholder="Nouveau mot de passe" className="h-12 rounded-xl border-forest-100 bg-background pl-10 font-medium font-mono" {...field} value={field.value || ""} />
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300" />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="isactive"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between p-4 bg-forest-50/50 rounded-2xl border border-forest-100">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-sm font-bold text-forest-900">Compte Actif</FormLabel>
+                    <p className="text-[0.7rem] text-sand-400 font-medium">Désactiver pour bloquer temporairement l&apos;accès.</p>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="data-[state=checked]:bg-forest-600"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter className="pt-6 border-t border-forest-50 gap-3">
+              <Button 
+                type="button" 
+                variant="ghost" 
+                onClick={onClose}
+                className="h-12 px-8 rounded-xl font-bold text-sand-400 hover:bg-sand-50"
+              >
+                Annuler
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="h-12 px-10 rounded-xl bg-forest-600 text-white font-bold hover:bg-forest-800 shadow-lg shadow-forest-600/20 gap-2"
+              >
+                {isLoading ? "Traitement..." : "Enregistrer"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
