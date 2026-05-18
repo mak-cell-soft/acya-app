@@ -65,6 +65,8 @@ export interface StockTransferInfo {
   docReception: string;
   originSiteAddress: string;
   destinationSiteAddress: string;
+  origine?: string;
+  destination?: string;
   transferDate: string;
   transporter: string;
   status: TransferStatus;

@@ -288,7 +288,7 @@ function NavbarNotifications() {
                       <Button
                         size="sm"
                         onClick={() => openTransferConfirmDialog(tr)}
-                        className="h-7 px-2.5 bg-forest-650 hover:bg-forest-750 text-white rounded-lg text-[10px] font-bold gap-1"
+                        className="h-7 px-2.5 bg-forest-600 hover:bg-forest-800 text-white rounded-lg text-[10px] font-bold gap-1"
                       >
                         <Eye className="h-3 w-3" /> Réceptionner
                       </Button>

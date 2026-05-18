@@ -200,9 +200,9 @@ export function StockTransfersList() {
                     {/* Origin to destination */}
                     <td className="p-4 font-semibold text-stone-700 dark:text-stone-300">
                       <div className="flex items-center gap-1.5">
-                        <span>{tr.originSiteAddress}</span>
+                        <span>{tr.origine || tr.originSiteAddress}</span>
                         <ArrowRight className="h-3 w-3 text-stone-400" />
-                        <span>{tr.destinationSiteAddress}</span>
+                        <span>{tr.destination || tr.destinationSiteAddress}</span>
                       </div>
                     </td>
 
@@ -265,11 +265,11 @@ export function StockTransfersList() {
           <div className="grid grid-cols-2 gap-4 text-xs py-4">
             <div className="space-y-1">
               <span className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">Dépôt Expéditeur</span>
-              <div className="font-semibold text-stone-800 dark:text-stone-200">{selectedTransfer?.originSiteAddress}</div>
+              <div className="font-semibold text-stone-800 dark:text-stone-200">{selectedTransfer?.origine || selectedTransfer?.originSiteAddress}</div>
             </div>
             <div className="space-y-1">
               <span className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">Dépôt Réceptionnaire</span>
-              <div className="font-semibold text-stone-800 dark:text-stone-200">{selectedTransfer?.destinationSiteAddress}</div>
+              <div className="font-semibold text-stone-800 dark:text-stone-200">{selectedTransfer?.destination || selectedTransfer?.destinationSiteAddress}</div>
             </div>
           </div>
 
@@ -318,115 +318,7 @@ export function StockTransfersList() {
             )}
           </div>
 
-          {/* Supervisor confirmation block */}
-          {selectedTransfer?.status === TransferStatus.Pending && (
-            <div className="mt-4 border-t border-stone-150 dark:border-stone-850 pt-4 space-y-4">
-              
-              {/* Option expanding choices */}
-              {!isConfirmingMode && !isRejectingMode ? (
-                <div className="flex gap-3 justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsRejectingMode(true)}
-                    className="h-10 text-xs font-bold border-rose-200 hover:bg-rose-50 text-rose-600 rounded-xl"
-                  >
-                    Rejeter l'Expédition
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => setIsConfirmingMode(true)}
-                    className="h-10 text-xs font-bold bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-50 dark:text-stone-900 rounded-xl flex items-center gap-1.5"
-                  >
-                    <Check className="h-4 w-4" /> Réceptionner
-                  </Button>
-                </div>
-              ) : isConfirmingMode ? (
-                <div className="space-y-4 bg-stone-50 dark:bg-stone-900/60 p-4 rounded-xl border border-stone-200/50 dark:border-stone-850">
-                  <h4 className="text-[10px] uppercase font-bold text-stone-850 dark:text-stone-100 tracking-wider flex items-center gap-1.5">
-                    <Lock className="h-3.5 w-3.5 text-amber-500" /> Signature de Réception
-                  </h4>
-                  
-                  <div className="grid grid-cols-1 gap-3 text-xs">
-                    <div className="space-y-1">
-                      <Label htmlFor="confirm-code" className="text-[10px] uppercase font-bold text-stone-500">Code de Confirmation *</Label>
-                      <Input
-                        id="confirm-code"
-                        required
-                        value={confirmationCode}
-                        onChange={(e) => setConfirmationCode(e.target.value)}
-                        placeholder="Saisir la clé de signature logistique..."
-                        className="bg-white dark:bg-stone-950 font-mono font-bold text-xs"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="confirm-comment" className="text-[10px] uppercase font-bold text-stone-500">Commentaire / Observations</Label>
-                      <textarea
-                        id="confirm-comment"
-                        value={actionComment}
-                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setActionComment(e.target.value)}
-                        placeholder="Renseigner des remarques éventuelles (ex: bois conforme, colis scellé)..."
-                        className="flex min-h-[60px] w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs focus:ring-amber-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-stone-800 dark:bg-stone-950 dark:ring-offset-stone-950 dark:placeholder:text-stone-400 dark:focus-visible:ring-stone-300"
-                      />
-                    </div>
-                  </div>
 
-                  <div className="flex gap-2 justify-end pt-2">
-                    <Button
-                      variant="ghost"
-                      onClick={() => setIsConfirmingMode(false)}
-                      className="h-9 text-xs font-semibold rounded-lg"
-                    >
-                      Retour
-                    </Button>
-                    <Button
-                      onClick={handleConfirmTransfer}
-                      disabled={isActionLoading}
-                      className="h-9 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg"
-                    >
-                      {isActionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirmer la validation'}
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4 bg-rose-50/10 p-4 rounded-xl border border-rose-200/40">
-                  <h4 className="text-[10px] uppercase font-bold text-rose-600 tracking-wider">
-                    Motif du Rejet de l'Expédition
-                  </h4>
-
-                  <div className="space-y-1">
-                    <Label htmlFor="reject-comment" className="text-[10px] uppercase font-bold text-rose-500">Observations / Motif du rejet *</Label>
-                    <textarea
-                      id="reject-comment"
-                      required
-                      value={actionComment}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setActionComment(e.target.value)}
-                      placeholder="Pourquoi refusez-vous la réception de cette expédition ? (Motif obligatoire)..."
-                      className="flex min-h-[60px] w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs focus:ring-amber-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-stone-800 dark:bg-stone-950 dark:ring-offset-stone-950 dark:placeholder:text-stone-400 dark:focus-visible:ring-stone-300"
-                    />
-                  </div>
-
-                  <div className="flex gap-2 justify-end pt-2">
-                    <Button
-                      variant="ghost"
-                      onClick={() => setIsRejectingMode(false)}
-                      className="h-9 text-xs font-semibold rounded-lg"
-                    >
-                      Retour
-                    </Button>
-                    <Button
-                      onClick={handleRejectTransfer}
-                      disabled={isActionLoading}
-                      className="h-9 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-lg"
-                    >
-                      {isActionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refuser et rejeter'}
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-            </div>
-          )}
 
           <DialogFooter className="border-t border-stone-100 dark:border-stone-900 pt-4 gap-2">
             <Button

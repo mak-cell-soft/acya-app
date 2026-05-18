@@ -169,12 +169,12 @@ export function StockTransferDetailsDialog({
                   <div className="flex items-center space-x-2">
                     <MapPin className="h-4 w-4 text-stone-400" />
                     <span className="font-semibold text-stone-800 dark:text-stone-200">Origine:</span>
-                    <span>{transfer.originSiteAddress}</span>
+                    <span>{transfer.origine || transfer.originSiteAddress}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <MapPin className="h-4 w-4 text-stone-500" />
                     <span className="font-semibold text-stone-800 dark:text-stone-200">Destination:</span>
-                    <span>{transfer.destinationSiteAddress}</span>
+                    <span>{transfer.destination || transfer.destinationSiteAddress}</span>
                   </div>
                 </div>
 

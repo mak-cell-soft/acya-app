@@ -18,7 +18,8 @@ import {
   Car,
   UserCheck,
   ClipboardList,
-  X
+  X,
+  Calculator
 } from 'lucide-react';
 import { useAuthStore } from '@/store/use-auth-store';
 import { useRouter } from 'next/navigation';
@@ -29,6 +30,7 @@ const navGroups = [
     items: [
       { name: 'Tableau de bord', href: '/dashboard', icon: LayoutDashboard },
       { name: 'Analyses', href: '/analytics', icon: BarChart3 },
+      { name: 'Pré-Analyse Comptable', href: '/accounting', icon: Calculator },
     ]
   },
   { 
