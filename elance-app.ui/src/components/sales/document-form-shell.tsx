@@ -871,11 +871,11 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
         return item;
       });
 
-      // Stock transaction type: exit inventory (1) for Delivery Note and Invoice, none (0) for Quote/Order
+      // Stock transaction type: exit inventory (2) for Delivery Note and Invoice, none (3) for Quote/Order
       const stockTransactionType = (
         docType === DocumentTypes.customerDeliveryNote || 
         docType === DocumentTypes.customerInvoice
-      ) ? 1 : 0;
+      ) ? 2 : 3;
 
       // Construct C# Document DTO payload
       const documentPayload: any = {

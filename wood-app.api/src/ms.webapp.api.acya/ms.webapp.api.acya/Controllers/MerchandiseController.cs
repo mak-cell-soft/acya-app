@@ -39,10 +39,10 @@ namespace ms.webapp.api.acya.api.Controllers
         {
           prefix = _mArticle.FirstChildren!.Reference + '-' + _mArticle.Thicknesses!.Name + _mArticle.Widths!.Name;
           var lastRef = await _repository.GetLastReferenceByArticle(prefix);
-          if (lastRef != null)
+          if (!string.IsNullOrEmpty(lastRef))
           {
             // Extract the last part of the reference (the increment)
-            var parts = lastRef.Split('-');
+            var parts = lastRef.Replace("\"", "").Trim().Split('-');
             if (parts.Length > 0 && int.TryParse(parts.Last(), out int lastIncrement))
             {
               newIncrement = lastIncrement + 1;
@@ -54,10 +54,10 @@ namespace ms.webapp.api.acya.api.Controllers
         {
           prefix = _mArticle.FirstChildren!.Reference;
           var lastRef = await _repository.GetLastReferenceByArticle(prefix!);
-          if (lastRef != null)
+          if (!string.IsNullOrEmpty(lastRef))
           {
             // Extract the last part of the reference (the increment)
-            var parts = lastRef.Split('-');
+            var parts = lastRef.Replace("\"", "").Trim().Split('-');
             if (parts.Length > 0 && int.TryParse(parts.Last(), out int lastIncrement))
             {
               newIncrement = lastIncrement + 1;

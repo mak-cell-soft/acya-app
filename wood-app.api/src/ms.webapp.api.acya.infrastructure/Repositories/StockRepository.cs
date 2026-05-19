@@ -693,7 +693,11 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
           {
             LengthId = (int)g.Key.LengthId!,
             LengthName = g.Key.LengthName,
-            RemainingPieces = g.Sum(x => x.TransactionType == TransactionType.Add ? x.NumberOfPieces : -x.NumberOfPieces)
+            // Only add pieces for Add (supplier receipts) and subtract for Retrieve (sales delivery notes / invoices).
+            // Do not sum/subtract pieces for TransactionType.None (e.g. Orders/Quotes).
+            RemainingPieces = g.Sum(x => x.TransactionType == TransactionType.Add 
+              ? x.NumberOfPieces 
+              : (x.TransactionType == TransactionType.Retrieve ? -x.NumberOfPieces : 0))
           })
           .Where(x => x.RemainingPieces > 0) // Only show lengths with remaining pieces
           .OrderBy(x => x.LengthName)

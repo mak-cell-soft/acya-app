@@ -116,8 +116,11 @@ namespace ms.webapp.api.acya.api.Controllers
                     foreach (var mDto in dto.merchandises)
                     {
                         // Similar to DocumentController, find or create merchandise
+                        var cleanDtoRef = mDto.packagereference?.Replace("\"", "").Trim();
                         var merchandise = await _context.Merchandises
-                            .FirstOrDefaultAsync(m => m.ArticleId == mDto.article!.id && m.PackageReference == mDto.packagereference);
+                            .FirstOrDefaultAsync(m => m.ArticleId == mDto.article!.id && 
+                                (m.PackageReference == cleanDtoRef || 
+                                 m.PackageReference == "\"" + cleanDtoRef + "\""));
 
                         if (merchandise == null)
                         {

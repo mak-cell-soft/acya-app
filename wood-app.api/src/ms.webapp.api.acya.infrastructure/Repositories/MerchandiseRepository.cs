@@ -47,12 +47,37 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
     {
       if (!string.IsNullOrEmpty(_ref))
       {
-        var m = await context.Merchandises
-            .Where(m => m.PackageReference!.StartsWith(_ref))
-            .OrderByDescending(m => m.PackageReference)
-            .FirstOrDefaultAsync();
+        // Trim any double quotes from the input prefix to search consistently
+        var cleanRef = _ref.Replace("\"", "").Trim();
 
-        return m?.PackageReference ?? string.Empty;
+        // Query database matching either the plain or quoted prefix
+        var matching = await context.Merchandises
+            .Where(m => m.PackageReference != null && 
+                        !m.IsDeleted && 
+                        (m.PackageReference.StartsWith(cleanRef) || m.PackageReference.StartsWith("\"" + cleanRef)))
+            .ToListAsync();
+
+        if (!matching.Any())
+          return string.Empty;
+
+        // Order in-memory by parsing the sequential integer increment to avoid alphabetical sorting issues (e.g. 9 vs 10)
+        var ordered = matching
+            .Select(m => {
+                var cleanPackageRef = m.PackageReference!.Replace("\"", "").Trim();
+                var parts = cleanPackageRef.Split('-');
+                int increment = 0;
+                if (parts.Length > 0 && int.TryParse(parts.Last(), out int parsedInc))
+                {
+                    increment = parsedInc;
+                }
+                return new { m.PackageReference, Increment = increment };
+            })
+            .OrderByDescending(x => x.Increment)
+            .FirstOrDefault();
+
+        return ordered != null 
+            ? ordered.PackageReference.Replace("\"", "").Trim() 
+            : string.Empty;
       }
       return string.Empty;
     }
@@ -91,7 +116,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       var existingMerchandiseIds = matchedMerchandises
           .Where(dbMerch =>
               dtoMerchandiseReferences.Any(dtoItem =>
-                  dbMerch.PackageReference == dtoItem.PackageReference &&
+                  (dbMerch.PackageReference?.Replace("\"", "").Trim() == dtoItem.PackageReference?.Replace("\"", "").Trim()) &&
                   dbMerch.Articles!.Id == dtoItem.ArticleId))
           .Select(dbMerch => (int?)dbMerch.Id) // nullable int? for consistency with return type
           .ToList();

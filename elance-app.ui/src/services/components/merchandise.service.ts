@@ -5,7 +5,10 @@ export const merchandiseService = {
     const response = await api.get(`/Merchandise/getref/${id}`, {
       responseType: 'text'
     });
-    return response.data;
+    // Sanitize the response to strip any double quotes
+    return typeof response.data === 'string' 
+      ? response.data.replace(/"/g, '').trim() 
+      : response.data;
   },
 
   getAll: async () => {

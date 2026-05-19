@@ -347,8 +347,40 @@ function NewSupplierReceiptPageContent() {
     setNewRowIsLoadingRef(true);
     try {
       const ref = await merchandiseService.getMerchandiseReferenceAsString(newRowArticle.id);
-      setNewRowPackageReference(ref);
-      toast.success(`Référence colis générée : ${ref}`);
+      let finalRef = ref;
+      
+      // Why: Since multiple rows for the same article can be added in a single receipt form 
+      // before saving to the database, querying the backend alone will yield duplicate references.
+      // We check our local front-end rows list to find the highest increment for this article-date
+      // combination and increment it sequentially.
+      const parts = ref.split('-');
+      if (parts.length >= 3) {
+        const baseWithDate = parts.slice(0, -1).join('-');
+        
+        // Find the maximum sequence increment already in the grid's local rows
+        let maxIncrement = parseInt(parts[parts.length - 1], 10) || 1;
+        
+        rows.forEach(r => {
+          if (r.packagereference) {
+            const cleanPackRef = r.packagereference.replace(/"/g, '').trim();
+            const rParts = cleanPackRef.split('-');
+            if (rParts.length >= 3) {
+              const rBaseWithDate = rParts.slice(0, -1).join('-');
+              if (rBaseWithDate === baseWithDate) {
+                const rInc = parseInt(rParts[rParts.length - 1], 10);
+                if (!isNaN(rInc) && rInc >= maxIncrement) {
+                  maxIncrement = rInc + 1;
+                }
+              }
+            }
+          }
+        });
+        
+        finalRef = `${baseWithDate}-${maxIncrement}`;
+      }
+
+      setNewRowPackageReference(finalRef);
+      toast.success(`Référence colis générée : ${finalRef}`);
     } catch (err) {
       console.error('Error generating reference:', err);
       toast.error('Échec de génération du code colis.');
@@ -664,11 +696,11 @@ function NewSupplierReceiptPageContent() {
 
       // Construct C# Document DTO payload
       // Type is 2 for Supplier Receipt (Bon de Réception - BR)
-      // Stock transaction type is 2 (entrance of stock / store inventory)
+      // Stock transaction type is 1 (entrance of stock / store inventory)
       const documentPayload: any = {
         id: 0,
         type: DocumentTypes.supplierReceipt,
-        stocktransactiontype: 2, // Entrance of stock
+        stocktransactiontype: 1, // Entrance of stock
         docnumber: '',
         description: `Réception Fournisseur via Portail Élancé`,
         supplierReference: supplierReference, // BL Réf

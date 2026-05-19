@@ -604,10 +604,13 @@ namespace ms.webapp.api.acya.api.Controllers
             var existingMerchandiseIds = await _merchandiseRepository.GetIdsByPackageReference(dto);
             var existingMerchandises = await _merchandiseRepository.GetByIdsAsync(existingMerchandiseIds);
 
-            // Create a dictionary for quick lookup of existing merchandises by ArticleId and PackageReference
+            // Create a dictionary for quick lookup of existing merchandises by ArticleId and PackageReference (normalized)
             var existingMerchDict = existingMerchandises
                   .Where(m => m.Articles != null)
-                  .GroupBy(m => new { ArticleId = m.Articles!.Id, m.PackageReference })
+                  .GroupBy(m => new { 
+                      ArticleId = m.Articles!.Id, 
+                      PackageReference = m.PackageReference?.Replace("\"", "").Trim() 
+                  })
                   .ToDictionary(
                     g => g.Key,
                     g => g.First() // Take the first merchandise for each unique key
@@ -644,7 +647,10 @@ namespace ms.webapp.api.acya.api.Controllers
               // Case 2: No ID provided - try to find existing by ArticleId+PackageReference or create new
               else
               {
-                var key = new { ArticleId = merchDto.article!.id!.Value, PackageReference = merchDto.packagereference };
+                var key = new { 
+                  ArticleId = merchDto.article!.id!.Value, 
+                  PackageReference = merchDto.packagereference?.Replace("\"", "").Trim() 
+                };
 
                 if (existingMerchDict.TryGetValue(key, out var existingMerch))
                 {
@@ -1691,7 +1697,7 @@ namespace ms.webapp.api.acya.api.Controllers
                         ((pm.MerchandiseId > 0 && pm.MerchandiseId == childMerch.MerchandiseId) ||
                          (pm.Merchandise != null && childMerch.Merchandise != null &&
                           pm.Merchandise.ArticleId == childMerch.Merchandise.ArticleId && 
-                          pm.Merchandise.PackageReference == childMerch.Merchandise.PackageReference)));
+                          pm.Merchandise.PackageReference?.Replace("\"", "").Trim() == childMerch.Merchandise.PackageReference?.Replace("\"", "").Trim())));
 
                 if (parentMerch != null)
                 {

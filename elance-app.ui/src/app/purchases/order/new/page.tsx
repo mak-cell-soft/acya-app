@@ -61,7 +61,7 @@ import { motion, AnimatePresence } from 'framer-motion';
  * 
  * 💬 Angular-to-React Porting Assumptions & API Contracts:
  * - supplierOrder uses DocumentTypes.supplierOrder (1)
- * - stocktransactiontype is 0 (None - no stock movement)
+ * - stocktransactiontype is 3 (None - no stock movement)
  * - packagereference is defaulted to empty string '' per user instruction (not required)
  * - TVAs are fetched dynamically from tbl_appvariable ('Tva')
  */
@@ -563,11 +563,11 @@ function NewSupplierOrderPageContent() {
 
       // Construct C# Document DTO payload
       // Type is 1 for Supplier Purchase Order (Commande Fournisseur - COF)
-      // Stock transaction type is 0 (None - no stock movement)
+      // Stock transaction type is 3 (None - no stock movement)
       const documentPayload: any = {
         id: 0,
         type: DocumentTypes.supplierOrder,
-        stocktransactiontype: 0, // No stock movement for orders
+        stocktransactiontype: 3, // No stock movement for orders
         docnumber: '',
         description: notes || `Commande Fournisseur via Portail Élancé`,
         supplierReference: supplierReference, // Internal ref note
