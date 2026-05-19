@@ -483,11 +483,19 @@ export default function VehiclesPage() {
                                               </div>
                                             </div>
 
-                                            <div className="space-y-0.5">
-                                              <p className={`text-[0.5rem] font-medium ${currentCardStyle.textMuted} uppercase tracking-wider leading-none`}>Entreprise</p>
-                                              <p className="text-[0.7rem] font-bold tracking-wide uppercase truncate">
-                                                {item.fuelcardenterprise || 'SOCOFEB'}
-                                              </p>
+                                            <div className="flex justify-between items-end">
+                                              <div className="space-y-0.5">
+                                                <p className={`text-[0.5rem] font-medium ${currentCardStyle.textMuted} uppercase tracking-wider leading-none`}>Entreprise</p>
+                                                <p className="text-[0.7rem] font-bold tracking-wide uppercase truncate max-w-[120px]">
+                                                  {item.fuelcardenterprise || 'SOCOFEB'}
+                                                </p>
+                                              </div>
+                                              <div className="space-y-0.5 text-right">
+                                                <p className={`text-[0.5rem] font-medium ${currentCardStyle.textMuted} uppercase tracking-wider leading-none`}>N° Carte</p>
+                                                <p className="text-[0.7rem] font-mono font-bold tracking-wider">
+                                                  {item.fuelcardnumber || '•••• •••• •••• ••••'}
+                                                </p>
+                                              </div>
                                             </div>
 
                                             <div className="flex justify-between items-end mt-2 pt-1 border-t border-white/10">

@@ -13,4 +13,5 @@ export interface Vehicle {
   fuelcardmatricule?: string | null;
   fuelcardamount?: number | null;
   fuelcardtype?: string | null;
+  fuelcardnumber?: string | null;
 }

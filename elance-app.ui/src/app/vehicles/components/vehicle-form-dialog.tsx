@@ -72,7 +72,9 @@ const vehicleSchema = z.object({
     .min(1, 'La première partie est obligatoire')
     .regex(/^\d+$/, 'Doit être numérique'),
   serialnumber_serie: z.enum(['TU', 'RS']),
-  serialnumber_part2: z.string().optional().nullable(),
+  serialnumber_part2: z.string().optional().nullable().refine(val => !val || /^\d+$/.test(val), {
+    message: 'Doit être numérique',
+  }),
   mileage: z.string().optional().nullable(),
   isowned: z.boolean().default(true),
   insurancedate: z.date().optional().nullable(),
@@ -84,44 +86,7 @@ const vehicleSchema = z.object({
   fuelcardmatricule: z.string().optional().nullable(),
   fuelcardamount: z.number().optional().nullable(),
   fuelcardtype: z.string().optional().nullable(),
-}).superRefine((data, ctx) => {
-  if (data.serialnumber_serie === 'TU') {
-    if (!data.serialnumber_part2 || data.serialnumber_part2.trim() === '') {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['serialnumber_part2'],
-        message: 'Requis',
-      });
-    } else if (!/^\d+$/.test(data.serialnumber_part2)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['serialnumber_part2'],
-        message: 'Numérique',
-      });
-    } else if (data.serialnumber_part2.length > 3) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['serialnumber_part2'],
-        message: 'Max 3 chiffres',
-      });
-    }
-
-    if (data.serialnumber_part1.length > 4) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['serialnumber_part1'],
-        message: 'Max 4 chiffres',
-      });
-    }
-  } else if (data.serialnumber_serie === 'RS') {
-    if (data.serialnumber_part1.length > 6) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['serialnumber_part1'],
-        message: 'Max 6 chiffres',
-      });
-    }
-  }
+  fuelcardnumber: z.string().optional().nullable(),
 });
 
 type VehicleFormValues = z.infer<typeof vehicleSchema>;
@@ -183,6 +148,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
       fuelcardmatricule: '',
       fuelcardamount: null,
       fuelcardtype: 'Total',
+      fuelcardnumber: '',
     },
   });
 
@@ -200,6 +166,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
   const watchFuelConductor = watch('fuelcardconductor');
   const watchFuelAmount = watch('fuelcardamount');
   const watchFuelType = watch('fuelcardtype') || 'Total';
+  const watchFuelNumber = watch('fuelcardnumber') || '';
 
   // Compute standard concatenated matricule string for submission & preview
   const computedSerial = React.useMemo(() => {
@@ -238,6 +205,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
           fuelcardmatricule: vehicle.fuelcardmatricule || vehicle.serialnumber || '',
           fuelcardamount: vehicle.fuelcardamount || null,
           fuelcardtype: vehicle.fuelcardtype || 'Total',
+          fuelcardnumber: vehicle.fuelcardnumber || '',
         });
       } else {
         reset({
@@ -257,6 +225,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
           fuelcardmatricule: '',
           fuelcardamount: null,
           fuelcardtype: 'Total',
+          fuelcardnumber: '',
         });
       }
     }
@@ -323,6 +292,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
         fuelcardmatricule: computedSerial,
         fuelcardamount: data.fuelcardamount ? Number(data.fuelcardamount) : null,
         fuelcardtype: data.fuelcardtype,
+        fuelcardnumber: data.fuelcardnumber || null,
       };
 
       await onSave(payload);
@@ -626,28 +596,41 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-sand-400" /> Conducteur du Véhicule (Chauffeur)
-                  </Label>
-                  <Select
-                    value={watchFuelConductor || ""}
-                    onValueChange={(val) => setValue('fuelcardconductor', val)}
-                  >
-                    <SelectTrigger className="h-11 rounded-xl bg-white border-forest-50 focus:ring-forest-600 font-semibold text-forest-900 shadow-sm">
-                      <SelectValue placeholder="Sélectionner un conducteur" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-forest-100">
-                      {conductors.map(c => {
-                        const fullName = `${c.firstname} ${c.lastname}`;
-                        return (
-                          <SelectItem key={c.id} value={fullName} className="rounded-lg font-semibold">
-                            {fullName} {c.role === 40 && <span className="text-[10px] bg-forest-50 text-forest-600 px-1.5 py-0.5 rounded font-bold ml-1.5 border border-forest-100">Conducteur</span>}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-12 gap-4">
+                  <div className="col-span-7 space-y-2">
+                    <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5 text-sand-400" /> Conducteur du Véhicule (Chauffeur)
+                    </Label>
+                    <Select
+                      value={watchFuelConductor || ""}
+                      onValueChange={(val) => setValue('fuelcardconductor', val)}
+                    >
+                      <SelectTrigger className="h-11 rounded-xl bg-white border-forest-50 focus:ring-forest-600 font-semibold text-forest-900 shadow-sm">
+                        <SelectValue placeholder="Sélectionner un conducteur" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-forest-100">
+                        {conductors.map(c => {
+                          const fullName = `${c.firstname} ${c.lastname}`;
+                          return (
+                            <SelectItem key={c.id} value={fullName} className="rounded-lg font-semibold">
+                              {fullName} {c.role === 40 && <span className="text-[10px] bg-forest-50 text-forest-600 px-1.5 py-0.5 rounded font-bold ml-1.5 border border-forest-100">Conducteur</span>}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="col-span-5 space-y-2">
+                    <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider flex items-center gap-1.5">
+                      <CreditCard className="w-3.5 h-3.5 text-sand-400" /> Numéro de la Carte
+                    </Label>
+                    <Input 
+                      {...register('fuelcardnumber')}
+                      placeholder="Ex: 1407 083580"
+                      className="h-11 rounded-xl bg-white border-forest-50 focus:border-forest-600 focus:ring-1 focus:ring-forest-600 font-semibold text-forest-900 shadow-sm"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -700,11 +683,19 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                   </div>
 
                   {/* Card Details */}
-                  <div className="space-y-1 relative z-10 mt-4">
-                    <p className={`text-[0.65rem] font-medium ${currentCardStyle.textMuted} uppercase tracking-widest leading-none`}>Entreprise</p>
-                    <p className="text-xs font-bold tracking-wide uppercase truncate max-w-full">
-                      {watchFuelEnterprise}
-                    </p>
+                  <div className="flex justify-between items-end relative z-10 mt-4">
+                    <div className="space-y-1">
+                      <p className={`text-[0.65rem] font-medium ${currentCardStyle.textMuted} uppercase tracking-widest leading-none`}>Entreprise</p>
+                      <p className="text-xs font-bold tracking-wide uppercase truncate max-w-[150px]">
+                        {watchFuelEnterprise}
+                      </p>
+                    </div>
+                    <div className="space-y-1 text-right">
+                      <p className={`text-[0.65rem] font-medium ${currentCardStyle.textMuted} uppercase tracking-widest leading-none`}>N° Carte</p>
+                      <p className="text-xs font-mono font-bold tracking-wider">
+                        {watchFuelNumber || '•••• •••• •••• ••••'}
+                      </p>
+                    </div>
                   </div>
 
                   <div className="flex justify-between items-end mt-auto pt-2">

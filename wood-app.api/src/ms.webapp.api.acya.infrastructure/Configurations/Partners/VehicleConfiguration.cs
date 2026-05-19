@@ -25,6 +25,7 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Partners
             entity.Property(e => e.FuelCardMatricule).HasColumnName("fuelcardmatricule");
             entity.Property(e => e.FuelCardAmount).HasColumnName("fuelcardamount");
             entity.Property(e => e.FuelCardType).HasColumnName("fuelcardtype");
+            entity.Property(e => e.FuelCardNumber).HasColumnName("fuelcardnumber");
         }
     }
 }

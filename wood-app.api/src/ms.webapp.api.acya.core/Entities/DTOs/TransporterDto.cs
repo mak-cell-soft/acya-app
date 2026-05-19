@@ -44,6 +44,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? fuelcardmatricule { get; set; }
     public decimal? fuelcardamount { get; set; }
     public string? fuelcardtype { get; set; }
+    public string? fuelcardnumber { get; set; }
 
     public VehicleDto()
     {
@@ -72,6 +73,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       fuelcardmatricule = entity.FuelCardMatricule;
       fuelcardamount = entity.FuelCardAmount;
       fuelcardtype = entity.FuelCardType;
+      fuelcardnumber = entity.FuelCardNumber;
     }
   }
 }

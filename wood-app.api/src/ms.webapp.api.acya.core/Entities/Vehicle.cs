@@ -20,6 +20,7 @@ namespace ms.webapp.api.acya.core.Entities
     public string? FuelCardMatricule { get; set; }
     public decimal? FuelCardAmount { get; set; }
     public string? FuelCardType { get; set; }
+    public string? FuelCardNumber { get; set; }
 
     //public Transporter? Transporter { get; set; }
 
@@ -48,6 +49,7 @@ namespace ms.webapp.api.acya.core.Entities
       FuelCardMatricule = dto.fuelcardmatricule;
       FuelCardAmount = dto.fuelcardamount;
       FuelCardType = dto.fuelcardtype;
+      FuelCardNumber = dto.fuelcardnumber;
     }
   }
 }
