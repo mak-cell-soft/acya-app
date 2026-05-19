@@ -333,6 +333,16 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
       });
   }, [selectedCustomer]);
 
+  // Helper to format quantity based on unit
+  const formatQuantity = (qty: number, unit?: string | null) => {
+    const isM3 = unit?.toUpperCase().includes('M3') || unit?.toUpperCase().includes('MÈTRE 3') || unit?.toUpperCase().includes('METRE 3');
+    if (isM3) {
+      return qty.toLocaleString('fr-TN', { minimumFractionDigits: 2, maximumFractionDigits: 3 });
+    } else {
+      return qty.toLocaleString('fr-TN', { maximumFractionDigits: 3 });
+    }
+  };
+
   // Helper helper function to assign discounts
   const applyNegotiatedDiscountToRow = (
     row: MerchandRow, 
@@ -637,6 +647,22 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
           const matches = siteStocks.filter(s => s.articleId === article.id);
           row.selectedStock = matches.length === 1 ? matches[0] : null;
 
+          // Reset quantity if stock not available
+          if (matches.length === 0) {
+            row.quantity = 0;
+            row.listLengths = [];
+          } else if (matches.length === 1) {
+            const stockQty = parseFloat(matches[0].stockQuantity || 0);
+            const allowNeg = matches[0].allowNegativeStock;
+            if (!allowNeg && stockQty <= 0) {
+              row.quantity = 0;
+              row.listLengths = [];
+            }
+          } else {
+            row.quantity = 0;
+            row.listLengths = [];
+          }
+
           // Apply pre-negotiated discount rates if present
           const rowWithDiscount = applyNegotiatedDiscountToRow(row, negotiatedDiscounts);
           return prevRows.map((r, i) => i === index ? rowWithDiscount : r);
@@ -651,6 +677,25 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
           row.isNegotiated = false;
           row.selldiscountpercentage = 0;
         }
+      }
+
+      if (field === 'selectedStock') {
+        const stock = value as any;
+        if (stock) {
+          const stockQty = parseFloat(stock.stockQuantity || 0);
+          const allowNeg = stock.allowNegativeStock;
+          if (!allowNeg && stockQty <= 0) {
+            row.quantity = 0;
+            row.listLengths = [];
+          }
+        } else {
+          row.quantity = 0;
+          row.listLengths = [];
+        }
+
+        // Apply pre-negotiated discount rates if present when stock changes
+        const rowWithDiscount = applyNegotiatedDiscountToRow(row, negotiatedDiscounts);
+        return prevRows.map((r, i) => i === index ? rowWithDiscount : r);
       }
 
       if (field === 'articleSearchInput') {
@@ -709,7 +754,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
     const woodParams = {
       merchandiseRef: row.selectedArticle.reference,
       salesSiteId: activeUserSite?.id || 1,
-      merchandiseId: row.selectedStock?.merchandiseId || row.selectedArticle.id || 0
+      merchandiseId: row.selectedStock?.merchandiseId || 0
     };
 
     setIsLoading(true);
@@ -1366,6 +1411,22 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                   ) : (
                     rows.map((row, index) => {
                       const isFee = row.line_type === LineType.TransportFee;
+                      const matchingStocks = row.selectedArticle ? siteStocks.filter(s => s.articleId === row.selectedArticle!.id) : [];
+                      let isQuantityDisabled = false;
+                      if (!isFee && row.selectedArticle) {
+                        if (matchingStocks.length === 0) {
+                          isQuantityDisabled = true;
+                        } else if (matchingStocks.length > 1 && !row.selectedStock) {
+                          isQuantityDisabled = true;
+                        } else if (row.selectedStock) {
+                          const stockQty = parseFloat(row.selectedStock.stockQuantity || 0);
+                          const allowNeg = row.selectedStock.allowNegativeStock;
+                          if (!allowNeg && stockQty <= 0) {
+                            isQuantityDisabled = true;
+                          }
+                        }
+                      }
+
                       let tvaRate = 0;
                       if (isFee) {
                         tvaRate = 19;
@@ -1487,6 +1548,75 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                                     Tarif négocié appliqué
                                   </Badge>
                                 )}
+
+                                {row.selectedArticle && (
+                                  (() => {
+                                    const matchingStocks = siteStocks.filter(s => s.articleId === row.selectedArticle!.id);
+                                    if (matchingStocks.length === 0) {
+                                      return (
+                                        <Badge className="bg-rose-50 text-rose-700 border border-rose-100 font-bold text-[0.65rem] px-2 py-0.5 rounded flex items-center gap-1 mt-1.5 w-fit">
+                                          <Info className="w-3 h-3 text-rose-500" /> Aucun stock disponible
+                                        </Badge>
+                                      );
+                                    }
+                                    
+                                    if (matchingStocks.length === 1) {
+                                      const stock = matchingStocks[0];
+                                      if (!row.selectedStock) {
+                                        setTimeout(() => {
+                                          handleRowFieldChange(index, 'selectedStock', stock);
+                                        }, 0);
+                                      }
+                                      return (
+                                        <div className="flex items-center gap-1.5 mt-1.5 text-[0.7rem] font-bold text-forest-700 bg-forest-50/70 border border-forest-100/50 rounded-lg px-2.5 py-1.5 w-fit shadow-sm">
+                                          <Layers className="w-3.5 h-3.5 text-forest-600" />
+                                          <span>Réf: {stock.packageReference || 'Standard'}</span>
+                                          <span className="text-sand-400">|</span>
+                                          <span className="text-forest-600">Stock: {formatQuantity(parseFloat(stock.stockQuantity || 0), row.selectedArticle?.unit)}</span>
+                                        </div>
+                                      );
+                                    }
+
+                                    return (
+                                      <div className="space-y-1 mt-2">
+                                        <Select
+                                          value={row.selectedStock?.merchandiseId?.toString() || ''}
+                                          onValueChange={(val) => {
+                                            const selected = matchingStocks.find(s => s.merchandiseId.toString() === val);
+                                            handleRowFieldChange(index, 'selectedStock', selected || null);
+                                          }}
+                                        >
+                                          <SelectTrigger className="h-8 rounded-lg border-forest-50 focus:ring-forest-600 bg-white text-[0.7rem] font-bold text-forest-900 justify-start gap-2 shadow-sm">
+                                            <Layers className="w-3.5 h-3.5 text-forest-600 shrink-0" />
+                                            <SelectValue placeholder="Sélectionner une référence..." />
+                                          </SelectTrigger>
+                                          <SelectContent className="rounded-xl border-forest-100 p-1">
+                                            {matchingStocks.map((stock) => (
+                                              <SelectItem 
+                                                key={stock.merchandiseId} 
+                                                value={stock.merchandiseId.toString()} 
+                                                className="rounded-lg font-bold text-[0.7rem]"
+                                              >
+                                                <div className="flex flex-col py-0.5">
+                                                  <span className="text-forest-900">Réf: {stock.packageReference || 'Standard'}</span>
+                                                  <span className="text-[0.65rem] text-sand-400 font-medium">
+                                                    Stock: {formatQuantity(parseFloat(stock.stockQuantity || 0), row.selectedArticle?.unit)} 
+                                                    {stock.MerchandiseDescription ? ` • ${stock.MerchandiseDescription}` : ''}
+                                                  </span>
+                                                </div>
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                        {!row.selectedStock && (
+                                          <p className="text-[9px] text-amber-600 font-bold flex items-center gap-1 animate-pulse">
+                                            ⚠️ Sélectionner une référence
+                                          </p>
+                                        )}
+                                      </div>
+                                    );
+                                  })()
+                                )}
                               </div>
                             )}
                           </td>
@@ -1513,8 +1643,9 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                                 <Button
                                   variant="outline"
                                   size="icon"
-                                  className="h-9 w-9 rounded-xl border-forest-100 text-forest-600 hover:bg-forest-100"
+                                  className="h-9 w-9 rounded-xl border-forest-100 text-forest-600 hover:bg-forest-100 disabled:opacity-50 disabled:pointer-events-none"
                                   onClick={() => openWoodLengths(index)}
+                                  disabled={isQuantityDisabled}
                                 >
                                   <PlusCircle className="w-4 h-4 text-forest-600" />
                                 </Button>
@@ -1522,10 +1653,11 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                             ) : (
                               <Input
                                 type="number"
-                                className="h-10 rounded-xl text-center font-bold border-forest-50 focus:ring-forest-600 bg-sand-50/40 text-forest-900 max-w-28 mx-auto"
+                                className="h-10 rounded-xl text-center font-bold border-forest-50 focus:ring-forest-600 bg-sand-50/40 text-forest-900 max-w-28 mx-auto disabled:opacity-50 disabled:bg-sand-100/50"
                                 value={row.quantity || ''}
                                 onChange={(e) => handleRowFieldChange(index, 'quantity', parseFloat(e.target.value) || 0)}
                                 placeholder="0"
+                                disabled={isQuantityDisabled}
                               />
                             )}
                           </td>

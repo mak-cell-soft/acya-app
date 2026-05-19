@@ -37,6 +37,15 @@ export function StockListByCategory() {
   const queryClient = useQueryClient();
   const { data: allStocks = [], isLoading, error } = useStockAll();
 
+  const formatQuantity = (qty: number, unit?: string | null) => {
+    const isM3 = unit?.toUpperCase().includes('M3') || unit?.toUpperCase().includes('MÈTRE 3') || unit?.toUpperCase().includes('METRE 3');
+    if (isM3) {
+      return qty.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    } else {
+      return qty.toLocaleString('fr-FR', { maximumFractionDigits: 3 });
+    }
+  };
+
   // Search input filtering
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -211,7 +220,7 @@ export function StockListByCategory() {
                       key={t.unit}
                       className="bg-stone-900 text-white dark:bg-stone-50 dark:text-stone-900 font-mono text-[10px] font-bold px-2 py-0.5"
                     >
-                      {t.totalQuantity.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} {t.unit}
+                      {formatQuantity(t.totalQuantity, t.unit)} {t.unit}
                     </Badge>
                   ))}
                 </div>
@@ -276,7 +285,7 @@ export function StockListByCategory() {
                             {/* Quantity */}
                             <td className="p-3.5 text-right font-mono font-bold">
                               <span className={isCritical ? 'text-rose-500' : isAlert ? 'text-amber-600' : 'text-emerald-600'}>
-                                {stock.quantity.toLocaleString('fr-FR', { minimumFractionDigits: 3 })}
+                                {formatQuantity(stock.quantity, stock.merchandise?.article?.unit)}
                               </span>
                               <span className="text-[10px] text-stone-400 font-sans font-medium ml-1">
                                 {stock.merchandise?.article?.unit}
@@ -286,7 +295,7 @@ export function StockListByCategory() {
                             {/* Minimum Stock */}
                             <td className="p-3.5 text-right font-mono text-stone-500">
                               {stock.minimumstock > 0 ? (
-                                <span>{stock.minimumstock.toLocaleString()}</span>
+                                <span>{formatQuantity(stock.minimumstock, stock.merchandise?.article?.unit)}</span>
                               ) : (
                                 <span className="text-stone-300 italic">—</span>
                               )}

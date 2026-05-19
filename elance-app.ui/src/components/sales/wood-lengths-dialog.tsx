@@ -104,8 +104,12 @@ export function WoodLengthsDialog({
       const pieces = existing ? existing.nbpieces : 0;
 
       // Find available pieces in stock details for this length
-      const stockDetail = availableStockDetails?.find(s => s.lengthName === lenVar.name);
-      const availablePieces = stockDetail ? stockDetail.remainingPieces : 0;
+      const stockDetail = availableStockDetails?.find(s => 
+        s.lengthName === lenVar.name || (s as any).LengthName === lenVar.name
+      );
+      const availablePieces = stockDetail 
+        ? (stockDetail.remainingPieces ?? (stockDetail as any).RemainingPieces ?? 0) 
+        : 0;
 
       // Calculate thickness and width values for volume
       const lengthVal = parseFloat(lenVar.value?.toString().replace(',', '.') || '0');
@@ -181,7 +185,7 @@ export function WoodLengthsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl rounded-[24px] border-forest-100 bg-white/95 backdrop-blur-md shadow-2xl p-6 overflow-hidden">
+      <DialogContent className="w-full max-w-4xl sm:max-w-4xl md:max-w-4xl rounded-[24px] border-forest-100 bg-white/95 backdrop-blur-md shadow-2xl p-6 overflow-hidden">
         <DialogHeader className="mb-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-forest-100 flex items-center justify-center text-forest-600 shadow-md">

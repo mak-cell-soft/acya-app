@@ -41,6 +41,15 @@ export function StockTransfersList() {
   const { user } = useAuthStore();
   const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin';
 
+  const formatQuantity = (qty: number, unit?: string | null) => {
+    const isM3 = unit?.toUpperCase().includes('M3') || unit?.toUpperCase().includes('MÈTRE 3') || unit?.toUpperCase().includes('METRE 3');
+    if (isM3) {
+      return qty.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    } else {
+      return qty.toLocaleString('fr-FR', { maximumFractionDigits: 3 });
+    }
+  };
+
   const { data: transfers = [], isLoading, error } = useStockTransfers();
 
   // Active Selected Transfer Drawer State
@@ -307,7 +316,7 @@ export function StockTransfersList() {
                           {item.refPaquet || item.packageReference || 'Standard'}
                         </td>
                         <td className="p-3 text-right pr-4 font-mono font-bold">
-                          {item.quantity.toLocaleString('fr-FR', { minimumFractionDigits: 3 })}
+                          {formatQuantity(item.quantity, item.unit)}
                           <span className="text-[9px] text-stone-400 font-sans font-medium ml-1">{item.unit}</span>
                         </td>
                       </tr>

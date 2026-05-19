@@ -66,6 +66,15 @@ function NewStockTransferContent() {
   const router = useRouter();
   const { user } = useAuthStore();
 
+  const formatQuantity = (qty: number, unit?: string | null) => {
+    const isM3 = unit?.toUpperCase().includes('M3') || unit?.toUpperCase().includes('MÈTRE 3') || unit?.toUpperCase().includes('METRE 3');
+    if (isM3) {
+      return qty.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    } else {
+      return qty.toLocaleString('fr-FR', { maximumFractionDigits: 3 });
+    }
+  };
+
   // Core Data Hooks
   const { data: allSites = [], isLoading: isLoadingSites } = useSites();
   const { data: allTransporters = [], isLoading: isLoadingTransporters } = useTransporters();
@@ -227,7 +236,7 @@ function NewStockTransferContent() {
     if (!row.selectedArticle) return;
     
     // Find active merchandiseId from origin stock details if available
-    let merchandiseId = row.selectedArticle.id;
+    let merchandiseId = 0;
     try {
       const originSite = allSites.find(s => s.id.toString() === originSiteId);
       if (originSite) {
@@ -252,10 +261,10 @@ function NewStockTransferContent() {
       const details = await stockService.getWoodStockWithLengthDetails(woodParams);
       // Map it to LengthStockDetail layout expected by WoodLengthsDialog
       const mappedDetails = (details || []).map((d: any) => ({
-        id: d.id,
-        lengthId: d.lengthId,
-        lengthName: d.lengthName,
-        remainingPieces: d.remainingPieces
+        id: d.id ?? d.Id,
+        lengthId: d.lengthId ?? d.LengthId,
+        lengthName: d.lengthName ?? d.LengthName,
+        remainingPieces: d.remainingPieces ?? d.RemainingPieces
       }));
       setLengthsStockDetails(mappedDetails);
     } catch (err) {
@@ -718,7 +727,8 @@ function NewStockTransferContent() {
                           <td className="p-3.5 text-right font-mono font-bold text-stone-600 dark:text-stone-300">
                             {row.selectedArticle ? (
                               <span>
-                                {row.stock_quantity.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}
+                                {formatQuantity(row.stock_quantity, row.selectedArticle.unit)}
+                                <span className="text-[10px] text-stone-400 font-sans font-medium ml-1">{row.selectedArticle.unit}</span>
                               </span>
                             ) : (
                               <span className="text-stone-300">—</span>

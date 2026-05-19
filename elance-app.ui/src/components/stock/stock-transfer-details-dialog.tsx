@@ -46,6 +46,15 @@ export function StockTransferDetailsDialog({
   const { user } = useAuthStore();
   const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin';
 
+  const formatQuantity = (qty: number, unit?: string | null) => {
+    const isM3 = unit?.toUpperCase().includes('M3') || unit?.toUpperCase().includes('MÈTRE 3') || unit?.toUpperCase().includes('METRE 3');
+    if (isM3) {
+      return qty.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    } else {
+      return qty.toLocaleString('fr-FR', { maximumFractionDigits: 3 });
+    }
+  };
+
   const [details, setDetails] = useState<StockTransferDetails[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   
@@ -233,7 +242,7 @@ export function StockTransferDetailsDialog({
                           {item.refPaquet || item.packageReference || 'Standard'}
                         </td>
                         <td className="py-3 px-4 text-right font-mono font-bold">
-                          {item.quantity.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} <span className="text-[10px] text-stone-400 font-semibold">{item.unit}</span>
+                          {formatQuantity(item.quantity, item.unit)} <span className="text-[10px] text-stone-400 font-semibold">{item.unit}</span>
                         </td>
                       </tr>
                     ))}

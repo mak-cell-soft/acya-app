@@ -44,6 +44,15 @@ export function StockTimelinePanel() {
   const { data: allSites = [] } = useSites();
   const { data: allArticles = [] } = useArticles();
 
+  const formatQuantity = (qty: number, unit?: string | null) => {
+    const isM3 = unit?.toUpperCase().includes('M3') || unit?.toUpperCase().includes('MÈTRE 3') || unit?.toUpperCase().includes('METRE 3');
+    if (isM3) {
+      return qty.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    } else {
+      return qty.toLocaleString('fr-FR', { maximumFractionDigits: 3 });
+    }
+  };
+
   // Filters State
   const [selectedSiteId, setSelectedSiteId] = useState<string>('');
   const [usePackageSearch, setUsePackageSearch] = useState<boolean>(false);
@@ -98,6 +107,17 @@ export function StockTimelinePanel() {
       setSelectedMerchandiseId(null);
     }
   }, [selectedArticle, siteMerchandises]);
+
+  const detectedUnit = useMemo(() => {
+    if (usePackageSearch) {
+      const match = siteMerchandises.find(
+        (m: any) => m.merchandise?.packagereference?.toLowerCase() === packageCode.trim().toLowerCase()
+      );
+      return match?.merchandise?.article?.unit || null;
+    } else {
+      return selectedArticle?.unit || null;
+    }
+  }, [usePackageSearch, packageCode, selectedArticle, siteMerchandises]);
 
   // Filtered articles list for search autocomplete
   const filteredArticles = useMemo(() => {
@@ -369,10 +389,10 @@ export function StockTimelinePanel() {
                               ? 'text-emerald-600' 
                               : 'text-rose-600'
                         }`}>
-                          {isIn ? '+' : ''}{movement.quantityDelta.toLocaleString('fr-FR', { minimumFractionDigits: 3 })}
+                          {isIn ? '+' : ''}{formatQuantity(movement.quantityDelta, detectedUnit)}
                         </div>
                         <div className="text-[9px] text-stone-400 font-mono">
-                          Stock final: {movement.quantityAfter.toLocaleString('fr-FR', { minimumFractionDigits: 3 })}
+                          Stock final: {formatQuantity(movement.quantityAfter, detectedUnit)}
                         </div>
                       </div>
 
@@ -401,7 +421,7 @@ export function StockTimelinePanel() {
                       <PackageCheck className="h-4 w-4 text-emerald-500" /> Cumul Entrées
                     </span>
                     <span className="font-mono font-bold text-stone-850 dark:text-stone-100 text-xs">
-                      {summaryData.totalIn.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} {summaryData.unit}
+                      {formatQuantity(summaryData.totalIn, summaryData.unit)} {summaryData.unit}
                     </span>
                   </div>
 
@@ -411,7 +431,7 @@ export function StockTimelinePanel() {
                       <PackageX className="h-4 w-4 text-rose-500" /> Cumul Sorties
                     </span>
                     <span className="font-mono font-bold text-stone-850 dark:text-stone-100 text-xs">
-                      {summaryData.totalOut.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} {summaryData.unit}
+                      {formatQuantity(summaryData.totalOut, summaryData.unit)} {summaryData.unit}
                     </span>
                   </div>
 
@@ -421,7 +441,7 @@ export function StockTimelinePanel() {
                       Balance Active
                     </span>
                     <Badge className="bg-stone-900 text-white dark:bg-stone-50 dark:text-stone-900 font-mono text-xs font-bold px-2 py-0.5">
-                      {summaryData.currentBalance.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} {summaryData.unit}
+                      {formatQuantity(summaryData.currentBalance, summaryData.unit)} {summaryData.unit}
                     </Badge>
                   </div>
 

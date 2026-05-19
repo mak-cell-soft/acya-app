@@ -45,6 +45,15 @@ export function GlobalTransferConfirmDialog() {
     dismissNotification 
   } = useNotifications();
 
+  const formatQuantity = (qty: number, unit?: string | null) => {
+    const isM3 = unit?.toUpperCase().includes('M3') || unit?.toUpperCase().includes('MÈTRE 3') || unit?.toUpperCase().includes('METRE 3');
+    if (isM3) {
+      return qty.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    } else {
+      return qty.toLocaleString('fr-FR', { maximumFractionDigits: 3 });
+    }
+  };
+
   // State
   const [details, setDetails] = useState<any[]>([]);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
@@ -222,7 +231,7 @@ export function GlobalTransferConfirmDialog() {
                         {item.refPaquet || item.packageReference || 'Standard'}
                       </td>
                       <td className="p-2.5 text-right pr-3 font-mono font-bold text-forest-800 dark:text-forest-400">
-                        {item.quantity.toLocaleString('fr-FR', { minimumFractionDigits: 3 })}
+                        {formatQuantity(item.quantity, item.unit)}
                         <span className="text-[9px] text-zinc-450 ml-0.5">{item.unit}</span>
                       </td>
                     </tr>

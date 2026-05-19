@@ -69,6 +69,15 @@ export function DocumentDetailDrawer({
     })} ${symbol}`;
   };
 
+  const formatQuantity = (qty: number, unit?: string | null) => {
+    const isM3 = unit?.toUpperCase().includes('M3') || unit?.toUpperCase().includes('MÈTRE 3') || unit?.toUpperCase().includes('METRE 3');
+    if (isM3) {
+      return qty.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    } else {
+      return qty.toLocaleString('fr-FR', { maximumFractionDigits: 3 });
+    }
+  };
+
   // Map doc type to readable name & styling classes
   const getDocTypeInfo = (type: DocumentTypes) => {
     switch (type) {
@@ -365,7 +374,7 @@ export function DocumentDetailDrawer({
                                   </div>
                                 </div>
                               ) : (
-                                `${row.quantity} u`
+                                `${formatQuantity(row.quantity, row.article?.unit)} ${row.article?.unit || 'u'}`
                               )}
                             </td>
                             <td className="px-4 py-4 text-right text-sand-500 font-mono">
