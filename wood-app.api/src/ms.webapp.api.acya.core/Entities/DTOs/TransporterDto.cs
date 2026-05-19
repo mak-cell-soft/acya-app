@@ -39,6 +39,11 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? draining { get; set; } // Vidange [filtre à huile, Filtre à air, Filtre ...]
     public DateTime? drainingdate { get; set; }
     public bool isowned { get; set; }
+    public string? fuelcardenterprise { get; set; }
+    public string? fuelcardconductor { get; set; }
+    public string? fuelcardmatricule { get; set; }
+    public decimal? fuelcardamount { get; set; }
+    public string? fuelcardtype { get; set; }
 
     public VehicleDto()
     {
@@ -62,6 +67,11 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       draining = entity.Draining;
       drainingdate = entity.DrainingDate;
       isowned = entity.IsOwned;
+      fuelcardenterprise = entity.FuelCardEnterprise;
+      fuelcardconductor = entity.FuelCardConductor;
+      fuelcardmatricule = entity.FuelCardMatricule;
+      fuelcardamount = entity.FuelCardAmount;
+      fuelcardtype = entity.FuelCardType;
     }
   }
 }

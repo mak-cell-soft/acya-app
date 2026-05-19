@@ -14,6 +14,13 @@ namespace ms.webapp.api.acya.core.Entities
     public DateTime? DrainingDate { get; set; }
     public bool IsOwned { get; set; }
 
+    // Fuel Card (Carte Carburant) fields
+    public string? FuelCardEnterprise { get; set; }
+    public string? FuelCardConductor { get; set; }
+    public string? FuelCardMatricule { get; set; }
+    public decimal? FuelCardAmount { get; set; }
+    public string? FuelCardType { get; set; }
+
     //public Transporter? Transporter { get; set; }
 
     public Vehicle()
@@ -36,6 +43,11 @@ namespace ms.webapp.api.acya.core.Entities
       Draining = dto.draining;
       DrainingDate= dto.drainingdate;
       IsOwned = dto.isowned;
+      FuelCardEnterprise = dto.fuelcardenterprise;
+      FuelCardConductor = dto.fuelcardconductor;
+      FuelCardMatricule = dto.fuelcardmatricule;
+      FuelCardAmount = dto.fuelcardamount;
+      FuelCardType = dto.fuelcardtype;
     }
   }
 }

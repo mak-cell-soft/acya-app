@@ -1,0 +1,86 @@
+'use client';
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Trash2, AlertTriangle, X } from "lucide-react";
+import { Vehicle } from "@/types/vehicle";
+
+interface DeleteVehicleDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  vehicle: Vehicle | null;
+  isLoading?: boolean;
+}
+
+export function DeleteVehicleDialog({
+  isOpen,
+  onClose,
+  onConfirm,
+  vehicle,
+  isLoading
+}: DeleteVehicleDialogProps) {
+  if (!vehicle) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white">
+        <div className="p-8 space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 mx-auto">
+            <Trash2 className="w-8 h-8" />
+          </div>
+          
+          <div className="text-center space-y-2">
+            <DialogTitle className="font-heading text-2xl font-bold text-forest-900 tracking-tight">
+              Supprimer le véhicule ?
+            </DialogTitle>
+            <DialogDescription className="text-sand-400 font-medium px-4">
+              Vous êtes sur le point de supprimer <span className="text-forest-900 font-bold">{vehicle.brand} ({vehicle.serialnumber})</span>.
+              Cette action retirera le véhicule de la liste active.
+            </DialogDescription>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-100 flex gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+            <p className="text-xs text-amber-700 font-medium leading-relaxed">
+              Les rapports historiques de maintenance et de frais de carburant associés à ce véhicule seront conservés pour référence comptable.
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter className="p-6 bg-sand-50 border-t border-forest-50 gap-3">
+          <Button 
+            type="button" 
+            variant="ghost" 
+            onClick={onClose}
+            className="flex-1 h-12 rounded-xl font-bold text-sand-400 hover:bg-white"
+          >
+            Annuler
+          </Button>
+          <Button 
+            type="button" 
+            disabled={isLoading}
+            onClick={onConfirm}
+            className="flex-1 h-12 rounded-xl bg-rose-600 text-white font-bold hover:bg-rose-700 shadow-lg shadow-rose-600/20 gap-2"
+          >
+            {isLoading ? "Suppression..." : "Confirmer"}
+          </Button>
+        </DialogFooter>
+        
+        <button 
+          onClick={onClose}
+          className="absolute right-6 top-6 w-8 h-8 rounded-full bg-sand-100 flex items-center justify-center hover:bg-sand-200 transition-all text-sand-400"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </DialogContent>
+    </Dialog>
+  );
+}
