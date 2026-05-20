@@ -207,6 +207,10 @@ export function ArticleFormDialog({
   const onSubmit = (values: ArticleFormValues) => {
     const model = {
       ...values,
+      // Flag C#/API contract assumption where frontend meets backend:
+      // Pass the existing article ID if editing so the backend ArticleDto can bind it,
+      // preventing EF Core from overwriting or resetting the primary key.
+      id: editArticle?.id,
       categoryid: parseInt(values.categoryid),
       subcategoryid: parseInt(values.subcategoryid),
       tvaid: parseInt(values.tvaid),

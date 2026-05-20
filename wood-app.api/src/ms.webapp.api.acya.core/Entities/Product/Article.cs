@@ -63,13 +63,25 @@ namespace ms.webapp.api.acya.core.Entities.Product
 
     public void UpdateFromDto(ArticleDto dto)
     {
-      Id = dto.id ?? 0;
+      // NOTE: We only assign Id and CreationDate when creating a new entity (Id == 0).
+      // Overwriting Id on an existing tracked EF entity to 0 or another value throws an exception.
+      // Overwriting CreationDate on update wipes out the original record creation timestamp.
+      if (Id == 0)
+      {
+        if (dto.id.HasValue && dto.id.Value != 0)
+        {
+          Id = dto.id.Value;
+        }
+        CreationDate = dto.creationdate == default ? DateTime.UtcNow : dto.creationdate;
+      }
+
       Reference = dto.reference ?? string.Empty;
       Description = dto.description;
       IsDeleted = dto.isdeleted;
       IsWood = dto.iswood;
-      CreationDate = dto.creationdate;
-      UpdateDate = dto.updatedate;
+
+      // Always set the update timestamp to current UTC time to keep it accurate.
+      UpdateDate = DateTime.UtcNow;
       UpdatedBy = dto.updatedby ?? 0;
       Unit = dto.unit;
       MinQuantity= dto.minquantity;
