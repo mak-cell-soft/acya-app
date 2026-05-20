@@ -83,20 +83,27 @@ export interface StockTransferDetails {
 }
 
 export interface StockMovementTimeline {
-  id: number;
+  documentId: number;
   date: string;
   quantityDelta: number;
   quantityAfter: number;
-  documentRef: string;
   documentType: string;
+  documentNumber: string | null;
+  description: string | null;
+  packageNumber: string | null;
+  counterpartSiteName: string | null;
   isTransfer: boolean;
-  siteName: string;
-  updatedBy: string;
 }
 
 export interface StockMovementSummary {
+  currentStock: number;
   totalIn: number;
   totalOut: number;
-  currentBalance: number;
-  unit: string;
+  unit: string | null;
+}
+
+export interface StockMovementReconciliation {
+  computedQuantity: number;
+  stockQuantity: number;
+  isReconciled: boolean;
 }

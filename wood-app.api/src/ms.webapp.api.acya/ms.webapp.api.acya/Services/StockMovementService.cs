@@ -24,18 +24,49 @@ namespace ms.webapp.api.acya.api.Services
 
         public async Task<IEnumerable<StockMovementTimelineDto>> GetTimelineByPackageAsync(string packageNumber, int salesSiteId, DateTime? from = null, DateTime? to = null)
         {
-            var search = packageNumber?.Trim().ToLower();
-            return await BuildTimeline(m => m.PackageReference != null && m.PackageReference.ToLower() == search, salesSiteId, from, to);
+            var search = packageNumber?.Trim().Trim('"').ToLower();
+            if (string.IsNullOrEmpty(search)) return new List<StockMovementTimelineDto>();
+
+            return await BuildTimeline(m => 
+                m.PackageReference != null && 
+                (m.PackageReference.ToLower() == search || 
+                 m.PackageReference.ToLower() == "\"" + search + "\""), 
+                salesSiteId, from, to);
         }
 
         private async Task<IEnumerable<StockMovementTimelineDto>> BuildTimeline(Expression<Func<Merchandise, bool>> merchPredicate, int salesSiteId, DateTime? from, DateTime? to)
         {
-            // First, identify the merchandises matching the predicate to avoid complex join issues
-            var matchingMerchandiseIds = await _context.Merchandises
+            // First, retrieve the primary merchandise to verify if it represents a standard package reference
+            var targetMerch = await _context.Merchandises
                 .Where(merchPredicate)
                 .Where(m => !m.IsDeleted)
-                .Select(m => m.Id)
-                .ToListAsync();
+                .FirstOrDefaultAsync();
+
+            List<int> matchingMerchandiseIds;
+
+            if (targetMerch != null && 
+                (string.IsNullOrEmpty(targetMerch.PackageReference) || 
+                 targetMerch.PackageReference.Equals("Standart", StringComparison.OrdinalIgnoreCase) || 
+                 targetMerch.PackageReference.Equals("Standard", StringComparison.OrdinalIgnoreCase)))
+            {
+                // NOTE: Focus count on the article itself by combining all standard/empty package records
+                matchingMerchandiseIds = await _context.Merchandises
+                    .Where(m => m.ArticleId == targetMerch.ArticleId && 
+                               (string.IsNullOrEmpty(m.PackageReference) || 
+                                m.PackageReference.ToLower() == "standart" || 
+                                m.PackageReference.ToLower() == "standard"))
+                    .Where(m => !m.IsDeleted)
+                    .Select(m => m.Id)
+                    .ToListAsync();
+            }
+            else
+            {
+                matchingMerchandiseIds = await _context.Merchandises
+                    .Where(merchPredicate)
+                    .Where(m => !m.IsDeleted)
+                    .Select(m => m.Id)
+                    .ToListAsync();
+            }
 
             if (!matchingMerchandiseIds.Any())
             {
@@ -137,19 +168,53 @@ namespace ms.webapp.api.acya.api.Services
 
         public async Task<StockMovementSummaryDto> GetSummaryAsync(int merchandiseId, int salesSiteId)
         {
-            var stock = await _context.Stocks
-                .Include(s => s.Merchandises).ThenInclude(m => m!.Articles)
-                .FirstOrDefaultAsync(s => s.MerchandiseId == merchandiseId && s.SalesSiteId == salesSiteId);
+            var targetMerch = await _context.Merchandises
+                .Include(m => m.Articles)
+                .FirstOrDefaultAsync(m => m.Id == merchandiseId && !m.IsDeleted);
+
+            double currentStock = 0;
+            string? unit = null;
+
+            if (targetMerch != null && 
+                (string.IsNullOrEmpty(targetMerch.PackageReference) || 
+                 targetMerch.PackageReference.Equals("Standart", StringComparison.OrdinalIgnoreCase) || 
+                 targetMerch.PackageReference.Equals("Standard", StringComparison.OrdinalIgnoreCase)))
+            {
+                // NOTE: standard packages (Standard/Standart/null) are grouped to sum total stock
+                var standardMerchIds = await _context.Merchandises
+                    .Where(m => m.ArticleId == targetMerch.ArticleId && 
+                               (string.IsNullOrEmpty(m.PackageReference) || 
+                                m.PackageReference.ToLower() == "standart" || 
+                                m.PackageReference.ToLower() == "standard"))
+                    .Where(m => !m.IsDeleted)
+                    .Select(m => m.Id)
+                    .ToListAsync();
+
+                currentStock = await _context.Stocks
+                    .Where(s => standardMerchIds.Contains(s.MerchandiseId) && s.SalesSiteId == salesSiteId)
+                    .SumAsync(s => s.Quantity);
+
+                unit = targetMerch.Articles?.Unit;
+            }
+            else
+            {
+                var stock = await _context.Stocks
+                    .Include(s => s.Merchandises).ThenInclude(m => m!.Articles)
+                    .FirstOrDefaultAsync(s => s.MerchandiseId == merchandiseId && s.SalesSiteId == salesSiteId);
+                
+                currentStock = stock?.Quantity ?? 0;
+                unit = stock?.Merchandises?.Articles?.Unit;
+            }
 
             // Get all time history to compute totals
             var timeline = await BuildTimeline(m => m.Id == merchandiseId, salesSiteId, null, null);
             
             return new StockMovementSummaryDto
             {
-                CurrentStock = stock?.Quantity ?? 0,
+                CurrentStock = currentStock,
                 TotalIn = timeline.Where(t => t.QuantityDelta > 0).Sum(t => t.QuantityDelta),
                 TotalOut = Math.Abs(timeline.Where(t => t.QuantityDelta < 0).Sum(t => t.QuantityDelta)),
-                Unit = stock?.Merchandises?.Articles?.Unit
+                Unit = unit
             };
         }
 
@@ -158,11 +223,37 @@ namespace ms.webapp.api.acya.api.Services
             var timeline = await BuildTimeline(m => m.Id == merchandiseId, salesSiteId, null, null);
             var latest = timeline.OrderByDescending(t => t.Date).FirstOrDefault();
             
-            var stock = await _context.Stocks
-                .FirstOrDefaultAsync(s => s.MerchandiseId == merchandiseId && s.SalesSiteId == salesSiteId);
+            double actual = 0;
+            var targetMerch = await _context.Merchandises
+                .FirstOrDefaultAsync(m => m.Id == merchandiseId && !m.IsDeleted);
+
+            if (targetMerch != null && 
+                (string.IsNullOrEmpty(targetMerch.PackageReference) || 
+                 targetMerch.PackageReference.Equals("Standart", StringComparison.OrdinalIgnoreCase) || 
+                 targetMerch.PackageReference.Equals("Standard", StringComparison.OrdinalIgnoreCase)))
+            {
+                // NOTE: standard packages (Standard/Standart/null) are grouped to sum actual stock for reconciliation
+                var standardMerchIds = await _context.Merchandises
+                    .Where(m => m.ArticleId == targetMerch.ArticleId && 
+                               (string.IsNullOrEmpty(m.PackageReference) || 
+                                m.PackageReference.ToLower() == "standart" || 
+                                m.PackageReference.ToLower() == "standard"))
+                    .Where(m => !m.IsDeleted)
+                    .Select(m => m.Id)
+                    .ToListAsync();
+
+                actual = await _context.Stocks
+                    .Where(s => standardMerchIds.Contains(s.MerchandiseId) && s.SalesSiteId == salesSiteId)
+                    .SumAsync(s => s.Quantity);
+            }
+            else
+            {
+                var stock = await _context.Stocks
+                    .FirstOrDefaultAsync(s => s.MerchandiseId == merchandiseId && s.SalesSiteId == salesSiteId);
+                actual = stock?.Quantity ?? 0;
+            }
 
             double computed = latest?.QuantityAfter ?? 0;
-            double actual = stock?.Quantity ?? 0;
 
             return new StockMovementReconciliationDto
             {
