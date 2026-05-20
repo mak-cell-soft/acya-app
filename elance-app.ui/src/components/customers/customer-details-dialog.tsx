@@ -248,7 +248,7 @@ export function CustomerDetailsDialog({
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-[0.65rem] font-bold text-sand-400 uppercase">Plafond</span>
-                          <span className="text-sm font-bold text-forest-900">{customer.maximumsalesbar.toLocaleString()} TND</span>
+                          <span className="text-sm font-bold text-forest-900">{(customer.maximumsalesbar ?? 0).toLocaleString()} TND</span>
                         </div>
                       </div>
                     </div>

@@ -146,7 +146,7 @@ export function CustomerFormDialog({
           address: editCustomer.address,
           gouvernorate: editCustomer.gouvernorate?.toString() || "23",
           maximumdiscount: editCustomer.maximumdiscount,
-          maximumsalesbar: editCustomer.maximumsalesbar,
+          maximumsalesbar: editCustomer.maximumsalesbar ?? 0,
           notes: editCustomer.notes || "",
           phonenumberone: editCustomer.phonenumberone,
           phonenumbertwo: editCustomer.phonenumbertwo || "",

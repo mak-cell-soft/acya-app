@@ -52,6 +52,29 @@ export function CustomerBatchConversionModal({
 
   // Selected customer
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
+  const [customerSearchQuery, setCustomerSearchQuery] = useState<string>('');
+  const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
+
+  // Synchronize search input when customer is selected or changed
+  useEffect(() => {
+    if (selectedCustomerId && customers) {
+      const c = customers.find((c) => c.id.toString() === selectedCustomerId);
+      if (c) {
+        const fullName = c.name || `${c.firstname || ''} ${c.lastname || ''}`.trim() || 'Client sans nom';
+        setCustomerSearchQuery(fullName);
+      }
+    } else if (!selectedCustomerId) {
+      setCustomerSearchQuery('');
+    }
+  }, [selectedCustomerId, customers]);
+
+  // Filter customers by search query
+  const filteredCustomers = (customers || []).filter((cust) => {
+    const name = (cust.name || `${cust.firstname || ''} ${cust.lastname || ''}`).toLowerCase();
+    const query = customerSearchQuery.toLowerCase();
+    return name.includes(query);
+  });
+
   const [nonInvoicedBls, setNonInvoicedBls] = useState<Document[]>([]);
   const [loadingBls, setLoadingBls] = useState(false);
 
@@ -254,20 +277,84 @@ export function CustomerBatchConversionModal({
             {/* Left Column: Client & BL selection (7 cols) */}
             <div className="lg:col-span-7 space-y-6">
               {/* Select Customer */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-sand-500 uppercase tracking-wider">Client Destinataire</label>
-                <Select value={selectedCustomerId} onValueChange={(val) => setSelectedCustomerId(val || '')}>
-                  <SelectTrigger className="border-sand-200 rounded-xl bg-white">
-                    <SelectValue placeholder="Choisir un client..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {customers?.map((cust) => (
-                      <SelectItem key={cust.id} value={cust.id.toString()}>
-                        {cust.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="space-y-1.5 relative">
+                <label className="text-xs font-bold text-sand-500 uppercase tracking-wider block">Client Destinataire</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400 pointer-events-none" />
+                  <Input
+                    value={customerSearchQuery}
+                    onChange={(e) => {
+                      setCustomerSearchQuery(e.target.value);
+                      setIsCustomerDropdownOpen(true);
+                      if (!e.target.value) {
+                        setSelectedCustomerId('');
+                      }
+                    }}
+                    onFocus={() => setIsCustomerDropdownOpen(true)}
+                    placeholder="Choisir ou rechercher un client..."
+                    className="pl-9 pr-8 h-10 rounded-xl border-sand-200 focus:ring-forest-800 bg-white text-xs font-medium text-sand-800"
+                  />
+                  {(selectedCustomerId || customerSearchQuery) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedCustomerId('');
+                        setCustomerSearchQuery('');
+                        setIsCustomerDropdownOpen(false);
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-sand-400 hover:text-red-500 transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {isCustomerDropdownOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setIsCustomerDropdownOpen(false)}
+                    />
+                    <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto z-20 rounded-xl border border-sand-200 bg-white shadow-lg p-1.5 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                      {filteredCustomers.map((cust) => {
+                        const fullName = cust.name || `${cust.firstname || ''} ${cust.lastname || ''}`.trim() || 'Client sans nom';
+                        const isSelected = selectedCustomerId === cust.id.toString();
+                        return (
+                          <button
+                            key={cust.id}
+                            type="button"
+                            className={cn(
+                              "w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-between",
+                              isSelected
+                                ? "bg-forest-800 text-white"
+                                : "text-sand-800 hover:bg-sand-50"
+                            )}
+                            onClick={() => {
+                              setSelectedCustomerId(cust.id.toString());
+                              setCustomerSearchQuery(fullName);
+                              setIsCustomerDropdownOpen(false);
+                            }}
+                          >
+                            <span>{fullName}</span>
+                            {cust.phonenumberone && (
+                              <span className={cn(
+                                "text-[10px]",
+                                isSelected ? "text-forest-200" : "text-sand-400"
+                              )}>
+                                {cust.phonenumberone}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                      {filteredCustomers.length === 0 && (
+                        <div className="text-center py-4 text-xs text-sand-400 italic">
+                          Aucun client trouvé
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Delivery Notes Grid */}
@@ -370,7 +457,9 @@ export function CustomerBatchConversionModal({
                 </label>
                 <Select value={selectedSiteId} onValueChange={(val) => setSelectedSiteId(val || '')}>
                   <SelectTrigger className="border-sand-200 rounded-xl bg-white text-xs">
-                    <SelectValue placeholder="Choisir le dépôt" />
+                    <SelectValue placeholder="Choisir le dépôt">
+                      {selectedSiteId && sites ? sites.find((s) => s.id.toString() === selectedSiteId)?.gov : undefined}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {sites?.map((s) => (
@@ -389,7 +478,12 @@ export function CustomerBatchConversionModal({
                 </label>
                 <Select value={stampTaxId} onValueChange={(val) => setStampTaxId(val || '')}>
                   <SelectTrigger className="border-sand-200 rounded-xl bg-white text-xs">
-                    <SelectValue placeholder="Aucun" />
+                    <SelectValue placeholder="Aucun">
+                      {stampTaxId && stampTaxes ? (() => {
+                        const t = stampTaxes.find((t) => t.id.toString() === stampTaxId);
+                        return t ? `${t.name} (${parseFloat(t.value || '0')?.toFixed(3)} DT)` : undefined;
+                      })() : undefined}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {stampTaxes.map((t) => (
@@ -408,7 +502,12 @@ export function CustomerBatchConversionModal({
                 </label>
                 <Select value={rsTaxId} onValueChange={(val) => setRsTaxId(val || '')}>
                   <SelectTrigger className="border-sand-200 rounded-xl bg-white text-xs">
-                    <SelectValue placeholder="Aucune" />
+                    <SelectValue placeholder="Aucune">
+                      {rsTaxId && rsTaxes ? (() => {
+                        const t = rsTaxes.find((t) => t.id.toString() === rsTaxId);
+                        return t ? `${t.name} (${t.value}%)` : undefined;
+                      })() : undefined}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {rsTaxes.map((t) => (

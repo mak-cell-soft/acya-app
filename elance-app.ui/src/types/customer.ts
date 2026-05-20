@@ -16,7 +16,7 @@ export interface Customer {
   address: string;
   gouvernorate: string;
   maximumdiscount: number;
-  maximumsalesbar: number;
+  maximumsalesbar?: number | null;
   notes: string;
   phonenumberone: string;
   phonenumbertwo: string;

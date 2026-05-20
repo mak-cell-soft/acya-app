@@ -307,7 +307,7 @@ export default function CustomersPage() {
                                     <div className="grid grid-cols-2 gap-4">
                                       <div>
                                         <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Plafond Crédit</div>
-                                        <div className="text-sm font-bold text-forest-900">{item.maximumsalesbar.toLocaleString()} TND</div>
+                                        <div className="text-sm font-bold text-forest-900">{(item.maximumsalesbar ?? 0).toLocaleString()} TND</div>
                                       </div>
                                       <div>
                                         <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Remise Max.</div>
