@@ -220,6 +220,13 @@ export default function SalesPage() {
           </div>
           <div className="flex items-center gap-3">
             <Button
+              onClick={() => router.push('/sales/deep-search')}
+              variant="outline"
+              className="h-11 rounded-xl border-sand-200 text-forest-900 font-bold hover:bg-sand-50"
+            >
+              <Search className="w-4 h-4 mr-2 text-forest-800" /> Recherche Approfondie
+            </Button>
+            <Button
               onClick={() => setIsBatchModalOpen(true)}
               variant="outline"
               className="h-11 rounded-xl border-sand-200 text-forest-900 font-bold hover:bg-sand-50"

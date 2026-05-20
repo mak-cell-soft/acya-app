@@ -250,12 +250,7 @@ export function StockTimelinePanel() {
               <Label htmlFor="timeline-site" className="text-[10px] uppercase font-bold text-stone-450 tracking-wider">Site / Dépôt *</Label>
               <Select value={selectedSiteId} onValueChange={(val) => setSelectedSiteId(val || '')}>
                 <SelectTrigger id="timeline-site" className="h-10 bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-850 rounded-xl text-xs font-semibold">
-                  <SelectValue placeholder="Sélectionner le dépôt...">
-                    {(() => {
-                      const site = allSites.find(s => s.id.toString() === selectedSiteId);
-                      return site ? `${site.gov} - ${site.address}` : null;
-                    })()}
-                  </SelectValue>
+                  <SelectValue placeholder="Sélectionner le dépôt..." />
                 </SelectTrigger>
                 <SelectContent className="bg-white dark:bg-stone-950 border-stone-250 dark:border-stone-850 rounded-xl">
                   {allSites.map((site) => (
@@ -358,15 +353,7 @@ export function StockTimelinePanel() {
                 </Label>
                 <Select value={selectedPkgOption} onValueChange={(val) => setSelectedPkgOption(val || 'standard')}>
                   <SelectTrigger id="package-select" className="h-10 bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-850 rounded-xl text-xs font-semibold">
-                    <SelectValue placeholder="Standard (Article global)">
-                      {selectedPkgOption === 'standard'
-                        ? 'Standard / Vrac'
-                        : (() => {
-                            const pkg = packageMerchandises.find(m => m.id.toString() === selectedPkgOption);
-                            return pkg ? `Colis: ${(pkg.packagereference ?? pkg.packageReference ?? '').replace(/"/g, '')}` : null;
-                          })()
-                      }
-                    </SelectValue>
+                    <SelectValue placeholder="Standard (Article global)" />
                   </SelectTrigger>
                   <SelectContent className="bg-white dark:bg-stone-950 border-stone-250 dark:border-stone-850 rounded-xl">
                     <SelectItem value="standard" className="text-xs font-bold text-stone-900 dark:text-stone-100">
