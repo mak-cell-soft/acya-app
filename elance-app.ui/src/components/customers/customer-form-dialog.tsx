@@ -204,7 +204,14 @@ export function CustomerFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-full sm:max-w-xl md:max-w-3xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background h-full sm:h-auto max-h-screen sm:max-h-[90vh] flex flex-col">
+      {/* 
+        NOTE: showCloseButton={false} disables the default close button of DialogContent 
+        to avoid having duplicate close buttons. We keep our custom visible close button in DialogHeader.
+      */}
+      <DialogContent 
+        showCloseButton={false}
+        className="w-full max-w-full sm:max-w-xl md:max-w-3xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background h-full sm:h-auto max-h-screen sm:max-h-[90vh] flex flex-col"
+      >
         <DialogHeader className="p-6 sm:p-8 bg-forest-900 text-white relative shrink-0">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700 text-emerald-400 shrink-0">

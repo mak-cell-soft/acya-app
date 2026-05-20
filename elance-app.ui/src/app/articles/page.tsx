@@ -15,7 +15,8 @@ import {
   Package,
   Layers,
   ArrowUpCircle,
-  TreeDeciduous
+  TreeDeciduous,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -29,6 +30,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useArticles, useCreateArticle, useUpdateArticle, useDeleteArticle } from '@/hooks/use-articles';
+import { useStockAll } from '@/hooks/use-stock';
 import { ArticleFilters } from '@/components/articles/article-filters';
 import { DeleteConfirmDialog } from '@/components/articles/delete-confirm-dialog';
 import { ArticleHistoryDialog } from '@/components/articles/article-history-dialog';
@@ -58,9 +60,50 @@ export default function ArticlesPage() {
 
   // Queries and Mutations
   const { data: articles, isLoading: isArticlesLoading } = useArticles();
+  // NOTE: Retrieve real-time stock details globally to map them to active articles dynamically
+  const { data: stocks, isLoading: isStockLoading } = useStockAll();
   const createArticle = useCreateArticle();
   const updateArticle = useUpdateArticle();
   const deleteArticle = useDeleteArticle();
+
+  // Helper to format stock quantities depending on their unit type (e.g. cubic meters M3 need 3 decimals precision)
+  const formatQuantity = (qty: number, unit?: string | null) => {
+    const isM3 = unit?.toUpperCase().includes('M3') || unit?.toUpperCase().includes('MÈTRE 3') || unit?.toUpperCase().includes('METRE 3');
+    if (isM3) {
+      return qty.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    } else {
+      return qty.toLocaleString('fr-FR', { maximumFractionDigits: 3 });
+    }
+  };
+
+  // Group and sum stock quantities by article ID to easily look them up when rendering the "Aperçu Stock" detail panel
+  const stockMap = useMemo(() => {
+    const map = new Map<number, { total: number; breakdown: { siteName: string; quantity: number; unit: string }[] }>();
+    if (!stocks) return map;
+    
+    stocks.forEach(stock => {
+      const articleId = stock.merchandise?.article?.id;
+      if (!articleId) return;
+      
+      const qty = stock.quantity || 0;
+      const siteName = stock.site ? `${stock.site.gov || ''} - ${stock.site.address || ''}`.trim() : 'Dépôt Central';
+      const unit = stock.merchandise?.article?.unit || 'PCS';
+      
+      const existing = map.get(articleId) || { total: 0, breakdown: [] };
+      existing.total += qty;
+      
+      const siteBreakdown = existing.breakdown.find(b => b.siteName === siteName);
+      if (siteBreakdown) {
+        siteBreakdown.quantity += qty;
+      } else {
+        existing.breakdown.push({ siteName, quantity: qty, unit });
+      }
+      
+      map.set(articleId, existing);
+    });
+    
+    return map;
+  }, [stocks]);
 
   // Client-side filtering
   const filteredArticles = useMemo(() => {
@@ -326,10 +369,48 @@ export default function ArticlesPage() {
                                       <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
                                         <History className="w-3 h-3" /> Aperçu Stock
                                       </div>
-                                      <div className="flex flex-col items-center justify-center h-32 bg-white rounded-3xl border border-forest-50 shadow-sm">
-                                        <div className="text-3xl font-bold text-forest-900 tracking-tighter">0.000</div>
-                                        <div className="text-[0.65rem] font-bold text-sand-300 uppercase mt-1 tracking-widest">En Stock Actuel</div>
+                                      
+                                      <div className="flex flex-col items-center justify-center py-4 bg-white rounded-3xl border border-forest-50 shadow-sm">
+                                        {isStockLoading ? (
+                                          <div className="flex flex-col items-center gap-2 py-4">
+                                            <Loader2 className="w-5 h-5 animate-spin text-forest-600" />
+                                            <span className="text-[0.6rem] font-bold text-sand-300 uppercase tracking-widest">Chargement...</span>
+                                          </div>
+                                        ) : (
+                                          <>
+                                            <div className={cn(
+                                              "text-3xl font-bold tracking-tighter transition-colors duration-300",
+                                              (stockMap.get(item.id)?.total || 0) === 0 ? "text-rose-500" : "text-forest-900"
+                                            )}>
+                                              {formatQuantity(stockMap.get(item.id)?.total || 0, item.unit)}
+                                            </div>
+                                            <div className="text-[0.65rem] font-bold text-sand-300 uppercase mt-1 tracking-widest">
+                                              Stock Total ({item.unit})
+                                            </div>
+                                          </>
+                                        )}
                                       </div>
+
+                                      {!isStockLoading && (stockMap.get(item.id)?.breakdown || []).length > 0 && (
+                                        <div className="space-y-2 mt-3 max-h-36 overflow-y-auto pr-1">
+                                          {(stockMap.get(item.id)?.breakdown || []).map((b, idx) => (
+                                            <div key={idx} className="flex justify-between items-center bg-sand-50/50 hover:bg-sand-50 p-2.5 rounded-xl border border-forest-50/40 text-[0.75rem] transition-colors">
+                                              <span className="text-sand-600 font-medium truncate max-w-[150px]" title={b.siteName}>
+                                                {b.siteName}
+                                              </span>
+                                              <span className="font-bold text-forest-900 font-mono">
+                                                {formatQuantity(b.quantity, b.unit)} <span className="text-[0.65rem] font-sans font-medium text-sand-450">{b.unit}</span>
+                                              </span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                      
+                                      {!isStockLoading && (stockMap.get(item.id)?.breakdown || []).length === 0 && (
+                                        <div className="text-center py-4 text-xs italic text-sand-300 bg-sand-50/30 rounded-2xl border border-dashed border-forest-100">
+                                          Aucun stock disponible
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                 </motion.div>
