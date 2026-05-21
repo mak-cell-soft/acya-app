@@ -79,7 +79,7 @@ export default function DeepSearchPage() {
   const [articleSearch, setArticleSearch] = useState('');
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [isArticleDropdownOpen, setIsArticleDropdownOpen] = useState(false);
-  const [selectedPackage, setSelectedPackage] = useState<string>('Standard');
+  const [selectedPackage, setSelectedPackage] = useState<string>('');
 
   // --- Sub-Tab 3: Unpaid Documents State ---
   const [unpaidSearchTerm, setUnpaidSearchTerm] = useState('');
@@ -199,6 +199,195 @@ export default function DeepSearchPage() {
     if (type.toLowerCase().includes('delivery')) return 'Bon de Livraison';
     return type;
   };
+
+  // Extract customer purchases table content into a clean memoized variable to prevent nested JSX ternaries
+  const purchasesContent = useMemo(() => {
+    if (!selectedCustomer) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-forest-200 rounded-2xl bg-sand-50/20 animate-in fade-in duration-300">
+          <Users className="w-12 h-12 text-forest-300 mb-3" />
+          <h3 className="text-sm font-bold text-forest-900">Veuillez sélectionner un client</h3>
+          <p className="text-xs text-forest-500 mt-1 max-w-xs">
+            Entrez le nom d'un client ci-dessus pour charger sa fiche d'achats détaillée et son état de compte.
+          </p>
+        </div>
+      );
+    }
+
+    if (isPurchasesLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center py-24 space-y-4 animate-in fade-in duration-300">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-forest-600"></div>
+          <p className="text-sm font-bold text-forest-800/60 animate-pulse">Extraction de l'historique d'achat...</p>
+        </div>
+      );
+    }
+
+    if (purchases.length > 0) {
+      return (
+        <Card className="border-sand-200 shadow-sm rounded-2xl bg-white animate-in fade-in duration-300">
+          <CardHeader className="p-6 border-b border-forest-50">
+            <CardTitle className="text-xl font-serif text-forest-950">Marchandises Achetées</CardTitle>
+            <CardDescription>
+              Historique des marchandises et colis vendus à ce client sur la période sélectionnée.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-forest-900 text-white border-b border-forest-800">
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Référence Article</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Description</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Référence Colis / Pkg</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Quantité Totale</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Prix Moyen HT</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Documents Liés</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {purchases.map((p, idx) => (
+                    <tr key={idx} className="border-b border-forest-50 hover:bg-forest-50/20 transition-colors">
+                      <td className="px-6 py-4 font-bold text-forest-950">{p.articleReference}</td>
+                      <td className="px-6 py-4 text-forest-700 max-w-[200px] truncate" title={p.articleDescription}>
+                        {p.articleDescription}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={cn(
+                          "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold",
+                          p.packageReference === 'Standard'
+                            ? "bg-forest-50 text-forest-700 border border-forest-100"
+                            : "bg-amber-50 text-amber-700 border border-amber-100"
+                        )}>
+                          {p.packageReference}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right font-bold text-forest-900">
+                        {p.totalQuantity} <span className="text-xs font-normal text-sand-400 ml-1">{p.unit}</span>
+                      </td>
+                      <td className="px-6 py-4 text-right font-black text-forest-950">{formatCurrency(p.averagePriceHT)}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1 max-w-[200px]">
+                          {p.relatedDocuments.map((doc, dIdx) => (
+                            <span 
+                              key={dIdx} 
+                              className="inline-flex px-1.5 py-0.5 rounded bg-sand-50 text-[10px] font-bold text-sand-600 border border-sand-200"
+                            >
+                              {doc}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-forest-200 rounded-2xl bg-sand-50/20 animate-in fade-in duration-300">
+        <ShoppingBag className="w-12 h-12 text-forest-300 mb-3 animate-bounce" />
+        <h3 className="text-sm font-bold text-forest-900">Aucun achat trouvé</h3>
+        <p className="text-xs text-forest-500 mt-1 max-w-sm">
+          Ce client n'a pas effectué d'achat sur la période spécifiée.
+        </p>
+      </div>
+    );
+  }, [selectedCustomer, isPurchasesLoading, purchases]);
+
+  // Extract buyers table content into a clean memoized variable to prevent nested JSX ternaries
+  const buyersContent = useMemo(() => {
+    if (!selectedArticle) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-forest-200 rounded-2xl bg-sand-50/20 animate-in fade-in duration-300">
+          <ShoppingBag className="w-12 h-12 text-forest-300 mb-3" />
+          <h3 className="text-sm font-bold text-forest-900">Veuillez sélectionner un article</h3>
+          <p className="text-xs text-forest-500 mt-1 max-w-xs">
+            Recherchez et sélectionnez un article ci-dessus pour afficher la liste complète des clients qui l'ont acheté.
+          </p>
+        </div>
+      );
+    }
+
+    if (isBuyersLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center py-24 space-y-4 animate-in fade-in duration-300">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-forest-600"></div>
+          <p className="text-sm font-bold text-forest-800/60 animate-pulse">Extraction de l'historique acheteurs...</p>
+        </div>
+      );
+    }
+
+    if (buyers.length > 0) {
+      return (
+        <Card className="border-sand-200 shadow-sm rounded-2xl bg-white animate-in fade-in duration-300">
+          <CardHeader className="p-6 border-b border-forest-50">
+            <CardTitle className="text-xl font-serif text-forest-950">Acheteurs de cet Article</CardTitle>
+            <CardDescription>
+              {selectedPackage 
+                ? `Liste des clients ayant acheté cet article (${selectedPackage}) sur la période.`
+                : "Liste des clients ayant acheté cet article sur la période."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-forest-900 text-white border-b border-forest-800">
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Code Client</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Client / Nom</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Société / Entreprise</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Quantité Achetée</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Total Facturé HT</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Documents</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {buyers.map((b, idx) => (
+                    <tr key={idx} className="border-b border-forest-50 hover:bg-forest-50/20 transition-colors">
+                      <td className="px-6 py-4 text-xs text-sand-500 font-bold">{b.customerCode || '-'}</td>
+                      <td className="px-6 py-4 font-bold text-forest-950">{b.customerName}</td>
+                      <td className="px-6 py-4 text-forest-700">{b.customerCompany || '-'}</td>
+                      <td className="px-6 py-4 text-right font-black text-forest-900">{b.totalQuantity} {selectedArticle.unit}</td>
+                      <td className="px-6 py-4 text-right font-black text-forest-950">{formatCurrency(b.totalCostHT)}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1 max-w-[200px]">
+                          {b.relatedDocuments.map((doc, dIdx) => (
+                            <span 
+                              key={dIdx} 
+                              className="inline-flex px-1.5 py-0.5 rounded bg-sand-50 text-[10px] font-bold text-sand-600 border border-sand-200"
+                            >
+                              {doc}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-forest-200 rounded-2xl bg-sand-50/20 animate-in fade-in duration-300">
+        <Users className="w-12 h-12 text-forest-300 mb-3 animate-bounce" />
+        <h3 className="text-sm font-bold text-forest-900">Aucun acheteur trouvé</h3>
+        <p className="text-xs text-forest-500 mt-1 max-w-sm">
+          {selectedPackage 
+            ? `Aucun client n'a acheté cet article (${selectedPackage}) sur la période spécifiée.`
+            : "Aucun client n'a acheté cet article sur la période spécifiée."}
+        </p>
+      </div>
+    );
+  }, [selectedArticle, isBuyersLoading, buyers, selectedPackage]);
 
   return (
     <DashboardLayout>
@@ -392,91 +581,7 @@ export default function DeepSearchPage() {
               </Card>
 
               {/* Purchased Items List */}
-              {selectedCustomer ? (
-                isPurchasesLoading ? (
-                  <div className="flex flex-col items-center justify-center py-24 space-y-4">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-forest-600"></div>
-                    <p className="text-sm font-bold text-forest-800/60 animate-pulse">Extraction de l'historique d'achat...</p>
-                  </div>
-                ) : purchases.length > 0 ? (
-                  <Card className="border-sand-200 shadow-sm rounded-2xl bg-white">
-                    <CardHeader className="p-6 border-b border-forest-50">
-                      <CardTitle className="text-xl font-serif text-forest-950">Marchandises Achetées</CardTitle>
-                      <CardDescription>
-                        Historique des marchandises et colis vendus à ce client sur la période sélectionnée.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                          <thead>
-                            <tr className="bg-forest-900 text-white border-b border-forest-800">
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Référence Article</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Description</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Référence Colis / Pkg</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Quantité Totale</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Prix Moyen HT</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Documents Liés</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {purchases.map((p, idx) => (
-                              <tr key={idx} className="border-b border-forest-50 hover:bg-forest-50/20 transition-colors">
-                                <td className="px-6 py-4 font-bold text-forest-950">{p.articleReference}</td>
-                                <td className="px-6 py-4 text-forest-700 max-w-[200px] truncate" title={p.articleDescription}>
-                                  {p.articleDescription}
-                                </td>
-                                <td className="px-6 py-4">
-                                  <span className={cn(
-                                    "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold",
-                                    p.packageReference === 'Standard'
-                                      ? "bg-forest-50 text-forest-700 border border-forest-100"
-                                      : "bg-amber-50 text-amber-700 border border-amber-100"
-                                  )}>
-                                    {p.packageReference}
-                                  </span>
-                                </td>
-                                <td className="px-6 py-4 text-right font-bold text-forest-900">
-                                  {p.totalQuantity} <span className="text-xs font-normal text-sand-400 ml-1">{p.unit}</span>
-                                </td>
-                                <td className="px-6 py-4 text-right font-black text-forest-950">{formatCurrency(p.averagePriceHT)}</td>
-                                <td className="px-6 py-4">
-                                  <div className="flex flex-wrap gap-1 max-w-[200px]">
-                                    {p.relatedDocuments.map((doc, dIdx) => (
-                                      <span 
-                                        key={dIdx} 
-                                        className="inline-flex px-1.5 py-0.5 rounded bg-sand-50 text-[10px] font-bold text-sand-600 border border-sand-200"
-                                      >
-                                        {doc}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-forest-200 rounded-2xl bg-sand-50/20">
-                    <ShoppingBag className="w-12 h-12 text-forest-300 mb-3 animate-bounce" />
-                    <h3 className="text-sm font-bold text-forest-900">Aucun achat trouvé</h3>
-                    <p className="text-xs text-forest-500 mt-1 max-w-sm">
-                      Ce client n'a pas effectué d'achat sur la période spécifiée.
-                    </p>
-                  </div>
-                )
-              ) : (
-                <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-forest-200 rounded-2xl bg-sand-50/20">
-                  <Users className="w-12 h-12 text-forest-300 mb-3" />
-                  <h3 className="text-sm font-bold text-forest-900">Veuillez sélectionner un client</h3>
-                  <p className="text-xs text-forest-500 mt-1 max-w-xs">
-                    Entrez le nom d'un client ci-dessus pour charger sa fiche d'achats détaillée et son état de compte.
-                  </p>
-                </div>
-              )}
+              {purchasesContent}
 
               {/* Customer Account Statement Dialog */}
               {selectedCustomer && (
@@ -569,79 +674,8 @@ export default function DeepSearchPage() {
                 </CardContent>
               </Card>
 
-              {/* Buyers Table */}
-              {selectedArticle ? (
-                isBuyersLoading ? (
-                  <div className="flex flex-col items-center justify-center py-24 space-y-4">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-forest-600"></div>
-                    <p className="text-sm font-bold text-forest-800/60 animate-pulse">Extraction de l'historique acheteurs...</p>
-                  </div>
-                ) : buyers.length > 0 ? (
-                  <Card className="border-sand-200 shadow-sm rounded-2xl bg-white">
-                    <CardHeader className="p-6 border-b border-forest-50">
-                      <CardTitle className="text-xl font-serif text-forest-950">Acheteurs de cet Article</CardTitle>
-                      <CardDescription>
-                        Liste des clients ayant acheté cet article ({selectedPackage}) sur la période.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                          <thead>
-                            <tr className="bg-forest-900 text-white border-b border-forest-800">
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Code Client</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Client / Nom</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Société / Entreprise</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Quantité Achetée</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Total Facturé HT</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Documents</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {buyers.map((b, idx) => (
-                              <tr key={idx} className="border-b border-forest-50 hover:bg-forest-50/20 transition-colors">
-                                <td className="px-6 py-4 text-xs text-sand-500 font-bold">{b.customerCode || '-'}</td>
-                                <td className="px-6 py-4 font-bold text-forest-950">{b.customerName}</td>
-                                <td className="px-6 py-4 text-forest-700">{b.customerCompany || '-'}</td>
-                                <td className="px-6 py-4 text-right font-black text-forest-900">{b.totalQuantity} {selectedArticle.unit}</td>
-                                <td className="px-6 py-4 text-right font-black text-forest-950">{formatCurrency(b.totalCostHT)}</td>
-                                <td className="px-6 py-4">
-                                  <div className="flex flex-wrap gap-1 max-w-[200px]">
-                                    {b.relatedDocuments.map((doc, dIdx) => (
-                                      <span 
-                                        key={dIdx} 
-                                        className="inline-flex px-1.5 py-0.5 rounded bg-sand-50 text-[10px] font-bold text-sand-600 border border-sand-200"
-                                      >
-                                        {doc}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-forest-200 rounded-2xl bg-sand-50/20">
-                    <Users className="w-12 h-12 text-forest-300 mb-3 animate-bounce" />
-                    <h3 className="text-sm font-bold text-forest-900">Aucun acheteur trouvé</h3>
-                    <p className="text-xs text-forest-500 mt-1 max-w-sm">
-                      Aucun client n'a acheté cet article ({selectedPackage}) sur la période spécifiée.
-                    </p>
-                  </div>
-                )
-              ) : (
-                <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-forest-200 rounded-2xl bg-sand-50/20">
-                  <ShoppingBag className="w-12 h-12 text-forest-300 mb-3" />
-                  <h3 className="text-sm font-bold text-forest-900">Veuillez sélectionner un article</h3>
-                  <p className="text-xs text-forest-500 mt-1 max-w-xs">
-                    Recherchez et sélectionnez un article ci-dessus pour afficher la liste complète des clients qui l'ont acheté.
-                  </p>
-                </div>
-              )}
+              {/* Buyers Table Content */}
+              {buyersContent}
 
             </div>
           )}
