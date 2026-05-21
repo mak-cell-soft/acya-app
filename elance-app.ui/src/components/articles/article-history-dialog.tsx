@@ -128,7 +128,9 @@ export function ArticleHistoryDialog({ isOpen, onClose, article }: ArticleHistor
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white">
+      {/* // NOTE: Using responsive width constraints (w-full max-w-full on mobile, scaling up to md:max-w-4xl on desktop)
+          // to override the default DialogContent max-width layout limits and prevent table compression. */}
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-white">
         <DialogHeader className="p-8 bg-forest-900 text-white relative">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700">

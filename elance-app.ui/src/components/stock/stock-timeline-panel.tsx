@@ -250,7 +250,14 @@ export function StockTimelinePanel() {
               <Label htmlFor="timeline-site" className="text-[10px] uppercase font-bold text-stone-450 tracking-wider">Site / Dépôt *</Label>
               <Select value={selectedSiteId} onValueChange={(val) => setSelectedSiteId(val || '')}>
                 <SelectTrigger id="timeline-site" className="h-10 bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-850 rounded-xl text-xs font-semibold">
-                  <SelectValue placeholder="Sélectionner le dépôt..." />
+                  {/* // NOTE: Overriding SelectValue children explicitly to display human-readable name instead of numeric ID.
+                      // This resolves the classic asynchronous loading glitch in Radix Select where value triggers display the raw ID string
+                      // when options are populated post-render. */}
+                  <SelectValue placeholder="Sélectionner le dépôt...">
+                    {allSites.find(s => s.id.toString() === selectedSiteId)
+                      ? `${allSites.find(s => s.id.toString() === selectedSiteId)?.gov} - ${allSites.find(s => s.id.toString() === selectedSiteId)?.address}`
+                      : undefined}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="bg-white dark:bg-stone-950 border-stone-250 dark:border-stone-850 rounded-xl">
                   {allSites.map((site) => (
@@ -263,9 +270,12 @@ export function StockTimelinePanel() {
             </div>
 
             {/* Toggle search type */}
-            <div className="md:col-span-3 space-y-2 flex flex-col justify-center">
-              <Label htmlFor="search-mode" className="text-[10px] uppercase font-bold text-stone-450 tracking-wider mb-2">Recherche par Colis</Label>
-              <div className="flex items-center space-x-2">
+            <div className="md:col-span-3 space-y-2">
+              <Label htmlFor="search-mode" className="text-[10px] uppercase font-bold text-stone-450 tracking-wider">Recherche par Colis</Label>
+              {/* // NOTE: Wrapping the Switch in a bordered container with background and padding
+                  // to mimic standard input controls (like selects and text inputs) for layout symmetry.
+                  // Hover effects and smooth transitions enhance the visual feedback. */}
+              <div className="flex items-center space-x-3 h-10 px-3 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-850 rounded-xl shadow-sm hover:border-stone-300 dark:hover:border-stone-750 transition-all duration-200">
                 <Switch
                   id="search-mode"
                   checked={usePackageSearch}
@@ -276,9 +286,15 @@ export function StockTimelinePanel() {
                     setPackageCode('');
                   }}
                 />
-                <span className="text-xs font-semibold text-stone-600 dark:text-stone-300">
-                  {usePackageSearch ? 'Recherche Colis Active' : 'Filtre par Article'}
-                </span>
+                {/* // NOTE: Using standard HTML Label linked to the Switch ID so the entire empty area 
+                    // within the custom container is clickable, improving tactile usability.
+                    // Text is uppercase to align with the premium form-design requirements. */}
+                <Label
+                  htmlFor="search-mode"
+                  className="text-[10px] font-bold uppercase tracking-wider text-stone-600 dark:text-stone-300 select-none cursor-pointer flex-1 h-full flex items-center"
+                >
+                  {usePackageSearch ? 'RECHERCHE COLIS ACTIVE' : 'FILTRE PAR ARTICLE'}
+                </Label>
               </div>
             </div>
 
@@ -353,7 +369,15 @@ export function StockTimelinePanel() {
                 </Label>
                 <Select value={selectedPkgOption} onValueChange={(val) => setSelectedPkgOption(val || 'standard')}>
                   <SelectTrigger id="package-select" className="h-10 bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-850 rounded-xl text-xs font-semibold">
-                    <SelectValue placeholder="Standard (Article global)" />
+                    {/* // NOTE: Overriding SelectValue children explicitly to display human-readable package reference/name instead of numeric ID.
+                        // This resolves the classic asynchronous loading glitch in Radix Select where value triggers display the raw ID string
+                        // when options are populated post-render. */}
+                    <SelectValue placeholder="Standard (Article global)">
+                      {selectedPkgOption === 'standard' ? 'Standard / Vrac' : (() => {
+                        const m = packageMerchandises.find((m: any) => m.id.toString() === selectedPkgOption);
+                        return m ? `Colis: ${(m.packagereference ?? m.packageReference ?? '').replace(/"/g, '')}` : undefined;
+                      })()}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="bg-white dark:bg-stone-950 border-stone-250 dark:border-stone-850 rounded-xl">
                     <SelectItem value="standard" className="text-xs font-bold text-stone-900 dark:text-stone-100">
