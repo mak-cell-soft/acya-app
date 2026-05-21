@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
 import { 
@@ -21,6 +21,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useCustomers } from '@/hooks/use-customers';
 import { useArticles } from '@/hooks/use-articles';
 import { 
@@ -29,6 +31,7 @@ import {
   useUnpaidDocuments 
 } from '@/hooks/use-deep-search';
 import { CustomerStatementCard } from '@/components/sales/customer-statement-card';
+import { TablePagination } from '@/components/shared/table-pagination';
 import { Customer } from '@/types/customer';
 import { Article } from '@/types/article';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -81,6 +84,15 @@ export default function DeepSearchPage() {
   // --- Sub-Tab 3: Unpaid Documents State ---
   const [unpaidSearchTerm, setUnpaidSearchTerm] = useState('');
   const [unpaidCustomerFilter, setUnpaidCustomerFilter] = useState<number>(0); // 0 = all
+  // State for filtering by payment status: 'all' displays everything, 'unpaid' for 'Non Payé', 'partial' for 'Payement Partiel'
+  const [unpaidPaymentStatusFilter, setUnpaidPaymentStatusFilter] = useState<'all' | 'unpaid' | 'partial'>('all');
+  
+  // State for client-side pagination of unpaid documents
+  const [unpaidPage, setUnpaidPage] = useState(1);
+  const [unpaidPageSize, setUnpaidPageSize] = useState(10);
+
+  // State for filtering by document type: 'all' for both, 'invoice' for Factures, 'delivery' for Bons de livraison
+  const [unpaidDocTypeFilter, setUnpaidDocTypeFilter] = useState<'all' | 'invoice' | 'delivery'>('all');
 
   // --- Data Queries ---
   const { data: allCustomers = [] } = useCustomers('Customer');
@@ -111,6 +123,44 @@ export default function DeepSearchPage() {
     unpaidSearchTerm,
     // Active only when on the unpaid tab
   );
+
+  // NOTE: Client-side filtering is implemented here to avoid changing the C#/API backend contract.
+  // NOTE: Client-side filtering is implemented here to avoid changing the C#/API backend contract.
+  // We filter the local list based on unpaidPaymentStatusFilter and unpaidDocTypeFilter.
+  const filteredUnpaidDocs = useMemo(() => {
+    return unpaidDocs.filter(doc => {
+      // Payment status filter
+      if (unpaidPaymentStatusFilter === 'unpaid') {
+        // 'Non Payé' maps to documents that are not PartiallyBilled (i.e. NotBilled / Unbilled)
+        if (doc.billingStatus === 'PartiallyBilled') return false;
+      }
+      if (unpaidPaymentStatusFilter === 'partial') {
+        // 'Payement Partiel' maps to PartiallyBilled documents
+        if (doc.billingStatus !== 'PartiallyBilled') return false;
+      }
+
+      // Document type filter
+      if (unpaidDocTypeFilter === 'invoice') {
+        if (!doc.type.toLowerCase().includes('invoice')) return false;
+      }
+      if (unpaidDocTypeFilter === 'delivery') {
+        if (!doc.type.toLowerCase().includes('delivery')) return false;
+      }
+
+      return true;
+    });
+  }, [unpaidDocs, unpaidPaymentStatusFilter, unpaidDocTypeFilter]);
+
+  // Reset pagination to page 1 whenever any search term, customer filter, payment status toggle, or document type filter changes
+  useEffect(() => {
+    setUnpaidPage(1);
+  }, [unpaidSearchTerm, unpaidCustomerFilter, unpaidPaymentStatusFilter, unpaidDocTypeFilter, selectedMonth, selectedYear]);
+
+  // Compute the paginated slice of unpaid documents to display on the current page
+  const paginatedUnpaidDocs = useMemo(() => {
+    const start = (unpaidPage - 1) * unpaidPageSize;
+    return filteredUnpaidDocs.slice(start, start + unpaidPageSize);
+  }, [filteredUnpaidDocs, unpaidPage, unpaidPageSize]);
 
   // --- Helper Selectors ---
   // Search and filter customers for Tab 1 Combobox
@@ -603,7 +653,7 @@ export default function DeepSearchPage() {
               {/* Unpaid Filters Card */}
               <Card className="border-sand-200 shadow-sm rounded-2xl bg-white">
                 <CardContent className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                     
                     {/* Search Field */}
                     <div className="space-y-1">
@@ -638,6 +688,47 @@ export default function DeepSearchPage() {
                       </select>
                     </div>
 
+                    {/* Document Type Filter */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-forest-800 uppercase tracking-wider block">
+                        Type de Document
+                      </label>
+                      <select
+                        value={unpaidDocTypeFilter}
+                        onChange={(e) => setUnpaidDocTypeFilter(e.target.value as 'all' | 'invoice' | 'delivery')}
+                        className="w-full h-11 px-3 border border-forest-100 rounded-xl bg-white font-bold text-sm text-forest-900 focus:outline-none focus:ring-2 focus:ring-forest-600"
+                      >
+                        <option value="all">Tous les types</option>
+                        <option value="invoice">Facture uniquement</option>
+                        <option value="delivery">Bon de Livraison uniquement</option>
+                      </select>
+                    </div>
+
+                    {/* Payment Status Toggle */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-forest-800 uppercase tracking-wider block">
+                        Statut de Paiement
+                      </label>
+                      <div className="flex items-center h-11 px-4 border border-forest-100 rounded-xl bg-white shadow-sm hover:border-forest-200 transition-colors duration-200">
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            id="only-unpaid"
+                            checked={unpaidPaymentStatusFilter === 'unpaid'}
+                            onCheckedChange={(checked) => {
+                              setUnpaidPaymentStatusFilter(checked ? 'unpaid' : 'all');
+                            }}
+                            className="data-checked:bg-forest-600 transition-colors duration-200"
+                          />
+                          <Label 
+                            htmlFor="only-unpaid" 
+                            className="text-xs font-bold text-forest-800 uppercase tracking-wider cursor-pointer select-none"
+                          >
+                            Non Payé uniquement
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Total Outstanding Summary */}
                     <div className="bg-rose-50/30 border border-rose-200/50 rounded-2xl p-4 flex items-center gap-3">
                       <div className="p-2.5 bg-rose-100 text-rose-700 rounded-xl">
@@ -646,7 +737,8 @@ export default function DeepSearchPage() {
                       <div>
                         <p className="text-[10px] font-bold text-rose-800 uppercase tracking-wider">Créances en attente</p>
                         <p className="text-lg font-black text-rose-700 font-heading">
-                          {formatCurrency(unpaidDocs.reduce((acc, curr) => acc + curr.remainingBalance, 0))}
+                          {/* NOTE: Dynamically updates summary net total based on the filtered document list */}
+                          {formatCurrency(filteredUnpaidDocs.reduce((acc, curr) => acc + curr.remainingBalance, 0))}
                         </p>
                       </div>
                     </div>
@@ -662,70 +754,95 @@ export default function DeepSearchPage() {
                   <p className="text-sm font-bold text-forest-800/60 animate-pulse">Extraction des impayés...</p>
                 </div>
               ) : unpaidDocs.length > 0 ? (
-                <Card className="border-sand-200 shadow-sm rounded-2xl bg-white">
-                  <CardHeader className="p-6 border-b border-forest-50">
-                    <CardTitle className="text-xl font-serif text-forest-950">Bons & Factures non payés</CardTitle>
-                    <CardDescription>
-                      Détail de toutes les pièces commerciales présentant un solde restant dû.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse">
-                        <thead>
-                          <tr className="bg-forest-900 text-white border-b border-forest-800">
-                            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">N° Document</th>
-                            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Type</th>
-                            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Date</th>
-                            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Client</th>
-                            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Net TTC</th>
-                            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Total Payé</th>
-                            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Solde Restant</th>
-                            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Statut Facturation</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {unpaidDocs.map((doc) => (
-                            <tr key={doc.documentId} className="border-b border-forest-50 hover:bg-forest-50/20 transition-colors">
-                              <td className="px-6 py-4 font-bold text-forest-950">{doc.docNumber}</td>
-                              <td className="px-6 py-4">
-                                <span className={cn(
-                                  "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border",
-                                  getDocBadgeColor(doc.type)
-                                )}>
-                                  {getDocTypeLabel(doc.type)}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 text-sm font-medium text-forest-700">
-                                {new Date(doc.creationDate).toLocaleDateString('fr-FR')}
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="font-bold text-forest-950">{doc.counterPartName}</div>
-                                {doc.counterPartCompany && (
-                                  <div className="text-[10px] text-sand-400 font-medium">{doc.counterPartCompany}</div>
-                                )}
-                              </td>
-                              <td className="px-6 py-4 text-right font-bold text-forest-900">{formatCurrency(doc.totalNetTTC)}</td>
-                              <td className="px-6 py-4 text-right font-bold text-emerald-600">{formatCurrency(doc.totalPaid)}</td>
-                              <td className="px-6 py-4 text-right font-black text-rose-600 bg-rose-50/10">{formatCurrency(doc.remainingBalance)}</td>
-                              <td className="px-6 py-4">
-                                <span className={cn(
-                                  "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold",
-                                  doc.billingStatus === 'PartiallyBilled' 
-                                    ? "bg-amber-100 text-amber-800" 
-                                    : "bg-rose-100 text-rose-800"
-                                )}>
-                                  {doc.billingStatus === 'PartiallyBilled' ? 'Facturé Partiel' : 'Non Facturé'}
-                                </span>
-                              </td>
+                filteredUnpaidDocs.length > 0 ? (
+                  <Card className="border-sand-200 shadow-sm rounded-2xl bg-white">
+                    <CardHeader className="p-6 border-b border-forest-50">
+                      <CardTitle className="text-xl font-serif text-forest-950">Bons & Factures non payés</CardTitle>
+                      <CardDescription>
+                        Détail de toutes les pièces commerciales présentant un solde restant dû.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="bg-forest-900 text-white border-b border-forest-800">
+                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">N° Document</th>
+                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Type</th>
+                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Date</th>
+                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Client</th>
+                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Net TTC</th>
+                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Total Payé</th>
+                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Solde Restant</th>
+                              {/* NOTE: Updated column header from 'Statut Facturation' to 'Statut Payment' */}
+                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Statut Payment</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </CardContent>
-                </Card>
+                          </thead>
+                          <tbody>
+                            {paginatedUnpaidDocs.map((doc) => (
+                              <tr key={doc.documentId} className="border-b border-forest-50 hover:bg-forest-50/20 transition-colors">
+                                <td className="px-6 py-4 font-bold text-forest-950">{doc.docNumber}</td>
+                                <td className="px-6 py-4">
+                                  <span className={cn(
+                                    "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border",
+                                    getDocBadgeColor(doc.type)
+                                  )}>
+                                    {getDocTypeLabel(doc.type)}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 text-sm font-medium text-forest-700">
+                                  {new Date(doc.creationDate).toLocaleDateString('fr-FR')}
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="font-bold text-forest-950">{doc.counterPartName}</div>
+                                  {doc.counterPartCompany && (
+                                    <div className="text-[10px] text-sand-400 font-medium">{doc.counterPartCompany}</div>
+                                  )}
+                                </td>
+                                <td className="px-6 py-4 text-right font-bold text-forest-900">{formatCurrency(doc.totalNetTTC)}</td>
+                                <td className="px-6 py-4 text-right font-bold text-emerald-600">{formatCurrency(doc.totalPaid)}</td>
+                                <td className="px-6 py-4 text-right font-black text-rose-600 bg-rose-50/10">{formatCurrency(doc.remainingBalance)}</td>
+                                <td className="px-6 py-4">
+                                  <span className={cn(
+                                    "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold",
+                                    doc.billingStatus === 'PartiallyBilled' 
+                                      ? "bg-amber-100 text-amber-800" 
+                                      : "bg-rose-100 text-rose-800"
+                                  )}>
+                                    {/* NOTE: Updated value labels: 'Facturé Partiel' to 'Payement Partiel' and 'Non Facturé' to 'Non Payé' */}
+                                    {doc.billingStatus === 'PartiallyBilled' ? 'Payement Partiel' : 'Non Payé'}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      {/* Beautiful client-side table pagination controls aligned with dashboard aesthetic */}
+                      <TablePagination
+                        currentPage={unpaidPage}
+                        totalItems={filteredUnpaidDocs.length}
+                        pageSize={unpaidPageSize}
+                        onPageChange={setUnpaidPage}
+                        onPageSizeChange={(size) => {
+                          setUnpaidPageSize(size);
+                          setUnpaidPage(1);
+                        }}
+                      />
+                    </CardContent>
+                  </Card>
+                ) : (
+                  /* Custom empty state when documents exist but none match the payment status filter */
+                  <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-forest-200 rounded-2xl bg-sand-50/20">
+                    <Filter className="w-12 h-12 text-forest-300 mb-3" />
+                    <h3 className="text-sm font-bold text-forest-900">Aucun résultat</h3>
+                    <p className="text-xs text-forest-500 mt-1 max-w-sm">
+                      Aucun document ne correspond au statut de paiement sélectionné.
+                    </p>
+                  </div>
+                )
               ) : (
+                /* Standard empty state when there are no unpaid documents at all */
                 <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-forest-200 rounded-2xl bg-sand-50/20">
                   <CheckCircle className="w-12 h-12 text-emerald-500 mb-3 animate-pulse" />
                   <h3 className="text-sm font-bold text-forest-900">Aucun document impayé</h3>
