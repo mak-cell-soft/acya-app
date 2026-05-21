@@ -8,7 +8,7 @@ import { PublicFooter } from "@/components/shared/public-footer";
 
 export default function Home() {
   return (
-    <main className="flex-1 overflow-x-hidden min-h-screen bg-sand-50 selection:bg-forest-600/20">
+    <main className="flex-1 overflow-x-hidden min-h-screen bg-background selection:bg-corp-blue-500/20">
       <PublicNavbar />
       <HeroSection />
       <ModulesSection />
