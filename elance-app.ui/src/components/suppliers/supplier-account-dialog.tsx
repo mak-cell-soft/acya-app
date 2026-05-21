@@ -63,7 +63,13 @@ export function SupplierAccountDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] md:max-w-7xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white max-h-[90vh] flex flex-col">
+      {/* 
+        NOTE: We use 'w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-7xl' here to explicitly override 
+        the default 'sm:max-w-md' defined in the base DialogContent component (components/ui/dialog.tsx).
+        Without specifying these responsive breakpoint overrides, Tailwind specificity would keep the 
+        dialog restricted to md width even on desktop/tablet viewports.
+      */}
+      <DialogContent showCloseButton={false} className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-7xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white max-h-[90vh] flex flex-col">
         <DialogHeader className="p-8 bg-forest-900 text-white relative flex-shrink-0">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-6">

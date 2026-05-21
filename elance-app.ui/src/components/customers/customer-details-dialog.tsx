@@ -48,12 +48,14 @@ interface CustomerDetailsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   customer: Customer | null;
+  onOpenAccount?: (customer: Customer) => void;
 }
 
 export function CustomerDetailsDialog({
   isOpen,
   onClose,
-  customer
+  customer,
+  onOpenAccount
 }: CustomerDetailsDialogProps) {
   const [activeTab, setActiveTab] = useState("info");
   const [articleSearch, setArticleSearch] = useState("");
@@ -95,7 +97,13 @@ export function CustomerDetailsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="max-w-6xl h-[90vh] p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white flex flex-col">
+      {/* 
+        NOTE: We use 'w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-6xl' here to explicitly override 
+        the default 'sm:max-w-md' defined in the base DialogContent component (components/ui/dialog.tsx).
+        Without specifying these responsive breakpoint overrides, Tailwind specificity would keep the 
+        dialog restricted to md width even on desktop viewports.
+      */}
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-6xl h-[90vh] p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white flex flex-col">
         <DialogHeader className="p-8 bg-forest-900 text-white relative flex-shrink-0">
           <div className="flex items-center gap-6">
             <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-forest-800 to-forest-700 flex items-center justify-center border border-forest-600 text-emerald-400 font-heading text-2xl font-bold shadow-inner">
@@ -251,6 +259,16 @@ export function CustomerDetailsDialog({
                           <span className="text-sm font-bold text-forest-900">{(customer.maximumsalesbar ?? 0).toLocaleString()} TND</span>
                         </div>
                       </div>
+                      {/* Direct shortcut to load the account ledger statement */}
+                      {onOpenAccount && (
+                        <Button
+                          onClick={() => onOpenAccount(customer)}
+                          className="w-full mt-4 h-11 rounded-xl bg-forest-600 hover:bg-forest-800 text-white font-bold shadow-lg shadow-forest-600/20 flex items-center justify-center gap-2 transition-all"
+                        >
+                          <CreditCard className="w-4 h-4" />
+                          État de Compte
+                        </Button>
+                      )}
                     </div>
                     
                     <div className="p-6 rounded-[24px] bg-white border border-forest-50 space-y-3">

@@ -314,6 +314,20 @@ export default function CustomersPage() {
                                         <div className="text-sm font-bold text-forest-900">{item.maximumdiscount}%</div>
                                       </div>
                                     </div>
+                                    {/* Shortcut trigger to directly open customer account statement */}
+                                    <div className="pt-2">
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        onClick={(e) => { 
+                                          e.stopPropagation(); 
+                                          openAccount(item); 
+                                        }}
+                                        className="w-full text-xs font-bold border-forest-200 text-forest-600 hover:bg-forest-50 hover:text-forest-800 transition-all rounded-xl"
+                                      >
+                                        <CreditCard className="w-3.5 h-3.5 mr-2" /> État de Compte
+                                      </Button>
+                                    </div>
                                   </div>
                                   <div className="space-y-4 border-l border-forest-100 pl-8">
                                     <div className="flex items-center gap-2">
@@ -371,6 +385,10 @@ export default function CustomersPage() {
           isOpen={isDetailsOpen} 
           onClose={() => setIsDetailsOpen(false)} 
           customer={selectedCustomer}
+          onOpenAccount={(customer) => {
+            setIsDetailsOpen(false); // Close details modal to prevent overlay stacking
+            openAccount(customer);   // Open statement modal
+          }}
         />
 
         <CustomerAccountDialog 

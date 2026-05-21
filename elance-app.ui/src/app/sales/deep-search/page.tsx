@@ -16,7 +16,8 @@ import {
   Filter,
   CheckCircle,
   AlertCircle,
-  HelpCircle
+  HelpCircle,
+  CreditCard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,6 +37,7 @@ import { Customer } from '@/types/customer';
 import { Article } from '@/types/article';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const MONTHS = [
   { val: 0, label: 'Tous les mois' },
@@ -97,6 +99,18 @@ export default function DeepSearchPage() {
   // --- Data Queries ---
   const { data: allCustomers = [] } = useCustomers('Customer');
   const { data: allArticles = [] } = useArticles();
+
+  // NOTE: Helper to open the customer ledger statement modal by customer ID
+  // It retrieves the full client details from our loaded clients list and opens the ledger view.
+  const openStatementForCustomerId = (id: number) => {
+    const cust = allCustomers.find(c => c.id === id);
+    if (cust) {
+      setSelectedCustomer(cust);
+      setIsStatementOpen(true);
+    } else {
+      toast.error("Impossible de trouver les informations de ce client.");
+    }
+  };
 
   // Purchases list
   const { data: purchases = [], isLoading: isPurchasesLoading } = useCustomerPurchases(
@@ -344,6 +358,7 @@ export default function DeepSearchPage() {
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Quantité Achetée</th>
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Total Facturé HT</th>
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Documents</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -366,6 +381,18 @@ export default function DeepSearchPage() {
                           ))}
                         </div>
                       </td>
+                      <td className="px-6 py-4 text-right">
+                        {/* NOTE: Shortcut button to open the client account statement from buyers list */}
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => openStatementForCustomerId(b.customerId)}
+                          className="h-8 text-xs font-bold border-forest-200 text-forest-600 hover:bg-forest-50 hover:text-forest-800 rounded-xl"
+                          title="État de compte client"
+                        >
+                          <CreditCard className="w-3.5 h-3.5 mr-1" /> État
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -387,7 +414,7 @@ export default function DeepSearchPage() {
         </p>
       </div>
     );
-  }, [selectedArticle, isBuyersLoading, buyers, selectedPackage]);
+  }, [selectedArticle, isBuyersLoading, buyers, selectedPackage, allCustomers]);
 
   return (
     <DashboardLayout>
@@ -582,15 +609,6 @@ export default function DeepSearchPage() {
 
               {/* Purchased Items List */}
               {purchasesContent}
-
-              {/* Customer Account Statement Dialog */}
-              {selectedCustomer && (
-                <CustomerStatementCard
-                  customer={selectedCustomer}
-                  isOpen={isStatementOpen}
-                  onClose={() => setIsStatementOpen(false)}
-                />
-              )}
 
             </div>
           )}
@@ -810,6 +828,7 @@ export default function DeepSearchPage() {
                               <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Solde Restant</th>
                               {/* NOTE: Updated column header from 'Statut Facturation' to 'Statut Payment' */}
                               <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Statut Payment</th>
+                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider"></th>
                             </tr>
                           </thead>
                           <tbody>
@@ -846,6 +865,18 @@ export default function DeepSearchPage() {
                                     {/* NOTE: Updated value labels: 'Facturé Partiel' to 'Payement Partiel' and 'Non Facturé' to 'Non Payé' */}
                                     {doc.billingStatus === 'PartiallyBilled' ? 'Payement Partiel' : 'Non Payé'}
                                   </span>
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                  {/* NOTE: Shortcut button to open the client account statement from unpaid documents list */}
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => openStatementForCustomerId(doc.counterPartId)}
+                                    className="h-8 text-xs font-bold border-forest-200 text-forest-600 hover:bg-forest-50 hover:text-forest-800 rounded-xl"
+                                    title="État de compte client"
+                                  >
+                                    <CreditCard className="w-3.5 h-3.5 mr-1" /> État
+                                  </Button>
                                 </td>
                               </tr>
                             ))}
@@ -890,6 +921,15 @@ export default function DeepSearchPage() {
           )}
 
         </div>
+
+        {/* NOTE: Global Customer Account Statement Dialog accessible across all tabs */}
+        {selectedCustomer && (
+          <CustomerStatementCard
+            customer={selectedCustomer}
+            isOpen={isStatementOpen}
+            onClose={() => setIsStatementOpen(false)}
+          />
+        )}
 
       </div>
     </DashboardLayout>
