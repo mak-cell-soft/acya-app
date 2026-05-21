@@ -54,6 +54,7 @@ import { DocumentDetailDrawer } from '@/components/sales/document-detail-drawer'
 import { PaymentModal } from '@/components/sales/payment-modal';
 import { WithholdingTaxModal } from '@/components/sales/withholding-tax-modal';
 import { CustomerBatchConversionModal } from '@/components/sales/customer-batch-conversion-modal';
+import { CustomerSingleBatchConversionModal } from '@/components/sales/customer-single-batch-conversion-modal';
 import { BLToInvoiceModal } from '@/components/sales/bl-to-invoice-modal';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
@@ -107,6 +108,7 @@ export default function SalesPage() {
   const [docForPayment, setDocForPayment] = useState<any | null>(null);
   const [docForRS, setDocForRS] = useState<Document | null>(null);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [isSingleBatchModalOpen, setIsSingleBatchModalOpen] = useState(false);
   // State for the single BL → Invoice conversion modal
   const [blForConversion, setBlForConversion] = useState<Document | null>(null);
   const queryClient = useQueryClient();
@@ -232,6 +234,13 @@ export default function SalesPage() {
               className="h-11 rounded-xl border-sand-200 text-forest-900 font-bold hover:bg-sand-50"
             >
               <ArrowLeftRight className="w-4 h-4 mr-2 text-forest-800" /> Facturation Groupée
+            </Button>
+            <Button
+              onClick={() => setIsSingleBatchModalOpen(true)}
+              variant="outline"
+              className="h-11 rounded-xl border-sand-200 text-forest-900 font-bold hover:bg-sand-50"
+            >
+              <Layers className="w-4 h-4 mr-2 text-forest-800" /> Facture pour un Client
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -1066,6 +1075,15 @@ export default function SalesPage() {
       <CustomerBatchConversionModal
         isOpen={isBatchModalOpen}
         onClose={() => setIsBatchModalOpen(false)}
+        onSuccess={() => {
+          setActiveTab('invoice');
+          refetch();
+        }}
+      />
+
+      <CustomerSingleBatchConversionModal
+        isOpen={isSingleBatchModalOpen}
+        onClose={() => setIsSingleBatchModalOpen(false)}
         onSuccess={() => {
           setActiveTab('invoice');
           refetch();

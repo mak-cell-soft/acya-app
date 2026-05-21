@@ -30,7 +30,9 @@ namespace ms.webapp.api.acya.core.Entities
       Address = dto.address;
       Gouvernorate = dto.gov;
       CodePost = dto.codepost;
-      EnterpriseId = (int)dto.enterpriseid!;
+      // WHY: Frontend sends only { id } as a stub for the site reference — enterpriseid is not included.
+      // EF Core resolves the real FK from the DB when state is set to Unchanged; default 0 is safe here.
+      EnterpriseId = dto.enterpriseid.HasValue ? (int)dto.enterpriseid.Value : 0;
     }
   }
 

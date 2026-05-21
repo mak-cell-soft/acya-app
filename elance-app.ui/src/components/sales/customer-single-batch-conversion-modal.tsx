@@ -5,13 +5,13 @@ import {
   X,
   Plus,
   ArrowRight,
-  TrendingDown,
   Layers,
   Sparkles,
   Search,
   CheckSquare,
   Square,
-  DollarSign
+  Calendar,
+  Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,40 +34,66 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
-interface CustomerBatchConversionModalProps {
+// Props for the client-specific batch conversion modal
+interface CustomerSingleBatchConversionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export function CustomerBatchConversionModal({
+export function CustomerSingleBatchConversionModal({
   isOpen,
   onClose,
   onSuccess
-}: CustomerBatchConversionModalProps) {
+}: CustomerSingleBatchConversionModalProps) {
+  // Query custom React hooks to load system dependencies
   const { data: customers } = useCustomers('Customer');
   const { data: sites } = useSites();
-  // WHY: Only stamp tax is fetched from AppVariables. RS is now a free % input.
   const { data: stampTaxesData } = useAppVariables('Taxe');
+  const { data: rsTaxesData } = useAppVariables('RS');
 
-  // Selected customer
+  // Customer selection states
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
   const [customerSearchQuery, setCustomerSearchQuery] = useState<string>('');
   const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
-  const [discount, setDiscount] = useState<number>(0);
 
-  // Helper to format date in local YYYY-MM-DD format
-  const getLocalDateString = (d: Date = new Date()) => {
+  // Helper: Retrieve start date of the current month in YYYY-MM-DD
+  const getStartOfMonthString = (d: Date = new Date()) => {
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return `${year}-${month}-01`;
   };
 
-  // Selected date for Facturation Groupée
-  const [selectedDate, setSelectedDate] = useState<string>(getLocalDateString());
+  // Helper: Retrieve end date of the current month in YYYY-MM-DD
+  const getEndOfMonthString = (d: Date = new Date()) => {
+    const year = d.getFullYear();
+    const month = d.getMonth() + 1;
+    const lastDay = new Date(year, month, 0).getDate();
+    const monthStr = String(month).padStart(2, '0');
+    return `${year}-${monthStr}-${String(lastDay).padStart(2, '0')}`;
+  };
 
-  // Synchronize search input when customer is selected or changed
+  // Date range filters
+  const [startDate, setStartDate] = useState<string>(getStartOfMonthString());
+  const [endDate, setEndDate] = useState<string>(getEndOfMonthString());
+
+  // Delivery Notes states
+  const [nonInvoicedBls, setNonInvoicedBls] = useState<Document[]>([]);
+  const [loadingBls, setLoadingBls] = useState(false);
+  const [selectedBlIds, setSelectedBlIds] = useState<number[]>([]);
+
+  // Invoice parameters
+  const [selectedSiteId, setSelectedSiteId] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [stampTaxId, setStampTaxId] = useState<string>('');
+  const [rsTaxId, setRsTaxId] = useState<string>('');
+  const [submitting, setSubmitting] = useState(false);
+
+  // Filter out soft-deleted taxes from configuration
+  const stampTaxes = stampTaxesData?.filter((v) => !v.isdeleted) || [];
+  const rsTaxes = rsTaxesData?.filter((v) => !v.isdeleted) || [];
+
+  // Synchronize customer search text input when selecting a customer ID
   useEffect(() => {
     if (selectedCustomerId && customers) {
       const c = customers.find((c) => c.id.toString() === selectedCustomerId);
@@ -80,58 +106,37 @@ export function CustomerBatchConversionModal({
     }
   }, [selectedCustomerId, customers]);
 
-  // Filter customers by search query
+  // Filter customers list by matching search input query
   const filteredCustomers = (customers || []).filter((cust) => {
     const name = (cust.name || `${cust.firstname || ''} ${cust.lastname || ''}`).toLowerCase();
     const query = customerSearchQuery.toLowerCase();
     return name.includes(query);
   });
 
-  const [nonInvoicedBls, setNonInvoicedBls] = useState<Document[]>([]);
-  const [loadingBls, setLoadingBls] = useState(false);
-
-  // Selected BL checkboxes
-  const [selectedBlIds, setSelectedBlIds] = useState<number[]>([]);
-
-  // Form parameters
-  const [selectedSiteId, setSelectedSiteId] = useState<string>('');
-  const [description, setDescription] = useState<string>('');
-
-  // Tax Variables — Stamp only (RS is handled in a dedicated interface)
-  const [stampTaxId, setStampTaxId] = useState<string>('');
-  const [submitting, setSubmitting] = useState(false);
-
-  // Filter AppVariables for stamp taxes
-  const stampTaxes = stampTaxesData?.filter((v) => !v.isdeleted) || [];
-
-  // Fetch non-invoiced BLs for the selected date when it changes or modal opens
-  // NOTE: In 'Facturation Groupée', we fetch all BLs of that day across all customers.
+  // Fetch Delivery Notes (BLs) matching selected customer and date range filter
+  // NOTE: Unlike Facturation Groupée, here we strictly filter by the pre-selected customer ID.
   useEffect(() => {
-    if (isOpen && selectedDate) {
+    if (isOpen && selectedCustomerId && startDate && endDate) {
       setLoadingBls(true);
       setSelectedBlIds([]);
-      setDiscount(0); // Reset manual discount when changing date
       documentService
         .getByType(DocumentTypes.customerDeliveryNote)
         .then((data: Document[]) => {
-          // Filter BLs created on the selected date that are not yet invoiced
-          // We display BLs in any status (Created or Validated) having BillingStatus.NotBilled
           const filtered = (data || []).filter((doc: Document) => {
             if (!doc.creationdate) return false;
-            // WHY: creationdate is typed as string | Date — new Date() accepts both, so we normalize
-            // before extracting the date portion, satisfying TypeScript without a type assertion.
+            // WHY: creationdate is typed as string | Date — new Date() accepts both, normalizing before split.
             const docDateStr = new Date(doc.creationdate).toISOString().split('T')[0];
-            return (
-              docDateStr === selectedDate &&
-              doc.billingstatus === BillingStatus.NotBilled &&
-              !doc.isinvoiced &&
-              !doc.isdeleted
-            );
+            const isSameCustomer = doc.counterpart?.id?.toString() === selectedCustomerId;
+            const notInvoiced = doc.billingstatus === BillingStatus.NotBilled && !doc.isinvoiced;
+            const withinRange = docDateStr >= startDate && docDateStr <= endDate;
+            return isSameCustomer && notInvoiced && withinRange && !doc.isdeleted;
           });
+          // Sort descending (latest first) to make it easy to view
+          filtered.sort((a, b) => (b.docnumber || '').localeCompare(a.docnumber || ''));
           setNonInvoicedBls(filtered);
         })
         .catch((err) => {
-          console.error('Failed to load uninvoiced BLs for selected day:', err);
+          console.error('Failed to load client BLs:', err);
           toast.error('Erreur lors du chargement des bons de livraison.');
         })
         .finally(() => {
@@ -141,26 +146,21 @@ export function CustomerBatchConversionModal({
       setNonInvoicedBls([]);
       setSelectedBlIds([]);
     }
-  }, [isOpen, selectedDate]);
-
-  // Reset discount and other config on customer change
-  useEffect(() => {
-    setDiscount(0);
-  }, [selectedCustomerId]);
+  }, [isOpen, selectedCustomerId, startDate, endDate]);
 
   // Reset modal state on open
   useEffect(() => {
     if (isOpen) {
       setSelectedCustomerId('');
       setCustomerSearchQuery('');
-      setDiscount(0);
       setSelectedBlIds([]);
-      setSelectedDate(getLocalDateString());
+      setStartDate(getStartOfMonthString());
+      setEndDate(getEndOfMonthString());
       setDescription('');
     }
   }, [isOpen]);
 
-  // Pre-fill active site default
+  // Pre-fill active default site/depot
   useEffect(() => {
     if (sites && sites.length > 0) {
       const activeSite = sites.find((s) => s.isForsale) || sites[0];
@@ -168,22 +168,26 @@ export function CustomerBatchConversionModal({
     }
   }, [sites]);
 
-  // Pre-fill default stamp tax (0.600 DT)
+  // Pre-fill default taxes (0.600 stamp and 1.5% withholding tax)
   useEffect(() => {
     if (stampTaxes.length > 0) {
-      const defaultStamp =
-        stampTaxes.find((t) => parseFloat(t.value || '0') === 1.0 || parseFloat(t.value || '0') === 0.6) ||
-        stampTaxes[0];
+      const defaultStamp = stampTaxes.find((t) => parseFloat(t.value || '0') === 1.0 || parseFloat(t.value || '0') === 0.6) || stampTaxes[0];
       if (defaultStamp) setStampTaxId(defaultStamp.id.toString());
     }
-  }, [stampTaxesData]);
+    if (rsTaxes.length > 0) {
+      const defaultRs = rsTaxes.find((t) => parseFloat(t.value || '0') === 1.5 || parseFloat(t.value || '0') === 1.0) || rsTaxes[0];
+      if (defaultRs) setRsTaxId(defaultRs.id.toString());
+    }
+  }, [stampTaxesData, rsTaxesData]);
 
+  // Toggle selection check on a single BL
   const toggleSelectBl = (id: number) => {
     setSelectedBlIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
 
+  // Toggle select/deselect all rows
   const handleSelectAll = () => {
     if (selectedBlIds.length === nonInvoicedBls.length) {
       setSelectedBlIds([]);
@@ -192,7 +196,7 @@ export function CustomerBatchConversionModal({
     }
   };
 
-  // Compute live aggregates of selected BLs
+  // Compute live totals of selected BLs (No manual discount field allowed)
   const selectedBlObjects = nonInvoicedBls.filter((b) => selectedBlIds.includes(b.id));
   const rawHtSum = selectedBlObjects.reduce((acc, curr) => acc + (curr.total_ht_net_doc + curr.total_discount_doc || 0), 0);
   const discountSum = selectedBlObjects.reduce((acc, curr) => acc + (curr.total_discount_doc || 0), 0);
@@ -200,17 +204,15 @@ export function CustomerBatchConversionModal({
   const taxSum = selectedBlObjects.reduce((acc, curr) => acc + (curr.total_tva_doc || 0), 0);
   const baseTtcSum = selectedBlObjects.reduce((acc, curr) => acc + (curr.total_net_ttc || 0), 0);
 
-  // Apply manual discount
-  // WHY: To allow user custom overrides/discounts on grouped billing before final submission.
-  const finalNetHtSum = Math.max(0, netHtSum - discount);
-  const finalDiscountSum = discountSum + discount;
-  const finalBaseTtcSum = Math.max(0, baseTtcSum - discount);
-
   const activeStamp = stampTaxes.find((t) => t.id === parseInt(stampTaxId));
-  const stampAmount = activeStamp ? parseFloat(activeStamp.value || '0') : 0;
-  // WHY: Net payable = TTC after manual discount + stamp. RS is not applied here.
-  const finalNetPayable = Math.max(0, finalBaseTtcSum + stampAmount);
+  const activeRs = rsTaxes.find((t) => t.id === parseInt(rsTaxId));
 
+  const stampAmount = activeStamp ? parseFloat(activeStamp.value || '0') : 0;
+  const rsRate = activeRs ? parseFloat(activeRs.value || '0') : 0;
+  const computedRsAmount = netHtSum * (rsRate / 100);
+  const finalNetPayable = Math.max(0, baseTtcSum + stampAmount - computedRsAmount);
+
+  // Submit and create standard invoice via API
   const handleConvert = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCustomerId) {
@@ -228,9 +230,8 @@ export function CustomerBatchConversionModal({
       const selectedCustObj = customers?.find((c) => c.id === parseInt(selectedCustomerId));
       const selectedSiteObj = sites?.find((s) => s.id.toString() === selectedSiteId);
 
-      // Build target DocumentDto for the Invoice
-      // WHY: We computed final totals on the fly using child delivery note aggregates minus manual discount.
-      // We pass taxes, withholding tax structure, and enable the isService flag to skip line duplication.
+      // C#/API Contract: Standard invoice (isservice = false) skips client discount fields but respects stamp tax & RS.
+      // We pass the parent Invoice document containing calculated sums, and the children BL ids list.
       const invoiceDoc: any = {
         id: 0,
         type: DocumentTypes.customerInvoice,
@@ -241,56 +242,66 @@ export function CustomerBatchConversionModal({
         sales_site: selectedSiteObj ? { id: selectedSiteObj.id } : null,
         docstatus: DocStatus.Validated,
         billingstatus: BillingStatus.Billed,
-        description: description || `Facturation groupée des BLs: ${selectedBlObjects.map(b => b.docnumber).join(', ')}`,
+        description: description || `Facturation client des BLs: ${selectedBlObjects.map(b => b.docnumber).join(', ')}`,
         currencycode: 'TND',
         changerate: 1.0,
         taxeId: stampTaxId ? parseInt(stampTaxId) : null,
         taxe: activeStamp ? { id: activeStamp.id } : null,
-        // WHY: RS (Retenue à la Source) is handled in a dedicated interface — not set here.
-        holdingTaxId: null,
-        withholdingtax: false,
-        holdingtax: null,
-        isservice: true, // Set true to skip merchandise line duplication on grouped invoices.
+        holdingTaxId: rsTaxId ? parseInt(rsTaxId) : null,
+        withholdingtax: !!rsTaxId,
+        isservice: false, // Set to false for standard invoicing (Facturation pour un Client)
         updatedbyid: 1,
-        total_ht_net_doc: parseFloat(finalNetHtSum.toFixed(3)),
-        total_discount_doc: parseFloat(finalDiscountSum.toFixed(3)),
+        total_ht_net_doc: parseFloat(netHtSum.toFixed(3)),
+        total_discount_doc: parseFloat(discountSum.toFixed(3)),
         total_tva_doc: parseFloat(taxSum.toFixed(3)),
-        total_net_ttc: parseFloat((finalBaseTtcSum + stampAmount).toFixed(3)),
-        total_net_payable: parseFloat(finalNetPayable.toFixed(3)),
+        total_net_ttc: parseFloat((baseTtcSum + stampAmount).toFixed(3)), // Net TTC before RS
       };
+
+      if (rsTaxId && activeRs) {
+        invoiceDoc.holdingtax = {
+          id: 0,
+          description: activeRs.name,
+          taxpercentage: parseFloat(activeRs.value || '0'),
+          taxvalue: parseFloat(computedRsAmount.toFixed(3)),
+          newamountdocvalue: parseFloat(finalNetPayable.toFixed(3)),
+          issigned: false,
+          isdeleted: false,
+          updatedbyid: 1
+        };
+        invoiceDoc.total_net_payable = parseFloat(finalNetPayable.toFixed(3));
+      } else {
+        invoiceDoc.holdingtax = null;
+        invoiceDoc.total_net_payable = parseFloat((baseTtcSum + stampAmount).toFixed(3));
+      }
 
       const payload = {
         invoiceDoc,
         docChildrenIds: selectedBlIds
       };
 
+      // Call Backend REST API Controller: DocumentController.CreateInvoice
       await documentService.createInvoice(payload);
-      toast.success('Facture groupée générée avec succès.');
+      toast.success('Facture client générée avec succès.');
       onSuccess();
       onClose();
     } catch (err: any) {
-      console.error('Failed to create batch invoice:', err);
+      console.error('Failed to create customer batch invoice:', err);
       toast.error(err.response?.data?.message || 'Erreur lors de la génération de la facture.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  /**
-   * NOTE: Extracted the nested ternary operation from the JSX block into this independent helper method.
-   * 
-   * WHY:
-   * 1. Readability & Maintainability: Nested ternaries inside JSX code quickly become hard to read, 
-   *    indent, and debug. Separating the rendering logic clarifies the conditional flow.
-   * 2. Clean Code Standards: Satisfies modern code guidelines (e.g. ESLint no-nested-ternary)
-   *    by replacing complex conditional statements with structured early-returns.
-   * 3. Clear State Separation: Separates the three logical UI states of the BL list:
-   *    - Loading State: Shows a spinner spinner during async data fetching.
-   *    - Selection Prompt State: Prompts the user to select a customer if none is active.
-   *    - Results State: Displays a table of uninvoiced delivery notes, or a "no results" message if empty.
-   */
+  // Helper rendering the BL table or loading states
   const renderDeliveryNotesContent = () => {
-    // 1. If we are currently fetching data from the API, show a loading spinner
+    if (!selectedCustomerId) {
+      return (
+        <div className="text-center py-20 text-sand-400 italic">
+          Veuillez sélectionner un client pour afficher ses bons de livraison non-facturés.
+        </div>
+      );
+    }
+
     if (loadingBls) {
       return (
         <div className="flex flex-col items-center justify-center py-20 space-y-2">
@@ -300,33 +311,27 @@ export function CustomerBatchConversionModal({
       );
     }
 
-    // 2. If there are no uninvoiced delivery notes for the selected day, notify the user
     if (nonInvoicedBls.length === 0) {
       return (
         <div className="text-center py-20 text-sand-400">
-          Aucun bon de livraison non-facturé pour cette journée.
+          Aucun bon de livraison non-facturé pour ce client dans la période sélectionnée.
         </div>
       );
     }
 
-    // 3. Otherwise, render the list of uninvoiced delivery notes in an interactive table
     return (
       <table className="w-full text-left text-xs border-collapse">
         <thead>
           <tr className="bg-sand-50/50 border-b border-sand-200 text-sand-400 font-bold uppercase tracking-wider">
             <th className="w-12 px-4 py-3 text-center">Sélection</th>
-            <th className="px-4 py-3">Client</th>
             <th className="px-4 py-3">Document</th>
-            <th className="px-4 py-3">Date</th>
+            <th className="px-4 py-3">Date de création</th>
             <th className="px-4 py-3 text-right">Montant TTC</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-sand-100 text-sand-800">
           {nonInvoicedBls.map((bl) => {
             const isChecked = selectedBlIds.includes(bl.id);
-            const clientName = bl.counterpart 
-              ? (bl.counterpart.name || `${bl.counterpart.firstname || ''} ${bl.counterpart.lastname || ''}`.trim() || 'Client sans nom') 
-              : 'Client inconnu';
             return (
               <tr
                 key={bl.id}
@@ -346,7 +351,6 @@ export function CustomerBatchConversionModal({
                     )}
                   </button>
                 </td>
-                <td className="px-4 py-3 font-medium text-sand-700">{clientName}</td>
                 <td className="px-4 py-3 font-bold text-sand-900">{bl.docnumber}</td>
                 <td className="px-4 py-3 text-sand-500">
                   {new Date(bl.creationdate!).toLocaleDateString('fr-FR')}
@@ -371,7 +375,7 @@ export function CustomerBatchConversionModal({
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        {/* Overlay */}
+        {/* Backdrop glassmorphism overlay */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.5 }}
@@ -380,21 +384,21 @@ export function CustomerBatchConversionModal({
           className="absolute inset-0 bg-black/40 backdrop-blur-xs"
         />
 
-        {/* Modal panel */}
+        {/* Modal content container */}
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           className="relative w-full max-w-4xl bg-white rounded-[24px] shadow-2xl overflow-hidden border border-sand-100 z-10 flex flex-col max-h-[90vh]"
         >
-          {/* Header */}
+          {/* Header styling matching the primary Forest design guidelines */}
           <div className="px-6 py-5 bg-forest-950 text-white flex items-center justify-between">
             <div className="space-y-0.5">
               <span className="text-[10px] font-bold tracking-widest uppercase text-sand-400">
-                Facturation Groupée
+                Facturation pour un Client
               </span>
               <h2 className="text-xl font-serif text-sand-100">
-                Générer Facture Groupée de la Journée
+                Générer Facture Client (Regroupement)
               </h2>
             </div>
             <Button
@@ -407,26 +411,14 @@ export function CustomerBatchConversionModal({
             </Button>
           </div>
 
-          {/* Body */}
+          {/* Body structure with spatial grid layouts */}
           <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 bg-[#fcfbfa]">
-            {/* Left Column: Date, Client & BL selection (7 cols) */}
+            {/* Left Column: Customer & Date filters, Delivery Notes (7 cols) */}
             <div className="lg:col-span-7 space-y-6">
-              {/* Select Day */}
-              {/* WHY: Facturation Groupée requires selecting a day to retrieve all uninvoiced delivery notes for that date */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-sand-500 uppercase tracking-wider block">Journée de Facturation</label>
-                <Input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="h-10 rounded-xl border-sand-200 focus:ring-forest-800 bg-white text-xs font-medium text-sand-800"
-                />
-              </div>
-
-              {/* Select Customer */}
-              {/* WHY: The user chooses a customer to assign/affect to the generated service invoice */}
+              
+              {/* Customer Selector Search dropdown */}
               <div className="space-y-1.5 relative">
-                <label className="text-xs font-bold text-sand-500 uppercase tracking-wider block">Client Destinataire</label>
+                <label className="text-xs font-bold text-sand-500 uppercase tracking-wider block">Client à facturer</label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400 pointer-events-none" />
                   <Input
@@ -439,7 +431,7 @@ export function CustomerBatchConversionModal({
                       }
                     }}
                     onFocus={() => setIsCustomerDropdownOpen(true)}
-                    placeholder="Choisir ou rechercher le client à facturer..."
+                    placeholder="Rechercher et sélectionner le client..."
                     className="pl-9 pr-8 h-10 rounded-xl border-sand-200 focus:ring-forest-800 bg-white text-xs font-medium text-sand-800"
                   />
                   {(selectedCustomerId || customerSearchQuery) && (
@@ -473,9 +465,7 @@ export function CustomerBatchConversionModal({
                             type="button"
                             className={cn(
                               "w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-between",
-                              isSelected
-                                ? "bg-forest-800 text-white"
-                                : "text-sand-800 hover:bg-sand-50"
+                              isSelected ? "bg-forest-800 text-white" : "text-sand-800 hover:bg-sand-50"
                             )}
                             onClick={() => {
                               setSelectedCustomerId(cust.id.toString());
@@ -505,7 +495,29 @@ export function CustomerBatchConversionModal({
                 )}
               </div>
 
-              {/* Delivery Notes Grid */}
+              {/* Date Range selectors (Start and End dates) */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-sand-500 uppercase tracking-wider block">Date de début</label>
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="h-10 rounded-xl border-sand-200 focus:ring-forest-800 bg-white text-xs font-medium text-sand-800"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-sand-500 uppercase tracking-wider block">Date de fin</label>
+                  <Input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="h-10 rounded-xl border-sand-200 focus:ring-forest-800 bg-white text-xs font-medium text-sand-800"
+                  />
+                </div>
+              </div>
+
+              {/* Uninvoiced BL list table */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="font-serif font-bold text-base text-forest-950">Bons de livraison non-facturés</h3>
@@ -529,28 +541,20 @@ export function CustomerBatchConversionModal({
               </div>
             </div>
 
-            {/* Right Column: Invoice config & financial summary (5 cols) */}
+            {/* Right Column: Invoice properties & calculations (5 cols) */}
             <div className="lg:col-span-5 space-y-6 border-l border-sand-100 pl-6">
               <h3 className="font-serif font-bold text-base text-forest-950 border-b border-sand-100 pb-1.5">
                 Paramètres de la Facture
               </h3>
 
-              {/* Select site */}
+              {/* Sales site/depot selector */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-sand-500 uppercase tracking-wider font-sans">
+                <label className="text-xs font-bold text-sand-500 uppercase tracking-wider">
                   Dépôt de facturation
                 </label>
                 <Select value={selectedSiteId} onValueChange={(val) => setSelectedSiteId(val || '')}>
-                  {/* 
-                    NOTE: Added w-full because the base SelectTrigger component defaults to w-fit, 
-                    and we want it to fill the full width of this form column.
-                  */}
                   <SelectTrigger className="border-sand-200 rounded-xl bg-white text-xs w-full">
                     <SelectValue placeholder="Choisir le dépôt">
-                      {/* 
-                        NOTE: Displaying both the governorate (.gov) and the address (.address) 
-                        to distinguish between multiple depots located in the same governorate.
-                      */}
                       {selectedSiteId && sites ? (() => {
                         const s = sites.find((s) => s.id.toString() === selectedSiteId);
                         return s ? `${s.gov} - ${s.address}` : undefined;
@@ -560,10 +564,6 @@ export function CustomerBatchConversionModal({
                   <SelectContent>
                     {sites?.map((s) => (
                       <SelectItem key={s.id} value={s.id.toString()}>
-                        {/* 
-                          NOTE: Appending the address helps the user identify the correct 
-                          sales/billing site since some governorates host multiple depots.
-                        */}
                         {s.gov} - {s.address}
                       </SelectItem>
                     ))}
@@ -571,16 +571,12 @@ export function CustomerBatchConversionModal({
                 </Select>
               </div>
 
-              {/* Select Stamp Tax */}
+              {/* Stamp tax dropdown */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-sand-500 uppercase tracking-wider">
                   Timbre Fiscal
                 </label>
                 <Select value={stampTaxId} onValueChange={(val) => setStampTaxId(val || '')}>
-                  {/* 
-                    NOTE: Added w-full because the base SelectTrigger component defaults to w-fit, 
-                    and we want it to fill the full width of this form column.
-                  */}
                   <SelectTrigger className="border-sand-200 rounded-xl bg-white text-xs w-full">
                     <SelectValue placeholder="Aucun">
                       {stampTaxId && stampTaxes ? (() => {
@@ -599,32 +595,33 @@ export function CustomerBatchConversionModal({
                 </Select>
               </div>
 
-              {/* Remise (DT) */}
-              {/* WHY: Allow manual discount input directly affecting the final document calculations */}
+              {/* Withholding tax RS dropdown */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-sand-500 uppercase tracking-wider block font-sans">
-                  Remise (DT)
+                <label className="text-xs font-bold text-sand-500 uppercase tracking-wider">
+                  Retenue à la Source (RS)
                 </label>
-                <div className="relative font-sans">
-                  <TrendingDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400 pointer-events-none" />
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.001"
-                    value={discount || ''}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value);
-                      setDiscount(isNaN(val) ? 0 : val);
-                    }}
-                    placeholder="0.000"
-                    className="pl-9 text-right font-mono h-10 rounded-xl border-sand-200 focus:ring-forest-800 bg-white text-xs font-medium text-sand-800"
-                  />
-                </div>
+                <Select value={rsTaxId} onValueChange={(val) => setRsTaxId(val || '')}>
+                  <SelectTrigger className="border-sand-200 rounded-xl bg-white text-xs w-full">
+                    <SelectValue placeholder="Aucune">
+                      {rsTaxId && rsTaxes ? (() => {
+                        const t = rsTaxes.find((t) => t.id.toString() === rsTaxId);
+                        return t ? `${t.name} (${t.value}%)` : undefined;
+                      })() : undefined}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {rsTaxes.map((t) => (
+                      <SelectItem key={t.id} value={t.id.toString()}>
+                        {t.name} ({t.value}%)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              {/* Invoice notes */}
+              {/* Notes observations */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-sand-500 uppercase tracking-wider block font-sans">Observations</label>
+                <label className="text-xs font-bold text-sand-500 uppercase tracking-wider block">Observations</label>
                 <Input
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -633,7 +630,7 @@ export function CustomerBatchConversionModal({
                 />
               </div>
 
-              {/* Calculations board */}
+              {/* Calculations summary panel */}
               <Card className="rounded-[20px] border-sand-200 shadow-xs bg-white p-5 space-y-3 font-mono text-xs">
                 <h4 className="font-serif font-bold text-sm text-forest-950 border-b border-sand-50 pb-1.5">
                   Synthèse Financière
@@ -643,17 +640,11 @@ export function CustomerBatchConversionModal({
                     <span>Sous-total HT:</span>
                     <span>{netHtSum.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT</span>
                   </div>
-                  {discount > 0 && (
-                    <>
-                      <div className="flex justify-between text-rose-600">
-                        <span>Remise:</span>
-                        <span>-{discount.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT</span>
-                      </div>
-                      <div className="flex justify-between text-sand-800 font-bold">
-                        <span>Net HT:</span>
-                        <span>{finalNetHtSum.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT</span>
-                      </div>
-                    </>
+                  {discountSum > 0 && (
+                    <div className="flex justify-between text-rose-600">
+                      <span>Remise BLs:</span>
+                      <span>-{discountSum.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT</span>
+                    </div>
                   )}
                   <div className="flex justify-between">
                     <span>TVA Cumulative:</span>
@@ -665,11 +656,18 @@ export function CustomerBatchConversionModal({
                       <span>+{stampAmount.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT</span>
                     </div>
                   )}
+                  {computedRsAmount > 0 && (
+                    <div className="flex justify-between text-purple-800">
+                      <span>Retenue Source ({rsRate}%):</span>
+                      <span>-{computedRsAmount.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT</span>
+                    </div>
+                  )}
                   <Separator className="bg-sand-100 my-1" />
                   <div className="flex justify-between items-center text-forest-950 font-serif text-sm pt-1">
                     <span className="font-bold">Net à Payer (TTC):</span>
                     <span className="text-base font-bold font-mono text-forest-800">
-                      {finalNetPayable.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT
+                      {finalNetPayable.toLocaleString('fr-FR', { minimumFractionDigits: 3 })}
+                      {' '}DT
                     </span>
                   </div>
                 </div>
@@ -677,7 +675,7 @@ export function CustomerBatchConversionModal({
             </div>
           </div>
 
-          {/* Footer */}
+          {/* Action buttons footer */}
           <div className="px-6 py-4 bg-sand-50 border-t border-sand-100 flex items-center justify-end gap-3">
             <Button
               type="button"

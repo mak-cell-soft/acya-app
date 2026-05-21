@@ -101,8 +101,9 @@ namespace ms.webapp.api.acya.core.Entities
       Prefix = dto.prefix;
       Name = dto.name;
       Description = dto.description;
-      FirstName = Helpers.CapitalizeFirstLetter(dto.firstname);
-      LastName = dto.lastname!.ToUpper();
+      FirstName = string.IsNullOrEmpty(dto.firstname) ? null : Helpers.CapitalizeFirstLetter(dto.firstname);
+      // WHY: Company-type customers have name but no lastname — null-guard prevents NullReferenceException on batch invoice creation.
+      LastName = string.IsNullOrEmpty(dto.lastname) ? null : dto.lastname!.ToUpper();
       IdentityCardNumber = dto.identitycardnumber;
       Email = dto.email;
       //TaxRegistrationNumber = dto.taxregistrationnumber!.ToString();
