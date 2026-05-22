@@ -12,8 +12,7 @@ import {
   ShieldAlert, 
   ArrowUpRight, 
   ArrowDownRight,
-  Filter,
-  FileText,
+    FileText,
   RefreshCw,
   Building,
   User,
@@ -33,7 +32,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { DocumentTypes } from '@/types/document';
 import { useDocumentsByTypeFiltered } from '@/hooks/use-documents';
@@ -64,6 +63,7 @@ export default function AccountingDashboard() {
   React.useEffect(() => {
     const prevMonth = new Date().getMonth() - 1;
     if (prevMonth < 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedYear(new Date().getFullYear() - 1);
     }
   }, []);
@@ -81,10 +81,12 @@ export default function AccountingDashboard() {
 
   // Reset pages to 1 when period or search terms change
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAchatsPage(1);
   }, [selectedYear, selectedMonth, achatsSearch]);
 
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVentesPage(1);
   }, [selectedYear, selectedMonth, ventesSearchName, ventesSearchNumber]);
 
@@ -104,17 +106,17 @@ export default function AccountingDashboard() {
 
   // Bank Management dialog state — null means "add new", object means "editing existing"
   const [isBankFormOpen, setIsBankFormOpen] = useState(false);
-  const [selectedBank, setSelectedBank] = useState<any>(null);
+  const [selectedBank, setSelectedBank] = useState<any /* eslint-disable-line @typescript-eslint/no-explicit-any */>(null);
 
   // Confirmation state for bank deletion — holds the bank object being deleted, or null
-  const [bankToDelete, setBankToDelete] = useState<any>(null);
+  const [bankToDelete, setBankToDelete] = useState<any /* eslint-disable-line @typescript-eslint/no-explicit-any */>(null);
 
   // Fetch the full banks list (needed for the management table)
   const { data: banksList = [], isLoading: isLoadingBanksList } = useBanks();
   const deleteBankMutation = useDeleteBank();
 
   // Handler: open dialog for editing an existing bank
-  const handleEditBank = (bank: any) => {
+  const handleEditBank = (bank: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
     setSelectedBank(bank);
     setIsBankFormOpen(true);
   };
@@ -132,7 +134,7 @@ export default function AccountingDashboard() {
   };
 
   // Handler: confirm deletion of a bank
-  const handleConfirmDelete = (bank: any) => {
+  const handleConfirmDelete = (bank: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
     setBankToDelete(bank);
   };
 
@@ -147,12 +149,12 @@ export default function AccountingDashboard() {
   // Computations for Treasury
   const totalCaissesSites = useMemo(() => {
     if (!siteCaisseBalances) return 0;
-    return siteCaisseBalances.reduce((sum: number, s: any) => sum + (s.currentBalance || 0), 0);
+    return siteCaisseBalances.reduce((sum: number, s: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => sum + (s.currentBalance || 0), 0);
   }, [siteCaisseBalances]);
 
   const totalBankBalances = useMemo(() => {
     if (!bankBalances) return 0;
-    return bankBalances.reduce((sum: number, b: any) => sum + (b.currentBalance || 0), 0);
+    return bankBalances.reduce((sum: number, b: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => sum + (b.currentBalance || 0), 0);
   }, [bankBalances]);
 
   // Query both standard supplier invoices and supplier credit notes (avoirs)
@@ -200,15 +202,7 @@ export default function AccountingDashboard() {
     }
   };
 
-  // List of selectable years (from 2020 to current + 1)
-  const years = useMemo(() => {
-    const currentYear = new Date().getFullYear();
-    const list = [];
-    for (let i = 2020; i <= currentYear + 1; i++) {
-      list.push(i);
-    }
-    return list;
-  }, []);
+
 
   // Navigation Handlers
   const prevYear = () => setSelectedYear(prev => prev - 1);
@@ -291,7 +285,7 @@ export default function AccountingDashboard() {
   }, [filteredVentes]);
 
   // TVA rate calculation helper
-  const getTvaRate = (doc: any) => {
+  const getTvaRate = (doc: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
     if (!doc.total_ht_net_doc || doc.total_ht_net_doc === 0) return '—';
     const rate = (doc.total_tva_doc / doc.total_ht_net_doc) * 100;
     return Math.round(rate) + '%';
@@ -317,14 +311,14 @@ export default function AccountingDashboard() {
               <Calculator className="w-5 h-5" />
             </span>
             <span className="text-[10px] font-bold tracking-widest text-forest-800 uppercase font-mono">
-              Comptabilité &amp; Finance
+              Dashboard
             </span>
           </div>
           <h1 className="text-3xl font-serif font-extrabold text-slate-900 tracking-tight">
-            Pré-Analyse Comptable
+            Comptabilité & Finance
           </h1>
           <p className="text-sm font-medium text-slate-500 max-w-2xl leading-relaxed">
-            Consultez et validez les volumes d&apos;achats et de ventes avec calcul automatique de la TVA, du timbre fiscal et de la retenue à la source (RS).
+            Gérez votre trésorerie et analysez vos volumes d&apos;achats et de ventes avec le calcul automatique des taxes.
           </p>
         </div>
 
@@ -363,41 +357,6 @@ export default function AccountingDashboard() {
         </div>
       </div>
 
-      {/* Month Navigator */}
-      <Card className="border-slate-100 shadow-md shadow-slate-900/5 rounded-[24px] bg-white overflow-hidden border">
-        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-amber-500" />
-            <div>
-              <h2 className="text-lg font-serif font-bold text-amber-50">
-                Période active : {MONTHS[selectedMonth]} {selectedYear}
-              </h2>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-mono">
-                Analyse mensuelle de la facturation
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="px-4 py-2 bg-slate-50 overflow-x-auto flex items-center gap-1 justify-between border-t border-slate-100">
-          {MONTHS.map((month, idx) => (
-            <Button
-              key={month}
-              variant={selectedMonth === idx ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setSelectedMonth(idx)}
-              className={cn(
-                'rounded-xl h-9 px-4 font-bold text-xs transition-colors flex-1 min-w-[85px]',
-                selectedMonth === idx
-                  ? 'bg-amber-900 text-white hover:bg-amber-950 shadow-sm'
-                  : 'text-slate-500 hover:text-amber-900 hover:bg-amber-50/50'
-              )}
-            >
-              {month}
-            </Button>
-          ))}
-        </div>
-      </Card>
-
       {/* TREASURY & BANK SECTION FOR ADMINS */}
       {isAdmin && (
         <motion.section 
@@ -429,9 +388,18 @@ export default function AccountingDashboard() {
             <Card className="rounded-[24px] border-slate-150 shadow-sm bg-white p-6 space-y-4 border relative overflow-hidden group hover:shadow-md transition-all duration-300">
               <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full -mr-8 -mt-8 transition-transform duration-500 group-hover:scale-110" />
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">
-                  Caisse Principale
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">
+                    Caisse Principale
+                  </span>
+                  <button 
+                    onClick={() => refetchMainCaisse()} 
+                    className="p-1 hover:bg-slate-100 rounded-full transition-colors group cursor-pointer"
+                    title="Actualiser le solde"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition-all active:rotate-180" />
+                  </button>
+                </div>
                 <span className="p-1.5 bg-amber-50 text-amber-800 rounded-lg">
                   <Wallet className="w-4 h-4" />
                 </span>
@@ -529,7 +497,7 @@ export default function AccountingDashboard() {
                       Chargement des caisses...
                     </div>
                   ) : siteCaisseBalances.length > 0 ? (
-                    siteCaisseBalances.map((site: any) => (
+                    siteCaisseBalances.map((site: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
                       <div key={site.salesSiteId} className="p-4 flex items-center justify-between hover:bg-slate-55/50 transition-colors">
                         <div className="space-y-1">
                           <span className="text-xs font-bold text-slate-900 block">
@@ -582,7 +550,7 @@ export default function AccountingDashboard() {
                           </TableCell>
                         </TableRow>
                       ) : bankBalances.length > 0 ? (
-                        bankBalances.map((bank: any) => (
+                        bankBalances.map((bank: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
                           <TableRow key={bank.bankId} className="hover:bg-slate-55/50 transition-colors">
                             <TableCell className="font-bold text-slate-900">
                               {bank.bankName || bank.designation}
@@ -668,7 +636,7 @@ export default function AccountingDashboard() {
                           </TableCell>
                         </TableRow>
                       ) : banksList.length > 0 ? (
-                        banksList.map((bank: any) => (
+                        banksList.map((bank: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
                           <TableRow
                             key={bank.id}
                             className={cn(
@@ -784,6 +752,52 @@ export default function AccountingDashboard() {
           </motion.div>
         </motion.section>
       )}
+
+      {/* Month Navigator */}
+      <Card className="border-slate-100 shadow-md shadow-slate-900/5 rounded-[24px] bg-white overflow-hidden border">
+        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-amber-500" />
+            <div>
+              <h2 className="text-lg font-serif font-bold text-amber-50">
+                Période active : {MONTHS[selectedMonth]} {selectedYear}
+              </h2>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-mono">
+                Analyse mensuelle de la facturation
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="px-4 py-2 bg-slate-50 overflow-x-auto flex items-center gap-1 justify-between border-t border-slate-100">
+          {MONTHS.map((month, idx) => (
+            <Button
+              key={month}
+              variant={selectedMonth === idx ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setSelectedMonth(idx)}
+              className={cn(
+                'rounded-xl h-9 px-4 font-bold text-xs transition-colors flex-1 min-w-[85px]',
+                selectedMonth === idx
+                  ? 'bg-amber-900 text-white hover:bg-amber-950 shadow-sm'
+                  : 'text-slate-500 hover:text-amber-900 hover:bg-amber-50/50'
+              )}
+            >
+              {month}
+            </Button>
+          ))}
+        </div>
+      </Card>
+
+      {/* PRÉ-ANALYSE COMPTABLE SECTION */}
+      <div className="pt-8 mt-8 border-t border-slate-100 space-y-2">
+        <h2 className="text-2xl font-serif font-bold text-slate-900 flex items-center gap-2">
+          <Calculator className="w-6 h-6 text-forest-900" />
+          Pré-Analyse Comptable
+        </h2>
+        <p className="text-sm text-slate-500">
+          Analyse détaillée et consolidation des factures d&apos;achats et de ventes
+        </p>
+      </div>
 
       {/* ACHATS SECTION */}
       <section className="space-y-6">

@@ -137,6 +137,14 @@ namespace ms.webapp.api.acya.api.Controllers
             });
         }
 
+        [HttpGet("next-reference")]
+        public async Task<ActionResult<object>> GetNextReference()
+        {
+            var lastRef = await _caisseRepository.GetLastReferenceAsync();
+            var nextRef = ms.webapp.api.acya.common.Helpers.GenerateDailyDocNumber("REF", lastRef);
+            return Ok(new { reference = nextRef });
+        }
+
         [HttpGet("movements/{siteId}")]
         public async Task<ActionResult<IEnumerable<CaisseMovementDto>>> GetMovements(
             int siteId,

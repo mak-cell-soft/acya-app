@@ -61,6 +61,7 @@ export default function AnalyticsPage() {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
   }, []);
 
@@ -132,12 +133,12 @@ export default function AnalyticsPage() {
           <Card className="lg:col-span-8 border-forest-100 rounded-[32px] shadow-xl shadow-forest-900/[0.02] bg-white overflow-hidden">
             <CardHeader className="p-8">
               <CardTitle className="font-heading text-2xl text-forest-900">Évolution Revenue & Marge</CardTitle>
-              <CardDescription className="text-sand-400 font-medium">Comparaison mensuelle du chiffre d'affaires et de la rentabilité brute.</CardDescription>
+              <CardDescription className="text-sand-400 font-medium">Comparaison mensuelle du chiffre d&apos;affaires et de la rentabilité brute.</CardDescription>
             </CardHeader>
             <CardContent className="p-8 pt-0">
               <div className="h-[400px] w-full relative min-h-0">
                 {isMounted ? (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                     <AreaChart data={REVENUE_DATA}>
                       <defs>
                         <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
@@ -171,7 +172,7 @@ export default function AnalyticsPage() {
             <CardContent className="p-8 pt-0">
               <div className="h-[320px] w-full relative min-h-0">
                 {isMounted ? (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                     <PieChart>
                       <Pie
                         data={SALES_BY_CATEGORY}

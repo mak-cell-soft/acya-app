@@ -18,6 +18,7 @@ import { useDocumentsByType } from '@/hooks/use-documents';
 import { DocumentTypes } from '@/types/document';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { caisseService } from '@/services/treasury/caisse.service';
 
 // UI components from shadcn library
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -82,7 +83,8 @@ import {
   Clock,
   User,
   FileText,
-  Truck
+  Truck,
+  RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -249,6 +251,14 @@ export function DashboardContent() {
       .split('_')
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
       .join(' ');
+  };
+
+  const MOVEMENT_REASONS: Record<string, string> = {
+    SOLDE_INITIAL: 'Solde Initial',
+    APPROVISIONNEMENT: 'Approvisionnement',
+    AUTRE: 'Autre Entrée',
+    REMISE_CENTRALE: 'Remise à la Caisse Principale',
+    DEPENSE_DIVERS: 'Dépense Divers'
   };
 
   // ── CAISSE MOVEMENT ACTIONS ──
@@ -727,7 +737,7 @@ export function DashboardContent() {
             </CardHeader>
             <CardContent className="p-6 pt-0">
               <div className="h-[220px] w-full flex items-center justify-center relative">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                   <PieChart>
                     <Pie
                       data={[
@@ -767,7 +777,7 @@ export function DashboardContent() {
             </CardHeader>
             <CardContent className="p-6 pt-0">
               <div className="h-[220px] w-full flex items-center justify-center relative">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                   <PieChart>
                     <Pie
                       data={[
@@ -811,7 +821,7 @@ export function DashboardContent() {
             </CardHeader>
             <CardContent className="p-6 pt-0">
               <div className="h-[220px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                   <BarChart data={salesChartData}>
                     <XAxis 
                       dataKey="name" 
@@ -906,7 +916,9 @@ export function DashboardContent() {
               <Label htmlFor="reason" className="text-xs font-bold text-forest-900 uppercase tracking-wider">Motif</Label>
               <Select value={movementReason} onValueChange={(val: string | null) => setMovementReason(val as string)}>
                 <SelectTrigger className="h-11 w-full rounded-xl border-forest-100">
-                  <SelectValue placeholder="Sélectionner le motif" />
+                  <SelectValue placeholder="Sélectionner le motif">
+                    {movementReason ? (MOVEMENT_REASONS[movementReason] || formatReason(movementReason)) : "Sélectionner le motif"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-forest-100">
                   {movementModalType === 'ENTREE' ? (
@@ -927,14 +939,32 @@ export function DashboardContent() {
 
             <div className="space-y-2">
               <Label htmlFor="reference" className="text-xs font-bold text-forest-900 uppercase tracking-wider">Référence / Pièce</Label>
-              <Input
-                id="reference"
-                type="text"
-                placeholder="Ex: REF-001"
-                value={movementReference}
-                onChange={(e) => setMovementReference(e.target.value)}
-                className="h-11 rounded-xl border-forest-100 focus:ring-forest-600"
-              />
+              <div className="relative">
+                <Input
+                  id="reference"
+                  type="text"
+                  placeholder="Ex: REF-240522-001"
+                  value={movementReference}
+                  onChange={(e) => setMovementReference(e.target.value)}
+                  className="h-11 rounded-xl border-forest-100 focus:ring-forest-600 pr-12"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1.5 h-8 w-8 text-sand-400 hover:text-forest-600 hover:bg-forest-50"
+                  onClick={async () => {
+                    try {
+                      const res = await caisseService.getNextReference();
+                      setMovementReference(res.reference);
+                    } catch (err) {
+                      console.error('Error fetching reference', err);
+                    }
+                  }}
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2">

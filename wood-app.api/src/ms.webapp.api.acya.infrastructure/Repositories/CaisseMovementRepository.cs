@@ -62,6 +62,18 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<string?> GetLastReferenceAsync()
+        {
+            var today = DateTime.Today;
+            var tomorrow = today.AddDays(1);
+            var lastMovement = await context.CaisseMovements
+                .Where(m => !m.IsDeleted && m.Reference != null && m.Reference.StartsWith("REF-") && m.MovementDate >= today && m.MovementDate < tomorrow)
+                .OrderByDescending(m => m.Id)
+                .FirstOrDefaultAsync();
+
+            return lastMovement?.Reference;
+        }
+
         /// <summary>
         /// Total des paiements ESPECE/CASH reçus aujourd'hui pour un site donné.
         /// Source de vérité : table tbl_payments filtrée par SalesSiteId et date du jour.

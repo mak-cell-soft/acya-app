@@ -79,6 +79,33 @@ namespace ms.webapp.api.acya.common
       return $"{prefix}-{yearSuffix}-{newIncrement.ToString(incrementFormat)}"; // Example: SO-25-001, etc.
     }
 
+    public static string GenerateDailyDocNumber(string prefix, string? lastDocNumber, int incrementLength = 3)
+    {
+      string dateSuffix = DateTime.Now.ToString("yyMMdd"); 
+      int newIncrement = 1;
+
+      if (!string.IsNullOrEmpty(lastDocNumber))
+      {
+        var parts = lastDocNumber.Split('-');
+        if (parts.Length >= 3)
+        {
+            string lastDateSuffix = parts[parts.Length - 2];
+            string lastNumericPart = parts[parts.Length - 1];
+
+            if (lastDateSuffix == dateSuffix)
+            {
+                if (int.TryParse(lastNumericPart, out int lastIncrement))
+                {
+                    newIncrement = lastIncrement + 1;
+                }
+            }
+        }
+      }
+
+      string incrementFormat = $"D{incrementLength}";
+      return $"{prefix}-{dateSuffix}-{newIncrement.ToString(incrementFormat)}";
+    }
+
     /**
      * Get Transaction : switch the type of the Document
      * return if Add or Retrieve

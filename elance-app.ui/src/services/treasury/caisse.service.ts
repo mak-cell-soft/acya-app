@@ -38,5 +38,10 @@ export const caisseService = {
   deleteMovement: async (id: number) => {
     const response = await api.delete(`/Caisse/movement/${id}`);
     return response.data;
+  },
+
+  getNextReference: async () => {
+    const response = await api.get('/Caisse/next-reference');
+    return response.data;
   }
 };
