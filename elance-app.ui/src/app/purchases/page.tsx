@@ -123,6 +123,7 @@ export default function PurchasesPage() {
   const [selectedDocIdForDetail, setSelectedDocIdForDetail] = useState<number | null>(null);
   const [docForRS, setDocForRS] = useState<Document | null>(null);
   const [invoiceForCreditNote, setInvoiceForCreditNote] = useState<Document | null>(null);
+  const [isCreditNoteModalOpen, setIsCreditNoteModalOpen] = useState(false);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
 
   // Resolves total days count in selected month to validate daily filters
@@ -385,6 +386,9 @@ export default function PurchasesPage() {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/purchases/invoice/new')} className="font-bold text-slate-800 gap-2 cursor-pointer">
                   <FileText className="w-4 h-4 text-amber-700" /> Facture Fournisseur
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { setInvoiceForCreditNote(null); setIsCreditNoteModalOpen(true); }} className="font-bold text-slate-800 gap-2 cursor-pointer">
+                  <RotateCcw className="w-4 h-4 text-amber-700" /> Avoir Fournisseur
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -945,7 +949,10 @@ export default function PurchasesPage() {
                                       {/* Invoice credit note generation trigger */}
                                       {activeTab === 'invoice' && (
                                         <DropdownMenuItem
-                                          onClick={() => setInvoiceForCreditNote(item)}
+                                          onClick={() => {
+                                            setInvoiceForCreditNote(item);
+                                            setIsCreditNoteModalOpen(true);
+                                          }}
                                           className="gap-2 font-bold text-slate-800 cursor-pointer"
                                         >
                                           <RotateCcw className="w-4 h-4 text-amber-700" /> Générer Avoir
@@ -1144,8 +1151,11 @@ export default function PurchasesPage() {
 
       {/* Credit Note creation Modal Dialog */}
       <SupplierCreditNoteModal
-        isOpen={invoiceForCreditNote !== null}
-        onClose={() => setInvoiceForCreditNote(null)}
+        isOpen={isCreditNoteModalOpen}
+        onClose={() => {
+          setIsCreditNoteModalOpen(false);
+          setInvoiceForCreditNote(null);
+        }}
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ['documents'] });
           refetch();

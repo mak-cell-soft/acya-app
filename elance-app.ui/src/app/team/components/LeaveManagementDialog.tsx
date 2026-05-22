@@ -113,9 +113,19 @@ export function LeaveManagementDialog({ isOpen, onClose, employee }: LeaveManage
   };
 
   const handleStatusChange = (id: number, newStatus: string) => {
+    // NOTE: Find the existing leave object to send a full payload.
+    // The backend uses a mapping function (UpdateFromDto) which unconditionally updates all mapped fields.
+    // Sending a partial payload would cause other fields to be set to default values (0, default dates, etc.)
+    // or trigger primary key mutation/validation errors in Entity Framework.
+    const leave = leaves.find(l => l.id === id);
+    if (!leave) return;
+
     updateLeave.mutate({
       id,
-      data: { status: newStatus }
+      data: { 
+        ...leave,
+        status: newStatus 
+      }
     });
   };
 

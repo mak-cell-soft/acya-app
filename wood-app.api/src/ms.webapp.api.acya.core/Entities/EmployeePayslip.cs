@@ -29,7 +29,8 @@ namespace ms.webapp.api.acya.core.Entities
 
     public void UpdateFromDto(EmployeePayslipDto dto)
     {
-      Id = dto.id;
+      // NOTE: We do not reassign the primary key Id from the DTO. In EF Core, primary keys of tracked 
+      // entities are immutable. Mutating them causes a key mutation exception (HTTP 500).
       EmployeeId = dto.employeeid;
       PeriodMonth = dto.periodmonth;
       PeriodYear = dto.periodyear;
@@ -41,7 +42,9 @@ namespace ms.webapp.api.acya.core.Entities
       Bonuses = dto.bonuses;
       Deductions = dto.deductions;
       NetSalary = dto.netsalary;
-      GeneratedAt = dto.generatedat ?? DateTime.UtcNow;
+      // NOTE: Preserve the existing GeneratedAt timestamp if it is already set (which is true on updates).
+      // If we are creating a new entity, fall back to the DTO's value or DateTime.UtcNow.
+      GeneratedAt = GeneratedAt ?? dto.generatedat ?? DateTime.UtcNow;
     }
   }
 }

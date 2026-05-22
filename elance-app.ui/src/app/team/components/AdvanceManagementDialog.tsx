@@ -91,9 +91,19 @@ export function AdvanceManagementDialog({ isOpen, onClose, employee }: AdvanceMa
   };
 
   const handleStatusChange = (id: number, newStatus: string) => {
+    // NOTE: Find the existing advance object to send a full payload.
+    // The backend uses a mapping function (UpdateFromDto) which unconditionally updates all mapped fields.
+    // Sending a partial payload would cause other fields to be set to default values (0, default dates, etc.)
+    // or trigger primary key mutation/validation errors in Entity Framework.
+    const advance = advances.find(a => a.id === id);
+    if (!advance) return;
+
     updateAdvance.mutate({
       id,
-      data: { status: newStatus }
+      data: { 
+        ...advance,
+        status: newStatus 
+      }
     });
   };
 
@@ -105,9 +115,12 @@ export function AdvanceManagementDialog({ isOpen, onClose, employee }: AdvanceMa
     const finalRepaid = Math.min(totalRepaid, advance.amount);
     const newStatus = finalRepaid >= advance.amount ? 'Repaid' : 'Approved';
 
+    // NOTE: Spread the entire existing `advance` object into the payload.
+    // The backend expects all fields on update; partial payloads lead to unwanted resets of missing fields.
     updateAdvance.mutate({
       id: advance.id,
       data: {
+        ...advance,
         amountrepaid: finalRepaid,
         status: newStatus
       }

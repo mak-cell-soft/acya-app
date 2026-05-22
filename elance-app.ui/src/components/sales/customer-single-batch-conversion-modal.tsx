@@ -50,7 +50,8 @@ export function CustomerSingleBatchConversionModal({
   const { data: customers } = useCustomers('Customer');
   const { data: sites } = useSites();
   const { data: stampTaxesData } = useAppVariables('Taxe');
-  const { data: rsTaxesData } = useAppVariables('RS');
+  // NOTE: Retenue à la Source (RS) was removed per user request as it is not needed for single-client batch invoicing.
+  // We no longer query or use rsTaxesData in this component.
 
   // Customer selection states
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
@@ -86,12 +87,12 @@ export function CustomerSingleBatchConversionModal({
   const [selectedSiteId, setSelectedSiteId] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [stampTaxId, setStampTaxId] = useState<string>('');
-  const [rsTaxId, setRsTaxId] = useState<string>('');
+  // NOTE: rsTaxId state is removed as RS selection is no longer required.
   const [submitting, setSubmitting] = useState(false);
 
   // Filter out soft-deleted taxes from configuration
   const stampTaxes = stampTaxesData?.filter((v) => !v.isdeleted) || [];
-  const rsTaxes = rsTaxesData?.filter((v) => !v.isdeleted) || [];
+  // NOTE: rsTaxes configuration is removed as Retenue à la Source is no longer selected.
 
   // Synchronize customer search text input when selecting a customer ID
   useEffect(() => {
@@ -168,17 +169,14 @@ export function CustomerSingleBatchConversionModal({
     }
   }, [sites]);
 
-  // Pre-fill default taxes (0.600 stamp and 1.5% withholding tax)
+  // Pre-fill default taxes (0.600 stamp)
+  // WHY: Retenue à la Source (RS) logic is removed per requirements; we only pre-fill stamp taxes.
   useEffect(() => {
     if (stampTaxes.length > 0) {
       const defaultStamp = stampTaxes.find((t) => parseFloat(t.value || '0') === 1.0 || parseFloat(t.value || '0') === 0.6) || stampTaxes[0];
       if (defaultStamp) setStampTaxId(defaultStamp.id.toString());
     }
-    if (rsTaxes.length > 0) {
-      const defaultRs = rsTaxes.find((t) => parseFloat(t.value || '0') === 1.5 || parseFloat(t.value || '0') === 1.0) || rsTaxes[0];
-      if (defaultRs) setRsTaxId(defaultRs.id.toString());
-    }
-  }, [stampTaxesData, rsTaxesData]);
+  }, [stampTaxesData]);
 
   // Toggle selection check on a single BL
   const toggleSelectBl = (id: number) => {
@@ -205,12 +203,10 @@ export function CustomerSingleBatchConversionModal({
   const baseTtcSum = selectedBlObjects.reduce((acc, curr) => acc + (curr.total_net_ttc || 0), 0);
 
   const activeStamp = stampTaxes.find((t) => t.id === parseInt(stampTaxId));
-  const activeRs = rsTaxes.find((t) => t.id === parseInt(rsTaxId));
 
   const stampAmount = activeStamp ? parseFloat(activeStamp.value || '0') : 0;
-  const rsRate = activeRs ? parseFloat(activeRs.value || '0') : 0;
-  const computedRsAmount = netHtSum * (rsRate / 100);
-  const finalNetPayable = Math.max(0, baseTtcSum + stampAmount - computedRsAmount);
+  // WHY: RS is removed from client batch conversion. Net payable calculation is simplified to TTC + stamp.
+  const finalNetPayable = Math.max(0, baseTtcSum + stampAmount);
 
   // Submit and create standard invoice via API
   const handleConvert = async (e: React.FormEvent) => {
@@ -247,31 +243,17 @@ export function CustomerSingleBatchConversionModal({
         changerate: 1.0,
         taxeId: stampTaxId ? parseInt(stampTaxId) : null,
         taxe: activeStamp ? { id: activeStamp.id } : null,
-        holdingTaxId: rsTaxId ? parseInt(rsTaxId) : null,
-        withholdingtax: !!rsTaxId,
+        // Flag C#/API contract assumptions: The API accepts null holdingTaxId and withholdingtax=false for no withholding tax.
+        holdingTaxId: null,
+        withholdingtax: false,
+        holdingtax: null,
         isservice: false, // Set to false for standard invoicing (Facturation pour un Client)
         updatedbyid: 1,
         total_ht_net_doc: parseFloat(netHtSum.toFixed(3)),
         total_discount_doc: parseFloat(discountSum.toFixed(3)),
         total_tva_doc: parseFloat(taxSum.toFixed(3)),
-        total_net_ttc: parseFloat((baseTtcSum + stampAmount).toFixed(3)), // Net TTC before RS
-      };
-
-      if (rsTaxId && activeRs) {
-        invoiceDoc.holdingtax = {
-          id: 0,
-          description: activeRs.name,
-          taxpercentage: parseFloat(activeRs.value || '0'),
-          taxvalue: parseFloat(computedRsAmount.toFixed(3)),
-          newamountdocvalue: parseFloat(finalNetPayable.toFixed(3)),
-          issigned: false,
-          isdeleted: false,
-          updatedbyid: 1
-        };
-        invoiceDoc.total_net_payable = parseFloat(finalNetPayable.toFixed(3));
-      } else {
-        invoiceDoc.holdingtax = null;
-        invoiceDoc.total_net_payable = parseFloat((baseTtcSum + stampAmount).toFixed(3));
+        total_net_ttc: parseFloat((baseTtcSum + stampAmount).toFixed(3)), // Net TTC
+        total_net_payable: parseFloat(finalNetPayable.toFixed(3)),
       }
 
       const payload = {
@@ -595,29 +577,7 @@ export function CustomerSingleBatchConversionModal({
                 </Select>
               </div>
 
-              {/* Withholding tax RS dropdown */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-sand-500 uppercase tracking-wider">
-                  Retenue à la Source (RS)
-                </label>
-                <Select value={rsTaxId} onValueChange={(val) => setRsTaxId(val || '')}>
-                  <SelectTrigger className="border-sand-200 rounded-xl bg-white text-xs w-full">
-                    <SelectValue placeholder="Aucune">
-                      {rsTaxId && rsTaxes ? (() => {
-                        const t = rsTaxes.find((t) => t.id.toString() === rsTaxId);
-                        return t ? `${t.name} (${t.value}%)` : undefined;
-                      })() : undefined}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {rsTaxes.map((t) => (
-                      <SelectItem key={t.id} value={t.id.toString()}>
-                        {t.name} ({t.value}%)
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* NOTE: Withholding tax RS dropdown has been removed per requirements. */}
 
               {/* Notes observations */}
               <div className="space-y-1.5">
@@ -656,12 +616,7 @@ export function CustomerSingleBatchConversionModal({
                       <span>+{stampAmount.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT</span>
                     </div>
                   )}
-                  {computedRsAmount > 0 && (
-                    <div className="flex justify-between text-purple-800">
-                      <span>Retenue Source ({rsRate}%):</span>
-                      <span>-{computedRsAmount.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT</span>
-                    </div>
-                  )}
+                  {/* NOTE: Retenue Source calculation line was removed here since RS option was removed. */}
                   <Separator className="bg-sand-100 my-1" />
                   <div className="flex justify-between items-center text-forest-950 font-serif text-sm pt-1">
                     <span className="font-bold">Net à Payer (TTC):</span>

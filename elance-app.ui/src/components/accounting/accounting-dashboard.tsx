@@ -29,6 +29,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { DocumentTypes } from '@/types/document';
 import { useDocumentsByTypeFiltered } from '@/hooks/use-documents';
+import { TablePagination } from '@/components/shared/table-pagination';
 
 // Constant months list
 const MONTHS = [
@@ -58,13 +59,40 @@ export default function AccountingDashboard() {
   const [ventesSearchName, setVentesSearchName] = useState('');
   const [ventesSearchNumber, setVentesSearchNumber] = useState('');
 
+  // Pagination States
+  const [achatsPage, setAchatsPage] = useState(1);
+  const [achatsPageSize, setAchatsPageSize] = useState(10);
+  const [ventesPage, setVentesPage] = useState(1);
+  const [ventesPageSize, setVentesPageSize] = useState(10);
+
+  // Reset pages to 1 when period or search terms change
+  React.useEffect(() => {
+    setAchatsPage(1);
+  }, [selectedYear, selectedMonth, achatsSearch]);
+
+  React.useEffect(() => {
+    setVentesPage(1);
+  }, [selectedYear, selectedMonth, ventesSearchName, ventesSearchNumber]);
+
   // Fetch data using React Query hooks
+  // Query both standard supplier invoices and supplier credit notes (avoirs)
   const { 
     data: achatsDocs = [], 
     isLoading: isLoadingAchats, 
     refetch: refetchAchats 
   } = useDocumentsByTypeFiltered({
     typeDoc: DocumentTypes.supplierInvoice,
+    month: selectedMonth + 1,
+    year: selectedYear,
+    day: 0
+  });
+
+  const { 
+    data: avoirsDocs = [], 
+    isLoading: isLoadingAvoirs, 
+    refetch: refetchAvoirs 
+  } = useDocumentsByTypeFiltered({
+    typeDoc: DocumentTypes.supplierInvoiceReturn,
     month: selectedMonth + 1,
     year: selectedYear,
     day: 0
@@ -83,6 +111,7 @@ export default function AccountingDashboard() {
 
   const refreshAll = () => {
     refetchAchats();
+    refetchAvoirs();
     refetchVentes();
   };
 
@@ -101,15 +130,25 @@ export default function AccountingDashboard() {
   const nextYear = () => setSelectedYear(prev => prev + 1);
 
   // Client-side filtering logic for Achats
+  // Combines both standard supplier invoices and credit notes, then sorts by creationdate descending
   const filteredAchats = useMemo(() => {
-    return achatsDocs.filter(doc => {
+    const combined = [...achatsDocs, ...avoirsDocs];
+    const sorted = combined.sort((a, b) => new Date(b.creationdate).getTime() - new Date(a.creationdate).getTime());
+
+    return sorted.filter(doc => {
       const term = achatsSearch.toLowerCase();
       const counterpartName = doc.counterpart?.name?.toLowerCase() || '';
       const docNum = doc.docnumber?.toLowerCase() || '';
       const ref = doc.supplierReference?.toLowerCase() || '';
       return counterpartName.includes(term) || docNum.includes(term) || ref.includes(term);
     });
-  }, [achatsDocs, achatsSearch]);
+  }, [achatsDocs, avoirsDocs, achatsSearch]);
+
+  // Slice pagination for Achats
+  const paginatedAchats = useMemo(() => {
+    const startIndex = (achatsPage - 1) * achatsPageSize;
+    return filteredAchats.slice(startIndex, startIndex + achatsPageSize);
+  }, [filteredAchats, achatsPage, achatsPageSize]);
 
   // Client-side filtering logic for Ventes
   const filteredVentes = useMemo(() => {
@@ -131,14 +170,24 @@ export default function AccountingDashboard() {
     });
   }, [ventesDocs, ventesSearchName, ventesSearchNumber]);
 
+  // Slice pagination for Ventes
+  const paginatedVentes = useMemo(() => {
+    const startIndex = (ventesPage - 1) * ventesPageSize;
+    return filteredVentes.slice(startIndex, startIndex + ventesPageSize);
+  }, [filteredVentes, ventesPage, ventesPageSize]);
+
   // Totals calculations using useMemo
+  // Substracts credit notes (DocumentTypes.supplierInvoiceReturn) from purchase aggregates
   const achatsTotals = useMemo(() => {
     return filteredAchats.reduce((acc, doc) => {
-      acc.ht += doc.total_ht_net_doc || 0;
-      acc.tva += doc.total_tva_doc || 0;
-      acc.tax += parseFloat(doc.taxe?.value || '0');
-      acc.rs += doc.holdingtax?.taxvalue || 0;
-      acc.ttc += doc.total_net_ttc || 0;
+      const isCreditNote = doc.type === DocumentTypes.supplierInvoiceReturn;
+      const multiplier = isCreditNote ? -1 : 1;
+
+      acc.ht += (doc.total_ht_net_doc || 0) * multiplier;
+      acc.tva += (doc.total_tva_doc || 0) * multiplier;
+      acc.tax += parseFloat(doc.taxe?.value || '0') * multiplier;
+      acc.rs += (doc.holdingtax?.taxvalue || 0) * multiplier;
+      acc.ttc += (doc.total_net_ttc || 0) * multiplier;
       acc.count++;
       return acc;
     }, { ht: 0, tva: 0, tax: 0, rs: 0, ttc: 0, count: 0 });
@@ -370,34 +419,65 @@ export default function AccountingDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody className="text-slate-700 font-medium text-xs">
-                  {isLoadingAchats ? (
+                  {isLoadingAchats || isLoadingAvoirs ? (
                     <TableRow>
                       <TableCell colSpan={8} className="py-12 text-center text-slate-400 italic">
-                        Chargement des factures d&apos;achat...
+                        Chargement des documents d&apos;achat...
                       </TableCell>
                     </TableRow>
                   ) : filteredAchats.length > 0 ? (
-                    filteredAchats.map((doc) => (
-                      <TableRow key={doc.id} className="hover:bg-slate-50/50 transition-colors">
-                        <TableCell className="font-mono">{formatDate(doc.creationdate)}</TableCell>
-                        <TableCell className="font-bold text-slate-900">{doc.counterpart?.name || '—'}</TableCell>
-                        <TableCell className="font-mono text-slate-500">{doc.supplierReference || '—'}</TableCell>
-                        <TableCell className="text-right font-mono">{formatCurrency(doc.total_ht_net_doc || 0)}</TableCell>
-                        <TableCell className="text-right font-mono text-slate-650">{formatCurrency(doc.total_tva_doc || 0)}</TableCell>
-                        <TableCell className="text-right font-mono text-slate-500">{formatCurrency(parseFloat(doc.taxe?.value || '0'))}</TableCell>
-                        <TableCell className="text-right font-mono text-rose-600">{formatCurrency(doc.holdingtax?.taxvalue || 0)}</TableCell>
-                        <TableCell className="text-right font-mono font-bold text-slate-900">{formatCurrency(doc.total_net_ttc || 0)}</TableCell>
-                      </TableRow>
-                    ))
+                    paginatedAchats.map((doc) => {
+                      const isCreditNote = doc.type === DocumentTypes.supplierInvoiceReturn;
+                      return (
+                        <TableRow key={doc.id} className={cn("hover:bg-slate-50/50 transition-colors", isCreditNote && "bg-rose-50/20")}>
+                          <TableCell className="font-mono">{formatDate(doc.creationdate)}</TableCell>
+                          <TableCell className="font-bold text-slate-900">
+                            <div className="flex items-center gap-2">
+                              <span>{doc.counterpart?.name || '—'}</span>
+                              {isCreditNote && (
+                                <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 text-[10px] py-0 px-1.5 font-bold font-mono">
+                                  Avoir
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono text-slate-500">{doc.supplierReference || '—'}</TableCell>
+                          <TableCell className={cn("text-right font-mono", isCreditNote && "text-rose-600")}>
+                            {isCreditNote ? '-' : ''}{formatCurrency(doc.total_ht_net_doc || 0)}
+                          </TableCell>
+                          <TableCell className={cn("text-right font-mono", isCreditNote ? "text-rose-600" : "text-slate-650")}>
+                            {isCreditNote ? '-' : ''}{formatCurrency(doc.total_tva_doc || 0)}
+                          </TableCell>
+                          <TableCell className={cn("text-right font-mono", isCreditNote ? "text-rose-600" : "text-slate-500")}>
+                            {isCreditNote ? '-' : ''}{formatCurrency(parseFloat(doc.taxe?.value || '0'))}
+                          </TableCell>
+                          <TableCell className={cn("text-right font-mono", isCreditNote ? "text-rose-600" : "text-rose-600")}>
+                            {isCreditNote ? '-' : ''}{formatCurrency(doc.holdingtax?.taxvalue || 0)}
+                          </TableCell>
+                          <TableCell className={cn("text-right font-mono font-bold", isCreditNote ? "text-rose-700" : "text-slate-900")}>
+                            {isCreditNote ? '-' : ''}{formatCurrency(doc.total_net_ttc || 0)}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   ) : (
                     <TableRow>
                       <TableCell colSpan={8} className="py-12 text-center text-slate-400 italic">
-                        Aucune facture d&apos;achat trouvée pour cette période.
+                        Aucun document d&apos;achat trouvé pour cette période.
                       </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
               </Table>
+            </div>
+            <div className="border-t border-slate-100 px-6">
+              <TablePagination
+                currentPage={achatsPage}
+                totalItems={filteredAchats.length}
+                pageSize={achatsPageSize}
+                onPageChange={setAchatsPage}
+                onPageSizeChange={setAchatsPageSize}
+              />
             </div>
           </CardContent>
         </Card>
@@ -528,7 +608,7 @@ export default function AccountingDashboard() {
                       </TableCell>
                     </TableRow>
                   ) : filteredVentes.length > 0 ? (
-                    filteredVentes.map((doc) => (
+                    paginatedVentes.map((doc) => (
                       <TableRow key={doc.id} className="hover:bg-slate-50/50 transition-colors">
                         <TableCell className="font-mono">{formatDate(doc.creationdate)}</TableCell>
                         <TableCell className="font-bold text-slate-900">
@@ -552,6 +632,15 @@ export default function AccountingDashboard() {
                   )}
                 </TableBody>
               </Table>
+            </div>
+            <div className="border-t border-slate-100 px-6">
+              <TablePagination
+                currentPage={ventesPage}
+                totalItems={filteredVentes.length}
+                pageSize={ventesPageSize}
+                onPageChange={setVentesPage}
+                onPageSizeChange={setVentesPageSize}
+              />
             </div>
           </CardContent>
         </Card>

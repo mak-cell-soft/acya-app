@@ -54,7 +54,9 @@ export function CustomerBatchConversionModal({
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
   const [customerSearchQuery, setCustomerSearchQuery] = useState<string>('');
   const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
-  const [discount, setDiscount] = useState<number>(0);
+  // WHY: Manual discount is now input as a percentage with an option to round the Net à Payer (TTC) amount.
+  const [discountPercent, setDiscountPercent] = useState<number>(0);
+  const [isRounded, setIsRounded] = useState<boolean>(false);
 
   // Helper to format date in local YYYY-MM-DD format
   const getLocalDateString = (d: Date = new Date()) => {
@@ -110,7 +112,9 @@ export function CustomerBatchConversionModal({
     if (isOpen && selectedDate) {
       setLoadingBls(true);
       setSelectedBlIds([]);
-      setDiscount(0); // Reset manual discount when changing date
+      // Reset manual discount and rounding option when changing date
+      setDiscountPercent(0);
+      setIsRounded(false);
       documentService
         .getByType(DocumentTypes.customerDeliveryNote)
         .then((data: Document[]) => {
@@ -145,7 +149,8 @@ export function CustomerBatchConversionModal({
 
   // Reset discount and other config on customer change
   useEffect(() => {
-    setDiscount(0);
+    setDiscountPercent(0);
+    setIsRounded(false);
   }, [selectedCustomerId]);
 
   // Reset modal state on open
@@ -153,7 +158,8 @@ export function CustomerBatchConversionModal({
     if (isOpen) {
       setSelectedCustomerId('');
       setCustomerSearchQuery('');
-      setDiscount(0);
+      setDiscountPercent(0);
+      setIsRounded(false);
       setSelectedBlIds([]);
       setSelectedDate(getLocalDateString());
       setDescription('');
@@ -200,16 +206,21 @@ export function CustomerBatchConversionModal({
   const taxSum = selectedBlObjects.reduce((acc, curr) => acc + (curr.total_tva_doc || 0), 0);
   const baseTtcSum = selectedBlObjects.reduce((acc, curr) => acc + (curr.total_net_ttc || 0), 0);
 
-  // Apply manual discount
+  // Apply manual discount as percentage of Net HT Sum
   // WHY: To allow user custom overrides/discounts on grouped billing before final submission.
-  const finalNetHtSum = Math.max(0, netHtSum - discount);
-  const finalDiscountSum = discountSum + discount;
-  const finalBaseTtcSum = Math.max(0, baseTtcSum - discount);
+  const computedDiscount = netHtSum * (discountPercent / 100);
+  const finalNetHtSum = Math.max(0, netHtSum - computedDiscount);
+  const finalDiscountSum = discountSum + computedDiscount;
+  const finalBaseTtcSum = Math.max(0, baseTtcSum - computedDiscount);
 
   const activeStamp = stampTaxes.find((t) => t.id === parseInt(stampTaxId));
   const stampAmount = activeStamp ? parseFloat(activeStamp.value || '0') : 0;
-  // WHY: Net payable = TTC after manual discount + stamp. RS is not applied here.
-  const finalNetPayable = Math.max(0, finalBaseTtcSum + stampAmount);
+  // WHY: Net payable before rounding = TTC after manual discount + stamp. RS is not applied here.
+  const rawNetPayable = Math.max(0, finalBaseTtcSum + stampAmount);
+
+  // Rounding logic: rounds Net à Payer (TTC) to the nearest integer (dinar) if option is checked.
+  const finalNetPayable = isRounded ? Math.round(rawNetPayable) : rawNetPayable;
+  const roundingAdjustment = finalNetPayable - rawNetPayable;
 
   const handleConvert = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -599,26 +610,42 @@ export function CustomerBatchConversionModal({
                 </Select>
               </div>
 
-              {/* Remise (DT) */}
-              {/* WHY: Allow manual discount input directly affecting the final document calculations */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-sand-500 uppercase tracking-wider block font-sans">
-                  Remise (DT)
-                </label>
-                <div className="relative font-sans">
-                  <TrendingDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400 pointer-events-none" />
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.001"
-                    value={discount || ''}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value);
-                      setDiscount(isNaN(val) ? 0 : val);
-                    }}
-                    placeholder="0.000"
-                    className="pl-9 text-right font-mono h-10 rounded-xl border-sand-200 focus:ring-forest-800 bg-white text-xs font-medium text-sand-800"
+              {/* Remise (%) & Option Arrondi */}
+              {/* WHY: Allows the user to specify a discount rate and/or choose to round the final net payable (TTC). */}
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-sand-500 uppercase tracking-wider block font-sans">
+                    Remise (%)
+                  </label>
+                  <div className="relative font-sans">
+                    <TrendingDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400 pointer-events-none" />
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={discountPercent || ''}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        setDiscountPercent(isNaN(val) ? 0 : Math.min(100, Math.max(0, val)));
+                      }}
+                      placeholder="0.0%"
+                      className="pl-9 text-right font-mono h-10 rounded-xl border-sand-200 focus:ring-forest-800 bg-white text-xs font-medium text-sand-800"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2 py-1">
+                  <input
+                    type="checkbox"
+                    id="round-ttc-option"
+                    checked={isRounded}
+                    onChange={(e) => setIsRounded(e.target.checked)}
+                    className="rounded border-sand-300 text-forest-800 focus:ring-forest-800 h-4 w-4 accent-forest-800 cursor-pointer"
                   />
+                  <label htmlFor="round-ttc-option" className="text-xs font-bold text-sand-700 cursor-pointer select-none">
+                    Arrondir le Net à Payer (TTC)
+                  </label>
                 </div>
               </div>
 
@@ -643,11 +670,11 @@ export function CustomerBatchConversionModal({
                     <span>Sous-total HT:</span>
                     <span>{netHtSum.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT</span>
                   </div>
-                  {discount > 0 && (
+                  {discountPercent > 0 && (
                     <>
                       <div className="flex justify-between text-rose-600">
-                        <span>Remise:</span>
-                        <span>-{discount.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT</span>
+                        <span>Remise ({discountPercent}%):</span>
+                        <span>-{computedDiscount.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT</span>
                       </div>
                       <div className="flex justify-between text-sand-800 font-bold">
                         <span>Net HT:</span>
@@ -663,6 +690,15 @@ export function CustomerBatchConversionModal({
                     <div className="flex justify-between text-sand-700">
                       <span>Timbre Fiscal:</span>
                       <span>+{stampAmount.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT</span>
+                    </div>
+                  )}
+                  {isRounded && Math.abs(roundingAdjustment) > 0.0001 && (
+                    <div className="flex justify-between text-amber-700 font-medium">
+                      <span>Ajustement Arrondi:</span>
+                      <span>
+                        {roundingAdjustment > 0 ? '+' : ''}
+                        {roundingAdjustment.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT
+                      </span>
                     </div>
                   )}
                   <Separator className="bg-sand-100 my-1" />

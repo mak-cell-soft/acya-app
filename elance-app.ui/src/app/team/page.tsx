@@ -530,13 +530,71 @@ export default function TeamPage() {
                                 <div className="flex items-center justify-end gap-2">
                                   <Button 
                                     className="h-9 font-bold bg-white hover:bg-forest-50 border border-forest-100 text-forest-700 rounded-xl px-4 text-xs"
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                      // NOTE: Prevent row expansion click event bubbling
+                                      e.stopPropagation();
                                       setSelectedUser(item);
                                       setIsUserDialogOpen(true);
                                     }}
                                   >
                                     <Edit className="w-3.5 h-3.5 mr-1.5" /> Paramètres
                                   </Button>
+
+                                  {/* NOTE: If the app user is linked to an employee (person), allow managing their leaves, payslips, and advances. */}
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-sand-300 hover:text-forest-900">
+                                        <MoreHorizontal className="w-4 h-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="rounded-2xl border-forest-100 w-48 p-2 shadow-xl">
+                                      <DropdownMenuItem 
+                                        className={cn(
+                                          "gap-2 font-bold text-forest-900 rounded-xl h-11",
+                                          !item.person ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                                        )}
+                                        disabled={!item.person}
+                                        onClick={(e) => {
+                                          if (!item.person) return;
+                                          e.stopPropagation();
+                                          setSelectedPerson(item.person);
+                                          setIsLeaveDialogOpen(true);
+                                        }}
+                                      >
+                                        <Calendar className="w-4 h-4 text-emerald-600" /> Congés
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        className={cn(
+                                          "gap-2 font-bold text-forest-900 rounded-xl h-11",
+                                          !item.person ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                                        )}
+                                        disabled={!item.person}
+                                        onClick={(e) => {
+                                          if (!item.person) return;
+                                          e.stopPropagation();
+                                          setSelectedPerson(item.person);
+                                          setIsPayslipDialogOpen(true);
+                                        }}
+                                      >
+                                        <FileText className="w-4 h-4 text-emerald-600" /> Fiches de Paie
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        className={cn(
+                                          "gap-2 font-bold text-forest-900 rounded-xl h-11",
+                                          !item.person ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                                        )}
+                                        disabled={!item.person}
+                                        onClick={(e) => {
+                                          if (!item.person) return;
+                                          e.stopPropagation();
+                                          setSelectedPerson(item.person);
+                                          setIsAdvanceDialogOpen(true);
+                                        }}
+                                      >
+                                        <Coins className="w-4 h-4 text-emerald-600" /> Avances
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 </div>
                               </td>
                             </tr>
