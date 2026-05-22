@@ -170,6 +170,7 @@ namespace ms.webapp.api.acya.api.Controllers
                 {
                     BankId = bank.Id,
                     BankName = bank.Designation,
+                    Rib = bank.Rib,
                     InitialBalance = bank.InitialBalance,
                     TotalDeposits = totalDeposits,
                     CurrentBalance = bank.InitialBalance + totalDeposits
