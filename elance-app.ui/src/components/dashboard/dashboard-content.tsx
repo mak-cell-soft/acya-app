@@ -904,7 +904,7 @@ export function DashboardContent() {
 
             <div className="space-y-2">
               <Label htmlFor="reason" className="text-xs font-bold text-forest-900 uppercase tracking-wider">Motif</Label>
-              <Select value={movementReason} onValueChange={setMovementReason}>
+              <Select value={movementReason} onValueChange={(val: string | null) => setMovementReason(val as string)}>
                 <SelectTrigger className="h-11 w-full rounded-xl border-forest-100">
                   <SelectValue placeholder="Sélectionner le motif" />
                 </SelectTrigger>
