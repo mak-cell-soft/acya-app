@@ -197,7 +197,7 @@ export function BankDepositDialog({
                 </Label>
                 <Select
                   value={selectedSiteId}
-                  onValueChange={(val: string) => setValue('salesSiteId', val)}
+                  onValueChange={(val: string | null) => setValue('salesSiteId', val as string)}
                 >
                   <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-[#fafafa] focus:bg-white text-xs font-semibold">
                     <SelectValue placeholder="Sélectionner le site" />
@@ -222,7 +222,7 @@ export function BankDepositDialog({
                 Banque de destination *
               </Label>
               <Select
-                onValueChange={(val: string) => setValue('bankId', val)}
+                onValueChange={(val: string | null) => setValue('bankId', val as string)}
                 disabled={isLoadingBanks}
               >
                 <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-[#fafafa] focus:bg-white text-xs font-semibold">
@@ -249,7 +249,7 @@ export function BankDepositDialog({
                 </Label>
                 <Select
                   value={depositType}
-                  onValueChange={(val) => setValue('depositType', val as 'ESPECE' | 'CHEQUE' | 'TRAITE')}
+                  onValueChange={(val: string | null) => setValue('depositType', val as 'ESPECE' | 'CHEQUE' | 'TRAITE')}
                 >
                   <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-[#fafafa] focus:bg-white text-xs font-semibold">
                     <SelectValue />
