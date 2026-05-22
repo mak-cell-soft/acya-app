@@ -211,7 +211,7 @@ export function BankDepositDialog({
                   </SelectContent>
                 </Select>
                 {errors.salesSiteId && (
-                  <span className="text-[10px] text-rose-500 font-bold block">{errors.salesSiteId.message}</span>
+                  <span className="text-[10px] text-rose-500 font-bold block">{errors.salesSiteId.message as string}</span>
                 )}
               </div>
             )}
@@ -237,7 +237,7 @@ export function BankDepositDialog({
                 </SelectContent>
               </Select>
               {errors.bankId && (
-                <span className="text-[10px] text-rose-500 font-bold block">{errors.bankId.message}</span>
+                <span className="text-[10px] text-rose-500 font-bold block">{errors.bankId.message as string}</span>
               )}
             </div>
 
@@ -281,7 +281,7 @@ export function BankDepositDialog({
                   </span>
                 </div>
                 {errors.amount && (
-                  <span className="text-[10px] text-rose-500 font-bold block">{errors.amount.message}</span>
+                  <span className="text-[10px] text-rose-500 font-bold block">{errors.amount.message as string}</span>
                 )}
               </div>
             </div>
