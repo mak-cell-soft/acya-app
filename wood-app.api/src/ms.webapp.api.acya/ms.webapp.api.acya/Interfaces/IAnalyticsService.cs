@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using ms.webapp.api.acya.core.Entities.DTOs.Analytics;
 
 namespace ms.webapp.api.acya.api.Interfaces
@@ -10,5 +11,6 @@ namespace ms.webapp.api.acya.api.Interfaces
     public interface IAnalyticsService
     {
         Task<DashboardKpiDto> GetDashboardKpisAsync(Guid enterpriseId);
+        Task<List<MonthlyRevenueDto>> GetMonthlyRevenueAsync(int months = 6);
     }
 }

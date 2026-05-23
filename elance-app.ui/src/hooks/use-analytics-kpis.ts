@@ -1,0 +1,22 @@
+import { useQuery } from '@tanstack/react-query';
+import { analyticsService } from '@/services/components/analytics.service';
+import { useAuthStore } from '@/store/use-auth-store';
+
+export function useAnalyticsKpis() {
+  const user = useAuthStore((state) => state.user);
+
+  return useQuery({
+    queryKey: ['analytics', 'kpis', user?.enterpriseId],
+    queryFn: () => analyticsService.getDashboardKpis(user?.enterpriseId?.toString()),
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+  });
+}
+
+export function useMonthlyRevenue(months: number = 6) {
+  return useQuery({
+    queryKey: ['analytics', 'monthly-revenue', months],
+    queryFn: () => analyticsService.getMonthlyRevenue(months),
+    staleTime: 10 * 60 * 1000,
+  });
+}

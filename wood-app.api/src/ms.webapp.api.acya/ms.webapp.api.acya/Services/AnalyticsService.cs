@@ -96,5 +96,39 @@ namespace ms.webapp.api.acya.api.Services
 
             return kpis;
         }
+
+        public async Task<List<MonthlyRevenueDto>> GetMonthlyRevenueAsync(int months = 6)
+        {
+            var startDate = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1).AddMonths(-months + 1);
+
+            var salesDocs = await _context.Documents
+                .AsNoTracking()
+                .Where(d => !d.IsDeleted && (d.Type == DocumentTypes.customerInvoice || d.Type == DocumentTypes.customerDeliveryNote))
+                .Where(d => d.CreationDate >= startDate)
+                .Select(d => new { d.CreationDate, d.TotalCostNetTTCDoc })
+                .ToListAsync();
+
+            var result = new List<MonthlyRevenueDto>();
+            
+            for (int i = months - 1; i >= 0; i--)
+            {
+                var targetMonth = DateTime.UtcNow.AddMonths(-i);
+                var monthDocs = salesDocs.Where(d => d.CreationDate?.Year == targetMonth.Year && d.CreationDate?.Month == targetMonth.Month);
+                
+                var revenue = monthDocs.Sum(d => (decimal)d.TotalCostNetTTCDoc);
+                var margin = revenue * 0.25m; // Estimated margin
+
+                var monthNames = new[] { "Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc" };
+
+                result.Add(new MonthlyRevenueDto
+                {
+                    Month = monthNames[targetMonth.Month - 1],
+                    Revenue = revenue,
+                    Margin = margin
+                });
+            }
+
+            return result;
+        }
     }
 }

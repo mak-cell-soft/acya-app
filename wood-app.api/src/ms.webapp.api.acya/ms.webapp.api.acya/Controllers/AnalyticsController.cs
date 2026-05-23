@@ -39,5 +39,24 @@ namespace ms.webapp.api.acya.api.Controllers
                 return BadRequest($"Failed to retrieve dashboard analytics: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Retrieves monthly revenue data for charts.
+        /// </summary>
+        /// <param name="months">Number of months to retrieve</param>
+        /// <returns>List of MonthlyRevenueDto</returns>
+        [HttpGet("monthly-revenue")]
+        public async Task<ActionResult<IEnumerable<MonthlyRevenueDto>>> GetMonthlyRevenue([FromQuery] int months = 6)
+        {
+            try
+            {
+                var result = await _analyticsService.GetMonthlyRevenueAsync(months);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Failed to retrieve monthly revenue: {ex.Message}");
+            }
+        }
     }
 }
