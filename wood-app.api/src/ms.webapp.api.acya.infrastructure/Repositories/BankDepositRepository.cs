@@ -34,5 +34,15 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                 .Where(d => d.BankId == bankId && !d.IsDeleted)
                 .SumAsync(d => d.FeeWithTax);
         }
+
+        public async Task<string?> GetLastReferenceAsync(string prefix)
+        {
+            var lastDeposit = await context.BankDeposits
+                .Where(d => !d.IsDeleted && !string.IsNullOrEmpty(d.Reference) && d.Reference.StartsWith(prefix))
+                .OrderByDescending(d => d.Id)
+                .FirstOrDefaultAsync();
+                
+            return lastDeposit?.Reference;
+        }
     }
 }

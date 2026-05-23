@@ -3,6 +3,7 @@ using ms.webapp.api.acya.api.Controllers;
 using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs;
 using ms.webapp.api.acya.infrastructure.Repositories;
+using ms.webapp.api.acya.common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,7 +70,9 @@ namespace ms.webapp.api.acya.api.Controllers
                     TaxRate = taxRate,
                     FeeWithTax = feeWithTax,
                     NetAmount = netAmount,
-                    Reference = createDto.Reference,
+                    Reference = string.IsNullOrWhiteSpace(createDto.Reference)
+                        ? Helpers.GenerateDailyDocNumber("BORD", await _depositRepository.GetLastReferenceAsync("BORD"))
+                        : createDto.Reference,
                     Notes = createDto.Notes,
                     PaymentInstrumentId = createDto.PaymentInstrumentId,
                     SalesSiteId = createDto.SalesSiteId,
@@ -88,7 +91,7 @@ namespace ms.webapp.api.acya.api.Controllers
                         Type = "SORTIE",
                         Reason = "VERSEMENT_BANQUE",
                         Amount = createDto.AmountHT,
-                        Reference = createDto.Reference,
+                        Reference = deposit.Reference,
                         Notes = $"Versé à {bank.Designation}",
                         BankDepositId = addedDeposit.Id,
                         CreatedByUserId = createDto.CreatedByUserId

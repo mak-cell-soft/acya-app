@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
@@ -26,7 +26,7 @@ import { useBanks } from '@/hooks/use-banks';
 import { useAllCaisseBalances, useCaissePrincipaleBalance, useCreateBankDeposit } from '@/hooks/use-treasury';
 import { useAuthStore } from '@/store/use-auth-store';
 import { toast } from 'sonner';
-import { Loader2, Landmark, Wallet, Banknote, FileSignature, Receipt } from 'lucide-react';
+import { Loader2, Landmark, Wallet, Receipt, RefreshCw } from 'lucide-react';
 
 const depositSchema = z.object({
   bankId: z.string().min(1, 'La banque de destination est requise'),
@@ -39,13 +39,20 @@ const depositSchema = z.object({
 
 type DepositFormValues = z.infer<typeof depositSchema>;
 
-interface BankDepositDialogProps {
+type CaisseSite = {
+  salesSiteId: number;
+  currentBalance: number;
+  salesSiteName?: string;
+  siteName?: string;
+};
+
+type BankDepositDialogProps = Readonly<{
   isOpen: boolean;
   onClose: () => void;
   isCentral?: boolean;
   siteId?: number | null;
   onSuccess?: () => void;
-}
+}>;
 
 export function BankDepositDialog({
   isOpen,
@@ -64,18 +71,18 @@ export function BankDepositDialog({
   // Mutation
   const createDeposit = useCreateBankDeposit();
 
-  const [currentBalance, setCurrentBalance] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
 
   const {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     reset,
     formState: { errors },
-  } = useForm<any>({
-    resolver: zodResolver(depositSchema),
+  } = useForm<DepositFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(depositSchema) as any,
     defaultValues: {
       depositType: 'ESPECE',
       amount: 0,
@@ -85,25 +92,23 @@ export function BankDepositDialog({
     },
   });
 
-  const selectedSiteId = watch('salesSiteId');
-  const depositType = watch('depositType');
+  const selectedSiteId = useWatch({ control, name: 'salesSiteId' });
+  const depositType = useWatch({ control, name: 'depositType' });
+  const bankId = useWatch({ control, name: 'bankId' });
 
-  // Track balance changes
-  useEffect(() => {
-    if (isOpen) {
-      if (isCentral) {
-        setCurrentBalance(mainCaisseBalance);
-      } else if (siteId) {
-        const matchingSite = sites.find((s: any) => s.salesSiteId === siteId);
-        setCurrentBalance(matchingSite?.currentBalance || 0);
-      } else if (selectedSiteId) {
-        const matchingSite = sites.find((s: any) => s.salesSiteId === parseInt(selectedSiteId, 10));
-        setCurrentBalance(matchingSite?.currentBalance || 0);
-      } else {
-        setCurrentBalance(0);
-      }
+  // Compute current balance during render
+  let currentBalance = 0;
+  if (isOpen) {
+    if (isCentral) {
+      currentBalance = mainCaisseBalance;
+    } else if (siteId) {
+      const matchingSite = sites.find((s: CaisseSite) => s.salesSiteId === siteId);
+      currentBalance = matchingSite?.currentBalance || 0;
+    } else if (selectedSiteId) {
+      const matchingSite = sites.find((s: CaisseSite) => s.salesSiteId === Number.parseInt(selectedSiteId, 10));
+      currentBalance = matchingSite?.currentBalance || 0;
     }
-  }, [isOpen, isCentral, siteId, selectedSiteId, mainCaisseBalance, sites]);
+  }
 
   // Reset form when opened or closed
   useEffect(() => {
@@ -119,22 +124,27 @@ export function BankDepositDialog({
     }
   }, [isOpen, reset, siteId]);
 
-  const onSubmit = async (values: any) => {
+  const onSubmit = async (values: DepositFormValues) => {
     // Validate balance for cash deposits
     if (values.depositType === 'ESPECE' && values.amount > currentBalance) {
       toast.error('Solde insuffisant dans la caisse pour effectuer ce versement espèces');
       return;
     }
 
+    let parsedSalesSiteId: number | null = null;
+    if (!isCentral && values.salesSiteId) {
+      parsedSalesSiteId = Number.parseInt(values.salesSiteId, 10);
+    }
+
     try {
       setLoading(true);
       await createDeposit.mutateAsync({
-        bankId: parseInt(values.bankId, 10),
+        bankId: Number.parseInt(values.bankId, 10),
         depositType: values.depositType,
         amountHT: values.amount,
         reference: values.reference,
         notes: values.notes,
-        salesSiteId: isCentral ? null : values.salesSiteId ? parseInt(values.salesSiteId, 10) : null,
+        salesSiteId: parsedSalesSiteId,
         createdByUserId: user?.id ? String(user.id) : null,
       });
 
@@ -203,7 +213,7 @@ export function BankDepositDialog({
                     <SelectValue placeholder="Sélectionner le site" />
                   </SelectTrigger>
                   <SelectContent>
-                    {sites.map((site: any) => (
+                    {sites.map((site: CaisseSite) => (
                       <SelectItem key={site.salesSiteId} value={site.salesSiteId.toString()}>
                         {site.salesSiteName || site.siteName || `Site #${site.salesSiteId}`} ({formatCurrency(site.currentBalance)})
                       </SelectItem>
@@ -222,11 +232,17 @@ export function BankDepositDialog({
                 Banque de destination *
               </Label>
               <Select
+                value={bankId || undefined}
                 onValueChange={(val: string | null) => setValue('bankId', val as string)}
                 disabled={isLoadingBanks}
               >
                 <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-[#fafafa] focus:bg-white text-xs font-semibold">
-                  <SelectValue placeholder="Sélectionner la banque de destination" />
+                  <SelectValue placeholder="Sélectionner la banque de destination">
+                    {(() => {
+                      const selectedBank = bankId ? banks.find(b => b.id.toString() === bankId) : undefined;
+                      return selectedBank ? `${selectedBank.designation} - ${selectedBank.rib}` : undefined;
+                    })()}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {banks.map((bank) => (
@@ -295,10 +311,26 @@ export function BankDepositDialog({
                 <Receipt className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   id="reference"
-                  placeholder="Ex: BORD-12345"
+                  placeholder="Ex: BORD-240522-001"
                   {...register('reference')}
-                  className="pl-10 h-11 rounded-xl border-slate-200 bg-[#fafafa] focus:bg-white text-xs font-semibold"
+                  className="pl-10 pr-12 h-11 rounded-xl border-slate-200 bg-[#fafafa] focus:bg-white text-xs font-semibold"
                 />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1.5 h-8 w-8 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
+                  onClick={() => {
+                    const today = new Date();
+                    const yy = String(today.getFullYear()).slice(-2);
+                    const mm = String(today.getMonth() + 1).padStart(2, '0');
+                    const dd = String(today.getDate()).padStart(2, '0');
+                    const rand = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+                    setValue('reference', `BORD-${yy}${mm}${dd}-${rand}`);
+                  }}
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
               </div>
             </div>
 
