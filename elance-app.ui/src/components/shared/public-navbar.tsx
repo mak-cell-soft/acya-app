@@ -141,7 +141,7 @@ export function PublicNavbar() {
               Se connecter
             </Link>
             <Button asChild className="h-10 px-6 rounded-lg text-white font-bold transition-all duration-300 relative overflow-hidden group shadow-md hover:shadow-lg active:scale-95 hover:scale-[1.03] bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700">
-              <Link href="/register" className="flex items-center gap-2">
+              <Link href="/enterprise-registration" className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-300 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
@@ -217,7 +217,7 @@ export function PublicNavbar() {
                     <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Se connecter</Link>
                   </Button>
                   <Button asChild className="w-full h-14 text-lg bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white rounded-xl font-bold shadow-md shadow-corp-blue-900/10">
-                    <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>Demander une démo</Link>
+                    <Link href="/enterprise-registration" onClick={() => setIsMobileMenuOpen(false)}>Demander une démo</Link>
                   </Button>
                 </div>
               </div>

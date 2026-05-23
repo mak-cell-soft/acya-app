@@ -37,7 +37,7 @@ export function CTASection() {
         
         <div className="flex flex-col sm:flex-row justify-center gap-5 pt-4">
           <Button asChild className="h-16 px-10 rounded-xl bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white font-bold text-[1rem] transition-all duration-300 shadow-2xl shadow-corp-blue-900/30 hover:scale-[1.03] active:scale-[0.97] group cursor-pointer">
-            <Link href="/register" className="flex items-center gap-2">
+            <Link href="/enterprise-registration" className="flex items-center gap-2">
               Planifier une démo gratuite
               <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
             </Link>
