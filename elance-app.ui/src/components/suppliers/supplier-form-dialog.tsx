@@ -117,23 +117,27 @@ export function SupplierFormDialog({
   useEffect(() => {
     if (isOpen) {
       if (editSupplier) {
+        const categoryId = SUPPLIER_CATEGORIES.find(
+          c => c.id.toString() === editSupplier.jobtitle || c.value === editSupplier.jobtitle
+        )?.id.toString() || "1";
+
         form.reset({
-          prefix: editSupplier.prefix,
-          name: editSupplier.name,
+          prefix: editSupplier.prefix || SOCIETY_PREFIXES[0].id,
+          name: editSupplier.name || "",
           description: editSupplier.description || "",
-          firstname: editSupplier.firstname,
-          lastname: editSupplier.lastname,
+          firstname: editSupplier.firstname || "",
+          lastname: editSupplier.lastname || "",
           email: editSupplier.email || "",
           taxregistrationnumber: editSupplier.taxregistrationnumber || "",
-          address: editSupplier.address,
+          address: editSupplier.address || "",
           gouvernorate: editSupplier.gouvernorate?.toString() || "23",
-          phonenumberone: editSupplier.phonenumberone,
+          phonenumberone: editSupplier.phonenumberone || "",
           phonenumbertwo: editSupplier.phonenumbertwo || "",
-          jobtitle: editSupplier.jobtitle?.toString() || "1",
+          jobtitle: categoryId,
           bankname: editSupplier.bankname || "",
           bankaccountnumber: editSupplier.bankaccountnumber || "",
-          openingbalance: editSupplier.openingbalance,
-          isTypeBoth: editSupplier.isTypeBoth,
+          openingbalance: editSupplier.openingbalance || 0,
+          isTypeBoth: editSupplier.isTypeBoth || false,
         });
       } else {
         form.reset({
@@ -294,12 +298,14 @@ export function SupplierFormDialog({
                           <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                             <FormControl>
                               <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
-                                <SelectValue placeholder="Catégorie" />
+                                <SelectValue placeholder="Catégorie">
+                                  {SUPPLIER_CATEGORIES.find(c => c.id.toString() === field.value?.toString() || c.value === field.value?.toString())?.value}
+                                </SelectValue>
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="rounded-xl border-forest-100">
                               {SUPPLIER_CATEGORIES.map(c => (
-                                <SelectItem key={c.id} value={c.value}>{c.value}</SelectItem>
+                                <SelectItem key={c.id} value={c.id.toString()}>{c.value}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>

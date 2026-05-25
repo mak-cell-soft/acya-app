@@ -224,9 +224,9 @@ export default function CustomersPage() {
                         <td className="p-5 text-right">
                           <span className={cn(
                             "font-bold",
-                            item.openingbalance < 0 ? "text-rose-600" : "text-forest-900"
+                            (item.currentbalance ?? item.openingbalance) < 0 ? "text-rose-600" : "text-forest-900"
                           )}>
-                            {item.openingbalance.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}
+                            {(item.currentbalance ?? item.openingbalance).toLocaleString('fr-TN', { minimumFractionDigits: 3 })}
                           </span>
                         </td>
                         <td className="p-5 text-center">

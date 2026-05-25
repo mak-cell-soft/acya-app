@@ -58,7 +58,41 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
           .Where(cp => (int)cp.Type == enumIntValue)
           .ToListAsync();
 
-      var allDtos = allCP.Select(cp => new CounterPartDto(cp)).ToList();
+      // WHY: Bulk-calculate current balances from the AccountLedger table to avoid N+1 query overhead.
+      var counterpartIds = allCP.Select(cp => cp.Id).ToList();
+      var ledgerSummary = await context.AccountLedgers
+          .Where(l => counterpartIds.Contains(l.CounterPartId))
+          .GroupBy(l => l.CounterPartId)
+          .Select(g => new {
+              CounterPartId = g.Key,
+              TotalDebit = g.Sum(l => l.Debit),
+              TotalCredit = g.Sum(l => l.Credit)
+          })
+          .ToDictionaryAsync(x => x.CounterPartId);
+
+      var allDtos = allCP.Select(cp => {
+          var dto = new CounterPartDto(cp);
+          
+          decimal totalDebit = 0;
+          decimal totalCredit = 0;
+          if (ledgerSummary.TryGetValue(cp.Id, out var summary))
+          {
+              totalDebit = summary.TotalDebit;
+              totalCredit = summary.TotalCredit;
+          }
+          
+          decimal opening = cp.OpeningBalance ?? 0;
+          if (cp.Type == CounterPartType.Customer)
+          {
+              dto.currentbalance = Math.Round(opening + totalDebit - totalCredit, 3, MidpointRounding.AwayFromZero);
+          }
+          else
+          {
+              dto.currentbalance = Math.Round(opening + totalCredit - totalDebit, 3, MidpointRounding.AwayFromZero);
+          }
+          return dto;
+      }).ToList();
+
       return allDtos!;
     }
 
@@ -69,7 +103,41 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
           .Where(cp => cp.IsDeleted == false)
           .ToListAsync();
 
-      var allDtos = allCP.Select(cp => new CounterPartDto(cp)).ToList();
+      // WHY: Bulk-calculate current balances from the AccountLedger table to avoid N+1 query overhead.
+      var counterpartIds = allCP.Select(cp => cp.Id).ToList();
+      var ledgerSummary = await context.AccountLedgers
+          .Where(l => counterpartIds.Contains(l.CounterPartId))
+          .GroupBy(l => l.CounterPartId)
+          .Select(g => new {
+              CounterPartId = g.Key,
+              TotalDebit = g.Sum(l => l.Debit),
+              TotalCredit = g.Sum(l => l.Credit)
+          })
+          .ToDictionaryAsync(x => x.CounterPartId);
+
+      var allDtos = allCP.Select(cp => {
+          var dto = new CounterPartDto(cp);
+          
+          decimal totalDebit = 0;
+          decimal totalCredit = 0;
+          if (ledgerSummary.TryGetValue(cp.Id, out var summary))
+          {
+              totalDebit = summary.TotalDebit;
+              totalCredit = summary.TotalCredit;
+          }
+          
+          decimal opening = cp.OpeningBalance ?? 0;
+          if (cp.Type == CounterPartType.Customer)
+          {
+              dto.currentbalance = Math.Round(opening + totalDebit - totalCredit, 3, MidpointRounding.AwayFromZero);
+          }
+          else
+          {
+              dto.currentbalance = Math.Round(opening + totalCredit - totalDebit, 3, MidpointRounding.AwayFromZero);
+          }
+          return dto;
+      }).ToList();
+
       return allDtos!;
     }
 

@@ -133,28 +133,33 @@ export function CustomerFormDialog({
       if (editCustomer) {
         const isSoc = SOCIETY_PREFIXES.some(p => p.id === editCustomer.prefix);
         setMode(isSoc ? "society" : "individual");
+
+        const activityId = CUSTOMER_ACTIVITIES.find(
+          a => a.key.toString() === editCustomer.jobtitle || a.value === editCustomer.jobtitle
+        )?.key.toString() || "1";
+
         form.reset({
-          prefix: editCustomer.prefix,
+          prefix: editCustomer.prefix || CUSTOMER_PREFIXES[0].id,
           name: editCustomer.name || "",
           description: editCustomer.description || "",
-          firstname: editCustomer.firstname,
-          lastname: editCustomer.lastname,
+          firstname: editCustomer.firstname || "",
+          lastname: editCustomer.lastname || "",
           identitycardnumber: editCustomer.identitycardnumber || "",
           email: editCustomer.email || "",
           taxregistrationnumber: editCustomer.taxregistrationnumber || "",
           patentecode: editCustomer.patentecode || "",
-          address: editCustomer.address,
+          address: editCustomer.address || "",
           gouvernorate: editCustomer.gouvernorate?.toString() || "23",
-          maximumdiscount: editCustomer.maximumdiscount,
+          maximumdiscount: editCustomer.maximumdiscount || 0,
           maximumsalesbar: editCustomer.maximumsalesbar ?? 0,
           notes: editCustomer.notes || "",
-          phonenumberone: editCustomer.phonenumberone,
+          phonenumberone: editCustomer.phonenumberone || "",
           phonenumbertwo: editCustomer.phonenumbertwo || "",
-          jobtitle: editCustomer.jobtitle?.toString() || "1",
+          jobtitle: activityId,
           bankname: editCustomer.bankname || "",
           bankaccountnumber: editCustomer.bankaccountnumber || "",
-          openingbalance: editCustomer.openingbalance,
-          isTypeBoth: editCustomer.isTypeBoth,
+          openingbalance: editCustomer.openingbalance || 0,
+          isTypeBoth: editCustomer.isTypeBoth || false,
         });
       } else {
         setMode("individual");
@@ -364,12 +369,14 @@ export function CustomerFormDialog({
                           <Select onValueChange={field.onChange} value={field.value?.toString()}>
                             <FormControl>
                               <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
-                                <SelectValue placeholder="Activité" />
+                                <SelectValue placeholder="Activité">
+                                  {CUSTOMER_ACTIVITIES.find(a => a.key.toString() === field.value?.toString() || a.value === field.value?.toString())?.value}
+                                </SelectValue>
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="rounded-xl border-forest-100">
                               {CUSTOMER_ACTIVITIES.map(a => (
-                                <SelectItem key={a.key} value={a.value}>{a.value}</SelectItem>
+                                <SelectItem key={a.key} value={a.key.toString()}>{a.value}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>

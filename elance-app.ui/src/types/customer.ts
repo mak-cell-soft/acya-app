@@ -29,6 +29,7 @@ export interface Customer {
   isdeleted: boolean;
   updatedbyid: number;
   openingbalance: number;
+  currentbalance?: number;
   isTypeBoth: boolean;
 }
 

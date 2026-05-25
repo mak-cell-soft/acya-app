@@ -111,7 +111,7 @@ export default function ProvidersPage() {
   };
 
   const getCategoryLabel = (id: string) => {
-    return SUPPLIER_CATEGORIES.find(c => c.id.toString() === id)?.value || "—";
+    return SUPPLIER_CATEGORIES.find(c => c.id.toString() === id || c.value === id)?.value || id || "—";
   };
 
   const renderTableBody = () => {
@@ -179,9 +179,9 @@ export default function ProvidersPage() {
           <td className="p-6 text-right">
             <div className={cn(
               "font-mono font-black text-base",
-              item.openingbalance < 0 ? "text-rose-600" : "text-emerald-600"
+              (item.currentbalance ?? item.openingbalance) < 0 ? "text-rose-600" : "text-emerald-600"
             )}>
-              {item.openingbalance.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}
+              {(item.currentbalance ?? item.openingbalance).toLocaleString('fr-TN', { minimumFractionDigits: 3 })}
             </div>
           </td>
           <td className="p-6 text-center">

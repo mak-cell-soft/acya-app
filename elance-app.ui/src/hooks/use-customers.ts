@@ -31,7 +31,7 @@ export function useUpdateCustomer() {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<Customer> }) =>
-      counterpartService.put(id, data),
+      counterpartService.put(id, { ...data, id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       toast.success('Client mis à jour avec succès');

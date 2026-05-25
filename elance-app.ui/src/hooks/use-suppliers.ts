@@ -31,7 +31,7 @@ export function useUpdateSupplier() {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<Supplier> }) =>
-      counterpartService.put(id, data),
+      counterpartService.put(id, { ...data, id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
       toast.success('Fournisseur mis à jour avec succès');

@@ -78,13 +78,21 @@ namespace ms.webapp.api.acya.core.Entities
 
     public void UpdateFromDto(CounterPartDto dto)
     {
-      Id = dto.id;
-      if (string.IsNullOrEmpty(dto.guid))
+      // WHY: Only set Id if it is not already initialized.
+      // Modifying the key of an already tracked entity to 0/default will crash EF Core.
+      if (Id == 0)
       {
-        Guid = null;
-      } else
+        Id = dto.id;
+      }
+      
+      // WHY: Maintain existing Guid on update if none is provided in the DTO.
+      if (!string.IsNullOrEmpty(dto.guid))
       {
         Guid = System.Guid.Parse(dto.guid!);
+      }
+      else if (Guid == null)
+      {
+        Guid = null;
       }
       
       // Assuming `dto.type` is a string that matches the CounterPartType enum
