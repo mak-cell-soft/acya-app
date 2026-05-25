@@ -34,7 +34,13 @@ export enum DocTypes_FR {
   stockTransfer = 'Transfert stock',
   customerInvoiceReturn = 'Retour Client',
   supplierInvoiceReturn = 'Avoir Fournisseur',
-  inventory = 'Inventaire'
+  inventory = 'Inventaire',
+  Payment = 'Paiement',
+  RS = 'Retenue à la source',
+  customerPayment = 'Paiement Client',
+  supplierPayment = 'Paiement Fournisseur',
+  customerRS = 'Retenue à la source Client',
+  supplierRS = 'Retenue à la source Fournisseur'
 }
 
 /**
@@ -58,6 +64,25 @@ export enum DocStatus {
   PendingApproval = 14,
   Approved = 15,
   Rejected = 16
+}
+
+export enum DocStatus_FR {
+  Delivered = 'Livrée',
+  Abandoned = 'Annulé',
+  Created = 'Créé',
+  Deleted = 'Supprimé',
+  NotDelivered = 'Non Livré',
+  NotConfirmed = 'Non Confirmé',
+  Confirmed = 'Confirmé',
+  Pending = 'En attente',
+  Sent = 'Envoyé',
+  PartiallyDelivered = 'Partiellement livré',
+  Validated = 'Validé',
+  Completed = 'Terminé',
+  Submitted = 'Soumis',
+  PendingApproval = 'En attente d\'approbation',
+  Approved = 'Approuvé',
+  Rejected = 'Rejeté'
 }
 
 export enum BillingStatus {
@@ -139,8 +164,8 @@ export interface Document {
   remaining_balance?: number;
   currency?: string;
   exchangeRate?: number;
-  taxe?: any;
-  holdingtax?: any;
+  taxe?: (AppVariable & { taxvalue: number }) | null;
+  holdingtax?: HoldingTax;
   withholdingtax: boolean;
   counterpart: Customer; // maps to Customer in target app (since counterpart type is Customer)
   sales_site: Site;
@@ -155,9 +180,9 @@ export interface Document {
   isPaid: boolean;
   isservice: boolean;
   deliveryNoteDocNumbers?: string[];
-  transporter?: any;
-  parentdocuments?: any[];
-  childdocuments?: any[];
+  transporter?: (Customer & { fullname?: string }) | null;
+  parentdocuments?: Document[];
+  childdocuments?: Document[];
 }
 
 /**
@@ -176,11 +201,15 @@ export interface TypeDocsFilter {
 export interface HoldingTax {
   id?: number;
   description: string;
+  reference?: string;
   taxpercentage: number;
   taxvalue: number;
   newamountdocvalue: number;
   issigned: boolean;
   isdeleted: boolean;
   updatedbyid: number;
+  documentid?: number;
+  creationdate?: string | Date;
+  updatedate?: string | Date;
 }
 

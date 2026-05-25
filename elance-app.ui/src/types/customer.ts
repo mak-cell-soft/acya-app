@@ -151,3 +151,22 @@ export const SUPPLIER_CATEGORIES = [
 ];
 
 export type Supplier = Customer;
+
+export interface SupplierDashboardDoc {
+  id: number;
+  docnumber: string;
+  type: number;
+  creationdate: string | Date;
+  total_net_ttc: number;
+  docstatus: number;
+}
+
+export interface SupplierDashboardData {
+  supplierName: string;
+  currentBalance: number;
+  totalPaid: number;
+  pendingOrders: SupplierDashboardDoc[];
+  pendingReceipts: SupplierDashboardDoc[];
+  recentTransactions: LedgerEntry[];
+}
+
