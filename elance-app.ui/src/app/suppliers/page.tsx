@@ -8,6 +8,7 @@ import {
   Filter, 
   MoreHorizontal, 
   Download, 
+  Upload,
   Truck, 
   ChevronDown,
   Phone,
@@ -22,6 +23,8 @@ import {
   History
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useQueryClient } from '@tanstack/react-query';
+import { DataImportDialog } from '@/components/shared/data-import-dialog';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -55,7 +58,10 @@ export default function ProvidersPage() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+
+  const queryClient = useQueryClient();
 
   // Queries & Mutations
   const { data: suppliers = [], isLoading } = useSuppliers();
@@ -351,6 +357,13 @@ export default function ProvidersPage() {
               <Download className="w-4 h-4 mr-2" /> Exporter
             </Button>
             <Button 
+              onClick={() => setIsImportOpen(true)}
+              variant="outline" 
+              className="h-12 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6"
+            >
+              <Upload className="w-4 h-4 mr-2" /> Importer
+            </Button>
+            <Button 
               onClick={handleOpenCreate}
               className="h-12 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-6"
             >
@@ -433,6 +446,13 @@ export default function ProvidersPage() {
           onConfirm={handleDelete}
           supplier={selectedSupplier}
           isLoading={deleteMutation.isPending}
+        />
+
+        <DataImportDialog
+          isOpen={isImportOpen}
+          onClose={() => setIsImportOpen(false)}
+          type="provider"
+          onImportSuccess={() => queryClient.invalidateQueries({ queryKey: ['suppliers'] })}
         />
       </div>
     </DashboardLayout>

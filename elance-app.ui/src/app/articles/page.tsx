@@ -6,6 +6,7 @@ import {
   Plus, 
   MoreHorizontal, 
   Download, 
+  Upload,
   History,
   Edit,
   Trash2,
@@ -38,6 +39,8 @@ import { ArticleFormDialog } from '@/components/articles/article-form-dialog';
 import { Article } from '@/types/article';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TablePagination } from '@/components/shared/table-pagination';
+import { useQueryClient } from '@tanstack/react-query';
+import { DataImportDialog } from '@/components/shared/data-import-dialog';
 
 export default function ArticlesPage() {
   // State for filtering
@@ -56,7 +59,10 @@ export default function ArticlesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+
+  const queryClient = useQueryClient();
 
   // Queries and Mutations
   const { data: articles, isLoading: isArticlesLoading } = useArticles();
@@ -179,6 +185,13 @@ export default function ArticlesPage() {
           <div className="flex items-center gap-3">
             <Button variant="outline" className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6">
               <Download className="w-4 h-4 mr-2" /> Exporter
+            </Button>
+            <Button 
+              onClick={() => setIsImportOpen(true)}
+              variant="outline" 
+              className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6"
+            >
+              <Upload className="w-4 h-4 mr-2" /> Importer
             </Button>
             <Button 
               className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-6"
@@ -474,6 +487,13 @@ export default function ArticlesPage() {
         title="Supprimer l'article"
         description={`Êtes-vous sûr de vouloir supprimer l'article "${selectedArticle?.reference}" ? Cette action est irréversible.`}
         isLoading={deleteArticle.isPending}
+      />
+
+      <DataImportDialog
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+        type="article"
+        onImportSuccess={() => queryClient.invalidateQueries({ queryKey: ['articles'] })}
       />
     </DashboardLayout>
   );

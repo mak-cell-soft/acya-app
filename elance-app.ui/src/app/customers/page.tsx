@@ -8,6 +8,7 @@ import {
   Filter, 
   MoreHorizontal, 
   Download, 
+  Upload,
   User, 
   ChevronDown,
   Phone,
@@ -22,6 +23,8 @@ import {
   BadgeInfo
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useQueryClient } from '@tanstack/react-query';
+import { DataImportDialog } from '@/components/shared/data-import-dialog';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -50,8 +53,10 @@ export default function CustomersPage() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
+  const queryClient = useQueryClient();
   const { data: customers, isLoading } = useCustomers();
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
@@ -129,6 +134,13 @@ export default function CustomersPage() {
           <div className="flex items-center gap-3">
             <Button variant="outline" className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50">
               <Download className="w-4 h-4 mr-2" /> Exporter
+            </Button>
+            <Button 
+              onClick={() => setIsImportOpen(true)}
+              variant="outline" 
+              className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50"
+            >
+              <Upload className="w-4 h-4 mr-2" /> Importer
             </Button>
             <Button 
               onClick={() => openForm()}
@@ -403,6 +415,13 @@ export default function CustomersPage() {
           onConfirm={handleDelete}
           customer={selectedCustomer}
           isLoading={deleteCustomer.isPending}
+        />
+
+        <DataImportDialog
+          isOpen={isImportOpen}
+          onClose={() => setIsImportOpen(false)}
+          type="customer"
+          onImportSuccess={() => queryClient.invalidateQueries({ queryKey: ['customers'] })}
         />
       </div>
     </DashboardLayout>
