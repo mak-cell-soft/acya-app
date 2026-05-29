@@ -1,0 +1,24 @@
+{
+  "leave": {
+    "title": "ATTESTATION D'OCTROI DE CONGÉ",
+    "titleAr": "شهادة موافقة على عطلة",
+    "bodyTemplate": "Je soussigné, {employerName}, agissant au nom et pour le compte de la société {enterpriseName}, certifie par la présente avoir accordé à notre collaborateur(trice) M./Mme {employeeName}, titulaire de la CIN N° {cin} (CNSS N° {cnss}), un congé de type {leaveType} pour une période de {durationDays} jours, allant du {startDate} au {endDate} inclus.\n\nFait pour servir et valoir ce que de droit.",
+    "bodyTemplateAr": "أني الموقع أسفله، {employerName}، بصفتي ممثلاً لشركة {enterpriseName}، أشهد بموجب هذه الشهادة أنني منحت عطلة من نوع {leaveType} للسيد/السيدة {employeeName} (بطاقة تعريف رقم: {cin}، ضمان اجتماعي رقم: {cnss})، للفترة الممتدة من {startDate} إلى {endDate}، أي ما يعادل {durationDays} يوما.",
+    "employeeSignature": "Signature du Collaborateur",
+    "employerSignature": "Signature & Cachet de l'Employeur"
+  },
+  "advance": {
+    "title": "REÇU D'AVANCE SUR SALAIRE",
+    "titleAr": "وصل تسلم تسبيق على الراتب",
+    "bodyTemplate": "Je soussigné(e), M./Mme {employeeName}, titulaire de la CIN N° {cin}, travaillant en qualité de {employeeRole} au sein de la société {enterpriseName}, reconnais par la présente avoir demandé et reçu à titre d'avance sur mon salaire de base la somme de {amount} TND ({amountWords}) le {requestDate}.\n\nJe m'engage formellement à rembourser cette avance conformément aux modalités convenues, à savoir : {repaymentSchedule}.",
+    "bodyTemplateAr": "أنا الموقع أسفله، السيد/السيدة {employeeName} (بطاقة تعريف رقم: {cin})، الموظف بشركة {enterpriseName}، أقر بأنني طلبت واستلمت كتسبيق على الراتب مبلغا قدره {amount} د.ت ({amountWords}) في تاريخ {requestDate}. وأتعهد بموجب هذا برد هذا التسبيق وفقا للجدولة التالية: {repaymentSchedule}.",
+    "employeeSignature": "Signature de l'Employé",
+    "employerSignature": "Visa de la Direction"
+  },
+  "payslip": {
+    "title": "BULLETIN DE PAIE",
+    "titleAr": "بطاقة خلاص الأجر",
+    "notes": "Bulletin de paie individuel. Conservez ce bulletin sans limitation de durée.",
+    "notesAr": "بطاقة خلاص فردية. يرجى الاحتفاظ بهذه البطاقة دون تحديد في المدة."
+  }
+}

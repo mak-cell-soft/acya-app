@@ -26,7 +26,8 @@ import {
   Sparkles,
   DollarSign,
   Calendar,
-  ChevronRight
+  ChevronRight,
+  Printer
 } from 'lucide-react';
 import { Person } from '@/types/team';
 import { Payslip } from '@/types/hr';
@@ -37,6 +38,7 @@ import {
 import { payslipService } from '@/services/components/payslip.service';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 
 interface PayslipManagementDialogProps {
   isOpen: boolean;
@@ -67,6 +69,7 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
   const [deductions, setDeductions] = useState<number>(0);
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
   const [isDownloading, setIsDownloading] = useState<number | null>(null);
+  const [printPayslip, setPrintPayslip] = useState<Payslip | null>(null);
 
   // --- API Queries & Mutations ---
   const { data: payslips = [], isLoading } = useEmployeePayslips(employee?.id || 0);
@@ -80,6 +83,7 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
       setPeriodYear(new Date().getFullYear());
       setBonuses(0);
       setDeductions(0);
+      setPrintPayslip(null);
     }
   }, [isOpen]);
 
@@ -345,20 +349,31 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
                           </span>
                         </td>
                         <td className="p-4 text-right pr-6">
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => handleDownload(payslip)}
-                            disabled={isDownloading !== null}
-                            className="h-9 w-9 rounded-xl text-forest-600 hover:bg-forest-50 hover:text-forest-800 transition-all duration-300"
-                            title="Télécharger en PDF"
-                          >
-                            {isDownloading === payslip.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Download className="w-4 h-4" />
-                            )}
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => setPrintPayslip(payslip)}
+                              className="h-9 w-9 rounded-xl text-forest-600 hover:bg-forest-50 hover:text-forest-800 transition-all duration-300"
+                              title="Imprimer"
+                            >
+                              <Printer className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => handleDownload(payslip)}
+                              disabled={isDownloading !== null}
+                              className="h-9 w-9 rounded-xl text-forest-600 hover:bg-forest-50 hover:text-forest-800 transition-all duration-300"
+                              title="Télécharger en PDF"
+                            >
+                              {isDownloading === payslip.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Download className="w-4 h-4" />
+                              )}
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -370,6 +385,17 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
         </div>
 
       </DialogContent>
+      
+      {/* Print Option Dialog */}
+      {employee && (
+        <PrintVariantDialog
+          isOpen={printPayslip !== null}
+          onClose={() => setPrintPayslip(null)}
+          employee={employee}
+          payslip={printPayslip}
+          docType="payslip"
+        />
+      )}
     </Dialog>
   );
 }

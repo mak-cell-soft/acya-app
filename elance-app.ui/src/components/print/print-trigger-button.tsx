@@ -21,6 +21,12 @@ import { InvoiceStandard } from './invoice-standard';
 import { InvoiceLight } from './invoice-light';
 import { StockTransferStandard } from './stock-transfer-standard';
 import { StockTransferLight } from './stock-transfer-light';
+import { LeaveStandard } from './leave-standard';
+import { AdvanceStandard } from './advance-standard';
+import { PayslipStandard } from './payslip-standard';
+import { PayslipLight } from './payslip-light';
+import { Person } from '@/types/team';
+import { Leave, Payslip, Advance } from '@/types/hr';
 
 interface PrintVariantDialogProps {
   isOpen: boolean;
@@ -28,7 +34,11 @@ interface PrintVariantDialogProps {
   document?: Document | null | undefined;
   transfer?: StockTransferInfo | null | undefined;
   transferDetails?: StockTransferDetails[] | null | undefined;
-  docType: 'bl' | 'invoice' | 'transfer' | null | undefined;
+  employee?: Person | null | undefined;
+  leave?: Leave | null | undefined;
+  payslip?: Payslip | null | undefined;
+  advance?: Advance | null | undefined;
+  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | null | undefined;
 }
 
 export function PrintVariantDialog({
@@ -37,6 +47,10 @@ export function PrintVariantDialog({
   document,
   transfer,
   transferDetails,
+  employee,
+  leave,
+  payslip,
+  advance,
   docType,
 }: PrintVariantDialogProps) {
   // Retrieve the connected enterprise settings dynamically.
@@ -44,8 +58,24 @@ export function PrintVariantDialog({
   const { data: enterprise, isLoading } = useEnterprise();
   const [printing, setPrinting] = useState(false);
 
-  if (docType !== 'transfer' && (!document || !docType)) return null;
+  // Auto-trigger print for single-variant HR documents (leave, advance) as soon as enterprise settings load
+  React.useEffect(() => {
+    if (isOpen && enterprise && !isLoading && !printing && (docType === 'leave' || docType === 'advance')) {
+      handlePrint('standard');
+    }
+  }, [isOpen, enterprise, isLoading, docType]);
+
+  if (
+    docType !== 'transfer' &&
+    docType !== 'leave' &&
+    docType !== 'advance' &&
+    docType !== 'payslip' &&
+    (!document || !docType)
+  ) return null;
   if (docType === 'transfer' && !transfer) return null;
+  if (docType === 'leave' && (!leave || !employee)) return null;
+  if (docType === 'advance' && (!advance || !employee)) return null;
+  if (docType === 'payslip' && (!payslip || !employee)) return null;
 
   /**
    * Executes the print flow by generating markup, injecting it into a hidden iframe,
@@ -89,6 +119,28 @@ export function PrintVariantDialog({
             <StockTransferStandard transfer={transfer} details={transferDetails || []} enterprise={enterprise} />
           ) : (
             <StockTransferLight transfer={transfer} details={transferDetails || []} enterprise={enterprise} />
+          )
+        );
+      } else if (docType === 'leave' && leave && employee) {
+        printDocNumber = `CONGE-${employee.lastname}-${leave.id}`;
+        styleCss = getStandardPrintStyles();
+        contentHtml = renderToStaticMarkup(
+          <LeaveStandard employee={employee} leave={leave} enterprise={enterprise} />
+        );
+      } else if (docType === 'advance' && advance && employee) {
+        printDocNumber = `AVANCE-${employee.lastname}-${advance.id}`;
+        styleCss = getStandardPrintStyles();
+        contentHtml = renderToStaticMarkup(
+          <AdvanceStandard employee={employee} advance={advance} enterprise={enterprise} />
+        );
+      } else if (docType === 'payslip' && payslip && employee) {
+        printDocNumber = `BULLETIN-${employee.lastname}-${payslip.periodmonth}-${payslip.periodyear}`;
+        styleCss = variant === 'standard' ? getStandardPrintStyles() : getLightPrintStyles();
+        contentHtml = renderToStaticMarkup(
+          variant === 'standard' ? (
+            <PayslipStandard employee={employee} payslip={payslip} enterprise={enterprise} />
+          ) : (
+            <PayslipLight employee={employee} payslip={payslip} enterprise={enterprise} />
           )
         );
       }
@@ -154,7 +206,11 @@ export function PrintVariantDialog({
           <DialogDescription className="text-sm text-sand-500 font-medium">
             Choisissez le format d&apos;impression adapté à votre matériel. 
             Document N° <span className="font-mono font-bold text-forest-900">
-              {docType === 'transfer' ? (transfer?.docSortie || 'Brouillon') : (document?.docnumber || 'Brouillon')}
+              {docType === 'transfer' ? (transfer?.docSortie || 'Brouillon') : 
+               docType === 'leave' ? `Congé #${leave?.id}` :
+               docType === 'advance' ? `Avance #${advance?.id}` :
+               docType === 'payslip' ? `Bulletin ${payslip?.periodmonth}/${payslip?.periodyear}` :
+               (document?.docnumber || 'Brouillon')}
             </span>
           </DialogDescription>
         </DialogHeader>
@@ -187,24 +243,26 @@ export function PrintVariantDialog({
               </div>
             </button>
 
-            {/* Light Dot Matrix Option */}
-            <button
-              onClick={() => handlePrint('light')}
-              disabled={printing}
-              className="flex items-start text-left gap-4 p-4 rounded-[16px] border border-sand-200 bg-white hover:bg-sand-50/50 hover:border-forest-800/40 transition-all group"
-            >
-              <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-100 text-amber-800 group-hover:bg-amber-100/50 transition-colors">
-                <FileText className="w-6 h-6" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="text-sm font-bold text-forest-950 group-hover:text-forest-800 transition-colors">
-                  Format Léger (Matricielle / Aiguilles)
-                </h4>
-                <p className="text-xs text-sand-400 font-medium leading-relaxed">
-                  Style compact en police monospace. Supprime les bordures épaisses et illustrations pour optimiser le temps d&apos;impression et économiser le ruban.
-                </p>
-              </div>
-            </button>
+            {/* Light Dot Matrix Option - Hidden for Leaves & Advances */}
+            {(docType !== 'leave' && docType !== 'advance') && (
+              <button
+                onClick={() => handlePrint('light')}
+                disabled={printing}
+                className="flex items-start text-left gap-4 p-4 rounded-[16px] border border-sand-200 bg-white hover:bg-sand-50/50 hover:border-forest-800/40 transition-all group"
+              >
+                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-100 text-amber-800 group-hover:bg-amber-100/50 transition-colors">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-forest-950 group-hover:text-forest-800 transition-colors">
+                    Format Léger (Matricielle / Aiguilles)
+                  </h4>
+                  <p className="text-xs text-sand-400 font-medium leading-relaxed">
+                    Style compact en police monospace. Supprime les bordures épaisses et illustrations pour optimiser le temps d&apos;impression et économiser le ruban.
+                  </p>
+                </div>
+              </button>
+            )}
           </div>
         )}
 

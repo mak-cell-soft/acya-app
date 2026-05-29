@@ -26,7 +26,8 @@ import {
   Clock, 
   Loader2, 
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  Printer
 } from 'lucide-react';
 import { Person } from '@/types/team';
 import { Leave } from '@/types/hr';
@@ -38,6 +39,7 @@ import {
 } from '@/hooks/use-hr';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 
 interface LeaveManagementDialogProps {
   isOpen: boolean;
@@ -52,6 +54,7 @@ export function LeaveManagementDialog({ isOpen, onClose, employee }: LeaveManage
   const [endDate, setEndDate] = useState<string>('');
   const [durationDays, setDurationDays] = useState<number>(0);
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
+  const [printLeave, setPrintLeave] = useState<Leave | null>(null);
 
   // --- API Queries & Mutations ---
   const { data: leaves = [], isLoading } = useEmployeeLeaves(employee?.id || 0);
@@ -85,6 +88,7 @@ export function LeaveManagementDialog({ isOpen, onClose, employee }: LeaveManage
       setStartDate('');
       setEndDate('');
       setDurationDays(0);
+      setPrintLeave(null);
     }
   }, [isOpen]);
 
@@ -359,6 +363,15 @@ export function LeaveManagementDialog({ isOpen, onClose, employee }: LeaveManage
                           <Button 
                             variant="ghost" 
                             size="icon"
+                            onClick={() => setPrintLeave(leave)}
+                            className="h-8 w-8 rounded-lg text-forest-600 hover:bg-forest-50 hover:text-forest-750"
+                            title="Imprimer le congé"
+                          >
+                            <Printer className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
                             onClick={() => handleDelete(leave.id)}
                             disabled={deleteLeave.isPending}
                             className="h-8 w-8 rounded-lg text-sand-300 hover:text-rose-600 hover:bg-rose-50"
@@ -377,6 +390,17 @@ export function LeaveManagementDialog({ isOpen, onClose, employee }: LeaveManage
         </div>
 
       </DialogContent>
+      
+      {/* Print Option Dialog */}
+      {employee && (
+        <PrintVariantDialog
+          isOpen={printLeave !== null}
+          onClose={() => setPrintLeave(null)}
+          employee={employee}
+          leave={printLeave}
+          docType="leave"
+        />
+      )}
     </Dialog>
   );
 }

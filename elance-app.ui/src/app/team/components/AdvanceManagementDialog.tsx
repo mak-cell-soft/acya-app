@@ -22,7 +22,8 @@ import {
   DollarSign,
   CalendarDays,
   RefreshCw,
-  Coins
+  Coins,
+  Printer
 } from 'lucide-react';
 import { Person } from '@/types/team';
 import { Advance } from '@/types/hr';
@@ -34,6 +35,7 @@ import {
 } from '@/hooks/use-hr';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 
 interface AdvanceManagementDialogProps {
   isOpen: boolean;
@@ -49,6 +51,7 @@ export function AdvanceManagementDialog({ isOpen, onClose, employee }: AdvanceMa
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
   const [repaymentAmountInput, setRepaymentAmountInput] = useState<{ [id: number]: number }>({});
   const [activeRepayId, setActiveRepayId] = useState<number | null>(null);
+  const [printAdvance, setPrintAdvance] = useState<Advance | null>(null);
 
   // --- API Queries & Mutations ---
   const { data: advances = [], isLoading } = useEmployeeAdvances(employee?.id || 0);
@@ -65,6 +68,7 @@ export function AdvanceManagementDialog({ isOpen, onClose, employee }: AdvanceMa
       setRepaymentSchedule('');
       setRepaymentAmountInput({});
       setActiveRepayId(null);
+      setPrintAdvance(null);
     }
   }, [isOpen]);
 
@@ -416,6 +420,15 @@ export function AdvanceManagementDialog({ isOpen, onClose, employee }: AdvanceMa
                             <Button 
                               variant="ghost" 
                               size="icon"
+                              onClick={() => setPrintAdvance(advance)}
+                              className="h-8 w-8 rounded-lg text-forest-600 hover:bg-forest-50 hover:text-forest-750"
+                              title="Imprimer le reçu d'avance"
+                            >
+                              <Printer className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
                               onClick={() => handleDelete(advance.id)}
                               disabled={deleteAdvance.isPending}
                               className="h-8 w-8 rounded-lg text-sand-300 hover:text-rose-600 hover:bg-rose-50"
@@ -435,6 +448,17 @@ export function AdvanceManagementDialog({ isOpen, onClose, employee }: AdvanceMa
         </div>
 
       </DialogContent>
+      
+      {/* Print Option Dialog */}
+      {employee && (
+        <PrintVariantDialog
+          isOpen={printAdvance !== null}
+          onClose={() => setPrintAdvance(null)}
+          employee={employee}
+          advance={printAdvance}
+          docType="advance"
+        />
+      )}
     </Dialog>
   );
 }
