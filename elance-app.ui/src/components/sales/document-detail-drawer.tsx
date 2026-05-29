@@ -30,13 +30,15 @@ interface DocumentDetailDrawerProps {
   onClose: () => void;
   documentId: number | null;
   onNavigateToRelated?: (id: number) => void;
+  onPrint?: (doc: Document) => void;
 }
 
 export function DocumentDetailDrawer({
   isOpen,
   onClose,
   documentId,
-  onNavigateToRelated
+  onNavigateToRelated,
+  onPrint
 }: DocumentDetailDrawerProps) {
   const [doc, setDoc] = useState<Document | null>(null);
   const [loading, setLoading] = useState(false);
@@ -120,9 +122,13 @@ export function DocumentDetailDrawer({
     }
   };
 
-  // Trigger browser print of document
+  // Trigger browser print of document or use custom print wrapper if provided
   const handlePrint = () => {
-    window.print();
+    if (doc && onPrint && (doc.type === DocumentTypes.customerDeliveryNote || doc.type === DocumentTypes.customerInvoice)) {
+      onPrint(doc);
+    } else {
+      window.print();
+    }
   };
 
   if (!isOpen) return null;

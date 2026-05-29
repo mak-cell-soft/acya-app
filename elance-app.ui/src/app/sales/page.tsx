@@ -56,6 +56,7 @@ import { WithholdingTaxModal } from '@/components/sales/withholding-tax-modal';
 import { CustomerBatchConversionModal } from '@/components/sales/customer-batch-conversion-modal';
 import { CustomerSingleBatchConversionModal } from '@/components/sales/customer-single-batch-conversion-modal';
 import { BLToInvoiceModal } from '@/components/sales/bl-to-invoice-modal';
+import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -111,6 +112,8 @@ export default function SalesPage() {
   const [isSingleBatchModalOpen, setIsSingleBatchModalOpen] = useState(false);
   // State for the single BL → Invoice conversion modal
   const [blForConversion, setBlForConversion] = useState<Document | null>(null);
+  // State to manage which document is being printed and its type
+  const [printDoc, setPrintDoc] = useState<{ doc: Document; type: 'bl' | 'invoice' } | null>(null);
   const queryClient = useQueryClient();
 
   // Map tabs to document types
@@ -701,6 +704,25 @@ export default function SalesPage() {
                                       <FileText className="w-4 h-4" /> Voir détails
                                     </DropdownMenuItem>
 
+                                    {/* Print options for BL and Invoices */}
+                                    {item.type === DocumentTypes.customerDeliveryNote && (
+                                      <DropdownMenuItem
+                                        onClick={() => setPrintDoc({ doc: item, type: 'bl' })}
+                                        className="gap-2 font-semibold text-sand-800 cursor-pointer"
+                                      >
+                                        <Printer className="w-4 h-4" /> Imprimer BL
+                                      </DropdownMenuItem>
+                                    )}
+
+                                    {item.type === DocumentTypes.customerInvoice && (
+                                      <DropdownMenuItem
+                                        onClick={() => setPrintDoc({ doc: item, type: 'invoice' })}
+                                        className="gap-2 font-semibold text-sand-800 cursor-pointer"
+                                      >
+                                        <Printer className="w-4 h-4" /> Imprimer Facture
+                                      </DropdownMenuItem>
+                                    )}
+
                                     {/* Quote Conversion Options */}
                                     {item.type === DocumentTypes.customerQuote && (
                                       <>
@@ -1046,6 +1068,20 @@ export default function SalesPage() {
         documentId={selectedDocIdForDetail}
         onClose={() => setSelectedDocIdForDetail(null)}
         onNavigateToRelated={(id) => setSelectedDocIdForDetail(id)}
+        onPrint={(doc) => {
+          setPrintDoc({
+            doc,
+            type: doc.type === DocumentTypes.customerInvoice ? 'invoice' : 'bl'
+          });
+        }}
+      />
+
+      {/* Print Option Dialog */}
+      <PrintVariantDialog
+        isOpen={printDoc !== null}
+        onClose={() => setPrintDoc(null)}
+        document={printDoc?.doc}
+        docType={printDoc?.type}
       />
 
       {/* Payment Confirmation Drawer */}

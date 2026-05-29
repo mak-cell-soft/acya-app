@@ -30,6 +30,8 @@ import { Transporter } from '@/types/settings';
 import { ListOfLength } from '@/types/document';
 import { toast } from 'sonner';
 import { WoodLengthsDialog } from '@/components/sales/wood-lengths-dialog';
+import { PrintVariantDialog } from '@/components/print/print-trigger-button';
+import { StockTransferInfo, StockTransferDetails } from '@/types/stock';
 import { 
   ArrowLeft, 
   Trash2, 
@@ -42,7 +44,8 @@ import {
   AlertCircle,
   FileText,
   Boxes,
-  Loader2
+  Loader2,
+  Printer
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -97,6 +100,11 @@ function NewStockTransferContent() {
   const [lengthsArticle, setLengthsArticle] = useState<Article | null>(null);
   const [lengthsCurrent, setLengthsCurrent] = useState<ListOfLength[]>([]);
   const [lengthsStockDetails, setLengthsStockDetails] = useState<any[]>([]);
+
+  // States for printing after successful registration
+  const [printTransfer, setPrintTransfer] = useState<StockTransferInfo | null>(null);
+  const [printDetails, setPrintDetails] = useState<StockTransferDetails[] | null>(null);
+  const [showPrintDialog, setShowPrintDialog] = useState<boolean>(false);
 
   // Set default origin site based on user defaultSiteId once sites are loaded
   useEffect(() => {
@@ -406,14 +414,55 @@ function NewStockTransferContent() {
       const result = await stockService.transferStock(payload);
       toast.success(`Le Bon de Sortie ${result.ExitDocumentNumber || ''} a été créé avec succès.`);
       
-      // Navigate back to transfers list tab
-      router.push('/stock?tab=transfers');
+      // Construct transfer and details for printing
+      const transferInfo: StockTransferInfo = {
+        // Fallback for casing variations from the C# API response serialization
+        id: result.transferId || result.TransferId || result.id || 0,
+        docSortie: result.exitDocumentNumber || result.ExitDocumentNumber || '',
+        docReception: '',
+        originSiteAddress: allSites.find(s => s.id.toString() === originSiteId)?.address || '',
+        destinationSiteAddress: allSites.find(s => s.id.toString() === destinationSiteId)?.address || '',
+        origine: allSites.find(s => s.id.toString() === originSiteId)?.gov || '',
+        destination: allSites.find(s => s.id.toString() === destinationSiteId)?.gov || '',
+        transferDate: new Date(transferDate).toISOString(),
+        transporter: allTransporters.find(t => t.id.toString() === transporterId)?.fullname || 'Non spécifié',
+        status: 1 // Pending
+      };
+      
+      // Inject the confirmationCode to the transfer metadata for immediate display
+      (transferInfo as any).confirmationCode = result.confirmationCode || result.ConfirmationCode || '';
+
+      // Populate transferDetails. Maintain dual property mappings (description/articleDescription and refPaquet/packageReference)
+      // to satisfy both database-loaded history records and newly created transfer prints.
+      const transferDetails: StockTransferDetails[] = rows.map((row, idx) => ({
+        id: idx,
+        articleReference: row.selectedArticle?.reference || '',
+        articleDescription: row.selectedArticle?.description || '',
+        description: row.selectedArticle?.description || '',
+        packageReference: row.packagereference || 'Standard',
+        refPaquet: row.packagereference || 'Standard',
+        quantity: row.quantity,
+        unit: row.selectedArticle?.unit || 'PCS',
+        confirmationCode: result.confirmationCode || result.ConfirmationCode || '',
+        exitDocLengths: row.listLengths // Include wood lengths specifications
+      } as any));
+
+      setPrintTransfer(transferInfo);
+      setPrintDetails(transferDetails);
+      setShowPrintDialog(true);
     } catch (err: any) {
       console.error('Stock transfer creation failed:', err);
       toast.error(err.response?.data || 'Erreur lors du traitement du transfert de stock.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePrintClose = () => {
+    setShowPrintDialog(false);
+    setPrintTransfer(null);
+    setPrintDetails(null);
+    router.push('/stock?tab=transfers');
   };
 
   // Header display summaries
@@ -800,6 +849,15 @@ function NewStockTransferContent() {
           onSave={handleSaveLengths}
         />
       )}
+
+      {/* Print Option Dialog */}
+      <PrintVariantDialog
+        isOpen={showPrintDialog}
+        onClose={handlePrintClose}
+        transfer={printTransfer}
+        transferDetails={printDetails}
+        docType="transfer"
+      />
     </div>
   );
 }

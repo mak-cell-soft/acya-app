@@ -31,9 +31,11 @@ import {
   Building,
   Loader2,
   Lock,
-  PlusCircle
+  PlusCircle,
+  Printer
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 
 export function StockTransfersList() {
   const router = useRouter();
@@ -54,6 +56,9 @@ export function StockTransfersList() {
 
   // Active Selected Transfer Drawer State
   const [selectedTransfer, setSelectedTransfer] = useState<StockTransferInfo | null>(null);
+  
+  // State for printing transfer
+  const [printTransfer, setPrintTransfer] = useState<{ transfer: StockTransferInfo; details: any[] } | null>(null);
   
   // Confirmation / Rejection form state
   const [isConfirmingMode, setIsConfirmingMode] = useState(false);
@@ -330,6 +335,19 @@ export function StockTransfersList() {
 
 
           <DialogFooter className="border-t border-stone-100 dark:border-stone-900 pt-4 gap-2">
+            {selectedTransfer && !isLoadingDetails && (
+              <Button
+                type="button"
+                onClick={() => setPrintTransfer({
+                  transfer: selectedTransfer,
+                  details: transferDetails
+                })}
+                className="h-10 text-xs font-bold bg-stone-900 hover:bg-stone-800 text-white rounded-xl gap-2 transition-all px-4"
+              >
+                <Printer className="h-4 w-4" />
+                Imprimer
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => setSelectedTransfer(null)}
@@ -341,6 +359,14 @@ export function StockTransfersList() {
         </DialogContent>
       </Dialog>
 
+      {/* Print Option Dialog */}
+      <PrintVariantDialog
+        isOpen={printTransfer !== null}
+        onClose={() => setPrintTransfer(null)}
+        transfer={printTransfer?.transfer}
+        transferDetails={printTransfer?.details}
+        docType="transfer"
+      />
     </div>
   );
 }

@@ -127,15 +127,18 @@ namespace ms.webapp.api.acya.api.Controllers
     [HttpPost("process-transfer")]
     public async Task<ActionResult> PreocessStockTransfer(StockTransferDto dto)
     {
+       // Initiate the stock transfer (autoConfirm is false so it is pending)
        var result = await _stockService.InitiateTransferAsync(dto, autoConfirm: false);
        if (!result.Success) return BadRequest(result.Message);
 
+       // NOTE: We must return the generated ConfirmationCode here so the frontend print layout can display it right after creation
        return Ok(new
        {
          ExitDocumentNumber = result.ExitDocumentNumber,
          ReceiptDocumentNumber = result.ReceiptDocumentNumber,
          TransferId = result.TransferId,
          TransferRef = result.TransferRef,
+         ConfirmationCode = result.ConfirmationCode,
          Status = result.Status,
          Message = result.Message
        });

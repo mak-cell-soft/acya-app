@@ -76,7 +76,9 @@ export interface StockTransferDetails {
   id: number;
   articleReference: string;
   articleDescription: string;
+  description?: string;
   packageReference: string;
+  refPaquet?: string;
   quantity: number;
   unit: string;
   confirmationCode?: string;
