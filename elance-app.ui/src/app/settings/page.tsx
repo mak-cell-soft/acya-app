@@ -8,7 +8,8 @@ import { EnterpriseTab } from '@/components/settings/enterprise-tab';
 import { ParamsTab } from '@/components/settings/params-tab';
 import { NumberingTab } from '@/components/settings/numbering-tab';
 import { AuditTab } from '@/components/settings/audit-tab';
-import { Building2, Settings2, Hash, ShieldCheck, Cog } from 'lucide-react';
+import { PrintTab } from '@/components/settings/print-tab';
+import { Building2, Settings2, Hash, ShieldCheck, Cog, Printer } from 'lucide-react';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = React.useState('enterprise');
@@ -78,6 +79,13 @@ export default function SettingsPage() {
               >
                 <ShieldCheck className="w-5 h-5" /> Audit
               </TabsTrigger>
+              {/* NOTE: Impression tab — edit print-ar.json labels directly */}
+              <TabsTrigger 
+                value="print" 
+                className="rounded-[18px] px-8 py-3.5 data-[state=active]:bg-forest-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-forest-600/20 font-bold gap-3 transition-all duration-300"
+              >
+                <Printer className="w-5 h-5" /> Impression
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -104,6 +112,11 @@ export default function SettingsPage() {
 
                 <TabsContent value="audit" className="m-0 focus-visible:outline-none">
                   <AuditTab />
+                </TabsContent>
+
+                {/* NOTE: Impression tab — renders the full print-ar.json editor */}
+                <TabsContent value="print" className="m-0 focus-visible:outline-none">
+                  <PrintTab />
                 </TabsContent>
               </motion.div>
             </AnimatePresence>

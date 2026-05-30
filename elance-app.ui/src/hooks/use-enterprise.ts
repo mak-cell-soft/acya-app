@@ -19,10 +19,23 @@ export function useEnterprise() {
 export function useUpdateEnterprise() {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
+  // NOTE: Determine the enterprise ID from the authenticated user context, defaulting to 1 if not set.
   const enterpriseId = user?.enterpriseId ? parseInt(user.enterpriseId) : 1;
 
   return useMutation({
-    mutationFn: (data: Partial<Enterprise>) => enterpriseService.update(enterpriseId, data),
+    // NOTE: We merge the partial update data with the existing cached enterprise data
+    // to ensure that we satisfy the backend PUT contract (avoiding overwriting fields with null
+    // and preventing Guid parsing errors due to missing fields). We also explicitly set the id
+    // to match the URL segment, avoiding the "ID mismatch" BadRequest (400) from C#.
+    mutationFn: (data: Partial<Enterprise>) => {
+      const current = queryClient.getQueryData<Enterprise>(['enterprise', enterpriseId]);
+      const mergedData = {
+        ...current,
+        ...data,
+        id: enterpriseId,
+      };
+      return enterpriseService.update(enterpriseId, mergedData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['enterprise', enterpriseId] });
       toast.success('Informations de l\'entreprise mises à jour');

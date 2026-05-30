@@ -37,19 +37,31 @@ namespace ms.webapp.api.acya.core.Entities
 
     public void UpdateFromDto(EnterpriseDto dto)
     {
+      // NOTE: Ensure the ID matches.
       Id = dto.id;
-      Name= dto.name;
-      Description= dto.description;
-      Guid = Guid.Parse(dto.guid!);
-      Email= dto.email;
-      Phone= dto.phone;
-      MobileOne= dto.mobileOne;
-      MobileTwo= dto.mobileTwo;
+      Name = dto.name;
+      Description = dto.description;
+      
+      // NOTE: Only parse the Guid if it is provided and valid, otherwise retain the existing Guid identifier.
+      // This protects against ArgumentNullExceptions during partial API updates.
+      if (!string.IsNullOrEmpty(dto.guid))
+      {
+        Guid = Guid.Parse(dto.guid);
+      }
+      
+      Email = dto.email;
+      Phone = dto.phone;
+      MobileOne = dto.mobileOne;
+      MobileTwo = dto.mobileTwo;
       MatriculeFiscal = dto.matriculeFiscal;
       Devise = dto.devise;
-      NameResponsable= dto.nameResponsable?.ToUpper();
+      
+      // NOTE: Normalize responsible name to uppercase for consistency in branding/reporting.
+      NameResponsable = dto.nameResponsable?.ToUpper();
       PositionResponsable = dto.positionResponsable;
-      SurnameResponsable = dto.surnameResponsable!;
+      
+      // NOTE: Handle possible null value gracefully to prevent null reference exceptions.
+      SurnameResponsable = dto.surnameResponsable;
       SiegeAddress = dto.siegeAddress;
       CommercialRegister = dto.commercialregister;
       Capital = dto.capital;
@@ -59,7 +71,7 @@ namespace ms.webapp.api.acya.core.Entities
 
       if (dto.sites != null)
       {
-        // Initialize Sites with a HashSet of transformed SiteDto objects
+        // NOTE: Initialize Sites with a HashSet of transformed SiteDto objects.
         Sites = new HashSet<SalesSite>(dto.sites.Select(siteDto => new SalesSite(siteDto)));
       }
 
