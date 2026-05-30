@@ -2,13 +2,15 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, CreditCard, ShoppingBag, Receipt, History, Info, ChevronRight, TrendingDown, ArrowUpRight } from 'lucide-react';
+import { ArrowLeft, CreditCard, ShoppingBag, Receipt, History, Info, ChevronRight, TrendingDown, ArrowUpRight, Banknote, CalendarDays, AlertTriangle } from 'lucide-react';
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useSupplierDashboard } from '@/hooks/use-supplier-dashboard';
+import { useSupplierPayments } from '@/hooks/use-supplier-payments';
+import { TablePagination } from '@/components/shared/table-pagination';
 import { DocumentTypes, DocTypes_FR, DocStatus, DocStatus_FR } from '@/types/document';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -27,6 +29,28 @@ export default function SupplierDashboardPage({ params }: PageProps) {
 
   // Load dashboard data via react-query
   const { data, isLoading, error } = useSupplierDashboard(supplierId);
+
+  // Load payments via react-query
+  const { data: payments, isLoading: paymentsLoading } = useSupplierPayments(supplierId);
+
+  // Pagination state for payments tab
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(10);
+
+  // Paginated payments logic
+  const totalPayments = payments?.length || 0;
+  const paginatedPayments = React.useMemo(() => {
+    if (!payments) return [];
+    const startIndex = (currentPage - 1) * pageSize;
+    return payments.slice(startIndex, startIndex + pageSize);
+  }, [payments, currentPage, pageSize]);
+
+  const totalPages = Math.ceil(totalPayments / pageSize);
+  React.useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPayments, pageSize, currentPage, totalPages]);
 
   // Formatting helpers
   const formatTnd = (num: number) => {
@@ -95,6 +119,35 @@ export default function SupplierDashboardPage({ params }: PageProps) {
       default:
         return 'bg-sand-50 text-sand-700 border-sand-100';
     }
+  };
+
+  // Color code payment method badges
+  const getPaymentMethodBadgeClass = (method: string) => {
+    switch (method?.toUpperCase()) {
+      case 'CHEQUE':
+        return 'bg-violet-50 text-violet-700 border-violet-100';
+      case 'TRAITE':
+        return 'bg-amber-50 text-amber-700 border-amber-100';
+      case 'VIREMENT':
+        return 'bg-sky-50 text-sky-700 border-sky-100';
+      case 'ESPECE':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+      case 'CARTE':
+        return 'bg-rose-50 text-rose-700 border-rose-100';
+      default:
+        return 'bg-sand-50 text-sand-700 border-sand-100';
+    }
+  };
+
+  // Helper to check if an instrument is overdue
+  const isInstrumentOverdue = (instrument: any) => {
+    if (!instrument || instrument.isPaidAtBank) return false;
+    if (!instrument.dueDate) return false;
+    const dueDate = new Date(instrument.dueDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+    return dueDate < today;
   };
 
   // Go back to suppliers page
@@ -272,6 +325,12 @@ export default function SupplierDashboardPage({ params }: PageProps) {
                     >
                       Réceptions en attente (BR)
                     </TabsTrigger>
+                    <TabsTrigger 
+                      value="payments" 
+                      className="h-16 rounded-none border-b-2 border-transparent data-[state=active]:border-forest-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 font-bold text-sand-400 data-[state=active]:text-forest-900 text-sm transition-all"
+                    >
+                      Paiements
+                    </TabsTrigger>
                   </TabsList>
                 </div>
 
@@ -358,6 +417,129 @@ export default function SupplierDashboardPage({ params }: PageProps) {
                         </tbody>
                       </table>
                     </div>
+                  </TabsContent>
+
+                  {/* Tab 3: Payments */}
+                  <TabsContent value="payments" className="m-0 focus-visible:outline-none">
+                    {paymentsLoading ? (
+                      <div className="p-8 space-y-4 animate-pulse">
+                        <div className="h-8 bg-sand-100 rounded-[12px] w-full" />
+                        <div className="h-8 bg-sand-100 rounded-[12px] w-full" />
+                        <div className="h-8 bg-sand-100 rounded-[12px] w-full" />
+                      </div>
+                    ) : !payments || payments.length === 0 ? (
+                      <div className="p-16 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="w-12 h-12 bg-sand-50 rounded-2xl flex items-center justify-center text-sand-300">
+                            <Banknote className="w-5 h-5" />
+                          </div>
+                          <p className="text-sm font-bold text-sand-400">Aucun paiement enregistré pour ce fournisseur.</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-sand-50/10 border-b border-forest-50">
+                                <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider">Date</th>
+                                <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider">Méthode</th>
+                                <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider">Référence / Notes</th>
+                                <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider">Détails Instrument</th>
+                                <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider">Échéance</th>
+                                <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider text-right">Montant</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-forest-50">
+                              {paginatedPayments.map((payment) => {
+                                const isOverdue = isInstrumentOverdue(payment.instrument);
+                                return (
+                                  <tr 
+                                    key={payment.id || payment.paymentId} 
+                                    className={cn(
+                                      "hover:bg-forest-50/20 transition-colors",
+                                      isOverdue && "bg-rose-50/20 hover:bg-rose-50/30"
+                                    )}
+                                  >
+                                    <td className="p-5 text-sm text-sand-500 font-bold">
+                                      {formatDate(payment.paymentDate)}
+                                    </td>
+                                    <td className="p-5">
+                                      <Badge 
+                                        variant="outline" 
+                                        className={cn("rounded-xl px-2.5 py-1 font-bold text-xs border uppercase", getPaymentMethodBadgeClass(payment.paymentMethod))}
+                                      >
+                                        {payment.paymentMethod}
+                                      </Badge>
+                                    </td>
+                                    <td className="p-5 text-sm font-medium text-forest-900 max-w-[200px] truncate">
+                                      <div className="flex flex-col">
+                                        <span className="font-mono text-xs">{payment.reference || '—'}</span>
+                                        {payment.notes && (
+                                          <span className="text-xs text-sand-400 italic mt-0.5 truncate">{payment.notes}</span>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="p-5 text-sm text-sand-600">
+                                      {payment.instrument ? (
+                                        <div className="flex flex-col gap-0.5">
+                                          <span className="font-bold text-xs text-forest-950">
+                                            N° {payment.instrument.instrumentNumber || '—'}
+                                          </span>
+                                          <span className="text-[0.7rem] text-sand-400 uppercase tracking-wider">
+                                            {payment.instrument.bank || '—'}
+                                          </span>
+                                        </div>
+                                      ) : (
+                                        <span className="text-sand-400">—</span>
+                                      )}
+                                    </td>
+                                    <td className="p-5 text-sm">
+                                      {payment.instrument?.dueDate ? (
+                                        <div className="flex flex-col gap-1">
+                                          <span className={cn(
+                                            "font-bold",
+                                            isOverdue ? "text-rose-600 font-black flex items-center gap-1" : "text-sand-600"
+                                          )}>
+                                            {isOverdue && <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0" />}
+                                            {formatDate(payment.instrument.dueDate)}
+                                          </span>
+                                          {isOverdue && (
+                                            <Badge variant="outline" className="w-fit rounded-lg bg-rose-50 text-rose-700 border-rose-200 text-[0.6rem] font-bold px-1.5 py-0">
+                                              En retard
+                                            </Badge>
+                                          )}
+                                          {!isOverdue && payment.instrument.isPaidAtBank && (
+                                            <Badge variant="outline" className="w-fit rounded-lg bg-emerald-50 text-emerald-700 border-emerald-200 text-[0.6rem] font-bold px-1.5 py-0">
+                                              Encaissé
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <span className="text-sand-400">—</span>
+                                      )}
+                                    </td>
+                                    <td className="p-5 text-right font-mono font-black text-emerald-600">
+                                      {formatTnd(payment.amount)} <span className="text-[0.7rem] font-bold text-sand-400">TND</span>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                        <TablePagination
+                          currentPage={currentPage}
+                          totalItems={totalPayments}
+                          pageSize={pageSize}
+                          onPageChange={setCurrentPage}
+                          onPageSizeChange={(size) => {
+                            setPageSize(size);
+                            setCurrentPage(1);
+                          }}
+                        />
+                      </>
+                    )}
                   </TabsContent>
                 </CardContent>
               </Tabs>
