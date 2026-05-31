@@ -26,7 +26,7 @@ namespace ms.webapp.api.acya.api.Controllers
         /// <param name="enterpriseId">Optional enterprise filter.</param>
         /// <returns>DashboardKpiDto</returns>
         [HttpGet("dashboard")]
-        public async Task<ActionResult<DashboardKpiDto>> GetDashboardKpis([FromQuery] Guid enterpriseId)
+        public async Task<ActionResult<DashboardKpiDto>> GetDashboardKpis([FromQuery] int? enterpriseId)
         {
             try
             {

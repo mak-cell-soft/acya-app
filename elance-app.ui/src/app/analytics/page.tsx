@@ -20,7 +20,9 @@ import {
   Pie,
   Cell,
   Legend,
-  CartesianGrid
+  CartesianGrid,
+  BarChart,
+  Bar
 } from 'recharts';
 import { motion } from 'framer-motion';
 import { 
@@ -37,6 +39,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAnalyticsKpis, useMonthlyRevenue } from '@/hooks/use-analytics-kpis';
+import { useSupplierPurchasePaymentChart } from '@/hooks/use-supplier-chart';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const COLORS = ['#1D9E75', '#534AB7', '#A39D90', '#E1F5EE', '#F59E0B', '#3B82F6'];
@@ -52,8 +55,12 @@ const formatCurrency = (value: number) => {
 
 export default function AnalyticsPage() {
   const [isMounted, setIsMounted] = useState(false);
+  const [chartYear, setChartYear] = useState<number>(new Date().getFullYear());
+  const [chartMonth, setChartMonth] = useState<number | 'ALL'>(new Date().getMonth() + 1);
+
   const { data: kpis, isLoading: isLoadingKpis, isError } = useAnalyticsKpis();
   const { data: monthlyData, isLoading: isLoadingMonthly } = useMonthlyRevenue(6);
+  const { data: supplierChartData, isLoading: isLoadingSupplierChart } = useSupplierPurchasePaymentChart(chartYear, chartMonth);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -111,6 +118,61 @@ export default function AnalyticsPage() {
           />
           <Legend verticalAlign="bottom" align="center" iconType="circle" wrapperStyle={{paddingTop: '20px'}} />
         </PieChart>
+      </ResponsiveContainer>
+    );
+  };
+
+  const renderSupplierChart = () => {
+    if (!isMounted || isLoadingSupplierChart) {
+      return (
+        <div className="h-full w-full bg-forest-50/30 animate-pulse rounded-2xl flex items-center justify-center">
+          <span className="text-forest-300 font-medium">Chargement des données...</span>
+        </div>
+      );
+    }
+
+    if (!supplierChartData || supplierChartData.length === 0) {
+      return (
+        <div className="h-full w-full flex items-center justify-center bg-sand-50 rounded-2xl text-sand-400 text-sm">
+          Aucune donnée pour la période sélectionnée
+        </div>
+      );
+    }
+
+    return (
+      <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+        <BarChart data={supplierChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+          <XAxis 
+            dataKey="name" 
+            axisLine={false} 
+            tickLine={false} 
+            tick={{ fill: '#94A3B8', fontSize: 12 }} 
+            dy={10} 
+          />
+          <YAxis 
+            axisLine={false} 
+            tickLine={false} 
+            tick={{ fill: '#94A3B8', fontSize: 12 }}
+            tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} 
+          />
+          <Tooltip 
+            contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}
+            formatter={(value: any, name: any) => [
+              formatCurrency(Number(value || 0)), 
+              name === 'purchases' ? 'Achats TTC' : 'Règlements'
+            ]}
+          />
+          <Legend 
+            verticalAlign="top" 
+            align="right" 
+            iconType="circle" 
+            wrapperStyle={{ paddingBottom: '20px' }} 
+            formatter={(value) => <span className="text-forest-900 font-medium ml-1">{value === 'purchases' ? 'Achats TTC' : 'Règlements'}</span>}
+          />
+          <Bar dataKey="purchases" name="purchases" fill="#92400E" radius={[4, 4, 0, 0]} barSize={32} animationDuration={800} />
+          <Bar dataKey="payments" name="payments" fill="#1D9E75" radius={[4, 4, 0, 0]} barSize={32} animationDuration={800} />
+        </BarChart>
       </ResponsiveContainer>
     );
   };
@@ -229,6 +291,51 @@ export default function AnalyticsPage() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-12">
+          {/* Supplier Purchases vs Payments Chart */}
+          <Card className="lg:col-span-12 border-forest-100 rounded-[32px] shadow-xl shadow-forest-900/2 bg-white overflow-hidden">
+            <CardHeader className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="font-heading text-2xl text-forest-900">Achats vs Règlements par Fournisseur</CardTitle>
+                <CardDescription className="text-sand-400 font-medium">Comparaison de l'engagement financier et du niveau de règlement.</CardDescription>
+              </div>
+              <div className="flex items-center gap-3">
+                <select 
+                  className="h-10 rounded-xl border border-forest-100 bg-white px-3 py-2 text-sm font-medium text-forest-900 outline-none focus:border-forest-500 cursor-pointer"
+                  value={chartYear}
+                  onChange={(e) => setChartYear(Number(e.target.value))}
+                >
+                  <option value={new Date().getFullYear()}>Année {new Date().getFullYear()}</option>
+                  <option value={new Date().getFullYear() - 1}>Année {new Date().getFullYear() - 1}</option>
+                  <option value={new Date().getFullYear() - 2}>Année {new Date().getFullYear() - 2}</option>
+                </select>
+                <select 
+                  className="h-10 rounded-xl border border-forest-100 bg-white px-3 py-2 text-sm font-medium text-forest-900 outline-none focus:border-forest-500 cursor-pointer"
+                  value={chartMonth}
+                  onChange={(e) => setChartMonth(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
+                >
+                  <option value="ALL">Tous les mois</option>
+                  <option value="1">Janvier</option>
+                  <option value="2">Février</option>
+                  <option value="3">Mars</option>
+                  <option value="4">Avril</option>
+                  <option value="5">Mai</option>
+                  <option value="6">Juin</option>
+                  <option value="7">Juillet</option>
+                  <option value="8">Août</option>
+                  <option value="9">Septembre</option>
+                  <option value="10">Octobre</option>
+                  <option value="11">Novembre</option>
+                  <option value="12">Décembre</option>
+                </select>
+              </div>
+            </CardHeader>
+            <CardContent className="p-8 pt-0">
+              <div className="h-[400px] w-full relative min-h-0">
+                {renderSupplierChart()}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Revenue Evolution */}
           <Card className="lg:col-span-8 border-forest-100 rounded-[32px] shadow-xl shadow-forest-900/2 bg-white overflow-hidden">
             <CardHeader className="p-8">

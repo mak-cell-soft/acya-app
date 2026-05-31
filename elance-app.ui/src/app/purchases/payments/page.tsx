@@ -96,6 +96,12 @@ function SupplierPaymentsPageContent() {
     return suppliers.find((s) => s.id === selectedSupplierId) || null;
   }, [suppliers, selectedSupplierId]);
 
+  const selectedName = selectedSupplier
+    ? selectedSupplier.name || (selectedSupplier as any).Name || `${selectedSupplier.firstname || (selectedSupplier as any).firstName || ''} ${selectedSupplier.lastname || (selectedSupplier as any).lastName || ''}`.trim() || `Fournisseur ${selectedSupplier.id}`
+    : selectedSupplierId 
+      ? `Fournisseur ${selectedSupplierId}`
+      : undefined;
+
   // Handle supplier select and sync with URL
   const handleSupplierSelect = (idStr: string | null) => {
     if (!idStr) return;
@@ -267,18 +273,23 @@ function SupplierPaymentsPageContent() {
           >
             <SelectTrigger className="bg-slate-800 border-slate-700 text-white rounded-xl h-11 text-xs font-semibold focus:ring-amber-500">
               <Building2 className="w-4 h-4 text-slate-400 mr-2" />
-              <SelectValue placeholder="Sélectionner un fournisseur..." />
+              <SelectValue placeholder="Sélectionner un fournisseur...">
+                {selectedName}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="bg-white border border-slate-150 rounded-xl shadow-lg">
-              {suppliers.map((sup: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
-                <SelectItem
-                  key={sup.id}
-                  value={sup.id.toString()}
-                  className="text-xs font-semibold text-slate-700 focus:bg-slate-50 focus:text-slate-900 cursor-pointer"
-                >
-                  {sup.name || `${sup.firstname} ${sup.lastname}`}
-                </SelectItem>
-              ))}
+              {suppliers.map((sup: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+                const name = sup.name || sup.Name || `${sup.firstname || sup.firstName || ''} ${sup.lastname || sup.lastName || ''}`.trim() || `Fournisseur ${sup.id}`;
+                return (
+                  <SelectItem
+                    key={sup.id}
+                    value={sup.id.toString()}
+                    className="text-xs font-semibold text-slate-700 focus:bg-slate-50 focus:text-slate-900 cursor-pointer"
+                  >
+                    {name}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>

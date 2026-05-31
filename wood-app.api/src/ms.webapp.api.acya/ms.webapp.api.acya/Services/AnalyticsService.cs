@@ -23,7 +23,7 @@ namespace ms.webapp.api.acya.api.Services
             _context = context;
         }
 
-        public async Task<DashboardKpiDto> GetDashboardKpisAsync(Guid enterpriseId)
+        public async Task<DashboardKpiDto> GetDashboardKpisAsync(int? enterpriseId)
         {
             // Note: In a multi-tenant environment, enterpriseId should be used to scope all queries.
             // For now, we assume the context or current site scoping is sufficient or enterpriseId is not yet strictly enforced globally.

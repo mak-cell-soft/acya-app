@@ -7,8 +7,11 @@ export const paymentService = {
   },
 
   getAll: async () => {
-    const response = await api.get('/Payments');
-    return response.data;
+    const response = await api.post('/Payments/search', {
+      pageNumber: 1,
+      pageSize: 100000
+    });
+    return response.data.items || response.data;
   },
 
   getByDocumentId: async (documentId: number) => {
