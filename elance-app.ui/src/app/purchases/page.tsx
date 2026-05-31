@@ -852,13 +852,23 @@ export default function PurchasesPage() {
                                 <Badge
                                   className={cn(
                                     'rounded-full px-2.5 py-0.5 font-bold text-[9px] tracking-wide uppercase',
-                                    item.docstatus === DocStatus.Validated || item.docstatus === DocStatus.Completed
+                                    (item.docstatus === DocStatus.Validated || item.docstatus === DocStatus.Completed || item.docstatus === DocStatus.Approved)
                                       ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/50'
+                                      : item.docstatus === DocStatus.PendingApproval
+                                      ? 'bg-blue-50 text-blue-800 border border-blue-200/50'
+                                      : item.docstatus === DocStatus.Rejected
+                                      ? 'bg-rose-50 text-rose-800 border border-rose-200/50'
                                       : 'bg-amber-50 text-amber-800 border border-amber-200/50'
                                   )}
                                 >
                                   {item.docstatus === DocStatus.Validated || item.docstatus === DocStatus.Completed
                                     ? 'Validé'
+                                    : item.docstatus === DocStatus.Approved
+                                    ? 'Approuvé'
+                                    : item.docstatus === DocStatus.PendingApproval
+                                    ? 'En attente'
+                                    : item.docstatus === DocStatus.Rejected
+                                    ? 'Rejetée'
                                     : 'Brouillon'}
                                 </Badge>
                               </td>

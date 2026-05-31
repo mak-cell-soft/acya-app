@@ -42,6 +42,13 @@ namespace ms.webapp.api.acya.api.Services
 
             if (doc == null) throw new Exception("Document not found");
 
+            // Prevent duplicate pending approvals for the same document
+            var existingApproval = await _context.DocumentApprovals
+                .FirstOrDefaultAsync(a => a.DocumentId == documentId && a.Decision == ApprovalDecision.Pending);
+
+            if (existingApproval != null)
+                return existingApproval;
+
             // Create Approval Entry
             var approval = new DocumentApproval
             {
@@ -185,7 +192,7 @@ namespace ms.webapp.api.acya.api.Services
 
         public async Task<IEnumerable<DocumentApproval>> GetPendingApprovalsAsync(int enterpriseId)
         {
-            return await _context.DocumentApprovals
+            var approvals = await _context.DocumentApprovals
                 .Include(a => a.Document)
                     .ThenInclude(d => d!.CounterPart)
                 .Include(a => a.Document)
@@ -201,17 +208,22 @@ namespace ms.webapp.api.acya.api.Services
                     .ThenInclude(u => u!.Persons)
                 .Where(a => a.Decision == ApprovalDecision.Pending && a.Document!.AppUsers!.EnterpriseId == enterpriseId)
                 .OrderByDescending(a => a.SubmittedAt)
+                .AsSplitQuery()
                 .ToListAsync();
+
+            return approvals.Distinct();
         }
 
         public async Task<IEnumerable<DocumentApproval>> GetHistoryAsync(int documentId)
         {
-            return await _context.DocumentApprovals
+            var history = await _context.DocumentApprovals
                 .Include(a => a.DecidedBy)
                     .ThenInclude(u => u!.Persons)
                 .Where(a => a.DocumentId == documentId)
                 .OrderByDescending(a => a.SubmittedAt)
                 .ToListAsync();
+
+            return history.Distinct();
         }
 
         private string BuildApprovalEmailBody(Document doc, string message)

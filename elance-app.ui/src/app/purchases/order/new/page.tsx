@@ -606,13 +606,8 @@ function NewSupplierOrderPageContent() {
       const isThresholdExceeded = approvalThreshold !== null && totals.ttc > approvalThreshold;
 
       if (isThresholdExceeded && createdDocId > 0) {
-        try {
-          await approvalService.submit(createdDocId, currentUserId);
-          toast.success(`Commande Fournisseur créée et soumise pour approbation ! Réf: ${docRef} (Total > ${approvalThreshold} TND)`);
-        } catch (submitErr) {
-          console.error('Failed to auto-submit for approval:', submitErr);
-          toast.warning(`Commande créée (Réf: ${docRef}) mais la soumission automatique pour approbation a échoué.`);
-        }
+        // Backend (DocumentController.Add) automatically submits for approval when threshold is exceeded.
+        toast.success(`Commande Fournisseur créée et soumise pour approbation ! Réf: ${docRef} (Total > ${approvalThreshold} TND)`);
       } else {
         toast.success(`Commande Fournisseur créée avec succès ! Réf: ${docRef}`);
       }
