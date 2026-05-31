@@ -34,9 +34,11 @@ import {
   ArrowDownRight,
   Filter,
   Download,
-  AlertCircle
+  AlertCircle,
+  Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useAnalyticsKpis, useMonthlyRevenue } from '@/hooks/use-analytics-kpis';
 import { useSupplierPurchasePaymentChart } from '@/hooks/use-supplier-chart';
@@ -57,6 +59,7 @@ export default function AnalyticsPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [chartYear, setChartYear] = useState<number>(new Date().getFullYear());
   const [chartMonth, setChartMonth] = useState<number | 'ALL'>(new Date().getMonth() + 1);
+  const [receivablesSearch, setReceivablesSearch] = useState('');
 
   const { data: kpis, isLoading: isLoadingKpis, isError } = useAnalyticsKpis(
     chartMonth === 'ALL' ? undefined : chartMonth,
@@ -230,6 +233,102 @@ export default function AnalyticsPage() {
         </div>
       </div>
     ));
+  };
+
+  const renderReceivables = () => {
+    if (isLoadingKpis) {
+      return (
+        <div className="h-[400px] w-full bg-forest-50/30 animate-pulse rounded-2xl flex items-center justify-center">
+          <span className="text-forest-300 font-medium">Chargement des créances...</span>
+        </div>
+      );
+    }
+
+    if (!kpis?.customerReceivables || kpis.customerReceivables.length === 0) {
+      return (
+        <div className="p-8 text-center text-sand-400 font-medium">Aucune créance client enregistrée</div>
+      );
+    }
+
+    const filteredReceivables = kpis.customerReceivables.filter(c => 
+      c.name.toLowerCase().includes(receivablesSearch.toLowerCase())
+    );
+
+    const formatDays = (days: number) => {
+      if (days < 30) return <span className="text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md text-xs font-bold">&lt; 30 j</span>;
+      if (days <= 90) return <span className="text-amber-600 bg-amber-50 px-2 py-1 rounded-md text-xs font-bold">{days} j</span>;
+      return <span className="text-rose-600 bg-rose-50 px-2 py-1 rounded-md text-xs font-bold">&gt; 90 j</span>;
+    };
+
+    if (filteredReceivables.length === 0) {
+      return (
+        <div className="p-8 text-center text-sand-400 font-medium">Aucun client trouvé pour "{receivablesSearch}"</div>
+      );
+    }
+
+    return (
+      <div className="grid gap-8 lg:grid-cols-2 h-full items-start">
+        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+          {filteredReceivables.map((client, i) => {
+            const progress = client.totalInvoiced > 0 ? (client.totalPaid / client.totalInvoiced) * 100 : 0;
+            return (
+              <div key={client.id} className="flex flex-col gap-2 p-4 bg-sand-50/50 rounded-2xl border border-forest-50 hover:border-forest-200 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 flex items-center justify-center bg-rose-100 text-rose-700 rounded-full text-xs font-bold">{i + 1}</span>
+                    <span className="font-bold text-forest-900 line-clamp-1" title={client.name}>{client.name}</span>
+                  </div>
+                  <div className="text-right pl-2">
+                    <div className="font-bold font-mono text-rose-600">{formatCurrency(client.outstanding)}</div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between mt-1">
+                  <div className="w-1/2 h-2 bg-rose-100 rounded-full overflow-hidden" title={`${progress.toFixed(0)}% payé`}>
+                    <div className="h-full bg-emerald-500" style={{ width: `${Math.min(progress, 100)}%` }} />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-sand-400 font-medium hidden sm:inline-block">Ancienneté:</span>
+                    {formatDays(client.oldestInvoiceDays)}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        
+        <div className="h-[400px] w-full hidden lg:block">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+            <BarChart data={filteredReceivables} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#F1F5F9" />
+              <XAxis 
+                type="number" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#94A3B8', fontSize: 12 }}
+                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} 
+              />
+              <YAxis 
+                type="category" 
+                dataKey="name" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#94A3B8', fontSize: 11 }}
+                width={100}
+              />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}
+                formatter={(value: any) => [formatCurrency(Number(value || 0)), 'Reste à payer']}
+              />
+              <Bar dataKey="outstanding" name="Outstanding" radius={[0, 4, 4, 0]} barSize={20}>
+                {filteredReceivables.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.oldestInvoiceDays > 90 ? '#E11D48' : entry.oldestInvoiceDays > 30 ? '#D97706' : '#1D9E75'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -477,6 +576,35 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Suivi des Créances Clients */}
+        <Card className="border-rose-100 rounded-[32px] bg-white overflow-hidden shadow-xl shadow-rose-900/5">
+          <CardHeader className="p-8 pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="font-heading text-2xl text-forest-900">Suivi des Créances Clients</CardTitle>
+                <CardDescription className="text-sand-400 font-medium">Surveillance globale des factures impayées (Balance = Débit - Crédit)</CardDescription>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400" />
+                  <Input 
+                    placeholder="Rechercher un client..." 
+                    value={receivablesSearch}
+                    onChange={(e) => setReceivablesSearch(e.target.value)}
+                    className="pl-9 bg-sand-50/50 border-sand-200 rounded-xl w-[250px] focus-visible:ring-forest-500"
+                  />
+                </div>
+                <div className="bg-rose-50 p-3 rounded-2xl text-rose-600 hidden sm:block">
+                  <AlertCircle className="w-6 h-6" />
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-8 pt-0">
+            {renderReceivables()}
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );

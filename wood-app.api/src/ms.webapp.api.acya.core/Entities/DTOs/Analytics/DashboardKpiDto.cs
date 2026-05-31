@@ -16,6 +16,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Analytics
         public Dictionary<string, int> DocumentCounts { get; set; } = new();
         public int StockAlertCount { get; set; }
         public decimal DailyPaymentsTotal { get; set; }
+        public List<CustomerReceivableDto> CustomerReceivables { get; set; } = new();
     }
 
     public class TopCounterPartDto
@@ -23,5 +24,15 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Analytics
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public decimal TotalAmount { get; set; }
+    }
+
+    public class CustomerReceivableDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public decimal TotalInvoiced { get; set; }
+        public decimal TotalPaid { get; set; }
+        public decimal Outstanding { get; set; }
+        public int OldestInvoiceDays { get; set; }
     }
 }

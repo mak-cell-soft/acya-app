@@ -47,7 +47,12 @@ namespace ms.webapp.api.acya.api.Services
                     d.CreationDate, 
                     d.TotalCostNetTTCDoc, 
                     d.CounterPartId, 
-                    CounterPartName = (d.CounterPart != null && d.CounterPart.Name != null) ? d.CounterPart.Name : "Inconnu"
+                    CounterPartName = d.CounterPart != null 
+                        ? ((d.CounterPart.Prefix != null ? d.CounterPart.Prefix + " " : "") + 
+                           (!string.IsNullOrEmpty(d.CounterPart.Name) 
+                            ? d.CounterPart.Name 
+                            : (d.CounterPart.FirstName + " " + d.CounterPart.LastName).Trim())).Trim()
+                        : "Inconnu"
                 })
                 .ToListAsync();
 
@@ -64,7 +69,7 @@ namespace ms.webapp.api.acya.api.Services
                 .Select(g => new TopCounterPartDto
                 {
                     Id = g.Key.CounterPartId,
-                    Name = g.Key.CounterPartName ?? "Inconnu",
+                    Name = string.IsNullOrWhiteSpace(g.Key.CounterPartName) ? "Inconnu" : g.Key.CounterPartName,
                     TotalAmount = (decimal)g.Sum(d => d.TotalCostNetTTCDoc)
                 })
                 .OrderByDescending(x => x.TotalAmount)
@@ -98,6 +103,58 @@ namespace ms.webapp.api.acya.api.Services
                 .AsNoTracking()
                 .Where(p => !p.IsDeleted && p.CreatedAt >= today && p.CreatedAt < today.AddDays(1))
                 .SumAsync(p => p.Amount ?? 0);
+
+            // 6. Global Customer Receivables
+            var receivablesDb = await _context.AccountLedgers
+                .AsNoTracking()
+                .Include(a => a.CounterPart)
+                .Where(a => a.CounterPart != null && (a.CounterPart.Type == CounterPartType.Customer || a.CounterPart.Type == CounterPartType.Both))
+                .GroupBy(a => new 
+                { 
+                    a.CounterPartId, 
+                    Prefix = a.CounterPart.Prefix,
+                    Name = a.CounterPart.Name,
+                    FirstName = a.CounterPart.FirstName,
+                    LastName = a.CounterPart.LastName
+                })
+                .Select(g => new
+                {
+                    Id = g.Key.CounterPartId,
+                    Prefix = g.Key.Prefix,
+                    Name = g.Key.Name,
+                    FirstName = g.Key.FirstName,
+                    LastName = g.Key.LastName,
+                    TotalInvoiced = g.Sum(a => a.Debit),
+                    TotalPaid = g.Sum(a => a.Credit),
+                    OldestInvoiceDate = g.Where(a => a.Debit > 0).Min(a => (DateTime?)a.TransactionDate)
+                })
+                .Where(r => (r.TotalInvoiced - r.TotalPaid) > 0)
+                .OrderByDescending(r => (r.TotalInvoiced - r.TotalPaid))
+                .Take(15)
+                .ToListAsync();
+
+            var receivables = receivablesDb.Select(r => new CustomerReceivableDto
+            {
+                Id = r.Id,
+                Name = ((r.Prefix != null ? r.Prefix + " " : "") + 
+                           (!string.IsNullOrEmpty(r.Name) 
+                            ? r.Name 
+                            : (r.FirstName + " " + r.LastName).Trim())).Trim(),
+                TotalInvoiced = r.TotalInvoiced,
+                TotalPaid = r.TotalPaid,
+                Outstanding = r.TotalInvoiced - r.TotalPaid,
+                OldestInvoiceDays = r.OldestInvoiceDate.HasValue ? (int)(DateTime.UtcNow - r.OldestInvoiceDate.Value).TotalDays : 0
+            }).ToList();
+
+            foreach(var r in receivables)
+            {
+                if (string.IsNullOrWhiteSpace(r.Name))
+                {
+                    r.Name = "Inconnu";
+                }
+            }
+
+            kpis.CustomerReceivables = receivables;
 
             return kpis;
         }
