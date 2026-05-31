@@ -2,12 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import { analyticsService } from '@/services/components/analytics.service';
 import { useAuthStore } from '@/store/use-auth-store';
 
-export function useAnalyticsKpis() {
+export function useAnalyticsKpis(month?: number, year?: number) {
   const user = useAuthStore((state) => state.user);
 
   return useQuery({
-    queryKey: ['analytics', 'kpis', user?.enterpriseId],
-    queryFn: () => analyticsService.getDashboardKpis(user?.enterpriseId?.toString()),
+    queryKey: ['analytics', 'kpis', user?.enterpriseId, month, year],
+    queryFn: () => analyticsService.getDashboardKpis(user?.enterpriseId?.toString(), month, year),
     staleTime: 2 * 60 * 1000,
     refetchInterval: 5 * 60 * 1000,
   });

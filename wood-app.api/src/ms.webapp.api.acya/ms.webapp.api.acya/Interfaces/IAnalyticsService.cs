@@ -10,7 +10,7 @@ namespace ms.webapp.api.acya.api.Interfaces
     /// </summary>
     public interface IAnalyticsService
     {
-        Task<DashboardKpiDto> GetDashboardKpisAsync(int? enterpriseId);
+        Task<DashboardKpiDto> GetDashboardKpisAsync(int? enterpriseId, int? month = null, int? year = null);
         Task<List<MonthlyRevenueDto>> GetMonthlyRevenueAsync(int months = 6);
     }
 }

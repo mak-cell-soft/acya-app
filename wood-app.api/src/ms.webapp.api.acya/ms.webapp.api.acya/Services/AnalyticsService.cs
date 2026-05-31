@@ -23,21 +23,26 @@ namespace ms.webapp.api.acya.api.Services
             _context = context;
         }
 
-        public async Task<DashboardKpiDto> GetDashboardKpisAsync(int? enterpriseId)
+        public async Task<DashboardKpiDto> GetDashboardKpisAsync(int? enterpriseId, int? month = null, int? year = null)
         {
             // Note: In a multi-tenant environment, enterpriseId should be used to scope all queries.
             // For now, we assume the context or current site scoping is sufficient or enterpriseId is not yet strictly enforced globally.
             
+            var targetYear = year ?? DateTime.UtcNow.Year;
+            var targetMonth = month ?? DateTime.UtcNow.Month;
+            
             var today = DateTime.UtcNow.Date;
             var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
-            var startOfMonth = new DateTime(today.Year, today.Month, 1);
+            
+            var startOfMonth = new DateTime(targetYear, targetMonth, 1);
+            var endOfMonth = startOfMonth.AddMonths(1);
 
             // 1. Sales Analytics (Customer Invoices & Delivery Notes)
             // Using AsNoTracking for read-only performance
             var salesDocs = await _context.Documents
                 .AsNoTracking()
                 .Where(d => !d.IsDeleted && (d.Type == DocumentTypes.customerInvoice || d.Type == DocumentTypes.customerDeliveryNote))
-                .Where(d => d.CreationDate >= startOfMonth)
+                .Where(d => d.CreationDate >= startOfMonth && d.CreationDate < endOfMonth)
                 .Select(d => new { 
                     d.CreationDate, 
                     d.TotalCostNetTTCDoc, 
@@ -66,10 +71,10 @@ namespace ms.webapp.api.acya.api.Services
                 .Take(5)
                 .ToList();
 
-            // 3. Document Counts by Type (Total non-deleted documents)
+            // 3. Document Counts by Type (Total non-deleted documents for the current month)
             var docCounts = await _context.Documents
                 .AsNoTracking()
-                .Where(d => !d.IsDeleted)
+                .Where(d => !d.IsDeleted && d.CreationDate >= startOfMonth && d.CreationDate < endOfMonth)
                 .GroupBy(d => d.Type)
                 .Select(g => new { Type = g.Key, Count = g.Count() })
                 .ToListAsync();

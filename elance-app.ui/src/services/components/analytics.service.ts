@@ -2,9 +2,9 @@ import api from '@/lib/axios';
 import { DashboardKpiDto, MonthlyRevenueDto } from '@/types/analytics';
 
 export const analyticsService = {
-  getDashboardKpis: async (enterpriseId?: string): Promise<DashboardKpiDto> => {
+  getDashboardKpis: async (enterpriseId?: string, month?: number, year?: number): Promise<DashboardKpiDto> => {
     const response = await api.get('/Analytics/dashboard', {
-      params: { enterpriseId }
+      params: { enterpriseId, month, year }
     });
     return response.data;
   },

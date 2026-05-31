@@ -26,11 +26,11 @@ namespace ms.webapp.api.acya.api.Controllers
         /// <param name="enterpriseId">Optional enterprise filter.</param>
         /// <returns>DashboardKpiDto</returns>
         [HttpGet("dashboard")]
-        public async Task<ActionResult<DashboardKpiDto>> GetDashboardKpis([FromQuery] int? enterpriseId)
+        public async Task<ActionResult<DashboardKpiDto>> GetDashboardKpis([FromQuery] int? enterpriseId, [FromQuery] int? month = null, [FromQuery] int? year = null)
         {
             try
             {
-                var result = await _analyticsService.GetDashboardKpisAsync(enterpriseId);
+                var result = await _analyticsService.GetDashboardKpisAsync(enterpriseId, month, year);
                 return Ok(result);
             }
             catch (Exception ex)

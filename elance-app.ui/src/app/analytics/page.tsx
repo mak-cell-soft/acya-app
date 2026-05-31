@@ -58,7 +58,10 @@ export default function AnalyticsPage() {
   const [chartYear, setChartYear] = useState<number>(new Date().getFullYear());
   const [chartMonth, setChartMonth] = useState<number | 'ALL'>(new Date().getMonth() + 1);
 
-  const { data: kpis, isLoading: isLoadingKpis, isError } = useAnalyticsKpis();
+  const { data: kpis, isLoading: isLoadingKpis, isError } = useAnalyticsKpis(
+    chartMonth === 'ALL' ? undefined : chartMonth,
+    chartYear
+  );
   const { data: monthlyData, isLoading: isLoadingMonthly } = useMonthlyRevenue(6);
   const { data: supplierChartData, isLoading: isLoadingSupplierChart } = useSupplierPurchasePaymentChart(chartYear, chartMonth);
 
@@ -70,10 +73,35 @@ export default function AnalyticsPage() {
   const salesByCategory = (() => {
     if (!kpis?.documentCounts) return [];
     
-    return Object.entries(kpis.documentCounts).map(([key, value]) => ({
-      name: key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase()),
-      value: value
-    })).filter(x => x.value > 0);
+    const documentTypeTranslations: Record<string, string> = {
+      customerDeliveryNote: 'Bon de Livraison Client',
+      customerInvoice: 'Facture Client',
+      customerOrder: 'Commande Client',
+      customerQuote: 'Devis Client',
+      stockTransfer: 'Transfert de Stock',
+      supplierInvoice: 'Facture Fournisseur',
+      supplierInvoiceReturn: 'Retour Facture Fournisseur',
+      supplierOrder: 'Commande Fournisseur',
+      supplierReceipt: 'Reçu Fournisseur',
+      // Fallbacks just in case
+      invoice: 'Facture',
+      deliveryNote: 'Bon de Livraison',
+      quote: 'Devis',
+      purchaseOrder: 'Bon de Commande',
+      creditNote: 'Avoir',
+      payment: 'Paiement',
+      receipt: 'Reçu',
+      order: 'Commande',
+      estimate: 'Devis'
+    };
+
+    return Object.entries(kpis.documentCounts).map(([key, value]) => {
+      const fallbackName = key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
+      return {
+        name: documentTypeTranslations[key] || fallbackName,
+        value: value
+      };
+    }).filter(x => x.value > 0);
   })();
 
   const kpiCards = [
@@ -219,9 +247,37 @@ export default function AnalyticsPage() {
             </p>
           </motion.div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="h-12 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50">
-              <Filter className="w-4 h-4 mr-2" /> Période
-            </Button>
+            <div className="flex items-center gap-2 bg-white rounded-xl border border-forest-100 p-1 shadow-sm">
+              <select 
+                className="h-9 rounded-lg bg-transparent px-3 py-1 text-sm font-bold text-forest-900 outline-none cursor-pointer"
+                value={chartYear}
+                onChange={(e) => setChartYear(Number(e.target.value))}
+              >
+                <option value={new Date().getFullYear()}>Année {new Date().getFullYear()}</option>
+                <option value={new Date().getFullYear() - 1}>Année {new Date().getFullYear() - 1}</option>
+                <option value={new Date().getFullYear() - 2}>Année {new Date().getFullYear() - 2}</option>
+              </select>
+              <div className="w-px h-5 bg-forest-100"></div>
+              <select 
+                className="h-9 rounded-lg bg-transparent px-3 py-1 text-sm font-bold text-forest-900 outline-none cursor-pointer"
+                value={chartMonth}
+                onChange={(e) => setChartMonth(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
+              >
+                <option value="ALL">Tous les mois</option>
+                <option value="1">Janvier</option>
+                <option value="2">Février</option>
+                <option value="3">Mars</option>
+                <option value="4">Avril</option>
+                <option value="5">Mai</option>
+                <option value="6">Juin</option>
+                <option value="7">Juillet</option>
+                <option value="8">Août</option>
+                <option value="9">Septembre</option>
+                <option value="10">Octobre</option>
+                <option value="11">Novembre</option>
+                <option value="12">Décembre</option>
+              </select>
+            </div>
             <Button className="h-12 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-6">
               <Download className="w-4 h-4 mr-2" /> Rapport Complet
             </Button>
@@ -299,34 +355,7 @@ export default function AnalyticsPage() {
                 <CardDescription className="text-sand-400 font-medium">Comparaison de l'engagement financier et du niveau de règlement.</CardDescription>
               </div>
               <div className="flex items-center gap-3">
-                <select 
-                  className="h-10 rounded-xl border border-forest-100 bg-white px-3 py-2 text-sm font-medium text-forest-900 outline-none focus:border-forest-500 cursor-pointer"
-                  value={chartYear}
-                  onChange={(e) => setChartYear(Number(e.target.value))}
-                >
-                  <option value={new Date().getFullYear()}>Année {new Date().getFullYear()}</option>
-                  <option value={new Date().getFullYear() - 1}>Année {new Date().getFullYear() - 1}</option>
-                  <option value={new Date().getFullYear() - 2}>Année {new Date().getFullYear() - 2}</option>
-                </select>
-                <select 
-                  className="h-10 rounded-xl border border-forest-100 bg-white px-3 py-2 text-sm font-medium text-forest-900 outline-none focus:border-forest-500 cursor-pointer"
-                  value={chartMonth}
-                  onChange={(e) => setChartMonth(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
-                >
-                  <option value="ALL">Tous les mois</option>
-                  <option value="1">Janvier</option>
-                  <option value="2">Février</option>
-                  <option value="3">Mars</option>
-                  <option value="4">Avril</option>
-                  <option value="5">Mai</option>
-                  <option value="6">Juin</option>
-                  <option value="7">Juillet</option>
-                  <option value="8">Août</option>
-                  <option value="9">Septembre</option>
-                  <option value="10">Octobre</option>
-                  <option value="11">Novembre</option>
-                  <option value="12">Décembre</option>
-                </select>
+                {/* Filters moved to global header */}
               </div>
             </CardHeader>
             <CardContent className="p-8 pt-0">
