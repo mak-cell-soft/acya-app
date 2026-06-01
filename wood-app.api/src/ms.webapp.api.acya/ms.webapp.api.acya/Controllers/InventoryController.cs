@@ -7,6 +7,7 @@ using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs;
 using ms.webapp.api.acya.infrastructure;
 using ms.webapp.api.acya.infrastructure.Repositories;
+using ms.webapp.api.acya.core.Entities.Product;
 using Document = ms.webapp.api.acya.core.Entities.Document;
 
 namespace ms.webapp.api.acya.api.Controllers
@@ -144,6 +145,46 @@ namespace ms.webapp.api.acya.api.Controllers
                             CreationDate = DateTime.UtcNow,
                             UpdateDate = DateTime.UtcNow
                         };
+
+                        // Handle QuantityMovement if lengths exist
+                        if (mDto.lisoflengths != null && mDto.lisoflengths.Any())
+                        {
+                            var newQtyMovement = new QuantityMovement
+                            {
+                                Quantity = mDto.quantity,
+                                LengthIds = string.Join(",", mDto.lisoflengths.Select(l => l.length?.id)),
+                                CreationDate = DateTime.UtcNow,
+                                UpdateDate = DateTime.UtcNow,
+                                DocumentMerchandise = docMerch
+                            };
+
+                            foreach (var lengthDto in mDto.lisoflengths)
+                            {
+                                var newLength = new ListOfLength
+                                {
+                                    NumberOfPieces = lengthDto.nbpieces!,
+                                    Quantity = lengthDto.quantity,
+                                    QuantityMovements = newQtyMovement
+                                };
+
+                                if (lengthDto.length != null && lengthDto.length.id > 0)
+                                {
+                                    newLength.AppVarLength = await _context.AppVariables.FindAsync(lengthDto.length.id);
+                                    if (newLength.AppVarLength != null)
+                                    {
+                                        _context.Entry(newLength.AppVarLength).State = EntityState.Unchanged;
+                                    }
+                                }
+
+                                if (newLength.NumberOfPieces > 0)
+                                {
+                                    newQtyMovement.ListOfLengths.Add(newLength);
+                                }
+                            }
+
+                            docMerch.QuantityMovements = newQtyMovement;
+                        }
+
                         _context.DocumentMerchandises.Add(docMerch);
                     }
 
