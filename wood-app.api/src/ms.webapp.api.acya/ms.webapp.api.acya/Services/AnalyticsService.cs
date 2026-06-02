@@ -192,5 +192,112 @@ namespace ms.webapp.api.acya.api.Services
 
             return result;
         }
+
+        public async Task<List<TopSubCategoryDto>> GetTopSubCategoriesAsync(int months = 6)
+        {
+            var startDate = DateTime.UtcNow.AddMonths(-months);
+
+            var rawData = await _context.DocumentMerchandises
+                .AsNoTracking()
+                .Where(dm => dm.Document != null && !dm.Document.IsDeleted &&
+                             (dm.Document.Type == DocumentTypes.customerInvoice || dm.Document.Type == DocumentTypes.customerDeliveryNote) &&
+                             dm.Document.CreationDate >= startDate &&
+                             dm.Merchandise != null && dm.Merchandise.Articles != null && dm.Merchandise.Articles.FirstChildren != null)
+                .Select(dm => new
+                {
+                    SubCategoryId = dm.Merchandise!.Articles!.FirstChildren!.Id,
+                    SubCategoryName = dm.Merchandise.Articles.FirstChildren.Description,
+                    CategoryName = dm.Merchandise.Articles.FirstChildren.Parents != null ? dm.Merchandise.Articles.FirstChildren.Parents.Description : null,
+                    ArticleId = dm.Merchandise.Articles.Id,
+                    ArticleReference = dm.Merchandise.Articles.Reference,
+                    ArticleName = dm.Merchandise.Articles.Description,
+                    Qty = dm.Quantity,
+                    Rev = dm.CostTTC
+                })
+                .ToListAsync();
+
+            var topSubCategories = rawData
+                .GroupBy(x => new { x.SubCategoryId, x.SubCategoryName, x.CategoryName })
+                .Select(g => new TopSubCategoryDto
+                {
+                    SubCategoryId = g.Key.SubCategoryId,
+                    SubCategoryName = g.Key.SubCategoryName ?? "Inconnu",
+                    CategoryName = g.Key.CategoryName ?? "Inconnu",
+                    TotalQuantitySold = g.Sum(x => x.Qty),
+                    TotalRevenueTTC = g.Sum(x => (decimal)x.Rev),
+                    ArticleCount = g.Select(x => x.ArticleId).Distinct().Count(),
+                    TopArticles = g.GroupBy(a => new { a.ArticleId, a.ArticleReference, a.ArticleName })
+                                   .Select(ag => new TopArticleDto
+                                   {
+                                       ArticleId = ag.Key.ArticleId,
+                                       Reference = ag.Key.ArticleReference ?? string.Empty,
+                                       ArticleName = ag.Key.ArticleName ?? "Inconnu",
+                                       QuantitySold = ag.Sum(x => x.Qty),
+                                       RevenueTTC = ag.Sum(x => (decimal)x.Rev)
+                                   })
+                                   .OrderByDescending(a => a.QuantitySold)
+                                   .Take(15) // Top 15 articles per sub-category
+                                   .ToList()
+                })
+                .OrderByDescending(x => x.TotalQuantitySold)
+                .Take(15)
+                .ToList();
+
+            return topSubCategories;
+        }
+
+        public async Task<List<SubCategoryStockHealthDto>> GetStockHealthBySubCategoryAsync(int? siteId = null)
+        {
+            var query = _context.Stocks
+                .AsNoTracking()
+                .Where(s => s.Merchandises != null && s.Merchandises.Articles != null && s.Merchandises.Articles.FirstChildren != null);
+
+            if (siteId.HasValue)
+            {
+                query = query.Where(s => s.SalesSiteId == siteId.Value);
+            }
+
+            var rawStockData = await query
+                .Select(s => new
+                {
+                    SubCategoryId = s.Merchandises!.Articles!.FirstChildren!.Id,
+                    SubCategoryName = s.Merchandises.Articles.FirstChildren.Description,
+                    CategoryName = s.Merchandises.Articles.FirstChildren.Parents != null ? s.Merchandises.Articles.FirstChildren.Parents.Description : null,
+                    ArticleId = s.Merchandises.Articles.Id,
+                    ArticleName = s.Merchandises.Articles.Description,
+                    Qty = s.Quantity,
+                    MinStock = s.MinimumStock
+                })
+                .ToListAsync();
+
+            var stockHealthList = rawStockData
+                .GroupBy(x => new { x.SubCategoryId, x.SubCategoryName, x.CategoryName })
+                .Select(g => new SubCategoryStockHealthDto
+                {
+                    SubCategoryId = g.Key.SubCategoryId,
+                    SubCategoryName = g.Key.SubCategoryName ?? "Inconnu",
+                    CategoryName = g.Key.CategoryName ?? "Inconnu",
+                    TotalCurrentStock = g.Sum(s => s.Qty),
+                    TotalMinimumStock = g.Sum(s => s.MinStock),
+                    ArticleCount = g.Select(s => s.ArticleId).Distinct().Count(),
+                    ArticlesBelowMin = g.GroupBy(a => a.ArticleId) // Group by article first to sum quantities per article
+                                        .Count(ag => ag.Sum(x => x.Qty) <= ag.Max(x => x.MinStock) && ag.Max(x => x.MinStock) > 0),
+                    ArticleStocks = g.GroupBy(a => new { a.ArticleId, a.ArticleName })
+                                     .Select(ag => new ArticleStockDto
+                                     {
+                                         ArticleId = ag.Key.ArticleId,
+                                         ArticleName = ag.Key.ArticleName ?? "Inconnu",
+                                         CurrentStock = ag.Sum(x => x.Qty),
+                                         MinimumStock = ag.Max(x => x.MinStock) // Max in case of multiple stock rows for same article (e.g. diff batches, min stock is usually same)
+                                     })
+                                     .OrderBy(a => a.CurrentStock - a.MinimumStock) // Show most critical first
+                                     .Take(20)
+                                     .ToList()
+                })
+                .OrderBy(x => x.SubCategoryName)
+                .ToList();
+
+            return stockHealthList;
+        }
     }
 }

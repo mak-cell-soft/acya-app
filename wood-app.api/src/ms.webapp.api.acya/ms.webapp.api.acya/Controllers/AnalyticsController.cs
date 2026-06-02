@@ -58,5 +58,43 @@ namespace ms.webapp.api.acya.api.Controllers
                 return BadRequest($"Failed to retrieve monthly revenue: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Retrieves top sub-categories by sales quantity.
+        /// </summary>
+        /// <param name="months">Number of months to retrieve</param>
+        /// <returns>List of TopSubCategoryDto</returns>
+        [HttpGet("top-subcategories")]
+        public async Task<ActionResult<IEnumerable<TopSubCategoryDto>>> GetTopSubCategories([FromQuery] int months = 6)
+        {
+            try
+            {
+                var result = await _analyticsService.GetTopSubCategoriesAsync(months);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Failed to retrieve top sub-categories: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Retrieves stock health summary per sub-category.
+        /// </summary>
+        /// <param name="siteId">Optional site filter.</param>
+        /// <returns>List of SubCategoryStockHealthDto</returns>
+        [HttpGet("stock-health")]
+        public async Task<ActionResult<IEnumerable<SubCategoryStockHealthDto>>> GetStockHealth([FromQuery] int? siteId = null)
+        {
+            try
+            {
+                var result = await _analyticsService.GetStockHealthBySubCategoryAsync(siteId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Failed to retrieve stock health: {ex.Message}");
+            }
+        }
     }
 }

@@ -20,3 +20,19 @@ export function useMonthlyRevenue(months: number = 6) {
     staleTime: 10 * 60 * 1000,
   });
 }
+
+export function useTopSubCategories(months: number = 6) {
+  return useQuery({
+    queryKey: ['analytics', 'top-subcategories', months],
+    queryFn: () => analyticsService.getTopSubCategories(months),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useStockHealthBySubCategory(siteId?: number) {
+  return useQuery({
+    queryKey: ['analytics', 'stock-health', siteId],
+    queryFn: () => analyticsService.getStockHealthBySubCategory(siteId),
+    staleTime: 5 * 60 * 1000,
+  });
+}

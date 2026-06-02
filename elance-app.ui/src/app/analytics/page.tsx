@@ -40,7 +40,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { useAnalyticsKpis, useMonthlyRevenue } from '@/hooks/use-analytics-kpis';
+import { useAnalyticsKpis, useMonthlyRevenue, useTopSubCategories, useStockHealthBySubCategory } from '@/hooks/use-analytics-kpis';
 import { useSupplierPurchasePaymentChart } from '@/hooks/use-supplier-chart';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -66,6 +66,26 @@ export default function AnalyticsPage() {
     chartYear
   );
   const { data: monthlyData, isLoading: isLoadingMonthly } = useMonthlyRevenue(6);
+  
+  const [topSalesMonths, setTopSalesMonths] = useState<number>(6);
+  const { data: topSubCategories, isLoading: isLoadingTopSubCategories } = useTopSubCategories(topSalesMonths);
+  const [selectedSalesSubCatId, setSelectedSalesSubCatId] = useState<number | undefined>(undefined);
+  
+  const [stockSiteId, setStockSiteId] = useState<number | undefined>(undefined);
+  const { data: stockHealth, isLoading: isLoadingStockHealth } = useStockHealthBySubCategory(stockSiteId);
+  const [selectedStockSubCatId, setSelectedStockSubCatId] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (topSubCategories && topSubCategories.length > 0 && !selectedSalesSubCatId) {
+      setSelectedSalesSubCatId(topSubCategories[0].subCategoryId);
+    }
+  }, [topSubCategories, selectedSalesSubCatId]);
+
+  useEffect(() => {
+    if (stockHealth && stockHealth.length > 0 && !selectedStockSubCatId) {
+      setSelectedStockSubCatId(stockHealth[0].subCategoryId);
+    }
+  }, [stockHealth, selectedStockSubCatId]);
   const { data: supplierChartData, isLoading: isLoadingSupplierChart } = useSupplierPurchasePaymentChart(chartYear, chartMonth);
 
   useEffect(() => {
@@ -326,6 +346,169 @@ export default function AnalyticsPage() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+        </div>
+      </div>
+    );
+  };
+
+  const renderTopSubCategories = () => {
+    if (isLoadingTopSubCategories) {
+      return (
+        <div className="h-[400px] w-full bg-forest-50/30 animate-pulse rounded-2xl flex items-center justify-center">
+          <span className="text-forest-300 font-medium">Chargement des données...</span>
+        </div>
+      );
+    }
+
+    if (!topSubCategories || topSubCategories.length === 0) {
+      return (
+        <div className="h-[400px] w-full flex items-center justify-center bg-sand-50 rounded-2xl text-sand-400 text-sm">
+          Aucune donnée de vente pour cette période
+        </div>
+      );
+    }
+
+    const selectedData = topSubCategories.find(s => s.subCategoryId === selectedSalesSubCatId) || topSubCategories[0];
+    const articles = selectedData?.topArticles || [];
+
+    if (articles.length === 0) {
+      return (
+        <div className="h-[400px] w-full flex items-center justify-center bg-sand-50 rounded-2xl text-sand-400 text-sm">
+          Aucun article vendu dans cette sous-catégorie
+        </div>
+      );
+    }
+
+    return (
+      <div className="h-[400px] w-full">
+        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+          <PieChart>
+            <Pie
+              data={articles}
+              cx="50%"
+              cy="50%"
+              innerRadius={80}
+              outerRadius={120}
+              paddingAngle={2}
+              dataKey="quantitySold"
+              nameKey="articleName"
+              stroke="none"
+              label={({ cx, cy, midAngle, innerRadius, outerRadius, value, index }: any) => {
+                const RADIAN = Math.PI / 180;
+                const radius = outerRadius * 1.1;
+                const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                
+                // Only show label if it's a significant slice to avoid overlap
+                if (articles.length > 5 && value < articles[0].quantitySold * 0.1) return null;
+                
+                return (
+                  <text x={x} y={y} fill="#4B5563" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs font-medium">
+                    [{articles[index].reference}] {articles[index].articleName.substring(0, 20)}{articles[index].articleName.length > 20 ? '...' : ''}
+                  </text>
+                );
+              }}
+            >
+              {articles.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip 
+              contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}
+              formatter={(value: any, name: any, props: any) => [
+                `${value} unités (${formatCurrency(props.payload.revenueTTC)})`, 
+                name
+              ]}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  };
+
+  const renderStockHealth = () => {
+    if (isLoadingStockHealth) {
+      return (
+        <div className="h-[400px] w-full bg-forest-50/30 animate-pulse rounded-2xl flex items-center justify-center">
+          <span className="text-forest-300 font-medium">Chargement des données...</span>
+        </div>
+      );
+    }
+
+    if (!stockHealth || stockHealth.length === 0) {
+      return (
+        <div className="h-[400px] w-full flex items-center justify-center bg-sand-50 rounded-2xl text-sand-400 text-sm">
+          Aucune donnée de stock trouvée
+        </div>
+      );
+    }
+
+    const selectedData = stockHealth.find(s => s.subCategoryId === selectedStockSubCatId) || stockHealth[0];
+    const articles = selectedData?.articleStocks || [];
+
+    if (articles.length === 0) {
+      return (
+        <div className="h-[400px] w-full flex items-center justify-center bg-sand-50 rounded-2xl text-sand-400 text-sm">
+          Aucun article en stock dans cette sous-catégorie
+        </div>
+      );
+    }
+
+    return (
+      <div className="h-[400px] w-full flex flex-col gap-4">
+        <ResponsiveContainer width="100%" height="80%" minWidth={1} minHeight={1}>
+          <BarChart data={articles} margin={{ top: 20, right: 30, left: 20, bottom: 25 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+            <XAxis 
+              dataKey="articleName" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#94A3B8', fontSize: 10 }} 
+              dy={10} 
+              angle={-45}
+              textAnchor="end"
+              height={60}
+            />
+            <YAxis 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#94A3B8', fontSize: 12 }}
+            />
+            <Tooltip 
+              contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}
+              formatter={(value: any, name: any) => {
+                const displayName = name === 'Stock Actuel' ? 'Stock Actuel' : 
+                                    name === 'Stock Minimum' ? 'Stock Minimum' : name;
+                return [value, displayName];
+              }}
+            />
+            <Legend 
+              verticalAlign="top" 
+              align="right" 
+              iconType="circle" 
+              wrapperStyle={{ paddingBottom: '20px' }}
+            />
+            <Bar dataKey="currentStock" name="Stock Actuel" fill="#1D9E75" radius={[4, 4, 0, 0]} barSize={20}>
+              {articles.map((entry, index) => {
+                let color = '#1D9E75'; // healthy
+                if (entry.currentStock <= entry.minimumStock && entry.minimumStock > 0) {
+                  color = '#E11D48'; // danger
+                } else if (entry.currentStock <= entry.minimumStock * 1.2 && entry.minimumStock > 0) {
+                  color = '#F59E0B'; // warning
+                }
+                return <Cell key={`cell-${index}`} fill={color} />;
+              })}
+            </Bar>
+            <Bar dataKey="minimumStock" name="Stock Minimum" fill="#94A3B8" radius={[4, 4, 0, 0]} barSize={20} opacity={0.5} />
+          </BarChart>
+        </ResponsiveContainer>
+        <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+          {articles.filter(a => a.currentStock <= a.minimumStock && a.minimumStock > 0).map(a => (
+            <div key={a.articleId} className="whitespace-nowrap bg-rose-50 border border-rose-200 text-rose-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5">
+              <AlertTriangle className="w-3 h-3" />
+              {a.articleName}: {a.currentStock} / {a.minimumStock} min
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -603,6 +786,85 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent className="p-8 pt-0">
             {renderReceivables()}
+          </CardContent>
+        </Card>
+
+        {/* Top Articles by SubCategory */}
+        <Card className="border-forest-100 rounded-[32px] bg-white overflow-hidden shadow-xl shadow-forest-900/2">
+          <CardHeader className="p-8 pb-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="font-heading text-2xl text-forest-900">Top Ventes par Sous-Catégorie</CardTitle>
+                <CardDescription className="text-sand-400 font-medium">Les sous-catégories les plus performantes (quantité et CA).</CardDescription>
+              </div>
+              <div className="flex bg-sand-100/50 p-1 rounded-xl">
+                {topSubCategories && topSubCategories.length > 0 && (
+                  <select
+                    value={selectedSalesSubCatId || ""}
+                    onChange={(e) => setSelectedSalesSubCatId(Number(e.target.value))}
+                    className="h-9 rounded-lg bg-transparent px-3 text-sm font-bold text-forest-900 outline-none cursor-pointer mr-2 border-r border-sand-200"
+                  >
+                    {topSubCategories.map(c => (
+                      <option key={c.subCategoryId} value={c.subCategoryId}>{c.subCategoryName}</option>
+                    ))}
+                  </select>
+                )}
+                {[3, 6, 12].map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setTopSalesMonths(m)}
+                    className={cn(
+                      "px-4 py-1.5 rounded-lg text-sm font-bold transition-all",
+                      topSalesMonths === m 
+                        ? "bg-white text-forest-900 shadow-sm" 
+                        : "text-sand-500 hover:text-forest-700"
+                    )}
+                  >
+                    {m} mois
+                  </button>
+                ))}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-8 pt-0">
+            {renderTopSubCategories()}
+          </CardContent>
+        </Card>
+
+        {/* Stock Health per SubCategory */}
+        <Card className="border-forest-100 rounded-[32px] bg-white overflow-hidden shadow-xl shadow-forest-900/2">
+          <CardHeader className="p-8 pb-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="font-heading text-2xl text-forest-900">Santé du Stock par Sous-Catégorie</CardTitle>
+                <CardDescription className="text-sand-400 font-medium">Comparaison du stock actuel avec le seuil d'alerte (stock minimum).</CardDescription>
+              </div>
+              <div className="flex items-center gap-3">
+                {stockHealth && stockHealth.length > 0 && (
+                  <select
+                    value={selectedStockSubCatId || ""}
+                    onChange={(e) => setSelectedStockSubCatId(Number(e.target.value))}
+                    className="h-9 rounded-xl bg-sand-50/50 border-sand-200 px-3 text-sm font-bold text-forest-900 outline-none cursor-pointer focus-visible:ring-forest-500"
+                  >
+                    {stockHealth.map(c => (
+                      <option key={c.subCategoryId} value={c.subCategoryId}>{c.subCategoryName}</option>
+                    ))}
+                  </select>
+                )}
+                <select
+                  value={stockSiteId || ""}
+                  onChange={(e) => setStockSiteId(e.target.value ? Number(e.target.value) : undefined)}
+                  className="h-9 rounded-xl bg-sand-50/50 border-sand-200 px-3 text-sm font-bold text-forest-900 outline-none cursor-pointer focus-visible:ring-forest-500"
+                >
+                  <option value="">Tous les sites (Entreprise)</option>
+                  <option value="1">Site Principal</option>
+                  <option value="2">Dépôt Secondaire</option>
+                </select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-8 pt-0">
+            {renderStockHealth()}
           </CardContent>
         </Card>
       </div>

@@ -12,5 +12,7 @@ namespace ms.webapp.api.acya.api.Interfaces
     {
         Task<DashboardKpiDto> GetDashboardKpisAsync(int? enterpriseId, int? month = null, int? year = null);
         Task<List<MonthlyRevenueDto>> GetMonthlyRevenueAsync(int months = 6);
+        Task<List<TopSubCategoryDto>> GetTopSubCategoriesAsync(int months = 6);
+        Task<List<SubCategoryStockHealthDto>> GetStockHealthBySubCategoryAsync(int? siteId = null);
     }
 }
