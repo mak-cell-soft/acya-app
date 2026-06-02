@@ -723,8 +723,8 @@ export default function PurchasesPage() {
                         </th>
                       )}
                       
-                      {/* Toggle Expand column only on invoice tab */}
-                      {activeTab === 'invoice' && <th className="p-4 w-10"></th>}
+                      {/* Toggle Expand column for invoice and order tabs */}
+                      {(activeTab === 'invoice' || activeTab === 'order') && <th className="p-4 w-10"></th>}
 
                       <th className="p-4">N° Document</th>
                       
@@ -746,7 +746,7 @@ export default function PurchasesPage() {
                     {isLoading ? (
                       <tr>
                         <td
-                          colSpan={activeTab === 'invoice' ? 10 : activeTab === 'receipt' ? 9 : 7}
+                          colSpan={activeTab === 'invoice' ? 10 : activeTab === 'receipt' ? 9 : activeTab === 'order' ? 8 : 7}
                           className="py-24 text-center text-slate-400 italic"
                         >
                           Chargement des documents d&apos;achat en cours...
@@ -768,7 +768,7 @@ export default function PurchasesPage() {
                                 isExpanded && 'bg-amber-950/[0.02]'
                               )}
                               onClick={() => {
-                                if (activeTab === 'invoice') {
+                                if (activeTab === 'invoice' || activeTab === 'order') {
                                   setExpandedId(isExpanded ? null : item.id);
                                 } else {
                                   setSelectedDocIdForDetail(item.id);
@@ -795,8 +795,8 @@ export default function PurchasesPage() {
                                 </td>
                               )}
 
-                              {/* Toggle expand button only on invoice tab */}
-                              {activeTab === 'invoice' && (
+                              {/* Toggle expand button for invoice and order tabs */}
+                              {(activeTab === 'invoice' || activeTab === 'order') && (
                                 <td className="p-4 text-center">
                                   {isExpanded ? (
                                     <ChevronUp className="w-4 h-4 text-slate-400 group-hover:text-amber-800 transition-colors" />
@@ -1102,13 +1102,187 @@ export default function PurchasesPage() {
                                 </td>
                               </tr>
                             )}
+
+                            {/* Detailed Row Expansion for Supplier Orders */}
+                            {activeTab === 'order' && isExpanded && (
+                              <tr>
+                                <td colSpan={8} className="p-0">
+                                  <AnimatePresence initial={false}>
+                                    <motion.div
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: 'auto', opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      transition={{ duration: 0.3 }}
+                                      className="overflow-hidden bg-slate-50/40 border-y border-slate-100"
+                                    >
+                                      <div className="p-6 md:p-8 space-y-6">
+                                        
+                                        {/* Procurement Stepper */}
+                                        <div className="relative flex items-center justify-between max-w-3xl mx-auto mb-10">
+                                          <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-0.5 bg-slate-200 z-0"></div>
+                                          
+                                          {/* Step 1: Commande */}
+                                          <div className={cn(
+                                            "relative z-10 flex flex-col items-center gap-2",
+                                            item.docstatus !== DocStatus.Abandoned && item.docstatus !== DocStatus.Deleted ? "opacity-100" : "opacity-50"
+                                          )}>
+                                            <div className={cn(
+                                              "w-10 h-10 rounded-full flex items-center justify-center border-2",
+                                              item.docstatus !== DocStatus.Abandoned && item.docstatus !== DocStatus.Deleted 
+                                                ? "bg-amber-900 border-amber-900 text-white shadow-lg" 
+                                                : "bg-slate-100 border-slate-300 text-slate-400"
+                                            )}>
+                                              <Clock className="w-5 h-5" />
+                                            </div>
+                                            <div className="text-center">
+                                              <span className="text-[10px] font-bold text-slate-900 block uppercase tracking-widest font-mono">Commande</span>
+                                              <span className="text-[10px] font-medium text-slate-500">{item.docnumber}</span>
+                                            </div>
+                                          </div>
+
+                                          {/* Step 2: Réception */}
+                                          <div className={cn(
+                                            "relative z-10 flex flex-col items-center gap-2",
+                                            item.docstatus === DocStatus.PartiallyDelivered || item.docstatus === DocStatus.Delivered ? "opacity-100" : "opacity-50"
+                                          )}>
+                                            <div className={cn(
+                                              "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
+                                              item.docstatus === DocStatus.Delivered ? "bg-emerald-600 border-emerald-600 text-white shadow-lg" :
+                                              item.docstatus === DocStatus.PartiallyDelivered ? "bg-amber-50 border-amber-500 text-amber-600 shadow-md" :
+                                              "bg-white border-slate-300 text-slate-400"
+                                            )}>
+                                              {item.docstatus === DocStatus.Delivered ? <CheckCircle2 className="w-5 h-5" /> : <Layers className="w-5 h-5" />}
+                                            </div>
+                                            <div className="text-center flex flex-col items-center">
+                                              <span className="text-[10px] font-bold text-slate-900 block uppercase tracking-widest font-mono">Réception</span>
+                                              {item.docstatus === DocStatus.Delivered ? (
+                                                <span className="text-[10px] font-bold text-emerald-600">Réceptionné</span>
+                                              ) : item.docstatus === DocStatus.PartiallyDelivered ? (
+                                                <span className="text-[10px] font-bold text-amber-600">Partielle</span>
+                                              ) : (
+                                                <span className="text-[10px] font-medium text-slate-500">En attente</span>
+                                              )}
+                                              {item.childdocuments && item.childdocuments.length > 0 && (
+                                                <div className="mt-1 space-y-0.5">
+                                                  {item.childdocuments.map((child: any) => (
+                                                    <div key={child.id} className="text-[9px] text-slate-500 font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200">
+                                                      {child.docnumber}
+                                                    </div>
+                                                  ))}
+                                                </div>
+                                              )}
+                                              {item.docstatus !== DocStatus.Delivered && item.docstatus !== DocStatus.Abandoned && item.docstatus !== DocStatus.Deleted && (
+                                                <Button 
+                                                  variant="link" 
+                                                  className="h-auto p-0 text-[10px] text-amber-700 font-bold mt-1"
+                                                  onClick={(e) => { e.stopPropagation(); router.push(`/purchases/receipt/new?orderId=${item.id}`); }}
+                                                >
+                                                  {item.docstatus === DocStatus.PartiallyDelivered ? 'Compléter réception' : 'Créer un bon de réception'}
+                                                </Button>
+                                              )}
+                                            </div>
+                                          </div>
+
+                                          {/* Step 3: Facturation */}
+                                          <div className={cn(
+                                            "relative z-10 flex flex-col items-center gap-2",
+                                            item.isinvoiced ? "opacity-100" : "opacity-50"
+                                          )}>
+                                            <div className={cn(
+                                              "w-10 h-10 rounded-full flex items-center justify-center border-2",
+                                              item.isinvoiced ? "bg-emerald-600 border-emerald-600 text-white shadow-lg" : "bg-white border-slate-300 text-slate-400"
+                                            )}>
+                                              <FileText className="w-5 h-5" />
+                                            </div>
+                                            <div className="text-center">
+                                              <span className="text-[10px] font-bold text-slate-900 block uppercase tracking-widest font-mono">Facturation</span>
+                                              {item.isinvoiced ? (
+                                                <span className="text-[10px] font-bold text-emerald-600">Facture générée</span>
+                                              ) : (
+                                                <span className="text-[10px] font-medium text-slate-500">Non facturé</span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        {/* Articles Grid */}
+                                        <div>
+                                          <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 mb-4">
+                                            <Layers className="w-3.5 h-3.5 text-amber-700" /> Articles de la commande
+                                          </h4>
+                                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                            {item.merchandises?.map((m: any, idx: number) => {
+                                              const qty = m.quantity || 0;
+                                              const qtyDelivered = m.quantity_delivered || 0;
+                                              const qtyRemaining = m.quantity_remaining !== undefined ? m.quantity_remaining : Math.max(0, qty - qtyDelivered);
+                                              const progressPercent = qty > 0 ? Math.min(100, (qtyDelivered / qty) * 100) : 0;
+                                              const isDone = qtyRemaining <= 0;
+                                              
+                                              return (
+                                                <div key={m.id || idx} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-amber-900/20 transition-all flex flex-col justify-between">
+                                                  <div className="mb-3">
+                                                    <div className="flex justify-between items-start mb-1">
+                                                      <span className="text-xs font-bold text-slate-900 font-mono">#{idx + 1} {m.article?.reference}</span>
+                                                      <span className="text-xs font-bold text-amber-950 font-mono">{fmt(m.cost_ttc || 0)} DT</span>
+                                                    </div>
+                                                    <p className="text-[10px] text-slate-500 line-clamp-2">{m.description || m.article?.description}</p>
+                                                  </div>
+                                                  
+                                                  <div className="grid grid-cols-2 gap-2 mb-3">
+                                                    <div className="bg-slate-50 rounded-lg p-2 flex flex-col">
+                                                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Qté Cmd</span>
+                                                      <span className="text-xs font-bold text-slate-700 font-mono">{fmt(qty)}</span>
+                                                    </div>
+                                                    <div className="bg-slate-50 rounded-lg p-2 flex flex-col">
+                                                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">P.U HT</span>
+                                                      <span className="text-xs font-bold text-slate-700 font-mono">{fmt(m.unit_price_ht || 0)}</span>
+                                                    </div>
+                                                  </div>
+
+                                                  <div className="space-y-1.5 border-t border-slate-100 pt-3">
+                                                    <div className="flex justify-between items-end">
+                                                      <div className="flex flex-col">
+                                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Réceptionné</span>
+                                                        <span className="text-xs font-bold text-emerald-600 font-mono">{fmt(qtyDelivered)}</span>
+                                                      </div>
+                                                      {isDone ? (
+                                                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/50">Soldé</span>
+                                                      ) : (
+                                                        <div className="flex flex-col items-end">
+                                                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Reste</span>
+                                                          <span className="text-xs font-bold text-amber-600 font-mono">{fmt(qtyRemaining)}</span>
+                                                        </div>
+                                                      )}
+                                                    </div>
+                                                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                                      <div 
+                                                        className={cn(
+                                                          "h-full transition-all duration-500",
+                                                          isDone ? "bg-emerald-500" : "bg-amber-500"
+                                                        )}
+                                                        style={{ width: `${progressPercent}%` }}
+                                                      />
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                        
+                                      </div>
+                                    </motion.div>
+                                  </AnimatePresence>
+                                </td>
+                              </tr>
+                            )}
                           </React.Fragment>
                         );
                       })
                     ) : (
                       <tr>
                         <td
-                          colSpan={activeTab === 'invoice' ? 10 : activeTab === 'receipt' ? 9 : 7}
+                          colSpan={activeTab === 'invoice' ? 10 : activeTab === 'receipt' ? 9 : activeTab === 'order' ? 8 : 7}
                           className="py-24 text-center text-slate-400 italic font-medium"
                         >
                           Aucun document trouvé pour la période sélectionnée.

@@ -92,6 +92,7 @@ function NewSupplierReceiptPageContent() {
   const sourceIdFromParams = parseInt(
     searchParams.get('sourceId') || 
     searchParams.get('fromOrderId') || 
+    searchParams.get('orderId') || 
     '0'
   );
   const [sourceDocumentId] = useState<number>(sourceIdFromParams);
@@ -154,6 +155,7 @@ function NewSupplierReceiptPageContent() {
     return allTvas.find(t => t.id === newRowArticle.tvaid) || null;
   }, [newRowArticle, allTvas]);
   const [newRowLengths, setNewRowLengths] = useState<ListOfLength[]>([]);
+  const [editIndex, setEditIndex] = useState<number | null>(null);
 
   // 4. Transport Addition Selection State
   const [selectedTransporter, setSelectedTransporter] = useState<Transporter | null>(null);
@@ -389,23 +391,8 @@ function NewSupplierReceiptPageContent() {
     }
   };
 
-  // 9. Watch selected Article in New Row to auto-populate unit price, description
-  useEffect(() => {
-    if (newRowArticle) {
-      setNewRowUnitPrice(newRowArticle.sellprice_ht || 0); // Default to sellprice_ht as safety purchase baseline
-      setNewRowDescription(newRowArticle.description || '');
-      setNewRowQuantity(0);
-      setNewRowDiscount(0);
-      setNewRowLengths([]);
-    } else {
-      setNewRowUnitPrice(0);
-      setNewRowDescription('');
-      setNewRowQuantity(0);
-      setNewRowDiscount(0);
-      setNewRowPackageReference('');
-      setNewRowLengths([]);
-    }
-  }, [newRowArticle]);
+  // 9. Removed useEffect for newRowArticle to prevent overwriting form fields during Edit.
+  // Defaults are now set explicitly during manual selection in the autocomplete dropdown.
 
   // Compute computed new row values
   const newRowComputedValues = useMemo(() => {
@@ -469,7 +456,17 @@ function NewSupplierReceiptPageContent() {
     };
 
     const calculated = calculateRowCalculations(newRow);
-    setRows([...rows, calculated]);
+    
+    if (editIndex !== null) {
+      const updatedRows = [...rows];
+      updatedRows[editIndex] = calculated;
+      setRows(updatedRows);
+      setEditIndex(null);
+      toast.success("Ligne modifiée avec succès.");
+    } else {
+      setRows([...rows, calculated]);
+      toast.success("Article ajouté à la liste.");
+    }
 
     // Clear new row states
     setNewRowArticle(null);
@@ -480,7 +477,26 @@ function NewSupplierReceiptPageContent() {
     setNewRowDiscount(0);
     setNewRowPackageReference('');
     setNewRowLengths([]);
-    toast.success("Article ajouté à la liste.");
+  };
+
+  const handleEditRow = (index: number) => {
+    const row = rows[index];
+    if (row.line_type === LineType.TransportFee) {
+      toast.info("L'édition des frais de transport se fait directement dans le tableau.");
+      return;
+    }
+    setEditIndex(index);
+    setNewRowArticle(row.selectedArticle);
+    setNewRowArticleSearch(`${row.selectedArticle?.reference} - ${row.selectedArticle?.description || ''}`);
+    setNewRowUnitPrice(row.unit_price_ht);
+    setNewRowQuantity(row.quantity);
+    setNewRowDiscount(row.selldiscountpercentage);
+    setNewRowDescription(row.description);
+    setNewRowPackageReference(row.packagereference);
+    setNewRowIsInvoiceable(row.isinvoicible);
+    setNewRowAllowNegativeStock(row.allownegativstock);
+    setNewRowLengths(row.listLengths || []);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // 11. Add transport row dynamically to document grid
@@ -1178,6 +1194,12 @@ function NewSupplierReceiptPageContent() {
                         setNewRowArticle(null);
                         setNewRowArticleSearch('');
                         setIsArticleDropdownOpen(false);
+                        setNewRowUnitPrice(0);
+                        setNewRowDescription('');
+                        setNewRowQuantity(0);
+                        setNewRowDiscount(0);
+                        setNewRowPackageReference('');
+                        setNewRowLengths([]);
                       }}
                       className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-rose-600 transition-colors"
                     >
@@ -1207,6 +1229,11 @@ function NewSupplierReceiptPageContent() {
                             setNewRowArticle(art);
                             setNewRowArticleSearch(`${art.reference} - ${art.description || ''}`);
                             setIsArticleDropdownOpen(false);
+                            setNewRowUnitPrice(art.sellprice_ht || 0);
+                            setNewRowDescription(art.description || '');
+                            setNewRowQuantity(0);
+                            setNewRowDiscount(0);
+                            setNewRowLengths([]);
                           }}
                         >
                           <div className="flex flex-col">
@@ -1359,8 +1386,27 @@ function NewSupplierReceiptPageContent() {
                   disabled={!newRowArticle || newRowQuantity <= 0}
                   className="w-full h-11 bg-slate-900 hover:bg-slate-950 text-white font-bold rounded-xl shadow-lg gap-2 flex items-center justify-center transition-all disabled:opacity-40"
                 >
-                  <Plus className="w-4 h-4" /> Ajouter Article à la Liste
+                  <Plus className="w-4 h-4" /> {editIndex !== null ? 'Enregistrer les modifications' : 'Ajouter Article à la Liste'}
                 </Button>
+                {editIndex !== null && (
+                  <Button
+                    onClick={() => {
+                      setEditIndex(null);
+                      setNewRowArticle(null);
+                      setNewRowArticleSearch('');
+                      setNewRowDescription('');
+                      setNewRowQuantity(0);
+                      setNewRowUnitPrice(0);
+                      setNewRowDiscount(0);
+                      setNewRowPackageReference('');
+                      setNewRowLengths([]);
+                    }}
+                    variant="outline"
+                    className="h-11 ml-2 font-bold rounded-xl border-slate-200 px-6"
+                  >
+                    Annuler
+                  </Button>
+                )}
               </div>
 
             </div>
@@ -1480,32 +1526,28 @@ function NewSupplierReceiptPageContent() {
                               ) : (
                                 <div>
                                   <span className="font-bold text-slate-900 block">{row.selectedArticle?.reference}</span>
-                                  <Input
-                                    value={row.description}
-                                    onChange={(e) => handleRowFieldChange(idx, 'description', e.target.value)}
-                                    className="h-7 rounded bg-transparent border-transparent hover:border-slate-200 focus:bg-white text-[11px] px-1 font-medium mt-0.5"
-                                  />
+                                  <span className="text-slate-500 text-[11px] block">{row.selectedArticle?.description}</span>
+                                  {row.description && (
+                                    <span className="text-slate-400 text-[10px] italic">Note: {row.description}</span>
+                                  )}
                                 </div>
                               )}
                             </td>
-                            <td className="p-3">
-                              {!isTransport && (
-                                <Input
-                                  value={row.packagereference}
-                                  onChange={(e) => handleRowFieldChange(idx, 'packagereference', e.target.value)}
-                                  className="h-8 rounded-lg border-slate-200 focus:ring-amber-900 bg-slate-50/50 text-[11px] font-bold"
-                                  placeholder="Réf Colis"
-                                />
-                              )}
+                            <td className="p-3 font-mono font-medium text-slate-600">
+                              {!isTransport ? row.packagereference : '—'}
                             </td>
                             <td className="p-3">
-                              <Input
-                                type="number"
-                                step="0.001"
-                                value={row.unit_price_ht}
-                                onChange={(e) => handleRowFieldChange(idx, 'unit_price_ht', parseFloat(e.target.value) || 0)}
-                                className="h-8 rounded-lg border-slate-200 focus:ring-amber-900 bg-slate-50/50 text-[11px] font-mono font-bold"
-                              />
+                              {isTransport ? (
+                                <Input
+                                  type="number"
+                                  step="0.001"
+                                  value={row.unit_price_ht}
+                                  onChange={(e) => handleRowFieldChange(idx, 'unit_price_ht', parseFloat(e.target.value) || 0)}
+                                  className="h-8 rounded-lg border-slate-200 focus:ring-amber-900 bg-slate-50/50 text-[11px] font-mono font-bold"
+                                />
+                              ) : (
+                                <span className="font-mono font-bold text-slate-700">{row.unit_price_ht.toFixed(3)}</span>
+                              )}
                             </td>
                             <td className="p-3">
                               {row.isWoodArticle ? (
@@ -1517,25 +1559,24 @@ function NewSupplierReceiptPageContent() {
                                   <TreeDeciduous className="w-3.5 h-3.5 shrink-0" /> 
                                   {row.quantity.toFixed(3)}
                                 </Button>
+                              ) : isTransport ? (
+                                <span className="font-mono font-bold text-slate-700">1</span>
                               ) : (
-                                <Input
-                                  type="number"
-                                  disabled={isTransport}
-                                  value={row.quantity}
-                                  onChange={(e) => handleRowFieldChange(idx, 'quantity', parseFloat(e.target.value) || 0)}
-                                  className="h-8 rounded-lg border-slate-200 focus:ring-amber-900 bg-slate-50/50 text-[11px] font-mono font-bold"
-                                />
+                                <span className="font-mono font-bold text-slate-900 text-[13px]">{row.quantity.toFixed(3)}</span>
                               )}
                             </td>
                             <td className="p-3">
-                              <Input
-                                type="number"
-                                disabled={isTransport}
-                                value={row.selldiscountpercentage}
-                                onChange={(e) => handleRowFieldChange(idx, 'selldiscountpercentage', parseFloat(e.target.value) || 0)}
-                                className="h-8 rounded-lg border-slate-200 focus:ring-amber-900 bg-slate-50/50 text-[11px] font-mono font-bold"
-                                placeholder="0%"
-                              />
+                              {!isTransport ? (
+                                row.selldiscountpercentage > 0 ? (
+                                  <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 font-mono text-[10px] border-emerald-100">
+                                    {row.selldiscountpercentage}%
+                                  </Badge>
+                                ) : (
+                                  <span className="text-slate-300 font-mono text-center block">—</span>
+                                )
+                              ) : (
+                                <span className="text-slate-300 font-mono text-center block">—</span>
+                              )}
                             </td>
                             <td className="p-4 text-center font-bold font-mono text-slate-500">
                               {row.tva_percentage}%
@@ -1544,14 +1585,28 @@ function NewSupplierReceiptPageContent() {
                               {row.sellcostprice_net_ht.toFixed(3)}
                             </td>
                             <td className="p-4 text-center">
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={() => handleRemoveRow(idx)}
-                                className="h-8 w-8 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                              <div className="flex items-center justify-center gap-1">
+                                {!isTransport && (
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => handleEditRow(idx)}
+                                    className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg"
+                                    title="Modifier la ligne"
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                                  </Button>
+                                )}
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => handleRemoveRow(idx)}
+                                  className="h-8 w-8 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg"
+                                  title="Supprimer la ligne"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                             </td>
                           </motion.tr>
                         );
