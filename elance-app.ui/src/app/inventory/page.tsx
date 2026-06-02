@@ -6,6 +6,7 @@ import { DashboardLayout } from '@/components/shared/dashboard-layout';
 import { useInventories, useValidateInventory, useCreateInventory } from '@/hooks/use-inventory';
 import { useStockBySite } from '@/hooks/use-stock';
 import { UncountedStockDialog } from '@/components/inventory/uncounted-stock-dialog';
+import { ExcelInventoryDialog } from '@/components/inventory/excel-inventory-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +19,8 @@ import {
   CheckCircle,
   AlertTriangle,
   Loader2,
-  SearchCode
+  SearchCode,
+  FileSpreadsheet
 } from 'lucide-react';
 import { useAuthStore } from '@/store/use-auth-store';
 import { format } from 'date-fns';
@@ -44,6 +46,7 @@ function InventoryListContent() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [inventoryToValidate, setInventoryToValidate] = useState<Document | null>(null);
   const [isUncountedDialogOpen, setIsUncountedDialogOpen] = useState(false);
+  const [isExcelDialogOpen, setIsExcelDialogOpen] = useState(false);
 
   const expandedInventory = inventories.find(inv => inv.id === expandedId);
   const { data: siteStock = [], isLoading: isLoadingStock } = useStockBySite(
@@ -110,6 +113,14 @@ function InventoryListContent() {
         </div>
 
         <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={() => setIsExcelDialogOpen(true)}
+            className="h-11 px-5 bg-white hover:bg-stone-50 text-stone-900 border-stone-200 dark:bg-stone-900 dark:border-stone-800 dark:text-stone-50 dark:hover:bg-stone-800 rounded-xl gap-2 font-semibold text-xs uppercase tracking-wider transition-all shadow-sm"
+          >
+            <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+            Import / Export Excel
+          </Button>
           <Button
             variant="outline"
             onClick={() => setIsUncountedDialogOpen(true)}
@@ -335,6 +346,11 @@ function InventoryListContent() {
         open={isUncountedDialogOpen} 
         onOpenChange={setIsUncountedDialogOpen}
         inventories={inventories}
+      />
+
+      <ExcelInventoryDialog 
+        isOpen={isExcelDialogOpen}
+        onClose={() => setIsExcelDialogOpen(false)}
       />
     </div>
   );
