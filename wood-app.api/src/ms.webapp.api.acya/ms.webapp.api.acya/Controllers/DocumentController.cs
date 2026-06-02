@@ -1180,6 +1180,8 @@ namespace ms.webapp.api.acya.api.Controllers
             isinvoicible = dm.Type == LineType.TransportFee || (dm.Merchandise?.IsInvoicible ?? false),
             allownegativstock = dm.Merchandise?.AllowNegativStock ?? false,
             quantity = dm.Quantity,
+            quantity_delivered = dm.QuantityDelivered,
+            quantity_remaining = dm.QuantityRemaining,
             unit_price_ht = dm.UnitPriceHT,
             cost_ht = dm.CostHT,
             discount_percentage = dm.DiscountPercentage,

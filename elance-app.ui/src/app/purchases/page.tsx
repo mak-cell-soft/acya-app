@@ -254,7 +254,7 @@ export default function PurchasesPage() {
       .filter((doc) => {
         const term = searchTerm.toLowerCase();
         const supplierName = (
-          doc.counterpart?.name || 
+          doc.counterpart?.name ||
           `${doc.counterpart?.firstname || ''} ${doc.counterpart?.lastname || ''}`
         ).toLowerCase();
 
@@ -265,7 +265,7 @@ export default function PurchasesPage() {
           doc.description?.toLowerCase().includes(term);
 
         const matchesSupplier =
-          selectedSupplierId === 'all' || 
+          selectedSupplierId === 'all' ||
           doc.counterpart?.id === Number(selectedSupplierId);
 
         return matchesSearch && matchesSupplier;
@@ -283,9 +283,9 @@ export default function PurchasesPage() {
     if (selectedReceipts.length === 0) return false;
     const firstSupplierId = selectedReceipts[0]?.counterpart?.id;
     return selectedReceipts.every(
-      (r) => 
-        r.counterpart?.id === firstSupplierId && 
-        r.billingstatus !== BillingStatus.Billed && 
+      (r) =>
+        r.counterpart?.id === firstSupplierId &&
+        r.billingstatus !== BillingStatus.Billed &&
         !r.isinvoiced
     );
   }, [selectedReceipts]);
@@ -332,7 +332,7 @@ export default function PurchasesPage() {
   return (
     <DashboardLayout>
       <div className="space-y-8 animate-in fade-in duration-700">
-        
+
         {/* Header Section: spatial tension layout with deep slate/amber styling */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-slate-100 pb-6">
           <div className="space-y-1">
@@ -351,7 +351,7 @@ export default function PurchasesPage() {
               Pilotez l’intégralité de la chaîne d’approvisionnement : commandes fournisseurs, réceptions de marchandises (BR), factures et avoirs financiers.
             </p>
           </div>
-          
+
           <div className="flex flex-wrap items-center gap-3">
             {isAdmin && (
               <Link href="/purchases/approvals" passHref>
@@ -464,7 +464,7 @@ export default function PurchasesPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="px-6 py-2 bg-slate-50 overflow-x-auto flex items-center gap-1 justify-center border-t border-slate-100">
             {MONTHS.map((m, idx) => (
               <Button
@@ -585,7 +585,7 @@ export default function PurchasesPage() {
             setExpandedId(null);
             setSelectedReceiptIds([]);
           }} className="w-full">
-            
+
             {/* Custom styled Tabs Header */}
             <CardHeader className="border-b border-slate-100 p-6 space-y-4">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -660,7 +660,7 @@ export default function PurchasesPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                
+
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="w-48">
                     <Select value={selectedSupplierId} onValueChange={(val) => setSelectedSupplierId(val || 'all')}>
@@ -684,9 +684,9 @@ export default function PurchasesPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="h-6 w-[1px] bg-slate-200 mx-1 hidden md:block" />
-                  
+
                   <div className="flex items-center gap-2 px-4 py-2 bg-amber-950/5 border border-amber-900/10 rounded-xl text-xs font-bold text-amber-900">
                     <Layers className="w-4 h-4 text-amber-700" />
                     <span>{filteredDocuments.length} Documents trouvés</span>
@@ -701,7 +701,7 @@ export default function PurchasesPage() {
                 <table className="w-full text-left border-collapse font-sans text-xs">
                   <thead>
                     <tr className="bg-slate-50/70 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-                      
+
                       {/* Checkbox column only on receipt/BR tab */}
                       {activeTab === 'receipt' && (
                         <th className="p-4 w-12 text-center">
@@ -722,12 +722,12 @@ export default function PurchasesPage() {
                           />
                         </th>
                       )}
-                      
+
                       {/* Toggle Expand column for invoice and order tabs */}
                       {(activeTab === 'invoice' || activeTab === 'order') && <th className="p-4 w-10"></th>}
 
                       <th className="p-4">N° Document</th>
-                      
+
                       {activeTab === 'invoice' && <th className="p-4">Réf. Fournisseur</th>}
 
                       <th className="p-4">Date</th>
@@ -755,7 +755,7 @@ export default function PurchasesPage() {
                     ) : filteredDocuments.length > 0 ? (
                       filteredDocuments.map((item) => {
                         const isExpanded = expandedId === item.id;
-                        
+
                         // Associated children details for expanded Row
                         const associatedBRs = getAssociatedReceipts(item.id);
                         const associatedAvoirs = getAssociatedCreditNotes(item.id);
@@ -808,7 +808,7 @@ export default function PurchasesPage() {
 
                               <td className="p-4">
                                 <span className="font-bold text-slate-900 block group-hover:text-amber-900 transition-colors">
-                                  {item.docnumber || 'Brouillon'}
+                                  {item.docnumber || 'En cours'}
                                 </span>
                               </td>
 
@@ -833,8 +833,7 @@ export default function PurchasesPage() {
                                   </span>
                                   <span>
                                     {item.counterpart?.name ||
-                                      `${item.counterpart?.firstname || ''} ${
-                                        item.counterpart?.lastname || ''
+                                      `${item.counterpart?.firstname || ''} ${item.counterpart?.lastname || ''
                                       }`}
                                   </span>
                                 </div>
@@ -852,24 +851,30 @@ export default function PurchasesPage() {
                                 <Badge
                                   className={cn(
                                     'rounded-full px-2.5 py-0.5 font-bold text-[9px] tracking-wide uppercase',
-                                    (item.docstatus === DocStatus.Validated || item.docstatus === DocStatus.Completed || item.docstatus === DocStatus.Approved)
+                                    (item.docstatus === DocStatus.Validated || item.docstatus === DocStatus.Completed || item.docstatus === DocStatus.Approved || item.docstatus === DocStatus.Delivered)
                                       ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/50'
                                       : item.docstatus === DocStatus.PendingApproval
-                                      ? 'bg-blue-50 text-blue-800 border border-blue-200/50'
-                                      : item.docstatus === DocStatus.Rejected
-                                      ? 'bg-rose-50 text-rose-800 border border-rose-200/50'
-                                      : 'bg-amber-50 text-amber-800 border border-amber-200/50'
+                                        ? 'bg-blue-50 text-blue-800 border border-blue-200/50'
+                                        : item.docstatus === DocStatus.Rejected
+                                          ? 'bg-rose-50 text-rose-800 border border-rose-200/50'
+                                          : item.docstatus === DocStatus.PartiallyDelivered
+                                            ? 'bg-teal-50 text-teal-800 border border-teal-200/50'
+                                            : 'bg-amber-50 text-amber-800 border border-amber-200/50'
                                   )}
                                 >
                                   {item.docstatus === DocStatus.Validated || item.docstatus === DocStatus.Completed
                                     ? 'Validé'
-                                    : item.docstatus === DocStatus.Approved
-                                    ? 'Approuvé'
-                                    : item.docstatus === DocStatus.PendingApproval
-                                    ? 'En attente'
-                                    : item.docstatus === DocStatus.Rejected
-                                    ? 'Rejetée'
-                                    : 'Brouillon'}
+                                    : item.docstatus === DocStatus.Delivered
+                                      ? 'Livrée'
+                                      : item.docstatus === DocStatus.PartiallyDelivered
+                                        ? 'Partielle'
+                                        : item.docstatus === DocStatus.Approved
+                                          ? 'Approuvé'
+                                          : item.docstatus === DocStatus.PendingApproval
+                                            ? 'En attente'
+                                            : item.docstatus === DocStatus.Rejected
+                                              ? 'Rejetée'
+                                              : 'En cours'}
                                 </Badge>
                               </td>
 
@@ -929,7 +934,7 @@ export default function PurchasesPage() {
                                       >
                                         <FileText className="w-4 h-4 text-slate-500" /> Afficher Détails
                                       </DropdownMenuItem>
-                                      
+
                                       <DropdownMenuItem
                                         onClick={() => handleDownloadPdf(item)}
                                         className="gap-2 font-bold text-slate-800 cursor-pointer"
@@ -1005,13 +1010,13 @@ export default function PurchasesPage() {
                                     >
                                       <div className="p-6 md:p-8 space-y-6">
                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                          
+
                                           {/* Associated BRs subsection */}
                                           <div className="space-y-3">
                                             <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                                               <Layers className="w-3.5 h-3.5 text-amber-700" /> Bons de Réception Associés
                                             </h4>
-                                            
+
                                             {associatedBRs.length > 0 ? (
                                               <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
                                                 {associatedBRs.map((br: any, brIdx: number) => (
@@ -1116,11 +1121,11 @@ export default function PurchasesPage() {
                                       className="overflow-hidden bg-slate-50/40 border-y border-slate-100"
                                     >
                                       <div className="p-6 md:p-8 space-y-6">
-                                        
+
                                         {/* Procurement Stepper */}
                                         <div className="relative flex items-center justify-between max-w-3xl mx-auto mb-10">
                                           <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-0.5 bg-slate-200 z-0"></div>
-                                          
+
                                           {/* Step 1: Commande */}
                                           <div className={cn(
                                             "relative z-10 flex flex-col items-center gap-2",
@@ -1128,8 +1133,8 @@ export default function PurchasesPage() {
                                           )}>
                                             <div className={cn(
                                               "w-10 h-10 rounded-full flex items-center justify-center border-2",
-                                              item.docstatus !== DocStatus.Abandoned && item.docstatus !== DocStatus.Deleted 
-                                                ? "bg-amber-900 border-amber-900 text-white shadow-lg" 
+                                              item.docstatus !== DocStatus.Abandoned && item.docstatus !== DocStatus.Deleted
+                                                ? "bg-amber-900 border-amber-900 text-white shadow-lg"
                                                 : "bg-slate-100 border-slate-300 text-slate-400"
                                             )}>
                                               <Clock className="w-5 h-5" />
@@ -1148,8 +1153,8 @@ export default function PurchasesPage() {
                                             <div className={cn(
                                               "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
                                               item.docstatus === DocStatus.Delivered ? "bg-emerald-600 border-emerald-600 text-white shadow-lg" :
-                                              item.docstatus === DocStatus.PartiallyDelivered ? "bg-amber-50 border-amber-500 text-amber-600 shadow-md" :
-                                              "bg-white border-slate-300 text-slate-400"
+                                                item.docstatus === DocStatus.PartiallyDelivered ? "bg-amber-50 border-amber-500 text-amber-600 shadow-md" :
+                                                  "bg-white border-slate-300 text-slate-400"
                                             )}>
                                               {item.docstatus === DocStatus.Delivered ? <CheckCircle2 className="w-5 h-5" /> : <Layers className="w-5 h-5" />}
                                             </div>
@@ -1172,8 +1177,8 @@ export default function PurchasesPage() {
                                                 </div>
                                               )}
                                               {item.docstatus !== DocStatus.Delivered && item.docstatus !== DocStatus.Abandoned && item.docstatus !== DocStatus.Deleted && (
-                                                <Button 
-                                                  variant="link" 
+                                                <Button
+                                                  variant="link"
                                                   className="h-auto p-0 text-[10px] text-amber-700 font-bold mt-1"
                                                   onClick={(e) => { e.stopPropagation(); router.push(`/purchases/receipt/new?orderId=${item.id}`); }}
                                                 >
@@ -1217,7 +1222,7 @@ export default function PurchasesPage() {
                                               const qtyRemaining = m.quantity_remaining !== undefined ? m.quantity_remaining : Math.max(0, qty - qtyDelivered);
                                               const progressPercent = qty > 0 ? Math.min(100, (qtyDelivered / qty) * 100) : 0;
                                               const isDone = qtyRemaining <= 0;
-                                              
+
                                               return (
                                                 <div key={m.id || idx} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-amber-900/20 transition-all flex flex-col justify-between">
                                                   <div className="mb-3">
@@ -1227,7 +1232,7 @@ export default function PurchasesPage() {
                                                     </div>
                                                     <p className="text-[10px] text-slate-500 line-clamp-2">{m.description || m.article?.description}</p>
                                                   </div>
-                                                  
+
                                                   <div className="grid grid-cols-2 gap-2 mb-3">
                                                     <div className="bg-slate-50 rounded-lg p-2 flex flex-col">
                                                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Qté Cmd</span>
@@ -1255,7 +1260,7 @@ export default function PurchasesPage() {
                                                       )}
                                                     </div>
                                                     <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                                                      <div 
+                                                      <div
                                                         className={cn(
                                                           "h-full transition-all duration-500",
                                                           isDone ? "bg-emerald-500" : "bg-amber-500"
@@ -1269,7 +1274,7 @@ export default function PurchasesPage() {
                                             })}
                                           </div>
                                         </div>
-                                        
+
                                       </div>
                                     </motion.div>
                                   </AnimatePresence>

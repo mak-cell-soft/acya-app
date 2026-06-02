@@ -90,9 +90,9 @@ function NewSupplierReceiptPageContent() {
 
   // Handle conversion parent references if navigated from order flows
   const sourceIdFromParams = parseInt(
-    searchParams.get('sourceId') || 
-    searchParams.get('fromOrderId') || 
-    searchParams.get('orderId') || 
+    searchParams.get('sourceId') ||
+    searchParams.get('fromOrderId') ||
+    searchParams.get('orderId') ||
     '0'
   );
   const [sourceDocumentId] = useState<number>(sourceIdFromParams);
@@ -166,8 +166,8 @@ function NewSupplierReceiptPageContent() {
     const carInfo = selectedTransporter.car;
     const carDisplay = carInfo
       ? (typeof carInfo === 'object'
-          ? `${(carInfo as any).brand || ''} ${(carInfo as any).serialnumber || ''}`.trim() || 'Véhicule'
-          : carInfo)
+        ? `${(carInfo as any).brand || ''} ${(carInfo as any).serialnumber || ''}`.trim() || 'Véhicule'
+        : carInfo)
       : 'Sans matricule';
     return `${selectedTransporter.fullname} (${carDisplay})`;
   }, [selectedTransporter]);
@@ -217,7 +217,7 @@ function NewSupplierReceiptPageContent() {
   useEffect(() => {
     if (sourceDocumentId <= 0 || !allArticles.length || !allSuppliers.length) return;
     setIsLoading(true);
-    
+
     documentService.getById(sourceDocumentId)
       .then((doc: any) => {
         // Find and pre-fill Supplier
@@ -230,8 +230,8 @@ function NewSupplierReceiptPageContent() {
           }
         }
 
-        // Map external reference to parent's doc number (supplier order number)
-        setSupplierReference(doc.docnumber || '');
+        // Do not auto-fill external reference with parent's doc number for receipts (leave it empty for supplier's actual reference)
+        setSupplierReference('');
 
         // Pre-fill header parameters
         if (doc.currency) {
@@ -241,50 +241,78 @@ function NewSupplierReceiptPageContent() {
           setExchangeRate(doc.exchangeRate);
         }
 
-        // Map parent merchandise rows (ignoring settled or fully delivered if applicable, but mapping all standard rows)
+        // Map parent merchandise rows (ignoring fully delivered lines)
         if (doc.merchandises) {
-          const mapped = doc.merchandises.map((m: any) => {
-            const isWood = m.article ? !!m.article.iswood : false;
-            
-            // Resolve TVA percentage from C# or article
-            let tvaVal = 19;
-            if (m.article?.tva) {
-              tvaVal = parseFloat(m.article.tva.value.replace('%', '')) || 0;
-            } else if (m.tva_value && m.cost_net_ht) {
-              tvaVal = parseFloat(((m.tva_value / m.cost_net_ht) * 100).toFixed(0));
-            }
+          const mapped = doc.merchandises
+            .filter((m: any) => {
+              // Always include non-merchandise lines (like transport), but filter merchandise by remaining quantity
+              if (m.line_type === LineType.Merchandise) {
+                const remaining = m.quantity_remaining ?? (m.quantity - (m.quantity_delivered || 0));
+                return remaining > 0;
+              }
+              return true;
+            })
+            .map((m: any) => {
+              const isWood = m.article ? !!m.article.iswood : false;
 
-            const r: MerchandRow = {
-              selectedArticle: m.article,
-              articleSearchInput: m.article ? `${m.article.reference} - ${m.article.description || ''}` : '',
-              filteredArticles: allArticles,
-              unit_price_ht: m.unit_price_ht || 0,
-              quantity: m.quantity || 0,
-              listLengths: m.lisoflengths || [],
-              selldiscountpercentage: m.discount_percentage || 0,
-              sellcostprice_discountValue: m.cost_discount_value || 0,
-              sellcostprice_net_ht: m.cost_net_ht || 0,
-              sellcostprice_taxValue: m.tva_value || 0,
-              totalWithTax: m.cost_ttc || 0,
-              line_type: m.line_type || LineType.Merchandise,
-              description: m.description || '',
-              isWoodArticle: isWood,
-              packagereference: m.packagereference || (m.article?.categoryid === 1 ? '' : 'Standart'),
-              isinvoicible: m.isinvoicible ?? true,
-              allownegativstock: m.allownegativstock ?? false,
-              tva_percentage: tvaVal
-            };
+              // Resolve TVA percentage from C# or article
+              let tvaValPercent = 19;
+              if (m.article?.tva) {
+                tvaValPercent = parseFloat(m.article.tva.value.replace('%', '')) || 0;
+              } else if (m.tva_value && m.cost_net_ht) {
+                tvaValPercent = parseFloat(((m.tva_value / m.cost_net_ht) * 100).toFixed(0));
+              }
 
-            if (m.line_type === LineType.TransportFee) {
-              r.transporter_id = m.transporter_id;
-              r.transporter_name = m.transporter_name || 'Transporteur';
-            }
+              // Calculate the quantity to import (rest of merchandise not delivered)
+              let importQuantity = m.quantity || 0;
+              if (m.line_type === LineType.Merchandise) {
+                importQuantity = m.quantity_remaining ?? (m.quantity - (m.quantity_delivered || 0));
+              }
 
-            return r;
-          });
+              // Recalculate costs based on the new import quantity
+              const priceHT = m.unit_price_ht || 0;
+              const discPercent = m.discount_percentage || 0;
+              let costHT = priceHT * importQuantity;
+              if (m.line_type === LineType.TransportFee) {
+                costHT = priceHT;
+                importQuantity = 1;
+              }
+              const discountVal = costHT * (discPercent / 100);
+              const costNetHT = costHT - discountVal;
+              const calcTvaVal = costNetHT * (tvaValPercent / 100);
+              const costTTC = costNetHT + calcTvaVal;
+
+              const r: MerchandRow = {
+                selectedArticle: m.article,
+                articleSearchInput: m.article ? `${m.article.reference} - ${m.article.description || ''}` : '',
+                filteredArticles: allArticles,
+                unit_price_ht: priceHT,
+                quantity: importQuantity,
+                listLengths: m.lisoflengths || [],
+                selldiscountpercentage: discPercent,
+                sellcostprice_discountValue: parseFloat(discountVal.toFixed(3)),
+                sellcostprice_net_ht: parseFloat(costNetHT.toFixed(3)),
+                sellcostprice_taxValue: parseFloat(calcTvaVal.toFixed(3)),
+                totalWithTax: parseFloat(costTTC.toFixed(3)),
+                line_type: m.line_type || LineType.Merchandise,
+                description: m.description || '',
+                isWoodArticle: isWood,
+                packagereference: m.packagereference || (m.article?.categoryid === 1 ? '' : 'Standart'),
+                isinvoicible: m.isinvoicible ?? true,
+                allownegativstock: m.allownegativstock ?? false,
+                tva_percentage: tvaValPercent
+              };
+
+              if (m.line_type === LineType.TransportFee) {
+                r.transporter_id = m.transporter_id;
+                r.transporter_name = m.transporter_name || 'Transporteur';
+              }
+
+              return r;
+            });
           setRows(mapped);
         }
-        
+
         toast.info(`Commande fournisseur Réf: ${doc.docnumber} chargée avec succès.`);
       })
       .catch(err => {
@@ -350,7 +378,7 @@ function NewSupplierReceiptPageContent() {
     try {
       const ref = await merchandiseService.getMerchandiseReferenceAsString(newRowArticle.id);
       let finalRef = ref;
-      
+
       // Why: Since multiple rows for the same article can be added in a single receipt form 
       // before saving to the database, querying the backend alone will yield duplicate references.
       // We check our local front-end rows list to find the highest increment for this article-date
@@ -358,10 +386,10 @@ function NewSupplierReceiptPageContent() {
       const parts = ref.split('-');
       if (parts.length >= 3) {
         const baseWithDate = parts.slice(0, -1).join('-');
-        
+
         // Find the maximum sequence increment already in the grid's local rows
         let maxIncrement = parseInt(parts[parts.length - 1], 10) || 1;
-        
+
         rows.forEach(r => {
           if (r.packagereference) {
             const cleanPackRef = r.packagereference.replace(/"/g, '').trim();
@@ -377,7 +405,7 @@ function NewSupplierReceiptPageContent() {
             }
           }
         });
-        
+
         finalRef = `${baseWithDate}-${maxIncrement}`;
       }
 
@@ -456,7 +484,7 @@ function NewSupplierReceiptPageContent() {
     };
 
     const calculated = calculateRowCalculations(newRow);
-    
+
     if (editIndex !== null) {
       const updatedRows = [...rows];
       updatedRows[editIndex] = calculated;
@@ -815,7 +843,7 @@ function NewSupplierReceiptPageContent() {
           // Step 4: Update order status (1 = Delivered, 11 = PartiallyDelivered in TypeScript DocStatus)
           const newStatus = isFullyDelivered ? DocStatus.Delivered : DocStatus.PartiallyDelivered;
           await documentService.updateStatus(sourceDocumentId, newStatus);
-          
+
           toast.info(`Statut de la commande mis à jour : ${isFullyDelivered ? "Livrée" : "Livraison Partielle"}`);
         } catch (relationErr) {
           console.error('Error handling parent order status transitions:', relationErr);
@@ -845,7 +873,7 @@ function NewSupplierReceiptPageContent() {
   return (
     <DashboardLayout>
       <div className="space-y-8 animate-in fade-in duration-700">
-        
+
         {/* Header Section */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-5">
           <div className="flex items-center gap-3">
@@ -866,7 +894,7 @@ function NewSupplierReceiptPageContent() {
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3">
             {selectedSite && (
               <Badge className="bg-amber-900/10 hover:bg-amber-900/20 text-amber-900 border border-amber-900/15 font-bold px-3 py-1.5 rounded-lg flex items-center gap-2">
@@ -895,13 +923,13 @@ function NewSupplierReceiptPageContent() {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
-              
+
               {/* Supplier Selector */}
               <div className="space-y-2 relative">
                 <label className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest block font-mono">Fournisseur *</label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none" />
-                  <Input 
+                  <Input
                     value={supplierSearchQuery}
                     onChange={(e) => {
                       setSupplierSearchQuery(e.target.value);
@@ -929,9 +957,9 @@ function NewSupplierReceiptPageContent() {
 
                 {isSupplierDropdownOpen && (
                   <>
-                    <div 
-                      className="fixed inset-0 z-10" 
-                      onClick={() => setIsSupplierDropdownOpen(false)} 
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setIsSupplierDropdownOpen(false)}
                     />
                     <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto z-20 rounded-xl border border-slate-100 bg-white shadow-2xl p-1.5 space-y-0.5 animate-in fade-in duration-200">
                       {filteredSuppliersList.map(sup => {
@@ -942,8 +970,8 @@ function NewSupplierReceiptPageContent() {
                             type="button"
                             className={cn(
                               "w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between",
-                              selectedSupplier?.id === sup.id 
-                                ? "bg-amber-900 text-white" 
+                              selectedSupplier?.id === sup.id
+                                ? "bg-amber-900 text-white"
                                 : "text-slate-900 hover:bg-slate-50"
                             )}
                             onClick={() => {
@@ -986,7 +1014,7 @@ function NewSupplierReceiptPageContent() {
               {/* Destination Storage Site Selector */}
               <div className="space-y-2">
                 <label className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest block font-mono">Site Dépôt de Stockage *</label>
-                <Select 
+                <Select
                   onValueChange={(val) => {
                     const site = allSites.find(s => s.id.toString() === val);
                     setSelectedSite(site || null);
@@ -1091,7 +1119,7 @@ function NewSupplierReceiptPageContent() {
               {/* Optional RS holding taxes */}
               <div className="space-y-2 pt-2 border-t border-slate-800 animate-in fade-in duration-300">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-mono">Retenue à la Source (RS)</label>
-                <Select 
+                <Select
                   onValueChange={(val) => {
                     if (val === 'none') {
                       setSelectedRS(null);
@@ -1099,7 +1127,7 @@ function NewSupplierReceiptPageContent() {
                       const rs = appvariablesRS.find(r => r.id.toString() === val);
                       setSelectedRS(rs || null);
                     }
-                  }} 
+                  }}
                   value={selectedRS?.id?.toString() || 'none'}
                 >
                   <SelectTrigger className="h-9 rounded-lg border-slate-700 bg-slate-800/80 text-xs font-bold text-white focus:ring-amber-900 w-full">
@@ -1134,8 +1162,8 @@ function NewSupplierReceiptPageContent() {
               </div>
 
               <div className="pt-4 flex flex-col gap-2.5">
-                <Button 
-                  onClick={handleSubmit} 
+                <Button
+                  onClick={handleSubmit}
                   disabled={isLoading}
                   className="w-full h-11 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-bold shadow-lg shadow-amber-900/20 gap-2 flex items-center justify-center transition-all duration-300"
                 >
@@ -1147,9 +1175,9 @@ function NewSupplierReceiptPageContent() {
                     </>
                   )}
                 </Button>
-                <Button 
-                  onClick={() => router.push('/purchases')} 
-                  variant="ghost" 
+                <Button
+                  onClick={() => router.push('/purchases')}
+                  variant="ghost"
                   disabled={isLoading}
                   className="w-full h-10 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold"
                 >
@@ -1170,13 +1198,13 @@ function NewSupplierReceiptPageContent() {
           </CardHeader>
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-              
+
               {/* Autocomplete Article Selector */}
               <div className="space-y-1.5 relative md:col-span-2">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-mono">Rechercher Article *</label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none" />
-                  <Input 
+                  <Input
                     value={newRowArticleSearch}
                     onChange={(e) => {
                       setNewRowArticleSearch(e.target.value);
@@ -1210,9 +1238,9 @@ function NewSupplierReceiptPageContent() {
 
                 {isArticleDropdownOpen && (
                   <>
-                    <div 
-                      className="fixed inset-0 z-10" 
-                      onClick={() => setIsArticleDropdownOpen(false)} 
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setIsArticleDropdownOpen(false)}
                     />
                     <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto z-20 rounded-xl border border-slate-100 bg-white shadow-2xl p-1.5 space-y-0.5 animate-in fade-in duration-200 font-bold text-xs text-slate-900">
                       {filteredArticlesList.map(art => (
@@ -1221,8 +1249,8 @@ function NewSupplierReceiptPageContent() {
                           type="button"
                           className={cn(
                             "w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between",
-                            newRowArticle?.id === art.id 
-                              ? "bg-amber-900 text-white" 
+                            newRowArticle?.id === art.id
+                              ? "bg-amber-900 text-white"
                               : "text-slate-900 hover:bg-slate-50"
                           )}
                           onClick={() => {
@@ -1320,7 +1348,7 @@ function NewSupplierReceiptPageContent() {
                     onClick={() => handleOpenWoodLengths(null)}
                     className="w-full h-10 bg-amber-50 hover:bg-amber-100/80 text-amber-900 border border-amber-900/15 rounded-xl font-bold gap-2 text-xs flex items-center justify-center transition-all"
                   >
-                    <TreeDeciduous className="w-4 h-4" /> 
+                    <TreeDeciduous className="w-4 h-4" />
                     {newRowQuantity > 0 ? `${newRowQuantity.toFixed(3)} M³` : "Longueurs Bois"}
                   </Button>
                 ) : (
@@ -1362,18 +1390,18 @@ function NewSupplierReceiptPageContent() {
               {/* Toggles (Invoiceable & Negative Stock) */}
               <div className="md:col-span-2 flex flex-wrap items-center gap-6 bg-slate-50/50 border border-slate-100 p-3 rounded-2xl">
                 <div className="flex items-center space-x-2">
-                  <Switch 
-                    id="new-invoiceable" 
-                    checked={newRowIsInvoiceable} 
-                    onCheckedChange={setNewRowIsInvoiceable} 
+                  <Switch
+                    id="new-invoiceable"
+                    checked={newRowIsInvoiceable}
+                    onCheckedChange={setNewRowIsInvoiceable}
                   />
                   <label htmlFor="new-invoiceable" className="text-[11px] font-bold text-slate-600 uppercase tracking-wider cursor-pointer">Facturable</label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Switch 
-                    id="new-negativestock" 
-                    checked={newRowAllowNegativeStock} 
-                    onCheckedChange={setNewRowAllowNegativeStock} 
+                  <Switch
+                    id="new-negativestock"
+                    checked={newRowAllowNegativeStock}
+                    onCheckedChange={setNewRowAllowNegativeStock}
                   />
                   <label htmlFor="new-negativestock" className="text-[11px] font-bold text-slate-600 uppercase tracking-wider cursor-pointer">Stock Négatif Autorisé</label>
                 </div>
@@ -1425,7 +1453,7 @@ function NewSupplierReceiptPageContent() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-end bg-amber-50/20 border border-amber-900/5 p-5 rounded-2xl">
               <div className="md:col-span-2 space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-mono">Transporteur</label>
-                <Select 
+                <Select
                   onValueChange={(val) => {
                     const trans = allTransporters.find(t => t.id.toString() === val);
                     setSelectedTransporter(trans || null);
@@ -1442,8 +1470,8 @@ function NewSupplierReceiptPageContent() {
                       const carInfo = trans.car;
                       const carDisplay = carInfo
                         ? (typeof carInfo === 'object'
-                            ? `${(carInfo as any).brand || ''} ${(carInfo as any).serialnumber || ''}`.trim() || 'Véhicule'
-                            : carInfo)
+                          ? `${(carInfo as any).brand || ''} ${(carInfo as any).serialnumber || ''}`.trim() || 'Véhicule'
+                          : carInfo)
                         : 'Sans matricule';
                       const label = `${trans.fullname} (${carDisplay})`;
                       return (
@@ -1556,7 +1584,7 @@ function NewSupplierReceiptPageContent() {
                                   onClick={() => handleOpenWoodLengths(idx)}
                                   className="w-full h-8 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-900/10 rounded-lg font-bold gap-1 text-[11px] flex items-center justify-center transition-all font-mono"
                                 >
-                                  <TreeDeciduous className="w-3.5 h-3.5 shrink-0" /> 
+                                  <TreeDeciduous className="w-3.5 h-3.5 shrink-0" />
                                   {row.quantity.toFixed(3)}
                                 </Button>
                               ) : isTransport ? (
@@ -1594,7 +1622,7 @@ function NewSupplierReceiptPageContent() {
                                     className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg"
                                     title="Modifier la ligne"
                                   >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
                                   </Button>
                                 )}
                                 <Button
