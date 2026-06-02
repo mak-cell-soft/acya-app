@@ -859,7 +859,7 @@ export default function PurchasesPage() {
                                           ? 'bg-rose-50 text-rose-800 border border-rose-200/50'
                                           : item.docstatus === DocStatus.PartiallyDelivered
                                             ? 'bg-teal-50 text-teal-800 border border-teal-200/50'
-                                            : 'bg-amber-50 text-amber-800 border border-amber-200/50'
+                                            : (activeTab === 'receipt' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/50' : 'bg-amber-50 text-amber-800 border border-amber-200/50')
                                   )}
                                 >
                                   {item.docstatus === DocStatus.Validated || item.docstatus === DocStatus.Completed
@@ -874,7 +874,7 @@ export default function PurchasesPage() {
                                             ? 'En attente'
                                             : item.docstatus === DocStatus.Rejected
                                               ? 'Rejetée'
-                                              : 'En cours'}
+                                              : (activeTab === 'receipt' ? 'Livrée' : 'En cours')}
                                 </Badge>
                               </td>
 
