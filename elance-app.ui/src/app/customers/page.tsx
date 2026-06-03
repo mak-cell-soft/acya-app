@@ -20,7 +20,8 @@ import {
   ExternalLink,
   Loader2,
   FileText,
-  BadgeInfo
+  BadgeInfo,
+  DollarSign
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQueryClient } from '@tanstack/react-query';
@@ -42,6 +43,7 @@ import { CustomerFormDialog } from '@/components/customers/customer-form-dialog'
 import { CustomerDetailsDialog } from '@/components/customers/customer-details-dialog';
 import { CustomerAccountDialog } from '@/components/customers/customer-account-dialog';
 import { DeleteCustomerDialog } from '@/components/customers/delete-customer-dialog';
+import { CustomerRecouvrementDialog } from '@/components/customers/customer-recouvrement-dialog';
 import { toast } from 'sonner';
 
 export default function CustomersPage() {
@@ -52,6 +54,7 @@ export default function CustomersPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isRecouvrementOpen, setIsRecouvrementOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -116,6 +119,11 @@ export default function CustomersPage() {
   const openAccount = (customer: Customer) => {
     setSelectedCustomer(customer);
     setIsAccountOpen(true);
+  };
+
+  const openRecouvrement = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setIsRecouvrementOpen(true);
   };
 
   const openDelete = (customer: Customer) => {
@@ -271,6 +279,9 @@ export default function CustomersPage() {
                                 <DropdownMenuItem onClick={() => openAccount(item)} className="gap-2 font-bold text-forest-900 cursor-pointer">
                                   <CreditCard className="w-4 h-4" /> État de Compte
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => openRecouvrement(item)} className="gap-2 font-bold text-forest-900 cursor-pointer text-green-700">
+                                  <DollarSign className="w-4 h-4" /> Recouvrement
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => openDetails(item)} className="gap-2 font-bold text-forest-900 cursor-pointer">
                                   <FileText className="w-4 h-4" /> Détails / Grille
                                 </DropdownMenuItem>
@@ -327,7 +338,7 @@ export default function CustomersPage() {
                                       </div>
                                     </div>
                                     {/* Shortcut trigger to directly open customer account statement */}
-                                    <div className="pt-2">
+                                    <div className="pt-2 grid grid-cols-2 gap-2">
                                       <Button 
                                         variant="outline" 
                                         size="sm" 
@@ -338,6 +349,17 @@ export default function CustomersPage() {
                                         className="w-full text-xs font-bold border-forest-200 text-forest-600 hover:bg-forest-50 hover:text-forest-800 transition-all rounded-xl"
                                       >
                                         <CreditCard className="w-3.5 h-3.5 mr-2" /> État de Compte
+                                      </Button>
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        onClick={(e) => { 
+                                          e.stopPropagation(); 
+                                          openRecouvrement(item); 
+                                        }}
+                                        className="w-full text-xs font-bold border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800 transition-all rounded-xl"
+                                      >
+                                        <DollarSign className="w-3.5 h-3.5 mr-2" /> Recouvrement
                                       </Button>
                                     </div>
                                   </div>
@@ -408,6 +430,14 @@ export default function CustomersPage() {
           onClose={() => setIsAccountOpen(false)} 
           customer={selectedCustomer}
         />
+
+        {selectedCustomer && (
+          <CustomerRecouvrementDialog
+            open={isRecouvrementOpen}
+            onOpenChange={setIsRecouvrementOpen}
+            customerId={selectedCustomer.id}
+          />
+        )}
 
         <DeleteCustomerDialog 
           isOpen={isDeleteOpen} 

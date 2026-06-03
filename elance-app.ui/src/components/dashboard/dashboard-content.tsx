@@ -692,7 +692,9 @@ export function DashboardContent() {
                                   </span>
                                 )}
                                 {!p.invoiceNumber && !p.deliveryNoteNumber && (
-                                  <span className="text-xs text-sand-300 font-bold">—</span>
+                                  <span className="inline-flex items-center gap-1 text-[0.65rem] font-black text-amber-800 bg-amber-50 border border-amber-100 rounded px-2 py-0.5">
+                                    Recouvrement
+                                  </span>
                                 )}
                               </div>
                             </td>

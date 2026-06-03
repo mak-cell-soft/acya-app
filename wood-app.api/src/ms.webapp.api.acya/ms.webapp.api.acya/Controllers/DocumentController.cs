@@ -1093,6 +1093,38 @@ namespace ms.webapp.api.acya.api.Controllers
         await _repository.AddRelationship(relationship);
       }
 
+      // Transfer payments from children to the new invoice
+      var paymentsToTransfer = await _context.Payments
+          .Where(p => p.DocumentId.HasValue && genDto.docChildrenIds!.Contains(p.DocumentId.Value) && !p.IsDeleted)
+          .ToListAsync();
+
+      decimal totalTransferredAmount = 0;
+      foreach (var payment in paymentsToTransfer)
+      {
+          payment.DocumentId = invoice.Id;
+          _context.Entry(payment).State = EntityState.Modified;
+          totalTransferredAmount += (payment.Amount ?? 0);
+      }
+      
+      if (totalTransferredAmount > 0)
+      {
+          double netPayable = invoice.TotalCostNetTTCDoc;
+          if (invoice.WithHoldingTax && invoice.HoldingTaxes != null)
+          {
+              netPayable -= invoice.HoldingTaxes.TaxValue;
+          }
+          netPayable -= invoice.TotalCreditNotes;
+
+          if ((double)totalTransferredAmount >= Math.Round(netPayable, 3, MidpointRounding.AwayFromZero) - 0.005)
+          {
+              invoice.BillingStatus = BillingStatus.Billed;
+          }
+          else
+          {
+              invoice.BillingStatus = BillingStatus.PartiallyBilled;
+          }
+      }
+
       // Save changes and verify
       try
       {
@@ -1545,8 +1577,49 @@ namespace ms.webapp.api.acya.api.Controllers
                 {
                     parentDoc.IsInvoiced = true;
                     _context.Entry(parentDoc).State = EntityState.Modified;
-                    await _context.SaveChangesAsync();
                 }
+
+                // Transfer payments from parent to child
+                var paymentsToTransfer = await _context.Payments
+                    .Where(p => p.DocumentId == parentId && !p.IsDeleted)
+                    .ToListAsync();
+                
+                decimal totalTransferredAmount = 0;
+                foreach (var payment in paymentsToTransfer)
+                {
+                    payment.DocumentId = childId;
+                    _context.Entry(payment).State = EntityState.Modified;
+                    totalTransferredAmount += (payment.Amount ?? 0);
+                }
+
+                if (totalTransferredAmount > 0)
+                {
+                    var childDoc = await _context.Documents
+                        .Include(d => d.HoldingTaxes)
+                        .FirstOrDefaultAsync(d => d.Id == childId);
+                        
+                    if (childDoc != null)
+                    {
+                        double netPayable = childDoc.TotalCostNetTTCDoc;
+                        if (childDoc.WithHoldingTax && childDoc.HoldingTaxes != null)
+                        {
+                            netPayable -= childDoc.HoldingTaxes.TaxValue;
+                        }
+                        netPayable -= childDoc.TotalCreditNotes;
+
+                        if ((double)totalTransferredAmount >= Math.Round(netPayable, 3, MidpointRounding.AwayFromZero) - 0.005)
+                        {
+                            childDoc.BillingStatus = BillingStatus.Billed;
+                        }
+                        else
+                        {
+                            childDoc.BillingStatus = BillingStatus.PartiallyBilled;
+                        }
+                        _context.Entry(childDoc).State = EntityState.Modified;
+                    }
+                }
+                
+                await _context.SaveChangesAsync();
 
                 return okResult; // Return the successful document creation result
             }

@@ -70,8 +70,23 @@ export const paymentService = {
     return response.data;
   },
 
-  markTraiteAsPaid: async (instrumentId: number, model: { paidAtBankDate: Date, notes?: string }) => {
+  markTraiteAsPaid: async (instrumentId: number, model: { paidAtBankDate: string; notes?: string }) => {
     const response = await api.patch(`/Payments/instruments/${instrumentId}/mark-paid`, model);
+    return response.data;
+  },
+
+  getCustomerRecouvrement: async (customerId: number) => {
+    const response = await api.get(`/Payments/recouvrement/${customerId}`);
+    return response.data;
+  },
+
+  createRecouvrement: async (model: any) => {
+    const response = await api.post('/Payments/recouvrement', model);
+    return response.data;
+  },
+
+  generateReference: async () => {
+    const response = await api.get('/Payments/generate-reference');
     return response.data;
   }
 };

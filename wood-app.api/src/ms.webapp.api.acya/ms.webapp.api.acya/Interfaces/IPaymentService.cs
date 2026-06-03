@@ -24,5 +24,9 @@ namespace ms.webapp.api.acya.api.Interfaces
         /// Used after delivery-note → invoice conversion when isService === false.
         /// </summary>
         Task<bool> LinkPaymentToInvoiceAsync(int paymentId, int newInvoiceId);
+
+        Task<CustomerRecouvrementDto> GetCustomerRecouvrementAsync(int customerId);
+        Task<PaymentDto> CreateRecouvrementPaymentAsync(CreateRecouvrementDto createDto, int createdById);
+        Task<string> GeneratePaymentReferenceAsync();
     }
 }

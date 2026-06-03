@@ -282,5 +282,64 @@ namespace ms.webapp.api.acya.api.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+        [HttpGet("recouvrement/{customerId}")]
+        public async Task<ActionResult<CustomerRecouvrementDto>> GetCustomerRecouvrement(int customerId)
+        {
+            try
+            {
+                var result = await _paymentService.GetCustomerRecouvrementAsync(customerId);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting customer recouvrement for customer {CustomerId}", customerId);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpPost("recouvrement")]
+        public async Task<ActionResult<PaymentDto>> CreateRecouvrement([FromBody] CreateRecouvrementDto createDto)
+        {
+            try
+            {
+                var userId = createDto.UpdatedByUserId;
+                if (userId == 0)
+                {
+                    userId = GetCurrentUserId();
+                    if (userId == 0) return Unauthorized("Invalid User ID");
+                }
+
+                var payment = await _paymentService.CreateRecouvrementPaymentAsync(createDto, userId);
+                return CreatedAtAction(nameof(GetById), new { id = payment.PaymentId }, payment);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating recouvrement payment");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("generate-reference")]
+        public async Task<ActionResult<string>> GenerateReference()
+        {
+            try
+            {
+                var newRef = await _paymentService.GeneratePaymentReferenceAsync();
+                return Ok(new { reference = newRef });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating payment reference");
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }

@@ -179,6 +179,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
             var query = context.Payments
                 .AsNoTracking()
                 .Include(p => p.Customer)
+                .Include(p => p.AppUser)
                 .Include(p => p.Document)
                     .ThenInclude(d => d!.ChildDocuments)
                         .ThenInclude(cd => cd!.ChildDocument)
@@ -190,7 +191,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                             p.PaymentDate.Value.Year == year && 
                             p.PaymentDate.Value.Month == month && 
                             p.PaymentDate.Value.Day == day)
-                .Where(p => p.Document != null && p.Document.SalesSiteId == salesSiteId);
+                .Where(p => (p.Document != null && p.Document.SalesSiteId == salesSiteId) ||
+                            (p.Document == null && p.AppUser != null && p.AppUser.IdSalesSite == salesSiteId));
 
             if (documentSide == "customer")
             {
@@ -201,7 +203,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                     DocumentTypes.customerInvoiceReturn,
                     DocumentTypes.customerQuote
                 };
-                query = query.Where(p => p.Document!.Type.HasValue && customerDocTypes.Contains(p.Document.Type.Value));
+                query = query.Where(p => (p.Document != null && p.Document.Type.HasValue && customerDocTypes.Contains(p.Document.Type.Value)) ||
+                                         (p.Document == null && p.Customer != null && (p.Customer.Type == CounterPartType.Customer || p.Customer.Type == CounterPartType.Both)));
             }
             else if (documentSide == "supplier")
             {
@@ -211,7 +214,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                     DocumentTypes.supplierInvoice,
                     DocumentTypes.supplierInvoiceReturn
                 };
-                query = query.Where(p => p.Document!.Type.HasValue && supplierDocTypes.Contains(p.Document.Type.Value));
+                query = query.Where(p => (p.Document != null && p.Document.Type.HasValue && supplierDocTypes.Contains(p.Document.Type.Value)) ||
+                                         (p.Document == null && p.Customer != null && (p.Customer.Type == CounterPartType.Supplier || p.Customer.Type == CounterPartType.Both)));
             }
 
             var result = await query
@@ -225,15 +229,15 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                     Reference = p.Reference,
                     Notes = p.Notes,
                     CustomerName = p.Customer!.Fullname,
-                    InvoiceNumber = p.Document!.Type == DocumentTypes.customerInvoice 
+                    InvoiceNumber = p.Document != null && p.Document.Type == DocumentTypes.customerInvoice 
                         ? p.Document.DocNumber 
-                        : (p.Document!.ChildDocuments.FirstOrDefault(cd => cd.ChildDocument!.Type == DocumentTypes.customerInvoice) != null 
-                            ? p.Document!.ChildDocuments.FirstOrDefault(cd => cd.ChildDocument!.Type == DocumentTypes.customerInvoice)!.ChildDocument!.DocNumber 
+                        : (p.Document != null && p.Document.ChildDocuments.FirstOrDefault(cd => cd.ChildDocument!.Type == DocumentTypes.customerInvoice) != null 
+                            ? p.Document.ChildDocuments.FirstOrDefault(cd => cd.ChildDocument!.Type == DocumentTypes.customerInvoice)!.ChildDocument!.DocNumber 
                             : null),
-                    DeliveryNoteNumber = p.Document!.Type == DocumentTypes.customerDeliveryNote 
+                    DeliveryNoteNumber = p.Document != null && p.Document.Type == DocumentTypes.customerDeliveryNote 
                         ? p.Document.DocNumber 
-                        : (p.Document!.ParentDocuments.FirstOrDefault(pd => pd.ParentDocument!.Type == DocumentTypes.customerDeliveryNote) != null 
-                            ? p.Document!.ParentDocuments.FirstOrDefault(pd => pd.ParentDocument!.Type == DocumentTypes.customerDeliveryNote)!.ParentDocument!.DocNumber 
+                        : (p.Document != null && p.Document.ParentDocuments.FirstOrDefault(pd => pd.ParentDocument!.Type == DocumentTypes.customerDeliveryNote) != null 
+                            ? p.Document.ParentDocuments.FirstOrDefault(pd => pd.ParentDocument!.Type == DocumentTypes.customerDeliveryNote)!.ParentDocument!.DocNumber 
                             : null),
                     CreatedAt = p.CreatedAt ?? DateTime.MinValue
                 })

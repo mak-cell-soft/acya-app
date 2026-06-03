@@ -8,7 +8,7 @@ namespace ms.webapp.api.acya.core.Entities
     public class Payment : IEntity, IAuditable
     {
         public int Id { get; set; }
-        public int DocumentId { get; set; }
+        public int? DocumentId { get; set; }
         public Document? Document { get; set; }
         public int CustomerId { get; set; }
         public CounterPart? Customer { get; set; }

@@ -56,7 +56,7 @@ export function useMarkTraiteAsPaid() {
 
   return useMutation({
     mutationFn: ({ instrumentId, paidAtBankDate, notes }: { instrumentId: number; paidAtBankDate: Date; notes?: string }) =>
-      paymentService.markTraiteAsPaid(instrumentId, { paidAtBankDate, notes }),
+      paymentService.markTraiteAsPaid(instrumentId, { paidAtBankDate: paidAtBankDate.toISOString(), notes }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['traites'] });
       queryClient.invalidateQueries({ queryKey: ['echeances'] });

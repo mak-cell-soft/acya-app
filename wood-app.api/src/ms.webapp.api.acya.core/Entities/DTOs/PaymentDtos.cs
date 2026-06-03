@@ -33,7 +33,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public class PaymentDto
     {
         public int PaymentId { get; set; }
-        public int DocumentId { get; set; }
+        public int? DocumentId { get; set; }
         public string? DocumentNumber { get; set; }
         public int CustomerId { get; set; }
         public string? CustomerName { get; set; }
@@ -124,5 +124,39 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public string? InvoiceNumber { get; set; }
         public string? DeliveryNoteNumber { get; set; }
         public DateTime CreatedAt { get; set; }
+    }
+
+    public class CreateRecouvrementDto
+    {
+        public int CustomerId { get; set; }
+        public int UpdatedByUserId { get; set; }
+        public DateTime PaymentDate { get; set; }
+        public decimal Amount { get; set; }
+        public string? Currency { get; set; }
+        public decimal ExchangeRate { get; set; } = 1.0m;
+        public string PaymentMethod { get; set; } = "ESPECE";
+        public string? Reference { get; set; }
+        public string? Notes { get; set; }
+        public PaymentInstrumentDto? InstrumentDetails { get; set; }
+        public int? DocumentId { get; set; } // Optional: user can choose to relate it to a specific document
+    }
+
+    public class CustomerRecouvrementDto
+    {
+        public int CustomerId { get; set; }
+        public string CustomerName { get; set; } = string.Empty;
+        public decimal CurrentBalance { get; set; }
+        public decimal TotalUnpaid { get; set; }
+        public List<UnpaidInvoiceSummaryDto> UnpaidInvoices { get; set; } = new();
+    }
+
+    public class UnpaidInvoiceSummaryDto
+    {
+        public int DocumentId { get; set; }
+        public string DocumentNumber { get; set; } = string.Empty;
+        public DateTime CreationDate { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal TotalPaid { get; set; }
+        public decimal Remaining { get; set; }
     }
 }

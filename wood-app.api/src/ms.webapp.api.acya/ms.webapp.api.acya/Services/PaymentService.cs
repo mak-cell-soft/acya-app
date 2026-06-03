@@ -241,19 +241,21 @@ namespace ms.webapp.api.acya.api.Services
             if (payment == null)
                 throw new KeyNotFoundException("Payment not found.");
 
-            if (payment.Amount != updateDto.Amount)
+            if (payment.Amount != updateDto.Amount && payment.DocumentId.HasValue)
             {
-                var totalPaid = Math.Round(await _paymentRepository.GetTotalByDocumentIdAsync(payment.DocumentId), 3, MidpointRounding.AwayFromZero);
+                var totalPaid = Math.Round(await _paymentRepository.GetTotalByDocumentIdAsync(payment.DocumentId.Value), 3, MidpointRounding.AwayFromZero);
                 var totalPaidExcludingThis = totalPaid - Math.Round((payment.Amount ?? 0), 3, MidpointRounding.AwayFromZero);
                 
-                var document = await _documentRepository.Get(payment.DocumentId);
-                var rsValue = (document!.WithHoldingTax && document.HoldingTaxes != null) ? Math.Round((decimal)document.HoldingTaxes.TaxValue, 3, MidpointRounding.AwayFromZero) : 0;
-                var totalCreditNotes = (decimal)document.TotalCreditNotes;
-                var remainingBalance = Math.Round((decimal)document.TotalCostNetTTCDoc - rsValue - totalPaidExcludingThis - totalCreditNotes, 3, MidpointRounding.AwayFromZero);
-                var updateAmount = Math.Round(updateDto.Amount ?? 0, 3, MidpointRounding.AwayFromZero);
+                var document = await _documentRepository.Get(payment.DocumentId.Value);
+                if (document != null) {
+                    var rsValue = (document.WithHoldingTax && document.HoldingTaxes != null) ? Math.Round((decimal)document.HoldingTaxes.TaxValue, 3, MidpointRounding.AwayFromZero) : 0;
+                    var totalCreditNotes = (decimal)document.TotalCreditNotes;
+                    var remainingBalance = Math.Round((decimal)document.TotalCostNetTTCDoc - rsValue - totalPaidExcludingThis - totalCreditNotes, 3, MidpointRounding.AwayFromZero);
+                    var updateAmount = Math.Round(updateDto.Amount ?? 0, 3, MidpointRounding.AwayFromZero);
 
-                 if (updateAmount > remainingBalance)
-                    throw new ArgumentException($"New payment amount ({updateAmount}) exceeds remaining balance ({remainingBalance}).");
+                    if (updateAmount > remainingBalance)
+                        throw new ArgumentException($"New payment amount ({updateAmount}) exceeds remaining balance ({remainingBalance}).");
+                }
             }
 
             using (var transaction = await _context.Database.BeginTransactionAsync())
@@ -305,7 +307,10 @@ namespace ms.webapp.api.acya.api.Services
                     var updatedPayment = await _paymentRepository.Update(payment);
                     
                     // Sync Ledger Entry
-                    var document = await _documentRepository.Get(payment.DocumentId);
+                    Document? document = null;
+                    if (payment.DocumentId.HasValue)
+                        document = await _documentRepository.Get(payment.DocumentId.Value);
+                        
                     bool isSupplier = IsSupplierDocument(document?.Type);
 
                     await _accountService.DeleteLedgerEntryAsync(payment.Id, "Payment");
@@ -314,7 +319,7 @@ namespace ms.webapp.api.acya.api.Services
                         "Payment", 
                         updateDto.Amount ?? 0, 
                         payment.Id, 
-                        $"Paiement ({payment.PaymentMethod}) - document {document?.DocNumber}",
+                        $"Paiement ({payment.PaymentMethod}) - document {(document?.DocNumber ?? "Général")}",
                         isSupplier);
 
                     await transaction.CommitAsync();
@@ -371,13 +376,17 @@ namespace ms.webapp.api.acya.api.Services
                         {
                             await UpdateBalanceByDocumentTypeAsync(payment.Document.Type?.ToString(), payment.CustomerId, "payment", DateTime.UtcNow);
                         }
-                        else
+                        else if (payment.DocumentId.HasValue)
                         {
-                            var document = await _documentRepository.Get(payment.DocumentId);
+                            var document = await _documentRepository.Get(payment.DocumentId.Value);
                             if (document != null)
                                 await UpdateBalanceByDocumentTypeAsync(document.Type?.ToString(), payment.CustomerId, "payment", DateTime.UtcNow);
                             else
                                 await _balanceService.UpdateCustomerBalanceAsync(payment.CustomerId, "payment", DateTime.UtcNow);
+                        }
+                        else
+                        {
+                            await _balanceService.UpdateCustomerBalanceAsync(payment.CustomerId, "payment", DateTime.UtcNow);
                         }
                     }
                     return result;
@@ -495,6 +504,189 @@ namespace ms.webapp.api.acya.api.Services
             return type == DocumentTypes.supplierInvoice || 
                    type == DocumentTypes.supplierReceipt || 
                    type == DocumentTypes.supplierInvoiceReturn;
+        }
+
+        public async Task<CustomerRecouvrementDto> GetCustomerRecouvrementAsync(int customerId)
+        {
+            var customer = await _customerRepository.Get(customerId);
+            if (customer == null || customer.IsDeleted == true)
+                throw new ArgumentException("Customer not found.");
+
+            var currentBalance = await _accountService.GetCurrentBalanceAsync(customerId);
+
+            // Fetch unpaid customer invoices or delivery notes
+            var unpaidDocs = await _context.Documents
+                .Include(d => d.Payments)
+                .Include(d => d.HoldingTaxes)
+                .Where(d => d.CounterPartId == customerId && !d.IsDeleted &&
+                            (d.Type == DocumentTypes.customerInvoice || d.Type == DocumentTypes.customerDeliveryNote) &&
+                            d.BillingStatus != (BillingStatus)2) // 2 means fully paid
+                .OrderBy(d => d.CreationDate)
+                .ToListAsync();
+
+            var unpaidList = new List<UnpaidInvoiceSummaryDto>();
+            decimal totalUnpaid = 0;
+
+            foreach (var doc in unpaidDocs)
+            {
+                var totalPaid = Math.Round((decimal)(doc.Payments?.Where(p => p.IsDeleted != true).Sum(p => p.Amount) ?? 0), 3, MidpointRounding.AwayFromZero);
+                var rsValue = (doc.WithHoldingTax && doc.HoldingTaxes != null) ? Math.Round((decimal)doc.HoldingTaxes.TaxValue, 3, MidpointRounding.AwayFromZero) : 0;
+                var totalCreditNotes = Math.Round((decimal)doc.TotalCreditNotes, 3, MidpointRounding.AwayFromZero);
+                
+                var totalDoc = Math.Round((decimal)doc.TotalCostNetTTCDoc, 3, MidpointRounding.AwayFromZero);
+                var remaining = totalDoc - rsValue - totalPaid - totalCreditNotes;
+
+                if (remaining > 0)
+                {
+                    unpaidList.Add(new UnpaidInvoiceSummaryDto
+                    {
+                        DocumentId = doc.Id,
+                        DocumentNumber = doc.DocNumber ?? string.Empty,
+                        CreationDate = doc.CreationDate ?? DateTime.MinValue,
+                        TotalAmount = totalDoc,
+                        TotalPaid = totalPaid,
+                        Remaining = remaining
+                    });
+                    totalUnpaid += remaining;
+                }
+            }
+
+            return new CustomerRecouvrementDto
+            {
+                CustomerId = customerId,
+                CustomerName = customer.Fullname ?? customer.Name ?? "Inconnu",
+                CurrentBalance = currentBalance,
+                TotalUnpaid = totalUnpaid,
+                UnpaidInvoices = unpaidList
+            };
+        }
+
+        public async Task<PaymentDto> CreateRecouvrementPaymentAsync(CreateRecouvrementDto createDto, int createdById)
+        {
+            if (createDto.Amount <= 0)
+                throw new ArgumentException("Payment amount must be greater than zero.");
+
+            var customer = await _customerRepository.Get(createDto.CustomerId);
+            if (customer == null || customer.IsDeleted == true)
+                throw new ArgumentException("Invalid or deleted customer.");
+
+            var user = await _appUserRepository.Get(createdById);
+            string createdByName = user != null ? user.Login! : "Unknown";
+
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var paymentAmount = Math.Round(createDto.Amount, 3, MidpointRounding.AwayFromZero);
+
+                    var payment = new Payment
+                    {
+                        DocumentId = createDto.DocumentId, // nullable
+                        CustomerId = createDto.CustomerId,
+                        PaymentDate = createDto.PaymentDate,
+                        Amount = paymentAmount,
+                        PaymentMethod = createDto.PaymentMethod,
+                        Reference = createDto.Reference,
+                        Notes = createDto.Notes,
+                        UpdatedById = createdById,
+                        CreatedBy = createdByName, 
+                        CreatedAt = DateTime.UtcNow,
+                        IsDeleted = false
+                    };
+
+                    if ((createDto.PaymentMethod == "TRAITE" || createDto.PaymentMethod == "CHEQUE") && createDto.InstrumentDetails != null)
+                    {
+                        payment.PaymentInstrument = new PaymentInstrument
+                        {
+                            InstrumentNumber = createDto.InstrumentDetails.InstrumentNumber,
+                            Type = createDto.PaymentMethod,
+                            Bank = createDto.InstrumentDetails.Bank,
+                            Owner = createDto.InstrumentDetails.Owner,
+                            Porter = createDto.InstrumentDetails.Porter,
+                            IssueDate = createDto.InstrumentDetails.IssueDate ?? createDto.PaymentDate,
+                            DueDate = createDto.InstrumentDetails.DueDate,
+                            ExpirationDate = createDto.InstrumentDetails.ExpirationDate,
+                            CreatedAt = DateTime.UtcNow,
+                            CreatedBy = createdByName
+                        };
+                    }
+
+                    var createdPayment = await _paymentRepository.Add(payment);
+
+                    // Automate Caisse Movement for CASH/ESPECE
+                    if ((createDto.PaymentMethod?.ToUpper() == "CASH" || createDto.PaymentMethod?.ToUpper() == "ESPECE") && user?.IdSalesSite != null)
+                    {
+                        var caisseMovement = new CaisseMovement
+                        {
+                            SalesSiteId = user.IdSalesSite.Value,
+                            MovementDate = DateTime.UtcNow,
+                            Type = "ENTREE",
+                            Reason = "RECOUVREMENT",
+                            Amount = paymentAmount,
+                            Reference = "Recouvrement Client",
+                            Notes = $"Encaissement recouvrement",
+                            PaymentId = createdPayment.Id,
+                            CreatedByUserId = createdById,
+                            CreatedAt = DateTime.UtcNow,
+                            IsDeleted = false
+                        };
+                        await _context.CaisseMovements.AddAsync(caisseMovement);
+                    }
+
+                    // Integrate Ledger Entry
+                    await _accountService.AddLedgerEntryAsync(
+                        createDto.CustomerId, 
+                        "Payment", 
+                        paymentAmount, 
+                        createdPayment.Id, 
+                        $"Recouvrement ({createDto.PaymentMethod})",
+                        false);
+
+                    // If a specific document was selected, update its billing status
+                    if (createDto.DocumentId.HasValue)
+                    {
+                        var document = await _documentRepository.GetWithRelationshipsAsync(createDto.DocumentId.Value);
+                        if (document != null && !document.IsDeleted)
+                        {
+                            var totalPaid = Math.Round(await _paymentRepository.GetTotalByDocumentIdAsync(createDto.DocumentId.Value), 3, MidpointRounding.AwayFromZero);
+                            decimal rsValue = (document.WithHoldingTax && document.HoldingTaxes != null) ? Math.Round((decimal)document.HoldingTaxes.TaxValue, 3, MidpointRounding.AwayFromZero) : 0;
+                            var totalCreditNotes = (decimal)document.TotalCreditNotes;
+                            var remainingBalance = Math.Round((decimal)document.TotalCostNetTTCDoc - rsValue - totalPaid - totalCreditNotes, 3, MidpointRounding.AwayFromZero);
+
+                            if (totalPaid >= remainingBalance) {
+                                document.BillingStatus = (BillingStatus)2; 
+                            } else {
+                                document.BillingStatus = (BillingStatus)3; 
+                            }
+                            await _documentRepository.Update(document);
+                        }
+                    }
+
+                    await transaction.CommitAsync();
+
+                    await _balanceService.UpdateCustomerBalanceAsync(createDto.CustomerId, "payment", DateTime.UtcNow);
+
+                    createdPayment.Customer = customer; 
+                    createdPayment.AppUser = user;
+                    
+                    return MapToDto(createdPayment);
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+        }
+
+        public async Task<string> GeneratePaymentReferenceAsync()
+        {
+            var lastPayment = await _context.Payments
+                .Where(p => p.Reference != null && p.Reference.StartsWith("ENC-"))
+                .OrderByDescending(p => p.Id)
+                .FirstOrDefaultAsync();
+
+            return Helpers.GenerateDailyDocNumber("ENC", lastPayment?.Reference, 3);
         }
     }
 }

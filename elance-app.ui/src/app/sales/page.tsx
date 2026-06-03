@@ -27,7 +27,8 @@ import {
   Layers,
   Sparkles,
   CreditCard,
-  Landmark
+  Landmark,
+  DollarSign
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -56,6 +57,7 @@ import { WithholdingTaxModal } from '@/components/sales/withholding-tax-modal';
 import { CustomerBatchConversionModal } from '@/components/sales/customer-batch-conversion-modal';
 import { CustomerSingleBatchConversionModal } from '@/components/sales/customer-single-batch-conversion-modal';
 import { BLToInvoiceModal } from '@/components/sales/bl-to-invoice-modal';
+import { CustomerRecouvrementDialog } from '@/components/customers/customer-recouvrement-dialog';
 import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
@@ -108,6 +110,7 @@ export default function SalesPage() {
   const [selectedDocIdForDetail, setSelectedDocIdForDetail] = useState<number | null>(null);
   const [docForPayment, setDocForPayment] = useState<any | null>(null);
   const [docForRS, setDocForRS] = useState<Document | null>(null);
+  const [customerIdForRecouvrement, setCustomerIdForRecouvrement] = useState<number | null>(null);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
   const [isSingleBatchModalOpen, setIsSingleBatchModalOpen] = useState(false);
   // State for the single BL → Invoice conversion modal
@@ -778,25 +781,35 @@ export default function SalesPage() {
                                     {/* Payments Actions */}
                                     {(item.type === DocumentTypes.customerDeliveryNote ||
                                       item.type === DocumentTypes.customerInvoice) && (
-                                      <DropdownMenuItem
-                                        onClick={() =>
-                                          setDocForPayment({
-                                            documentId: item.id,
-                                            documentNumber: item.docnumber,
-                                            totalAmount: item.total_net_ttc || 0,
-                                            remainingAmount: item.remaining_balance,
-                                            totalCreditNotes: item.total_credit_notes || 0,
-                                            withholdingtax: item.withholdingtax,
-                                            holdingtax: item.holdingtax,
-                                            totalNetPayable: item.total_net_payable,
-                                            customerId: item.counterpart?.id,
-                                            customerName: item.counterpart?.name || `${item.counterpart?.firstname || ''} ${item.counterpart?.lastname || ''}`.trim() || 'Client sans nom'
-                                          })
-                                        }
-                                        className="gap-2 font-semibold text-amber-800 cursor-pointer hover:bg-amber-50"
-                                      >
-                                        <CreditCard className="w-4 h-4" /> Règlement
-                                      </DropdownMenuItem>
+                                      <>
+                                        <DropdownMenuItem
+                                          onClick={() =>
+                                            setDocForPayment({
+                                              documentId: item.id,
+                                              documentNumber: item.docnumber,
+                                              totalAmount: item.total_net_ttc || 0,
+                                              remainingAmount: item.remaining_balance,
+                                              totalCreditNotes: item.total_credit_notes || 0,
+                                              withholdingtax: item.withholdingtax,
+                                              holdingtax: item.holdingtax,
+                                              totalNetPayable: item.total_net_payable,
+                                              customerId: item.counterpart?.id,
+                                              customerName: item.counterpart?.name || `${item.counterpart?.firstname || ''} ${item.counterpart?.lastname || ''}`.trim() || 'Client sans nom'
+                                            })
+                                          }
+                                          className="gap-2 font-semibold text-amber-800 cursor-pointer hover:bg-amber-50"
+                                        >
+                                          <CreditCard className="w-4 h-4" /> Règlement
+                                        </DropdownMenuItem>
+                                        {item.counterpart?.id && (
+                                          <DropdownMenuItem
+                                            onClick={() => setCustomerIdForRecouvrement(item.counterpart!.id)}
+                                            className="gap-2 font-semibold text-emerald-800 cursor-pointer hover:bg-emerald-50"
+                                          >
+                                            <DollarSign className="w-4 h-4" /> Recouvrement
+                                          </DropdownMenuItem>
+                                        )}
+                                      </>
                                     )}
 
                                     <DropdownMenuItem
@@ -1098,6 +1111,20 @@ export default function SalesPage() {
           onSuccess={() => {
             refetch();
           }}
+        />
+      )}
+
+      {/* Customer Recouvrement Modal */}
+      {customerIdForRecouvrement !== null && (
+        <CustomerRecouvrementDialog
+          open={customerIdForRecouvrement !== null}
+          onOpenChange={(open) => {
+            if (!open) {
+              setCustomerIdForRecouvrement(null);
+              refetch();
+            }
+          }}
+          customerId={customerIdForRecouvrement}
         />
       )}
 
