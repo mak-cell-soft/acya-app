@@ -1235,9 +1235,13 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                 <Input
                   type="number"
                   step="0.000001"
+                  min="0"
                   className="h-11 rounded-xl border-forest-50 focus:ring-forest-600 bg-sand-50/50 text-xs font-bold text-forest-900"
                   value={exchangeRate}
-                  onChange={(e) => setExchangeRate(parseFloat(e.target.value) || 1.0)}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value) || 1.0;
+                    setExchangeRate(val < 0 ? 1.0 : val);
+                  }}
                   disabled={docCurrency === 'TND'}
                 />
               </div>
@@ -1626,9 +1630,13 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                             <Input
                               type="number"
                               step="0.001"
+                              min="0"
                               className="h-10 rounded-xl text-right font-bold border-forest-50 focus:ring-forest-600 bg-sand-50/40 text-forest-900 w-24 ml-auto"
                               value={row.unit_price_ht || ''}
-                              onChange={(e) => handleRowFieldChange(index, 'unit_price_ht', parseFloat(e.target.value) || 0)}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value) || 0;
+                                handleRowFieldChange(index, 'unit_price_ht', val < 0 ? 0 : val);
+                              }}
                               placeholder="0.000"
                             />
                           </td>
@@ -1653,9 +1661,13 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                             ) : (
                               <Input
                                 type="number"
+                                min="0"
                                 className="h-10 rounded-xl text-center font-bold border-forest-50 focus:ring-forest-600 bg-sand-50/40 text-forest-900 max-w-28 mx-auto disabled:opacity-50 disabled:bg-sand-100/50"
                                 value={row.quantity || ''}
-                                onChange={(e) => handleRowFieldChange(index, 'quantity', parseFloat(e.target.value) || 0)}
+                                onChange={(e) => {
+                                  const val = parseFloat(e.target.value) || 0;
+                                  handleRowFieldChange(index, 'quantity', val < 0 ? 0 : val);
+                                }}
                                 placeholder="0"
                                 disabled={isQuantityDisabled}
                               />
@@ -1667,9 +1679,13 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                             <div className="relative max-w-20 mx-auto">
                               <Input
                                 type="number"
+                                min="0"
                                 className="h-10 rounded-xl text-center font-bold border-forest-50 focus:ring-forest-600 bg-sand-50/40 text-forest-900 pr-5"
                                 value={row.selldiscountpercentage || ''}
-                                onChange={(e) => handleRowFieldChange(index, 'selldiscountpercentage', parseFloat(e.target.value) || 0)}
+                                onChange={(e) => {
+                                  const val = parseFloat(e.target.value) || 0;
+                                  handleRowFieldChange(index, 'selldiscountpercentage', val < 0 ? 0 : val);
+                                }}
                                 placeholder="0"
                               />
                               <Percent className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-sand-300 pointer-events-none" />
@@ -1782,9 +1798,14 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                   <Input
                     type="number"
                     step="0.001"
+                    min="0"
                     className="h-11 rounded-lg text-right font-heading font-bold text-forest-950 border-forest-200 focus:ring-forest-600 bg-white max-w-44 pr-10 text-sm shadow-sm"
                     value={manualNetTTC}
-                    onChange={(e) => handleFinalPriceChange(e.target.value)}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      if (val < 0) return;
+                      handleFinalPriceChange(e.target.value);
+                    }}
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-sand-400 pointer-events-none">TND</span>
                 </div>

@@ -1,5 +1,5 @@
 import api from '@/lib/axios';
-import { AuditLog, AuditLogFilters } from '@/types/audit';
+import { AuditLogResponse, AuditLogFilters } from '@/types/audit';
 
 /**
  * Dedicated service for the Audit module.
@@ -10,9 +10,10 @@ export const auditService = {
    * Fetches the most recent audit logs with optional server-side filtering.
    * Maps to GET /api/Audit/recent
    */
-  getRecentLogs: async (filters: AuditLogFilters): Promise<AuditLog[]> => {
+  getRecentLogs: async (filters: AuditLogFilters): Promise<AuditLogResponse> => {
     const params: Record<string, string | number | undefined> = {
-      count: filters.count,
+      page: filters.page,
+      pageSize: filters.pageSize,
     };
 
     // Only send defined optional params to keep the URL clean

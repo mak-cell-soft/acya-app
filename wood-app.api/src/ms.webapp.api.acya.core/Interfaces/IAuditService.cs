@@ -21,8 +21,9 @@ namespace ms.webapp.api.acya.core.Interfaces
      * Supports filtering by userName, action (Insert|Update|Delete),
      * tableName, and a specific date (day boundary).
      */
-    Task<IEnumerable<AuditLog>> GetRecentLogsAsync(
-        int count = 50,
+    Task<(IEnumerable<AuditLog> Items, int TotalCount)> GetRecentLogsAsync(
+        int page = 1,
+        int pageSize = 20,
         string? userName = null,
         string? action = null,
         string? tableName = null,

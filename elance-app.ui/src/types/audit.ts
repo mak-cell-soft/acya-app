@@ -18,9 +18,17 @@ export interface AuditLog {
 
 /** Filters passed to GET /api/Audit/recent */
 export interface AuditLogFilters {
-  count: number;
+  page: number;
+  pageSize: number;
   userName?: string;
   action?: 'Insert' | 'Update' | 'Delete';
   tableName?: string;
   date?: string; // ISO date string for day-boundary filter
+}
+
+export interface AuditLogResponse {
+  items: AuditLog[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
 }

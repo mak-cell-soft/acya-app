@@ -68,8 +68,9 @@ namespace ms.webapp.api.acya.api.Services
      * Retrieves the most recent audit logs with optional filtering.
      * Filters are applied server-side before the Take() for efficiency.
      */
-    public async Task<IEnumerable<AuditLog>> GetRecentLogsAsync(
-        int count = 50,
+    public async Task<(IEnumerable<AuditLog> Items, int TotalCount)> GetRecentLogsAsync(
+        int page = 1,
+        int pageSize = 20,
         string? userName = null,
         string? action = null,
         string? tableName = null,
@@ -101,10 +102,15 @@ namespace ms.webapp.api.acya.api.Services
             query = query.Where(l => l.Timestamp >= startOfDay && l.Timestamp < endOfDay);
         }
 
-        return await query
+        int totalCount = await query.CountAsync();
+
+        var items = await query
             .OrderByDescending(l => l.Timestamp)
-            .Take(count)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
+
+        return (items, totalCount);
     }
   }
 }

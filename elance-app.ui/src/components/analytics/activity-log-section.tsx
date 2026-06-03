@@ -38,16 +38,16 @@ interface TableMeta {
 }
 
 const TABLE_META: Record<string, TableMeta> = {
-  Documents:       { label: 'Document',             Icon: FileText },
-  Payments:        { label: 'Paiement',             Icon: CreditCard },
-  AppUsers:        { label: 'Utilisateur',          Icon: User },
-  Persons:         { label: 'Employé',              Icon: Users },
-  Articles:        { label: 'Article',              Icon: Package },
-  Inventories:     { label: 'Inventaire',           Icon: Layers },
-  StockMovements:  { label: 'Mouvement de stock',   Icon: ArrowRightLeft },
-  Enterprises:     { label: 'Paramètres entreprise', Icon: Building2 },
-  AuditLogs:       { label: 'Système',              Icon: Shield },
-  AccountLedger:   { label: 'Ligne comptable',      Icon: FileText },
+  Documents: { label: 'Document', Icon: FileText },
+  Payments: { label: 'Paiement', Icon: CreditCard },
+  AppUsers: { label: 'Utilisateur', Icon: User },
+  Persons: { label: 'Employé', Icon: Users },
+  Articles: { label: 'Article', Icon: Package },
+  Inventories: { label: 'Inventaire', Icon: Layers },
+  StockMovements: { label: 'Mouvement de stock', Icon: ArrowRightLeft },
+  Enterprises: { label: 'Paramètres entreprise', Icon: Building2 },
+  AuditLogs: { label: 'Système', Icon: Shield },
+  AccountLedger: { label: 'Ligne comptable', Icon: FileText },
 };
 
 const DEFAULT_META: TableMeta = { label: 'Enregistrement', Icon: FileText };
@@ -58,22 +58,22 @@ const DEFAULT_META: TableMeta = { label: 'Enregistrement', Icon: FileText };
 
 const ACTION_STYLE: Record<string, { bar: string; badge: string; text: string; icon: React.ElementType }> = {
   Insert: {
-    bar:   'bg-emerald-500',
+    bar: 'bg-emerald-500',
     badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    text:  'text-emerald-700',
-    icon:  PlusCircle,
+    text: 'text-emerald-700',
+    icon: PlusCircle,
   },
   Update: {
-    bar:   'bg-amber-400',
+    bar: 'bg-amber-400',
     badge: 'bg-amber-50 text-amber-700 border-amber-200',
-    text:  'text-amber-700',
-    icon:  Pencil,
+    text: 'text-amber-700',
+    icon: Pencil,
   },
   Delete: {
-    bar:   'bg-rose-500',
+    bar: 'bg-rose-500',
     badge: 'bg-rose-50 text-rose-700 border-rose-200',
-    text:  'text-rose-700',
-    icon:  Trash2,
+    text: 'text-rose-700',
+    icon: Trash2,
   },
 };
 
@@ -108,9 +108,9 @@ function safeJson(raw?: string): Record<string, unknown> {
 }
 
 function generateSentence(log: AuditLog): string {
-  const nv  = safeJson(log.newValues);
-  const ov  = safeJson(log.oldValues);
-  const kv  = safeJson(log.keyValues);
+  const nv = safeJson(log.newValues);
+  const ov = safeJson(log.oldValues);
+  const kv = safeJson(log.keyValues);
   const normalizedTable = normalizeTableName(log.tableName);
   const action = log.action;
 
@@ -122,12 +122,12 @@ function generateSentence(log: AuditLog): string {
   if (normalizedTable === 'Documents') {
     const ref = (nv.DocNumber ?? nv.docnumber ?? ov.DocNumber ?? ov.docnumber ?? '—') as string;
     const type = ((nv.DocumentType ?? nv.documenttype ?? ov.DocumentType ?? ov.documenttype ?? '') as string).toLowerCase();
-    const typeLabel = type.includes('invoice')      ? 'Facture'
-                    : type.includes('delivery')     ? 'Bon de Livraison'
-                    : type.includes('quote')        ? 'Devis'
-                    : type.includes('order')        ? 'Commande'
-                    : type.includes('receipt')      ? 'Réception'
-                    : 'Document';
+    const typeLabel = type.includes('invoice') ? 'Facture'
+      : type.includes('delivery') ? 'Bon de Livraison'
+        : type.includes('quote') ? 'Devis'
+          : type.includes('order') ? 'Commande'
+            : type.includes('receipt') ? 'Réception'
+              : 'Document';
     if (action === 'Insert') return `a créé le ${typeLabel} **${ref}**${idSuffix}`;
     if (action === 'Delete') return `a supprimé le ${typeLabel} **${ref}**${idSuffix}`;
     // Update — highlight status change if present
@@ -162,7 +162,7 @@ function generateSentence(log: AuditLog): string {
   // --- Persons (HR) ---
   if (normalizedTable === 'Persons') {
     const fname = (nv.Firstname ?? nv.firstname ?? '') as string;
-    const lname = (nv.Lastname  ?? nv.lastname  ?? '') as string;
+    const lname = (nv.Lastname ?? nv.lastname ?? '') as string;
     const name = [fname, lname].filter(Boolean).join(' ') || '—';
     if (action === 'Insert') return `a ajouté l'employé **${name}**${idSuffix}`;
     if (action === 'Delete') return `a supprimé l'employé **${name}**${idSuffix}`;
@@ -233,10 +233,10 @@ function SentenceWithBold({ text }: { text: string }) {
 
 function ActivityCard({ log, index }: { log: AuditLog; index: number }) {
   const normalizedTable = normalizeTableName(log.tableName);
-  const friendlyName    = formatFriendlyName(log.tableName);
-  const meta            = TABLE_META[normalizedTable] ?? { label: friendlyName, Icon: FileText };
-  const style           = ACTION_STYLE[log.action] ?? ACTION_STYLE.Update;
-  const sentence        = generateSentence(log);
+  const friendlyName = formatFriendlyName(log.tableName);
+  const meta = TABLE_META[normalizedTable] ?? { label: friendlyName, Icon: FileText };
+  const style = ACTION_STYLE[log.action] ?? ACTION_STYLE.Update;
+  const sentence = generateSentence(log);
 
   // User initials avatar
   const initials = (log.userName ?? 'SY')
@@ -308,7 +308,7 @@ function ActivityCard({ log, index }: { log: AuditLog; index: number }) {
 type ActionFilter = 'all' | 'Insert' | 'Update' | 'Delete';
 
 const TABS: { id: ActionFilter; label: string }[] = [
-  { id: 'all',    label: 'Tous' },
+  { id: 'all', label: 'Tous' },
   { id: 'Insert', label: 'Créations' },
   { id: 'Update', label: 'Modifications' },
   { id: 'Delete', label: 'Suppressions' },
@@ -318,24 +318,25 @@ const TABS: { id: ActionFilter; label: string }[] = [
 // Main exported component
 // ---------------------------------------------------------------------------
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 20;
 
 export function ActivityLogSection() {
-  const [userSearch, setUserSearch]     = useState('');
+  const [userSearch, setUserSearch] = useState('');
   const [actionFilter, setActionFilter] = useState<ActionFilter>('all');
-  const [count, setCount]               = useState(PAGE_SIZE);
+  const [page, setPage] = useState(1);
 
   // Build filter object — undefined values are NOT sent to the API
   const filters = useMemo(() => ({
-    count,
-    userName:  userSearch.trim() || undefined,
-    action:    actionFilter !== 'all' ? actionFilter as 'Insert' | 'Update' | 'Delete' : undefined,
-  }), [count, userSearch, actionFilter]);
+    page,
+    pageSize: PAGE_SIZE,
+    userName: userSearch.trim() || undefined,
+    action: actionFilter !== 'all' ? actionFilter as 'Insert' | 'Update' | 'Delete' : undefined,
+  }), [page, userSearch, actionFilter]);
 
-  const { data: logs, isLoading, isFetching, refetch } = useAuditLogs(filters);
-
-  // Client-side secondary filter is already done server-side; just render
-  const hasMore = (logs?.length ?? 0) >= count;
+  const { data, isLoading, isFetching, refetch } = useAuditLogs(filters);
+  const logs = data?.items ?? [];
+  const totalCount = data?.totalCount ?? 0;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <Card className="border-forest-100 rounded-[32px] bg-white overflow-hidden shadow-xl shadow-forest-900/2">
@@ -361,7 +362,7 @@ export function ActivityLogSection() {
               <Input
                 placeholder="Filtrer par utilisateur..."
                 value={userSearch}
-                onChange={e => setUserSearch(e.target.value)}
+                onChange={e => { setUserSearch(e.target.value); setPage(1); }}
                 className="pl-9 h-10 rounded-xl bg-sand-50/50 border-sand-200 w-[220px] text-sm focus-visible:ring-forest-500"
               />
             </div>
@@ -387,7 +388,7 @@ export function ActivityLogSection() {
           {TABS.map(tab => (
             <button
               key={tab.id}
-              onClick={() => { setActionFilter(tab.id); setCount(PAGE_SIZE); }}
+              onClick={() => { setActionFilter(tab.id); setPage(1); }}
               className={cn(
                 'px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200',
                 actionFilter === tab.id
@@ -429,22 +430,30 @@ export function ActivityLogSection() {
               ))}
             </AnimatePresence>
 
-            {/* Load more — bumps count by PAGE_SIZE, triggers a new query */}
-            {hasMore && (
-              <div className="pt-4 flex justify-center">
-                <Button
-                  variant="outline"
-                  onClick={() => setCount(c => c + PAGE_SIZE)}
-                  disabled={isFetching}
-                  className="rounded-xl border-forest-100 text-forest-700 font-bold hover:bg-forest-50 gap-2"
-                >
-                  {isFetching ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4" />
-                  )}
-                  Charger plus
-                </Button>
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="pt-6 flex flex-col sm:flex-row items-center justify-between border-t border-forest-50 mt-6 gap-4">
+                <span className="text-sm text-sand-500 font-medium">
+                  Page <span className="font-bold text-forest-900">{page}</span> sur {totalPages} <span className="text-sand-400 mx-2">•</span> {totalCount} élément{totalCount !== 1 ? 's' : ''}
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1 || isFetching}
+                    className="rounded-xl border-forest-100 text-forest-700 font-bold hover:bg-forest-50 hover:text-forest-900 transition-colors h-9 px-4"
+                  >
+                    Précédent
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={page >= totalPages || isFetching}
+                    className="rounded-xl border-forest-100 text-forest-700 font-bold hover:bg-forest-50 hover:text-forest-900 transition-colors h-9 px-4"
+                  >
+                    Suivant
+                  </Button>
+                </div>
               </div>
             )}
           </div>

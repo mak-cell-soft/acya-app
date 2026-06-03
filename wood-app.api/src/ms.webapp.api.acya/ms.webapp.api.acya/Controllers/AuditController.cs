@@ -19,8 +19,9 @@ namespace ms.webapp.api.acya.api.Controllers
         }
 
         [HttpGet("recent")]
-        public async Task<ActionResult<IEnumerable<AuditLog>>> GetRecentAuditLogs(
-            [FromQuery] int count = 50, 
+        public async Task<ActionResult<object>> GetRecentAuditLogs(
+            [FromQuery] int page = 1, 
+            [FromQuery] int pageSize = 20,
             [FromQuery] string? userName = null,
             [FromQuery] string? action = null,
             [FromQuery] string? tableName = null,
@@ -28,8 +29,13 @@ namespace ms.webapp.api.acya.api.Controllers
         {
             try
             {
-                var logs = await _auditService.GetRecentLogsAsync(count, userName, action, tableName, date);
-                return Ok(logs);
+                var result = await _auditService.GetRecentLogsAsync(page, pageSize, userName, action, tableName, date);
+                return Ok(new {
+                    Items = result.Items,
+                    TotalCount = result.TotalCount,
+                    Page = page,
+                    PageSize = pageSize
+                });
             }
             catch (Exception ex)
             {
