@@ -784,6 +784,11 @@ export default function SalesPage() {
                                             documentId: item.id,
                                             documentNumber: item.docnumber,
                                             totalAmount: item.total_net_ttc || 0,
+                                            remainingAmount: item.remaining_balance,
+                                            totalCreditNotes: item.total_credit_notes || 0,
+                                            withholdingtax: item.withholdingtax,
+                                            holdingtax: item.holdingtax,
+                                            totalNetPayable: item.total_net_payable,
                                             customerId: item.counterpart?.id,
                                             customerName: item.counterpart?.name || `${item.counterpart?.firstname || ''} ${item.counterpart?.lastname || ''}`.trim() || 'Client sans nom'
                                           })

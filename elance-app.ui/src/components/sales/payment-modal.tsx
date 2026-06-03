@@ -32,27 +32,13 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { paymentService } from '@/services/components/payment.service';
+import { bankService } from '@/services/configuration/bank.service';
 import { exchangeRateService } from '@/services/components/exchange-rate.service';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Standard Tunisian banks
-const BANKS_TN = [
-  'BIAT',
-  'Attijari Bank',
-  'Amen Bank',
-  'BNA',
-  'BH Bank',
-  'UIB',
-  'STB',
-  'BT',
-  'Zitouna Bank',
-  'Al Baraka',
-  'BTE',
-  'Banque Franco-Tunisienne',
-  'Qatar National Bank'
-];
+
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -64,6 +50,9 @@ interface PaymentModalProps {
     totalAmount: number;
     totalNetPayable?: number;
     withholdingtax?: boolean;
+    holdingtax?: any;
+    totalCreditNotes?: number;
+    remainingAmount?: number;
     customerId: number;
     customerName: string;
     isEditMode?: boolean;
@@ -98,6 +87,38 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
   const [porter, setPorter] = useState<string>('');
   const [dueDate, setDueDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
+  const [banks, setBanks] = useState<any[]>([]);
+  const [existingEcheance, setExistingEcheance] = useState<{totalAmount: number, instrumentCount: number} | null>(null);
+
+  useEffect(() => {
+    bankService.getAll()
+      .then((res) => {
+        setBanks(res.items || res);
+      })
+      .catch((err) => console.error('Failed to load banks:', err));
+  }, []);
+
+  useEffect(() => {
+    if (selectedMethod === 'TRAITE' && dueDate) {
+      const timeoutId = setTimeout(() => {
+        const d = new Date(dueDate);
+        paymentService.getEcheances(d, d)
+          .then((res) => {
+            const items = res.items || res;
+            if (items && items.length > 0) {
+              setExistingEcheance(items[0]);
+            } else {
+              setExistingEcheance(null);
+            }
+          })
+          .catch(() => setExistingEcheance(null));
+      }, 400);
+      return () => clearTimeout(timeoutId);
+    } else {
+      setExistingEcheance(null);
+    }
+  }, [selectedMethod, dueDate]);
+
   // Load existing payments to calculate remaining amount or fill prefilled details
   useEffect(() => {
     if (isOpen && data.documentId) {
@@ -121,27 +142,33 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
         }
         setLoading(false);
       } else {
-        setLoading(true);
-        paymentService
-          .getByDocumentId(data.documentId)
-          .then((payments) => {
-            const totalPaid = (payments || []).reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0);
-            const targetTotal = (data.withholdingtax && data.totalNetPayable)
-              ? data.totalNetPayable
-              : data.totalAmount;
-            
-            const remaining = Math.max(0, targetTotal - totalPaid);
-            setRemainingAmount(remaining);
-            setAmount(remaining.toFixed(3));
-            setOwner(data.customerName || '');
-          })
-          .catch((err) => {
-            console.error('Failed to compute remaining balance:', err);
-            toast.error('Erreur lors du calcul du solde restant.');
-          })
-          .finally(() => {
-            setLoading(false);
-          });
+        if (data.remainingAmount !== undefined) {
+          setRemainingAmount(data.remainingAmount);
+          setAmount(data.remainingAmount.toFixed(3));
+          setOwner(data.customerName || '');
+        } else {
+          setLoading(true);
+          paymentService
+            .getByDocumentId(data.documentId)
+            .then((payments) => {
+              const totalPaid = (payments || []).reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0);
+              const targetTotal = (data.withholdingtax && data.totalNetPayable)
+                ? data.totalNetPayable
+                : data.totalAmount;
+              
+              const remaining = Math.max(0, targetTotal - totalPaid - (data.totalCreditNotes || 0));
+              setRemainingAmount(remaining);
+              setAmount(remaining.toFixed(3));
+              setOwner(data.customerName || '');
+            })
+            .catch((err) => {
+              console.error('Failed to compute remaining balance:', err);
+              toast.error('Erreur lors du calcul du solde restant.');
+            })
+            .finally(() => {
+              setLoading(false);
+            });
+        }
       }
     }
   }, [isOpen, data]);
@@ -174,6 +201,17 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
     if (!data.isEditMode && parsedAmount > remainingAmount + 0.005) {
       toast.warning(`Le montant dépasse le solde restant à payer (${remainingAmount.toFixed(3)} DT).`);
       return;
+    }
+
+    if (selectedMethod === 'CHEQUE' || selectedMethod === 'TRAITE') {
+      if (!bank) {
+        toast.warning('Veuillez sélectionner la banque émettrice.');
+        return;
+      }
+      if (!instrumentNumber || instrumentNumber.trim() === '') {
+        toast.warning('Veuillez saisir le numéro de l\'instrument.');
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -345,6 +383,22 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
                   </div>
                 </div>
 
+                {/* Banner for RS and Avoir */}
+                {(data.withholdingtax || (data.totalCreditNotes && data.totalCreditNotes > 0)) ? (
+                  <div className="flex flex-wrap items-center gap-2 -mt-2">
+                    {data.withholdingtax && (
+                      <Badge className="bg-emerald-50 text-emerald-800 border border-emerald-200/50 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                        RS Appliqué {data.holdingtax ? `(${data.holdingtax.taxpercentage}%)` : ''} : Net {(data.totalNetPayable || 0).toLocaleString('fr-FR', { minimumFractionDigits: 3 })} TND
+                      </Badge>
+                    )}
+                    {data.totalCreditNotes && data.totalCreditNotes > 0 ? (
+                      <Badge className="bg-pink-50 text-pink-800 border border-pink-200/50 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                        Avoir déduit : {data.totalCreditNotes.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} TND
+                      </Badge>
+                    ) : null}
+                  </div>
+                ) : null}
+
                 {/* Selection of payment methods */}
                 <div className="space-y-2">
                   <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
@@ -479,18 +533,19 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
                       {/* Bank Select */}
                       <div className="space-y-1.5">
                         <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Banque émettrice</label>
-                        <Select value={bank} onValueChange={(val) => setBank(val || '')}>
-                          <SelectTrigger className="border-slate-200 rounded-xl h-10 text-xs font-semibold focus:ring-sky-500">
+                        <Select value={bank} onValueChange={(val) => setBank(val || '')} required>
+                          <SelectTrigger className={cn("border-slate-200 rounded-xl h-10 text-xs font-semibold focus:ring-sky-500", !bank && "border-rose-300 ring-1 ring-rose-100")}>
                             <SelectValue placeholder="Choisir une banque" />
                           </SelectTrigger>
-                          <SelectContent className="rounded-xl border-slate-100">
-                            {BANKS_TN.map((b) => (
-                              <SelectItem key={b} value={b} className="text-xs font-semibold">
-                                {b}
+                          <SelectContent className="rounded-xl border-slate-100 max-h-60 overflow-y-auto">
+                            {banks.map((b) => (
+                              <SelectItem key={b.id || b.designation} value={b.designation} className="text-xs font-semibold">
+                                {b.designation}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
+                        {!bank && <p className="text-[10px] text-rose-500 font-semibold mt-1">Requis</p>}
                       </div>
 
                       {/* Cheque/Traite number */}
@@ -499,10 +554,11 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
                         <Input
                           value={instrumentNumber}
                           onChange={(e) => setInstrumentNumber(e.target.value)}
-                          className="border-slate-200 rounded-xl h-10 text-xs font-semibold focus-visible:ring-sky-500"
+                          className={cn("border-slate-200 rounded-xl h-10 text-xs font-semibold focus-visible:ring-sky-500", (!instrumentNumber || instrumentNumber.trim() === '') && "border-rose-300 ring-1 ring-rose-100")}
                           placeholder="Ex: 874620"
                           required
                         />
+                        {(!instrumentNumber || instrumentNumber.trim() === '') && <p className="text-[10px] text-rose-500 font-semibold mt-1">Requis</p>}
                       </div>
 
                       {/* Due date (Echeance) */}
@@ -539,6 +595,26 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
                         />
                       </div>
                     </div>
+
+                    {/* Conflict Warning */}
+                    <AnimatePresence>
+                      {selectedMethod === 'TRAITE' && existingEcheance && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -5 }}
+                          className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex gap-3 items-start"
+                        >
+                          <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-xs font-bold text-amber-800">Échéances existantes ce jour</p>
+                            <p className="text-xs text-amber-700 mt-0.5">
+                              Vous avez déjà <span className="font-bold">{existingEcheance.instrumentCount}</span> effet(s) pour un total de <span className="font-bold">{(existingEcheance.totalAmount || 0).toLocaleString('fr-FR', { minimumFractionDigits: 3 })} TND</span> à cette date.
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
                 )}
 

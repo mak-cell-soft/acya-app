@@ -734,6 +734,7 @@ export default function PurchasesPage() {
                       <th className="p-4">Fournisseur</th>
                       <th className="p-4 text-right">Total HT</th>
                       <th className="p-4 text-right">Total TTC</th>
+                      {activeTab === 'invoice' && <th className="p-4 text-right">Paiement</th>}
                       <th className="p-4 text-center">Statut</th>
 
                       {activeTab === 'receipt' && <th className="p-4 text-center">Facturation</th>}
@@ -746,7 +747,7 @@ export default function PurchasesPage() {
                     {isLoading ? (
                       <tr>
                         <td
-                          colSpan={activeTab === 'invoice' ? 10 : activeTab === 'receipt' ? 9 : activeTab === 'order' ? 8 : 7}
+                          colSpan={activeTab === 'invoice' ? 11 : activeTab === 'receipt' ? 9 : activeTab === 'order' ? 8 : 7}
                           className="py-24 text-center text-slate-400 italic"
                         >
                           Chargement des documents d&apos;achat en cours...
@@ -843,9 +844,61 @@ export default function PurchasesPage() {
                                 {fmt(item.total_ht_net_doc || 0)}
                               </td>
 
-                              <td className="p-4 text-right font-mono font-bold text-amber-950">
-                                {fmt(item.total_net_ttc || 0)}
+                              <td className="p-4 text-right">
+                                <span className="font-mono font-bold text-amber-950 block">
+                                  {fmt(item.total_net_payable ?? item.total_net_ttc ?? 0)}
+                                </span>
+                                {item.total_net_payable !== undefined && item.total_net_payable !== item.total_net_ttc && (
+                                  <div className="flex flex-col items-end gap-1 mt-1">
+                                    <span className="text-[10px] text-slate-400 font-mono leading-none">
+                                      TTC: {fmt(item.total_net_ttc ?? 0)}
+                                    </span>
+                                    <span className={cn(
+                                      "text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide",
+                                      item.holdingtax?.issigned
+                                        ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                        : "bg-amber-50 text-amber-800 border border-amber-200"
+                                    )}>
+                                      RS {item.holdingtax?.taxpercentage}%
+                                      {item.holdingtax?.issigned && " ✓"}
+                                    </span>
+                                  </div>
+                                )}
                               </td>
+
+                              {activeTab === 'invoice' && (
+                                <td className="p-4 text-right space-y-1">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-700">
+                                      Payé
+                                    </span>
+                                    <span className="font-mono text-xs font-bold text-emerald-800">
+                                      {fmt(item.total_paid ?? 0)}
+                                    </span>
+                                  </div>
+                                  {(item.total_credit_notes ?? 0) > 0 && (
+                                    <div className="flex items-center justify-end gap-1.5">
+                                      <span className="text-[9px] font-bold uppercase tracking-wider text-rose-600">
+                                        Avoir
+                                      </span>
+                                      <span className="font-mono text-xs font-bold text-rose-700">
+                                        -{fmt(item.total_credit_notes ?? 0)}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                                      Reste
+                                    </span>
+                                    <span className={cn(
+                                      "font-mono text-xs font-bold",
+                                      (item.remaining_balance ?? 0) > 0 ? "text-red-700" : "text-emerald-700"
+                                    )}>
+                                      {fmt(item.remaining_balance ?? 0)}
+                                    </span>
+                                  </div>
+                                </td>
+                              )}
 
                               <td className="p-4 text-center">
                                 <Badge
@@ -896,12 +949,25 @@ export default function PurchasesPage() {
                               {/* Withholding tax RS applied status */}
                               {activeTab === 'invoice' && (
                                 <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
-                                  {item.withholdingtax ? (
-                                    <Badge className="bg-emerald-50 text-emerald-800 border border-emerald-200/50 rounded-full font-bold text-[9px] w-fit mx-auto px-2">
-                                      RS Appliqué
-                                    </Badge>
+                                  {item.withholdingtax && item.holdingtax ? (
+                                    <div className="flex flex-col items-center gap-1">
+                                      <Badge className={cn(
+                                        "rounded-full px-2.5 py-0.5 font-bold text-[9px] tracking-wide uppercase",
+                                        item.holdingtax.issigned
+                                          ? "bg-emerald-50 text-emerald-800 border border-emerald-200/50"
+                                          : "bg-amber-50 text-amber-800 border border-amber-200/50"
+                                      )}>
+                                        RS {item.holdingtax.taxpercentage}%
+                                      </Badge>
+                                      <span className={cn(
+                                        "text-[9px] font-bold",
+                                        item.holdingtax.issigned ? "text-emerald-600" : "text-amber-700"
+                                      )}>
+                                        {item.holdingtax.issigned ? "✓ Signé" : "En attente"}
+                                      </span>
+                                    </div>
                                   ) : (
-                                    <span className="text-[10px] text-slate-400 italic font-medium">Non appliqué</span>
+                                    <span className="text-[10px] text-slate-400 italic font-medium">—</span>
                                   )}
                                 </td>
                               )}
@@ -1287,7 +1353,7 @@ export default function PurchasesPage() {
                     ) : (
                       <tr>
                         <td
-                          colSpan={activeTab === 'invoice' ? 10 : activeTab === 'receipt' ? 9 : activeTab === 'order' ? 8 : 7}
+                          colSpan={activeTab === 'invoice' ? 11 : activeTab === 'receipt' ? 9 : activeTab === 'order' ? 8 : 7}
                           className="py-24 text-center text-slate-400 italic font-medium"
                         >
                           Aucun document trouvé pour la période sélectionnée.

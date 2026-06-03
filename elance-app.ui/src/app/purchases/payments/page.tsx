@@ -208,7 +208,8 @@ function SupplierPaymentsPageContent() {
       totalCreditNotes: invoice.total_credit_notes || 0,
       customerId: selectedSupplierId!,
       customerName: selectedSupplier?.name || `${selectedSupplier?.firstname || ''} ${selectedSupplier?.lastname || ''}`.trim(),
-      withholdingtax: invoice.holdingtax,
+      withholdingtax: invoice.withholdingtax,
+      holdingtax: invoice.holdingtax,
       totalNetPayable: invoice.total_net_payable
     });
     setIsPaymentModalOpen(true);
@@ -269,7 +270,6 @@ function SupplierPaymentsPageContent() {
           <Select
             value={selectedSupplierId?.toString() || ''}
             onValueChange={handleSupplierSelect}
-            disabled={loadingSuppliers}
           >
             <SelectTrigger className="bg-slate-800 border-slate-700 text-white rounded-xl h-11 text-xs font-semibold focus:ring-amber-500">
               <Building2 className="w-4 h-4 text-slate-400 mr-2" />
@@ -295,7 +295,7 @@ function SupplierPaymentsPageContent() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 mt-6 space-y-6">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 mt-6 space-y-6">
         {/* 1. Projection Chart - Always Displayed */}
         <Card className="rounded-[28px] border-slate-150 shadow-sm overflow-hidden bg-white">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-6 py-5 gap-3 border-b border-slate-100">
@@ -395,7 +395,26 @@ function SupplierPaymentsPageContent() {
                       strokeWidth={2}
                       fillOpacity={1}
                       fill="url(#colorAmount)"
-                      activeDot={{ r: 6, fill: '#f59e0b' }}
+                      activeDot={{ 
+                        r: 8, 
+                        fill: '#f59e0b',
+                        cursor: 'pointer',
+                        onClick: (e: any, payload: any) => {
+                          if (payload?.payload?.originalData) {
+                            setSelectedEcheanceData(payload.payload.originalData);
+                            setIsEcheanceModalOpen(true);
+                          }
+                        }
+                      }}
+                      onClick={(e: any) => {
+                        if (e?.activePayload?.[0]?.payload?.originalData) {
+                          setSelectedEcheanceData(e.activePayload[0].payload.originalData);
+                          setIsEcheanceModalOpen(true);
+                        } else if (e?.payload?.originalData) {
+                          setSelectedEcheanceData(e.payload.originalData);
+                          setIsEcheanceModalOpen(true);
+                        }
+                      }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
