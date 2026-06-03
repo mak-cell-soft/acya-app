@@ -121,10 +121,19 @@ export function PrintTab() {
 
   // ─── Loading state ───────────────────────────────────────────────────────────
 
-  if (isLoading || !form) {
+  if (isLoading || (!form && !locale)) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-forest-600" />
+      </div>
+    );
+  }
+
+  if (!form) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <p className="text-red-500 font-medium">Erreur lors du chargement de la configuration.</p>
+        <Button onClick={() => window.location.reload()} variant="outline">Réessayer</Button>
       </div>
     );
   }

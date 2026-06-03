@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import defaultLocale from '@/locales/print-ar.json';
 
 // NOTE: Absolute path to print-ar.json resolved from the Next.js project root (process.cwd()).
 // This file holds all print document labels and Arabic company info used by print components.
@@ -12,12 +13,17 @@ const LOCALE_FILE_PATH = path.join(process.cwd(), 'src', 'locales', 'print-ar.js
  */
 export async function GET() {
   try {
-    const raw = fs.readFileSync(LOCALE_FILE_PATH, 'utf-8');
-    const data = JSON.parse(raw);
-    return NextResponse.json(data);
+    if (fs.existsSync(LOCALE_FILE_PATH)) {
+      const raw = fs.readFileSync(LOCALE_FILE_PATH, 'utf-8');
+      const data = JSON.parse(raw);
+      return NextResponse.json(data);
+    }
+    // Fallback if the file doesn't exist on disk (e.g., in a production Docker container)
+    return NextResponse.json(defaultLocale);
   } catch (error) {
     console.error('[print-locale] Failed to read locale file:', error);
-    return NextResponse.json({ error: 'Impossible de lire le fichier de configuration.' }, { status: 500 });
+    // Fallback to bundled JSON to prevent infinite loading in UI
+    return NextResponse.json(defaultLocale);
   }
 }
 
@@ -32,6 +38,12 @@ export async function PUT(request: NextRequest) {
 
     if (!body || typeof body !== 'object') {
       return NextResponse.json({ error: 'Corps de la requête invalide.' }, { status: 400 });
+    }
+
+    // Ensure the directory exists (important for production environments where src/locales might be missing)
+    const dir = path.dirname(LOCALE_FILE_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
     }
 
     // NOTE: Pretty-print with 2-space indent to keep the file human-readable.
