@@ -20,7 +20,8 @@ import {
   FileText,
   TrendingUp,
   TrendingDown,
-  Wallet
+  Wallet,
+  Printer
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCustomerStatement } from "@/hooks/use-customer-account";
@@ -29,6 +30,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
+import { PrintVariantDialog } from "@/components/print/print-trigger-button";
 
 interface CustomerAccountDialogProps {
   isOpen: boolean;
@@ -48,6 +50,7 @@ export function CustomerAccountDialog({
   });
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [currentPage, setCurrentPage] = useState(1);
+  const [isPrintOpen, setIsPrintOpen] = useState(false);
   const pageSize = 8;
 
   const { data: statement, isLoading, isFetching } = useCustomerStatement(
@@ -113,8 +116,12 @@ export function CustomerAccountDialog({
                   className="h-9 w-40 bg-transparent border-none text-white hover:bg-forest-700" 
                 />
               </div>
-              <Button variant="outline" className="h-11 rounded-xl bg-forest-800 border-forest-700 text-white hover:bg-forest-700">
-                <Download className="w-4 h-4 mr-2" /> Exporter PDF
+              <Button 
+                variant="outline" 
+                className="h-11 rounded-xl bg-forest-800 border-forest-700 text-white hover:bg-forest-700"
+                onClick={() => setIsPrintOpen(true)}
+              >
+                <Printer className="w-4 h-4 mr-2" /> Imprimer
               </Button>
             </div>
           </div>
@@ -311,6 +318,17 @@ export function CustomerAccountDialog({
           </div>
         </div>
       </DialogContent>
+
+      <PrintVariantDialog
+        isOpen={isPrintOpen}
+        onClose={() => setIsPrintOpen(false)}
+        docType="customer-statement"
+        statement={statement}
+        counterpart={customer}
+        periodStart={startDate}
+        periodEnd={endDate}
+        statementType="customer"
+      />
     </Dialog>
   );
 }

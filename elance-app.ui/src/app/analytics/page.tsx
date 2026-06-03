@@ -43,6 +43,7 @@ import { cn } from '@/lib/utils';
 import { useAnalyticsKpis, useMonthlyRevenue, useTopSubCategories, useStockHealthBySubCategory } from '@/hooks/use-analytics-kpis';
 import { useSupplierPurchasePaymentChart } from '@/hooks/use-supplier-chart';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ActivityLogSection } from '@/components/analytics/activity-log-section';
 
 const COLORS = ['#1D9E75', '#534AB7', '#A39D90', '#E1F5EE', '#F59E0B', '#3B82F6'];
 
@@ -867,6 +868,10 @@ export default function AnalyticsPage() {
             {renderStockHealth()}
           </CardContent>
         </Card>
+
+        {/* Activity Log — human-readable audit feed for non-IT managers */}
+        <ActivityLogSection />
+
       </div>
     </DashboardLayout>
   );

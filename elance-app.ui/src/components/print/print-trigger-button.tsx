@@ -27,6 +27,8 @@ import { PayslipStandard } from './payslip-standard';
 import { PayslipLight } from './payslip-light';
 import { Person } from '@/types/team';
 import { Leave, Payslip, Advance } from '@/types/hr';
+import { AccountStatementStandard } from './account-statement-standard';
+import { AccountStatement, Customer, Supplier } from '@/types/customer';
 
 interface PrintVariantDialogProps {
   isOpen: boolean;
@@ -38,7 +40,12 @@ interface PrintVariantDialogProps {
   leave?: Leave | null | undefined;
   payslip?: Payslip | null | undefined;
   advance?: Advance | null | undefined;
-  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | null | undefined;
+  statement?: AccountStatement | null;
+  counterpart?: Customer | Supplier | null;
+  periodStart?: Date;
+  periodEnd?: Date;
+  statementType?: 'customer' | 'supplier';
+  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | null | undefined;
 }
 
 export function PrintVariantDialog({
@@ -51,6 +58,11 @@ export function PrintVariantDialog({
   leave,
   payslip,
   advance,
+  statement,
+  counterpart,
+  periodStart,
+  periodEnd,
+  statementType,
   docType,
 }: PrintVariantDialogProps) {
   // Retrieve the connected enterprise settings dynamically.
@@ -58,9 +70,10 @@ export function PrintVariantDialog({
   const { data: enterprise, isLoading } = useEnterprise();
   const [printing, setPrinting] = useState(false);
 
-  // Auto-trigger print for single-variant HR documents (leave, advance) as soon as enterprise settings load
+  // Auto-trigger print for single-variant HR documents (leave, advance) and statements as soon as enterprise settings load
   React.useEffect(() => {
-    if (isOpen && enterprise && !isLoading && !printing && (docType === 'leave' || docType === 'advance')) {
+    if (isOpen && enterprise && !isLoading && !printing && 
+       (docType === 'leave' || docType === 'advance' || docType === 'customer-statement' || docType === 'supplier-statement')) {
       handlePrint('standard');
     }
   }, [isOpen, enterprise, isLoading, docType]);
@@ -70,12 +83,15 @@ export function PrintVariantDialog({
     docType !== 'leave' &&
     docType !== 'advance' &&
     docType !== 'payslip' &&
+    docType !== 'customer-statement' &&
+    docType !== 'supplier-statement' &&
     (!document || !docType)
   ) return null;
   if (docType === 'transfer' && !transfer) return null;
   if (docType === 'leave' && (!leave || !employee)) return null;
   if (docType === 'advance' && (!advance || !employee)) return null;
   if (docType === 'payslip' && (!payslip || !employee)) return null;
+  if ((docType === 'customer-statement' || docType === 'supplier-statement') && (!statement || !counterpart || !periodStart || !periodEnd || !statementType)) return null;
 
   /**
    * Executes the print flow by generating markup, injecting it into a hidden iframe,
@@ -143,6 +159,22 @@ export function PrintVariantDialog({
             <PayslipLight employee={employee} payslip={payslip} enterprise={enterprise} />
           )
         );
+      } else if ((docType === 'customer-statement' || docType === 'supplier-statement') && statement && counterpart && periodStart && periodEnd && statementType) {
+        // Use formatDate or simply format with date-fns since periodStart is a Date
+        const { format } = require('date-fns');
+        printDocNumber = `ETAT-COMPTE-${counterpart.name || counterpart.id}-${format(periodStart, 'dd-MM-yyyy')}-${format(periodEnd, 'dd-MM-yyyy')}`;
+        const { getAccountStatementPrintStyles } = require('./print-styles');
+        styleCss = getAccountStatementPrintStyles();
+        contentHtml = renderToStaticMarkup(
+          <AccountStatementStandard
+            statement={statement}
+            counterpart={counterpart}
+            enterprise={enterprise}
+            periodStart={periodStart}
+            periodEnd={periodEnd}
+            statementType={statementType}
+          />
+        );
       }
 
       // 2. Create a temporary hidden iframe to isolate print styles from the main Next.js layout
@@ -178,22 +210,34 @@ export function PrintVariantDialog({
 
       // NOTE: Wait briefly to ensure stylesheets are evaluated and fonts finish downloading.
       setTimeout(() => {
-        iframe.contentWindow?.focus();
-        iframe.contentWindow?.print();
+        try {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+        } catch (e) {
+          console.error(e);
+        }
         
         // Cleanup the temporary DOM element.
         setTimeout(() => {
           window.document.body.removeChild(iframe);
         }, 1000);
+
+        setPrinting(false);
+        onClose();
       }, 500);
 
     } catch (error) {
       console.error('Printing failed:', error);
-    } finally {
       setPrinting(false);
       onClose();
     }
   };
+
+  const isAutoPrint = docType === 'leave' || docType === 'advance' || docType === 'customer-statement' || docType === 'supplier-statement';
+
+  if (isAutoPrint) {
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -206,11 +250,11 @@ export function PrintVariantDialog({
           <DialogDescription className="text-sm text-sand-500 font-medium">
             Choisissez le format d&apos;impression adapté à votre matériel. 
             Document N° <span className="font-mono font-bold text-forest-900">
-              {docType === 'transfer' ? (transfer?.docSortie || 'Brouillon') : 
-               docType === 'leave' ? `Congé #${leave?.id}` :
-               docType === 'advance' ? `Avance #${advance?.id}` :
-               docType === 'payslip' ? `Bulletin ${payslip?.periodmonth}/${payslip?.periodyear}` :
-               (document?.docnumber || 'Brouillon')}
+              {docType === 'transfer'
+                ? (transfer?.docSortie || 'Brouillon')
+                : docType === 'payslip'
+                ? `Bulletin ${payslip?.periodmonth}/${payslip?.periodyear}`
+                : (document?.docnumber || 'Brouillon')}
             </span>
           </DialogDescription>
         </DialogHeader>
@@ -243,26 +287,24 @@ export function PrintVariantDialog({
               </div>
             </button>
 
-            {/* Light Dot Matrix Option - Hidden for Leaves & Advances */}
-            {(docType !== 'leave' && docType !== 'advance') && (
-              <button
-                onClick={() => handlePrint('light')}
-                disabled={printing}
-                className="flex items-start text-left gap-4 p-4 rounded-[16px] border border-sand-200 bg-white hover:bg-sand-50/50 hover:border-forest-800/40 transition-all group"
-              >
-                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-100 text-amber-800 group-hover:bg-amber-100/50 transition-colors">
-                  <FileText className="w-6 h-6" />
-                </div>
-                <div className="space-y-1">
-                  <h4 className="text-sm font-bold text-forest-950 group-hover:text-forest-800 transition-colors">
-                    Format Léger (Matricielle / Aiguilles)
-                  </h4>
-                  <p className="text-xs text-sand-400 font-medium leading-relaxed">
-                    Style compact en police monospace. Supprime les bordures épaisses et illustrations pour optimiser le temps d&apos;impression et économiser le ruban.
-                  </p>
-                </div>
-              </button>
-            )}
+            {/* Light Dot Matrix Option — auto-print types never reach the dialog, so no condition needed */}
+            <button
+              onClick={() => handlePrint('light')}
+              disabled={printing}
+              className="flex items-start text-left gap-4 p-4 rounded-[16px] border border-sand-200 bg-white hover:bg-sand-50/50 hover:border-forest-800/40 transition-all group"
+            >
+              <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-100 text-amber-800 group-hover:bg-amber-100/50 transition-colors">
+                <FileText className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold text-forest-950 group-hover:text-forest-800 transition-colors">
+                  Format Léger (Matricielle / Aiguilles)
+                </h4>
+                <p className="text-xs text-sand-400 font-medium leading-relaxed">
+                  Style compact en police monospace. Supprime les bordures épaisses et illustrations pour optimiser le temps d&apos;impression et économiser le ruban.
+                </p>
+              </div>
+            </button>
           </div>
         )}
 

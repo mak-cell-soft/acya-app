@@ -698,3 +698,53 @@ export function getLightPrintStyles(): string {
     }
   `;
 }
+
+/**
+ * Return A4 styles optimized for Account Statements (État de Compte).
+ */
+export function getAccountStatementPrintStyles(): string {
+  return `
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Outfit:wght@400;600;800&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', Arial, sans-serif; background: #fff !important; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .print-container { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 10mm; font-size: 8pt; }
+    .header { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10mm; margin-bottom: 8mm; padding-bottom: 5mm; border-bottom: 1px solid #000; }
+    .company-name { font-family: 'Outfit', sans-serif; font-size: 11pt; font-weight: 800; margin: 0 0 2mm 0; }
+    .company-details { font-size: 7pt; margin: 1mm 0; line-height: 1.3; }
+    .center-section { display: flex; flex-direction: column; align-items: center; gap: 5mm; }
+    .logo { padding: 4mm 10mm; display: flex; align-items: center; justify-content: center; border: 2px solid #000; }
+    .location { text-align: center; font-weight: bold; font-size: 9pt; border: 1px solid #000; padding: 2.5mm 6mm; }
+    .arabic-info { text-align: right; direction: rtl; }
+    .arabic-text { font-size: 9.5pt; font-weight: bold; margin: 1mm 0; }
+    .arabic-details { font-size: 7pt; margin: 1mm 0; }
+    .original-label { font-size: 11pt; font-weight: bold; margin-top: 5mm; border: 2px solid #000; padding: 1.5mm 4mm; display: inline-block; text-align: center; }
+    .document-header { display: grid; grid-template-columns: 1.2fr 1fr; gap: 8mm; margin-bottom: 4mm; }
+    .document-title-section { text-align: center; border: 2px solid #000; padding: 4mm; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    .document-title { font-family: 'Outfit', sans-serif; font-size: 13pt; font-weight: bold; text-transform: uppercase; }
+    .client-info { border: 1px solid #000; padding: 3mm; display: flex; flex-direction: column; justify-content: center; }
+    .info-row { display: flex; gap: 3mm; margin-bottom: 1.5mm; }
+    .info-row .label { font-weight: bold; min-width: 22mm; }
+    .ledger-table { width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 4mm; }
+    .ledger-table th { border: 1px solid #000; padding: 2mm; font-size: 7.5pt; font-weight: bold; text-align: center; background-color: #f0fdf4 !important; color: #064e3b; }
+    .ledger-table td { border: 1px solid #000; padding: 1.5mm; font-size: 8pt; text-align: center; }
+    .col-date { width: 15%; }
+    .col-type { width: 20%; text-align: left !important; }
+    .col-desc { width: 30%; text-align: left !important; }
+    .col-debit, .col-credit, .col-balance { width: 11.6%; text-align: right !important; }
+    .row-debit td { background-color: #fff1f2 !important; }
+    .row-credit td { background-color: #ecfdf5 !important; }
+    .empty-row td { height: 6mm; border-top: none; border-bottom: none; background-color: transparent !important; }
+    .empty-row:last-child td { border-bottom: 1px solid #000; }
+    .footer-legal { margin-top: 4mm; border-top: 1px dashed #ccc; padding-top: 2mm; text-align: center; }
+    .legal-text { font-size: 6pt; margin: 0.8mm 0; line-height: 1.25; color: #444; }
+    .agency-info { font-size: 6pt; margin: 1mm 0 0 0; font-weight: bold; color: #222; }
+    @media print {
+      @page { size: A4 portrait; margin: 0; }
+      body { margin: 0; padding: 0; background: #fff !important; }
+      .print-container { padding: 8mm; }
+      thead { display: table-header-group; }
+    }
+  `;
+}
+

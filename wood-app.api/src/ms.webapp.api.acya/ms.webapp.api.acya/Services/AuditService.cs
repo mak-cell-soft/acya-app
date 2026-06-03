@@ -66,14 +66,32 @@ namespace ms.webapp.api.acya.api.Services
 
     /**
      * Retrieves the most recent audit logs with optional filtering.
+     * Filters are applied server-side before the Take() for efficiency.
      */
-    public async Task<IEnumerable<AuditLog>> GetRecentLogsAsync(int count = 50, string? userName = null, DateTime? date = null)
+    public async Task<IEnumerable<AuditLog>> GetRecentLogsAsync(
+        int count = 50,
+        string? userName = null,
+        string? action = null,
+        string? tableName = null,
+        DateTime? date = null)
     {
         var query = _context.AuditLogs.AsQueryable();
 
         if (!string.IsNullOrEmpty(userName))
         {
             query = query.Where(l => l.UserName != null && l.UserName.Contains(userName));
+        }
+
+        // Filter by action type: Insert, Update, Delete
+        if (!string.IsNullOrEmpty(action))
+        {
+            query = query.Where(l => l.Action == action);
+        }
+
+        // Filter to a specific table (e.g. Documents, Payments)
+        if (!string.IsNullOrEmpty(tableName))
+        {
+            query = query.Where(l => l.TableName == tableName);
         }
 
         if (date.HasValue)

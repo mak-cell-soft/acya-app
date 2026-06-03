@@ -19,7 +19,8 @@ import {
   TrendingDown,
   TrendingUp,
   CreditCard,
-  FileText
+  FileText,
+  Printer
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +36,7 @@ import { fr } from "date-fns/locale";
 import { Supplier } from "@/types/customer";
 import { useSupplierStatement } from "@/hooks/use-supplier-account";
 import { cn } from "@/lib/utils";
+import { PrintVariantDialog } from "@/components/print/print-trigger-button";
 
 interface SupplierAccountDialogProps {
   isOpen: boolean;
@@ -51,6 +53,7 @@ export function SupplierAccountDialog({
     from: subDays(new Date(), 30),
     to: new Date(),
   });
+  const [isPrintOpen, setIsPrintOpen] = useState(false);
 
   const { data: statement, isLoading } = useSupplierStatement(
     supplier?.id || 0,
@@ -109,8 +112,12 @@ export function SupplierAccountDialog({
                   />
                 </PopoverContent>
               </Popover>
-              <Button variant="outline" className="h-12 rounded-xl border-forest-700 bg-forest-800 text-white hover:bg-forest-700 hover:text-white font-bold px-5">
-                <Download className="w-4 h-4 mr-2 text-emerald-400" /> PDF
+              <Button 
+                variant="outline" 
+                className="h-12 rounded-xl border-forest-700 bg-forest-800 text-white hover:bg-forest-700 hover:text-white font-bold px-5"
+                onClick={() => setIsPrintOpen(true)}
+              >
+                <Printer className="w-4 h-4 mr-2 text-emerald-400" /> Imprimer
               </Button>
             </div>
           </div>
@@ -267,6 +274,17 @@ export function SupplierAccountDialog({
           </div>
         </div>
       </DialogContent>
+
+      <PrintVariantDialog
+        isOpen={isPrintOpen}
+        onClose={() => setIsPrintOpen(false)}
+        docType="supplier-statement"
+        statement={statement}
+        counterpart={supplier}
+        periodStart={dateRange.from}
+        periodEnd={dateRange.to}
+        statementType="supplier"
+      />
     </Dialog>
   );
 }

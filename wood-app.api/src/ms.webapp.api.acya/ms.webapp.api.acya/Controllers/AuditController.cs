@@ -21,12 +21,14 @@ namespace ms.webapp.api.acya.api.Controllers
         [HttpGet("recent")]
         public async Task<ActionResult<IEnumerable<AuditLog>>> GetRecentAuditLogs(
             [FromQuery] int count = 50, 
-            [FromQuery] string? userName = null, 
+            [FromQuery] string? userName = null,
+            [FromQuery] string? action = null,
+            [FromQuery] string? tableName = null,
             [FromQuery] DateTime? date = null)
         {
             try
             {
-                var logs = await _auditService.GetRecentLogsAsync(count, userName, date);
+                var logs = await _auditService.GetRecentLogsAsync(count, userName, action, tableName, date);
                 return Ok(logs);
             }
             catch (Exception ex)

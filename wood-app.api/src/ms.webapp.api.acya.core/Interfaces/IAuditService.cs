@@ -18,7 +18,14 @@ namespace ms.webapp.api.acya.core.Interfaces
 
     /**
      * Retrieves the most recent audit logs with optional filtering.
+     * Supports filtering by userName, action (Insert|Update|Delete),
+     * tableName, and a specific date (day boundary).
      */
-    Task<IEnumerable<AuditLog>> GetRecentLogsAsync(int count = 50, string? userName = null, DateTime? date = null);
+    Task<IEnumerable<AuditLog>> GetRecentLogsAsync(
+        int count = 50,
+        string? userName = null,
+        string? action = null,
+        string? tableName = null,
+        DateTime? date = null);
   }
 }
