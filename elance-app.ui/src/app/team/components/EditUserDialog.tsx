@@ -24,7 +24,10 @@ import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -38,7 +41,7 @@ import {
   Mail,
   Lock
 } from "lucide-react";
-import { AppUser } from "@/types/team";
+import { AppUser, SYSTEM_ROLES, FUNCTION_ROLES, ROLE_LABELS } from "@/types/team";
 import { useSites } from "@/hooks/use-enterprise";
 
 const appUserSchema = z.object({
@@ -47,6 +50,7 @@ const appUserSchema = z.object({
   isactive: z.boolean(),
   defaultsite: z.string().min(1, "Le site par défaut est requis"),
   password: z.string().optional().nullable(),
+  role: z.coerce.number().optional(),
 });
 
 type AppUserFormValues = z.infer<typeof appUserSchema>;
@@ -76,6 +80,7 @@ export function EditUserDialog({
       isactive: true,
       defaultsite: "",
       password: "",
+      role: 30,
     },
   });
 
@@ -88,6 +93,7 @@ export function EditUserDialog({
         isactive: editUser.isactive,
         defaultsite: editUser.defaultsite ? editUser.defaultsite.toString() : "",
         password: "", // Always clear password input on open
+        role: editUser.person?.role || 30,
       });
     }
   }, [isOpen, editUser, form]);
@@ -107,7 +113,7 @@ export function EditUserDialog({
         ...editUser.person,
         firstname: editUser.person.firstname,
         lastname: editUser.person.lastname,
-        role: editUser.person.role,
+        role: values.role !== undefined ? values.role : editUser.person.role,
         isappuser: true,
         updatedby: 1, // Mock user ID
       } : null
@@ -201,6 +207,43 @@ export function EditUserDialog({
                 </FormItem>
               )}
             />
+
+            {editUser?.person && (
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Rôle d'accès</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                      <FormControl>
+                        <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background font-bold text-forest-900">
+                          <SelectValue placeholder="Choisir un rôle">
+                            {field.value ? ROLE_LABELS[parseInt(field.value.toString())] : undefined}
+                          </SelectValue>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="rounded-xl border-forest-100 shadow-xl">
+                        <SelectGroup>
+                          <SelectLabel className="font-bold text-forest-900">Niveau d'Accès Système</SelectLabel>
+                          {SYSTEM_ROLES.map((role) => (
+                            <SelectItem key={role.value} value={role.value.toString()}>{role.label}</SelectItem>
+                          ))}
+                        </SelectGroup>
+                        <SelectSeparator />
+                        <SelectGroup>
+                          <SelectLabel className="font-bold text-forest-900">Fonction / Poste</SelectLabel>
+                          {FUNCTION_ROLES.map((role) => (
+                            <SelectItem key={role.value} value={role.value.toString()}>{role.label}</SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}

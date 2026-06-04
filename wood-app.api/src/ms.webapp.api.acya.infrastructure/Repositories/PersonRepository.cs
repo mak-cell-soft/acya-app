@@ -15,7 +15,6 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
     {
       var allPersons = await context.Persons
           .Where(p => !p.IsDeleted)
-          .Where(p => !p.IsAppUser)
           .ToListAsync();
 
       var allDtos = allPersons.Select(pers => new PersonDto(pers)).ToList();

@@ -43,6 +43,7 @@ import {
 import { Person, ROLE_LABELS, SYSTEM_ROLES, FUNCTION_ROLES } from "@/types/team";
 import { useSites } from "@/hooks/use-enterprise";
 import { usePersons } from "@/hooks/use-team";
+import { useAuthStore } from "@/store/use-auth-store";
 
 const createUserSchema = z.object({
   personId: z.string().min(1, "Le collaborateur est requis"),
@@ -75,6 +76,7 @@ export function CreateUserDialog({
 }: CreateUserDialogProps) {
   const { data: sites } = useSites();
   const { data: persons } = usePersons();
+  const { user } = useAuthStore();
 
   // Filter out persons that already have an app user linked (if we had that data easily accessible here)
   // For now we'll just show all persons, or ideally filter those with isappuser === false
@@ -114,13 +116,18 @@ export function CreateUserDialog({
     
     if (!selectedPerson) return;
 
+    const defaultSiteId = parseInt(values.defaultsite);
+    const selectedSite = sites?.find(s => s.id === defaultSiteId);
+    const fallbackEnterpriseId = selectedSite?.enterpriseid || 1;
+    const finalEnterpriseId = user?.enterpriseId ? parseInt(user.enterpriseId) : fallbackEnterpriseId;
+
     const model = {
       login: values.login,
       email: values.email,
       isactive: values.isactive,
-      defaultsite: parseInt(values.defaultsite),
+      defaultsite: defaultSiteId,
       password: values.password,
-      identerprise: 1, // Default, should probably come from current user context if multi-tenant
+      identerprise: finalEnterpriseId, // Use current user's enterprise or selected site's enterprise
       person: {
         ...selectedPerson,
         role: values.role,
@@ -133,7 +140,7 @@ export function CreateUserDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full max-w-2xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background scrollbar-hide">
+      <DialogContent showCloseButton={false} className="w-full sm:max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background scrollbar-hide">
         <DialogHeader className="p-8 bg-forest-900 text-white relative">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700">
@@ -177,7 +184,14 @@ export function CreateUserDialog({
                   }} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background font-bold text-forest-900">
-                        <SelectValue placeholder="Sélectionner un collaborateur sans compte..." />
+                        <SelectValue placeholder="Sélectionner un collaborateur sans compte...">
+                          {field.value 
+                            ? (() => {
+                                const p = availablePersons.find(p => p.id.toString() === field.value);
+                                return p ? `${p.firstname} ${p.lastname} - ${ROLE_LABELS[p.role]}` : field.value;
+                              })()
+                            : undefined}
+                        </SelectValue>
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="rounded-xl border-forest-100 shadow-xl max-h-64">

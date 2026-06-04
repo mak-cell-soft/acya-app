@@ -109,10 +109,16 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
     [HttpPost("register")]
     public async Task<ActionResult<UserAuthDto>> Register(AppUserDto registerDto)
     {
-      if (await UserExists(registerDto.login!)) return BadRequest(new UserAuthDto
+      if (await UserExists(registerDto.email!)) return BadRequest(new UserAuthDto
       {
         isSuccess = false,
-        message = "Email already exists"
+        message = "L'email existe déjà"
+      });
+
+      if (await _context.AppUsers.AnyAsync(x => x.Login!.ToLower() == registerDto.login!.ToLower())) return BadRequest(new UserAuthDto
+      {
+        isSuccess = false,
+        message = "L'identifiant existe déjà"
       });
 
       using var hmac = new HMACSHA512();
@@ -146,16 +152,23 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
         user.Persons = new Person(registerDto.person);
       }
 
-      _context.AppUsers.Add(user);
-      await _context.SaveChangesAsync();
-
-      return Ok(new UserAuthDto
+      try
       {
-        fullname = user.Persons?.FullName ?? "",
-        isSuccess = true,
-        message = "Register Success",
-        token = _tokenService.CreateToken(user, null)
-      });
+        _context.AppUsers.Add(user);
+        await _context.SaveChangesAsync();
+
+        return Ok(new UserAuthDto
+        {
+          fullname = user.Persons?.FullName ?? "",
+          isSuccess = true,
+          message = "Register Success",
+          token = _tokenService.CreateToken(user, null)
+        });
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(500, new { message = "Erreur interne lors de la création de l'utilisateur: " + (ex.InnerException?.Message ?? ex.Message) });
+      }
     }
 
     [AllowAnonymous]
