@@ -137,7 +137,7 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
         fullname = user.Persons!.FullName,
         isSuccess = true,
         message = "Register Success",
-        token = _tokenService.CreateToken(user)
+        token = _tokenService.CreateToken(user, null)
       });
     }
 
@@ -171,13 +171,15 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
 
       var ent = await _context.Enterprises.FindAsync(user.EnterpriseId);
       
+      var userPerms = await _context.UserPermissions.FirstOrDefaultAsync(p => p.UserId == user.Id);
+      
       return Ok(new UserAuthDto
       {
         fullname = user.Persons!.FullName,
         isSuccess = true,
         message = "Authentification avec Succés",
         enterpriseName = ent?.Name,
-        token = _tokenService.CreateToken(user)
+        token = _tokenService.CreateToken(user, userPerms?.Permissions)
       });
     }
 

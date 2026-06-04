@@ -41,6 +41,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { TablePagination } from '@/components/shared/table-pagination';
 import { useQueryClient } from '@tanstack/react-query';
 import { DataImportDialog } from '@/components/shared/data-import-dialog';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
 
 export default function ArticlesPage() {
   // State for filtering
@@ -63,6 +64,7 @@ export default function ArticlesPage() {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
 
   const queryClient = useQueryClient();
+  const { hasPermission } = usePermissionGuard();
 
   // Queries and Mutations
   const { data: articles, isLoading: isArticlesLoading } = useArticles();
@@ -186,19 +188,23 @@ export default function ArticlesPage() {
             <Button variant="outline" className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6">
               <Download className="w-4 h-4 mr-2" /> Exporter
             </Button>
-            <Button 
-              onClick={() => setIsImportOpen(true)}
-              variant="outline" 
-              className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6"
-            >
-              <Upload className="w-4 h-4 mr-2" /> Importer
-            </Button>
-            <Button 
-              className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-6"
-              onClick={() => { setSelectedArticle(null); setIsFormOpen(true); }}
-            >
-              <Plus className="w-4 h-4 mr-2" /> Nouvel Article
-            </Button>
+            {hasPermission('articles', 'canAdd') && (
+              <Button 
+                onClick={() => setIsImportOpen(true)}
+                variant="outline" 
+                className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6"
+              >
+                <Upload className="w-4 h-4 mr-2" /> Importer
+              </Button>
+            )}
+            {hasPermission('articles', 'canAdd') && (
+              <Button 
+                className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-6"
+                onClick={() => { setSelectedArticle(null); setIsFormOpen(true); }}
+              >
+                <Plus className="w-4 h-4 mr-2" /> Nouvel Article
+              </Button>
+            )}
           </div>
         </header>
 
@@ -287,18 +293,22 @@ export default function ArticlesPage() {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="rounded-2xl border-forest-100 w-48 shadow-xl p-2">
-                                  <DropdownMenuItem 
-                                    className="gap-2 font-bold text-forest-900 cursor-pointer rounded-xl h-11"
-                                    onClick={() => { setSelectedArticle(item); setIsFormOpen(true); }}
-                                  >
-                                    <Edit className="w-4 h-4" /> Modifier
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    className="gap-2 font-bold text-rose-600 cursor-pointer hover:text-rose-700 hover:bg-rose-50 rounded-xl h-11"
-                                    onClick={() => { setSelectedArticle(item); setIsDeleteOpen(true); }}
-                                  >
-                                    <Trash2 className="w-4 h-4" /> Supprimer
-                                  </DropdownMenuItem>
+                                  {hasPermission('articles', 'canUpdate') && (
+                                    <DropdownMenuItem 
+                                      className="gap-2 font-bold text-forest-900 cursor-pointer rounded-xl h-11"
+                                      onClick={() => { setSelectedArticle(item); setIsFormOpen(true); }}
+                                    >
+                                      <Edit className="w-4 h-4" /> Modifier
+                                    </DropdownMenuItem>
+                                  )}
+                                  {hasPermission('articles', 'canDelete') && (
+                                    <DropdownMenuItem 
+                                      className="gap-2 font-bold text-rose-600 cursor-pointer hover:text-rose-700 hover:bg-rose-50 rounded-xl h-11"
+                                      onClick={() => { setSelectedArticle(item); setIsDeleteOpen(true); }}
+                                    >
+                                      <Trash2 className="w-4 h-4" /> Supprimer
+                                    </DropdownMenuItem>
+                                  )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
 

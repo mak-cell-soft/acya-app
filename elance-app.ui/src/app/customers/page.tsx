@@ -26,6 +26,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useQueryClient } from '@tanstack/react-query';
 import { DataImportDialog } from '@/components/shared/data-import-dialog';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -60,6 +61,7 @@ export default function CustomersPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
   const queryClient = useQueryClient();
+  const { hasPermission } = usePermissionGuard();
   const { data: customers, isLoading } = useCustomers();
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
@@ -143,19 +145,23 @@ export default function CustomersPage() {
             <Button variant="outline" className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50">
               <Download className="w-4 h-4 mr-2" /> Exporter
             </Button>
-            <Button 
-              onClick={() => setIsImportOpen(true)}
-              variant="outline" 
-              className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50"
-            >
-              <Upload className="w-4 h-4 mr-2" /> Importer
-            </Button>
-            <Button 
-              onClick={() => openForm()}
-              className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
-            >
-              <Plus className="w-4 h-4 mr-2" /> Nouveau Client
-            </Button>
+            {hasPermission('customers', 'canAdd') && (
+              <Button 
+                onClick={() => setIsImportOpen(true)}
+                variant="outline" 
+                className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50"
+              >
+                <Upload className="w-4 h-4 mr-2" /> Importer
+              </Button>
+            )}
+            {hasPermission('customers', 'canAdd') && (
+              <Button 
+                onClick={() => openForm()}
+                className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
+              >
+                <Plus className="w-4 h-4 mr-2" /> Nouveau Client
+              </Button>
+            )}
           </div>
         </div>
 
@@ -285,12 +291,16 @@ export default function CustomersPage() {
                                 <DropdownMenuItem onClick={() => openDetails(item)} className="gap-2 font-bold text-forest-900 cursor-pointer">
                                   <FileText className="w-4 h-4" /> Détails / Grille
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => openForm(item)} className="gap-2 font-bold text-forest-900 cursor-pointer">
-                                  <Edit className="w-4 h-4" /> Modifier
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => openDelete(item)} className="gap-2 font-bold text-rose-600 cursor-pointer hover:text-rose-700 hover:bg-rose-50">
-                                  <Trash2 className="w-4 h-4" /> Supprimer
-                                </DropdownMenuItem>
+                                {hasPermission('customers', 'canUpdate') && (
+                                  <DropdownMenuItem onClick={() => openForm(item)} className="gap-2 font-bold text-forest-900 cursor-pointer">
+                                    <Edit className="w-4 h-4" /> Modifier
+                                  </DropdownMenuItem>
+                                )}
+                                {hasPermission('customers', 'canDelete') && (
+                                  <DropdownMenuItem onClick={() => openDelete(item)} className="gap-2 font-bold text-rose-600 cursor-pointer hover:text-rose-700 hover:bg-rose-50">
+                                    <Trash2 className="w-4 h-4" /> Supprimer
+                                  </DropdownMenuItem>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                             <ChevronDown className={cn("w-4 h-4 text-sand-300 transition-transform duration-300", expandedId === item.id && "rotate-180")} />

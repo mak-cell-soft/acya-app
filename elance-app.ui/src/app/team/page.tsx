@@ -62,7 +62,9 @@ import { LeaveManagementDialog } from './components/LeaveManagementDialog';
 import { PayslipManagementDialog } from './components/PayslipManagementDialog';
 import { AdvanceManagementDialog } from './components/AdvanceManagementDialog';
 import { LeaveCalendarDialog } from './components/LeaveCalendarDialog';
+import { PermissionsDialog } from './components/PermissionsDialog';
 import { Coins } from 'lucide-react';
+import { useAuthStore } from '@/store/use-auth-store';
 
 export default function TeamPage() {
   // Tabs State
@@ -80,6 +82,7 @@ export default function TeamPage() {
   const [isPayslipDialogOpen, setIsPayslipDialogOpen] = useState(false);
   const [isAdvanceDialogOpen, setIsAdvanceDialogOpen] = useState(false);
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
+  const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
   
   // Selection State
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
@@ -94,6 +97,8 @@ export default function TeamPage() {
   const updatePerson = useUpdatePerson();
   const deletePerson = useDeletePerson();
   const updateAppUser = useUpdateAppUser();
+  const currentUser = useAuthStore(state => state.user);
+  const isAdmin = currentUser?.role === 'Admin' || currentUser?.role === '20' || currentUser?.role === 'SuperAdmin' || currentUser?.role === '10';
 
   // --- Filtering & Sorting ---
   const filteredPersons = useMemo(() => {
@@ -581,6 +586,21 @@ export default function TeamPage() {
                                       <DropdownMenuItem 
                                         className={cn(
                                           "gap-2 font-bold text-forest-900 rounded-xl h-11",
+                                          !isAdmin ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                                        )}
+                                        disabled={!isAdmin}
+                                        onClick={(e) => {
+                                          if (!isAdmin) return;
+                                          e.stopPropagation();
+                                          setSelectedUser(item);
+                                          setIsPermissionsDialogOpen(true);
+                                        }}
+                                      >
+                                        <ShieldCheck className="w-4 h-4 text-emerald-600" /> Permissions
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        className={cn(
+                                          "gap-2 font-bold text-forest-900 rounded-xl h-11",
                                           !item.person ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
                                         )}
                                         disabled={!item.person}
@@ -669,6 +689,16 @@ export default function TeamPage() {
         onSave={handleSaveUser}
         editUser={selectedUser}
         isLoading={updateAppUser.isPending}
+      />
+
+      {/* --- Permissions Dialog --- */}
+      <PermissionsDialog
+        isOpen={isPermissionsDialogOpen}
+        onClose={() => {
+          setIsPermissionsDialogOpen(false);
+          setSelectedUser(null);
+        }}
+        user={selectedUser}
       />
 
       {/* --- Soft Delete Confirm Dialog --- */}

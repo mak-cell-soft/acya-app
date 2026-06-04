@@ -75,6 +75,7 @@ namespace ms.webapp.api.acya.infrastructure
     public virtual DbSet<PricingGrid> PricingGrids { get; set; }
     public virtual DbSet<BankDeposit> BankDeposits { get; set; }
     public virtual DbSet<CaisseMovement> CaisseMovements { get; set; }
+    public virtual DbSet<ms.webapp.api.acya.core.Permissions.UserPermissions> UserPermissions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

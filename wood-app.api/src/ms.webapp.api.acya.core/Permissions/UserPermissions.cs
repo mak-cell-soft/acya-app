@@ -1,62 +1,40 @@
-//using ms.webapp.api.acya.core.Entities;
+using System;
+using ms.webapp.api.acya.core.Entities;
 
-//namespace ms.webapp.api.acya.core.Permissions
-//{
-//  public class UserPermissions : IEntity
-//  {
-//    public int Id { get; set; }
-//    public int UserId { get; set; }
-//    public AppUser? AppUsers { get; set; }
+namespace ms.webapp.api.acya.core.Permissions
+{
+    public class UserPermissions : IEntity
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public AppUser? AppUser { get; set; }
+        
+        /// <summary>
+        /// JSON serialized permissions object mapped to AppPermissionsMap
+        /// </summary>
+        public string Permissions { get; set; } = "{}";
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    }
 
-//    public ArticlePermissions Articles { get; set; } = new ArticlePermissions();
-//    public ProviderPermissions Providers { get; set; } = new ProviderPermissions();
-//    public AppVariablePermissions AppVariables { get; set; } = new AppVariablePermissions();
-//    public BankPermissions Banks { get; set; } = new BankPermissions();
-//    public CustomerPermissions Customers { get; set; } = new CustomerPermissions();
-//  }
+    public class ModulePermissions
+    {
+        public bool CanRead { get; set; }
+        public bool CanAdd { get; set; }
+        public bool CanUpdate { get; set; }
+        public bool CanDelete { get; set; }
+    }
 
-//  // Articles
-//  public class ArticlePermissions
-//  {
-//    public bool CanRead { get; set; }
-//    public bool CanAdd { get; set; }
-//    public bool CanUpdate { get; set; }
-//    public bool CanDelete { get; set; }
-//  }
-
-//  // Providers
-//  public class ProviderPermissions
-//  {
-//    public bool CanRead { get; set; }
-//    public bool CanAdd { get; set; }
-//    public bool CanUpdate { get; set; }
-//    public bool CanDelete { get; set; }
-//  }
-
-//  // AppVariables
-//  public class AppVariablePermissions
-//  {
-//    public bool CanRead { get; set; }
-//    public bool CanAdd { get; set; }
-//    public bool CanUpdate { get; set; }
-//    public bool CanDelete { get; set; }
-//  }
-
-//  // Banks
-//  public class BankPermissions
-//  {
-//    public bool CanRead { get; set; }
-//    public bool CanAdd { get; set; }
-//    public bool CanUpdate { get; set; }
-//    public bool CanDelete { get; set; }
-//  }
-
-//  // Customer
-//  public class CustomerPermissions
-//  {
-//    public bool CanRead { get; set; }
-//    public bool CanAdd { get; set; }
-//    public bool CanUpdate { get; set; }
-//    public bool CanDelete { get; set; }
-//  }
-//}
+    public class AppPermissionsMap
+    {
+        public ModulePermissions Articles { get; set; } = new ModulePermissions();
+        public ModulePermissions Customers { get; set; } = new ModulePermissions();
+        public ModulePermissions Providers { get; set; } = new ModulePermissions();
+        public ModulePermissions Purchases { get; set; } = new ModulePermissions();
+        public ModulePermissions Sales { get; set; } = new ModulePermissions();
+        public ModulePermissions Stock { get; set; } = new ModulePermissions();
+        public ModulePermissions Inventory { get; set; } = new ModulePermissions();
+        public ModulePermissions Accounting { get; set; } = new ModulePermissions();
+        public ModulePermissions HR { get; set; } = new ModulePermissions();
+        public ModulePermissions Configuration { get; set; } = new ModulePermissions();
+    }
+}

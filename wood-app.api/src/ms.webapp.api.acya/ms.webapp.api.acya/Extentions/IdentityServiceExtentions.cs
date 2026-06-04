@@ -30,6 +30,14 @@ namespace ms.webapp.api.acya.api.Extentions
           IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JWTSetting.GetSection("securityKey").Value!)),
         };
       });
+
+      services.AddAuthorization(options =>
+      {
+          options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("SuperAdmin", "Admin"));
+      });
+
+      services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, ms.webapp.api.acya.PermissionsHelper.PermissionHandler>();
+
       return services;
     }
   }

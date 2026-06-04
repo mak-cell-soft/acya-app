@@ -62,7 +62,7 @@ namespace ms.webapp.api.acya.api.Services
       return tokeHandler.WriteToken(token);
     }
 
-    public string CreateToken(AppUser user)
+    public string CreateToken(AppUser user, string? permissionsJson = null)
     {
       var tokenHandler = new JwtSecurityTokenHandler();
 
@@ -103,6 +103,12 @@ namespace ms.webapp.api.acya.api.Services
       {
         claims.Add(new Claim("DefaultSite", user.SalesSite.Address!.ToString()!));
         claims.Add(new Claim("DefaultSiteId", user.SalesSite.Id.ToString()));
+      }
+
+      // Add permissions claim
+      if (!string.IsNullOrEmpty(permissionsJson))
+      {
+        claims.Add(new Claim("Permissions", permissionsJson));
       }
 
       var tokenDescriptor = new SecurityTokenDescriptor

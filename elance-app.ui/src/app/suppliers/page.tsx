@@ -25,6 +25,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useQueryClient } from '@tanstack/react-query';
 import { DataImportDialog } from '@/components/shared/data-import-dialog';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -62,6 +63,7 @@ export default function ProvidersPage() {
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
 
   const queryClient = useQueryClient();
+  const { hasPermission } = usePermissionGuard();
 
   // Queries & Mutations
   const { data: suppliers = [], isLoading } = useSuppliers();
@@ -231,18 +233,22 @@ export default function ProvidersPage() {
                     <History className="w-4 h-4 text-forest-500" /> Historique Achats
                   </DropdownMenuItem>
                   <div className="h-px bg-forest-50 my-1" />
-                  <DropdownMenuItem 
-                    className="gap-3 font-bold text-forest-900 rounded-xl p-3 cursor-pointer hover:bg-forest-50"
-                    onClick={() => handleOpenEdit(item)}
-                  >
-                    <Edit className="w-4 h-4 text-sand-400" /> Modifier
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="gap-3 font-bold text-rose-600 rounded-xl p-3 cursor-pointer hover:text-rose-700 hover:bg-rose-50"
-                    onClick={() => handleOpenDelete(item)}
-                  >
-                    <Trash2 className="w-4 h-4" /> Supprimer
-                  </DropdownMenuItem>
+                  {hasPermission('providers', 'canUpdate') && (
+                    <DropdownMenuItem 
+                      className="gap-3 font-bold text-forest-900 rounded-xl p-3 cursor-pointer hover:bg-forest-50"
+                      onClick={() => handleOpenEdit(item)}
+                    >
+                      <Edit className="w-4 h-4 text-sand-400" /> Modifier
+                    </DropdownMenuItem>
+                  )}
+                  {hasPermission('providers', 'canDelete') && (
+                    <DropdownMenuItem 
+                      className="gap-3 font-bold text-rose-600 rounded-xl p-3 cursor-pointer hover:text-rose-700 hover:bg-rose-50"
+                      onClick={() => handleOpenDelete(item)}
+                    >
+                      <Trash2 className="w-4 h-4" /> Supprimer
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
               <ChevronDown className={cn("w-4 h-4 text-sand-300 transition-transform duration-500 ml-2", expandedId === item.id && "rotate-180")} />
@@ -356,19 +362,23 @@ export default function ProvidersPage() {
             <Button variant="outline" className="h-12 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6">
               <Download className="w-4 h-4 mr-2" /> Exporter
             </Button>
-            <Button 
-              onClick={() => setIsImportOpen(true)}
-              variant="outline" 
-              className="h-12 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6"
-            >
-              <Upload className="w-4 h-4 mr-2" /> Importer
-            </Button>
-            <Button 
-              onClick={handleOpenCreate}
-              className="h-12 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-6"
-            >
-              <Plus className="w-4 h-4 mr-2" /> Nouveau Fournisseur
-            </Button>
+            {hasPermission('providers', 'canAdd') && (
+              <Button 
+                onClick={() => setIsImportOpen(true)}
+                variant="outline" 
+                className="h-12 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6"
+              >
+                <Upload className="w-4 h-4 mr-2" /> Importer
+              </Button>
+            )}
+            {hasPermission('providers', 'canAdd') && (
+              <Button 
+                onClick={handleOpenCreate}
+                className="h-12 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-6"
+              >
+                <Plus className="w-4 h-4 mr-2" /> Nouveau Fournisseur
+              </Button>
+            )}
           </div>
         </div>
 
