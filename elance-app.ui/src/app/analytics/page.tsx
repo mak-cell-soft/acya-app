@@ -394,18 +394,18 @@ export default function AnalyticsPage() {
               dataKey="quantitySold"
               nameKey="articleName"
               stroke="none"
-              label={({ cx, cy, midAngle, innerRadius, outerRadius, value, index }: any) => {
+              label={({ cx, cy, midAngle, innerRadius, outerRadius, value, index, payload }: any) => {
                 const RADIAN = Math.PI / 180;
                 const radius = outerRadius * 1.1;
                 const x = cx + radius * Math.cos(-midAngle * RADIAN);
                 const y = cy + radius * Math.sin(-midAngle * RADIAN);
                 
                 // Only show label if it's a significant slice to avoid overlap
-                if (articles.length > 5 && value < articles[0].quantitySold * 0.1) return null;
+                if (articles.length > 5 && value < (articles[0]?.quantitySold || 0) * 0.1) return null;
                 
                 return (
                   <text x={x} y={y} fill="#4B5563" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs font-medium">
-                    [{articles[index].reference}] {articles[index].articleName.substring(0, 20)}{articles[index].articleName.length > 20 ? '...' : ''}
+                    [{payload.reference}] {payload.articleName.substring(0, 20)}{payload.articleName.length > 20 ? '...' : ''}
                   </text>
                 );
               }}
