@@ -29,6 +29,7 @@ import { Person } from '@/types/team';
 import { Leave, Payslip, Advance } from '@/types/hr';
 import { AccountStatementStandard } from './account-statement-standard';
 import { AccountStatement, Customer, Supplier } from '@/types/customer';
+import { DocumentListStandard } from './document-list-standard';
 
 interface PrintVariantDialogProps {
   isOpen: boolean;
@@ -45,7 +46,10 @@ interface PrintVariantDialogProps {
   periodStart?: Date;
   periodEnd?: Date;
   statementType?: 'customer' | 'supplier';
-  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | null | undefined;
+  documentsList?: Document[];
+  listTitle?: string;
+  listContext?: 'sales' | 'purchases';
+  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | 'document-list' | null | undefined;
 }
 
 export function PrintVariantDialog({
@@ -63,6 +67,9 @@ export function PrintVariantDialog({
   periodStart,
   periodEnd,
   statementType,
+  documentsList,
+  listTitle,
+  listContext,
   docType,
 }: PrintVariantDialogProps) {
   // Retrieve the connected enterprise settings dynamically.
@@ -73,7 +80,7 @@ export function PrintVariantDialog({
   // Auto-trigger print for single-variant HR documents (leave, advance) and statements as soon as enterprise settings load
   React.useEffect(() => {
     if (isOpen && enterprise && !isLoading && !printing && 
-       (docType === 'leave' || docType === 'advance' || docType === 'customer-statement' || docType === 'supplier-statement')) {
+       (docType === 'leave' || docType === 'advance' || docType === 'customer-statement' || docType === 'supplier-statement' || docType === 'document-list')) {
       handlePrint('standard');
     }
   }, [isOpen, enterprise, isLoading, docType]);
@@ -85,6 +92,7 @@ export function PrintVariantDialog({
     docType !== 'payslip' &&
     docType !== 'customer-statement' &&
     docType !== 'supplier-statement' &&
+    docType !== 'document-list' &&
     (!document || !docType)
   ) return null;
   if (docType === 'transfer' && !transfer) return null;
@@ -92,6 +100,7 @@ export function PrintVariantDialog({
   if (docType === 'advance' && (!advance || !employee)) return null;
   if (docType === 'payslip' && (!payslip || !employee)) return null;
   if ((docType === 'customer-statement' || docType === 'supplier-statement') && (!statement || !counterpart || !periodStart || !periodEnd || !statementType)) return null;
+  if (docType === 'document-list' && (!documentsList || !listTitle || !listContext)) return null;
 
   /**
    * Executes the print flow by generating markup, injecting it into a hidden iframe,
@@ -175,6 +184,17 @@ export function PrintVariantDialog({
             statementType={statementType}
           />
         );
+      } else if (docType === 'document-list' && documentsList && listTitle && listContext) {
+        printDocNumber = `LISTE-${listTitle.replace(/\s+/g, '-').toUpperCase()}`;
+        styleCss = getStandardPrintStyles();
+        contentHtml = renderToStaticMarkup(
+          <DocumentListStandard
+            documentsList={documentsList}
+            listTitle={listTitle}
+            listContext={listContext}
+            enterprise={enterprise}
+          />
+        );
       }
 
       // 2. Create a temporary hidden iframe to isolate print styles from the main Next.js layout
@@ -233,7 +253,7 @@ export function PrintVariantDialog({
     }
   };
 
-  const isAutoPrint = docType === 'leave' || docType === 'advance' || docType === 'customer-statement' || docType === 'supplier-statement';
+  const isAutoPrint = docType === 'leave' || docType === 'advance' || docType === 'customer-statement' || docType === 'supplier-statement' || docType === 'document-list';
 
   if (isAutoPrint) {
     return null;

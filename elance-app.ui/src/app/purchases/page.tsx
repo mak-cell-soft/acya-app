@@ -76,6 +76,7 @@ import { DocumentDetailDrawer } from '@/components/sales/document-detail-drawer'
 import { WithholdingTaxModal } from '@/components/sales/withholding-tax-modal';
 import { SupplierReceiptToInvoiceModal } from '@/components/purchases/supplier-receipt-to-invoice-modal';
 import { SupplierCreditNoteModal } from '@/components/purchases/supplier-credit-note-modal';
+import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 
 // Month names list for period filters
 const MONTHS = [
@@ -127,6 +128,7 @@ export default function PurchasesPage() {
   const [invoiceForCreditNote, setInvoiceForCreditNote] = useState<Document | null>(null);
   const [isCreditNoteModalOpen, setIsCreditNoteModalOpen] = useState(false);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [isPrintListModalOpen, setIsPrintListModalOpen] = useState(false);
 
   // Resolves total days count in selected month to validate daily filters
   const getDaysCountInMonth = (year: number, monthIdx: number) => {
@@ -374,6 +376,13 @@ export default function PurchasesPage() {
                 <Coins className="w-4 h-4" /> Règlements Fournisseurs
               </Button>
             </Link>
+            <Button
+              onClick={() => setIsPrintListModalOpen(true)}
+              variant="outline"
+              className="h-11 rounded-xl border-amber-900/20 text-amber-900 font-bold hover:bg-amber-50 gap-2 flex items-center transition-all duration-300"
+            >
+              <Printer className="w-4 h-4" /> Imprimer la liste
+            </Button>
             {/* Primary create dropdown — hidden unless user has canAdd permission on purchases */}
             {hasPermission('purchases', 'canAdd') && (
               <DropdownMenu>
@@ -1425,6 +1434,20 @@ export default function PurchasesPage() {
           refetch();
         }}
         parentInvoice={invoiceForCreditNote}
+      />
+
+      {/* Print List Dialog */}
+      <PrintVariantDialog
+        isOpen={isPrintListModalOpen}
+        onClose={() => setIsPrintListModalOpen(false)}
+        docType="document-list"
+        documentsList={filteredDocuments}
+        listContext="purchases"
+        listTitle={
+          activeTab === 'invoice' ? 'Factures' :
+          activeTab === 'receipt' ? 'Bons de Réception' :
+          activeTab === 'order' ? 'Commandes' : 'Avoirs'
+        }
       />
     </DashboardLayout>
   );

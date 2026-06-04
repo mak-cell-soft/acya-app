@@ -25,7 +25,8 @@ import {
   Plus,
   Pencil,
   Trash2,
-  CreditCard
+  CreditCard,
+  Printer
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -43,6 +44,7 @@ import { BankDepositDialog } from '@/components/accounting/bank-deposit-dialog';
 // Bank management: reuse the BankFormDialog from settings (Add/Edit) and the delete hook
 import { BankFormDialog } from '@/components/settings/bank-form-dialog';
 import { useBanks, useDeleteBank } from '@/hooks/use-banks';
+import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 
 // Constant months list
 const MONTHS = [
@@ -78,6 +80,10 @@ export default function AccountingDashboard() {
   const [achatsPageSize, setAchatsPageSize] = useState(10);
   const [ventesPage, setVentesPage] = useState(1);
   const [ventesPageSize, setVentesPageSize] = useState(10);
+  
+  // Print List States
+  const [isPrintAchatsListModalOpen, setIsPrintAchatsListModalOpen] = useState(false);
+  const [isPrintVentesListModalOpen, setIsPrintVentesListModalOpen] = useState(false);
 
   // Reset pages to 1 when period or search terms change
   React.useEffect(() => {
@@ -815,6 +821,13 @@ export default function AccountingDashboard() {
               </p>
             </div>
           </div>
+          <Button
+            onClick={() => setIsPrintAchatsListModalOpen(true)}
+            variant="outline"
+            className="h-10 rounded-xl border-amber-900/20 text-amber-900 font-bold hover:bg-amber-50 gap-2 flex items-center transition-all duration-300"
+          >
+            <Printer className="w-4 h-4" /> Imprimer la liste
+          </Button>
         </div>
 
         {/* Achats KPIs */}
@@ -985,6 +998,13 @@ export default function AccountingDashboard() {
               </p>
             </div>
           </div>
+          <Button
+            onClick={() => setIsPrintVentesListModalOpen(true)}
+            variant="outline"
+            className="h-10 rounded-xl border-forest-900/20 text-forest-900 font-bold hover:bg-forest-50 gap-2 flex items-center transition-all duration-300"
+          >
+            <Printer className="w-4 h-4" /> Imprimer la liste
+          </Button>
         </div>
 
         {/* Ventes KPIs */}
@@ -1150,6 +1170,25 @@ export default function AccountingDashboard() {
           bank={selectedBank}
         />
       )}
+
+      {/* Print Lists Dialogs */}
+      <PrintVariantDialog
+        isOpen={isPrintAchatsListModalOpen}
+        onClose={() => setIsPrintAchatsListModalOpen(false)}
+        docType="document-list"
+        documentsList={filteredAchats}
+        listContext="purchases"
+        listTitle="Factures Fournisseur"
+      />
+
+      <PrintVariantDialog
+        isOpen={isPrintVentesListModalOpen}
+        onClose={() => setIsPrintVentesListModalOpen(false)}
+        docType="document-list"
+        documentsList={filteredVentes}
+        listContext="sales"
+        listTitle="Factures Client"
+      />
     </div>
   );
 }

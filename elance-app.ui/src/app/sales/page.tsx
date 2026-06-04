@@ -125,6 +125,7 @@ export default function SalesPage() {
   const [blForConversion, setBlForConversion] = useState<Document | null>(null);
   // State to manage which document is being printed and its type
   const [printDoc, setPrintDoc] = useState<{ doc: Document; type: 'bl' | 'invoice' } | null>(null);
+  const [isPrintListModalOpen, setIsPrintListModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
   // Map tabs to document types
@@ -241,6 +242,13 @@ export default function SalesPage() {
               className="h-11 rounded-xl border-sand-200 text-forest-900 font-bold hover:bg-sand-50"
             >
               <Search className="w-4 h-4 mr-2 text-forest-800" /> Recherche Approfondie
+            </Button>
+            <Button
+              onClick={() => setIsPrintListModalOpen(true)}
+              variant="outline"
+              className="h-11 rounded-xl border-sand-200 text-forest-900 font-bold hover:bg-sand-50"
+            >
+              <Printer className="w-4 h-4 mr-2 text-forest-800" /> Imprimer la liste
             </Button>
             {/* Batch conversion buttons — only for users with canAdd on sales */}
             {hasPermission('sales', 'canAdd') && (
@@ -1146,6 +1154,20 @@ export default function SalesPage() {
         onClose={() => setPrintDoc(null)}
         document={printDoc?.doc}
         docType={printDoc?.type}
+      />
+
+      {/* Print List Dialog */}
+      <PrintVariantDialog
+        isOpen={isPrintListModalOpen}
+        onClose={() => setIsPrintListModalOpen(false)}
+        docType="document-list"
+        documentsList={filteredDocuments}
+        listContext="sales"
+        listTitle={
+          activeTab === 'invoice' ? 'Factures' :
+          activeTab === 'bl' ? 'Bons de Livraison' :
+          activeTab === 'order' ? 'Commandes' : 'Devis'
+        }
       />
 
       {/* Payment Confirmation Drawer */}
