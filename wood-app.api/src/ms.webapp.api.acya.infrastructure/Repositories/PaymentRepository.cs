@@ -191,8 +191,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                             p.PaymentDate.Value.Year == year && 
                             p.PaymentDate.Value.Month == month && 
                             p.PaymentDate.Value.Day == day)
-                .Where(p => (p.Document != null && p.Document.SalesSiteId == salesSiteId) ||
-                            (p.Document == null && p.AppUser != null && p.AppUser.IdSalesSite == salesSiteId));
+                .Where(p => (p.AppUser != null && p.AppUser.IdSalesSite == salesSiteId) ||
+                            (p.AppUser == null && p.Document != null && p.Document.SalesSiteId == salesSiteId));
 
             if (documentSide == "customer")
             {

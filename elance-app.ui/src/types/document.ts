@@ -183,6 +183,14 @@ export interface Document {
   transporter?: (Customer & { fullname?: string }) | null;
   parentdocuments?: Document[];
   childdocuments?: Document[];
+  appuser?: {
+    id: number;
+    login: string;
+    person?: {
+      firstname: string;
+      lastname: string;
+    };
+  };
 }
 
 /**

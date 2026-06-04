@@ -62,6 +62,7 @@ import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
+import { useAuthStore } from '@/store/use-auth-store';
 
 const MONTHS = [
   'Janvier',
@@ -80,6 +81,10 @@ const MONTHS = [
 
 export default function SalesPage() {
   const router = useRouter();
+  const { user } = useAuthStore();
+  const currentUserId = user?.id ? parseInt(user.id) : null;
+  const isAdmin = user?.role === '10' || user?.role === '20';
+
   // Permission guard: gates UI actions based on the user's saved permissions for the 'sales' module
   const { hasPermission } = usePermissionGuard();
   const [searchTerm, setSearchTerm] = useState('');
@@ -484,6 +489,8 @@ export default function SalesPage() {
                     <tr className="bg-sand-50/20 border-b border-sand-100 text-sand-400 font-bold uppercase text-[10px] tracking-widest">
                       <th className="px-6 py-4">Référence</th>
                       <th className="px-4 py-4">Date</th>
+                      <th className="px-6 py-4">Site</th>
+                      <th className="px-6 py-4">Créateur</th>
                       <th className="px-6 py-4">Client</th>
                       <th className="px-4 py-4 text-right">Montant Brut HT</th>
                       <th className="px-6 py-4 text-right">Montant TTC</th>
@@ -497,7 +504,7 @@ export default function SalesPage() {
                   <tbody className="divide-y divide-sand-100">
                     {isLoading ? (
                       <tr>
-                        <td colSpan={activeTab === 'invoice' ? 9 : activeTab === 'bl' ? 8 : 7} className="py-24 text-center">
+                        <td colSpan={activeTab === 'invoice' ? 11 : activeTab === 'bl' ? 10 : 9} className="py-24 text-center">
                           <div className="flex flex-col items-center justify-center space-y-2">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-forest-600"></div>
                             <p className="text-xs text-sand-400 font-bold uppercase tracking-wider">
@@ -516,6 +523,7 @@ export default function SalesPage() {
                           item.parentdocuments?.some((p: any) => p.type === DocumentTypes.customerInvoice || p.parentdocument?.type === DocumentTypes.customerInvoice) ||
                           item.childdocuments?.some((c: any) => c.type === DocumentTypes.customerInvoice || c.childdocument?.type === DocumentTypes.customerInvoice);
 
+                        const isOwner = isAdmin || item.updatedbyid === currentUserId;
 
                         return (
                           <React.Fragment key={item.id}>
@@ -533,6 +541,21 @@ export default function SalesPage() {
                               <span className="text-xs text-sand-500">
                                 {new Date(item.creationdate!).toLocaleDateString('fr-FR')}
                               </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <Badge variant="outline" className="font-mono text-[9px] bg-sand-50 border-sand-200 text-sand-600">
+                                {item.sales_site?.address || 'Générique'}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-full bg-forest-100 flex items-center justify-center text-[9px] font-bold text-forest-800" title={item.appuser?.person ? `${item.appuser.person.firstname} ${item.appuser.person.lastname}` : item.appuser?.login || 'Système'}>
+                                  {item.appuser?.person ? `${item.appuser.person.firstname[0]}${item.appuser.person.lastname[0]}`.toUpperCase() : 'SYS'}
+                                </div>
+                                <span className="text-xs font-medium text-sand-700 truncate max-w-[100px]">
+                                  {item.appuser?.person ? `${item.appuser.person.firstname} ${item.appuser.person.lastname}` : item.appuser?.login || 'Système'}
+                                </span>
+                              </div>
                             </td>
                             <td className="px-6 py-4">
                               <div className="font-serif font-bold text-forest-950 flex items-center gap-2">
@@ -742,13 +765,15 @@ export default function SalesPage() {
                                       <>
                                         <DropdownMenuItem
                                           onClick={() => handleConvert(item, 'order')}
-                                          className="gap-2 font-semibold text-forest-850 cursor-pointer"
+                                          disabled={!isOwner}
+                                          className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed" : "text-forest-850")}
                                         >
                                           <ArrowRight className="w-4 h-4" /> Convertir en Commande
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                           onClick={() => handleConvert(item, 'bl')}
-                                          className="gap-2 font-semibold text-forest-850 cursor-pointer"
+                                          disabled={!isOwner}
+                                          className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed" : "text-forest-850")}
                                         >
                                           <ArrowRight className="w-4 h-4" /> Convertir en BL
                                         </DropdownMenuItem>
@@ -759,7 +784,8 @@ export default function SalesPage() {
                                     {hasPermission('sales', 'canAdd') && item.type === DocumentTypes.customerOrder && (
                                       <DropdownMenuItem
                                         onClick={() => handleConvert(item, 'bl')}
-                                        className="gap-2 font-semibold text-forest-850 cursor-pointer"
+                                        disabled={!isOwner}
+                                        className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed" : "text-forest-850")}
                                       >
                                         <ArrowRight className="w-4 h-4" /> Convertir en BL
                                       </DropdownMenuItem>
@@ -771,14 +797,19 @@ export default function SalesPage() {
                                         onClick={() => handleConvert(item, 'invoice')}
                                         className={cn(
                                           "gap-2 font-semibold cursor-pointer",
-                                          isBlInvoiced ? "text-sand-450 cursor-not-allowed" : "text-forest-850"
+                                          isBlInvoiced || !isOwner ? "text-sand-450 cursor-not-allowed" : "text-forest-850"
                                         )}
-                                        disabled={isBlInvoiced}
+                                        disabled={isBlInvoiced || !isOwner}
                                       >
                                         {isBlInvoiced ? (
                                           <>
                                             <Lock className="w-4 h-4 text-sand-400" />
                                             Déjà Facturé
+                                          </>
+                                        ) : !isOwner ? (
+                                          <>
+                                            <Lock className="w-4 h-4 text-sand-400" />
+                                            Non Autorisé
                                           </>
                                         ) : (
                                           <>
@@ -827,7 +858,8 @@ export default function SalesPage() {
                                     {hasPermission('sales', 'canDelete') && (
                                       <DropdownMenuItem
                                         onClick={() => handleDelete(item.id)}
-                                        className="gap-2 font-semibold text-red-600 cursor-pointer hover:text-red-700 hover:bg-red-50"
+                                        disabled={!isOwner}
+                                        className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed hover:bg-transparent" : "text-red-600 hover:text-red-700 hover:bg-red-50")}
                                       >
                                         <Trash2 className="w-4 h-4" /> Supprimer
                                       </DropdownMenuItem>
@@ -848,7 +880,7 @@ export default function SalesPage() {
                           <AnimatePresence>
                             {expandedId === item.id && (
                               <tr>
-                                <td colSpan={activeTab === 'bl' || activeTab === 'invoice' ? 8 : 7} className="p-0">
+                                <td colSpan={activeTab === 'bl' || activeTab === 'invoice' ? 10 : 9} className="p-0">
                                   <motion.div
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: 'auto', opacity: 1 }}
@@ -1081,7 +1113,7 @@ export default function SalesPage() {
                     })
                     ) : (
                       <tr>
-                        <td colSpan={activeTab === 'invoice' ? 9 : activeTab === 'bl' ? 8 : 7} className="py-24 text-center text-sand-400">
+                        <td colSpan={activeTab === 'invoice' ? 11 : activeTab === 'bl' ? 10 : 9} className="py-24 text-center text-sand-400">
                           Aucun document de vente trouvé pour cette période.
                         </td>
                       </tr>
