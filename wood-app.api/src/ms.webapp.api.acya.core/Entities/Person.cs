@@ -39,7 +39,10 @@ namespace ms.webapp.api.acya.core.Entities
 
     public void UpdateFromDto(PersonDto dto)
     {
-      Id = dto.id;
+      if (Id == 0 && dto.id > 0)
+      {
+        Id = dto.id;
+      }
       /**
        * Le Problème est là
        */

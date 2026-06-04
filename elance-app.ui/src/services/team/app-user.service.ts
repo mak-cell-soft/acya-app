@@ -6,6 +6,11 @@ export const appUserService = {
     return response.data;
   },
 
+  create: async (model: any) => {
+    const response = await api.post('/Account/register', model);
+    return response.data;
+  },
+
   getById: async (id: number) => {
     const response = await api.get(`/AppUser/id?id=${id}`);
     return response.data;

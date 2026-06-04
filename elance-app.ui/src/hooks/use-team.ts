@@ -83,3 +83,20 @@ export function useUpdateAppUser() {
     },
   });
 }
+
+export function useCreateAppUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: any) => appUserService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['app-users'] });
+      queryClient.invalidateQueries({ queryKey: ['persons'] });
+      toast.success('Utilisateur créé avec succès');
+    },
+    onError: (error: any) => {
+      console.error('Error creating app user:', error);
+      toast.error(error?.response?.data?.message || 'Erreur lors de la création de l\'utilisateur');
+    },
+  });
+}

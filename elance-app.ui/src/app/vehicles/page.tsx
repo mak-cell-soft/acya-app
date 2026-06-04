@@ -36,8 +36,13 @@ import { Vehicle } from '@/types/vehicle';
 import { VehicleFormDialog } from './components/vehicle-form-dialog';
 import { DeleteVehicleDialog } from './components/delete-vehicle-dialog';
 import { toast } from 'sonner';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
+import { useRouter } from 'next/navigation';
 
 export default function VehiclesPage() {
+  const { hasAnyPermission, hasPermission } = usePermissionGuard();
+  const router = useRouter();
+
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -64,8 +69,14 @@ export default function VehiclesPage() {
   }, []);
 
   useEffect(() => {
+    // Redirect if no permission
+    if (!hasAnyPermission('vehicles')) {
+      toast.error("Vous n'avez pas l'autorisation d'acc\u00e9der aux v\u00e9hicules.");
+      router.replace('/');
+      return;
+    }
     loadVehicles();
-  }, [loadVehicles]);
+  }, [loadVehicles, hasAnyPermission, router]);
 
   // Filter only owned vehicles
   const ownedVehicles = React.useMemo(() => {
@@ -264,12 +275,14 @@ export default function VehiclesPage() {
             <Button variant="outline" className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50">
               <Download className="w-4 h-4 mr-2" /> Rapport
             </Button>
-            <Button 
-              onClick={openAddDialog}
-              className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
-            >
-              <Plus className="w-4 h-4 mr-2" /> Ajouter un Véhicule
-            </Button>
+            {hasPermission('vehicles', 'canAdd') && (
+              <Button 
+                onClick={openAddDialog}
+                className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
+              >
+                <Plus className="w-4 h-4 mr-2" /> Ajouter un Véhicule
+              </Button>
+            )}
           </div>
         </div>
 
@@ -401,21 +414,27 @@ export default function VehiclesPage() {
                             </td>
                             <td className="p-5 text-right" onClick={(e) => e.stopPropagation()}>
                               <div className="flex items-center justify-end gap-2">
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-sand-400">
-                                      <MoreHorizontal className="w-4 h-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="rounded-xl border-forest-100 w-44">
-                                    <DropdownMenuItem onClick={(e) => openEditDialog(item, e)} className="gap-2 font-bold text-forest-900 cursor-pointer">
-                                      <Edit className="w-4 h-4" /> Modifier
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={(e) => openDeleteDialog(item, e)} className="gap-2 font-bold text-rose-600 cursor-pointer hover:text-rose-700 hover:bg-rose-50">
-                                      <Trash2 className="w-4 h-4" /> Supprimer
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
+                                {(hasPermission('vehicles', 'canUpdate') || hasPermission('vehicles', 'canDelete')) && (
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-sand-400">
+                                        <MoreHorizontal className="w-4 h-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="rounded-xl border-forest-100 w-44">
+                                      {hasPermission('vehicles', 'canUpdate') && (
+                                        <DropdownMenuItem onClick={(e) => openEditDialog(item, e)} className="gap-2 font-bold text-forest-900 cursor-pointer">
+                                          <Edit className="w-4 h-4" /> Modifier
+                                        </DropdownMenuItem>
+                                      )}
+                                      {hasPermission('vehicles', 'canDelete') && (
+                                        <DropdownMenuItem onClick={(e) => openDeleteDialog(item, e)} className="gap-2 font-bold text-rose-600 cursor-pointer hover:text-rose-700 hover:bg-rose-50">
+                                          <Trash2 className="w-4 h-4" /> Supprimer
+                                        </DropdownMenuItem>
+                                      )}
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                )}
                                 <ChevronDown className={cn("w-4 h-4 text-sand-300 transition-transform duration-300", expandedId === item.id && "rotate-180")} />
                               </div>
                             </td>
@@ -522,14 +541,16 @@ export default function VehiclesPage() {
                                             <p className="text-xs text-sand-500 font-medium leading-relaxed">
                                               Aucune carte carburant configurée pour ce véhicule.
                                             </p>
-                                            <Button 
-                                              size="sm" 
-                                              variant="outline" 
-                                              onClick={(e) => openEditDialog(item, e)}
-                                              className="h-8 rounded-lg border-forest-100 text-forest-600 font-bold hover:bg-forest-50 text-[0.7rem]"
-                                            >
-                                              Associer une carte
-                                            </Button>
+                                            {hasPermission('vehicles', 'canUpdate') && (
+                                              <Button 
+                                                size="sm" 
+                                                variant="outline" 
+                                                onClick={(e) => openEditDialog(item, e)}
+                                                className="h-8 rounded-lg border-forest-100 text-forest-600 font-bold hover:bg-forest-50 text-[0.7rem]"
+                                              >
+                                                Associer une carte
+                                              </Button>
+                                            )}
                                           </div>
                                         )}
                                       </div>

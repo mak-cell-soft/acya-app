@@ -49,14 +49,16 @@ import {
   useUpdatePerson, 
   useDeletePerson, 
   useAppUsers, 
+  useCreateAppUser,
   useUpdateAppUser 
 } from '@/hooks/use-team';
 import { useSites } from '@/hooks/use-enterprise';
-import { Person, AppUser, ROLE_LABELS } from '@/types/team';
+import { Person, AppUser, ROLE_LABELS, ROLE_COLORS } from '@/types/team';
 
 // Form Dialogs
 import { AddEmployeeDialog } from './components/AddEmployeeDialog';
 import { EditUserDialog } from './components/EditUserDialog';
+import { CreateUserDialog } from './components/CreateUserDialog';
 import { DeleteConfirmDialog } from '@/components/articles/delete-confirm-dialog';
 import { LeaveManagementDialog } from './components/LeaveManagementDialog';
 import { PayslipManagementDialog } from './components/PayslipManagementDialog';
@@ -77,6 +79,7 @@ export default function TeamPage() {
   // Dialog State
   const [isEmployeeDialogOpen, setIsEmployeeDialogOpen] = useState(false);
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
+  const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [isPayslipDialogOpen, setIsPayslipDialogOpen] = useState(false);
@@ -96,6 +99,7 @@ export default function TeamPage() {
   const createPerson = useCreatePerson();
   const updatePerson = useUpdatePerson();
   const deletePerson = useDeletePerson();
+  const createAppUser = useCreateAppUser();
   const updateAppUser = useUpdateAppUser();
   const currentUser = useAuthStore(state => state.user);
   const isAdmin = currentUser?.role === 'Admin' || currentUser?.role === '20' || currentUser?.role === 'SuperAdmin' || currentUser?.role === '10';
@@ -165,6 +169,14 @@ export default function TeamPage() {
     }
   };
 
+  const handleCreateUser = (model: any) => {
+    createAppUser.mutate(model, {
+      onSuccess: () => {
+        setIsCreateUserDialogOpen(false);
+      }
+    });
+  };
+
   const handleDeleteEmployee = () => {
     if (selectedPerson) {
       deletePerson.mutate(selectedPerson.id, {
@@ -198,11 +210,15 @@ export default function TeamPage() {
             <Button 
               className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-5 transition-all duration-300 transform active:scale-95"
               onClick={() => {
-                setSelectedPerson(null);
-                setIsEmployeeDialogOpen(true);
+                if (activeTab === 'employees') {
+                  setSelectedPerson(null);
+                  setIsEmployeeDialogOpen(true);
+                } else {
+                  setIsCreateUserDialogOpen(true);
+                }
               }}
             >
-              <Plus className="w-4 h-4 mr-2" /> Ajouter un Membre
+              <Plus className="w-4 h-4 mr-2" /> {activeTab === 'employees' ? 'Ajouter un Membre' : 'Créer un Compte'}
             </Button>
           </div>
         </div>
@@ -471,13 +487,14 @@ export default function TeamPage() {
                         <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest pl-8">Compte Utilisateur</th>
                         <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Collaborateur Lié</th>
                         <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Site Assigné</th>
+                        <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Rôle</th>
                         <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-center">Status</th>
                         <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-forest-50">
                       {isUsersLoading ? (
-                        <TableSkeleton cols={5} />
+                        <TableSkeleton cols={6} />
                       ) : filteredUsers.length === 0 ? (
                         <EmptyState message="Aucun compte utilisateur trouvé." />
                       ) : (
@@ -520,6 +537,18 @@ export default function TeamPage() {
                                 <div className="flex items-center gap-1.5 text-sm font-semibold text-forest-800">
                                   <Building className="w-4 h-4 text-sand-300" /> {userSite?.address || `Site ID: ${item.defaultsite || 'Non assigné'}`}
                                 </div>
+                              </td>
+                              <td className="p-5">
+                                {item.person?.role ? (
+                                  <Badge 
+                                    className="rounded-lg px-2.5 py-1 font-bold text-[0.7rem] border-none text-white shadow-sm"
+                                    style={{ backgroundColor: ROLE_COLORS[item.person.role] || 'var(--color-forest-600)' }}
+                                  >
+                                    {ROLE_LABELS[item.person.role] || 'Inconnu'}
+                                  </Badge>
+                                ) : (
+                                  <span className="text-sand-400 text-xs">-</span>
+                                )}
                               </td>
                               <td className="p-5 text-center">
                                 <Badge 
@@ -677,6 +706,14 @@ export default function TeamPage() {
       <LeaveCalendarDialog
         isOpen={isCalendarDialogOpen}
         onClose={() => setIsCalendarDialogOpen(false)}
+      />
+
+      {/* --- Create AppUser Dialog --- */}
+      <CreateUserDialog
+        isOpen={isCreateUserDialogOpen}
+        onClose={() => setIsCreateUserDialogOpen(false)}
+        onSave={handleCreateUser}
+        isLoading={createAppUser.isPending}
       />
 
       {/* --- Edit AppUser Dialog --- */}

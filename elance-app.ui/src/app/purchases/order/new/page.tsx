@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/use-auth-store';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { useSuppliers } from '@/hooks/use-suppliers';
 import { useTransporters } from '@/hooks/use-transporters';
 import { useArticles } from '@/hooks/use-articles';
@@ -92,6 +93,16 @@ interface MerchandRow {
 function NewSupplierOrderPageContent() {
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  // Guard: block direct URL access if user lacks canAdd on purchases
+  const { hasPermission } = usePermissionGuard();
+  useEffect(() => {
+    if (!hasPermission('purchases', 'canAdd')) {
+      toast.error("Vous n'avez pas la permission de créer des commandes d'achat.");
+      router.replace('/purchases');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Connected User context details for C# updatedbyid / appuser audits
   const { user } = useAuthStore();

@@ -26,6 +26,7 @@ namespace ms.webapp.api.acya.core.Permissions
 
     public class AppPermissionsMap
     {
+        public ModulePermissions Analytics { get; set; } = new ModulePermissions();
         public ModulePermissions Articles { get; set; } = new ModulePermissions();
         public ModulePermissions Customers { get; set; } = new ModulePermissions();
         public ModulePermissions Providers { get; set; } = new ModulePermissions();
@@ -34,6 +35,7 @@ namespace ms.webapp.api.acya.core.Permissions
         public ModulePermissions Stock { get; set; } = new ModulePermissions();
         public ModulePermissions Inventory { get; set; } = new ModulePermissions();
         public ModulePermissions Accounting { get; set; } = new ModulePermissions();
+        public ModulePermissions Vehicles { get; set; } = new ModulePermissions();
         public ModulePermissions HR { get; set; } = new ModulePermissions();
         public ModulePermissions Configuration { get; set; } = new ModulePermissions();
     }

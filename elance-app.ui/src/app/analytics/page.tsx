@@ -44,6 +44,9 @@ import { useAnalyticsKpis, useMonthlyRevenue, useTopSubCategories, useStockHealt
 import { useSupplierPurchasePaymentChart } from '@/hooks/use-supplier-chart';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ActivityLogSection } from '@/components/analytics/activity-log-section';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const COLORS = ['#1D9E75', '#534AB7', '#A39D90', '#E1F5EE', '#F59E0B', '#3B82F6'];
 
@@ -57,6 +60,9 @@ const formatCurrency = (value: number) => {
 };
 
 export default function AnalyticsPage() {
+  const { hasAnyPermission } = usePermissionGuard();
+  const router = useRouter();
+  
   const [isMounted, setIsMounted] = useState(false);
   const [chartYear, setChartYear] = useState<number>(new Date().getFullYear());
   const [chartMonth, setChartMonth] = useState<number | 'ALL'>(new Date().getMonth() + 1);
@@ -92,7 +98,13 @@ export default function AnalyticsPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
-  }, []);
+    
+    // Redirect if no permission
+    if (!hasAnyPermission('analytics')) {
+      toast.error("Vous n'avez pas l'autorisation d'acc\u00e9der aux analyses.");
+      router.replace('/');
+    }
+  }, [hasAnyPermission, router]);
 
   const salesByCategory = (() => {
     if (!kpis?.documentCounts) return [];

@@ -6,6 +6,7 @@ namespace ms.webapp.api.acya.common
     Admin = 20,
     User = 30,
     Conductor = 40,
+    Driver = 45,
     Seller = 50,
     InvoiceAgent = 60,
     StoreManager = 70

@@ -37,6 +37,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/use-auth-store';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { useSuppliers } from '@/hooks/use-suppliers';
 import { useTransporters } from '@/hooks/use-transporters';
 import { useArticles } from '@/hooks/use-articles';
@@ -84,6 +85,16 @@ function NewSupplierReceiptPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+
+  // Guard: block direct URL access if user lacks canAdd on purchases
+  const { hasPermission } = usePermissionGuard();
+  useEffect(() => {
+    if (!hasPermission('purchases', 'canAdd')) {
+      toast.error("Vous n'avez pas la permission de créer des bons de réception.");
+      router.replace('/purchases');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Connected User details for updatedbyid field
   const { user } = useAuthStore();

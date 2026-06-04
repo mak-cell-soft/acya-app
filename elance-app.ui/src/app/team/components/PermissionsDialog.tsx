@@ -24,6 +24,7 @@ interface PermissionsDialogProps {
 }
 
 const DEFAULT_PERMISSIONS: AppPermissionsMap = {
+  analytics: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
   articles: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
   customers: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
   providers: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
@@ -32,6 +33,7 @@ const DEFAULT_PERMISSIONS: AppPermissionsMap = {
   stock: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
   inventory: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
   accounting: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
+  vehicles: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
   hr: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
   configuration: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
 };

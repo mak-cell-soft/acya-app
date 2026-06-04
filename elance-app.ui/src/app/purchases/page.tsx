@@ -58,7 +58,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAuthStore } from '@/store/use-auth-store';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
+// NOTE: useAuthStore is no longer needed here — permissions are now handled by usePermissionGuard
 
 // Hooks & Services
 import {
@@ -95,8 +96,9 @@ const MONTHS = [
 export default function PurchasesPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { user } = useAuthStore();
-  const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin';
+  // Use the centralised permission guard instead of a raw role check, so that fine-grained
+  // permissions (set per user via the Permissions panel) are respected for 'purchases'
+  const { hasPermission } = usePermissionGuard();
 
   // Search & Expansion States
   const [searchTerm, setSearchTerm] = useState('');
@@ -353,7 +355,8 @@ export default function PurchasesPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {isAdmin && (
+            {/* Approbations link — only admin-level users should access approval workflows */}
+            {hasPermission('purchases', 'canAdd') && (
               <Link href="/purchases/approvals" passHref>
                 <Button
                   variant="outline"
@@ -371,27 +374,30 @@ export default function PurchasesPage() {
                 <Coins className="w-4 h-4" /> Règlements Fournisseurs
               </Button>
             </Link>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="h-11 rounded-xl bg-amber-900 text-white hover:bg-amber-950 font-bold shadow-lg shadow-amber-900/10 gap-2 flex items-center transition-all duration-300">
-                  <Plus className="w-4 h-4" /> Nouveau Document
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="rounded-xl border-slate-100 w-48 shadow-xl">
-                <DropdownMenuItem onClick={() => router.push('/purchases/order/new')} className="font-bold text-slate-800 gap-2 cursor-pointer">
-                  <Clock className="w-4 h-4 text-amber-700" /> Commande Fournisseur
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push('/purchases/receipt/new')} className="font-bold text-slate-800 gap-2 cursor-pointer">
-                  <Package className="w-4 h-4 text-amber-700" /> Bon de Réception (BR)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push('/purchases/invoice/new')} className="font-bold text-slate-800 gap-2 cursor-pointer">
-                  <FileText className="w-4 h-4 text-amber-700" /> Facture Fournisseur
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { setInvoiceForCreditNote(null); setIsCreditNoteModalOpen(true); }} className="font-bold text-slate-800 gap-2 cursor-pointer">
-                  <RotateCcw className="w-4 h-4 text-amber-700" /> Avoir Fournisseur
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Primary create dropdown — hidden unless user has canAdd permission on purchases */}
+            {hasPermission('purchases', 'canAdd') && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="h-11 rounded-xl bg-amber-900 text-white hover:bg-amber-950 font-bold shadow-lg shadow-amber-900/10 gap-2 flex items-center transition-all duration-300">
+                    <Plus className="w-4 h-4" /> Nouveau Document
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="rounded-xl border-slate-100 w-48 shadow-xl">
+                  <DropdownMenuItem onClick={() => router.push('/purchases/order/new')} className="font-bold text-slate-800 gap-2 cursor-pointer">
+                    <Clock className="w-4 h-4 text-amber-700" /> Commande Fournisseur
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/purchases/receipt/new')} className="font-bold text-slate-800 gap-2 cursor-pointer">
+                    <Package className="w-4 h-4 text-amber-700" /> Bon de Réception (BR)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/purchases/invoice/new')} className="font-bold text-slate-800 gap-2 cursor-pointer">
+                    <FileText className="w-4 h-4 text-amber-700" /> Facture Fournisseur
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { setInvoiceForCreditNote(null); setIsCreditNoteModalOpen(true); }} className="font-bold text-slate-800 gap-2 cursor-pointer">
+                    <RotateCcw className="w-4 h-4 text-amber-700" /> Avoir Fournisseur
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
 
@@ -1050,12 +1056,15 @@ export default function PurchasesPage() {
                                         </DropdownMenuItem>
                                       )}
 
-                                      <DropdownMenuItem
-                                        onClick={() => handleDelete(item.id)}
-                                        className="gap-2 font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 cursor-pointer"
-                                      >
-                                        <Trash2 className="w-4 h-4" /> Supprimer
-                                      </DropdownMenuItem>
+                                      {/* Delete action — only for users with canDelete on purchases */}
+                                      {hasPermission('purchases', 'canDelete') && (
+                                        <DropdownMenuItem
+                                          onClick={() => handleDelete(item.id)}
+                                          className="gap-2 font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 cursor-pointer"
+                                        >
+                                          <Trash2 className="w-4 h-4" /> Supprimer
+                                        </DropdownMenuItem>
+                                      )}
                                     </DropdownMenuContent>
                                   </DropdownMenu>
                                 </div>

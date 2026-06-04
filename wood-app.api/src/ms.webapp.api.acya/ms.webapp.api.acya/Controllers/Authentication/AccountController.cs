@@ -113,7 +113,7 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
       {
         isSuccess = false,
         message = "Email already exists"
-      }); ;
+      });
 
       using var hmac = new HMACSHA512();
       var user = new AppUser
@@ -124,17 +124,34 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
         Email = registerDto.email!.ToLower(),
         IdSalesSite = registerDto.defaultsite,
         EnterpriseId = registerDto.identerprise,
-        Persons = new Person(registerDto.person!)
+        IsActive = registerDto.isactive
       };
 
-      //user.Persons.Guid = Guid.NewGuid();
+      if (registerDto.person != null && registerDto.person.id > 0)
+      {
+        var existingPerson = await _context.Persons.FindAsync(registerDto.person.id);
+        if (existingPerson != null)
+        {
+          existingPerson.Role = (Roles)registerDto.person.role;
+          existingPerson.IsAppUser = true;
+          user.Persons = existingPerson;
+        }
+        else
+        {
+          user.Persons = new Person(registerDto.person);
+        }
+      }
+      else if (registerDto.person != null)
+      {
+        user.Persons = new Person(registerDto.person);
+      }
 
       _context.AppUsers.Add(user);
       await _context.SaveChangesAsync();
 
       return Ok(new UserAuthDto
       {
-        fullname = user.Persons!.FullName,
+        fullname = user.Persons?.FullName ?? "",
         isSuccess = true,
         message = "Register Success",
         token = _tokenService.CreateToken(user, null)

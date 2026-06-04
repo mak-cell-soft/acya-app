@@ -34,13 +34,29 @@ export interface AppUser {
   person?: Person;
 }
 
-export const ROLE_LABELS: Record<number, string> = {
-  10: 'Super Admin',
-  20: 'Admin',
-  30: 'Utilisateur',
-  40: 'Conducteur de Travaux',
-  55: 'Commercial / Vendeur', // Seller is 50 in Roles.cs? Wait!
-  50: 'Vendeur',
-  60: 'Agent de Facturation',
-  70: 'Gestionnaire de Stock'
-};
+// Roles that control system access (JWT claims, authorization)
+export const SYSTEM_ROLES = [
+  { value: 10, label: 'Super Admin', color: 'red' },
+  { value: 20, label: 'Admin', color: 'orange' },
+  { value: 30, label: 'Utilisateur', color: 'blue' },
+] as const;
+
+// Roles that describe job functions (HR / operational)
+export const FUNCTION_ROLES = [
+  { value: 40, label: 'Conducteur de Travaux', color: 'violet' },
+  { value: 45, label: 'Conducteur Véhicule (Chauffeur)', color: 'cyan' },
+  { value: 50, label: 'Vendeur', color: 'teal' },
+  { value: 60, label: 'Agent de Facturation', color: 'amber' },
+  { value: 70, label: 'Gestionnaire de Stock', color: 'lime' },
+] as const;
+
+// Combined for backward-compatible lookup
+export const ALL_ROLES = [...SYSTEM_ROLES, ...FUNCTION_ROLES];
+
+export const ROLE_LABELS: Record<number, string> = Object.fromEntries(
+  ALL_ROLES.map(r => [r.value, r.label])
+);
+
+export const ROLE_COLORS: Record<number, string> = Object.fromEntries(
+  ALL_ROLES.map(r => [r.value, r.color])
+);

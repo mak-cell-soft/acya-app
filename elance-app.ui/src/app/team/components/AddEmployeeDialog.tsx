@@ -24,7 +24,10 @@ import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -39,7 +42,7 @@ import {
   CreditCard,
   Briefcase
 } from "lucide-react";
-import { Person, ROLE_LABELS } from "@/types/team";
+import { Person, ROLE_LABELS, SYSTEM_ROLES, FUNCTION_ROLES } from "@/types/team";
 
 const employeeSchema = z.object({
   firstname: z.string().min(1, "Le prénom est requis"),
@@ -329,9 +332,19 @@ export function AddEmployeeDialog({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="rounded-xl border-forest-100 shadow-xl">
-                          {Object.entries(ROLE_LABELS).map(([key, label]) => (
-                            <SelectItem key={key} value={key}>{label}</SelectItem>
-                          ))}
+                          <SelectGroup>
+                            <SelectLabel className="font-bold text-forest-900">Niveau d'Accès Système</SelectLabel>
+                            {SYSTEM_ROLES.map((role) => (
+                              <SelectItem key={role.value} value={role.value.toString()}>{role.label}</SelectItem>
+                            ))}
+                          </SelectGroup>
+                          <SelectSeparator />
+                          <SelectGroup>
+                            <SelectLabel className="font-bold text-forest-900">Fonction / Poste</SelectLabel>
+                            {FUNCTION_ROLES.map((role) => (
+                              <SelectItem key={role.value} value={role.value.toString()}>{role.label}</SelectItem>
+                            ))}
+                          </SelectGroup>
                         </SelectContent>
                       </Select>
                       <FormMessage />

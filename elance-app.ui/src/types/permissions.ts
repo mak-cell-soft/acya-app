@@ -6,6 +6,7 @@ export interface ModulePermissions {
 }
 
 export interface AppPermissionsMap {
+  analytics: ModulePermissions;
   articles: ModulePermissions;
   customers: ModulePermissions;
   providers: ModulePermissions;
@@ -15,6 +16,7 @@ export interface AppPermissionsMap {
   inventory: ModulePermissions;
   accounting: ModulePermissions;
   hr: ModulePermissions;
+  vehicles: ModulePermissions;
   configuration: ModulePermissions;
 }
 
@@ -24,6 +26,7 @@ export interface UserPermissionsDto {
 }
 
 export const PERMISSION_MODULES = [
+  { key: 'analytics',     label: 'Analyses',          icon: 'BarChart3' },
   { key: 'articles',      label: 'Articles',         icon: 'Package' },
   { key: 'customers',     label: 'Clients',           icon: 'Users' },
   { key: 'providers',     label: 'Fournisseurs',      icon: 'Truck' },
@@ -32,6 +35,7 @@ export const PERMISSION_MODULES = [
   { key: 'stock',         label: 'Stock & Mouvements', icon: 'Warehouse' },
   { key: 'inventory',     label: 'Inventaire',        icon: 'ClipboardList' },
   { key: 'accounting',    label: 'Comptabilité',      icon: 'Calculator' },
+  { key: 'vehicles',      label: 'Véhicules',         icon: 'Car' },
   { key: 'hr',            label: 'RH & Équipe',       icon: 'Briefcase' },
   { key: 'configuration', label: 'Configuration',     icon: 'Settings' },
 ] as const;

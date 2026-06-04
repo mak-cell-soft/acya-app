@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
 import {
   ArrowLeft,
@@ -106,6 +107,16 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
   const searchParams = useSearchParams();
   // React Query client — used to manually invalidate cached document lists after create/convert
   const queryClient = useQueryClient();
+
+  // Guard: redirect non-authorised users who navigate directly to the form URL
+  const { hasPermission } = usePermissionGuard();
+  useEffect(() => {
+    if (!hasPermission('sales', 'canAdd')) {
+      toast.error("Vous n'avez pas la permission de créer des documents de vente.");
+      router.replace('/sales');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Connected User details
   const { user } = useAuthStore();

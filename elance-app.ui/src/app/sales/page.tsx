@@ -61,6 +61,7 @@ import { CustomerRecouvrementDialog } from '@/components/customers/customer-reco
 import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
 
 const MONTHS = [
   'Janvier',
@@ -79,6 +80,8 @@ const MONTHS = [
 
 export default function SalesPage() {
   const router = useRouter();
+  // Permission guard: gates UI actions based on the user's saved permissions for the 'sales' module
+  const { hasPermission } = usePermissionGuard();
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
@@ -234,41 +237,49 @@ export default function SalesPage() {
             >
               <Search className="w-4 h-4 mr-2 text-forest-800" /> Recherche Approfondie
             </Button>
-            <Button
-              onClick={() => setIsBatchModalOpen(true)}
-              variant="outline"
-              className="h-11 rounded-xl border-sand-200 text-forest-900 font-bold hover:bg-sand-50"
-            >
-              <ArrowLeftRight className="w-4 h-4 mr-2 text-forest-800" /> Facturation Groupée
-            </Button>
-            <Button
-              onClick={() => setIsSingleBatchModalOpen(true)}
-              variant="outline"
-              className="h-11 rounded-xl border-sand-200 text-forest-900 font-bold hover:bg-sand-50"
-            >
-              <Layers className="w-4 h-4 mr-2 text-forest-800" /> Facture pour un Client
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="h-11 rounded-xl bg-forest-950 text-white hover:bg-forest-900 font-bold shadow-lg shadow-forest-950/20">
-                  <Plus className="w-4 h-4 mr-2" /> Nouveau Document
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="rounded-xl border-sand-100 w-48">
-                <DropdownMenuItem className="font-bold text-sand-800 cursor-pointer p-0">
-                  <Link href="/sales/quote/new" className="w-full h-full px-2 py-1.5 block">Nouveau Devis</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="font-bold text-sand-800 cursor-pointer p-0">
-                  <Link href="/sales/order/new" className="w-full h-full px-2 py-1.5 block">Nouvelle Commande</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="font-bold text-sand-800 cursor-pointer p-0">
-                  <Link href="/sales/bl/new" className="w-full h-full px-2 py-1.5 block">Nouveau Bon de Livraison</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="font-bold text-sand-800 cursor-pointer p-0">
-                  <Link href="/sales/invoice/new" className="w-full h-full px-2 py-1.5 block">Nouvelle Facture</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Batch conversion buttons — only for users with canAdd on sales */}
+            {hasPermission('sales', 'canAdd') && (
+              <Button
+                onClick={() => setIsBatchModalOpen(true)}
+                variant="outline"
+                className="h-11 rounded-xl border-sand-200 text-forest-900 font-bold hover:bg-sand-50"
+              >
+                <ArrowLeftRight className="w-4 h-4 mr-2 text-forest-800" /> Facturation Groupée
+              </Button>
+            )}
+            {hasPermission('sales', 'canAdd') && (
+              <Button
+                onClick={() => setIsSingleBatchModalOpen(true)}
+                variant="outline"
+                className="h-11 rounded-xl border-sand-200 text-forest-900 font-bold hover:bg-sand-50"
+              >
+                <Layers className="w-4 h-4 mr-2 text-forest-800" /> Facture pour un Client
+              </Button>
+            )}
+            {/* Primary create dropdown — hidden unless user has canAdd permission */}
+            {hasPermission('sales', 'canAdd') && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="h-11 rounded-xl bg-forest-950 text-white hover:bg-forest-900 font-bold shadow-lg shadow-forest-950/20">
+                    <Plus className="w-4 h-4 mr-2" /> Nouveau Document
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="rounded-xl border-sand-100 w-48">
+                  <DropdownMenuItem className="font-bold text-sand-800 cursor-pointer p-0">
+                    <Link href="/sales/quote/new" className="w-full h-full px-2 py-1.5 block">Nouveau Devis</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="font-bold text-sand-800 cursor-pointer p-0">
+                    <Link href="/sales/order/new" className="w-full h-full px-2 py-1.5 block">Nouvelle Commande</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="font-bold text-sand-800 cursor-pointer p-0">
+                    <Link href="/sales/bl/new" className="w-full h-full px-2 py-1.5 block">Nouveau Bon de Livraison</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="font-bold text-sand-800 cursor-pointer p-0">
+                    <Link href="/sales/invoice/new" className="w-full h-full px-2 py-1.5 block">Nouvelle Facture</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
 
@@ -726,8 +737,8 @@ export default function SalesPage() {
                                       </DropdownMenuItem>
                                     )}
 
-                                    {/* Quote Conversion Options */}
-                                    {item.type === DocumentTypes.customerQuote && (
+                                    {/* Quote Conversion Options — require canAdd (creating a new document from conversion) */}
+                                    {hasPermission('sales', 'canAdd') && item.type === DocumentTypes.customerQuote && (
                                       <>
                                         <DropdownMenuItem
                                           onClick={() => handleConvert(item, 'order')}
@@ -744,8 +755,8 @@ export default function SalesPage() {
                                       </>
                                     )}
 
-                                    {/* Order Conversion Options */}
-                                    {item.type === DocumentTypes.customerOrder && (
+                                    {/* Order Conversion Options — require canAdd */}
+                                    {hasPermission('sales', 'canAdd') && item.type === DocumentTypes.customerOrder && (
                                       <DropdownMenuItem
                                         onClick={() => handleConvert(item, 'bl')}
                                         className="gap-2 font-semibold text-forest-850 cursor-pointer"
@@ -754,8 +765,8 @@ export default function SalesPage() {
                                       </DropdownMenuItem>
                                     )}
 
-                                    {/* BL Conversion Options */}
-                                    {item.type === DocumentTypes.customerDeliveryNote && (
+                                    {/* BL → Invoice Conversion — require canAdd */}
+                                    {hasPermission('sales', 'canAdd') && item.type === DocumentTypes.customerDeliveryNote && (
                                       <DropdownMenuItem
                                         onClick={() => handleConvert(item, 'invoice')}
                                         className={cn(
@@ -812,12 +823,15 @@ export default function SalesPage() {
                                       </>
                                     )}
 
-                                    <DropdownMenuItem
-                                      onClick={() => handleDelete(item.id)}
-                                      className="gap-2 font-semibold text-red-600 cursor-pointer hover:text-red-700 hover:bg-red-50"
-                                    >
-                                      <Trash2 className="w-4 h-4" /> Supprimer
-                                    </DropdownMenuItem>
+                                    {/* Delete action — only for users with canDelete on sales */}
+                                    {hasPermission('sales', 'canDelete') && (
+                                      <DropdownMenuItem
+                                        onClick={() => handleDelete(item.id)}
+                                        className="gap-2 font-semibold text-red-600 cursor-pointer hover:text-red-700 hover:bg-red-50"
+                                      >
+                                        <Trash2 className="w-4 h-4" /> Supprimer
+                                      </DropdownMenuItem>
+                                    )}
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                                 <ChevronDown
