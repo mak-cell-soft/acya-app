@@ -42,9 +42,9 @@ const navGroups: NavGroup[] = [
   { 
     title: 'Général', 
     items: [
-      { name: 'Tableau de bord', href: '/dashboard', icon: LayoutDashboard },
       { name: 'Analyses', href: '/analytics', icon: BarChart3, module: 'analytics' },
       { name: 'Pré-Analyse Comptable', href: '/accounting', icon: Calculator, module: 'accounting' },
+      { name: 'Tableau de bord', href: '/dashboard', icon: LayoutDashboard },
     ]
   },
   { 

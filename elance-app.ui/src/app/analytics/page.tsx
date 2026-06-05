@@ -27,6 +27,7 @@ import {
 import { motion } from 'framer-motion';
 import { 
   TrendingUp, 
+  TrendingDown,
   CalendarDays,
   Calendar,
   AlertTriangle,
@@ -41,7 +42,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useAnalyticsKpis, useMonthlyRevenue, useTopSubCategories, useStockHealthBySubCategory } from '@/hooks/use-analytics-kpis';
+import { useCustomers } from '@/hooks/use-customers';
+import { useSuppliers } from '@/hooks/use-suppliers';
 import { useSupplierPurchasePaymentChart } from '@/hooks/use-supplier-chart';
+import { useDocumentsByTypeFiltered } from '@/hooks/use-documents';
+import { DocumentTypes } from '@/types/document';
+import { useStockDashboardStats } from '@/hooks/use-stock';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ActivityLogSection } from '@/components/analytics/activity-log-section';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
@@ -81,6 +87,36 @@ export default function AnalyticsPage() {
   const [stockSiteId, setStockSiteId] = useState<number | undefined>(undefined);
   const { data: stockHealth, isLoading: isLoadingStockHealth } = useStockHealthBySubCategory(stockSiteId);
   const [selectedStockSubCatId, setSelectedStockSubCatId] = useState<number | undefined>(undefined);
+  
+  const { data: stockStats } = useStockDashboardStats(stockSiteId);
+
+  const { data: customers = [] } = useCustomers();
+  const { data: suppliers = [] } = useSuppliers();
+
+  const { data: achatsDocs = [] } = useDocumentsByTypeFiltered({
+    typeDoc: DocumentTypes.supplierInvoice,
+    month: chartMonth === 'ALL' ? 0 : chartMonth,
+    year: chartYear,
+    day: 0
+  });
+
+  const { data: avoirsDocs = [] } = useDocumentsByTypeFiltered({
+    typeDoc: DocumentTypes.supplierInvoiceReturn,
+    month: chartMonth === 'ALL' ? 0 : chartMonth,
+    year: chartYear,
+    day: 0
+  });
+
+  const totalPurchasesTTC = React.useMemo(() => {
+    let total = 0;
+    achatsDocs.forEach((doc: any) => {
+      total += (doc.total_net_ttc || 0);
+    });
+    avoirsDocs.forEach((doc: any) => {
+      total -= (doc.total_net_ttc || 0);
+    });
+    return total;
+  }, [achatsDocs, avoirsDocs]);
 
   useEffect(() => {
     if (topSubCategories && topSubCategories.length > 0 && !selectedSalesSubCatId) {
@@ -144,6 +180,7 @@ export default function AnalyticsPage() {
     { title: "CA Aujourd'hui", value: formatCurrency(kpis?.dailySales || 0), icon: TrendingUp, trend: 'up', change: 'Temps réel' },
     { title: 'CA Semaine', value: formatCurrency(kpis?.weeklySales || 0), icon: CalendarDays, trend: 'up', change: 'Cette semaine' },
     { title: 'CA Mois', value: formatCurrency(kpis?.monthlySales || 0), icon: Calendar, trend: 'up', change: 'Ce mois' },
+    { title: 'CA Mois Achat', value: formatCurrency(totalPurchasesTTC), icon: TrendingDown, trend: 'down', change: 'Achats (TTC)', warning: false, isAchat: true },
     { title: 'Alertes Stock', value: `${kpis?.stockAlertCount || 0} Articles`, icon: AlertTriangle, trend: kpis?.stockAlertCount ? 'down' : 'up', change: 'Sous seuil min', warning: !!kpis?.stockAlertCount },
   ];
 
@@ -527,6 +564,15 @@ export default function AnalyticsPage() {
     );
   };
 
+  // Colors mapping for Recharts Pie Charts
+  const chartColors = {
+    green: '#1D9E75',
+    orange: '#D4AF37',
+    red: '#EF5350',
+    lightGreen: '#EAF3EE',
+    lightOrange: '#FAF6EA',
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-10 animate-in fade-in duration-700">
@@ -586,9 +632,9 @@ export default function AnalyticsPage() {
           </div>
         )}
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
           {isLoadingKpis ? (
-            new Array(4).fill(0).map((_, i) => (
+            new Array(5).fill(0).map((_, i) => (
               <Card key={`skeleton-kpi-${i}`} className="border-forest-100/50 bg-white shadow-xl shadow-forest-900/5 rounded-[24px] overflow-hidden">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <Skeleton className="h-4 w-24 rounded" />
@@ -610,28 +656,36 @@ export default function AnalyticsPage() {
               >
                 <Card className={cn(
                   "border-forest-100/50 bg-white shadow-xl shadow-forest-900/5 rounded-[24px] overflow-hidden group hover:border-forest-600 transition-all duration-500",
-                  stat.warning && "border-amber-200 hover:border-amber-500"
+                  stat.warning && "border-amber-200 hover:border-amber-500",
+                  stat.isAchat && "border-amber-900/10 bg-amber-950/[0.02] hover:border-amber-600"
                 )}>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-[0.2em]">{stat.title}</CardTitle>
+                    <CardTitle className={cn(
+                      "text-[0.65rem] font-bold uppercase tracking-[0.2em]",
+                      stat.isAchat ? "text-amber-800/60" : "text-sand-400"
+                    )}>{stat.title}</CardTitle>
                     <div className={cn(
                       "p-2 rounded-lg transition-colors",
-                      stat.warning ? "bg-amber-50 text-amber-600 group-hover:bg-amber-500 group-hover:text-white" : "bg-forest-50 text-forest-600 group-hover:bg-forest-600 group-hover:text-white"
+                      stat.warning ? "bg-amber-50 text-amber-600 group-hover:bg-amber-500 group-hover:text-white" : 
+                      (stat.isAchat ? "bg-amber-50 text-amber-900 group-hover:bg-amber-600 group-hover:text-white" : "bg-forest-50 text-forest-600 group-hover:bg-forest-600 group-hover:text-white")
                     )}>
                       <stat.icon className="h-4 w-4" />
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold font-mono text-forest-900 tracking-tight">{stat.value}</div>
+                    <div className={cn(
+                      "text-2xl font-bold font-mono tracking-tight",
+                      stat.isAchat ? "text-amber-900" : "text-forest-900"
+                    )}>{stat.value}</div>
                     <div className="flex items-center gap-1 mt-2">
                       {stat.trend === 'up' ? (
                         <ArrowUpRight className="w-3 h-3 text-emerald-600" />
                       ) : (
-                        <ArrowDownRight className={cn("w-3 h-3", stat.warning ? "text-amber-500" : "text-rose-500")} />
+                        <ArrowDownRight className={cn("w-3 h-3", stat.warning ? "text-amber-500" : (stat.isAchat ? "text-amber-600" : "text-rose-500"))} />
                       )}
                       <span className={cn(
                         "text-xs font-bold",
-                        stat.trend === 'up' ? "text-emerald-600" : (stat.warning ? "text-amber-500" : "text-rose-500")
+                        stat.trend === 'up' ? "text-emerald-600" : (stat.warning ? "text-amber-500" : (stat.isAchat ? "text-amber-600" : "text-rose-500"))
                       )}>{stat.change}</span>
                     </div>
                   </CardContent>
@@ -743,31 +797,33 @@ export default function AnalyticsPage() {
           
           <Card className="border-forest-100 rounded-[32px] bg-white overflow-hidden">
             <CardHeader className="p-8">
-              <CardTitle className="text-xl text-forest-900">Performance Régionale</CardTitle>
-              <CardDescription>Données indicatives (Mock V1)</CardDescription>
+              <CardTitle className="text-xl text-forest-900">Clients / Fournisseurs</CardTitle>
+              <CardDescription className="text-sand-400 font-medium">Total: {customers.length + suppliers.length}</CardDescription>
             </CardHeader>
             <CardContent className="p-8 pt-0">
-              <div className="space-y-4">
-                {[
-                  { name: 'Grand Tunis', score: 85 },
-                  { name: 'Sousse / Sahel', score: 62 },
-                  { name: 'Sfax / Sud', score: 45 },
-                ].map((reg) => (
-                  <div key={reg.name} className="space-y-2">
-                    <div className="flex justify-between text-xs font-bold">
-                      <span className="text-forest-900">{reg.name}</span>
-                      <span className="text-sand-400">{reg.score}%</span>
-                    </div>
-                    <div className="h-2 bg-sand-100 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${reg.score}%` }}
-                        transition={{ duration: 1, delay: 0.5 }}
-                        className="h-full bg-forest-600"
-                      />
-                    </div>
-                  </div>
-                ))}
+              <div className="h-[250px] w-full flex items-center justify-center relative">
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Clients', value: customers.length },
+                        { name: 'Fournisseurs', value: suppliers.length }
+                      ]}
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={4}
+                      dataKey="value"
+                    >
+                      <Cell fill="#1D9E75" />
+                      <Cell fill="#D4AF37" />
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #E2E8F0' }}
+                      itemStyle={{ color: '#0B3B24', fontWeight: 'bold' }}
+                    />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
@@ -803,13 +859,51 @@ export default function AnalyticsPage() {
         </Card>
 
         {/* Top Articles by SubCategory */}
-        <Card className="border-forest-100 rounded-[32px] bg-white overflow-hidden shadow-xl shadow-forest-900/2">
-          <CardHeader className="p-8 pb-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <CardTitle className="font-heading text-2xl text-forest-900">Top Ventes par Sous-Catégorie</CardTitle>
-                <CardDescription className="text-sand-400 font-medium">Les sous-catégories les plus performantes (quantité et CA).</CardDescription>
+        {/* Stock Health & Top SubCategories */}
+        <div className="grid gap-8 lg:grid-cols-3">
+          {/* Stock Health Pie */}
+          <Card className="lg:col-span-1 border-forest-100 rounded-[32px] bg-white overflow-hidden shadow-xl shadow-forest-900/2">
+            <CardHeader className="p-8 pb-4">
+              <CardTitle className="font-heading text-2xl text-forest-900">Santé du Stock</CardTitle>
+              <CardDescription className="text-sand-400 font-medium">Répartition globale des articles</CardDescription>
+            </CardHeader>
+            <CardContent className="p-8 pt-0">
+              <div className="h-[400px] w-full flex items-center justify-center relative">
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Bon', value: stockStats?.healthyStockItems ?? 0 },
+                        { name: 'Bas', value: stockStats?.lowStockItems ?? 0 },
+                        { name: 'Rupture', value: stockStats?.outOfStockItems ?? 0 }
+                      ]}
+                      outerRadius={120}
+                      innerRadius={80}
+                      paddingAngle={4}
+                      dataKey="value"
+                    >
+                      <Cell fill={chartColors.green} />
+                      <Cell fill={chartColors.orange} />
+                      <Cell fill={chartColors.red} />
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #E2E8F0' }}
+                      itemStyle={{ color: '#0B3B24', fontWeight: 'bold' }}
+                    />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-2 border-forest-100 rounded-[32px] bg-white overflow-hidden shadow-xl shadow-forest-900/2">
+            <CardHeader className="p-8 pb-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className="font-heading text-2xl text-forest-900">Top Ventes par Sous-Catégorie</CardTitle>
+                  <CardDescription className="text-sand-400 font-medium">Les sous-catégories les plus performantes (quantité et CA).</CardDescription>
+                </div>
               <div className="flex bg-sand-100/50 p-1 rounded-xl">
                 {topSubCategories && topSubCategories.length > 0 && (
                   <select
@@ -842,7 +936,8 @@ export default function AnalyticsPage() {
           <CardContent className="p-8 pt-0">
             {renderTopSubCategories()}
           </CardContent>
-        </Card>
+          </Card>
+        </div>
 
         {/* Stock Health per SubCategory */}
         <Card className="border-forest-100 rounded-[32px] bg-white overflow-hidden shadow-xl shadow-forest-900/2">

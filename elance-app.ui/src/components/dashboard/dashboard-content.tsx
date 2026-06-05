@@ -11,9 +11,7 @@ import {
   useDeleteCaisseMovement 
 } from '@/hooks/use-caisse';
 import { useDashboardPayments } from '@/hooks/use-dashboard-payments';
-import { useCustomers } from '@/hooks/use-customers';
-import { useSuppliers } from '@/hooks/use-suppliers';
-import { useStockDashboardStats } from '@/hooks/use-stock';
+import { useStockHealthBySubCategory } from '@/hooks/use-analytics-kpis';
 import { useDocumentsByType } from '@/hooks/use-documents';
 import { DocumentTypes } from '@/types/document';
 import { format } from 'date-fns';
@@ -55,7 +53,8 @@ import {
   BarChart, 
   Bar, 
   XAxis, 
-  YAxis 
+  YAxis,
+  CartesianGrid
 } from 'recharts';
 
 import { 
@@ -84,7 +83,8 @@ import {
   User,
   FileText,
   Truck,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -116,6 +116,8 @@ export function DashboardContent() {
   const [paymentsPage, setPaymentsPage] = React.useState(1);
   const [paymentsPageSize, setPaymentsPageSize] = React.useState(5);
 
+  const [selectedStockSubCatId, setSelectedStockSubCatId] = React.useState<number | undefined>(undefined);
+
   // ── API/DATA FETCHING ──
   // React Query signals invalidation on successful mutations automatically
   const { data: balanceData, isLoading: isBalanceLoading } = useCaisseBalance(siteId);
@@ -131,13 +133,13 @@ export function DashboardContent() {
     'customer'
   );
 
-  // KPIs and Chart Data sources
-  const { data: customers = [] } = useCustomers();
-  const { data: suppliers = [] } = useSuppliers();
-  const { data: stockStats } = useStockDashboardStats(siteId);
+
   
   // Fetch client invoices (type = 6) to calculate daily sales and 7-day bar chart
   const { data: invoices = [], isLoading: isInvoicesLoading } = useDocumentsByType(DocumentTypes.customerInvoice);
+
+  // Stock health data for connected site
+  const { data: stockHealth, isLoading: isLoadingStockHealth } = useStockHealthBySubCategory(siteId);
 
   // Mutations
   const addMovementMutation = useAddCaisseMovement();
@@ -313,6 +315,94 @@ export function DashboardContent() {
 
   // Loading indicator for background operations
   const isGlobalLoading = isBalanceLoading || isInvoicesLoading;
+
+  const renderStockHealth = () => {
+    if (isLoadingStockHealth) {
+      return (
+        <div className="h-[220px] w-full bg-forest-50/30 animate-pulse rounded-2xl flex items-center justify-center">
+          <span className="text-forest-300 font-medium">Chargement des données...</span>
+        </div>
+      );
+    }
+
+    if (!stockHealth || stockHealth.length === 0) {
+      return (
+        <div className="h-[220px] w-full flex items-center justify-center bg-sand-50 rounded-2xl text-sand-400 text-sm">
+          Aucune donnée de stock trouvée
+        </div>
+      );
+    }
+
+    const selectedData = stockHealth.find(s => s.subCategoryId === selectedStockSubCatId) || stockHealth[0];
+    const articles = selectedData?.articleStocks || [];
+
+    if (articles.length === 0) {
+      return (
+        <div className="h-[220px] w-full flex items-center justify-center bg-sand-50 rounded-2xl text-sand-400 text-sm">
+          Aucun article en stock dans cette sous-catégorie
+        </div>
+      );
+    }
+
+    return (
+      <div className="h-[220px] w-full flex flex-col gap-4">
+        <ResponsiveContainer width="100%" height="80%" minWidth={1} minHeight={1}>
+          <BarChart data={articles} margin={{ top: 20, right: 30, left: 20, bottom: 25 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+            <XAxis 
+              dataKey="articleName" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#94A3B8', fontSize: 10 }} 
+              dy={10} 
+              angle={-45}
+              textAnchor="end"
+              height={60}
+            />
+            <YAxis 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#94A3B8', fontSize: 12 }}
+            />
+            <ChartTooltip 
+              contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}
+              formatter={(value: any, name: any) => {
+                const displayName = name === 'Stock Actuel' ? 'Stock Actuel' : 
+                                    name === 'Stock Minimum' ? 'Stock Minimum' : name;
+                return [value, displayName];
+              }}
+            />
+            <ChartLegend 
+              verticalAlign="top" 
+              align="right" 
+              iconType="circle" 
+              wrapperStyle={{ paddingBottom: '20px' }}
+            />
+            <Bar dataKey="currentStock" name="Stock Actuel" fill="#1D9E75" radius={[4, 4, 0, 0]} barSize={20}>
+              {articles.map((entry, index) => {
+                let color = '#1D9E75'; // healthy
+                if (entry.currentStock <= entry.minimumStock && entry.minimumStock > 0) {
+                  color = '#E11D48'; // danger
+                } else if (entry.currentStock <= entry.minimumStock * 1.2 && entry.minimumStock > 0) {
+                  color = '#F59E0B'; // warning
+                }
+                return <Cell key={`cell-${index}`} fill={color} />;
+              })}
+            </Bar>
+            <Bar dataKey="minimumStock" name="Stock Minimum" fill="#94A3B8" radius={[4, 4, 0, 0]} barSize={20} opacity={0.5} />
+          </BarChart>
+        </ResponsiveContainer>
+        <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+          {articles.filter(a => a.currentStock <= a.minimumStock && a.minimumStock > 0).map(a => (
+            <div key={a.articleId} className="whitespace-nowrap bg-rose-50 border border-rose-200 text-rose-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5">
+              <AlertTriangle className="w-3 h-3" />
+              {a.articleName}: {a.currentStock} / {a.minimumStock} min
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-10">
@@ -724,96 +814,16 @@ export function DashboardContent() {
       </motion.div>
 
       {/* ── CHARTS CONTAINER ── */}
-      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-8 lg:grid-cols-3">
         
-        {/* Clients/Fournisseurs Doughnut */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.45, duration: 0.5 }}
-        >
-          <Card className="border-forest-100 rounded-[28px] shadow-none bg-white overflow-hidden">
-            <CardHeader className="p-6">
-              <CardTitle className="font-heading text-lg text-forest-900">Clients / Fournisseurs</CardTitle>
-              <CardDescription className="text-sand-400 font-medium">Total: {customers.length + suppliers.length}</CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 pt-0">
-              <div className="h-[220px] w-full flex items-center justify-center relative">
-                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'Clients', value: customers.length },
-                        { name: 'Fournisseurs', value: suppliers.length }
-                      ]}
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={4}
-                      dataKey="value"
-                    >
-                      <Cell fill={chartColors.green} />
-                      <Cell fill={chartColors.orange} />
-                    </Pie>
-                    <ChartTooltip 
-                      contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #E2E8F0' }}
-                      itemStyle={{ color: '#0B3B24', fontWeight: 'bold' }}
-                    />
-                    <ChartLegend verticalAlign="bottom" height={36} iconType="circle" />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Stock Health Pie */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5, duration: 0.5 }}
-        >
-          <Card className="border-forest-100 rounded-[28px] shadow-none bg-white overflow-hidden">
-            <CardHeader className="p-6">
-              <CardTitle className="font-heading text-lg text-forest-900">Santé du Stock</CardTitle>
-              <CardDescription className="text-sand-400 font-medium">Répartition globale des articles</CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 pt-0">
-              <div className="h-[220px] w-full flex items-center justify-center relative">
-                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'Bon', value: stockStats?.healthyStockItems ?? 0 },
-                        { name: 'Bas', value: stockStats?.lowStockItems ?? 0 },
-                        { name: 'Rupture', value: stockStats?.outOfStockItems ?? 0 }
-                      ]}
-                      outerRadius={80}
-                      dataKey="value"
-                    >
-                      <Cell fill={chartColors.green} />
-                      <Cell fill={chartColors.orange} />
-                      <Cell fill={chartColors.red} />
-                    </Pie>
-                    <ChartTooltip 
-                      contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #E2E8F0' }}
-                      itemStyle={{ color: '#0B3B24', fontWeight: 'bold' }}
-                    />
-                    <ChartLegend verticalAlign="bottom" height={36} iconType="circle" />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
         {/* Sales Chart (last 7 days Bar Chart) */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.55, duration: 0.5 }}
-          className="md:col-span-2 lg:col-span-1"
+          className="lg:col-span-1"
         >
-          <Card className="border-forest-100 rounded-[28px] shadow-none bg-white overflow-hidden">
+          <Card className="border-forest-100 rounded-[28px] shadow-none bg-white overflow-hidden h-full">
             <CardHeader className="p-6">
               <CardTitle className="font-heading text-lg text-forest-900">Ventes (7j)</CardTitle>
               <CardDescription className="text-sand-400 font-medium flex items-center justify-between">
@@ -854,6 +864,41 @@ export function DashboardContent() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Stock Health per SubCategory */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+          className="lg:col-span-2"
+        >
+          <Card className="border-forest-100 rounded-[28px] shadow-none bg-white overflow-hidden h-full">
+            <CardHeader className="p-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className="font-heading text-lg text-forest-900">Santé du Stock</CardTitle>
+                  <CardDescription className="text-sand-400 font-medium">Comparaison avec le stock min</CardDescription>
+                </div>
+                <div className="flex items-center gap-3">
+                  {stockHealth && stockHealth.length > 0 && (
+                    <select
+                      value={selectedStockSubCatId || ""}
+                      onChange={(e) => setSelectedStockSubCatId(Number(e.target.value))}
+                      className="h-8 rounded-xl bg-sand-50/50 border-sand-200 px-2 text-xs font-bold text-forest-900 outline-none cursor-pointer focus-visible:ring-forest-500 max-w-[150px]"
+                    >
+                      {stockHealth.map(c => (
+                        <option key={c.subCategoryId} value={c.subCategoryId}>{c.subCategoryName}</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6 pt-0">
+              {renderStockHealth()}
             </CardContent>
           </Card>
         </motion.div>
