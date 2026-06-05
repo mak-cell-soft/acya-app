@@ -92,3 +92,34 @@ export function useClearTraite() {
     }
   });
 }
+
+export function useDisburseInstruments() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: paymentService.disburseSupplierInstruments,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payment-instruments'] });
+      queryClient.invalidateQueries({ queryKey: ['banks'] });
+      toast.success("Instruments décaissés avec succès");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Erreur lors du décaissement");
+    }
+  });
+}
+
+export function useDeliverInstruments() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: paymentService.deliverSupplierInstruments,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payment-instruments'] });
+      toast.success("Instruments remis au fournisseur avec succès");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Erreur lors de la remise");
+    }
+  });
+}

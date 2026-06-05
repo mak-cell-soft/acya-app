@@ -41,5 +41,7 @@ namespace ms.webapp.api.acya.api.Interfaces
         // Traites clearance
         Task<IEnumerable<PendingTraiteToClearDto>> GetPendingTraitesToClearAsync();
         Task ClearTraiteAsync(int instrumentId);
+        Task<string> DisburseSupplierInstrumentsAsync(DisburseSupplierInstrumentsDto dto);
+        Task DeliverSupplierInstrumentsAsync(DeliverSupplierInstrumentsDto dto);
     }
 }

@@ -886,7 +886,6 @@ namespace ms.webapp.api.acya.api.Services
 
                             if (bank != null)
                             {
-                                bank.InitialBalance += deposit.NetAmount;
                                 _context.Banks.Update(bank);
                             }
                         }
@@ -961,7 +960,6 @@ namespace ms.webapp.api.acya.api.Services
 
                 if (deposit.Bank != null)
                 {
-                    deposit.Bank.InitialBalance += deposit.NetAmount;
                     _context.Banks.Update(deposit.Bank);
                 }
 
@@ -975,6 +973,106 @@ namespace ms.webapp.api.acya.api.Services
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        public async Task<string> DisburseSupplierInstrumentsAsync(DisburseSupplierInstrumentsDto dto)
+        {
+            var instruments = await _context.PaymentInstruments
+                .Include(pi => pi.Payment)
+                .Where(pi => dto.InstrumentIds.Contains(pi.Id))
+                .ToListAsync();
+
+            if (!instruments.Any())
+                throw new ArgumentException("No instruments found.");
+
+            var bank = await _context.Banks.FirstOrDefaultAsync(b => b.Id == dto.BankId);
+            if (bank == null)
+                throw new ArgumentException("Bank not found.");
+
+            // Get last reference to generate a new one
+            var lastDeposit = await _context.BankDeposits
+                .Where(d => !d.IsDeleted && !string.IsNullOrEmpty(d.Reference) && d.Reference.StartsWith("DEC"))
+                .OrderByDescending(d => d.Id)
+                .FirstOrDefaultAsync();
+
+            string disbursementRef = Helpers.GenerateDailyDocNumber("DEC", lastDeposit?.Reference, 3);
+
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    foreach (var instrument in instruments)
+                    {
+                        // Check if already paid
+                        if (instrument.IsPaidAtBank)
+                            continue;
+
+                        decimal amount = instrument.Payment?.Amount ?? 0;
+
+                        // Create BankDeposit to represent the disbursement (money out)
+                        // NetAmount is negative to reduce the bank balance
+                        var deposit = new BankDeposit
+                        {
+                            BankId = dto.BankId,
+                            DepositDate = dto.DisburseDate,
+                            DepositType = instrument.Type ?? "CHEQUE",
+                            AmountHT = -amount,
+                            FeeHT = 0,
+                            TaxRate = 0,
+                            FeeWithTax = 0,
+                            NetAmount = -amount,
+                            Reference = disbursementRef,
+                            Notes = dto.Notes,
+                            PaymentInstrumentId = instrument.Id,
+                            SalesSiteId = dto.SalesSiteId,
+                            CreatedByUserId = dto.CreatedByUserId,
+                            CreatedAt = DateTime.UtcNow,
+                            IsDeleted = false
+                        };
+
+                        await _context.BankDeposits.AddAsync(deposit);
+                        
+                        // Mark instrument as Paid
+                        instrument.BankSettlementStatus = "CLEARED";
+                        instrument.IsPaidAtBank = true;
+                        instrument.PaidAtBankDate = dto.DisburseDate;
+
+                        _context.PaymentInstruments.Update(instrument);
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return disbursementRef;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+        }
+
+        public async Task DeliverSupplierInstrumentsAsync(DeliverSupplierInstrumentsDto dto)
+        {
+            var instruments = await _context.PaymentInstruments
+                .Where(pi => dto.InstrumentIds.Contains(pi.Id))
+                .ToListAsync();
+
+            if (!instruments.Any())
+                throw new ArgumentException("No instruments found.");
+
+            foreach (var instrument in instruments)
+            {
+                if (instrument.IsPaidAtBank) continue;
+                
+                // Switch status to VERSED but keep IsPaidAtBank = false
+                instrument.BankSettlementStatus = "VERSED";
+                
+                _context.PaymentInstruments.Update(instrument);
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }

@@ -178,4 +178,21 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public decimal TotalPaid { get; set; }
         public decimal Remaining { get; set; }
     }
+
+    public class DisburseSupplierInstrumentsDto
+    {
+        public List<int> InstrumentIds { get; set; } = new();
+        public int BankId { get; set; }
+        public DateTime DisburseDate { get; set; }
+        public string? Notes { get; set; }
+        public int? CreatedByUserId { get; set; }
+        public int? SalesSiteId { get; set; }
+    }
+
+    public class DeliverSupplierInstrumentsDto
+    {
+        public List<int> InstrumentIds { get; set; } = new();
+        public DateTime DeliveryDate { get; set; }
+        public int? CreatedByUserId { get; set; }
+    }
 }

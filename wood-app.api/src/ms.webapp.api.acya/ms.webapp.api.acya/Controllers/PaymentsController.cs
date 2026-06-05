@@ -485,5 +485,57 @@ namespace ms.webapp.api.acya.api.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+        [HttpPost("instruments/disburse")]
+        public async Task<IActionResult> DisburseSupplierInstrument([FromBody] DisburseSupplierInstrumentsDto dto)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    dto.CreatedByUserId = int.Parse(userId);
+                }
+
+                var disbursementRef = await _paymentService.DisburseSupplierInstrumentsAsync(dto);
+                return Ok(new { success = true, reference = disbursementRef });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error disbursing supplier instruments.");
+                return StatusCode(500, new { error = "An internal error occurred." });
+            }
+        }
+        [HttpPost("instruments/deliver")]
+        public async Task<IActionResult> DeliverSupplierInstruments([FromBody] DeliverSupplierInstrumentsDto dto)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    dto.CreatedByUserId = int.Parse(userId);
+                }
+
+                await _paymentService.DeliverSupplierInstrumentsAsync(dto);
+                return Ok(new { success = true });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error delivering supplier instruments.");
+                return StatusCode(500, new { error = "An internal error occurred." });
+            }
+        }
     }
 }

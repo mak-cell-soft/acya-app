@@ -131,5 +131,15 @@ export const paymentService = {
   async clearTraite(instrumentId: number): Promise<void> {
     const response = await api.post(`/Payments/traites/${instrumentId}/clear`);
     return response.data;
+  },
+
+  disburseSupplierInstruments: async (data: { instrumentIds: number[]; bankId: number; disburseDate: string; notes?: string; salesSiteId?: number }) => {
+    const response = await api.post('/Payments/instruments/disburse', data);
+    return response.data;
+  },
+
+  deliverSupplierInstruments: async (data: { instrumentIds: number[]; deliveryDate: string }) => {
+    const response = await api.post('/Payments/instruments/deliver', data);
+    return response.data;
   }
 };

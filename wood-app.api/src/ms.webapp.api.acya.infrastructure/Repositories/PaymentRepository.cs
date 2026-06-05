@@ -165,12 +165,12 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
             {
                 if (isPaidOrVersed.Value)
                 {
-                    // Versed means it has a bank deposit or IsPaidAtBank is true
-                    resultQuery = resultQuery.Where(x => x.bd != null || x.pi.IsPaidAtBank);
+                    // Versed means it has a bank deposit or IsPaidAtBank is true, or BankSettlementStatus is VERSED
+                    resultQuery = resultQuery.Where(x => x.bd != null || x.pi.IsPaidAtBank || x.pi.BankSettlementStatus == "VERSED");
                 }
                 else
                 {
-                    resultQuery = resultQuery.Where(x => x.bd == null && !x.pi.IsPaidAtBank);
+                    resultQuery = resultQuery.Where(x => x.bd == null && !x.pi.IsPaidAtBank && x.pi.BankSettlementStatus != "VERSED");
                 }
             }
 

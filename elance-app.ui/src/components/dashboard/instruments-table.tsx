@@ -28,7 +28,7 @@ import { CreditCard, Loader2, ArrowRight, Wallet, CheckCircle2, Search } from 'l
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-import { usePaymentInstruments, useCreateBordereau } from '@/hooks/use-payment-instruments';
+import { usePaymentInstruments, useCreateBordereau, useDisburseInstruments, useDeliverInstruments } from '@/hooks/use-payment-instruments';
 import { useBanks } from '@/hooks/use-banks';
 import { useAuthStore } from '@/store/use-auth-store';
 import { paymentService } from '@/services/components/payment.service';
@@ -44,6 +44,8 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
   const { data: instruments = [], isLoading } = usePaymentInstruments(isVersedFilter);
   const { data: banks = [] } = useBanks();
   const createBordereauMutation = useCreateBordereau();
+  const disburseInstrumentsMutation = useDisburseInstruments();
+  const deliverInstrumentsMutation = useDeliverInstruments();
   const { user } = useAuthStore();
   
   const [selectedIds, setSelectedIds] = React.useState<number[]>([]);
@@ -52,19 +54,11 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
   const [notes, setNotes] = React.useState('');
   const [nextReference, setNextReference] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    if (isBordereauModalOpen) {
-      paymentService.getNextBordereauReference().then(res => setNextReference(res.reference)).catch(console.error);
-    } else {
-      setNextReference(null);
-    }
-  }, [isBordereauModalOpen]);
-
-  // Reset selections on tab change
-  React.useEffect(() => {
+  const handleTabChange = (val: 'pending' | 'versed') => {
+    setTab(val);
     setSelectedIds([]);
     setPage(1);
-  }, [tab]);
+  };
 
   const filteredInstruments = React.useMemo(() => {
     let result = instruments;
@@ -86,7 +80,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
       );
     }
     return result;
-  }, [instruments, typeFilter, searchQuery]);
+  }, [instruments, typeFilter, searchQuery, side]);
 
   const paginatedInstruments = React.useMemo(() => {
     const start = (page - 1) * pageSize;
@@ -112,15 +106,26 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
   const handleCreateBordereau = async () => {
     if (!selectedBankId || selectedIds.length === 0) return;
     
-    await createBordereauMutation.mutateAsync({
-      bankId: parseInt(selectedBankId, 10),
-      instrumentIds: selectedIds,
-      depositDate: new Date().toISOString(),
-      notes: notes || undefined,
-      salesSiteId: user?.defaultSiteId ? Number(user.defaultSiteId) : undefined,
-    });
+    if (side === 'Supplier') {
+      await disburseInstrumentsMutation.mutateAsync({
+        bankId: parseInt(selectedBankId, 10),
+        instrumentIds: selectedIds,
+        disburseDate: new Date().toISOString(),
+        notes: notes || undefined,
+        salesSiteId: user?.defaultSiteId ? Number(user.defaultSiteId) : undefined,
+      });
+    } else {
+      await createBordereauMutation.mutateAsync({
+        bankId: parseInt(selectedBankId, 10),
+        instrumentIds: selectedIds,
+        depositDate: new Date().toISOString(),
+        notes: notes || undefined,
+        salesSiteId: user?.defaultSiteId ? Number(user.defaultSiteId) : undefined,
+      });
+    }
     
     setIsBordereauModalOpen(false);
+    setNextReference(null);
     setSelectedIds([]);
     setNotes('');
   };
@@ -144,19 +149,32 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
           </CardDescription>
         </div>
         
-        {selectedIds.length > 0 && tab === 'pending' && (
+        {(selectedIds.length > 0 && (tab === 'pending' || (tab === 'versed' && side === 'Supplier'))) && (
           <Button 
-            onClick={() => setIsBordereauModalOpen(true)}
+            onClick={async () => {
+              if (side === 'Supplier' && tab === 'pending') {
+                await deliverInstrumentsMutation.mutateAsync({
+                  instrumentIds: selectedIds,
+                  deliveryDate: new Date().toISOString()
+                });
+                setSelectedIds([]);
+              } else {
+                setIsBordereauModalOpen(true);
+                paymentService.getNextBordereauReference().then(res => setNextReference(res.reference)).catch(console.error);
+              }
+            }}
             className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 px-5 rounded-xl shadow-lg shadow-emerald-600/20"
           >
-            Créer un bordereau ({selectedIds.length}) - {selectedTotal.toFixed(3)} TND
+            {side === 'Supplier' 
+               ? (tab === 'pending' ? 'Remettre au fournisseur' : 'Confirmer le débit') 
+               : 'Créer un bordereau'} ({selectedIds.length}) - {selectedTotal.toFixed(3)} TND
           </Button>
         )}
       </CardHeader>
       
       <CardContent className="p-0">
         <div className="px-6 py-4 border-b border-forest-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <Tabs value={tab} onValueChange={(val) => setTab(val as any)} className="w-full md:w-auto">
+          <Tabs value={tab} onValueChange={(val) => handleTabChange(val as 'pending' | 'versed')} className="w-full md:w-auto">
             <TabsList className="bg-sand-50/50 p-1 rounded-xl">
               <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-forest-900 data-[state=active]:shadow-sm font-bold text-sm px-6">
                 En portefeuille
@@ -177,7 +195,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
                 className="pl-9 w-[200px] h-10 border-slate-200"
               />
             </div>
-            <Select value={typeFilter} onValueChange={(val: any) => { setTypeFilter(val); setPage(1); }}>
+            <Select value={typeFilter} onValueChange={(val: string | null) => { if (val) setTypeFilter(val as 'ALL' | 'CHEQUE' | 'TRAITE'); setPage(1); }}>
               <SelectTrigger className="w-[140px] h-10 border-slate-200 font-medium text-slate-700">
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
@@ -207,7 +225,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-forest-50/50 bg-forest-50/10">
-                  {tab === 'pending' && (
+                  {(tab === 'pending' || (tab === 'versed' && side === 'Supplier')) && (
                     <th className="px-6 py-4 w-12">
                       <Checkbox 
                         checked={selectedIds.length === paginatedInstruments.length && paginatedInstruments.length > 0} 
@@ -228,7 +246,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
               <tbody className="divide-y divide-forest-50/20">
                 {paginatedInstruments.map((inst) => (
                   <tr key={inst.id} className="hover:bg-forest-50/20 transition-all">
-                    {tab === 'pending' && (
+                    {(tab === 'pending' || (tab === 'versed' && side === 'Supplier')) && (
                       <td className="px-6 py-4">
                         <Checkbox 
                           checked={selectedIds.includes(inst.id)} 
@@ -308,12 +326,12 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
         <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden border-forest-100 rounded-[24px]">
           <DialogHeader className="p-6 pb-0">
             <DialogTitle className="text-2xl font-heading font-bold text-forest-900">
-              Créer un Bordereau
+              {side === 'Supplier' ? 'Décaisser les Paiements' : 'Créer un Bordereau'}
             </DialogTitle>
             <DialogDescription className="text-sand-400 font-medium">
-              Remise en banque de {selectedIds.length} instrument(s) pour un total de <strong className="text-forest-700">{selectedTotal.toFixed(3)} TND</strong>.
+              {side === 'Supplier' ? 'Décaissement de ' : 'Remise en banque de '}{selectedIds.length} instrument(s) pour un total de <strong className="text-forest-700">{selectedTotal.toFixed(3)} TND</strong>.
             </DialogDescription>
-            {nextReference && (
+            {nextReference && side !== 'Supplier' && (
               <div className="mt-3 bg-forest-50/50 border border-forest-100 rounded-lg p-3 flex items-center justify-between">
                 <span className="text-xs font-bold text-forest-800 uppercase tracking-wider">Référence Générée</span>
                 <span className="text-sm font-black text-forest-950 bg-white px-2 py-1 rounded shadow-sm">{nextReference}</span>
@@ -360,7 +378,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
           <DialogFooter className="p-6 pt-0 bg-sand-50/30 flex justify-end gap-3 border-t border-forest-50/50 mt-4">
             <Button 
               variant="outline" 
-              onClick={() => setIsBordereauModalOpen(false)}
+              onClick={() => { setIsBordereauModalOpen(false); setNextReference(null); }}
               className="h-11 px-6 rounded-xl font-bold border-forest-100 text-forest-600 hover:bg-forest-50"
             >
               Annuler
@@ -375,7 +393,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
               ) : (
                 <CheckCircle2 className="w-4 h-4" />
               )}
-              Valider la remise
+              {side === 'Supplier' ? 'Valider le décaissement' : 'Valider la remise'}
             </Button>
           </DialogFooter>
         </DialogContent>
