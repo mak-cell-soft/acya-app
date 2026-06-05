@@ -77,14 +77,14 @@ export function TaxRegistrationDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md rounded-[32px] border-forest-100 shadow-2xl p-0 overflow-hidden">
-        <DialogHeader className="p-8 bg-forest-900 text-white">
+        <DialogHeader className="border-b border-border pb-4 mb-4 p-8">
           <DialogTitle className="font-heading text-2xl font-bold tracking-tight flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-forest-800 flex items-center justify-center border border-forest-700">
-              <AlertCircle className="w-5 h-5 text-emerald-400" />
+            <div className="w-10 h-10 rounded-xl bg-forest-50 flex items-center justify-center border border-forest-100">
+              <AlertCircle className="w-5 h-5 text-emerald-600" />
             </div>
             Matricule Fiscal
           </DialogTitle>
-          <p className="text-forest-300 text-xs font-medium mt-2 leading-relaxed">
+          <p className="text-muted-foreground text-xs font-medium mt-2 leading-relaxed">
             Saisissez les composants de l'identifiant fiscal selon le format standard (Tunisie).
           </p>
         </DialogHeader>

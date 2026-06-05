@@ -215,23 +215,23 @@ export function ExcelInventoryDialog({ isOpen, onClose }: ExcelInventoryDialogPr
         showCloseButton={false} 
         className="w-full max-w-full sm:max-w-xl md:max-w-2xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-white font-sans"
       >
-        <DialogHeader className="p-6 bg-gradient-to-r from-forest-900 to-forest-800 text-white relative">
+        <DialogHeader className="border-b border-border pb-4 mb-4 p-6 relative">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-forest-800 flex items-center justify-center border border-forest-700 text-emerald-400">
+            <div className="w-12 h-12 rounded-xl bg-forest-50 flex items-center justify-center border border-forest-100 text-emerald-600">
               <FileSpreadsheet className="w-6 h-6" />
             </div>
             <div>
               <DialogTitle className="font-heading text-xl font-bold">
                 Import / Export Inventaire
               </DialogTitle>
-              <p className="text-forest-300 text-xs mt-1">
+              <p className="text-muted-foreground text-xs mt-1">
                 Générez un modèle Excel pour votre comptage, puis importez-le.
               </p>
             </div>
           </div>
           <button 
             onClick={handleResetAndClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 hover:scale-105 transition-all text-white"
+            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 hover:scale-105 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>

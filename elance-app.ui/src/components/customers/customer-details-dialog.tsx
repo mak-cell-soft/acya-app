@@ -177,9 +177,9 @@ export function CustomerDetailsDialog({
         dialog restricted to md width even on desktop viewports.
       */}
       <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-6xl h-[90vh] p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white flex flex-col">
-        <DialogHeader className="p-8 bg-forest-900 text-white relative flex-shrink-0">
+        <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative flex-shrink-0">
           <div className="flex items-center gap-6">
-            <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-forest-800 to-forest-700 flex items-center justify-center border border-forest-600 text-emerald-400 font-heading text-2xl font-bold shadow-inner">
+            <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-forest-800 to-forest-700 flex items-center justify-center border border-forest-600 text-emerald-600 font-heading text-2xl font-bold shadow-inner">
               {initials || "CL"}
             </div>
             <div>
@@ -187,18 +187,18 @@ export function CustomerDetailsDialog({
                 <DialogTitle className="font-heading text-3xl font-bold tracking-tight">
                   {customer.firstname} {customer.lastname}
                 </DialogTitle>
-                <Badge className="bg-emerald-500/20 text-emerald-400 border-none rounded-lg px-2 font-bold text-xs">
+                <Badge className="bg-emerald-500/20 text-emerald-600 border-none rounded-lg px-2 font-bold text-xs">
                   {customer.prefix}
                 </Badge>
               </div>
-              <p className="text-forest-300 text-sm font-medium mt-1 flex items-center gap-2">
+              <p className="text-muted-foreground text-sm font-medium mt-1 flex items-center gap-2">
                 <Info className="w-4 h-4" /> {customer.name || "Client Régulier"} • ID: {customer.id}
               </p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all text-white"
+            className="absolute right-6 top-6 w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-5 h-5" />
           </button>

@@ -135,7 +135,7 @@ export function BankFormDialog({ isOpen, onClose, bank }: BankFormDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[700px] rounded-[32px] p-0 overflow-hidden border-forest-100 shadow-2xl">
-        <DialogHeader className="p-8 bg-forest-600 text-white relative overflow-hidden">
+        <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <LandmarkIcon className="w-32 h-32" />
           </div>

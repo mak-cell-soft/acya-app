@@ -202,23 +202,23 @@ export function DataImportDialog({
         className="w-full max-w-full sm:max-w-xl md:max-w-2xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-white font-sans"
       >
         {/* PREMIUM FOREST GREEN HEADER BLOCK */}
-        <DialogHeader className="p-8 bg-gradient-to-r from-forest-900 to-forest-800 text-white relative">
+        <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700 text-emerald-400 font-bold text-xl shadow-inner">
+            <div className="w-14 h-14 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100 text-emerald-600 font-bold text-xl shadow-inner">
               <CloudUpload className="w-6 h-6" />
             </div>
             <div className="space-y-0.5">
               <DialogTitle className="font-heading text-2xl font-bold tracking-tight">
                 Importer des {currentLabel.plural}
               </DialogTitle>
-              <p className="text-forest-300 text-sm font-medium">
+              <p className="text-muted-foreground text-sm font-medium">
                 Alimentez votre base de données avec des fichiers Excel ou CSV.
               </p>
             </div>
           </div>
           <button 
             onClick={handleResetAndClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 hover:scale-105 transition-all text-white"
+            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 hover:scale-105 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>

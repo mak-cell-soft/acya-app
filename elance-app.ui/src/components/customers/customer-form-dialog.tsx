@@ -217,23 +217,23 @@ export function CustomerFormDialog({
         showCloseButton={false}
         className="w-full max-w-full sm:max-w-xl md:max-w-3xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background h-full sm:h-auto max-h-screen sm:max-h-[90vh] flex flex-col"
       >
-        <DialogHeader className="p-6 sm:p-8 bg-forest-900 text-white relative shrink-0">
+        <DialogHeader className="border-b border-border pb-4 mb-4 p-6 sm:p-8 relative shrink-0">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700 text-emerald-400 shrink-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100 text-emerald-600 shrink-0">
               {editCustomer ? <UserPen className="w-5 h-5 sm:w-6 sm:h-6" /> : <UserPlus className="w-5 h-5 sm:w-6 sm:h-6" />}
             </div>
             <div>
               <DialogTitle className="font-heading text-xl sm:text-2xl font-bold tracking-tight">
                 {editCustomer ? "Modifier le Client" : "Nouveau Client"}
               </DialogTitle>
-              <p className="text-forest-300 text-[0.7rem] sm:text-sm font-medium mt-1">
+              <p className="text-muted-foreground text-[0.7rem] sm:text-sm font-medium mt-1">
                 {editCustomer ? `ID: ${editCustomer.id} — ${editCustomer.firstname} ${editCustomer.lastname}` : "Enregistrez un nouveau client régulier."}
               </p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-4 top-4 sm:right-6 sm:top-6 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all text-white"
+            className="absolute right-4 top-4 sm:right-6 sm:top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>

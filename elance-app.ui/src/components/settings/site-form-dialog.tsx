@@ -80,7 +80,7 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] rounded-[32px] p-0 overflow-hidden border-forest-100">
-        <DialogHeader className="p-8 bg-forest-600 text-white relative">
+        <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <Store className="w-24 h-24" />
           </div>

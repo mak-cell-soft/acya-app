@@ -21,6 +21,17 @@ import {
   X,
   Calculator
 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useAuthStore } from '@/store/use-auth-store';
 import { useRouter } from 'next/navigation';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
@@ -92,7 +103,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const handleLogout = () => {
     logout();
-    router.push('/login');
+    router.push('/');
+    if (isOpen) {
+      onClose();
+    }
   };
 
   return (
@@ -111,30 +125,61 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="p-6 pb-2 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 mb-8 group" onClick={onClose}>
-            <div className="relative group-hover:scale-110 transition-transform duration-500">
-              <svg className="w-8.5 h-8.5 md:w-9.5 md:h-9.5 transition-transform duration-700 group-hover:rotate-[360deg]" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="40" height="40" rx="10" fill="url(#logo_bg_grad)" className="opacity-10 group-hover:opacity-15 transition-opacity" />
-                <path d="M20 3L35 11.5V28.5L20 37L5 28.5V11.5L20 3" stroke="url(#logo_stroke_grad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M20 9L31 17.25L27 20.25L20 15L13 20.25L9 17.25L20 9Z" fill="url(#logo_stroke_grad)"/>
-                <rect x="17.5" y="18" width="5" height="11" rx="1.5" fill="url(#logo_stroke_grad)" />
-                <path d="M12 25H28" stroke="url(#logo_stroke_grad)" strokeWidth="1.5" strokeLinecap="round"/>
-                <path d="M14 29H26" stroke="#06B6D4" strokeWidth="2" strokeLinecap="round"/>
-                <defs>
-                  <linearGradient id="logo_bg_grad" x1="0" y1="0" x2="40" y2="40">
-                    <stop offset="0%" stopColor="#2563EB"/>
-                    <stop offset="100%" stopColor="#06B6D4"/>
-                  </linearGradient>
-                  <linearGradient id="logo_stroke_grad" x1="0" y1="0" x2="40" y2="40">
-                    <stop offset="0%" stopColor="#3B82F6"/>
-                    <stop offset="60%" stopColor="#2563EB"/>
-                    <stop offset="100%" stopColor="#06B6D4"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-            <span className="text-2xl font-bold font-heading text-white tracking-tight">Élancé</span>
-          </Link>
+          <AlertDialog>
+            <AlertDialogTrigger 
+              className="flex items-center gap-3 mb-8 group text-left outline-none"
+            >
+              <div className="relative group-hover:scale-110 transition-transform duration-500">
+                <svg className="w-8.5 h-8.5 md:w-9.5 md:h-9.5 transition-transform duration-700 group-hover:rotate-[360deg]" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="40" height="40" rx="10" fill="url(#logo_bg_grad)" className="opacity-10 group-hover:opacity-15 transition-opacity" />
+                  <path d="M20 3L35 11.5V28.5L20 37L5 28.5V11.5L20 3" stroke="url(#logo_stroke_grad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M20 9L31 17.25L27 20.25L20 15L13 20.25L9 17.25L20 9Z" fill="url(#logo_stroke_grad)"/>
+                  <rect x="17.5" y="18" width="5" height="11" rx="1.5" fill="url(#logo_stroke_grad)" />
+                  <path d="M12 25H28" stroke="url(#logo_stroke_grad)" strokeWidth="1.5" strokeLinecap="round"/>
+                  <path d="M14 29H26" stroke="#06B6D4" strokeWidth="2" strokeLinecap="round"/>
+                  <defs>
+                    <linearGradient id="logo_bg_grad" x1="0" y1="0" x2="40" y2="40">
+                      <stop offset="0%" stopColor="#2563EB"/>
+                      <stop offset="100%" stopColor="#06B6D4"/>
+                    </linearGradient>
+                    <linearGradient id="logo_stroke_grad" x1="0" y1="0" x2="40" y2="40">
+                      <stop offset="0%" stopColor="#3B82F6"/>
+                      <stop offset="60%" stopColor="#2563EB"/>
+                      <stop offset="100%" stopColor="#06B6D4"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              <div className="flex flex-col items-start justify-center">
+                <span className="text-2xl font-bold font-heading text-white tracking-tight leading-none">Élancé</span>
+                <div className="flex items-center gap-1.5 mt-1.5 px-2 py-0.5 rounded-md bg-white/5 border border-white/10 group-hover:bg-white/10 transition-colors">
+                  <span className="w-1 h-1 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse" />
+                  <span className="text-[0.55rem] font-bold text-white/80 uppercase tracking-[0.15em] leading-none">SOCOFEB</span>
+                </div>
+              </div>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_30px_100px_-20px_rgba(3,10,28,0.1)] rounded-3xl p-6 sm:p-8 max-w-[600px]">
+              <AlertDialogHeader className="space-y-4">
+                <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center mb-2 shadow-inner border border-rose-100">
+                  <LogOut className="w-7 h-7 text-rose-500" />
+                </div>
+                <AlertDialogTitle className="font-heading text-2xl font-extrabold text-slate-900 text-left">
+                  Quitter l'application ?
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-[1.05rem] text-slate-600 font-medium leading-relaxed text-left">
+                  Êtes-vous sûr de vouloir vous déconnecter de <span className="font-bold text-corp-blue-700">Élancé</span> ? Vous devrez vous reconnecter pour accéder à votre espace.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="mt-8 sm:space-x-4">
+                <AlertDialogCancel className="h-12 px-6 rounded-xl border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 text-[0.95rem] font-bold transition-all duration-300 shadow-sm hover:scale-[1.02] active:scale-[0.98]">
+                  Annuler
+                </AlertDialogCancel>
+                <AlertDialogAction onClick={handleLogout} className="h-12 px-6 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 text-white font-bold text-[0.95rem] transition-all duration-300 shadow-lg shadow-rose-500/20 hover:scale-[1.03] active:scale-[0.97] border-0">
+                  Se déconnecter
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           <button 
             className="lg:hidden p-2 text-white/50 hover:text-white mb-8"

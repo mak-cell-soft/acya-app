@@ -73,18 +73,18 @@ export function SupplierAccountDialog({
         dialog restricted to md width even on desktop/tablet viewports.
       */}
       <DialogContent showCloseButton={false} className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-7xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white max-h-[90vh] flex flex-col">
-        <DialogHeader className="p-8 bg-forest-900 text-white relative flex-shrink-0">
+        <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative flex-shrink-0">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700 text-emerald-400">
+              <div className="w-16 h-16 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100 text-emerald-600">
                 <CreditCard className="w-8 h-8" />
               </div>
               <div className="space-y-1">
                 <DialogTitle className="font-heading text-3xl font-bold tracking-tight">
                   État de Compte Fournisseur
                 </DialogTitle>
-                <p className="text-forest-300 font-medium flex items-center gap-2">
-                  {supplier.prefix} {supplier.name} — <span className="text-emerald-400">{supplier.taxregistrationnumber}</span>
+                <p className="text-muted-foreground font-medium flex items-center gap-2">
+                  {supplier.prefix} {supplier.name} — <span className="text-emerald-600">{supplier.taxregistrationnumber}</span>
                 </p>
               </div>
             </div>
@@ -92,8 +92,8 @@ export function SupplierAccountDialog({
             <div className="flex items-center gap-3">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="h-12 rounded-xl border-forest-700 bg-forest-800 text-white hover:bg-forest-700 hover:text-white font-bold px-5">
-                    <CalendarIcon className="w-4 h-4 mr-2 text-emerald-400" />
+                  <Button variant="outline" className="h-12 rounded-xl border-forest-100 bg-forest-50 text-foreground hover:bg-forest-700 hover:text-foreground font-bold px-5">
+                    <CalendarIcon className="w-4 h-4 mr-2 text-emerald-600" />
                     {format(dateRange.from, "dd MMM", { locale: fr })} - {format(dateRange.to, "dd MMM yyyy", { locale: fr })}
                   </Button>
                 </PopoverTrigger>
@@ -114,16 +114,16 @@ export function SupplierAccountDialog({
               </Popover>
               <Button 
                 variant="outline" 
-                className="h-12 rounded-xl border-forest-700 bg-forest-800 text-white hover:bg-forest-700 hover:text-white font-bold px-5"
+                className="h-12 rounded-xl border-forest-100 bg-forest-50 text-foreground hover:bg-forest-700 hover:text-foreground font-bold px-5"
                 onClick={() => setIsPrintOpen(true)}
               >
-                <Printer className="w-4 h-4 mr-2 text-emerald-400" /> Imprimer
+                <Printer className="w-4 h-4 mr-2 text-emerald-600" /> Imprimer
               </Button>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all text-white"
+            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>

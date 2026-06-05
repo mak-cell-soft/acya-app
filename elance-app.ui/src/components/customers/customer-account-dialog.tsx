@@ -86,39 +86,39 @@ export function CustomerAccountDialog({
         dialog restricted to md width even on desktop viewports.
       */}
       <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-5xl lg:max-w-7xl h-[90vh] p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white flex flex-col">
-        <DialogHeader className="p-8 bg-forest-900 text-white relative flex-shrink-0">
+        <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative flex-shrink-0">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700 text-emerald-400">
+              <div className="w-12 h-12 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100 text-emerald-600">
                 <CreditCard className="w-6 h-6" />
               </div>
               <div>
                 <DialogTitle className="font-heading text-2xl font-bold tracking-tight">
                   État de Compte
                 </DialogTitle>
-                <p className="text-forest-300 text-sm font-medium mt-1">
+                <p className="text-muted-foreground text-sm font-medium mt-1">
                   Situation financière de {customer.firstname} {customer.lastname}
                 </p>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2 bg-forest-800/50 p-1.5 rounded-2xl border border-forest-700">
+              <div className="flex items-center gap-2 bg-forest-50/50 p-1.5 rounded-2xl border border-forest-100">
                 <DatePicker 
                   date={startDate} 
                   setDate={(d) => d && setStartDate(d)} 
-                  className="h-9 w-40 bg-transparent border-none text-white hover:bg-forest-700" 
+                  className="h-9 w-40 bg-transparent border-none text-foreground hover:bg-forest-700" 
                 />
                 <span className="text-forest-500 font-bold px-1">au</span>
                 <DatePicker 
                   date={endDate} 
                   setDate={(d) => d && setEndDate(d)} 
-                  className="h-9 w-40 bg-transparent border-none text-white hover:bg-forest-700" 
+                  className="h-9 w-40 bg-transparent border-none text-foreground hover:bg-forest-700" 
                 />
               </div>
               <Button 
                 variant="outline" 
-                className="h-11 rounded-xl bg-forest-800 border-forest-700 text-white hover:bg-forest-700"
+                className="h-11 rounded-xl bg-forest-50 border-forest-100 text-foreground hover:bg-forest-700"
                 onClick={() => setIsPrintOpen(true)}
               >
                 <Printer className="w-4 h-4 mr-2" /> Imprimer
@@ -127,7 +127,7 @@ export function CustomerAccountDialog({
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all text-white"
+            className="absolute right-6 top-6 w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-5 h-5" />
           </button>

@@ -131,10 +131,10 @@ export function ArticleHistoryDialog({ isOpen, onClose, article }: ArticleHistor
       {/* // NOTE: Using responsive width constraints (w-full max-w-full on mobile, scaling up to md:max-w-4xl on desktop)
           // to override the default DialogContent max-width layout limits and prevent table compression. */}
       <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-white">
-        <DialogHeader className="p-8 bg-forest-900 text-white relative">
+        <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700">
-              <History className="w-6 h-6 text-emerald-400" />
+            <div className="w-12 h-12 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100">
+              <History className="w-6 h-6 text-emerald-600" />
             </div>
             <div>
               <DialogTitle className="font-heading text-2xl font-bold tracking-tight">Historique des Prix</DialogTitle>
@@ -142,13 +142,13 @@ export function ArticleHistoryDialog({ isOpen, onClose, article }: ArticleHistor
                 <Badge className="bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border-emerald-500/30 font-bold">
                   {article?.reference}
                 </Badge>
-                <span className="text-forest-300 text-sm font-medium">{article?.description}</span>
+                <span className="text-muted-foreground text-sm font-medium">{article?.description}</span>
               </div>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all text-white"
+            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
