@@ -78,16 +78,22 @@ export default function LoginPage() {
       >
         <div className="flex flex-col items-center mb-10">
           <Link href="/" className="group transition-transform hover:scale-105">
-            <svg className="w-16 h-16 md:w-20 md:h-20" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="18" cy="18" r="17" stroke="url(#ng_login)" strokeWidth="1.5" />
-              <rect x="15.5" y="10" width="5" height="12" rx="2.5" fill="url(#ng_login)" />
-              <polygon points="18,6 10,15.5 26,15.5" fill="url(#ng_login)" />
-              <rect x="14" y="24" width="8" height="2" rx="1" fill="#8C6239" />
-              <rect x="11" y="28" width="14" height="2" rx="1" fill="#6B4825" opacity="0.5" />
+            <svg className="w-20 h-20 md:w-24 md:h-24 transition-transform duration-700 group-hover:rotate-[360deg] shadow-2xl shadow-corp-blue-500/10 rounded-2xl" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="40" height="40" rx="10" fill="url(#logo_bg_grad)" className="opacity-10 group-hover:opacity-15 transition-opacity" />
+              <path d="M20 3L35 11.5V28.5L20 37L5 28.5V11.5L20 3" stroke="url(#logo_stroke_grad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M20 9L31 17.25L27 20.25L20 15L13 20.25L9 17.25L20 9Z" fill="url(#logo_stroke_grad)"/>
+              <rect x="17.5" y="18" width="5" height="11" rx="1.5" fill="url(#logo_stroke_grad)" />
+              <path d="M12 25H28" stroke="url(#logo_stroke_grad)" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M14 29H26" stroke="#06B6D4" strokeWidth="2" strokeLinecap="round"/>
               <defs>
-                <linearGradient id="ng_login" x1="0" y1="0" x2="36" y2="36">
-                  <stop offset="0%" stopColor="#0B3B24" />
-                  <stop offset="100%" stopColor="#8C6239" />
+                <linearGradient id="logo_bg_grad" x1="0" y1="0" x2="40" y2="40">
+                  <stop offset="0%" stopColor="#2563EB"/>
+                  <stop offset="100%" stopColor="#06B6D4"/>
+                </linearGradient>
+                <linearGradient id="logo_stroke_grad" x1="0" y1="0" x2="40" y2="40">
+                  <stop offset="0%" stopColor="#3B82F6"/>
+                  <stop offset="60%" stopColor="#2563EB"/>
+                  <stop offset="100%" stopColor="#06B6D4"/>
                 </linearGradient>
               </defs>
             </svg>

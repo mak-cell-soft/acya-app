@@ -124,23 +124,23 @@ export function EditUserDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent showCloseButton={false} className="w-full max-w-lg p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background scrollbar-hide">
-        <DialogHeader className="p-8 bg-forest-900 text-white relative">
+        <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-forest-800 flex items-center justify-center border border-forest-700">
-              <KeyRound className="w-6 h-6 text-emerald-400" />
+            <div className="w-12 h-12 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100">
+              <KeyRound className="w-6 h-6 text-emerald-600" />
             </div>
             <div>
               <DialogTitle className="font-heading text-2xl font-bold tracking-tight">
                 Paramètres Utilisateur App
               </DialogTitle>
-              <p className="text-forest-300 text-sm font-medium mt-1">
+              <p className="text-muted-foreground text-sm font-medium mt-1">
                 Gérez le compte et les accès de {editUser?.person ? `${editUser.person.firstname} ${editUser.person.lastname}` : editUser?.login}
               </p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all text-white"
+            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>

@@ -342,7 +342,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-full max-w-full sm:max-w-xl md:max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-white max-h-[90vh] flex flex-col">
-        <DialogHeader className="p-6 md:p-8 bg-forest-600 text-white relative overflow-hidden shrink-0">
+        <DialogHeader className="border-b border-border pb-4 mb-4 p-6 md:p-8 relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <Truck className="w-24 h-24" />
           </div>

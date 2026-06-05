@@ -179,26 +179,22 @@ export default function ChantiersPage() {
                 transition={{ duration: 0.4 }}
               >
                 <Card className="border-forest-100 shadow-xl shadow-forest-900/5 rounded-[32px] overflow-hidden bg-white">
-                  <div className="h-32 bg-forest-900 relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-forest-900 via-forest-800 to-transparent" />
-                    <div className="absolute -bottom-12 left-8 p-1 bg-white rounded-3xl shadow-xl">
-                      <div className="w-24 h-24 bg-forest-50 rounded-[22px] flex items-center justify-center text-forest-600">
-                        <Building2 className="w-10 h-10" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-16 pb-8 px-8">
+                  <div className="pt-8 pb-8 px-8">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                      <div>
-                        <h2 className="text-2xl font-heading font-bold text-forest-900">{selectedSite.name}</h2>
-                        <div className="flex items-center gap-4 mt-2">
-                          <div className="flex items-center gap-2 text-sm text-sand-400 font-medium">
-                            <Users className="w-4 h-4" /> {selectedSite.client}
-                          </div>
-                          <div className="w-1 h-1 bg-sand-200 rounded-full" />
-                          <div className="flex items-center gap-2 text-sm text-sand-400 font-medium">
-                            <Calendar className="w-4 h-4" /> Début: {new Date(selectedSite.startDate).toLocaleDateString('fr-TN')}
+                      <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-forest-50 rounded-[18px] border border-forest-100 flex items-center justify-center text-forest-600 shrink-0 shadow-sm">
+                          <Building2 className="w-8 h-8" />
+                        </div>
+                        <div>
+                          <h2 className="text-2xl font-heading font-bold text-forest-900">{selectedSite.name}</h2>
+                          <div className="flex items-center gap-4 mt-2">
+                            <div className="flex items-center gap-2 text-sm text-sand-400 font-medium">
+                              <Users className="w-4 h-4" /> {selectedSite.client}
+                            </div>
+                            <div className="w-1 h-1 bg-sand-200 rounded-full" />
+                            <div className="flex items-center gap-2 text-sm text-sand-400 font-medium">
+                              <Calendar className="w-4 h-4" /> Début: {new Date(selectedSite.startDate).toLocaleDateString('fr-TN')}
+                            </div>
                           </div>
                         </div>
                       </div>
