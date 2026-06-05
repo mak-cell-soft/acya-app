@@ -34,4 +34,18 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public int? SalesSiteId { get; set; }
         public int? CreatedByUserId { get; set; }
     }
+
+    public class PendingBordereauDto
+    {
+        public string Reference { get; set; } = string.Empty;
+        public int BankId { get; set; }
+        public string? BankName { get; set; }
+        public string? BankRib { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public decimal TotalAmountHT { get; set; }
+        public decimal TotalFeeWithTax { get; set; }
+        public decimal TotalNetAmount { get; set; }
+        public int InstrumentCount { get; set; }
+        public System.Collections.Generic.List<ms.webapp.api.acya.core.Entities.DTOs.PaymentInstrumentExtendedDto> Instruments { get; set; } = new();
+    }
 }

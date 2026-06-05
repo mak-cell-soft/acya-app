@@ -94,3 +94,32 @@ export interface CreateRecouvrementDto {
   updatedByUserId?: number;
   instrumentDetails?: Partial<PaymentInstrumentDto>;
 }
+
+export interface PaymentInstrumentExtendedDto extends PaymentInstrumentDto {
+  amount: number;
+  customerName?: string;
+  documentNumber?: string;
+  bordereauReference?: string;
+}
+
+export interface CreateBordereauDto {
+  bankId: number;
+  instrumentIds: number[];
+  depositDate: string;
+  notes?: string;
+  salesSiteId?: number;
+  createdByUserId?: number;
+}
+
+export interface PendingBordereauDto {
+  reference: string;
+  bankId: number;
+  bankName?: string;
+  bankRib?: string;
+  createdAt?: string;
+  totalAmountHT: number;
+  totalFeeWithTax: number;
+  totalNetAmount: number;
+  instrumentCount: number;
+  instruments: PaymentInstrumentExtendedDto[];
+}

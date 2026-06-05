@@ -145,6 +145,61 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
             return await context.SaveChangesAsync() > 0;
         }
 
+        public async Task<IEnumerable<PaymentInstrumentExtendedDto>> GetInstrumentsAsync(bool? isPaidOrVersed = null)
+        {
+            // Join PaymentInstruments with Payment, Document, Customer, and BankDeposits to get BordereauReference
+            var query = context.PaymentInstruments
+                .Include(pi => pi.Payment)
+                    .ThenInclude(p => p!.Customer)
+                .Include(pi => pi.Payment)
+                    .ThenInclude(p => p!.Document)
+                .Where(pi => pi.Type == "CHEQUE" || pi.Type == "TRAITE");
+
+            // Assuming a BankDeposit links to the instrument
+            var resultQuery = from pi in query
+                              join bd in context.BankDeposits on pi.Id equals bd.PaymentInstrumentId into bdGroup
+                              from bd in bdGroup.DefaultIfEmpty()
+                              select new { pi, bd };
+
+            if (isPaidOrVersed.HasValue)
+            {
+                if (isPaidOrVersed.Value)
+                {
+                    // Versed means it has a bank deposit or IsPaidAtBank is true
+                    resultQuery = resultQuery.Where(x => x.bd != null || x.pi.IsPaidAtBank);
+                }
+                else
+                {
+                    resultQuery = resultQuery.Where(x => x.bd == null && !x.pi.IsPaidAtBank);
+                }
+            }
+
+            var items = await resultQuery
+                .OrderByDescending(x => x.pi.CreatedAt)
+                .ToListAsync();
+
+            return items.Select(x => new PaymentInstrumentExtendedDto
+            {
+                Id = x.pi.Id,
+                PaymentId = x.pi.PaymentId,
+                Type = x.pi.Type,
+                InstrumentNumber = x.pi.InstrumentNumber,
+                Bank = x.pi.Bank,
+                Owner = x.pi.Owner,
+                Porter = x.pi.Porter,
+                IssueDate = x.pi.IssueDate,
+                DueDate = x.pi.DueDate,
+                ExpirationDate = x.pi.ExpirationDate,
+                IsPaidAtBank = x.pi.IsPaidAtBank,
+                PaidAtBankDate = x.pi.PaidAtBankDate,
+                BankSettlementStatus = x.pi.BankSettlementStatus,
+                Amount = x.pi.Payment?.Amount ?? 0,
+                CustomerName = x.pi.Payment?.Customer?.Fullname ?? x.pi.Payment?.Customer?.Name,
+                DocumentNumber = x.pi.Payment?.Document?.DocNumber,
+                BordereauReference = x.bd?.Reference
+            }).ToList();
+        }
+
         public async Task<decimal> GetTotalByDocumentIdAsync(int documentId)
         {
             // Handle null amount summing if needed, though schema says decimal(10,4)

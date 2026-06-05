@@ -688,5 +688,222 @@ namespace ms.webapp.api.acya.api.Services
 
             return Helpers.GenerateDailyDocNumber("ENC", lastPayment?.Reference, 3);
         }
+
+        public async Task<IEnumerable<PaymentInstrumentExtendedDto>> GetInstrumentsAsync(bool? isPaidOrVersed = null)
+        {
+            return await _paymentRepository.GetInstrumentsAsync(isPaidOrVersed);
+        }
+
+        public async Task<string> GetNextBordereauReferenceAsync()
+        {
+            var lastDeposit = await _context.BankDeposits
+                .Where(b => b.Reference != null && b.Reference.StartsWith("BORD-"))
+                .OrderByDescending(b => b.Id)
+                .FirstOrDefaultAsync();
+                
+            return Helpers.GenerateDailyDocNumber("BORD", lastDeposit?.Reference, 3);
+        }
+
+        public async Task<string> CreateBordereauAsync(CreateBordereauDto dto)
+        {
+            if (dto.InstrumentIds == null || !dto.InstrumentIds.Any())
+                throw new ArgumentException("No instruments selected.");
+
+            var bank = await _context.Banks.FirstOrDefaultAsync(b => b.Id == dto.BankId);
+            if (bank == null)
+                throw new ArgumentException("Bank not found.");
+
+            var instruments = await _context.PaymentInstruments
+                .Include(pi => pi.Payment)
+                .Where(pi => dto.InstrumentIds.Contains(pi.Id))
+                .ToListAsync();
+
+            if (instruments.Count != dto.InstrumentIds.Count)
+                throw new ArgumentException("Some instruments were not found.");
+
+            // Generate Bordereau reference
+            var lastDeposit = await _context.BankDeposits
+                .Where(b => b.Reference != null && b.Reference.StartsWith("BORD-"))
+                .OrderByDescending(b => b.Id)
+                .FirstOrDefaultAsync();
+                
+            string bordereauReference = Helpers.GenerateDailyDocNumber("BORD", lastDeposit?.Reference, 3);
+
+            // Get Tax Rate
+            var tvaVar = await _context.AppVariables.FirstOrDefaultAsync(v => v.Name == "Tva");
+            decimal taxRate = (decimal)(tvaVar?.Value ?? 19.0);
+
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    foreach (var instrument in instruments)
+                    {
+                        // Check if already deposited
+                        bool alreadyDeposited = await _context.BankDeposits.AnyAsync(b => b.PaymentInstrumentId == instrument.Id && !b.IsDeleted);
+                        if (alreadyDeposited || instrument.IsPaidAtBank)
+                            continue; // Skip or throw error depending on strictness
+
+                        decimal feeHT = instrument.Type?.ToUpper() switch
+                        {
+                            "CHEQUE" => bank.ChequeDepositFeeHT,
+                            "TRAITE" => bank.TraiteDepositFeeHT,
+                            _ => bank.MiscFeeHT
+                        };
+
+                        decimal feeWithTax = feeHT * (1 + taxRate / 100);
+                        decimal amountHT = instrument.Payment?.Amount ?? 0;
+                        decimal netAmount = amountHT - feeWithTax;
+
+                        var deposit = new BankDeposit
+                        {
+                            BankId = dto.BankId,
+                            DepositDate = dto.DepositDate,
+                            DepositType = instrument.Type ?? "CHEQUE",
+                            AmountHT = amountHT,
+                            FeeHT = feeHT,
+                            TaxRate = taxRate,
+                            FeeWithTax = feeWithTax,
+                            NetAmount = netAmount,
+                            Reference = bordereauReference,
+                            Notes = dto.Notes,
+                            PaymentInstrumentId = instrument.Id,
+                            SalesSiteId = dto.SalesSiteId,
+                            CreatedByUserId = dto.CreatedByUserId,
+                            CreatedAt = DateTime.UtcNow,
+                            IsDeleted = false
+                        };
+
+                        await _context.BankDeposits.AddAsync(deposit);
+                        
+                        // We do NOT mark it as PaidAtBank yet. Paid at bank means the money arrived. 
+                        // It is just versed now.
+                        instrument.BankSettlementStatus = "PENDING";
+                        _context.PaymentInstruments.Update(instrument);
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return bordereauReference;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+        }
+
+        public async Task<IEnumerable<PendingBordereauDto>> GetPendingBordereauxAsync()
+        {
+            var deposits = await _context.BankDeposits
+                .Include(b => b.Bank)
+                .Include(b => b.PaymentInstrument)
+                    .ThenInclude(pi => pi.Payment)
+                        .ThenInclude(p => p!.Customer)
+                .Where(b => !b.IsDeleted && b.PaymentInstrument != null && b.PaymentInstrument.BankSettlementStatus == "PENDING" && b.Reference != null && b.Reference.StartsWith("BORD-"))
+                .ToListAsync();
+
+            var groups = deposits.GroupBy(b => b.Reference).Select(g => new PendingBordereauDto
+            {
+                Reference = g.Key ?? "",
+                BankId = g.First().BankId,
+                BankName = g.First().Bank?.Designation,
+                BankRib = g.First().Bank?.Rib,
+                CreatedAt = g.Min(x => x.CreatedAt),
+                TotalAmountHT = g.Sum(x => x.AmountHT),
+                TotalFeeWithTax = g.Sum(x => x.FeeWithTax),
+                TotalNetAmount = g.Sum(x => x.NetAmount),
+                InstrumentCount = g.Count(),
+                Instruments = g.Select(b => new ms.webapp.api.acya.core.Entities.DTOs.PaymentInstrumentExtendedDto
+                {
+                    Id = b.PaymentInstrument!.Id,
+                    Type = b.PaymentInstrument.Type,
+                    InstrumentNumber = b.PaymentInstrument.InstrumentNumber,
+                    Bank = b.PaymentInstrument.Bank,
+                    Owner = b.PaymentInstrument.Owner,
+                    DueDate = b.PaymentInstrument.DueDate,
+                    Amount = b.AmountHT,
+                    CustomerName = b.PaymentInstrument.Payment?.Customer?.Fullname ?? b.PaymentInstrument.Payment?.Customer?.Name,
+                    BankSettlementStatus = b.PaymentInstrument.BankSettlementStatus,
+                    BordereauReference = b.Reference
+                }).ToList()
+            });
+
+            return groups.OrderByDescending(g => g.CreatedAt).ToList();
+        }
+
+        public async Task RemoveInstrumentFromBordereauAsync(string reference, int instrumentId)
+        {
+            var deposit = await _context.BankDeposits
+                .Include(b => b.PaymentInstrument)
+                .FirstOrDefaultAsync(b => b.Reference == reference && b.PaymentInstrumentId == instrumentId && !b.IsDeleted);
+
+            if (deposit == null)
+                throw new ArgumentException("Instrument not found in this bordereau.");
+
+            // Remove deposit
+            _context.BankDeposits.Remove(deposit);
+
+            // Reset instrument status
+            if (deposit.PaymentInstrument != null)
+            {
+                deposit.PaymentInstrument.BankSettlementStatus = null;
+                _context.PaymentInstruments.Update(deposit.PaymentInstrument);
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ValidateBordereauAsync(string reference)
+        {
+            var deposits = await _context.BankDeposits
+                .Include(b => b.PaymentInstrument)
+                .Include(b => b.Bank)
+                .Where(b => b.Reference == reference && !b.IsDeleted && b.PaymentInstrument != null && b.PaymentInstrument.BankSettlementStatus == "PENDING")
+                .ToListAsync();
+
+            if (!deposits.Any())
+                throw new ArgumentException("Bordereau not found or already validated.");
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                foreach (var deposit in deposits)
+                {
+                    var instrument = deposit.PaymentInstrument;
+                    var bank = deposit.Bank;
+
+                    if (instrument != null)
+                    {
+                        instrument.BankSettlementStatus = "VERSED";
+
+                        if (instrument.Type == "CHEQUE")
+                        {
+                            instrument.IsPaidAtBank = true;
+                            instrument.PaidAtBankDate = DateTime.UtcNow;
+
+                            if (bank != null)
+                            {
+                                bank.InitialBalance += deposit.NetAmount;
+                                _context.Banks.Update(bank);
+                            }
+                        }
+                        // For TRAITE, it remains IsPaidAtBank = false and Bank.InitialBalance is untouched.
+
+                        _context.PaymentInstruments.Update(instrument);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
     }
 }

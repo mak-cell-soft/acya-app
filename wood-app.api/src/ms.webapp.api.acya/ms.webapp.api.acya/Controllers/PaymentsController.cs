@@ -341,5 +341,112 @@ namespace ms.webapp.api.acya.api.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        [HttpGet("instruments")]
+        public async Task<ActionResult<IEnumerable<PaymentInstrumentExtendedDto>>> GetInstruments([FromQuery] bool? isPaidOrVersed = null)
+        {
+            try
+            {
+                var instruments = await _paymentService.GetInstrumentsAsync(isPaidOrVersed);
+                return Ok(instruments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting payment instruments");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("bordereau/next-reference")]
+        public async Task<ActionResult<object>> GetNextBordereauReference()
+        {
+            try
+            {
+                var reference = await _paymentService.GetNextBordereauReferenceAsync();
+                return Ok(new { reference });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting next bordereau reference");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpPost("bordereau")]
+        public async Task<ActionResult<object>> CreateBordereau([FromBody] CreateBordereauDto createDto)
+        {
+            try
+            {
+                if (!createDto.CreatedByUserId.HasValue)
+                {
+                    createDto.CreatedByUserId = GetCurrentUserId();
+                }
+
+                var reference = await _paymentService.CreateBordereauAsync(createDto);
+                return Ok(new { reference });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating bordereau");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("bordereaux/pending")]
+        public async Task<ActionResult<IEnumerable<ms.webapp.api.acya.core.Entities.DTOs.PendingBordereauDto>>> GetPendingBordereaux()
+        {
+            try
+            {
+                var bordereaux = await _paymentService.GetPendingBordereauxAsync();
+                return Ok(bordereaux);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting pending bordereaux");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpDelete("bordereaux/{reference}/instruments/{instrumentId}")]
+        public async Task<IActionResult> RemoveInstrumentFromBordereau(string reference, int instrumentId)
+        {
+            try
+            {
+                await _paymentService.RemoveInstrumentFromBordereauAsync(reference, instrumentId);
+                return NoContent();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error removing instrument from bordereau {Reference}", reference);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpPost("bordereaux/{reference}/validate")]
+        public async Task<IActionResult> ValidateBordereau(string reference)
+        {
+            try
+            {
+                await _paymentService.ValidateBordereauAsync(reference);
+                return Ok(new { message = "Bordereau validated successfully" });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error validating bordereau {Reference}", reference);
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }

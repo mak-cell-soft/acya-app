@@ -88,5 +88,37 @@ export const paymentService = {
   generateReference: async () => {
     const response = await api.get('/Payments/generate-reference');
     return response.data;
+  },
+
+  getInstruments: async (isPaidOrVersed?: boolean) => {
+    const response = await api.get('/Payments/instruments', {
+      params: { isPaidOrVersed }
+    });
+    return response.data;
+  },
+
+  createBordereau: async (model: any) => {
+    const response = await api.post('/Payments/bordereau', model);
+    return response.data;
+  },
+
+  async getNextBordereauReference(): Promise<{ reference: string }> {
+    const response = await api.get<{ reference: string }>('/payments/bordereau/next-reference');
+    return response.data;
+  },
+
+  getPendingBordereaux: async () => {
+    const response = await api.get('/Payments/bordereaux/pending');
+    return response.data;
+  },
+
+  removeInstrumentFromBordereau: async (reference: string, instrumentId: number) => {
+    const response = await api.delete(`/Payments/bordereaux/${reference}/instruments/${instrumentId}`);
+    return response.data;
+  },
+
+  validateBordereau: async (reference: string) => {
+    const response = await api.post(`/Payments/bordereaux/${reference}/validate`);
+    return response.data;
   }
 };

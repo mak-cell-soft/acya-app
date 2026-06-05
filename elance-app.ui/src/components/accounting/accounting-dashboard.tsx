@@ -45,6 +45,7 @@ import { BankDepositDialog } from '@/components/accounting/bank-deposit-dialog';
 import { BankFormDialog } from '@/components/settings/bank-form-dialog';
 import { useBanks, useDeleteBank } from '@/hooks/use-banks';
 import { PrintVariantDialog } from '@/components/print/print-trigger-button';
+import { PendingBordereauxSection } from '@/components/analytics/pending-bordereaux';
 
 // Constant months list
 const MONTHS = [
@@ -582,6 +583,12 @@ export default function AccountingDashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Pending Bordereaux Section */}
+          <div className="pt-4">
+            <PendingBordereauxSection />
+          </div>
+
           {/* ─────────────────────────────────────────────────────────
                BANK MANAGEMENT — Full CRUD for Admins only
                Uses BankFormDialog (from settings) + useDeleteBank

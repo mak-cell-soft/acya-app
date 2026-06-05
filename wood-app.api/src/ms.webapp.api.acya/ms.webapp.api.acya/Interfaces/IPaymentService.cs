@@ -28,5 +28,14 @@ namespace ms.webapp.api.acya.api.Interfaces
         Task<CustomerRecouvrementDto> GetCustomerRecouvrementAsync(int customerId);
         Task<PaymentDto> CreateRecouvrementPaymentAsync(CreateRecouvrementDto createDto, int createdById);
         Task<string> GeneratePaymentReferenceAsync();
+        
+        Task<IEnumerable<PaymentInstrumentExtendedDto>> GetInstrumentsAsync(bool? isPaidOrVersed = null);
+        Task<string> CreateBordereauAsync(CreateBordereauDto dto);
+        Task<string> GetNextBordereauReferenceAsync();
+        
+        // Bordereau Validation
+        Task<IEnumerable<PendingBordereauDto>> GetPendingBordereauxAsync();
+        Task RemoveInstrumentFromBordereauAsync(string reference, int instrumentId);
+        Task ValidateBordereauAsync(string reference);
     }
 }

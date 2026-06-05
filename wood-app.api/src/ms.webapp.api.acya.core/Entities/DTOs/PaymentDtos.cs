@@ -66,6 +66,24 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public string? BankSettlementStatus { get; set; }
     }
 
+    public class PaymentInstrumentExtendedDto : PaymentInstrumentDto
+    {
+        public decimal Amount { get; set; }
+        public string? CustomerName { get; set; }
+        public string? DocumentNumber { get; set; }
+        public string? BordereauReference { get; set; }
+    }
+
+    public class CreateBordereauDto
+    {
+        public int BankId { get; set; }
+        public List<int> InstrumentIds { get; set; } = new();
+        public DateTime DepositDate { get; set; } = DateTime.UtcNow;
+        public string? Notes { get; set; }
+        public int? SalesSiteId { get; set; }
+        public int? CreatedByUserId { get; set; }
+    }
+
     public class SupplierEcheanceDto
     {
         public DateTime DueDate { get; set; }

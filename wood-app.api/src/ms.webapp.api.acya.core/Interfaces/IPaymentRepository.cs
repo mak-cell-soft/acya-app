@@ -28,5 +28,6 @@ namespace ms.webapp.api.acya.core.Interfaces
         Task<IEnumerable<SupplierEcheanceDto>> GetEcheancesAsync(DateTime fromDate, DateTime toDate);
         Task<PaymentInstrument?> GetInstrumentByIdAsync(int instrumentId);
         Task<bool> UpdateInstrumentAsync(PaymentInstrument instrument);
+        Task<IEnumerable<PaymentInstrumentExtendedDto>> GetInstrumentsAsync(bool? isPaidOrVersed = null);
     }
 }
