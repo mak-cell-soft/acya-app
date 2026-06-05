@@ -52,7 +52,7 @@ namespace ms.webapp.api.acya.core.Entities.Dtos
       updatedate = entity.UpdateDate;
       basesalary = entity.BaseSalary;
       overtimehours = entity.OvertimeHours;
-      updatedby = (int)entity.UpdadatedById!;
+      updatedby = entity.UpdadatedById ?? 0;
     }
   }
 }

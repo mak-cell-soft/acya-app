@@ -1,1 +1,0 @@
-export const EDIT_SUB_CATEGORIES_SUCCESS = 'Sous Catégorie mis à jour avec succés.';
