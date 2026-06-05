@@ -1,0 +1,55 @@
+name: Discord - Actions Notifications
+
+on:
+  # Notify on workflow completions
+  workflow_run:
+    workflows: ["*"]
+    types: [completed]
+
+  # Notify on every push to any branch
+  push:
+    branches:
+      - '**'
+
+jobs:
+  # Notify when workflows complete
+  notify-workflow:
+    if: github.event_name == 'workflow_run'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord notification for workflow
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          STATUS="${{ github.event.workflow_run.conclusion }}"
+          NAME="${{ github.event.workflow_run.name }}"
+          URL="${{ github.event.workflow_run.html_url }}"
+          BRANCH="${{ github.event.workflow_run.head_branch }}"
+          ACTOR="${{ github.event.workflow_run.actor.login }}"
+
+          if [ "$STATUS" = "success" ]; then ICON="✅"; else ICON="❌"; fi
+
+          curl -H "Content-Type: application/json" \
+            -d "{\"content\":\"${ICON} **${NAME}** finished with **${STATUS}** on **${BRANCH}** (by **${ACTOR}**)\\n${URL}\"}" \
+            "$WEBHOOK"
+
+  # Notify on every commit/push (dev & master are handled by merge-notify.yml)
+  notify-push:
+    if: github.event_name == 'push' && github.ref_name != 'dev' && github.ref_name != 'master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord notification for push
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          ACTOR="${{ github.actor }}"
+          REPO="${{ github.repository }}"
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          COMMIT_URL="${{ github.event.head_commit.url }}"
+          SHORT_SHA="${{ github.sha }}"
+          SHORT_SHA="${SHORT_SHA:0:7}"
+
+          curl -H "Content-Type: application/json" \
+            -d "{\"content\":\"📦 **New push** to **${BRANCH}** by **${ACTOR}**\\n\`${SHORT_SHA}\` ${COMMIT_MSG}\\n${COMMIT_URL}\"}" \
+            "$WEBHOOK"
