@@ -100,25 +100,37 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Mobile Overlay */}
       <div 
         className={cn(
-          "fixed inset-0 bg-forest-950/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300",
+          "fixed inset-0 bg-corp-navy/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300",
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
         onClick={onClose}
       />
 
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 flex flex-col h-full bg-forest-900 text-white w-72 border-r border-forest-800 font-sans transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0",
+        "fixed inset-y-0 left-0 z-50 flex flex-col h-full bg-corp-navy text-white w-72 border-r border-corp-blue-900/50 font-sans transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="p-6 pb-2 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 mb-8 group" onClick={onClose}>
             <div className="relative group-hover:scale-110 transition-transform duration-500">
-              <svg className="w-8 h-8" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="18" cy="18" r="17" stroke="#9FE1CB" strokeWidth="1.5"/>
-                <rect x="15.5" y="10" width="5" height="12" rx="2.5" fill="#9FE1CB"/>
-                <polygon points="18,6 10,15.5 26,15.5" fill="#9FE1CB"/>
-                <rect x="14" y="24" width="8" height="2" rx="1" fill="#1D9E75"/>
-                <rect x="11" y="28" width="14" height="2" rx="1" fill="#94A3B8"/>
+              <svg className="w-8.5 h-8.5 md:w-9.5 md:h-9.5 transition-transform duration-700 group-hover:rotate-[360deg]" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="40" height="40" rx="10" fill="url(#logo_bg_grad)" className="opacity-10 group-hover:opacity-15 transition-opacity" />
+                <path d="M20 3L35 11.5V28.5L20 37L5 28.5V11.5L20 3" stroke="url(#logo_stroke_grad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M20 9L31 17.25L27 20.25L20 15L13 20.25L9 17.25L20 9Z" fill="url(#logo_stroke_grad)"/>
+                <rect x="17.5" y="18" width="5" height="11" rx="1.5" fill="url(#logo_stroke_grad)" />
+                <path d="M12 25H28" stroke="url(#logo_stroke_grad)" strokeWidth="1.5" strokeLinecap="round"/>
+                <path d="M14 29H26" stroke="#06B6D4" strokeWidth="2" strokeLinecap="round"/>
+                <defs>
+                  <linearGradient id="logo_bg_grad" x1="0" y1="0" x2="40" y2="40">
+                    <stop offset="0%" stopColor="#2563EB"/>
+                    <stop offset="100%" stopColor="#06B6D4"/>
+                  </linearGradient>
+                  <linearGradient id="logo_stroke_grad" x1="0" y1="0" x2="40" y2="40">
+                    <stop offset="0%" stopColor="#3B82F6"/>
+                    <stop offset="60%" stopColor="#2563EB"/>
+                    <stop offset="100%" stopColor="#06B6D4"/>
+                  </linearGradient>
+                </defs>
               </svg>
             </div>
             <span className="text-2xl font-bold font-heading text-white tracking-tight">Élancé</span>
@@ -161,7 +173,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         className={cn(
                           "flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all group",
                           isActive 
-                            ? "bg-forest-600 text-white shadow-lg shadow-forest-950/20" 
+                            ? "bg-corp-blue-600 text-white shadow-lg shadow-corp-blue-900/20" 
                             : "hover:bg-white/5 hover:text-white text-white/60"
                         )}
                       >
@@ -169,7 +181,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           <item.icon className={cn("w-5 h-5", isActive ? "text-white" : "group-hover:text-white/80")} />
                           {item.name}
                         </div>
-                        {isActive && <div className="w-1.5 h-1.5 rounded-full bg-timber-400" />}
+                        {isActive && <div className="w-1.5 h-1.5 rounded-full bg-corp-cyan" />}
                       </Link>
                     );
                   })}
@@ -179,10 +191,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           })}
         </div>
 
-        <div className="p-6 mt-auto space-y-4 border-t border-forest-800 bg-forest-900/50 backdrop-blur-sm">
+        <div className="p-6 mt-auto space-y-4 border-t border-corp-blue-900/50 bg-corp-navy/50 backdrop-blur-sm">
           <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
             <div className="text-[0.65rem] font-bold text-white/30 uppercase tracking-widest mb-1">Plan Actuel</div>
-            <div className="text-xs font-bold text-timber-400">Élancé Entreprise Premium</div>
+            <div className="text-xs font-bold text-corp-cyan">Élancé Entreprise Premium</div>
           </div>
           <button
             onClick={handleLogout}

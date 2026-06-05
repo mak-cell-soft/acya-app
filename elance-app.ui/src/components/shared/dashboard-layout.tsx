@@ -33,7 +33,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   if (!isAuthenticated) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-sand-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-forest-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-corp-blue-600"></div>
       </div>
     );
   }
