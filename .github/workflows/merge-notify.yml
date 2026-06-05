@@ -1,0 +1,53 @@
+# Notify on PR merge (dev & master) and push to main branches
+name: Merge & Push Notifications
+
+on:
+  pull_request:
+    branches: [dev, master]
+    types: [closed]
+  push:
+    branches: [dev, master]
+
+jobs:
+  notify-pr-merged:
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Discord - PR merged
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then echo "No DISCORD_WEBHOOK_URL"; exit 0; fi
+          BASE="${{ github.event.pull_request.base.ref }}"
+          TITLE="${{ github.event.pull_request.title }}"
+          AUTHOR="${{ github.event.pull_request.user.login }}"
+          URL="${{ github.event.pull_request.html_url }}"
+          curl -sS -H "Content-Type: application/json" \
+            -d "{\"content\":\"✅ **PR merged** into **${BASE}**\\n**${TITLE}** by **${AUTHOR}**\\n${URL}\"}" \
+            "$WEBHOOK" || true
+
+  notify-push-dev-master:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Discord - Push to dev / master
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then echo "No DISCORD_WEBHOOK_URL"; exit 0; fi
+          BRANCH="${{ github.ref_name }}"
+          ACTOR="${{ github.actor }}"
+          REPO="${{ github.repository }}"
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          COMMIT_URL="${{ github.event.head_commit.url }}"
+          SHORT_SHA="${{ github.sha }}"
+          SHORT_SHA="${SHORT_SHA:0:7}"
+          # Merge commits often have message starting with "Merge"
+          if echo "$COMMIT_MSG" | head -1 | grep -qi "^Merge"; then
+            PREFIX="🔀 **Merge** to **${BRANCH}**"
+          else
+            PREFIX="📦 **Push** to **${BRANCH}**"
+          fi
+          curl -sS -H "Content-Type: application/json" \
+            -d "{\"content\":\"${PREFIX} by **${ACTOR}**\\n\`${SHORT_SHA}\` ${COMMIT_MSG}\\n${COMMIT_URL}\"}" \
+            "$WEBHOOK" || true
