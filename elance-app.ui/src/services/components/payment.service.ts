@@ -1,4 +1,5 @@
 import api from '@/lib/axios';
+import { PendingTraiteToClearDto } from '@/types/payment';
 
 export const paymentService = {
   add: async (model: any) => {
