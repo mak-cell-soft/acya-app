@@ -448,5 +448,42 @@ namespace ms.webapp.api.acya.api.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+        [HttpGet("traites/pending-clearance")]
+        public async Task<ActionResult<IEnumerable<ms.webapp.api.acya.core.Entities.DTOs.PendingTraiteToClearDto>>> GetPendingTraitesToClear()
+        {
+            try
+            {
+                var traites = await _paymentService.GetPendingTraitesToClearAsync();
+                return Ok(traites);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting pending traites for clearance");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpPost("traites/{instrumentId}/clear")]
+        public async Task<IActionResult> ClearTraite(int instrumentId)
+        {
+            try
+            {
+                await _paymentService.ClearTraiteAsync(instrumentId);
+                return Ok(new { message = "Traite cleared successfully" });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error clearing traite {InstrumentId}", instrumentId);
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }

@@ -194,9 +194,10 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                 PaidAtBankDate = x.pi.PaidAtBankDate,
                 BankSettlementStatus = x.pi.BankSettlementStatus,
                 Amount = x.pi.Payment?.Amount ?? 0,
-                CustomerName = x.pi.Payment?.Customer?.Fullname ?? x.pi.Payment?.Customer?.Name,
+                CustomerName = !string.IsNullOrEmpty(x.pi.Payment?.Customer?.Name) ? x.pi.Payment.Customer.Name : (x.pi.Payment?.Customer?.Fullname ?? x.pi.Payment?.Customer?.FirstName),
                 DocumentNumber = x.pi.Payment?.Document?.DocNumber,
-                BordereauReference = x.bd?.Reference
+                BordereauReference = x.bd?.Reference,
+                CounterPartType = x.pi.Payment?.Customer?.Type.ToString()
             }).ToList();
         }
 

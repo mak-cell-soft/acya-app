@@ -112,13 +112,23 @@ export const paymentService = {
     return response.data;
   },
 
-  removeInstrumentFromBordereau: async (reference: string, instrumentId: number) => {
+  async removeInstrumentFromBordereau(reference: string, instrumentId: number): Promise<void> {
     const response = await api.delete(`/Payments/bordereaux/${reference}/instruments/${instrumentId}`);
     return response.data;
   },
 
-  validateBordereau: async (reference: string) => {
+  async validateBordereau(reference: string): Promise<void> {
     const response = await api.post(`/Payments/bordereaux/${reference}/validate`);
+    return response.data;
+  },
+
+  async getPendingTraitesToClear(): Promise<PendingTraiteToClearDto[]> {
+    const response = await api.get<PendingTraiteToClearDto[]>('/Payments/traites/pending-clearance');
+    return response.data;
+  },
+
+  async clearTraite(instrumentId: number): Promise<void> {
+    const response = await api.post(`/Payments/traites/${instrumentId}/clear`);
     return response.data;
   }
 };

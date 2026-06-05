@@ -48,4 +48,20 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public int InstrumentCount { get; set; }
         public System.Collections.Generic.List<ms.webapp.api.acya.core.Entities.DTOs.PaymentInstrumentExtendedDto> Instruments { get; set; } = new();
     }
+
+    public class PendingTraiteToClearDto
+    {
+        public int InstrumentId { get; set; }
+        public int DepositId { get; set; }
+        public string Reference { get; set; } = string.Empty;
+        public int BankId { get; set; }
+        public string? BankName { get; set; }
+        public string? BankRib { get; set; }
+        public string? Owner { get; set; }
+        public string? InstrumentNumber { get; set; }
+        public decimal Amount { get; set; }
+        public decimal NetAmount { get; set; }
+        public DateTime? DueDate { get; set; }
+        public DateTime? DepositDate { get; set; }
+    }
 }

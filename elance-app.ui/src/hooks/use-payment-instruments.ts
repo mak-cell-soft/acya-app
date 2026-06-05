@@ -55,12 +55,40 @@ export function useValidateBordereau() {
   return useMutation({
     mutationFn: (reference: string) => paymentService.validateBordereau(reference),
     onSuccess: () => {
-      toast.success('Bordereau validé avec succès');
       queryClient.invalidateQueries({ queryKey: ['pending-bordereaux'] });
-      queryClient.invalidateQueries({ queryKey: ['payment-instruments'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-payments'] });
+      queryClient.invalidateQueries({ queryKey: ['banks'] });
+      toast.success("Bordereau validé avec succès");
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Erreur lors de la validation du bordereau');
+      toast.error(error.response?.data?.message || "Erreur lors de la validation du bordereau");
+    }
+  });
+}
+
+// ==========================================
+// Encaissement ultérieur de la Traite
+// ==========================================
+
+export function usePendingTraitesToClear() {
+  return useQuery({
+    queryKey: ['pending-traites-to-clear'],
+    queryFn: () => paymentService.getPendingTraitesToClear(),
+  });
+}
+
+export function useClearTraite() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (instrumentId: number) => paymentService.clearTraite(instrumentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pending-traites-to-clear'] });
+      queryClient.invalidateQueries({ queryKey: ['banks'] });
+      toast.success("Traite encaissée avec succès");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Erreur lors de l'encaissement de la traite");
     }
   });
 }

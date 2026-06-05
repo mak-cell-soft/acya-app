@@ -37,5 +37,9 @@ namespace ms.webapp.api.acya.api.Interfaces
         Task<IEnumerable<PendingBordereauDto>> GetPendingBordereauxAsync();
         Task RemoveInstrumentFromBordereauAsync(string reference, int instrumentId);
         Task ValidateBordereauAsync(string reference);
+        
+        // Traites clearance
+        Task<IEnumerable<PendingTraiteToClearDto>> GetPendingTraitesToClearAsync();
+        Task ClearTraiteAsync(int instrumentId);
     }
 }

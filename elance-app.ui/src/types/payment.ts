@@ -100,6 +100,7 @@ export interface PaymentInstrumentExtendedDto extends PaymentInstrumentDto {
   customerName?: string;
   documentNumber?: string;
   bordereauReference?: string;
+  counterPartType?: string;
 }
 
 export interface CreateBordereauDto {
@@ -114,12 +115,27 @@ export interface CreateBordereauDto {
 export interface PendingBordereauDto {
   reference: string;
   bankId: number;
-  bankName?: string;
-  bankRib?: string;
-  createdAt?: string;
+  bankName: string | null;
+  bankRib: string | null;
+  createdAt: string;
   totalAmountHT: number;
   totalFeeWithTax: number;
   totalNetAmount: number;
   instrumentCount: number;
   instruments: PaymentInstrumentExtendedDto[];
+}
+
+export interface PendingTraiteToClearDto {
+  instrumentId: number;
+  depositId: number;
+  reference: string;
+  bankId: number;
+  bankName: string | null;
+  bankRib: string | null;
+  owner: string | null;
+  instrumentNumber: string | null;
+  amount: number;
+  netAmount: number;
+  dueDate: string | null;
+  depositDate: string | null;
 }

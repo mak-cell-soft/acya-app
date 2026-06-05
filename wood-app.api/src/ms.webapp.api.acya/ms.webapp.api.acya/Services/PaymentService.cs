@@ -905,5 +905,76 @@ namespace ms.webapp.api.acya.api.Services
                 throw;
             }
         }
+
+        public async Task<IEnumerable<PendingTraiteToClearDto>> GetPendingTraitesToClearAsync()
+        {
+            var deposits = await _context.BankDeposits
+                .Include(b => b.PaymentInstrument)
+                .ThenInclude(p => p.Payment)
+                .ThenInclude(p => p.Customer)
+                .Include(b => b.Bank)
+                .Where(b => !b.IsDeleted 
+                            && b.PaymentInstrument != null 
+                            && b.PaymentInstrument.Type == "TRAITE" 
+                            && b.PaymentInstrument.BankSettlementStatus == "VERSED" 
+                            && b.PaymentInstrument.IsPaidAtBank == false)
+                .ToListAsync();
+
+            return deposits.Select(d => new PendingTraiteToClearDto
+            {
+                InstrumentId = d.PaymentInstrument!.Id,
+                DepositId = d.Id,
+                Reference = d.Reference ?? string.Empty,
+                BankId = d.BankId,
+                BankName = d.Bank?.Designation,
+                BankRib = d.Bank?.Rib,
+                Owner = d.PaymentInstrument.Owner ?? d.PaymentInstrument.Payment?.Customer?.Fullname,
+                InstrumentNumber = d.PaymentInstrument.InstrumentNumber,
+                Amount = d.AmountHT,
+                NetAmount = d.NetAmount,
+                DueDate = d.PaymentInstrument.DueDate,
+                DepositDate = d.DepositDate
+            });
+        }
+
+        public async Task ClearTraiteAsync(int instrumentId)
+        {
+            var deposit = await _context.BankDeposits
+                .Include(b => b.PaymentInstrument)
+                .Include(b => b.Bank)
+                .FirstOrDefaultAsync(b => !b.IsDeleted && b.PaymentInstrumentId == instrumentId);
+
+            if (deposit == null || deposit.PaymentInstrument == null)
+                throw new ArgumentException("Draft not found in any deposit.");
+
+            var instrument = deposit.PaymentInstrument;
+
+            if (instrument.Type != "TRAITE" || instrument.BankSettlementStatus != "VERSED" || instrument.IsPaidAtBank == true)
+                throw new InvalidOperationException("This draft cannot be cleared.");
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                instrument.BankSettlementStatus = "CLEARED";
+                instrument.IsPaidAtBank = true;
+                instrument.PaidAtBankDate = DateTime.UtcNow;
+
+                if (deposit.Bank != null)
+                {
+                    deposit.Bank.InitialBalance += deposit.NetAmount;
+                    _context.Banks.Update(deposit.Bank);
+                }
+
+                _context.PaymentInstruments.Update(instrument);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
     }
 }

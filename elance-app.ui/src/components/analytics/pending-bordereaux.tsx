@@ -10,15 +10,7 @@ import { usePendingBordereaux, useRemoveInstrumentFromBordereau, useValidateBord
 import { Landmark, Calendar, X, CheckCircle2, ChevronRight, Hash, Building2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('fr-TN', { 
-    style: 'currency', 
-    currency: 'TND',
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3
-  }).format(value || 0).replace('TND', 'DT');
-};
+import { formatCurrency } from '@/lib/utils';
 
 export function PendingBordereauxSection() {
   const { data: bordereaux, isLoading } = usePendingBordereaux();

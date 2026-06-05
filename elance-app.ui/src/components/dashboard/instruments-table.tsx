@@ -24,7 +24,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CreditCard, Loader2, ArrowRight, Wallet, CheckCircle2 } from 'lucide-react';
+import { CreditCard, Loader2, ArrowRight, Wallet, CheckCircle2, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -33,10 +33,12 @@ import { useBanks } from '@/hooks/use-banks';
 import { useAuthStore } from '@/store/use-auth-store';
 import { paymentService } from '@/services/components/payment.service';
 
-export function InstrumentsTable() {
+export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
   const [tab, setTab] = React.useState<'pending' | 'versed'>('pending');
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(10);
+  const [typeFilter, setTypeFilter] = React.useState<'ALL' | 'CHEQUE' | 'TRAITE'>('ALL');
+  const [searchQuery, setSearchQuery] = React.useState('');
   
   const isVersedFilter = tab === 'versed' ? true : false;
   const { data: instruments = [], isLoading } = usePaymentInstruments(isVersedFilter);
@@ -64,10 +66,32 @@ export function InstrumentsTable() {
     setPage(1);
   }, [tab]);
 
+  const filteredInstruments = React.useMemo(() => {
+    let result = instruments;
+    if (side) {
+      result = result.filter(i => {
+        if (!i.counterPartType) return side === 'Customer';
+        return i.counterPartType === side || i.counterPartType === 'Both';
+      });
+    }
+    if (typeFilter !== 'ALL') {
+      result = result.filter(i => i.type === typeFilter);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(i => 
+        (i.instrumentNumber && i.instrumentNumber.toLowerCase().includes(q)) ||
+        (i.owner && i.owner.toLowerCase().includes(q)) ||
+        (i.bank && i.bank.toLowerCase().includes(q))
+      );
+    }
+    return result;
+  }, [instruments, typeFilter, searchQuery]);
+
   const paginatedInstruments = React.useMemo(() => {
     const start = (page - 1) * pageSize;
-    return instruments.slice(start, start + pageSize);
-  }, [instruments, page, pageSize]);
+    return filteredInstruments.slice(start, start + pageSize);
+  }, [filteredInstruments, page, pageSize]);
 
   const toggleSelectAll = () => {
     if (selectedIds.length === paginatedInstruments.length) {
@@ -113,7 +137,7 @@ export function InstrumentsTable() {
         <div>
           <CardTitle className="text-xl font-heading font-bold text-forest-900 flex items-center gap-2">
             <Wallet className="w-5 h-5 text-forest-600" />
-            Portefeuille Instruments (Chèques / Traites)
+            Portefeuille Instruments {side === 'Customer' ? '(Clients)' : side === 'Supplier' ? '(Fournisseurs)' : '(Chèques / Traites)'}
           </CardTitle>
           <CardDescription className="text-sand-400 font-medium">
             Gérez vos instruments de paiement et créez vos bordereaux de remise en banque.
@@ -131,8 +155,8 @@ export function InstrumentsTable() {
       </CardHeader>
       
       <CardContent className="p-0">
-        <div className="px-6 pb-2 border-b border-forest-50/50">
-          <Tabs value={tab} onValueChange={(val) => setTab(val as any)} className="w-full">
+        <div className="px-6 py-4 border-b border-forest-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <Tabs value={tab} onValueChange={(val) => setTab(val as any)} className="w-full md:w-auto">
             <TabsList className="bg-sand-50/50 p-1 rounded-xl">
               <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-forest-900 data-[state=active]:shadow-sm font-bold text-sm px-6">
                 En portefeuille
@@ -142,6 +166,28 @@ export function InstrumentsTable() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
+
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                placeholder="Rechercher..."
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+                className="pl-9 w-[200px] h-10 border-slate-200"
+              />
+            </div>
+            <Select value={typeFilter} onValueChange={(val: any) => { setTypeFilter(val); setPage(1); }}>
+              <SelectTrigger className="w-[140px] h-10 border-slate-200 font-medium text-slate-700">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Tous</SelectItem>
+                <SelectItem value="CHEQUE">Chèques</SelectItem>
+                <SelectItem value="TRAITE">Traites</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {isLoading ? (
@@ -171,7 +217,7 @@ export function InstrumentsTable() {
                     </th>
                   )}
                   <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider">Type / N°</th>
-                  <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider">Client / Doc</th>
+                  <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider">{side === 'Supplier' ? 'Fournisseur / Doc' : 'Client / Doc'}</th>
                   <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider">Date / Échéance</th>
                   <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider text-right">Montant</th>
                   {tab === 'versed' && (
@@ -241,18 +287,18 @@ export function InstrumentsTable() {
               </tbody>
             </table>
             
-            <div className="p-4 border-t border-forest-50">
-              <TablePagination 
-                currentPage={page}
-                totalItems={instruments.length}
-                pageSize={pageSize}
-                onPageChange={setPage}
-                onPageSizeChange={(size) => {
-                  setPageSize(size);
-                  setPage(1);
-                }}
-              />
-            </div>
+            <div className="border-t border-forest-50 p-4">
+          <TablePagination
+            currentPage={page}
+            totalItems={filteredInstruments.length}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
+          />
+        </div>
           </div>
         )}
       </CardContent>

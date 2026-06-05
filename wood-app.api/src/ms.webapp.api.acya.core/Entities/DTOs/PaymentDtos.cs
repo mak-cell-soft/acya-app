@@ -72,6 +72,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public string? CustomerName { get; set; }
         public string? DocumentNumber { get; set; }
         public string? BordereauReference { get; set; }
+        public string? CounterPartType { get; set; }
     }
 
     public class CreateBordereauDto

@@ -820,7 +820,7 @@ export function DashboardContent() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.45, duration: 0.6 }}
       >
-        <InstrumentsTable />
+        <InstrumentsTable side="Customer" />
       </motion.div>
 
       {/* ── CHARTS CONTAINER ── */}

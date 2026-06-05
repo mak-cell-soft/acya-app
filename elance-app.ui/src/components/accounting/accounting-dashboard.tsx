@@ -46,6 +46,8 @@ import { BankFormDialog } from '@/components/settings/bank-form-dialog';
 import { useBanks, useDeleteBank } from '@/hooks/use-banks';
 import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 import { PendingBordereauxSection } from '@/components/analytics/pending-bordereaux';
+import { PendingTraitesSection } from '@/components/accounting/pending-traites';
+import { InstrumentsTable } from '@/components/dashboard/instruments-table';
 
 // Constant months list
 const MONTHS = [
@@ -584,9 +586,16 @@ export default function AccountingDashboard() {
             </Card>
           </div>
 
+          {/* Instruments Portfolios */}
+          <div className="pt-4 space-y-6">
+            <InstrumentsTable side="Customer" />
+            <InstrumentsTable side="Supplier" />
+          </div>
+
           {/* Pending Bordereaux Section */}
           <div className="pt-4">
             <PendingBordereauxSection />
+            <PendingTraitesSection />
           </div>
 
           {/* ─────────────────────────────────────────────────────────

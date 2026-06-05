@@ -39,6 +39,28 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 
+const TUNISIAN_BANKS = [
+  "Al Baraka Bank",
+  "Amen Bank",
+  "ATB",
+  "Attijari Bank",
+  "Banque de l'Habitat (BH)",
+  "BFPME",
+  "BIAT",
+  "BNA",
+  "BT",
+  "BTE",
+  "BTL",
+  "BTS",
+  "Citibank",
+  "QNB",
+  "STB",
+  "TSB",
+  "UBCI",
+  "UIB",
+  "Wifak Bank",
+  "Zitouna Bank"
+];
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -93,7 +115,20 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
   useEffect(() => {
     bankService.getAll()
       .then((res) => {
-        setBanks(res.items || res);
+        const enterpriseBanks = res.items || res;
+        const bankNames = new Set(enterpriseBanks.map((b: any) => b.designation?.trim().toUpperCase()));
+        const merged = [...enterpriseBanks];
+        
+        TUNISIAN_BANKS.forEach(name => {
+          if (!bankNames.has(name.toUpperCase())) {
+            merged.push({ id: `static-${name}`, designation: name });
+            bankNames.add(name.toUpperCase());
+          }
+        });
+        
+        // Sort alphabetically
+        merged.sort((a, b) => a.designation.localeCompare(b.designation));
+        setBanks(merged);
       })
       .catch((err) => console.error('Failed to load banks:', err));
   }, []);
