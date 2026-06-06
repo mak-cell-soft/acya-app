@@ -64,11 +64,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 relative overflow-hidden font-sans">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-corp-blue-50 via-[#EBF1FA] to-[#F8FAFF] px-4 relative overflow-hidden font-sans">
       {/* Background patterns */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(var(--color-forest-100)_1px,transparent_1px)] [background-size:24px_24px] opacity-30" />
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-forest-50/50 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-timber-100/20 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(var(--color-corp-blue-200)_1px,transparent_1px)] [background-size:24px_24px] opacity-30" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-corp-blue-100/50 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-corp-blue-50/50 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}

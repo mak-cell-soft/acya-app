@@ -163,7 +163,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
                 paymentService.getNextBordereauReference().then(res => setNextReference(res.reference)).catch(console.error);
               }
             }}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 px-5 rounded-xl shadow-lg shadow-emerald-600/20"
+            className="bg-corp-blue-600 hover:bg-corp-blue-700 text-white font-bold h-11 px-5 rounded-xl shadow-lg shadow-corp-blue-600/20 transition-all duration-300"
           >
             {side === 'Supplier' 
                ? (tab === 'pending' ? 'Remettre au fournisseur' : 'Confirmer le débit') 
@@ -230,7 +230,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
                       <Checkbox 
                         checked={selectedIds.length === paginatedInstruments.length && paginatedInstruments.length > 0} 
                         onCheckedChange={toggleSelectAll} 
-                        className="rounded bg-white border-forest-200 data-[state=checked]:bg-forest-600 data-[state=checked]:border-forest-600"
+                        className="w-5 h-5 rounded-[6px] border-2 border-slate-300 bg-white hover:border-corp-blue-500 data-[state=checked]:bg-corp-blue-600 data-[state=checked]:border-corp-blue-600 shadow-sm transition-all"
                       />
                     </th>
                   )}
@@ -251,7 +251,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
                         <Checkbox 
                           checked={selectedIds.includes(inst.id)} 
                           onCheckedChange={() => toggleSelect(inst.id)}
-                          className="rounded bg-white border-forest-200 data-[state=checked]:bg-forest-600 data-[state=checked]:border-forest-600"
+                          className="w-5 h-5 rounded-[6px] border-2 border-slate-300 bg-white hover:border-corp-blue-500 data-[state=checked]:bg-corp-blue-600 data-[state=checked]:border-corp-blue-600 shadow-sm transition-all cursor-pointer"
                         />
                       </td>
                     )}
@@ -386,7 +386,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
             <Button 
               onClick={handleCreateBordereau}
               disabled={!selectedBankId || createBordereauMutation.isPending}
-              className="h-11 px-6 font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20 gap-2 disabled:opacity-50"
+              className="h-11 px-6 font-bold bg-corp-blue-600 hover:bg-corp-blue-700 text-white shadow-lg shadow-corp-blue-600/20 gap-2 disabled:opacity-50 transition-all duration-300"
             >
               {createBordereauMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

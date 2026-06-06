@@ -425,9 +425,9 @@ export default function AccountingDashboard() {
               </div>
               <Button
                 onClick={() => setIsDepositDialogOpen(true)}
-                className="w-full h-10 bg-forest-900 hover:bg-forest-950 text-white rounded-xl font-bold text-xs gap-2 transition-all shadow-sm"
+                className="w-full h-10 bg-forest-50 hover:bg-forest-100 text-forest-900 border border-forest-200/50 rounded-xl font-bold text-xs gap-2 transition-all shadow-sm"
               >
-                <Coins className="w-4 h-4 text-amber-400" />
+                <Coins className="w-4 h-4 text-amber-500" />
                 Verser en Banque
               </Button>
             </Card>
@@ -460,27 +460,27 @@ export default function AccountingDashboard() {
             </Card>
 
             {/* Card 3: Total en Banque */}
-            <Card className="rounded-xl border-slate-150 shadow-sm bg-slate-900 text-white p-6 space-y-4 border-none relative overflow-hidden group hover:shadow-lg hover:shadow-slate-900/10 transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-8 -mt-8 transition-transform duration-500 group-hover:scale-110" />
+            <Card className="rounded-xl border-forest-200/50 shadow-sm bg-forest-50 text-forest-900 p-6 space-y-4 border relative overflow-hidden group hover:shadow-lg hover:shadow-forest-200/30 transition-all duration-300">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -mr-8 -mt-8 transition-transform duration-500 group-hover:scale-110" />
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">
+                <span className="text-[10px] font-bold text-forest-600 uppercase tracking-widest font-mono">
                   Disponibilités en Banque
                 </span>
-                <span className="p-1.5 bg-white/10 text-amber-400 rounded-lg">
+                <span className="p-1.5 bg-amber-100/50 text-amber-600 rounded-lg">
                   <Landmark className="w-4 h-4" />
                 </span>
               </div>
               <div className="space-y-1">
-                <h3 className="text-2xl font-mono font-extrabold text-amber-400 tracking-tight">
+                <h3 className="text-2xl font-mono font-extrabold text-amber-600 tracking-tight">
                   {isLoadingBanks ? (
-                    <span className="inline-block w-24 h-6 bg-slate-800 animate-pulse rounded" />
+                    <span className="inline-block w-24 h-6 bg-forest-200 animate-pulse rounded" />
                   ) : (
                     formatCurrency(totalBankBalances)
                   )}
                 </h3>
-                <p className="text-[10px] text-slate-400 font-medium">Avoir global sur l&apos;ensemble des comptes</p>
+                <p className="text-[10px] text-forest-600 font-medium">Avoir global sur l&apos;ensemble des comptes</p>
               </div>
-              <div className="pt-2 text-[10px] text-slate-400 font-medium">
+              <div className="pt-2 text-[10px] text-forest-600 font-medium border-t border-forest-200/50 mt-2">
                 Comptabilisation des versements validés
               </div>
             </Card>
@@ -490,7 +490,7 @@ export default function AccountingDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left: Site Caisses Breakdown */}
             <Card className="lg:col-span-5 border-slate-100 shadow-md shadow-slate-900/5 rounded-xl overflow-hidden bg-white border">
-              <CardHeader className="border-b border-slate-100 p-5 bg-slate-50/50">
+              <CardHeader className="border-b border-slate-100 p-5 bg-gradient-to-br from-corp-blue-50 via-[#EBF1FA] to-[#F8FAFF]">
                 <CardTitle className="text-sm font-serif font-bold text-slate-900 flex items-center gap-2">
                   <Store className="w-4 h-4 text-forest-850" />
                   Caisse par Point de Vente
@@ -532,7 +532,7 @@ export default function AccountingDashboard() {
 
             {/* Right: Bank Accounts Details */}
             <Card className="lg:col-span-7 border-slate-100 shadow-md shadow-slate-900/5 rounded-xl overflow-hidden bg-white border">
-              <CardHeader className="border-b border-slate-100 p-5 bg-slate-50/50">
+              <CardHeader className="border-b border-slate-100 p-5 bg-gradient-to-br from-corp-blue-50 via-[#EBF1FA] to-[#F8FAFF]">
                 <CardTitle className="text-sm font-serif font-bold text-slate-900 flex items-center gap-2">
                   <Landmark className="w-4 h-4 text-forest-850" />
                   Soldes Bancaires par Compte
@@ -608,17 +608,17 @@ export default function AccountingDashboard() {
             transition={{ delay: 0.15, duration: 0.45, ease: 'easeOut' }}
           >
             <Card className="border-slate-100 shadow-md shadow-slate-900/5 rounded-xl overflow-hidden bg-white border">
-              {/* Card Header: dark stripe matching the treasury section aesthetic */}
-              <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+              {/* Card Header: light blue matching the treasury section aesthetic */}
+              <div className="px-6 py-4 bg-corp-blue-50/90 text-corp-blue-950 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <span className="p-1.5 bg-white/10 text-amber-400 rounded-lg">
+                  <span className="p-1.5 bg-white text-corp-blue-600 rounded-lg shadow-sm">
                     <CreditCard className="w-4 h-4" />
                   </span>
                   <div>
-                    <h3 className="text-sm font-serif font-bold text-amber-50">
+                    <h3 className="text-sm font-serif font-bold text-corp-blue-900">
                       Gestion des Comptes Bancaires
                     </h3>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-mono">
+                    <p className="text-[9px] font-bold text-corp-blue-600/80 uppercase tracking-widest font-mono">
                       Ajout · Modification · Suppression
                     </p>
                   </div>
@@ -777,14 +777,16 @@ export default function AccountingDashboard() {
 
       {/* Month Navigator */}
       <Card className="border-slate-100 shadow-md shadow-slate-900/5 rounded-xl bg-white overflow-hidden border">
-        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div className="px-6 py-4 bg-corp-blue-50/90 text-corp-blue-950 flex items-center justify-between border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-amber-500" />
+            <div className="p-1.5 bg-white text-corp-blue-600 rounded-lg shadow-sm">
+              <Calendar className="w-4 h-4" />
+            </div>
             <div>
-              <h2 className="text-lg font-serif font-bold text-amber-50">
+              <h2 className="text-lg font-serif font-bold text-corp-blue-900">
                 Période active : {MONTHS[selectedMonth]} {selectedYear}
               </h2>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-mono">
+              <p className="text-[9px] font-bold text-corp-blue-600/80 uppercase tracking-widest font-mono">
                 Analyse mensuelle de la facturation
               </p>
             </div>
@@ -800,8 +802,8 @@ export default function AccountingDashboard() {
               className={cn(
                 'rounded-xl h-9 px-4 font-bold text-xs transition-colors flex-1 min-w-[85px]',
                 selectedMonth === idx
-                  ? 'bg-amber-900 text-white hover:bg-amber-950 shadow-sm'
-                  : 'text-slate-500 hover:text-amber-900 hover:bg-amber-50/50'
+                  ? 'bg-corp-blue-600 text-white hover:bg-corp-blue-700 shadow-sm'
+                  : 'text-slate-500 hover:text-corp-blue-900 hover:bg-corp-blue-50/50'
               )}
             >
               {month}
