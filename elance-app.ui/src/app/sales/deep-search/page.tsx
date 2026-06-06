@@ -250,7 +250,7 @@ export default function DeepSearchPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-forest-900 text-white border-b border-forest-800">
+                  <tr className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100">
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Référence Article</th>
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Description</th>
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Référence Colis / Pkg</th>
@@ -351,7 +351,7 @@ export default function DeepSearchPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-forest-900 text-white border-b border-forest-800">
+                  <tr className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100">
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Code Client</th>
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Client / Nom</th>
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Société / Entreprise</th>
@@ -596,7 +596,7 @@ export default function DeepSearchPage() {
                       <div className="flex gap-2 w-full md:w-auto self-end">
                         <Button
                           onClick={() => setIsStatementOpen(true)}
-                          className="bg-forest-900 hover:bg-forest-950 text-white font-bold h-11 px-6 rounded-xl flex-1 md:flex-none shadow-lg shadow-forest-950/20"
+                          className="bg-corp-blue-600 hover:bg-corp-blue-700 text-white font-bold h-11 px-6 rounded-xl flex-1 md:flex-none shadow-lg shadow-corp-blue-500/20"
                         >
                           <BookOpen className="w-4 h-4 mr-2" /> État de Compte Client
                         </Button>
@@ -818,7 +818,7 @@ export default function DeepSearchPage() {
                       <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                           <thead>
-                            <tr className="bg-forest-900 text-white border-b border-forest-800">
+                            <tr className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100">
                               <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">N° Document</th>
                               <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Type</th>
                               <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Date</th>
@@ -935,4 +935,6 @@ export default function DeepSearchPage() {
     </DashboardLayout>
   );
 }
+
+
 

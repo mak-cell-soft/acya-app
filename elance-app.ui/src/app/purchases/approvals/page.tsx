@@ -128,7 +128,7 @@ export default function ApprovalsPage() {
           </div>
           <Button
             onClick={() => router.push('/purchases')}
-            className="bg-slate-900 hover:bg-slate-950 text-white rounded-xl font-bold text-xs"
+            className="bg-corp-blue-600 hover:bg-corp-blue-700 text-white rounded-xl font-bold text-xs"
           >
             <ChevronLeft className="w-4 h-4 mr-2" /> Retour aux Achats
           </Button>
@@ -169,7 +169,7 @@ export default function ApprovalsPage() {
             </Button>
             <Button
               onClick={() => setIsSettingsOpen(true)}
-              className="h-11 rounded-xl bg-slate-900 text-white hover:bg-slate-950 font-bold shadow-lg gap-2 flex items-center transition-all"
+              className="h-11 rounded-xl bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 hover:bg-corp-blue-50 font-bold shadow-lg gap-2 flex items-center transition-all"
             >
               <Settings className="w-4 h-4" /> Paramètres
             </Button>
@@ -179,7 +179,7 @@ export default function ApprovalsPage() {
         {/* Filter and Search actions */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="relative w-full md:max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none" />
             <Input
               type="text"
               placeholder="Rechercher par N° Doc, fournisseur, expéditeur..."
@@ -195,11 +195,11 @@ export default function ApprovalsPage() {
 
         {/* Pending Approvals Table Card */}
         <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-white">
-          <CardHeader className="bg-slate-900 text-white p-5">
-            <CardTitle className="text-sm font-serif font-bold text-amber-50 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-amber-500" /> Demandes de Validation
+          <CardHeader className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 p-5">
+            <CardTitle className="text-sm font-serif font-bold text-corp-blue-900 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-corp-blue-500" /> Demandes de Validation
             </CardTitle>
-            <CardDescription className="text-xs text-slate-300 font-medium">
+            <CardDescription className="text-xs text-slate-600 font-medium">
               Veuillez examiner la conformité des prix unitaires et quantités avant d&apos;approuver la commande fournisseur.
             </CardDescription>
           </CardHeader>
@@ -338,4 +338,7 @@ export default function ApprovalsPage() {
     </DashboardLayout>
   );
 }
+
+
+
 

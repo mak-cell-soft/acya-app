@@ -412,7 +412,7 @@ export default function PurchasesPage() {
 
         {/* Dynamic Period Navigator Card */}
         <Card className="border-slate-100 shadow-md shadow-slate-900/5 rounded-xl bg-white overflow-hidden border">
-          <div className="px-6 py-4 bg-slate-900 text-white flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="px-6 py-4 bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
@@ -441,7 +441,7 @@ export default function PurchasesPage() {
             </div>
 
             {/* Quick Day of Month Filter Bar */}
-            <div className="flex items-center gap-2 bg-slate-850/50 p-1.5 rounded-2xl border border-slate-800 overflow-x-auto max-w-full">
+            <div className="flex items-center gap-2 bg-slate-850/50 p-1.5 rounded-2xl border border-corp-blue-100 overflow-x-auto max-w-full">
               <Button
                 variant={selectedDay === 0 ? 'default' : 'ghost'}
                 size="sm"
@@ -450,7 +450,7 @@ export default function PurchasesPage() {
                   'rounded-xl h-8 px-4 text-xs font-bold font-mono transition-all',
                   selectedDay === 0
                     ? 'bg-amber-700 text-white hover:bg-amber-800'
-                    : 'text-slate-300 hover:text-white hover:bg-white/5'
+                    : 'text-slate-600 hover:text-white hover:bg-white/5'
                 )}
               >
                 TOUT LE MOIS
@@ -1452,4 +1452,6 @@ export default function PurchasesPage() {
     </DashboardLayout>
   );
 }
+
+
 

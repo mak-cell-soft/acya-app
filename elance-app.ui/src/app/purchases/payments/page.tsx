@@ -245,21 +245,21 @@ function SupplierPaymentsPageContent() {
   return (
     <div className="min-h-screen bg-[#faf9f6] text-slate-800 pb-12">
       {/* 1. Header Toolbar */}
-      <div className="bg-slate-900 text-white shadow-xl border-b border-slate-800 px-6 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-30">
+      <div className="bg-corp-blue-50/90 backdrop-blur-xl text-corp-blue-950 shadow-sm border-b border-corp-blue-100 px-6 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-30">
         <div className="flex items-center gap-3">
           <Button
             onClick={() => router.push('/purchases')}
             variant="ghost"
-            className="text-slate-400 hover:text-white rounded-full p-2 h-10 w-10 hover:bg-slate-800"
+            className="text-corp-blue-500 hover:text-corp-blue-800 rounded-full p-2 h-10 w-10 hover:bg-corp-blue-100"
           >
             <ChevronLeft className="w-6 h-6" />
           </Button>
           <div>
-            <h1 className="text-lg font-black tracking-tight text-white flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-amber-500" />
+            <h1 className="text-lg font-black tracking-tight text-corp-blue-950 flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-corp-blue-500" />
               Gestion des Paiements Fournisseurs
             </h1>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+            <p className="text-[10px] font-bold text-corp-blue-400 uppercase tracking-widest mt-0.5">
               Workspace Comptable & Trésorerie • {enterprise?.name || 'Élancé'}
             </p>
           </div>
@@ -271,13 +271,13 @@ function SupplierPaymentsPageContent() {
             value={selectedSupplierId?.toString() || ''}
             onValueChange={handleSupplierSelect}
           >
-            <SelectTrigger className="bg-slate-800 border-slate-700 text-white rounded-xl h-11 text-xs font-semibold focus:ring-amber-500">
-              <Building2 className="w-4 h-4 text-slate-400 mr-2" />
+            <SelectTrigger className="bg-white/80 border-corp-blue-100 text-corp-blue-900 rounded-xl h-11 text-xs font-semibold focus:ring-corp-blue-500 shadow-sm backdrop-blur-md">
+              <Building2 className="w-4 h-4 text-corp-blue-400 mr-2" />
               <SelectValue placeholder="Sélectionner un fournisseur...">
                 {selectedName}
               </SelectValue>
             </SelectTrigger>
-            <SelectContent className="bg-white border border-slate-150 rounded-xl shadow-lg">
+            <SelectContent className="bg-white border border-corp-blue-100 rounded-xl shadow-lg">
               {suppliers.map((sup: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
                 const name = sup.name || sup.Name || `${sup.firstname || sup.firstName || ''} ${sup.lastname || sup.lastName || ''}`.trim() || `Fournisseur ${sup.id}`;
                 return (
@@ -326,7 +326,7 @@ function SupplierPaymentsPageContent() {
             <div className="h-64 w-full">
               {loadingEcheances ? (
                 <div className="flex items-center justify-center h-full">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-slate-800" />
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-corp-blue-100" />
                 </div>
               ) : chartData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
@@ -381,7 +381,7 @@ function SupplierPaymentsPageContent() {
                                 Échéance du {payload[0].payload.originalData.dueDate ? new Date(payload[0].payload.originalData.dueDate).toLocaleDateString('fr-FR') : ''}
                               </p>
                               <div className="flex flex-col gap-1">
-                                <span className="text-xl font-black text-amber-500 font-mono tracking-tight">
+                                <span className="text-xl font-black text-corp-blue-500 font-mono tracking-tight">
                                   {payload[0].value?.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} TND
                                 </span>
                                 <span className="text-[10px] text-slate-400 font-medium italic mt-1">
@@ -557,7 +557,7 @@ function SupplierPaymentsPageContent() {
                 <CardContent className="p-0">
                   {loadingInvoices ? (
                     <div className="p-8 text-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-800 mx-auto" />
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-corp-blue-100 mx-auto" />
                     </div>
                   ) : filteredInvoices.length > 0 ? (
                     <div className="overflow-x-auto">
@@ -622,7 +622,7 @@ function SupplierPaymentsPageContent() {
                 <CardContent className="p-0">
                   {loadingTraites ? (
                     <div className="p-8 text-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-800 mx-auto" />
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-corp-blue-100 mx-auto" />
                     </div>
                   ) : traites.length > 0 ? (
                     <div className="overflow-x-auto">
@@ -700,7 +700,7 @@ function SupplierPaymentsPageContent() {
                                         <Button
                                           onClick={() => handleMarkAsPaid(traite)}
                                           size="sm"
-                                          className="h-8 rounded-xl bg-slate-900 hover:bg-slate-850 text-amber-400 font-bold text-[10px] gap-1 px-3 shadow-xs border border-slate-850"
+                                          className="h-8 rounded-xl bg-corp-blue-50 text-corp-blue-700 hover:bg-corp-blue-100 font-bold text-[10px] gap-1 px-3 shadow-xs border border-slate-850"
                                         >
                                           <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" /> Banque
                                         </Button>
@@ -726,7 +726,7 @@ function SupplierPaymentsPageContent() {
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center bg-white border border-slate-150 rounded-2xl p-8 shadow-xs">
             <div className="w-14 h-14 rounded-full bg-slate-50 border border-slate-100/80 flex items-center justify-center text-slate-450 mb-4">
-              <Building2 className="w-7 h-7 text-amber-500" />
+              <Building2 className="w-7 h-7 text-corp-blue-500" />
             </div>
             <h2 className="text-sm font-bold text-slate-800">
               Aucun fournisseur sélectionné
@@ -788,4 +788,6 @@ export default function SupplierPaymentsPage() {
     </Suspense>
   );
 }
+
+
 

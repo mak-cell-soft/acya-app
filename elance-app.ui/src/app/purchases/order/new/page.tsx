@@ -695,11 +695,11 @@ function NewSupplierOrderPageContent() {
         {/* 1. Main configuration panel */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="lg:col-span-2 border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-white">
-            <CardHeader className="bg-slate-900 text-white p-5">
-              <CardTitle className="text-sm font-serif font-bold text-amber-50 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-500" /> Informations d&apos;Entête de la Commande
+            <CardHeader className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 p-5">
+              <CardTitle className="text-sm font-serif font-bold text-corp-blue-900 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-corp-blue-500" /> Informations d&apos;Entête de la Commande
               </CardTitle>
-              <CardDescription className="text-xs text-slate-300 font-medium">
+              <CardDescription className="text-xs text-slate-600 font-medium">
                 Configurez le fournisseur, le dépôt associé, et la devise financière.
               </CardDescription>
             </CardHeader>
@@ -709,7 +709,7 @@ function NewSupplierOrderPageContent() {
               <div className="space-y-2 relative">
                 <label className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest block font-mono">Fournisseur *</label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none" />
                   <Input 
                     value={supplierSearchQuery}
                     onChange={(e) => {
@@ -824,7 +824,7 @@ function NewSupplierOrderPageContent() {
               <div className="space-y-2">
                 <label className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest block font-mono">Date Commande *</label>
                 <div className="relative">
-                  <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none" />
+                  <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none" />
                   <Input
                     type="date"
                     className="h-11 rounded-xl border-slate-200 focus:ring-amber-900 bg-slate-50/50 text-xs font-bold text-slate-900"
@@ -896,17 +896,17 @@ function NewSupplierOrderPageContent() {
           </Card>
 
           {/* Right Summary Totals Card */}
-          <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-slate-900 text-white">
-            <CardHeader className="border-b border-slate-800 p-5 bg-slate-950">
-              <CardTitle className="text-sm font-serif font-bold text-amber-50 flex items-center gap-2">
-                <Coins className="w-4 h-4 text-amber-500" /> Synthèse Financière
+          <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100">
+            <CardHeader className="border-b border-corp-blue-100 p-5 bg-corp-blue-50">
+              <CardTitle className="text-sm font-serif font-bold text-corp-blue-900 flex items-center gap-2">
+                <Coins className="w-4 h-4 text-corp-blue-500" /> Synthèse Financière
               </CardTitle>
               <CardDescription className="text-xs text-slate-400 font-medium">Calcul en temps réel des valeurs financières en {docCurrency}</CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-4 font-mono text-xs font-bold">
               
               {selectedSupplier && (
-                <div className="bg-slate-800/50 border border-slate-700/50 p-3.5 rounded-xl text-slate-300 font-medium mb-2 space-y-1">
+                <div className="bg-slate-800/50 border border-slate-700/50 p-3.5 rounded-xl text-slate-600 font-medium mb-2 space-y-1">
                   <span className="text-[0.65rem] uppercase text-slate-400 font-bold block">Fournisseur sélectionné :</span>
                   <div className="text-xs text-white font-bold">{selectedSupplier.name}</div>
                   <div className="text-[10px] text-slate-400">{selectedSupplier.address || 'Aucune adresse renseignée'}</div>
@@ -914,11 +914,11 @@ function NewSupplierOrderPageContent() {
                 </div>
               )}
 
-              <div className="flex justify-between items-center text-slate-300">
+              <div className="flex justify-between items-center text-slate-600">
                 <span>TOTAL BRUT HT</span>
                 <span className="text-sm">{totals.netHT.toFixed(3)} {docCurrency}</span>
               </div>
-              <div className="flex justify-between items-center text-slate-300">
+              <div className="flex justify-between items-center text-slate-600">
                 <span>TOTAL TVA</span>
                 <span className="text-sm">{totals.tva.toFixed(3)} {docCurrency}</span>
               </div>
@@ -930,7 +930,7 @@ function NewSupplierOrderPageContent() {
 
               {/* Base currency TND display if multi-currency active */}
               {docCurrency !== 'TND' && (
-                <div className="bg-slate-800/80 border border-amber-900/30 p-3 rounded-xl flex justify-between items-center text-amber-400 font-serif text-xs font-bold">
+                <div className="bg-slate-800/80 border border-corp-blue-200 p-3 rounded-xl flex justify-between items-center text-amber-400 font-serif text-xs font-bold">
                   <span>TOTAL EN TND (BASE)</span>
                   <span className="font-mono text-sm font-extrabold">{totals.baseTTC.toFixed(3)} TND</span>
                 </div>
@@ -978,7 +978,7 @@ function NewSupplierOrderPageContent() {
               <div className="space-y-1.5 relative md:col-span-2">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-mono">Rechercher Article *</label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none" />
                   <Input 
                     value={newRowArticleSearch}
                     onChange={(e) => {
@@ -1132,7 +1132,7 @@ function NewSupplierOrderPageContent() {
                 <Button
                   onClick={handleAddMerchandiseRow}
                   disabled={!newRowArticle || newRowQuantity <= 0}
-                  className="w-full h-10 bg-slate-900 hover:bg-slate-950 text-white font-bold shadow-lg gap-2 flex items-center justify-center transition-all disabled:opacity-40"
+                  className="w-full h-10 bg-corp-blue-600 hover:bg-corp-blue-700 text-white font-bold shadow-lg gap-2 flex items-center justify-center transition-all disabled:opacity-40"
                 >
                   <Plus className="w-4 h-4" /> Ajouter à la liste
                 </Button>
@@ -1198,11 +1198,11 @@ function NewSupplierOrderPageContent() {
 
         {/* 3. Dynamic Items Table Grid */}
         <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-white">
-          <CardHeader className="bg-slate-900 text-white p-5">
-            <CardTitle className="text-sm font-serif font-bold text-amber-50 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-amber-500" /> Nomenclature des Articles Commandés
+          <CardHeader className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 p-5">
+            <CardTitle className="text-sm font-serif font-bold text-corp-blue-900 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-corp-blue-500" /> Nomenclature des Articles Commandés
             </CardTitle>
-            <CardDescription className="text-xs text-slate-300 font-medium">Liste des lignes de commande. Ajustez les prix, notes ou volumes directement en ligne.</CardDescription>
+            <CardDescription className="text-xs text-slate-600 font-medium">Liste des lignes de commande. Ajustez les prix, notes ou volumes directement en ligne.</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
@@ -1392,4 +1392,7 @@ export default function NewSupplierOrderPage() {
     </Suspense>
   );
 }
+
+
+
 

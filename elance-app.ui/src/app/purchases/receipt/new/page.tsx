@@ -925,11 +925,11 @@ function NewSupplierReceiptPageContent() {
         {/* 1. Main configuration panel */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="lg:col-span-2 border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-white">
-            <CardHeader className="bg-slate-900 text-white p-5">
-              <CardTitle className="text-sm font-serif font-bold text-amber-50 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-500" /> Informations d&apos;Entête du Document
+            <CardHeader className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 p-5">
+              <CardTitle className="text-sm font-serif font-bold text-corp-blue-900 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-corp-blue-500" /> Informations d&apos;Entête du Document
               </CardTitle>
-              <CardDescription className="text-xs text-slate-300 font-medium">
+              <CardDescription className="text-xs text-slate-600 font-medium">
                 Configurez le fournisseur, la référence BL externe et les paramètres financiers.
               </CardDescription>
             </CardHeader>
@@ -939,7 +939,7 @@ function NewSupplierReceiptPageContent() {
               <div className="space-y-2 relative">
                 <label className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest block font-mono">Fournisseur *</label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none" />
                   <Input
                     value={supplierSearchQuery}
                     onChange={(e) => {
@@ -1054,7 +1054,7 @@ function NewSupplierReceiptPageContent() {
               <div className="space-y-2">
                 <label className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest block font-mono">Date Réception *</label>
                 <div className="relative">
-                  <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none" />
+                  <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none" />
                   <Input
                     type="date"
                     className="h-11 rounded-xl border-slate-200 focus:ring-amber-900 bg-slate-50/50 text-xs font-bold text-slate-900"
@@ -1096,15 +1096,15 @@ function NewSupplierReceiptPageContent() {
           </Card>
 
           {/* Right Summary Totals Card */}
-          <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-slate-900 text-white">
-            <CardHeader className="border-b border-slate-800 p-5 bg-slate-950">
-              <CardTitle className="text-sm font-serif font-bold text-amber-50 flex items-center gap-2">
-                <Coins className="w-4 h-4 text-amber-500" /> Synthèse Financière (BR)
+          <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100">
+            <CardHeader className="border-b border-corp-blue-100 p-5 bg-corp-blue-50">
+              <CardTitle className="text-sm font-serif font-bold text-corp-blue-900 flex items-center gap-2">
+                <Coins className="w-4 h-4 text-corp-blue-500" /> Synthèse Financière (BR)
               </CardTitle>
               <CardDescription className="text-xs text-slate-400 font-medium">Calcul des valeurs financières en {docCurrency}</CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-4 font-mono text-xs font-bold">
-              <div className="flex justify-between items-center text-slate-300">
+              <div className="flex justify-between items-center text-slate-600">
                 <span>TOTAL BRUT HT</span>
                 <span className="text-sm">{totals.netHT.toFixed(3)} {docCurrency}</span>
               </div>
@@ -1117,7 +1117,7 @@ function NewSupplierReceiptPageContent() {
                 <span>TOTAL NET HT</span>
                 <span className="text-sm text-amber-400">{totals.netHT.toFixed(3)} {docCurrency}</span>
               </div>
-              <div className="flex justify-between items-center text-slate-300">
+              <div className="flex justify-between items-center text-slate-600">
                 <span>TOTAL TVA</span>
                 <span className="text-sm">{totals.tva.toFixed(3)} {docCurrency}</span>
               </div>
@@ -1128,7 +1128,7 @@ function NewSupplierReceiptPageContent() {
               </div>
 
               {/* Optional RS holding taxes */}
-              <div className="space-y-2 pt-2 border-t border-slate-800 animate-in fade-in duration-300">
+              <div className="space-y-2 pt-2 border-t border-corp-blue-100 animate-in fade-in duration-300">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-mono">Retenue à la Source (RS)</label>
                 <Select
                   onValueChange={(val) => {
@@ -1141,7 +1141,7 @@ function NewSupplierReceiptPageContent() {
                   }}
                   value={selectedRS?.id?.toString() || 'none'}
                 >
-                  <SelectTrigger className="h-9 rounded-lg border-slate-700 bg-slate-800/80 text-xs font-bold text-white focus:ring-amber-900 w-full">
+                  <SelectTrigger className="h-9 rounded-lg border-slate-700 bg-white/80 text-corp-blue-900 text-xs font-bold focus:ring-amber-900 w-full">
                     <SelectValue placeholder="Aucune retenue">
                       {selectedRSLabel}
                     </SelectValue>
@@ -1214,7 +1214,7 @@ function NewSupplierReceiptPageContent() {
               <div className="space-y-1.5 relative md:col-span-2">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-mono">Rechercher Article *</label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none" />
                   <Input
                     value={newRowArticleSearch}
                     onChange={(e) => {
@@ -1423,7 +1423,7 @@ function NewSupplierReceiptPageContent() {
                 <Button
                   onClick={handleAddMerchandiseRow}
                   disabled={!newRowArticle || newRowQuantity <= 0}
-                  className="w-full h-11 bg-slate-900 hover:bg-slate-950 text-white font-bold shadow-lg gap-2 flex items-center justify-center transition-all disabled:opacity-40"
+                  className="w-full h-11 bg-corp-blue-600 hover:bg-corp-blue-700 text-white font-bold shadow-lg gap-2 flex items-center justify-center transition-all disabled:opacity-40"
                 >
                   <Plus className="w-4 h-4" /> {editIndex !== null ? 'Enregistrer les modifications' : 'Ajouter Article à la Liste'}
                 </Button>
@@ -1508,11 +1508,11 @@ function NewSupplierReceiptPageContent() {
 
         {/* 3. Grid / Table showing added articles */}
         <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-white">
-          <CardHeader className="bg-slate-900 text-white p-5">
-            <CardTitle className="text-sm font-serif font-bold text-amber-50 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-amber-500" /> Nomenclature des Articles Réceptionnés
+          <CardHeader className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 p-5">
+            <CardTitle className="text-sm font-serif font-bold text-corp-blue-900 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-corp-blue-500" /> Nomenclature des Articles Réceptionnés
             </CardTitle>
-            <CardDescription className="text-xs text-slate-300 font-medium">Liste des articles entrés en stock. Modifiez les prix unitaires, remises et colis en ligne.</CardDescription>
+            <CardDescription className="text-xs text-slate-600 font-medium">Liste des articles entrés en stock. Modifiez les prix unitaires, remises et colis en ligne.</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
@@ -1611,10 +1611,10 @@ function NewSupplierReceiptPageContent() {
                                     {row.selldiscountpercentage}%
                                   </Badge>
                                 ) : (
-                                  <span className="text-slate-300 font-mono text-center block">—</span>
+                                  <span className="text-slate-600 font-mono text-center block">—</span>
                                 )
                               ) : (
-                                <span className="text-slate-300 font-mono text-center block">—</span>
+                                <span className="text-slate-600 font-mono text-center block">—</span>
                               )}
                             </td>
                             <td className="p-4 text-center font-bold font-mono text-slate-500">
@@ -1691,4 +1691,7 @@ export default function NewSupplierReceiptPage() {
     </Suspense>
   );
 }
+
+
+
 

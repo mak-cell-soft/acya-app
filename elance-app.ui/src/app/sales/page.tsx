@@ -273,7 +273,7 @@ export default function SalesPage() {
             {hasPermission('sales', 'canAdd') && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button className="h-11 bg-forest-950 text-white hover:bg-forest-900 font-bold shadow-lg shadow-forest-950/20">
+                  <Button className="h-11 bg-corp-blue-600 text-white hover:bg-corp-blue-700 font-bold shadow-lg shadow-corp-blue-500/20">
                     <Plus className="w-4 h-4 mr-2" /> Nouveau Document
                   </Button>
                 </DropdownMenuTrigger>
@@ -300,7 +300,7 @@ export default function SalesPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           {/* Navigator */}
           <Card className="lg:col-span-4 border-sand-200 shadow-sm rounded-xl bg-white overflow-hidden flex flex-col justify-between">
-            <div className="p-4 bg-forest-950 text-white flex items-center justify-between">
+            <div className="p-4 bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 flex items-center justify-between">
               <Button
                 variant="ghost"
                 size="icon"
@@ -342,7 +342,7 @@ export default function SalesPage() {
                     className={cn(
                       'rounded-md text-[10px] font-bold py-1.5 border transition-all text-center',
                       selectedMonthIdx === idx
-                        ? 'bg-forest-950 text-white border-forest-950'
+                        ? 'bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 border-forest-950'
                         : 'bg-white text-sand-600 border-sand-200 hover:bg-sand-50'
                     )}
                   >
@@ -441,7 +441,7 @@ export default function SalesPage() {
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge className="bg-forest-950 text-white font-mono font-bold text-[10px] py-1 px-3.5 rounded-full border border-forest-900 shadow-sm shadow-forest-950/10">
+                        <Badge className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 font-mono font-bold text-[10px] py-1 px-3.5 rounded-full border border-forest-900 shadow-sm shadow-forest-950/10">
                           Jour {selectedDay} / {getDaysCountInMonth(selectedYear, selectedMonthIdx)}
                         </Badge>
                         <Button
@@ -472,7 +472,7 @@ export default function SalesPage() {
                             className={cn(
                               'relative flex flex-col items-center justify-center min-w-[40px] h-10 rounded-full border text-xs font-bold transition-all',
                               isSelected
-                                ? 'bg-forest-950 text-white border-forest-950 shadow-md shadow-forest-950/20 scale-105'
+                                ? 'bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 border-forest-950 shadow-md shadow-corp-blue-500/20 scale-105'
                                 : 'bg-white text-sand-600 border-sand-200 hover:bg-sand-50 hover:border-sand-300',
                               isCurrentDay && !isSelected && 'ring-2 ring-forest-800/10 text-forest-900 border-forest-800/30'
                             )}
@@ -1240,4 +1240,6 @@ export default function SalesPage() {
     </DashboardLayout>
   );
 }
+
+
 
