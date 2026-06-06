@@ -234,7 +234,7 @@ export function StockTimelinePanel() {
       {/* Dynamic parameters Filter card */}
       <Card className="bg-stone-50/50 dark:bg-stone-900/40 border-stone-200/60 dark:border-stone-800/60 rounded-2xl shadow-sm relative z-50">
         <CardHeader className="border-b border-stone-200/45 dark:border-stone-800/45 pb-4">
-          <CardTitle className="text-xs font-serif font-bold text-stone-900 dark:text-stone-50 uppercase tracking-widest flex items-center gap-2">
+          <CardTitle className="text-xs font-bold text-stone-900 dark:text-stone-50 uppercase tracking-widest flex items-center gap-2">
             <History className="h-4 w-4 text-amber-500" /> Options de Traçabilité
           </CardTitle>
           <CardDescription className="text-[10px] text-stone-400 lowercase mt-0.5">
@@ -446,7 +446,7 @@ export function StockTimelinePanel() {
 
       {/* Main Results / Timeline UI */}
       {(!queryParams.siteId || (!usePackageSearch && !selectedArticle) || (usePackageSearch && !packageCode)) ? (
-        <div className="py-20 text-center text-stone-450 dark:text-stone-500 font-serif italic text-xs border-2 border-dashed border-stone-200/60 dark:border-stone-800/60 rounded-2xl bg-stone-50/20 dark:bg-stone-950/10 flex flex-col items-center justify-center space-y-3">
+        <div className="py-20 text-center text-stone-450 dark:text-stone-500 italic text-xs border-2 border-dashed border-stone-200/60 dark:border-stone-800/60 rounded-2xl bg-stone-50/20 dark:bg-stone-950/10 flex flex-col items-center justify-center space-y-3">
           <Info className="h-8 w-8 text-stone-300 dark:text-stone-700 animate-pulse" />
           <span>Sélectionnez un dépôt et {usePackageSearch ? 'indiquez une référence de colis' : 'choisissez un article'} pour retracez le journal des mouvements de stock.</span>
         </div>
@@ -456,7 +456,7 @@ export function StockTimelinePanel() {
           <span className="text-[10px] uppercase tracking-wider font-bold text-stone-450">Chargement de la chronologie...</span>
         </div>
       ) : timelineData.length === 0 ? (
-        <div className="py-20 text-center text-stone-450 dark:text-stone-500 font-serif italic text-xs border-2 border-dashed border-stone-200/60 dark:border-stone-800/60 rounded-2xl bg-stone-50/20 dark:bg-stone-950/10 flex flex-col items-center justify-center space-y-3">
+        <div className="py-20 text-center text-stone-450 dark:text-stone-500 italic text-xs border-2 border-dashed border-stone-200/60 dark:border-stone-800/60 rounded-2xl bg-stone-50/20 dark:bg-stone-950/10 flex flex-col items-center justify-center space-y-3">
           <AlertTriangle className="h-8 w-8 text-amber-400" />
           <span>Aucun mouvement de stock enregistré sur cette période pour ce lot ou article.</span>
         </div>
@@ -566,7 +566,7 @@ export function StockTimelinePanel() {
             {summaryData && (
               <Card className="bg-stone-50/50 dark:bg-stone-900/40 border-stone-200/60 dark:border-stone-800/60 rounded-2xl shadow-sm p-6 space-y-5">
                 <div className="flex items-center justify-between border-b border-stone-200/45 dark:border-stone-800/45 pb-3">
-                  <h3 className="text-xs font-serif font-bold text-stone-900 dark:text-stone-50 uppercase tracking-widest flex items-center gap-1.5">
+                  <h3 className="text-xs font-bold text-stone-900 dark:text-stone-50 uppercase tracking-widest flex items-center gap-1.5">
                     <Layers className="h-4 w-4 text-amber-500" /> Synthèse Flux
                   </h3>
                   <span className="text-[10px] font-mono font-bold text-stone-400">
@@ -597,7 +597,7 @@ export function StockTimelinePanel() {
 
                   {/* Live DB Current Stock */}
                   <div className="flex items-center justify-between pt-3 border-t border-stone-200 dark:border-stone-800">
-                    <span className="text-xs font-serif font-bold text-stone-900 dark:text-stone-50 flex items-center gap-1">
+                    <span className="text-xs font-bold text-stone-900 dark:text-stone-50 flex items-center gap-1">
                       Balance en Stock
                     </span>
                     <Badge className="bg-stone-900 text-white dark:bg-stone-50 dark:text-stone-900 font-mono text-xs font-bold px-3 py-1 rounded-lg">
@@ -612,7 +612,7 @@ export function StockTimelinePanel() {
             {!usePackageSearch && reconciliationData && (
               <Card className="bg-stone-50/50 dark:bg-stone-900/40 border-stone-200/60 dark:border-stone-800/60 rounded-2xl shadow-sm p-6 space-y-4">
                 <div className="flex items-center justify-between border-b border-stone-200/45 dark:border-stone-800/45 pb-3">
-                  <h3 className="text-xs font-serif font-bold text-stone-900 dark:text-stone-50 uppercase tracking-widest flex items-center gap-1.5">
+                  <h3 className="text-xs font-bold text-stone-900 dark:text-stone-50 uppercase tracking-widest flex items-center gap-1.5">
                     <CheckCircle className="h-4 w-4 text-emerald-500" /> Audit de Cohérence
                   </h3>
                   <Button 

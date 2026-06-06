@@ -76,10 +76,10 @@ export function TaxRegistrationDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md rounded-2xl border-forest-100 shadow-2xl p-0 overflow-hidden">
+      <DialogContent className="max-w-md rounded-2xl border-corp-blue-100 shadow-2xl p-0 overflow-hidden">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8">
-          <DialogTitle className="font-heading text-2xl font-bold tracking-tight flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-forest-50 flex items-center justify-center border border-forest-100">
+          <DialogTitle className="text-2xl font-bold tracking-tight flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-corp-blue-50 flex items-center justify-center border border-corp-blue-100">
               <AlertCircle className="w-5 h-5 text-emerald-600" />
             </div>
             Matricule Fiscal
@@ -160,7 +160,7 @@ export function TaxRegistrationDialog({
           </div>
         </div>
 
-        <DialogFooter className="p-8 border-t border-forest-50 bg-sand-50/30 gap-3">
+        <DialogFooter className="p-8 border-t border-corp-blue-50 bg-sand-50/30 gap-3">
           <Button 
             variant="ghost" 
             onClick={onClose}
@@ -171,7 +171,7 @@ export function TaxRegistrationDialog({
           <Button 
             disabled={!isValid()}
             onClick={handleConfirm}
-            className="bg-forest-600 hover:bg-forest-800 text-white font-bold shadow-lg shadow-forest-600/20 px-8"
+            className="bg-corp-blue-600 hover:bg-corp-blue-800 text-white font-bold shadow-lg shadow-corp-blue-600/20 px-8"
           >
             Confirmer l'Identifiant
           </Button>

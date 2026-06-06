@@ -348,7 +348,7 @@ export default function PurchasesPage() {
                 Acquisitions &amp; Logistique
               </span>
             </div>
-            <h1 className="text-3xl font-serif font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
               Gestion des Achats
             </h1>
             <p className="text-sm font-medium text-slate-500 max-w-2xl leading-relaxed">
@@ -423,7 +423,7 @@ export default function PurchasesPage() {
                 <ChevronLeft className="w-5 h-5" />
               </Button>
               <div className="text-left">
-                <h2 className="text-lg font-serif font-bold text-amber-50">
+                <h2 className="text-lg font-bold text-amber-50">
                   {MONTHS[selectedMonthIdx]} {selectedYear}
                 </h2>
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-mono">
@@ -586,7 +586,7 @@ export default function PurchasesPage() {
                   <span className="text-[10px] font-bold text-amber-950 font-mono">DT</span>
                 </div>
               </Card>
-              <Card className="rounded-[20px] border-slate-150 shadow-sm bg-white p-5 space-y-2 border border-dashed col-span-3 flex items-center justify-center text-xs text-slate-400 font-serif italic">
+              <Card className="rounded-[20px] border-slate-150 shadow-sm bg-white p-5 space-y-2 border border-dashed col-span-3 flex items-center justify-center text-xs text-slate-400 italic">
                 Activez l&apos;onglet Factures pour voir le détail des règlements et avoirs.
               </Card>
             </>

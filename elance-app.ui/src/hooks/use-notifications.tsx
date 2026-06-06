@@ -187,9 +187,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
       // Pop toast action
       toast.custom((t) => (
-        <div className="flex w-full max-w-md items-center justify-between rounded-xl border border-forest-800/10 bg-white p-4 shadow-xl ring-1 ring-black/5 dark:bg-zinc-950">
+        <div className="flex w-full max-w-md items-center justify-between rounded-xl border border-corp-blue-800/10 bg-white p-4 shadow-xl ring-1 ring-black/5 dark:bg-zinc-950">
           <div className="flex-1">
-            <h4 className="font-semibold text-forest-800 dark:text-forest-400">Nouveau transfert de stock</h4>
+            <h4 className="font-semibold text-corp-blue-800 dark:text-corp-blue-400">Nouveau transfert de stock</h4>
             <p className="text-xs text-zinc-500 mt-0.5">Voucher : <span className="font-mono text-zinc-800 dark:text-zinc-300">{mapped.transferRef}</span> ({mapped.itemsCount} articles)</p>
           </div>
           <div className="ml-4 flex shrink-0 gap-2">
@@ -198,7 +198,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                 toast.dismiss(t);
                 openTransferConfirmDialog(mapped);
               }}
-              className="rounded-lg bg-forest-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-forest-700 transition"
+              className="rounded-lg bg-corp-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-corp-blue-700 transition"
             >
               Voir
             </button>

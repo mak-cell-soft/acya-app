@@ -146,29 +146,29 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               className={cn("flex items-center group text-left outline-none w-full", isCollapsed ? "justify-center" : "gap-4")}
             >
               <div className="relative group-hover:scale-110 transition-transform duration-500 shrink-0">
-                <svg className="w-10 h-10 md:w-11 md:h-11 transition-transform duration-700 group-hover:rotate-[360deg]" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="40" height="40" rx="10" fill="url(#logo_bg_grad)" className="opacity-10 group-hover:opacity-15 transition-opacity" />
-                  <path d="M20 3L35 11.5V28.5L20 37L5 28.5V11.5L20 3" stroke="url(#logo_stroke_grad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M20 9L31 17.25L27 20.25L20 15L13 20.25L9 17.25L20 9Z" fill="url(#logo_stroke_grad)"/>
-                  <rect x="17.5" y="18" width="5" height="11" rx="1.5" fill="url(#logo_stroke_grad)" />
-                  <path d="M12 25H28" stroke="url(#logo_stroke_grad)" strokeWidth="1.5" strokeLinecap="round"/>
-                  <path d="M14 29H26" stroke="#06B6D4" strokeWidth="2" strokeLinecap="round"/>
+                <svg className="w-10 h-10 md:w-11 md:h-11 transition-transform duration-700 group-hover:scale-105" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14 34L14 18L6 26V34H14Z" fill="url(#logo_grad_1)" />
+                  <path d="M24 34L24 10L16 18V34H24Z" fill="url(#logo_grad_2)" />
+                  <path d="M34 34L34 2L26 10V34H34Z" fill="url(#logo_grad_3)" />
                   <defs>
-                    <linearGradient id="logo_bg_grad" x1="0" y1="0" x2="40" y2="40">
-                      <stop offset="0%" stopColor="#2563EB"/>
-                      <stop offset="100%" stopColor="#06B6D4"/>
+                    <linearGradient id="logo_grad_1" x1="6" y1="18" x2="14" y2="34">
+                      <stop offset="0%" stopColor="#60A5FA"/>
+                      <stop offset="100%" stopColor="#3B82F6"/>
                     </linearGradient>
-                    <linearGradient id="logo_stroke_grad" x1="0" y1="0" x2="40" y2="40">
+                    <linearGradient id="logo_grad_2" x1="16" y1="10" x2="24" y2="34">
                       <stop offset="0%" stopColor="#3B82F6"/>
-                      <stop offset="60%" stopColor="#2563EB"/>
-                      <stop offset="100%" stopColor="#06B6D4"/>
+                      <stop offset="100%" stopColor="#2563EB"/>
+                    </linearGradient>
+                    <linearGradient id="logo_grad_3" x1="26" y1="2" x2="34" y2="34">
+                      <stop offset="0%" stopColor="#2563EB"/>
+                      <stop offset="100%" stopColor="#1D4ED8"/>
                     </linearGradient>
                   </defs>
                 </svg>
               </div>
               {!isCollapsed && (
                 <div className="flex flex-col items-start justify-center gap-1.5 overflow-hidden">
-                  <span className="text-[1.65rem] font-extrabold font-heading text-slate-900 tracking-tight leading-none mt-0.5 truncate w-full">Élancé</span>
+                  <span className="text-[1.65rem] font-extrabold text-slate-900 tracking-tight leading-none mt-0.5 truncate w-full">Élancé</span>
                   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-corp-blue-100/50 border border-corp-blue-200/60 group-hover:bg-corp-blue-200/50 transition-colors shadow-sm whitespace-nowrap">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)] animate-pulse shrink-0" />
                     <span className="text-[0.6rem] font-extrabold text-corp-blue-800 uppercase tracking-[0.15em] leading-none">SOCOFEB</span>
@@ -181,7 +181,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center mb-2 shadow-inner border border-rose-100">
                   <LogOut className="w-7 h-7 text-rose-500" />
                 </div>
-                <AlertDialogTitle className="font-heading text-2xl font-extrabold text-slate-900 text-left">
+                <AlertDialogTitle className="text-2xl font-extrabold text-slate-900 text-left">
                   Quitter l'application ?
                 </AlertDialogTitle>
                 <AlertDialogDescription className="text-[1.05rem] text-slate-600 font-medium leading-relaxed text-left">

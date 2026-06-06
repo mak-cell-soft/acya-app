@@ -96,7 +96,7 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
         <div className="p-6 border-b border-slate-200 flex items-center justify-between bg-gradient-to-br from-corp-blue-50 via-[#EBF1FA] to-[#F8FAFF] text-slate-900">
           <div>
             <span className="text-xs font-bold tracking-widest text-corp-blue-600 uppercase">État de Compte Client</span>
-            <h2 className="text-2xl font-bold font-heading mt-0.5">{customer.firstname} {customer.lastname}</h2>
+            <h2 className="text-2xl font-bold mt-0.5">{customer.firstname} {customer.lastname}</h2>
             {customer.name && <p className="text-sm text-slate-500 mt-0.5">{customer.name}</p>}
           </div>
           <button 
@@ -121,9 +121,9 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
                 <Scale className="w-16 h-16 text-slate-900" />
               </div>
               <CardContent className="p-5">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-600/70">Solde Actuel</p>
+                <p className="text-sm font-medium text-slate-600/70">Solde Actuel</p>
                 <p className={cn(
-                  "text-2xl font-black mt-2 font-heading tracking-tight",
+                  "text-2xl font-black mt-2 tracking-tight",
                   (statement?.closingBalance ?? 0) < 0 ? "text-rose-600" : "text-slate-900"
                 )}>
                   {formatCurrency(statement?.closingBalance ?? 0)}
@@ -137,8 +137,8 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
                 <ArrowUpRight className="w-16 h-16 text-emerald-600" />
               </div>
               <CardContent className="p-5">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-600/70">Débit Période</p>
-                <p className="text-2xl font-black mt-2 text-emerald-700 font-heading tracking-tight">
+                <p className="text-sm font-medium text-slate-600/70">Débit Période</p>
+                <p className="text-2xl font-black mt-2 text-emerald-700 tracking-tight">
                   {formatCurrency(statement?.totalDebit ?? 0)}
                 </p>
               </CardContent>
@@ -150,8 +150,8 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
                 <ArrowDownLeft className="w-16 h-16 text-blue-600" />
               </div>
               <CardContent className="p-5">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-600/70">Crédit Période</p>
-                <p className="text-2xl font-black mt-2 text-blue-700 font-heading tracking-tight">
+                <p className="text-sm font-medium text-slate-600/70">Crédit Période</p>
+                <p className="text-2xl font-black mt-2 text-blue-700 tracking-tight">
                   {formatCurrency(statement?.totalCredit ?? 0)}
                 </p>
               </CardContent>
@@ -174,7 +174,7 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
             <div className="flex gap-2 w-full sm:w-auto">
               <Button 
                 onClick={() => refetch()}
-                className="bg-forest-600 hover:bg-forest-700 text-slate-900 font-bold h-11 px-6 rounded-lg flex-1 sm:flex-none shadow-md shadow-corp-blue-900/10"
+                className="bg-corp-blue-600 hover:bg-corp-blue-700 text-slate-900 font-bold h-11 px-6 rounded-lg flex-1 sm:flex-none shadow-md shadow-corp-blue-900/10"
               >
                 Actualiser
               </Button>
@@ -345,7 +345,7 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
         <div className="p-6 border-t border-slate-200 flex justify-end bg-slate-100/30">
           <Button 
             onClick={onClose}
-            className="bg-forest-900 hover:bg-forest-950 text-slate-900 font-bold h-11 px-8 shadow-md shadow-corp-blue-900/10"
+            className="bg-corp-blue-900 hover:bg-corp-blue-950 text-slate-900 font-bold h-11 px-8 shadow-md shadow-corp-blue-900/10"
           >
             Fermer
           </Button>

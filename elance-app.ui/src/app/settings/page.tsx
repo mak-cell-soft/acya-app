@@ -24,12 +24,12 @@ export default function SettingsPage() {
             transition={{ duration: 0.6 }}
             className="flex items-center gap-6"
           >
-            <div className="w-16 h-16 rounded-3xl bg-forest-600 flex items-center justify-center shadow-xl shadow-forest-600/20">
+            <div className="w-16 h-16 rounded-3xl bg-corp-blue-600 flex items-center justify-center shadow-xl shadow-corp-blue-600/20">
               <Cog className="w-8 h-8 text-white animate-[spin_4s_linear_infinite]" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-5xl font-heading font-bold tracking-tight text-forest-900">
-                Configuration <span className="text-forest-400">&</span> Paramètres
+              <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-corp-blue-900">
+                Configuration <span className="text-corp-blue-400">&</span> Paramètres
               </h1>
               <p className="text-sand-400 mt-1 font-medium text-lg">
                 Gérez l'identité de votre entreprise et les réglages globaux du système.
@@ -37,9 +37,9 @@ export default function SettingsPage() {
             </div>
           </motion.div>
           
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 hidden lg:flex items-center gap-8 text-forest-200">
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 hidden lg:flex items-center gap-8 text-corp-blue-200">
              <div className="text-right">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-forest-300">Statut Système</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-corp-blue-300">Statut Système</p>
                 <p className="text-sm font-bold text-emerald-500 flex items-center gap-1.5 justify-end">
                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                    Connecté
@@ -54,35 +54,35 @@ export default function SettingsPage() {
           className="w-full space-y-12"
         >
           <div className="sticky top-0 z-10 py-4 bg-background/80 backdrop-blur-md">
-            <TabsList className="bg-sand-50/80 p-1.5 rounded-xl border border-forest-100/50 shadow-sm inline-flex h-auto">
+            <TabsList className="bg-sand-50/80 p-1.5 rounded-xl border border-corp-blue-100/50 shadow-sm inline-flex h-auto">
               <TabsTrigger 
                 value="enterprise" 
-                className="rounded-[18px] px-8 py-3.5 data-[state=active]:bg-forest-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-forest-600/20 font-bold gap-3 transition-all duration-300"
+                className="rounded-[18px] px-8 py-3.5 data-[state=active]:bg-corp-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-corp-blue-600/20 font-bold gap-3 transition-all duration-300"
               >
                 <Building2 className="w-5 h-5" /> Entreprise
               </TabsTrigger>
               <TabsTrigger 
                 value="params" 
-                className="rounded-[18px] px-8 py-3.5 data-[state=active]:bg-forest-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-forest-600/20 font-bold gap-3 transition-all duration-300"
+                className="rounded-[18px] px-8 py-3.5 data-[state=active]:bg-corp-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-corp-blue-600/20 font-bold gap-3 transition-all duration-300"
               >
                 <Settings2 className="w-5 h-5" /> Paramètres
               </TabsTrigger>
               <TabsTrigger 
                 value="numbering" 
-                className="rounded-[18px] px-8 py-3.5 data-[state=active]:bg-forest-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-forest-600/20 font-bold gap-3 transition-all duration-300"
+                className="rounded-[18px] px-8 py-3.5 data-[state=active]:bg-corp-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-corp-blue-600/20 font-bold gap-3 transition-all duration-300"
               >
                 <Hash className="w-5 h-5" /> Numérotation
               </TabsTrigger>
               <TabsTrigger 
                 value="audit" 
-                className="rounded-[18px] px-8 py-3.5 data-[state=active]:bg-forest-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-forest-600/20 font-bold gap-3 transition-all duration-300"
+                className="rounded-[18px] px-8 py-3.5 data-[state=active]:bg-corp-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-corp-blue-600/20 font-bold gap-3 transition-all duration-300"
               >
                 <ShieldCheck className="w-5 h-5" /> Audit
               </TabsTrigger>
               {/* NOTE: Impression tab — edit print-ar.json labels directly */}
               <TabsTrigger 
                 value="print" 
-                className="rounded-[18px] px-8 py-3.5 data-[state=active]:bg-forest-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-forest-600/20 font-bold gap-3 transition-all duration-300"
+                className="rounded-[18px] px-8 py-3.5 data-[state=active]:bg-corp-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-corp-blue-600/20 font-bold gap-3 transition-all duration-300"
               >
                 <Printer className="w-5 h-5" /> Impression
               </TabsTrigger>

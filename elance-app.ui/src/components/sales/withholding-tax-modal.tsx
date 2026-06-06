@@ -165,7 +165,7 @@ export function WithholdingTaxModal({
               <Landmark className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-serif font-bold text-base text-forest-950">
+              <h3 className="font-bold text-base text-corp-blue-950">
                 Gestion de la Retenue à la Source (RS)
               </h3>
               <p className="text-xs text-sand-500 font-medium">
@@ -200,7 +200,7 @@ export function WithholdingTaxModal({
                 <span className="text-sand-400 font-semibold uppercase tracking-wider block mb-0.5">
                   Total TTC Original
                 </span>
-                <span className="font-mono font-bold text-forest-800 text-[13px]">
+                <span className="font-mono font-bold text-corp-blue-800 text-[13px]">
                   {totalTtc.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT
                 </span>
               </div>
@@ -219,7 +219,7 @@ export function WithholdingTaxModal({
                 onValueChange={(val) => setSelectedRateId(val || 'Aucune RS')}
                 disabled={loadingRates}
               >
-                <SelectTrigger className="rounded-xl border-sand-200 h-10 text-xs font-semibold focus:ring-forest-600">
+                <SelectTrigger className="rounded-xl border-sand-200 h-10 text-xs font-semibold focus:ring-corp-blue-600">
                   <SelectValue placeholder="Sélectionner un taux">
                     {selectedRateId === 'Aucune RS'
                       ? 'Aucune RS'
@@ -254,7 +254,7 @@ export function WithholdingTaxModal({
                   value={reference}
                   onChange={(e) => setReference(e.target.value)}
                   placeholder="Ex: RS-2024-001"
-                  className="rounded-xl border-sand-200 pr-12 text-xs font-semibold focus-visible:ring-forest-600 h-10"
+                  className="rounded-xl border-sand-200 pr-12 text-xs font-semibold focus-visible:ring-corp-blue-600 h-10"
                   required
                 />
                 <Button
@@ -263,11 +263,11 @@ export function WithholdingTaxModal({
                   size="icon"
                   onClick={handleGenerateReference}
                   disabled={loadingRef || !doc.id}
-                  className="absolute right-1 w-8 h-8 rounded-lg text-forest-750 hover:bg-forest-50"
+                  className="absolute right-1 w-8 h-8 rounded-lg text-corp-blue-750 hover:bg-corp-blue-50"
                   title="Générer automatiquement la référence"
                 >
                   {loadingRef ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-forest-600" />
+                    <Loader2 className="w-4 h-4 animate-spin text-corp-blue-600" />
                   ) : (
                     <RefreshCw className="w-4 h-4" />
                   )}
@@ -299,7 +299,7 @@ export function WithholdingTaxModal({
                 id="issigned"
                 checked={issigned}
                 onChange={(e) => setIssigned(e.target.checked)}
-                className="w-4 h-4 rounded border-sand-300 text-forest-600 focus:ring-forest-600 cursor-pointer"
+                className="w-4 h-4 rounded border-sand-300 text-corp-blue-600 focus:ring-corp-blue-600 cursor-pointer"
               />
               <label
                 htmlFor="issigned"
@@ -325,9 +325,9 @@ export function WithholdingTaxModal({
                 <span>Retenue ({percentage}%)</span>
                 <span className="font-mono">- {rsAmount.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT</span>
               </div>
-              <div className="border-t border-amber-200/50 pt-2.5 flex justify-between font-bold text-[13px] text-forest-950">
+              <div className="border-t border-amber-200/50 pt-2.5 flex justify-between font-bold text-[13px] text-corp-blue-950">
                 <span>Nouveau Net à Payer</span>
-                <span className="font-mono text-forest-900">{netPayable.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT</span>
+                <span className="font-mono text-corp-blue-900">{netPayable.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT</span>
               </div>
             </motion.div>
           ) : (
@@ -354,7 +354,7 @@ export function WithholdingTaxModal({
             type="button"
             onClick={handleConfirm}
             disabled={submitting || selectedRateId === 'Aucune RS' || !reference.trim()}
-            className="bg-forest-900 hover:bg-forest-950 text-white px-5 h-10 font-bold text-xs gap-2 flex items-center"
+            className="bg-corp-blue-900 hover:bg-corp-blue-950 text-white px-5 h-10 font-bold text-xs gap-2 flex items-center"
           >
             {submitting ? (
               <Loader2 className="w-4 h-4 animate-spin" />

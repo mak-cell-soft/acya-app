@@ -185,14 +185,14 @@ export function WoodLengthsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-4xl sm:max-w-4xl md:max-w-4xl rounded-xl border-forest-100 bg-white/95 backdrop-blur-md shadow-2xl p-6 overflow-hidden">
+      <DialogContent className="w-full max-w-4xl sm:max-w-4xl md:max-w-4xl rounded-xl border-corp-blue-100 bg-white/95 backdrop-blur-md shadow-2xl p-6 overflow-hidden">
         <DialogHeader className="mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-forest-100 flex items-center justify-center text-forest-600 shadow-md">
+            <div className="w-12 h-12 rounded-xl bg-corp-blue-100 flex items-center justify-center text-corp-blue-600 shadow-md">
               <TreeDeciduous className="w-6 h-6" />
             </div>
             <div>
-              <DialogTitle className="text-xl font-heading font-bold text-forest-900">
+              <DialogTitle className="text-xl font-bold text-corp-blue-900">
                 Saisie des Longueurs - M³
               </DialogTitle>
               <DialogDescription className="text-sand-400 font-medium text-xs mt-0.5 animate-pulse">
@@ -203,21 +203,21 @@ export function WoodLengthsDialog({
         </DialogHeader>
 
         {/* Section: Article Info & Specs */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-sand-50/50 p-4 rounded-2xl border border-forest-50/60 mb-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-sand-50/50 p-4 rounded-2xl border border-corp-blue-50/60 mb-5">
           <div className="md:col-span-1">
             <span className="text-[0.6rem] font-bold text-sand-400 uppercase tracking-wider block">Article</span>
-            <span className="font-heading font-bold text-forest-900 text-sm">{article?.reference}</span>
+            <span className="font-bold text-corp-blue-900 text-sm">{article?.reference}</span>
             <span className="text-xs text-sand-600 font-medium block truncate">{article?.description}</span>
           </div>
           <div>
             <span className="text-[0.6rem] font-bold text-sand-400 uppercase tracking-wider block">Épaisseur</span>
-            <span className="font-heading font-bold text-forest-800 text-sm">
+            <span className="font-bold text-corp-blue-800 text-sm">
               {article?.thickness?.name || '—'} <span className="text-xs font-normal text-sand-400">mm ({thicknessStr} m)</span>
             </span>
           </div>
           <div>
             <span className="text-[0.6rem] font-bold text-sand-400 uppercase tracking-wider block">Largeur</span>
-            <span className="font-heading font-bold text-forest-800 text-sm">
+            <span className="font-bold text-corp-blue-800 text-sm">
               {article?.width?.name || '—'} <span className="text-xs font-normal text-sand-400">mm ({widthStr} m)</span>
             </span>
           </div>
@@ -239,10 +239,10 @@ export function WoodLengthsDialog({
         )}
 
         {/* Lengths Table */}
-        <div className="border border-forest-50/50 rounded-2xl overflow-hidden bg-white/50 max-h-[300px] overflow-y-auto mb-6 custom-scrollbar">
+        <div className="border border-corp-blue-50/50 rounded-2xl overflow-hidden bg-white/50 max-h-[300px] overflow-y-auto mb-6 custom-scrollbar">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-sand-50/70 border-b border-forest-50/60 sticky top-0 backdrop-blur-sm z-10">
+              <tr className="bg-sand-50/70 border-b border-corp-blue-50/60 sticky top-0 backdrop-blur-sm z-10">
                 <th className="p-3.5 font-bold text-sand-400 uppercase tracking-wider">Longueur (cm)</th>
                 <th className="p-3.5 font-bold text-sand-400 uppercase tracking-wider text-center">Nbr Pièces</th>
                 <th className="p-3.5 font-bold text-sand-400 uppercase tracking-wider text-right">Volume (M³)</th>
@@ -251,7 +251,7 @@ export function WoodLengthsDialog({
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-forest-50/40">
+            <tbody className="divide-y divide-corp-blue-50/40">
               {rows.length === 0 ? (
                 <tr>
                   <td colSpan={isPurchase ? 3 : 4} className="p-8 text-center text-sand-400 font-medium italic">
@@ -262,24 +262,24 @@ export function WoodLengthsDialog({
                 rows.map((row, idx) => {
                   const hasStockError = !isPurchase && row.nbpieces > row.availablePieces;
                   return (
-                    <tr key={row.length.id} className="hover:bg-forest-50/20 transition-all duration-200">
-                      <td className="p-3.5 font-bold text-forest-900">
+                    <tr key={row.length.id} className="hover:bg-corp-blue-50/20 transition-all duration-200">
+                      <td className="p-3.5 font-bold text-corp-blue-900">
                         {row.length.name} cm <span className="text-[0.65rem] text-sand-400 font-normal">({row.length.value} m)</span>
                       </td>
                       <td className="p-2 text-center w-36">
                         <Input
                           type="number"
-                          className={`h-9 rounded-lg text-center font-bold text-xs focus:ring-forest-600 transition-all ${
+                          className={`h-9 rounded-lg text-center font-bold text-xs focus:ring-corp-blue-600 transition-all ${
                             hasStockError 
                               ? 'border-rose-300 bg-rose-50 text-rose-950 focus:border-rose-500' 
-                              : 'border-forest-100/70 bg-white focus:border-forest-600'
+                              : 'border-corp-blue-100/70 bg-white focus:border-corp-blue-600'
                           }`}
                           value={row.nbpieces || ''}
                           onChange={(e) => handlePiecesChange(idx, e.target.value)}
                           placeholder="0"
                         />
                       </td>
-                      <td className="p-3.5 text-right font-bold text-forest-800">
+                      <td className="p-3.5 text-right font-bold text-corp-blue-800">
                         {row.quantity.toFixed(4)} M³
                       </td>
                       {!isPurchase && (
@@ -302,23 +302,23 @@ export function WoodLengthsDialog({
         </div>
 
         {/* Dialog Footer with summary */}
-        <DialogFooter className="flex flex-col sm:flex-row items-center justify-between border-t border-forest-50/60 pt-4 gap-4">
-          <div className="flex items-center gap-6 self-start text-xs font-bold text-forest-900">
+        <DialogFooter className="flex flex-col sm:flex-row items-center justify-between border-t border-corp-blue-50/60 pt-4 gap-4">
+          <div className="flex items-center gap-6 self-start text-xs font-bold text-corp-blue-900">
             <div>
               <span className="text-sand-400 block text-[0.65rem] uppercase tracking-wider">Total Pièces</span>
-              <span className="text-base font-heading font-bold text-forest-900">{totals.pieces} pcs</span>
+              <span className="text-base font-bold text-corp-blue-900">{totals.pieces} pcs</span>
             </div>
             <div>
               <span className="text-sand-400 block text-[0.65rem] uppercase tracking-wider">Volume Total</span>
-              <span className="text-base font-heading font-bold text-forest-900">{totals.volume.toFixed(3)} M³</span>
+              <span className="text-base font-bold text-corp-blue-900">{totals.volume.toFixed(3)} M³</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="border-forest-100 hover:bg-forest-50 font-bold" onClick={onClose}>
+            <Button variant="outline" className="border-corp-blue-100 hover:bg-corp-blue-50 font-bold" onClick={onClose}>
               <X className="w-4 h-4 mr-2" /> Annuler
             </Button>
             <Button
-              className="bg-forest-600 hover:bg-forest-800 text-white font-bold shadow-lg shadow-forest-600/20"
+              className="bg-corp-blue-600 hover:bg-corp-blue-800 text-white font-bold shadow-lg shadow-corp-blue-600/20"
               onClick={handleSubmit}
               disabled={validationErrors.length > 0}
             >

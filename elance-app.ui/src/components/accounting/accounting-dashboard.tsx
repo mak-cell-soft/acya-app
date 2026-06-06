@@ -245,14 +245,14 @@ export default function AccountingDashboard() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-slate-100 pb-6">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="p-2 bg-forest-950/10 text-forest-900 rounded-xl">
+            <span className="p-2 bg-corp-blue-950/10 text-corp-blue-900 rounded-xl">
               <Calculator className="w-5 h-5" />
             </span>
-            <span className="text-[10px] font-bold tracking-widest text-forest-800 uppercase font-mono">
+            <span className="text-[10px] font-bold tracking-widest text-corp-blue-800 uppercase font-mono">
               Dashboard
             </span>
           </div>
-          <h1 className="text-3xl font-serif font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
             Comptabilité & Finance
           </h1>
           <p className="text-sm font-medium text-slate-500 max-w-2xl leading-relaxed">
@@ -305,7 +305,7 @@ export default function AccountingDashboard() {
               <Calendar className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-lg font-serif font-bold text-corp-blue-900">
+              <h2 className="text-lg font-bold text-corp-blue-900">
                 Période active : {MONTHS[selectedMonth]} {selectedYear}
               </h2>
               <p className="text-[9px] font-bold text-corp-blue-600/80 uppercase tracking-widest font-mono">
@@ -336,8 +336,8 @@ export default function AccountingDashboard() {
 
       {/* PRÉ-ANALYSE COMPTABLE SECTION */}
       <div className="pt-8 mt-8 border-t border-slate-100 space-y-2">
-        <h2 className="text-2xl font-serif font-bold text-slate-900 flex items-center gap-2">
-          <Calculator className="w-6 h-6 text-forest-900" />
+        <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <Calculator className="w-6 h-6 text-corp-blue-900" />
           Pré-Analyse Comptable
         </h2>
         <p className="text-sm text-slate-500">
@@ -353,7 +353,7 @@ export default function AccountingDashboard() {
               <TrendingDown className="w-5 h-5" />
             </span>
             <div>
-              <h2 className="text-xl font-serif font-bold text-slate-900">
+              <h2 className="text-xl font-bold text-slate-900">
                 Achats (Factures Fournisseur)
               </h2>
               <p className="text-xs text-slate-500">
@@ -526,11 +526,11 @@ export default function AccountingDashboard() {
       <section className="space-y-6 pt-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <span className="p-2 bg-forest-50 text-forest-900 rounded-xl border border-forest-100 shadow-sm">
+            <span className="p-2 bg-corp-blue-50 text-corp-blue-900 rounded-xl border border-corp-blue-100 shadow-sm">
               <TrendingUp className="w-5 h-5" />
             </span>
             <div>
-              <h2 className="text-xl font-serif font-bold text-slate-900">
+              <h2 className="text-xl font-bold text-slate-900">
                 Ventes (Factures Client)
               </h2>
               <p className="text-xs text-slate-500">
@@ -541,7 +541,7 @@ export default function AccountingDashboard() {
           <Button
             onClick={() => setIsPrintVentesListModalOpen(true)}
             variant="outline"
-            className="h-10 rounded-xl border-forest-900/20 text-forest-900 font-bold hover:bg-forest-50 gap-2 flex items-center transition-all duration-300"
+            className="h-10 rounded-xl border-corp-blue-900/20 text-corp-blue-900 font-bold hover:bg-corp-blue-50 gap-2 flex items-center transition-all duration-300"
           >
             <Printer className="w-4 h-4" /> Imprimer la liste
           </Button>
@@ -557,7 +557,7 @@ export default function AccountingDashboard() {
               <span className="text-xl font-mono font-bold text-slate-800">
                 {formatCurrency(ventesTotals.ht)}
               </span>
-              <ArrowUpRight className="w-4 h-4 text-forest-600" />
+              <ArrowUpRight className="w-4 h-4 text-corp-blue-600" />
             </div>
             <p className="text-[10px] text-slate-400 font-medium">Chiffre d&apos;affaires HT global</p>
           </Card>
@@ -570,7 +570,7 @@ export default function AccountingDashboard() {
               <span className="text-xl font-mono font-bold text-slate-800">
                 {formatCurrency(ventesTotals.tva)}
               </span>
-              <Percent className="w-4 h-4 text-forest-650" />
+              <Percent className="w-4 h-4 text-corp-blue-650" />
             </div>
             <p className="text-[10px] text-slate-400 font-medium">TVA collectée cumulée</p>
           </Card>
@@ -590,19 +590,19 @@ export default function AccountingDashboard() {
             </span>
           </Card>
 
-          <Card className="rounded-[20px] border-slate-100 shadow-sm bg-forest-900/5 border-forest-900/10 p-5 space-y-2 border">
-            <span className="text-[10px] font-bold text-forest-800 uppercase tracking-wider block font-mono">
+          <Card className="rounded-[20px] border-slate-100 shadow-sm bg-corp-blue-900/5 border-corp-blue-900/10 p-5 space-y-2 border">
+            <span className="text-[10px] font-bold text-corp-blue-800 uppercase tracking-wider block font-mono">
               Total TTC
             </span>
             <div className="flex items-baseline justify-between">
-              <span className="text-xl font-mono font-bold text-forest-900">
+              <span className="text-xl font-mono font-bold text-corp-blue-900">
                 {formatCurrency(ventesTotals.ttc)}
               </span>
-              <Badge className="bg-forest-900 text-white font-mono text-[9px]">
+              <Badge className="bg-corp-blue-900 text-white font-mono text-[9px]">
                 {ventesTotals.count} Docs
               </Badge>
             </div>
-            <p className="text-[10px] text-forest-800/60 font-medium">Valeur totale facturée TTC</p>
+            <p className="text-[10px] text-corp-blue-800/60 font-medium">Valeur totale facturée TTC</p>
           </Card>
         </div>
 
@@ -614,7 +614,7 @@ export default function AccountingDashboard() {
                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   placeholder="Rechercher par client..."
-                  className="pl-10 h-11 rounded-xl border-slate-200 bg-[#fafafa] text-xs font-semibold focus:border-forest-900 focus:ring-forest-900 transition-all focus:bg-white"
+                  className="pl-10 h-11 rounded-xl border-slate-200 bg-[#fafafa] text-xs font-semibold focus:border-corp-blue-900 focus:ring-corp-blue-900 transition-all focus:bg-white"
                   value={ventesSearchName}
                   onChange={(e) => setVentesSearchName(e.target.value)}
                 />
@@ -623,7 +623,7 @@ export default function AccountingDashboard() {
                 <FileText className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   placeholder="Rechercher par numéro de facture..."
-                  className="pl-10 h-11 rounded-xl border-slate-200 bg-[#fafafa] text-xs font-semibold focus:border-forest-900 focus:ring-forest-900 transition-all focus:bg-white"
+                  className="pl-10 h-11 rounded-xl border-slate-200 bg-[#fafafa] text-xs font-semibold focus:border-corp-blue-900 focus:ring-corp-blue-900 transition-all focus:bg-white"
                   value={ventesSearchNumber}
                   onChange={(e) => setVentesSearchNumber(e.target.value)}
                 />
@@ -666,7 +666,7 @@ export default function AccountingDashboard() {
                         <TableCell className="text-right font-mono text-slate-650">{formatCurrency(doc.total_tva_doc || 0)}</TableCell>
                         <TableCell className="text-right font-mono text-slate-500">{formatCurrency(parseFloat(doc.taxe?.value || '0'))}</TableCell>
                         <TableCell className="text-right font-mono text-rose-600">{formatCurrency(doc.holdingtax?.taxvalue || 0)}</TableCell>
-                        <TableCell className="text-right font-mono font-bold text-forest-900">{formatCurrency(doc.total_net_ttc || 0)}</TableCell>
+                        <TableCell className="text-right font-mono font-bold text-corp-blue-900">{formatCurrency(doc.total_net_ttc || 0)}</TableCell>
                       </TableRow>
                     ))
                   ) : (

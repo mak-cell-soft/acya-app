@@ -93,7 +93,7 @@ export function EnterpriseTab() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-forest-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-corp-blue-600" />
       </div>
     );
   }
@@ -104,8 +104,8 @@ export function EnterpriseTab() {
         {/* General Info Section */}
         <section className="grid lg:grid-cols-3 gap-8">
           <div className="space-y-2">
-            <h3 className="text-lg font-bold text-forest-900 flex items-center gap-2.5">
-              <div className="p-1.5 rounded-lg bg-forest-50 text-forest-600">
+            <h3 className="text-lg font-bold text-corp-blue-900 flex items-center gap-2.5">
+              <div className="p-1.5 rounded-lg bg-corp-blue-50 text-corp-blue-600">
                 <Building2 className="w-5 h-5" />
               </div>
               Identité de l'Entreprise
@@ -114,61 +114,61 @@ export function EnterpriseTab() {
               Informations légales et coordonnées de votre établissement.
             </p>
           </div>
-          <Card className="lg:col-span-2 border-forest-100 rounded-xl shadow-sm bg-white overflow-hidden">
+          <Card className="lg:col-span-2 border-corp-blue-100 rounded-xl shadow-sm bg-white overflow-hidden">
             <CardContent className="p-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2.5">
-                  <Label className="text-sm font-bold text-forest-900">Nom de l'entreprise</Label>
+                  <Label className="text-sm font-bold text-corp-blue-900">Nom de l'entreprise</Label>
                   <Input 
                     {...register('name')} 
-                    className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 outline-none transition-all font-medium" 
+                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
                   />
                   {errors.name && <p className="text-xs text-red-500 font-medium">{errors.name.message}</p>}
                 </div>
                 <div className="space-y-2.5">
-                  <Label className="text-sm font-bold text-forest-900">Email</Label>
+                  <Label className="text-sm font-bold text-corp-blue-900">Email</Label>
                   <Input 
                     {...register('email')} 
-                    className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 outline-none transition-all font-medium" 
+                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
                   />
                   {errors.email && <p className="text-xs text-red-500 font-medium">{errors.email.message}</p>}
                 </div>
                 <div className="space-y-2.5 md:col-span-2">
-                  <Label className="text-sm font-bold text-forest-900">Description</Label>
+                  <Label className="text-sm font-bold text-corp-blue-900">Description</Label>
                   <Input 
                     {...register('description')} 
-                    className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 outline-none transition-all font-medium" 
+                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
                   />
                   {errors.description && <p className="text-xs text-red-500 font-medium">{errors.description.message}</p>}
                 </div>
                 <div className="space-y-2.5">
-                  <Label className="text-sm font-bold text-forest-900">Téléphone Fixe</Label>
+                  <Label className="text-sm font-bold text-corp-blue-900">Téléphone Fixe</Label>
                   <Input 
                     {...register('phone')} 
-                    className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 outline-none transition-all font-medium" 
+                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
                   />
                 </div>
                 <div className="space-y-2.5">
-                  <Label className="text-sm font-bold text-forest-900">Mobile 1</Label>
+                  <Label className="text-sm font-bold text-corp-blue-900">Mobile 1</Label>
                   <Input 
                     {...register('mobileOne')} 
-                    className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 outline-none transition-all font-medium" 
+                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
                   />
                 </div>
                 <div className="space-y-2.5">
-                  <Label className="text-sm font-bold text-forest-900">Mobile 2</Label>
+                  <Label className="text-sm font-bold text-corp-blue-900">Mobile 2</Label>
                   <Input 
                     {...register('mobileTwo')} 
-                    className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 outline-none transition-all font-medium" 
+                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
                   />
                 </div>
                 <div className="space-y-2.5">
-                  <Label className="text-sm font-bold text-forest-900">Devise</Label>
+                  <Label className="text-sm font-bold text-corp-blue-900">Devise</Label>
                   <Select 
                     value={watch('devise') || ''} 
                     onValueChange={(val) => setValue('devise', val || '', { shouldDirty: true })}
                   >
-                    <SelectTrigger className="h-12 rounded-xl bg-sand-50 border-forest-100">
+                    <SelectTrigger className="h-12 rounded-xl bg-sand-50 border-corp-blue-100">
                       <SelectValue placeholder="Choisir une devise" />
                     </SelectTrigger>
                     <SelectContent>
@@ -179,10 +179,10 @@ export function EnterpriseTab() {
                   </Select>
                 </div>
                 <div className="space-y-2.5 md:col-span-2">
-                  <Label className="text-sm font-bold text-forest-900">Matricule Fiscal</Label>
+                  <Label className="text-sm font-bold text-corp-blue-900">Matricule Fiscal</Label>
                   <Input 
                     {...register('matriculeFiscal')} 
-                    className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 outline-none transition-all font-medium" 
+                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
                   />
                 </div>
               </div>
@@ -190,13 +190,13 @@ export function EnterpriseTab() {
           </Card>
         </section>
 
-        <div className="h-px bg-forest-50" />
+        <div className="h-px bg-corp-blue-50" />
 
         {/* Responsible Section */}
         <section className="grid lg:grid-cols-3 gap-8">
           <div className="space-y-2">
-            <h3 className="text-lg font-bold text-forest-900 flex items-center gap-2.5">
-              <div className="p-1.5 rounded-lg bg-forest-50 text-forest-600">
+            <h3 className="text-lg font-bold text-corp-blue-900 flex items-center gap-2.5">
+              <div className="p-1.5 rounded-lg bg-corp-blue-50 text-corp-blue-600">
                 <UserCircle className="w-5 h-5" />
               </div>
               Responsable & Siège
@@ -205,30 +205,30 @@ export function EnterpriseTab() {
               Détails sur le représentant légal et l'adresse du siège social.
             </p>
           </div>
-          <Card className="lg:col-span-2 border-forest-100 rounded-xl shadow-sm bg-white overflow-hidden">
+          <Card className="lg:col-span-2 border-corp-blue-100 rounded-xl shadow-sm bg-white overflow-hidden">
             <CardContent className="p-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2.5">
-                  <Label className="text-sm font-bold text-forest-900">Nom du Responsable</Label>
+                  <Label className="text-sm font-bold text-corp-blue-900">Nom du Responsable</Label>
                   <Input 
                     {...register('nameResponsable')} 
-                    className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 outline-none transition-all font-medium" 
+                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
                   />
                 </div>
                 <div className="space-y-2.5">
-                  <Label className="text-sm font-bold text-forest-900">Prénom du Responsable</Label>
+                  <Label className="text-sm font-bold text-corp-blue-900">Prénom du Responsable</Label>
                   <Input 
                     {...register('surnameResponsable')} 
-                    className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 outline-none transition-all font-medium" 
+                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
                   />
                 </div>
                 <div className="space-y-2.5">
-                  <Label className="text-sm font-bold text-forest-900">Poste / Fonction</Label>
+                  <Label className="text-sm font-bold text-corp-blue-900">Poste / Fonction</Label>
                   <Select 
                     value={watch('positionResponsable') || ''} 
                     onValueChange={(val) => setValue('positionResponsable', val || '', { shouldDirty: true })}
                   >
-                    <SelectTrigger className="h-12 rounded-xl bg-sand-50 border-forest-100">
+                    <SelectTrigger className="h-12 rounded-xl bg-sand-50 border-corp-blue-100">
                       <SelectValue placeholder="Choisir un poste" />
                     </SelectTrigger>
                     <SelectContent>
@@ -239,24 +239,24 @@ export function EnterpriseTab() {
                   </Select>
                 </div>
                 <div className="space-y-2.5">
-                  <Label className="text-sm font-bold text-forest-900">Capital Social</Label>
+                  <Label className="text-sm font-bold text-corp-blue-900">Capital Social</Label>
                   <Input 
                     {...register('capital')} 
-                    className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 outline-none transition-all font-medium" 
+                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
                   />
                 </div>
                 <div className="space-y-2.5 md:col-span-2">
-                  <Label className="text-sm font-bold text-forest-900">Registre de Commerce</Label>
+                  <Label className="text-sm font-bold text-corp-blue-900">Registre de Commerce</Label>
                   <Input 
                     {...register('commercialregister')} 
-                    className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 outline-none transition-all font-medium" 
+                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
                   />
                 </div>
                 <div className="space-y-2.5 md:col-span-2">
-                  <Label className="text-sm font-bold text-forest-900">Adresse du Siège</Label>
+                  <Label className="text-sm font-bold text-corp-blue-900">Adresse du Siège</Label>
                   <Input 
                     {...register('siegeAddress')} 
-                    className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 outline-none transition-all font-medium" 
+                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
                   />
                 </div>
               </div>
@@ -264,7 +264,7 @@ export function EnterpriseTab() {
               <div className="flex justify-end pt-4">
                 <Button 
                   disabled={!isDirty || updateEnterprise.isPending}
-                  className="bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 gap-2 h-12 px-8 transition-all duration-300"
+                  className="bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20 gap-2 h-12 px-8 transition-all duration-300"
                 >
                   {updateEnterprise.isPending ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -279,7 +279,7 @@ export function EnterpriseTab() {
         </section>
       </form>
 
-      <div className="h-px bg-forest-50" />
+      <div className="h-px bg-corp-blue-50" />
 
       {/* Sites Section */}
       <SitesSection enterpriseId={enterprise?.id || 1} />

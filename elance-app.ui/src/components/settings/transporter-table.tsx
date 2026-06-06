@@ -41,24 +41,24 @@ export function TransporterTable() {
       <div className="flex justify-end">
         <Button 
           onClick={() => setIsAdding(true)}
-          className="rounded-xl bg-forest-600 text-white font-bold h-10 gap-2"
+          className="rounded-xl bg-corp-blue-600 text-white font-bold h-10 gap-2"
         >
           <Plus className="w-4 h-4" /> Ajouter un Transporteur
         </Button>
       </div>
 
-      <div className="rounded-2xl border border-forest-100 overflow-hidden bg-white shadow-sm flex flex-col">
+      <div className="rounded-2xl border border-corp-blue-100 overflow-hidden bg-white shadow-sm flex flex-col">
         <Table>
           <TableHeader>
             <TableRow className="bg-sand-50/50 hover:bg-sand-50/50">
-              <TableHead className="text-forest-900 font-bold">Nom Complet</TableHead>
-              <TableHead className="text-forest-900 font-bold">Véhicule / Matricule</TableHead>
-              <TableHead className="text-forest-900 font-bold text-right">Actions</TableHead>
+              <TableHead className="text-corp-blue-900 font-bold">Nom Complet</TableHead>
+              <TableHead className="text-corp-blue-900 font-bold">Véhicule / Matricule</TableHead>
+              <TableHead className="text-corp-blue-900 font-bold text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isAdding && (
-              <TableRow className="bg-forest-50/30">
+              <TableRow className="bg-corp-blue-50/30">
                 <TableCell><Input value={newValues.fullname} onChange={e => setNewValues({...newValues, fullname: e.target.value})} className="h-8" placeholder="Nom..." /></TableCell>
                 <TableCell><Input value={newValues.car} onChange={e => setNewValues({...newValues, car: e.target.value})} className="h-8" placeholder="Véhicule..." /></TableCell>
                 <TableCell className="text-right">
@@ -71,7 +71,7 @@ export function TransporterTable() {
             )}
             {paginatedData.map((t) => (
               <TableRow key={t.id} className="hover:bg-sand-50/30 transition-colors">
-                <TableCell className="font-bold text-forest-900">
+                <TableCell className="font-bold text-corp-blue-900">
                   {editingId === t.id ? <Input value={editValues.fullname || ''} onChange={e => setEditValues({...editValues, fullname: e.target.value})} className="h-8" /> : t.fullname}
                 </TableCell>
                 <TableCell className="font-medium text-sand-600">
@@ -94,7 +94,7 @@ export function TransporterTable() {
                       </>
                     ) : (
                       <>
-                        <Button onClick={() => { setEditingId(t.id); setEditValues(t); }} variant="ghost" size="icon" className="text-sand-400 hover:text-forest-600"><Edit2 className="w-4 h-4" /></Button>
+                        <Button onClick={() => { setEditingId(t.id); setEditValues(t); }} variant="ghost" size="icon" className="text-sand-400 hover:text-corp-blue-600"><Edit2 className="w-4 h-4" /></Button>
                         <Button onClick={() => deleteTransporter.mutate(t.id)} variant="ghost" size="icon" className="text-sand-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></Button>
                       </>
                     )}

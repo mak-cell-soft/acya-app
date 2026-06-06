@@ -51,7 +51,7 @@ export function CategoryAccordion() {
     setIsDialogOpen(true);
   };
 
-  if (isLoading) return <Loader2 className="w-6 h-6 animate-spin text-forest-600" />;
+  if (isLoading) return <Loader2 className="w-6 h-6 animate-spin text-corp-blue-600" />;
 
   return (
     <div className="space-y-6 flex flex-col">
@@ -59,7 +59,7 @@ export function CategoryAccordion() {
       <div className="flex justify-end">
         <Button 
           onClick={openAddCategory}
-          className="bg-forest-600 text-white font-bold h-11 gap-2 px-6 shadow-lg shadow-forest-600/20 hover:bg-forest-700 transition-all"
+          className="bg-corp-blue-600 text-white font-bold h-11 gap-2 px-6 shadow-lg shadow-corp-blue-600/20 hover:bg-corp-blue-700 transition-all"
         >
           <Plus className="w-5 h-5" />
           Nouvelle Catégorie
@@ -68,33 +68,33 @@ export function CategoryAccordion() {
 
       <Accordion className="space-y-3">
         {paginatedCategories.map((cat) => (
-          <AccordionItem key={cat.id} value={cat.id.toString()} className="border border-forest-100 rounded-2xl px-6 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <AccordionItem key={cat.id} value={cat.id.toString()} className="border border-corp-blue-100 rounded-2xl px-6 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between py-1">
               <div className="flex-1 flex items-center gap-4">
-                <FolderTree className="w-5 h-5 text-forest-400" />
+                <FolderTree className="w-5 h-5 text-corp-blue-400" />
                 {editingCatId === cat.id ? (
                   <div className="flex gap-2 flex-1 max-w-md">
                     <Input 
                       value={editValues.reference || ''} 
                       onChange={(e) => setEditValues({ ...editValues, reference: e.target.value })}
-                      className="h-8 rounded-lg border-forest-100"
+                      className="h-8 rounded-lg border-corp-blue-100"
                     />
                     <Input 
                       value={editValues.description || ''} 
                       onChange={(e) => setEditValues({ ...editValues, description: e.target.value })}
-                      className="h-8 rounded-lg border-forest-100"
+                      className="h-8 rounded-lg border-corp-blue-100"
                     />
                   </div>
                 ) : (
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                      <span className="font-bold text-forest-900">{cat.reference}</span>
+                      <span className="font-bold text-corp-blue-900">{cat.reference}</span>
                       <span className="text-sand-400 text-sm font-medium">{cat.description}</span>
                     </div>
                     {cat.firstchildren && cat.firstchildren.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">
                         {cat.firstchildren.slice(0, 5).map((sub: any) => (
-                          <span key={sub.id} className="text-[10px] px-2 py-0.5 rounded-full bg-forest-50 text-forest-600 font-bold border border-forest-100/50">
+                          <span key={sub.id} className="text-[10px] px-2 py-0.5 rounded-full bg-corp-blue-50 text-corp-blue-600 font-bold border border-corp-blue-100/50">
                             {sub.reference}
                           </span>
                         ))}
@@ -124,12 +124,12 @@ export function CategoryAccordion() {
                       onClick={(e) => openAddSubCategory(e, cat)} 
                       variant="ghost" 
                       size="icon" 
-                      className="h-8 w-8 text-forest-500 hover:text-forest-700 hover:bg-forest-50 rounded-lg"
+                      className="h-8 w-8 text-corp-blue-500 hover:text-corp-blue-700 hover:bg-corp-blue-50 rounded-lg"
                       title="Ajouter sous-catégories"
                     >
                       <Plus className="w-4 h-4" />
                     </Button>
-                    <Button onClick={(e) => { e.stopPropagation(); setEditingCatId(cat.id); setEditValues(cat); }} variant="ghost" size="icon" className="h-8 w-8 text-forest-400">
+                    <Button onClick={(e) => { e.stopPropagation(); setEditingCatId(cat.id); setEditValues(cat); }} variant="ghost" size="icon" className="h-8 w-8 text-corp-blue-400">
                       <Edit2 className="w-4 h-4" />
                     </Button>
                     <Button onClick={(e) => { e.stopPropagation(); deleteCat.mutate(cat.id); }} variant="ghost" size="icon" className="h-8 w-8 text-red-400">
@@ -141,7 +141,7 @@ export function CategoryAccordion() {
               <AccordionTrigger className="hover:no-underline py-4" />
             </div>
             
-            <AccordionContent className="pb-6 pt-2 border-t border-forest-50">
+            <AccordionContent className="pb-6 pt-2 border-t border-corp-blue-50">
               <div className="pl-9 space-y-4">
                 <div className="flex items-center justify-between">
                   <h5 className="text-xs font-bold text-sand-400 uppercase tracking-wider">Sous-catégories</h5>
@@ -149,25 +149,25 @@ export function CategoryAccordion() {
 
                 <div className="grid gap-2">
                   {cat.firstchildren?.map((sub: any) => (
-                    <div key={sub.id} className="flex items-center justify-between p-3 rounded-xl bg-sand-50/50 hover:bg-sand-50 border border-transparent hover:border-forest-50 transition-all">
+                    <div key={sub.id} className="flex items-center justify-between p-3 rounded-xl bg-sand-50/50 hover:bg-sand-50 border border-transparent hover:border-corp-blue-50 transition-all">
                       <div className="flex items-center gap-3">
-                        <Tag className="w-3.5 h-3.5 text-forest-300" />
+                        <Tag className="w-3.5 h-3.5 text-corp-blue-300" />
                         {editingSubId === sub.id ? (
                           <div className="flex gap-2">
                             <Input 
                               value={editValues.reference || ''} 
                               onChange={(e) => setEditValues({ ...editValues, reference: e.target.value })}
-                              className="h-7 text-xs rounded-lg border-forest-100"
+                              className="h-7 text-xs rounded-lg border-corp-blue-100"
                             />
                             <Input 
                               value={editValues.description || ''} 
                               onChange={(e) => setEditValues({ ...editValues, description: e.target.value })}
-                              className="h-7 text-xs rounded-lg border-forest-100"
+                              className="h-7 text-xs rounded-lg border-corp-blue-100"
                             />
                           </div>
                         ) : (
                           <div className="text-sm">
-                            <span className="font-bold text-forest-700">{sub.reference}</span>
+                            <span className="font-bold text-corp-blue-700">{sub.reference}</span>
                             <span className="ml-2 text-sand-500 font-medium">{sub.description}</span>
                           </div>
                         )}
@@ -184,7 +184,7 @@ export function CategoryAccordion() {
                           </>
                         ) : (
                           <>
-                            <Button onClick={() => { setEditingSubId(sub.id); setEditValues(sub); }} variant="ghost" size="icon" className="h-7 w-7 text-sand-300 hover:text-forest-600">
+                            <Button onClick={() => { setEditingSubId(sub.id); setEditValues(sub); }} variant="ghost" size="icon" className="h-7 w-7 text-sand-300 hover:text-corp-blue-600">
                               <Edit2 className="w-3.5 h-3.5" />
                             </Button>
                             <Button onClick={() => deleteSub.mutate(sub.id)} variant="ghost" size="icon" className="h-7 w-7 text-sand-300 hover:text-red-500">
@@ -204,7 +204,7 @@ export function CategoryAccordion() {
           </AccordionItem>
         ))}
         {paginatedCategories.length === 0 && (
-          <div className="h-32 flex items-center justify-center text-sand-400 font-medium border border-dashed border-forest-100 rounded-2xl">
+          <div className="h-32 flex items-center justify-center text-sand-400 font-medium border border-dashed border-corp-blue-100 rounded-2xl">
             Aucune catégorie disponible
           </div>
         )}

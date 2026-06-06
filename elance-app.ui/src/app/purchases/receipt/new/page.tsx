@@ -897,7 +897,7 @@ function NewSupplierReceiptPageContent() {
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div>
-              <h1 className="text-2xl font-serif font-extrabold text-slate-900 tracking-tight">
+              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
                 Nouveau Bon de Réception (BR)
               </h1>
               <p className="text-slate-500 font-medium text-xs">
@@ -926,7 +926,7 @@ function NewSupplierReceiptPageContent() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="lg:col-span-2 border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-white">
             <CardHeader className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 p-5">
-              <CardTitle className="text-sm font-serif font-bold text-corp-blue-900 flex items-center gap-2">
+              <CardTitle className="text-sm font-bold text-corp-blue-900 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-corp-blue-500" /> Informations d&apos;Entête du Document
               </CardTitle>
               <CardDescription className="text-xs text-slate-600 font-medium">
@@ -1098,7 +1098,7 @@ function NewSupplierReceiptPageContent() {
           {/* Right Summary Totals Card */}
           <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100">
             <CardHeader className="border-b border-corp-blue-100 p-5 bg-corp-blue-50">
-              <CardTitle className="text-sm font-serif font-bold text-corp-blue-900 flex items-center gap-2">
+              <CardTitle className="text-sm font-bold text-corp-blue-900 flex items-center gap-2">
                 <Coins className="w-4 h-4 text-corp-blue-500" /> Synthèse Financière (BR)
               </CardTitle>
               <CardDescription className="text-xs text-slate-400 font-medium">Calcul des valeurs financières en {docCurrency}</CardDescription>
@@ -1167,7 +1167,7 @@ function NewSupplierReceiptPageContent() {
               </div>
 
               <div className="h-px bg-slate-800 my-1" />
-              <div className="flex justify-between items-center text-amber-400 text-sm font-serif font-extrabold pt-2">
+              <div className="flex justify-between items-center text-amber-400 text-sm font-extrabold pt-2">
                 <span>NET À PAYER</span>
                 <span className="text-lg">{totals.payable.toFixed(3)} {docCurrency}</span>
               </div>
@@ -1202,7 +1202,7 @@ function NewSupplierReceiptPageContent() {
         {/* 2. Interactive panel to add Article rows */}
         <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-white">
           <CardHeader className="bg-amber-900/5 border-b border-slate-100 p-5">
-            <CardTitle className="text-sm font-serif font-bold text-slate-800 flex items-center gap-2">
+            <CardTitle className="text-sm font-bold text-slate-800 flex items-center gap-2">
               <PlusCircle className="w-4 h-4 text-amber-700" /> Ajouter des Marchandises à la Liste
             </CardTitle>
             <CardDescription className="text-xs text-slate-500 font-medium">Recherchez et configurez chaque article avant de l&apos;ajouter au tableau.</CardDescription>
@@ -1509,7 +1509,7 @@ function NewSupplierReceiptPageContent() {
         {/* 3. Grid / Table showing added articles */}
         <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-white">
           <CardHeader className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 p-5">
-            <CardTitle className="text-sm font-serif font-bold text-corp-blue-900 flex items-center gap-2">
+            <CardTitle className="text-sm font-bold text-corp-blue-900 flex items-center gap-2">
               <FileText className="w-4 h-4 text-corp-blue-500" /> Nomenclature des Articles Réceptionnés
             </CardTitle>
             <CardDescription className="text-xs text-slate-600 font-medium">Liste des articles entrés en stock. Modifiez les prix unitaires, remises et colis en ligne.</CardDescription>

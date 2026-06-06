@@ -159,14 +159,14 @@ export function AddEmployeeDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-background scrollbar-hide">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-5xl p-0 overflow-hidden border-corp-blue-100 shadow-2xl rounded-none sm:rounded-2xl bg-background scrollbar-hide">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100">
+            <div className="w-12 h-12 rounded-2xl bg-corp-blue-50 flex items-center justify-center border border-corp-blue-100">
               {editEmployee ? <PencilLine className="w-6 h-6 text-emerald-600" /> : <PlusCircle className="w-6 h-6 text-emerald-600" />}
             </div>
             <div>
-              <DialogTitle className="font-heading text-2xl font-bold tracking-tight">
+              <DialogTitle className="text-2xl font-bold tracking-tight">
                 {editEmployee ? "Modifier le Collaborateur" : "Nouveau Collaborateur"}
               </DialogTitle>
               <p className="text-muted-foreground text-sm font-medium mt-1">
@@ -187,9 +187,9 @@ export function AddEmployeeDialog({
             
             {/* Identity section */}
             <div className="space-y-6">
-              <div className="flex items-center gap-2 pb-2 border-b border-forest-50">
-                <User className="w-4 h-4 text-forest-600" />
-                <h3 className="font-heading font-bold text-forest-900">Identité & Informations Personnelles</h3>
+              <div className="flex items-center gap-2 pb-2 border-b border-corp-blue-50">
+                <User className="w-4 h-4 text-corp-blue-600" />
+                <h3 className="font-bold text-corp-blue-900">Identité & Informations Personnelles</h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -311,9 +311,9 @@ export function AddEmployeeDialog({
 
             {/* Employment and salary details */}
             <div className="space-y-6">
-              <div className="flex items-center gap-2 pb-2 border-b border-forest-50">
-                <Briefcase className="w-4 h-4 text-forest-600" />
-                <h3 className="font-heading font-bold text-forest-900">Contrat & Poste</h3>
+              <div className="flex items-center gap-2 pb-2 border-b border-corp-blue-50">
+                <Briefcase className="w-4 h-4 text-corp-blue-600" />
+                <h3 className="font-bold text-corp-blue-900">Contrat & Poste</h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -325,22 +325,22 @@ export function AddEmployeeDialog({
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Rôle / Fonction</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value?.toString() || "30"}>
                         <FormControl>
-                          <SelectTrigger className="font-bold text-forest-900">
+                          <SelectTrigger className="font-bold text-corp-blue-900">
                             <SelectValue placeholder="Choisir un poste">
                               {field.value ? ROLE_LABELS[parseInt(field.value.toString())] : undefined}
                             </SelectValue>
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="rounded-xl border-forest-100 shadow-xl">
+                        <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl">
                           <SelectGroup>
-                            <SelectLabel className="font-bold text-forest-900">Niveau d'Accès Système</SelectLabel>
+                            <SelectLabel className="font-bold text-corp-blue-900">Niveau d'Accès Système</SelectLabel>
                             {SYSTEM_ROLES.map((role) => (
                               <SelectItem key={role.value} value={role.value.toString()}>{role.label}</SelectItem>
                             ))}
                           </SelectGroup>
                           <SelectSeparator />
                           <SelectGroup>
-                            <SelectLabel className="font-bold text-forest-900">Fonction / Poste</SelectLabel>
+                            <SelectLabel className="font-bold text-corp-blue-900">Fonction / Poste</SelectLabel>
                             {FUNCTION_ROLES.map((role) => (
                               <SelectItem key={role.value} value={role.value.toString()}>{role.label}</SelectItem>
                             ))}
@@ -388,7 +388,7 @@ export function AddEmployeeDialog({
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Salaire de Base</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input type="number" step="0.01" placeholder="0.00" className="pr-12 font-bold text-forest-900" {...field} />
+                          <Input type="number" step="0.01" placeholder="0.00" className="pr-12 font-bold text-corp-blue-900" {...field} />
                           <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300" />
                           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sand-300 font-bold text-xs uppercase">TND</span>
                         </div>
@@ -404,7 +404,7 @@ export function AddEmployeeDialog({
                     <FormItem>
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Heures Sup. Initiales</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.5" placeholder="0" className="font-bold text-forest-900" {...field} />
+                        <Input type="number" step="0.5" placeholder="0" className="font-bold text-corp-blue-900" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -415,9 +415,9 @@ export function AddEmployeeDialog({
 
             {/* Bank details */}
             <div className="space-y-6">
-              <div className="flex items-center gap-2 pb-2 border-b border-forest-50">
-                <CreditCard className="w-4 h-4 text-forest-600" />
-                <h3 className="font-heading font-bold text-forest-900">Coordonnées Bancaires</h3>
+              <div className="flex items-center gap-2 pb-2 border-b border-corp-blue-50">
+                <CreditCard className="w-4 h-4 text-corp-blue-600" />
+                <h3 className="font-bold text-corp-blue-900">Coordonnées Bancaires</h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -441,7 +441,7 @@ export function AddEmployeeDialog({
                     <FormItem className="md:col-span-2">
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">RIB Bancaire</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: 01 234 5678901234567 89" className="font-mono font-bold text-forest-900" {...field} value={field.value || ""} />
+                        <Input placeholder="Ex: 01 234 5678901234567 89" className="font-mono font-bold text-corp-blue-900" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -450,7 +450,7 @@ export function AddEmployeeDialog({
               </div>
             </div>
 
-            <DialogFooter className="pt-8 border-t border-forest-50 gap-3">
+            <DialogFooter className="pt-8 border-t border-corp-blue-50 gap-3">
               <Button 
                 type="button" 
                 variant="ghost" 
@@ -462,7 +462,7 @@ export function AddEmployeeDialog({
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="h-12 px-10 bg-forest-600 text-white font-bold hover:bg-forest-800 shadow-lg shadow-forest-600/20 gap-2"
+                className="h-12 px-10 bg-corp-blue-600 text-white font-bold hover:bg-corp-blue-800 shadow-lg shadow-corp-blue-600/20 gap-2"
               >
                 {isLoading ? "Traitement..." : (editEmployee ? "Mettre à jour" : "Enregistrer")}
               </Button>

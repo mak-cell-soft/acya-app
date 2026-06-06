@@ -39,7 +39,7 @@ interface DataImportDialogProps {
  * DataImportDialog Component
  * 
  * A high-fidelity, premium modal allowing users to import client, supplier, or article data via Excel/CSV templates.
- * Styled with our forest-green theme matching the original WoodApp aesthetics.
+ * Styled with our corp-blue-green theme matching the original WoodApp aesthetics.
  * Uses Framer Motion for rich phase transitions and file drag-over micro-animations.
  */
 export function DataImportDialog({
@@ -199,16 +199,16 @@ export function DataImportDialog({
     <Dialog open={isOpen} onOpenChange={handleResetAndClose}>
       <DialogContent 
         showCloseButton={false} 
-        className="w-full max-w-full sm:max-w-xl md:max-w-2xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-white font-sans"
+        className="w-full max-w-full sm:max-w-xl md:max-w-2xl p-0 overflow-hidden border-corp-blue-100 shadow-2xl rounded-none sm:rounded-2xl bg-white font-sans"
       >
         {/* PREMIUM FOREST GREEN HEADER BLOCK */}
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100 text-emerald-600 font-bold text-xl shadow-inner">
+            <div className="w-14 h-14 rounded-2xl bg-corp-blue-50 flex items-center justify-center border border-corp-blue-100 text-emerald-600 font-bold text-xl shadow-inner">
               <CloudUpload className="w-6 h-6" />
             </div>
             <div className="space-y-0.5">
-              <DialogTitle className="font-heading text-2xl font-bold tracking-tight">
+              <DialogTitle className="text-2xl font-bold tracking-tight">
                 Importer des {currentLabel.plural}
               </DialogTitle>
               <p className="text-muted-foreground text-sm font-medium">
@@ -244,7 +244,7 @@ export function DataImportDialog({
                       <Download className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="font-heading font-bold text-sm text-forest-900">Modèles recommandés</h4>
+                      <h4 className="font-bold text-sm text-corp-blue-900">Modèles recommandés</h4>
                       <p className="text-xs font-medium text-sand-400 mt-1">
                         Utilisez notre structure pour vous assurer de la bonne cohérence des colonnes (Noms, Codes, TVA, etc.).
                       </p>
@@ -255,7 +255,7 @@ export function DataImportDialog({
                     <Button 
                       variant="outline" 
                       onClick={() => downloadTemplate('xlsx')}
-                      className="rounded-xl h-10 border-forest-100 text-forest-600 font-bold hover:bg-forest-50 text-xs px-4"
+                      className="rounded-xl h-10 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 text-xs px-4"
                     >
                       <FileSpreadsheet className="w-4 h-4 mr-2 text-emerald-600" />
                       Modèle Excel (.xlsx)
@@ -263,7 +263,7 @@ export function DataImportDialog({
                     <Button 
                       variant="outline" 
                       onClick={() => downloadTemplate('csv')}
-                      className="rounded-xl h-10 border-forest-100 text-forest-600 font-bold hover:bg-forest-50 text-xs px-4"
+                      className="rounded-xl h-10 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 text-xs px-4"
                     >
                       <FileSpreadsheet className="w-4 h-4 mr-2 text-blue-500" />
                       Modèle CSV (.csv)
@@ -273,7 +273,7 @@ export function DataImportDialog({
 
                 {/* STEP 2: DRAG & DROP ZONE */}
                 <div className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-forest-800 block">
+                  <span className="text-sm font-medium text-corp-blue-800 block">
                     Fichier de données
                   </span>
                   
@@ -285,8 +285,8 @@ export function DataImportDialog({
                     className={cn(
                       "border-2 border-dashed rounded-3xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 relative overflow-hidden min-h-[180px]",
                       isDragging 
-                        ? "border-forest-600 bg-forest-50/20 scale-[0.99] shadow-inner" 
-                        : "border-forest-100 hover:border-forest-600 hover:bg-forest-50/10"
+                        ? "border-corp-blue-600 bg-corp-blue-50/20 scale-[0.99] shadow-inner" 
+                        : "border-corp-blue-100 hover:border-corp-blue-600 hover:bg-corp-blue-50/10"
                     )}
                   >
                     <input 
@@ -299,11 +299,11 @@ export function DataImportDialog({
 
                     {selectedFile ? (
                       <div className="flex flex-col items-center text-center space-y-3 animate-in fade-in duration-300">
-                        <div className="w-14 h-14 rounded-2xl bg-forest-50 text-forest-600 flex items-center justify-center border border-forest-100 shadow-sm">
+                        <div className="w-14 h-14 rounded-2xl bg-corp-blue-50 text-corp-blue-600 flex items-center justify-center border border-corp-blue-100 shadow-sm">
                           <FileSpreadsheet className="w-7 h-7 text-emerald-600 animate-pulse" />
                         </div>
                         <div className="space-y-1">
-                          <p className="font-heading font-bold text-forest-900 max-w-[280px] truncate px-2">
+                          <p className="font-bold text-corp-blue-900 max-w-[280px] truncate px-2">
                             {selectedFile.name}
                           </p>
                           <p className="text-xs text-sand-400 font-mono">
@@ -327,7 +327,7 @@ export function DataImportDialog({
                           <CloudUpload className="w-6 h-6 text-sand-400" />
                         </div>
                         <div>
-                          <p className="font-heading font-bold text-forest-900">
+                          <p className="font-bold text-corp-blue-900">
                             Glissez-déposez votre fichier ici
                           </p>
                           <p className="text-xs font-medium text-sand-400 mt-1">
@@ -340,12 +340,12 @@ export function DataImportDialog({
                 </div>
 
                 {/* FOOTER ACTIONS */}
-                <div className="flex items-center justify-end gap-3 pt-6 border-t border-forest-50">
+                <div className="flex items-center justify-end gap-3 pt-6 border-t border-corp-blue-50">
                   <Button 
                     type="button" 
                     variant="outline" 
                     onClick={handleResetAndClose}
-                    className="h-11 border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6"
+                    className="h-11 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 px-6"
                   >
                     Annuler
                   </Button>
@@ -353,7 +353,7 @@ export function DataImportDialog({
                     type="button"
                     disabled={!selectedFile}
                     onClick={handleImport}
-                    className="h-11 bg-forest-600 hover:bg-forest-800 text-white font-bold px-8 shadow-lg shadow-forest-600/20 disabled:bg-sand-100 disabled:text-sand-400 disabled:shadow-none transition-all duration-300"
+                    className="h-11 bg-corp-blue-600 hover:bg-corp-blue-800 text-white font-bold px-8 shadow-lg shadow-corp-blue-600/20 disabled:bg-sand-100 disabled:text-sand-400 disabled:shadow-none transition-all duration-300"
                   >
                     Lancer l'importation
                   </Button>
@@ -371,11 +371,11 @@ export function DataImportDialog({
                 className="flex flex-col items-center justify-center py-20 gap-4 text-center"
               >
                 <div className="relative">
-                  <div className="w-16 h-16 rounded-full border-4 border-forest-50 border-t-forest-600 animate-spin" />
-                  <Loader2 className="w-6 h-6 text-forest-600 animate-spin absolute inset-0 m-auto" />
+                  <div className="w-16 h-16 rounded-full border-4 border-corp-blue-50 border-t-corp-blue-600 animate-spin" />
+                  <Loader2 className="w-6 h-6 text-corp-blue-600 animate-spin absolute inset-0 m-auto" />
                 </div>
                 <div className="space-y-1 mt-2">
-                  <h4 className="font-heading font-bold text-lg text-forest-900">Traitement de l'importation</h4>
+                  <h4 className="font-bold text-lg text-corp-blue-900">Traitement de l'importation</h4>
                   <p className="text-sm font-medium text-sand-400 max-w-[320px]">
                     Analyse des colonnes, validation des contraintes métiers et persistance de vos {currentLabel.plural}...
                   </p>
@@ -393,7 +393,7 @@ export function DataImportDialog({
                 className="space-y-6"
               >
                 <div className="text-center pb-4">
-                  <h4 className="font-heading font-bold text-xl text-forest-900">Rapport d'importation</h4>
+                  <h4 className="font-bold text-xl text-corp-blue-900">Rapport d'importation</h4>
                   <p className="text-xs font-medium text-sand-400 mt-1">
                     Analyse finale de l'intégration du fichier.
                   </p>
@@ -476,11 +476,11 @@ export function DataImportDialog({
                 )}
 
                 {/* FOOTER ACTIONS */}
-                <div className="flex items-center justify-end pt-6 border-t border-forest-50">
+                <div className="flex items-center justify-end pt-6 border-t border-corp-blue-50">
                   <Button 
                     type="button"
                     onClick={handleResetAndClose}
-                    className="h-11 bg-forest-600 hover:bg-forest-800 text-white font-bold px-8 shadow-lg shadow-forest-600/20"
+                    className="h-11 bg-corp-blue-600 hover:bg-corp-blue-800 text-white font-bold px-8 shadow-lg shadow-corp-blue-600/20"
                   >
                     Terminer
                   </Button>

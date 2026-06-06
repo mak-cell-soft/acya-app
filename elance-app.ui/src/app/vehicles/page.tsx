@@ -268,17 +268,17 @@ export default function VehiclesPage() {
       <div className="space-y-8 animate-in fade-in duration-700">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-heading font-bold text-forest-900 tracking-tight">Gestion du Parc Automobile</h1>
+            <h1 className="text-3xl font-bold text-corp-blue-900 tracking-tight">Gestion du Parc Automobile</h1>
             <p className="text-sand-400 font-medium mt-1">Suivi de la maintenance, des kilométrages et des cartes carburant.</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="h-11 border-forest-100 text-forest-600 font-bold hover:bg-forest-50">
+            <Button variant="outline" className="h-11 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50">
               <Download className="w-4 h-4 mr-2" /> Rapport
             </Button>
             {hasPermission('vehicles', 'canAdd') && (
               <Button 
                 onClick={openAddDialog}
-                className="h-11 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
+                className="h-11 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20"
               >
                 <Plus className="w-4 h-4 mr-2" /> Ajouter un Véhicule
               </Button>
@@ -289,19 +289,19 @@ export default function VehiclesPage() {
         {/* Dynamic Statistics Panel */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[
-            { label: 'Véhicules', value: stats.total, icon: Truck, color: 'text-forest-600', bg: 'bg-forest-50' },
+            { label: 'Véhicules', value: stats.total, icon: Truck, color: 'text-corp-blue-600', bg: 'bg-corp-blue-50' },
             { label: 'Alertes Assurance', value: stats.insurance, icon: ShieldAlert, color: 'text-amber-600', bg: 'bg-amber-50' },
             { label: 'Visites à prévoir', value: stats.visits, icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50' },
             { label: 'Vidanges à effectuer', value: stats.draining, icon: Droplets, color: 'text-rose-600', bg: 'bg-rose-50' },
           ].map((stat, i) => (
-            <Card key={i} className="border-forest-50 shadow-sm rounded-2xl">
+            <Card key={i} className="border-corp-blue-50 shadow-sm rounded-2xl">
               <CardContent className="p-5 flex items-center gap-4">
                 <div className={cn("p-3 rounded-xl", stat.bg)}>
                   <stat.icon className={cn("w-6 h-6", stat.color)} />
                 </div>
                 <div>
                   <p className="text-xs font-bold text-sand-400 uppercase tracking-wider">{stat.label}</p>
-                  <p className="text-2xl font-bold text-forest-900">{loading ? '...' : stat.value}</p>
+                  <p className="text-2xl font-bold text-corp-blue-900">{loading ? '...' : stat.value}</p>
                 </div>
               </CardContent>
             </Card>
@@ -309,14 +309,14 @@ export default function VehiclesPage() {
         </div>
 
         {/* Vehicle list container */}
-        <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm">
-          <CardHeader className="border-b border-forest-50 p-6">
+        <Card className="border-corp-blue-100/50 shadow-xl shadow-corp-blue-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm">
+          <CardHeader className="border-b border-corp-blue-50 p-6">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400" />
                 <Input 
                   placeholder="Rechercher par marque, matricule, chauffeur..." 
-                  className="pl-10 h-11 rounded-xl border-forest-50 bg-sand-50/50 focus:border-forest-600 focus:ring-forest-600 transition-all"
+                  className="pl-10 h-11 rounded-xl border-corp-blue-50 bg-sand-50/50 focus:border-corp-blue-600 focus:ring-corp-blue-600 transition-all"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -332,7 +332,7 @@ export default function VehiclesPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-sand-50/50 border-b border-forest-50">
+                  <tr className="bg-sand-50/50 border-b border-corp-blue-50">
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Véhicule</th>
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-center">Kilométrage</th>
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest text-center">Assurance</th>
@@ -341,12 +341,12 @@ export default function VehiclesPage() {
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-forest-50">
+                <tbody className="divide-y divide-corp-blue-50">
                   {loading ? (
                     <tr>
                       <td colSpan={6} className="p-10 text-center">
                         <div className="flex flex-col items-center justify-center gap-2 text-sand-400">
-                          <Loader2 className="w-8 h-8 animate-spin text-forest-600" />
+                          <Loader2 className="w-8 h-8 animate-spin text-corp-blue-600" />
                           <span className="font-bold text-sm">Chargement des véhicules...</span>
                         </div>
                       </td>
@@ -365,25 +365,25 @@ export default function VehiclesPage() {
                         <React.Fragment key={item.id}>
                           <tr 
                             className={cn(
-                              "group hover:bg-forest-50/30 transition-all duration-300 cursor-pointer",
-                              expandedId === item.id && "bg-forest-50/50"
+                              "group hover:bg-corp-blue-50/30 transition-all duration-300 cursor-pointer",
+                              expandedId === item.id && "bg-corp-blue-50/50"
                             )}
                             onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
                           >
                             <td className="p-5">
                               <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-forest-100 flex items-center justify-center text-forest-600">
+                                <div className="w-10 h-10 rounded-xl bg-corp-blue-100 flex items-center justify-center text-corp-blue-600">
                                   <Truck className="w-5 h-5" />
                                 </div>
                                 <div>
-                                  <div className="font-bold text-forest-900">{item.brand}</div>
+                                  <div className="font-bold text-corp-blue-900">{item.brand}</div>
                                   <div className="font-mono text-[0.7rem] text-sand-400 font-bold">{item.serialnumber}</div>
                                 </div>
                               </div>
                             </td>
                             <td className="p-5 text-center">
                               <div className="flex flex-col items-center">
-                                <span className="font-bold text-forest-900">
+                                <span className="font-bold text-corp-blue-900">
                                   {item.mileage ? Number(item.mileage).toLocaleString() : '---'}
                                 </span>
                                 <span className="text-[0.6rem] text-sand-400 font-bold uppercase tracking-wider">Kilomètres</span>
@@ -392,18 +392,18 @@ export default function VehiclesPage() {
                             <td className="p-5 text-center">
                               <div className={cn(
                                 "inline-flex flex-col items-center p-2 rounded-xl border",
-                                isExpired(item.insurancedate) ? "border-rose-100 bg-rose-50" : isExpiringSoon(item.insurancedate) ? "border-amber-100 bg-amber-50" : "border-forest-50"
+                                isExpired(item.insurancedate) ? "border-rose-100 bg-rose-50" : isExpiringSoon(item.insurancedate) ? "border-amber-100 bg-amber-50" : "border-corp-blue-50"
                               )}>
-                                <span className="text-xs font-bold text-forest-900">{formatDate(item.insurancedate)}</span>
+                                <span className="text-xs font-bold text-corp-blue-900">{formatDate(item.insurancedate)}</span>
                                 <span className="text-[0.6rem] text-sand-400 font-bold uppercase">Échéance</span>
                               </div>
                             </td>
                             <td className="p-5 text-center">
                               <div className={cn(
                                 "inline-flex flex-col items-center p-2 rounded-xl border",
-                                isExpired(item.technicalvisitdate) ? "border-rose-100 bg-rose-50" : isExpiringSoon(item.technicalvisitdate) ? "border-amber-100 bg-amber-50" : "border-forest-50"
+                                isExpired(item.technicalvisitdate) ? "border-rose-100 bg-rose-50" : isExpiringSoon(item.technicalvisitdate) ? "border-amber-100 bg-amber-50" : "border-corp-blue-50"
                               )}>
-                                <span className="text-xs font-bold text-forest-900">{formatDate(item.technicalvisitdate)}</span>
+                                <span className="text-xs font-bold text-corp-blue-900">{formatDate(item.technicalvisitdate)}</span>
                                 <span className="text-[0.6rem] text-sand-400 font-bold uppercase">Prochaine visite</span>
                               </div>
                             </td>
@@ -421,9 +421,9 @@ export default function VehiclesPage() {
                                         <MoreHorizontal className="w-4 h-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="rounded-xl border-forest-100 w-44">
+                                    <DropdownMenuContent align="end" className="rounded-xl border-corp-blue-100 w-44">
                                       {hasPermission('vehicles', 'canUpdate') && (
-                                        <DropdownMenuItem onClick={(e) => openEditDialog(item, e)} className="gap-2 font-bold text-forest-900 cursor-pointer">
+                                        <DropdownMenuItem onClick={(e) => openEditDialog(item, e)} className="gap-2 font-bold text-corp-blue-900 cursor-pointer">
                                           <Edit className="w-4 h-4" /> Modifier
                                         </DropdownMenuItem>
                                       )}
@@ -448,16 +448,16 @@ export default function VehiclesPage() {
                                     animate={{ height: 'auto', opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
                                     transition={{ duration: 0.3 }}
-                                    className="overflow-hidden bg-sand-50/30 border-b border-forest-50"
+                                    className="overflow-hidden bg-sand-50/30 border-b border-corp-blue-50"
                                   >
                                     <div className="p-8 grid grid-cols-1 md:grid-cols-4 gap-8">
                                       {/* Maintenance */}
                                       <div className="space-y-4">
                                         <h4 className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest flex items-center gap-1.5">
-                                          <Droplets className="w-3.5 h-3.5 text-forest-600" /> Détails Vidange
+                                          <Droplets className="w-3.5 h-3.5 text-corp-blue-600" /> Détails Vidange
                                         </h4>
                                         <div className="space-y-1">
-                                          <div className="text-xs font-bold text-forest-900">
+                                          <div className="text-xs font-bold text-corp-blue-900">
                                             Dernière: {formatDate(item.drainingdate)}
                                           </div>
                                           <div className="text-[0.7rem] font-semibold text-sand-500 max-w-xs leading-relaxed">
@@ -467,12 +467,12 @@ export default function VehiclesPage() {
                                       </div>
 
                                       {/* Propriétaire */}
-                                      <div className="space-y-4 border-l border-forest-100 pl-8">
+                                      <div className="space-y-4 border-l border-corp-blue-100 pl-8">
                                         <h4 className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest flex items-center gap-1.5">
-                                          <Info className="w-3.5 h-3.5 text-forest-600" /> Propriété
+                                          <Info className="w-3.5 h-3.5 text-corp-blue-600" /> Propriété
                                         </h4>
                                         <div className="space-y-1">
-                                          <div className="text-xs font-bold text-forest-900">
+                                          <div className="text-xs font-bold text-corp-blue-900">
                                             Véhicule d'Entreprise
                                           </div>
                                           <p className="text-[0.7rem] text-sand-500 leading-relaxed">
@@ -482,9 +482,9 @@ export default function VehiclesPage() {
                                       </div>
 
                                       {/* Carte Carburant Visual Card */}
-                                      <div className="md:col-span-2 space-y-4 border-l border-forest-100 pl-8">
+                                      <div className="md:col-span-2 space-y-4 border-l border-corp-blue-100 pl-8">
                                         <h4 className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest flex items-center gap-1.5">
-                                          <CreditCard className="w-3.5 h-3.5 text-forest-600" /> Carte Carburant Associée
+                                          <CreditCard className="w-3.5 h-3.5 text-corp-blue-600" /> Carte Carburant Associée
                                         </h4>
 
                                         {item.fuelcardconductor ? (
@@ -537,7 +537,7 @@ export default function VehiclesPage() {
                                             <div className="absolute right-0 bottom-0 top-0 w-24 bg-white/5 rounded-l-full transform translate-x-12 scale-y-150 rotate-12 pointer-events-none"></div>
                                           </div>
                                         ) : (
-                                          <div className="flex flex-col items-center justify-center p-6 border border-dashed border-forest-100 rounded-2xl bg-sand-50/50 max-w-xs text-center space-y-2">
+                                          <div className="flex flex-col items-center justify-center p-6 border border-dashed border-corp-blue-100 rounded-2xl bg-sand-50/50 max-w-xs text-center space-y-2">
                                             <p className="text-xs text-sand-500 font-medium leading-relaxed">
                                               Aucune carte carburant configurée pour ce véhicule.
                                             </p>
@@ -546,7 +546,7 @@ export default function VehiclesPage() {
                                                 size="sm" 
                                                 variant="outline" 
                                                 onClick={(e) => openEditDialog(item, e)}
-                                                className="h-8 rounded-lg border-forest-100 text-forest-600 font-bold hover:bg-forest-50 text-[0.7rem]"
+                                                className="h-8 rounded-lg border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 text-[0.7rem]"
                                               >
                                                 Associer une carte
                                               </Button>
@@ -567,7 +567,7 @@ export default function VehiclesPage() {
                 </tbody>
               </table>
             </div>
-            <div className="p-6 border-t border-forest-50 flex items-center justify-between">
+            <div className="p-6 border-t border-corp-blue-50 flex items-center justify-between">
               <p className="text-sm text-sand-400 font-medium">
                 Affichage de 1 à {filteredVehicles.length} sur {ownedVehicles.length} véhicules
               </p>

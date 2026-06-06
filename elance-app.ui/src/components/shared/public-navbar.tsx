@@ -56,7 +56,6 @@ export function PublicNavbar() {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
               </span>
               <span className="font-bold flex items-center gap-1.5">
-                <Sparkles size={14} className="text-cyan-200 animate-pulse" />
                 Nouveau :
               </span>
               <span className="font-medium text-white/95">
@@ -123,11 +122,7 @@ export function PublicNavbar() {
                 className="text-[0.88rem] font-bold text-slate-600 hover:text-corp-blue-600 transition-all duration-300 relative group/link py-1.5 px-1 flex items-center gap-1.5"
               >
                 {link.name}
-                {link.isNew && (
-                  <span className="text-[0.62rem] font-extrabold uppercase bg-corp-cyan/10 text-corp-cyan border border-corp-cyan/20 px-1.5 py-0.5 rounded-md leading-none tracking-wider">
-                    New
-                  </span>
-                )}
+
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[2px] transition-all duration-300 group-hover/link:w-full rounded-full bg-corp-blue-600" />
               </Link>
             ))}
@@ -199,11 +194,7 @@ export function PublicNavbar() {
                       >
                         <span className="flex items-center gap-3">
                           {link.name}
-                          {link.isNew && (
-                            <span className="text-xs font-extrabold uppercase bg-corp-cyan/10 text-corp-cyan border border-corp-cyan/20 px-2 py-0.5 rounded-lg tracking-wider">
-                              New
-                            </span>
-                          )}
+
                         </span>
                         <ArrowRight className="opacity-0 -translate-x-4 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 text-corp-blue-600" size={28} />
                       </Link>

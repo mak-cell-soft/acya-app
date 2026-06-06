@@ -67,7 +67,7 @@ export function ModulesSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="font-heading text-[2rem] md:text-[2.8rem] text-slate-900 leading-[1.1] mb-6 tracking-tight font-extrabold"
+            className="text-[2rem] md:text-[2.8rem] text-slate-900 leading-[1.1] mb-6 tracking-tight font-extrabold"
           >
             Une couverture fonctionnelle totale à 360°
           </motion.h2>

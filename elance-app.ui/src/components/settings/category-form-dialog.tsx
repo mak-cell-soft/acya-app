@@ -137,12 +137,12 @@ export function CategoryFormDialog({ isOpen, onClose, category }: CategoryFormDi
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] rounded-2xl p-0 overflow-hidden border-forest-100 shadow-2xl">
+      <DialogContent className="sm:max-w-[600px] rounded-2xl p-0 overflow-hidden border-corp-blue-100 shadow-2xl">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <FolderTree className="w-32 h-32" />
           </div>
-          <DialogTitle className="text-2xl font-heading font-bold flex items-center gap-3 relative z-10">
+          <DialogTitle className="text-2xl font-bold flex items-center gap-3 relative z-10">
             {isEditing ? (
               <>
                 <Plus className="w-6 h-6" />
@@ -155,7 +155,7 @@ export function CategoryFormDialog({ isOpen, onClose, category }: CategoryFormDi
               </>
             )}
           </DialogTitle>
-          <DialogDescription className="text-forest-100 text-sm font-medium mt-1 relative z-10">
+          <DialogDescription className="text-corp-blue-100 text-sm font-medium mt-1 relative z-10">
             {isEditing 
               ? 'Ajoutez de nouvelles sous-catégories à cette catégorie.' 
               : 'Créez une catégorie avec au moins une sous-catégorie initiale.'}
@@ -164,9 +164,9 @@ export function CategoryFormDialog({ isOpen, onClose, category }: CategoryFormDi
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6 bg-white max-h-[70vh] overflow-y-auto custom-scrollbar">
           {!isEditing && (
-            <div className="grid grid-cols-2 gap-4 pb-6 border-b border-forest-50">
+            <div className="grid grid-cols-2 gap-4 pb-6 border-b border-corp-blue-50">
               <div className="space-y-2">
-                <Label className="text-sm font-bold text-forest-900">Réf. Catégorie</Label>
+                <Label className="text-sm font-bold text-corp-blue-900">Réf. Catégorie</Label>
                 <Input 
                   {...register('reference')} 
                   placeholder="ex: PIN"
@@ -175,7 +175,7 @@ export function CategoryFormDialog({ isOpen, onClose, category }: CategoryFormDi
                 {errors.reference && <p className="text-xs text-red-500 font-medium">{errors.reference.message}</p>}
               </div>
               <div className="space-y-2">
-                <Label className="text-sm font-bold text-forest-900">Description</Label>
+                <Label className="text-sm font-bold text-corp-blue-900">Description</Label>
                 <Input 
                   {...register('description')} 
                   placeholder="ex: Pin Sylvestre"
@@ -188,8 +188,8 @@ export function CategoryFormDialog({ isOpen, onClose, category }: CategoryFormDi
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-bold text-forest-900 uppercase tracking-wider flex items-center gap-2">
-                <Tag className="w-4 h-4 text-forest-400" />
+              <Label className="text-sm font-bold text-corp-blue-900 uppercase tracking-wider flex items-center gap-2">
+                <Tag className="w-4 h-4 text-corp-blue-400" />
                 Sous-catégories
               </Label>
               <Button 
@@ -197,7 +197,7 @@ export function CategoryFormDialog({ isOpen, onClose, category }: CategoryFormDi
                 variant="ghost" 
                 size="sm"
                 onClick={() => append({ reference: '', description: '' })}
-                className="text-forest-600 font-bold h-8 gap-1 hover:bg-forest-50"
+                className="text-corp-blue-600 font-bold h-8 gap-1 hover:bg-corp-blue-50"
               >
                 <Plus className="w-4 h-4" /> Ajouter une ligne
               </Button>
@@ -210,7 +210,7 @@ export function CategoryFormDialog({ isOpen, onClose, category }: CategoryFormDi
                     <Input 
                       {...register(`subcategories.${index}.reference` as const)} 
                       placeholder="Réf"
-                      className="rounded-lg bg-sand-50/50 border-forest-50 text-sm"
+                      className="rounded-lg bg-sand-50/50 border-corp-blue-50 text-sm"
                     />
                     {errors.subcategories?.[index]?.reference && (
                       <p className="text-[10px] text-red-500 font-medium">{errors.subcategories[index]?.reference?.message}</p>
@@ -220,7 +220,7 @@ export function CategoryFormDialog({ isOpen, onClose, category }: CategoryFormDi
                     <Input 
                       {...register(`subcategories.${index}.description` as const)} 
                       placeholder="Désignation"
-                      className="rounded-lg bg-sand-50/50 border-forest-50 text-sm"
+                      className="rounded-lg bg-sand-50/50 border-corp-blue-50 text-sm"
                     />
                     {errors.subcategories?.[index]?.description && (
                       <p className="text-[10px] text-red-500 font-medium">{errors.subcategories[index]?.description?.message}</p>
@@ -249,13 +249,13 @@ export function CategoryFormDialog({ isOpen, onClose, category }: CategoryFormDi
               type="button" 
               variant="outline" 
               onClick={onClose}
-              className="flex-1 h-12 border-forest-100 text-forest-600 font-bold hover:bg-forest-50"
+              className="flex-1 h-12 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50"
             >
               Annuler
             </Button>
             <Button 
               disabled={createCategory.isPending || updateCategory.isPending}
-              className="flex-[2] h-12 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
+              className="flex-[2] h-12 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20"
             >
               {createCategory.isPending || updateCategory.isPending ? (
                 <Loader2 className="w-5 h-5 animate-spin" />

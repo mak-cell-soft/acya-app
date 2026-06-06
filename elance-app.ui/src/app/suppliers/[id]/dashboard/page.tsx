@@ -160,7 +160,7 @@ export default function SupplierDashboardPage({ params }: PageProps) {
       <DashboardLayout>
         <div className="flex flex-col gap-6 py-6 animate-pulse">
           {/* Header Skeleton */}
-          <div className="flex items-center justify-between border-b border-forest-50 pb-6">
+          <div className="flex items-center justify-between border-b border-corp-blue-50 pb-6">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-sand-100 rounded-2xl" />
               <div className="space-y-2">
@@ -195,11 +195,11 @@ export default function SupplierDashboardPage({ params }: PageProps) {
           <div className="w-16 h-16 bg-rose-50 rounded-3xl flex items-center justify-center text-rose-500 border border-rose-100">
             <Info className="w-8 h-8" />
           </div>
-          <h2 className="text-xl font-black text-forest-900">Erreur de chargement</h2>
+          <h2 className="text-xl font-black text-corp-blue-900">Erreur de chargement</h2>
           <p className="text-sand-400 font-medium text-center max-w-md">
             Impossible de récupérer les statistiques du tableau de bord. Veuillez vérifier l&apos;existence du fournisseur.
           </p>
-          <Button onClick={handleBack} variant="outline" className="mt-2 border-forest-100 text-forest-600 hover:bg-forest-50">
+          <Button onClick={handleBack} variant="outline" className="mt-2 border-corp-blue-100 text-corp-blue-600 hover:bg-corp-blue-50">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour à la liste des fournisseurs
           </Button>
@@ -215,20 +215,20 @@ export default function SupplierDashboardPage({ params }: PageProps) {
       <div className="space-y-8 animate-in fade-in duration-500">
         
         {/* Navigation & Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-forest-50 pb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-corp-blue-50 pb-6">
           <div className="flex items-center gap-4">
             <Button 
               onClick={handleBack} 
               variant="outline" 
               size="icon" 
-              className="h-12 w-12 rounded-2xl border-forest-100 text-forest-600 hover:bg-forest-50 hover:text-forest-900 transition-all shadow-sm"
+              className="h-12 w-12 rounded-2xl border-corp-blue-100 text-corp-blue-600 hover:bg-corp-blue-50 hover:text-corp-blue-900 transition-all shadow-sm"
               title="Retour aux fournisseurs"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
               <div className="text-[0.7rem] font-black text-sand-400 uppercase tracking-widest">Tableau de bord complet</div>
-              <h1 className="text-3xl font-heading font-black text-forest-900 tracking-tight mt-0.5">
+              <h1 className="text-3xl font-black text-corp-blue-900 tracking-tight mt-0.5">
                 {data.supplierName}
               </h1>
             </div>
@@ -257,14 +257,14 @@ export default function SupplierDashboardPage({ params }: PageProps) {
         {/* KPI Strip */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
-            <Card className="border-forest-100/50 shadow-md shadow-forest-900/[0.02] rounded-3xl overflow-hidden bg-white/80 backdrop-blur-md">
+            <Card className="border-corp-blue-100/50 shadow-md shadow-corp-blue-900/[0.02] rounded-3xl overflow-hidden bg-white/80 backdrop-blur-md">
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
                   <CreditCard className="w-6 h-6" />
                 </div>
                 <div>
                   <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest">Paiements effectués</div>
-                  <div className="text-xl font-heading font-black text-forest-900 tracking-tight mt-0.5">
+                  <div className="text-xl font-black text-corp-blue-900 tracking-tight mt-0.5">
                     {formatTnd(data.totalPaid)} <span className="text-xs font-bold text-sand-400">TND</span>
                   </div>
                 </div>
@@ -273,14 +273,14 @@ export default function SupplierDashboardPage({ params }: PageProps) {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
-            <Card className="border-forest-100/50 shadow-md shadow-forest-900/[0.02] rounded-3xl overflow-hidden bg-white/80 backdrop-blur-md">
+            <Card className="border-corp-blue-100/50 shadow-md shadow-corp-blue-900/[0.02] rounded-3xl overflow-hidden bg-white/80 backdrop-blur-md">
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
                   <ShoppingBag className="w-6 h-6" />
                 </div>
                 <div>
                   <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest">Commandes en cours</div>
-                  <div className="text-xl font-heading font-black text-forest-900 tracking-tight mt-0.5">
+                  <div className="text-xl font-black text-corp-blue-900 tracking-tight mt-0.5">
                     {data.pendingOrders.length}
                   </div>
                 </div>
@@ -289,14 +289,14 @@ export default function SupplierDashboardPage({ params }: PageProps) {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
-            <Card className="border-forest-100/50 shadow-md shadow-forest-900/[0.02] rounded-3xl overflow-hidden bg-white/80 backdrop-blur-md">
+            <Card className="border-corp-blue-100/50 shadow-md shadow-corp-blue-900/[0.02] rounded-3xl overflow-hidden bg-white/80 backdrop-blur-md">
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
                   <Receipt className="w-6 h-6" />
                 </div>
                 <div>
                   <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest">Réceptions à facturer</div>
-                  <div className="text-xl font-heading font-black text-forest-900 tracking-tight mt-0.5">
+                  <div className="text-xl font-black text-corp-blue-900 tracking-tight mt-0.5">
                     {data.pendingReceipts.length}
                   </div>
                 </div>
@@ -310,25 +310,25 @@ export default function SupplierDashboardPage({ params }: PageProps) {
           
           {/* Left Column - Documents Section */}
           <div className="lg:col-span-7 space-y-6">
-            <Card className="border-forest-100/50 shadow-xl shadow-forest-900/[0.03] rounded-[32px] overflow-hidden bg-white">
+            <Card className="border-corp-blue-100/50 shadow-xl shadow-corp-blue-900/[0.03] rounded-[32px] overflow-hidden bg-white">
               <Tabs defaultValue="orders" className="w-full">
-                <div className="px-6 bg-sand-50/50 border-b border-forest-50">
+                <div className="px-6 bg-sand-50/50 border-b border-corp-blue-50">
                   <TabsList className="h-16 bg-transparent gap-6">
                     <TabsTrigger 
                       value="orders" 
-                      className="h-16 rounded-none border-b-2 border-transparent data-[state=active]:border-forest-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 font-bold text-sand-400 data-[state=active]:text-forest-900 text-sm transition-all"
+                      className="h-16 rounded-none border-b-2 border-transparent data-[state=active]:border-corp-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 font-bold text-sand-400 data-[state=active]:text-corp-blue-900 text-sm transition-all"
                     >
                       Commandes en cours (BC-F)
                     </TabsTrigger>
                     <TabsTrigger 
                       value="receipts" 
-                      className="h-16 rounded-none border-b-2 border-transparent data-[state=active]:border-forest-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 font-bold text-sand-400 data-[state=active]:text-forest-900 text-sm transition-all"
+                      className="h-16 rounded-none border-b-2 border-transparent data-[state=active]:border-corp-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 font-bold text-sand-400 data-[state=active]:text-corp-blue-900 text-sm transition-all"
                     >
                       Réceptions en attente (BR)
                     </TabsTrigger>
                     <TabsTrigger 
                       value="payments" 
-                      className="h-16 rounded-none border-b-2 border-transparent data-[state=active]:border-forest-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 font-bold text-sand-400 data-[state=active]:text-forest-900 text-sm transition-all"
+                      className="h-16 rounded-none border-b-2 border-transparent data-[state=active]:border-corp-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 font-bold text-sand-400 data-[state=active]:text-corp-blue-900 text-sm transition-all"
                     >
                       Paiements
                     </TabsTrigger>
@@ -341,7 +341,7 @@ export default function SupplierDashboardPage({ params }: PageProps) {
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="bg-sand-50/10 border-b border-forest-50">
+                          <tr className="bg-sand-50/10 border-b border-corp-blue-50">
                             <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider">N° Document</th>
                             <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider">Type</th>
                             <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider">Date</th>
@@ -349,7 +349,7 @@ export default function SupplierDashboardPage({ params }: PageProps) {
                             <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider text-center">Statut</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-forest-50">
+                        <tbody className="divide-y divide-corp-blue-50">
                           {data.pendingOrders.length === 0 ? (
                             <tr>
                               <td colSpan={5} className="p-16 text-center">
@@ -363,11 +363,11 @@ export default function SupplierDashboardPage({ params }: PageProps) {
                             </tr>
                           ) : (
                             data.pendingOrders.map((doc) => (
-                              <tr key={doc.id} className="hover:bg-forest-50/20 transition-colors">
-                                <td className="p-5 font-black text-forest-900">{doc.docnumber}</td>
+                              <tr key={doc.id} className="hover:bg-corp-blue-50/20 transition-colors">
+                                <td className="p-5 font-black text-corp-blue-900">{doc.docnumber}</td>
                                 <td className="p-5 text-sm font-medium text-sand-600">{getDocTypeLabel(doc.type)}</td>
                                 <td className="p-5 text-sm text-sand-500 font-bold">{formatDate(doc.creationdate)}</td>
-                                <td className="p-5 text-right font-mono font-black text-forest-900">{formatTnd(doc.total_net_ttc)}</td>
+                                <td className="p-5 text-right font-mono font-black text-corp-blue-900">{formatTnd(doc.total_net_ttc)}</td>
                                 <td className="p-5 text-center">
                                   <Badge variant="outline" className={cn("rounded-xl px-2.5 py-1 font-bold text-xs border uppercase", getStatusBadgeClass(doc.docstatus))}>
                                     {getDocStatusLabel(doc.docstatus)}
@@ -386,14 +386,14 @@ export default function SupplierDashboardPage({ params }: PageProps) {
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="bg-sand-50/10 border-b border-forest-50">
+                          <tr className="bg-sand-50/10 border-b border-corp-blue-50">
                             <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider">N° Document</th>
                             <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider">Type</th>
                             <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider">Date</th>
                             <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider text-right">Total TTC</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-forest-50">
+                        <tbody className="divide-y divide-corp-blue-50">
                           {data.pendingReceipts.length === 0 ? (
                             <tr>
                               <td colSpan={4} className="p-16 text-center">
@@ -407,11 +407,11 @@ export default function SupplierDashboardPage({ params }: PageProps) {
                             </tr>
                           ) : (
                             data.pendingReceipts.map((doc) => (
-                              <tr key={doc.id} className="hover:bg-forest-50/20 transition-colors">
-                                <td className="p-5 font-black text-forest-900">{doc.docnumber}</td>
+                              <tr key={doc.id} className="hover:bg-corp-blue-50/20 transition-colors">
+                                <td className="p-5 font-black text-corp-blue-900">{doc.docnumber}</td>
                                 <td className="p-5 text-sm font-medium text-sand-600">{getDocTypeLabel(doc.type)}</td>
                                 <td className="p-5 text-sm text-sand-500 font-bold">{formatDate(doc.creationdate)}</td>
-                                <td className="p-5 text-right font-mono font-black text-forest-900">{formatTnd(doc.total_net_ttc)}</td>
+                                <td className="p-5 text-right font-mono font-black text-corp-blue-900">{formatTnd(doc.total_net_ttc)}</td>
                               </tr>
                             ))
                           )}
@@ -442,7 +442,7 @@ export default function SupplierDashboardPage({ params }: PageProps) {
                         <div className="overflow-x-auto">
                           <table className="w-full text-left border-collapse">
                             <thead>
-                              <tr className="bg-sand-50/10 border-b border-forest-50">
+                              <tr className="bg-sand-50/10 border-b border-corp-blue-50">
                                 <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider">Date</th>
                                 <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider">Méthode</th>
                                 <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider">Référence / Notes</th>
@@ -451,14 +451,14 @@ export default function SupplierDashboardPage({ params }: PageProps) {
                                 <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-wider text-right">Montant</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-forest-50">
+                            <tbody className="divide-y divide-corp-blue-50">
                               {paginatedPayments.map((payment) => {
                                 const isOverdue = isInstrumentOverdue(payment.instrument);
                                 return (
                                   <tr 
                                     key={payment.id || payment.paymentId} 
                                     className={cn(
-                                      "hover:bg-forest-50/20 transition-colors",
+                                      "hover:bg-corp-blue-50/20 transition-colors",
                                       isOverdue && "bg-rose-50/20 hover:bg-rose-50/30"
                                     )}
                                   >
@@ -473,7 +473,7 @@ export default function SupplierDashboardPage({ params }: PageProps) {
                                         {payment.paymentMethod}
                                       </Badge>
                                     </td>
-                                    <td className="p-5 text-sm font-medium text-forest-900 max-w-[200px] truncate">
+                                    <td className="p-5 text-sm font-medium text-corp-blue-900 max-w-[200px] truncate">
                                       <div className="flex flex-col">
                                         <span className="font-mono text-xs">{payment.reference || '—'}</span>
                                         {payment.notes && (
@@ -484,7 +484,7 @@ export default function SupplierDashboardPage({ params }: PageProps) {
                                     <td className="p-5 text-sm text-sand-600">
                                       {payment.instrument ? (
                                         <div className="flex flex-col gap-0.5">
-                                          <span className="font-bold text-xs text-forest-950">
+                                          <span className="font-bold text-xs text-corp-blue-950">
                                             N° {payment.instrument.instrumentNumber || '—'}
                                           </span>
                                           <span className="text-[0.7rem] text-sand-400 uppercase tracking-wider">
@@ -549,20 +549,20 @@ export default function SupplierDashboardPage({ params }: PageProps) {
 
           {/* Right Column - Financial History Timeline */}
           <div className="lg:col-span-5 space-y-6">
-            <Card className="border-forest-100/50 shadow-xl shadow-forest-900/[0.03] rounded-[32px] overflow-hidden bg-white">
-              <CardHeader className="bg-sand-50/50 border-b border-forest-50 px-6 py-5 flex flex-row items-center justify-between">
-                <CardTitle className="font-heading font-black text-lg text-forest-900 flex items-center gap-2">
-                  <History className="w-5 h-5 text-forest-600" />
+            <Card className="border-corp-blue-100/50 shadow-xl shadow-corp-blue-900/[0.03] rounded-[32px] overflow-hidden bg-white">
+              <CardHeader className="bg-sand-50/50 border-b border-corp-blue-50 px-6 py-5 flex flex-row items-center justify-between">
+                <CardTitle className="font-black text-lg text-corp-blue-900 flex items-center gap-2">
+                  <History className="w-5 h-5 text-corp-blue-600" />
                   Flux Financier (30j)
                 </CardTitle>
-                <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest bg-white border border-forest-50 px-3 py-1.5 rounded-xl">
+                <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest bg-white border border-corp-blue-50 px-3 py-1.5 rounded-xl">
                   Activité récente
                 </div>
               </CardHeader>
               <CardContent className="p-6">
                 
                 {/* Timeline Grid */}
-                <div className="relative pl-6 border-l-2 border-forest-100/50 space-y-8 py-2">
+                <div className="relative pl-6 border-l-2 border-corp-blue-100/50 space-y-8 py-2">
                   {data.recentTransactions.length === 0 ? (
                     <div className="text-center py-8">
                       <p className="text-sm font-bold text-sand-300 italic">Aucune transaction récente sur les 30 derniers jours.</p>
@@ -577,14 +577,14 @@ export default function SupplierDashboardPage({ params }: PageProps) {
                           {/* Marker Dot */}
                           <div className={cn(
                             "absolute -left-[31px] top-1.5 w-4 h-4 rounded-full border-2 border-white transition-all group-hover:scale-125 shadow-sm",
-                            isPayment ? "bg-emerald-500" : "bg-forest-900"
+                            isPayment ? "bg-emerald-500" : "bg-corp-blue-900"
                           )} />
 
                           <div className="flex flex-col gap-2">
                             {/* Header row */}
                             <div className="flex items-center justify-between gap-4">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className="text-xs font-black text-forest-950 uppercase tracking-wide">
+                                <span className="text-xs font-black text-corp-blue-950 uppercase tracking-wide">
                                   {getTransactionTypeLabel(item.type)}
                                 </span>
                                 {getPaymentMethod(item.description) && (

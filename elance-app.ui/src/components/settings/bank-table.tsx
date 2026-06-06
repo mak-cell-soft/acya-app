@@ -64,19 +64,19 @@ export function BankTable() {
 
   return (
     <div className="space-y-10">
-      <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-forest-50 shadow-sm">
+      <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-corp-blue-50 shadow-sm">
         <div className="flex items-center gap-4 pl-2">
-          <div className="w-10 h-10 rounded-full bg-forest-50 flex items-center justify-center text-forest-600">
+          <div className="w-10 h-10 rounded-full bg-corp-blue-50 flex items-center justify-center text-corp-blue-600">
             <Landmark className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-heading font-bold text-forest-900">Comptes Bancaires</h3>
+            <h3 className="font-bold text-corp-blue-900">Comptes Bancaires</h3>
             <p className="text-xs text-sand-500 font-medium">{banks?.length || 0} comptes configurés</p>
           </div>
         </div>
         <Button 
           onClick={handleAdd}
-          className="bg-forest-600 text-white font-bold h-11 px-6 gap-2 hover:bg-forest-800 transition-all shadow-lg shadow-forest-600/10"
+          className="bg-corp-blue-600 text-white font-bold h-11 px-6 gap-2 hover:bg-corp-blue-800 transition-all shadow-lg shadow-corp-blue-600/10"
         >
           <Plus className="w-4 h-4" /> Ajouter un Compte
         </Button>
@@ -86,33 +86,33 @@ export function BankTable() {
         {paginatedData.map((bank) => (
           <div 
             key={bank.id} 
-            className="group relative bg-white rounded-2xl p-8 border border-forest-100 shadow-sm hover:shadow-xl hover:border-forest-200 transition-all duration-500 overflow-hidden"
+            className="group relative bg-white rounded-2xl p-8 border border-corp-blue-100 shadow-sm hover:shadow-xl hover:border-corp-blue-200 transition-all duration-500 overflow-hidden"
           >
             {/* Background Decorative Pattern */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-forest-50/50 rounded-full blur-3xl group-hover:bg-forest-100/50 transition-colors" />
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-corp-blue-50/50 rounded-full blur-3xl group-hover:bg-corp-blue-100/50 transition-colors" />
             
             <div className="relative z-10 flex flex-col h-full">
               {/* Card Header */}
               <div className="flex justify-between items-start mb-6">
                 <div className="space-y-1">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-forest-600 text-white text-[10px] font-bold uppercase tracking-widest mb-2 shadow-sm">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-corp-blue-600 text-white text-[10px] font-bold uppercase tracking-widest mb-2 shadow-sm">
                     {bank.reference}
                   </span>
-                  <h4 className="text-lg font-heading font-bold text-forest-900 leading-tight">
+                  <h4 className="text-lg font-bold text-corp-blue-900 leading-tight">
                     {bank.designation}
                   </h4>
                 </div>
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-sand-100 transition-colors text-forest-400">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-sand-100 transition-colors text-corp-blue-400">
                       <MoreVertical className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="rounded-2xl border-forest-100 p-1 min-w-[140px] shadow-xl">
+                  <DropdownMenuContent align="end" className="rounded-2xl border-corp-blue-100 p-1 min-w-[140px] shadow-xl">
                     <DropdownMenuItem 
                       onClick={() => handleEdit(bank)}
-                      className="rounded-xl gap-2 font-bold text-forest-600 focus:bg-forest-50 focus:text-forest-900 cursor-pointer"
+                      className="rounded-xl gap-2 font-bold text-corp-blue-600 focus:bg-corp-blue-50 focus:text-corp-blue-900 cursor-pointer"
                     >
                       <Edit2 className="w-4 h-4" /> Modifier
                     </DropdownMenuItem>
@@ -130,10 +130,10 @@ export function BankTable() {
               <div className="space-y-5 mt-auto">
                 <div className="bg-sand-50/80 backdrop-blur-sm p-4 rounded-2xl border border-sand-100">
                   <div className="flex items-center gap-3 mb-1">
-                    <CreditCard className="w-4 h-4 text-forest-400" />
+                    <CreditCard className="w-4 h-4 text-corp-blue-400" />
                     <span className="text-[10px] font-bold text-sand-400 uppercase tracking-wider">Numéro de Compte / RIB</span>
                   </div>
-                  <p className="font-mono text-sm font-bold text-forest-800 tracking-wider">
+                  <p className="font-mono text-sm font-bold text-corp-blue-800 tracking-wider">
                     {bank.rib}
                   </p>
                 </div>
@@ -141,21 +141,21 @@ export function BankTable() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <MapPin className="w-3 h-3 text-forest-400" />
+                      <MapPin className="w-3 h-3 text-corp-blue-400" />
                       <span className="text-[10px] font-bold text-sand-400 uppercase tracking-wider">Agence</span>
                     </div>
-                    <p className="text-xs font-bold text-forest-900 truncate">{bank.agency}</p>
+                    <p className="text-xs font-bold text-corp-blue-900 truncate">{bank.agency}</p>
                   </div>
                   <div className="space-y-1 text-right">
                     <div className="flex items-center gap-2 justify-end">
-                      <Globe className="w-3 h-3 text-forest-400" />
+                      <Globe className="w-3 h-3 text-corp-blue-400" />
                       <span className="text-[10px] font-bold text-sand-400 uppercase tracking-wider">IBAN</span>
                     </div>
-                    <p className="text-xs font-bold text-forest-900 truncate">{bank.iban}</p>
+                    <p className="text-xs font-bold text-corp-blue-900 truncate">{bank.iban}</p>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-forest-50 flex items-center justify-between">
+                <div className="pt-4 border-t border-corp-blue-50 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
                       <Wallet className="w-4 h-4" />
@@ -179,12 +179,12 @@ export function BankTable() {
           <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-sm mb-6">
             <Landmark className="w-10 h-10 text-sand-300" />
           </div>
-          <h4 className="text-xl font-heading font-bold text-forest-900">Aucune banque</h4>
+          <h4 className="text-xl font-bold text-corp-blue-900">Aucune banque</h4>
           <p className="text-sand-500 font-medium mt-2">Commencez par ajouter votre premier compte bancaire</p>
           <Button 
             onClick={handleAdd}
             variant="outline"
-            className="mt-6 border-forest-100 text-forest-600 font-bold gap-2 hover:bg-white"
+            className="mt-6 border-corp-blue-100 text-corp-blue-600 font-bold gap-2 hover:bg-white"
           >
             <Plus className="w-4 h-4" /> Ajouter une Banque
           </Button>

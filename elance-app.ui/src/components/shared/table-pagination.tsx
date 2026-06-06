@@ -27,7 +27,7 @@ export function TablePagination({
   if (totalItems === 0) return null;
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2 py-4 border-t border-forest-50/50">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2 py-4 border-t border-corp-blue-50/50">
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
           <p className="text-xs font-bold text-sand-400 uppercase tracking-wider">Lignes par page</p>
@@ -35,10 +35,10 @@ export function TablePagination({
             value={pageSize.toString()}
             onValueChange={(val) => onPageSizeChange(Number(val))}
           >
-            <SelectTrigger className="h-8 w-[70px] rounded-lg border-forest-100 bg-white text-xs font-bold text-forest-900 focus:ring-forest-600">
+            <SelectTrigger className="h-8 w-[70px] rounded-lg border-corp-blue-100 bg-white text-xs font-bold text-corp-blue-900 focus:ring-corp-blue-600">
               <SelectValue placeholder={pageSize} />
             </SelectTrigger>
-            <SelectContent className="rounded-xl border-forest-100">
+            <SelectContent className="rounded-xl border-corp-blue-100">
               {[5, 10, 15].map((size) => (
                 <SelectItem key={size} value={size.toString()} className="text-xs font-medium">
                   {size}
@@ -48,7 +48,7 @@ export function TablePagination({
           </Select>
         </div>
         <p className="text-xs font-bold text-sand-400">
-          <span className="text-forest-900 font-black">{startItem}-{endItem}</span> sur <span className="text-forest-900 font-black">{totalItems}</span>
+          <span className="text-corp-blue-900 font-black">{startItem}-{endItem}</span> sur <span className="text-corp-blue-900 font-black">{totalItems}</span>
         </p>
       </div>
 
@@ -56,7 +56,7 @@ export function TablePagination({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-lg text-forest-400 hover:text-forest-900 hover:bg-forest-50 disabled:opacity-30"
+          className="h-8 w-8 rounded-lg text-corp-blue-400 hover:text-corp-blue-900 hover:bg-corp-blue-50 disabled:opacity-30"
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
         >
@@ -65,7 +65,7 @@ export function TablePagination({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-lg text-forest-400 hover:text-forest-900 hover:bg-forest-50 disabled:opacity-30"
+          className="h-8 w-8 rounded-lg text-corp-blue-400 hover:text-corp-blue-900 hover:bg-corp-blue-50 disabled:opacity-30"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
         >
@@ -73,8 +73,8 @@ export function TablePagination({
         </Button>
         
         <div className="flex items-center gap-1 px-2">
-           <span className="text-xs font-bold text-forest-900">Page</span>
-           <span className="h-8 min-w-[32px] flex items-center justify-center rounded-lg bg-forest-600 text-white text-xs font-black shadow-lg shadow-forest-600/20">
+           <span className="text-xs font-bold text-corp-blue-900">Page</span>
+           <span className="h-8 min-w-[32px] flex items-center justify-center rounded-lg bg-corp-blue-600 text-white text-xs font-black shadow-lg shadow-corp-blue-600/20">
               {currentPage}
            </span>
            <span className="text-xs font-bold text-sand-400">sur {totalPages || 1}</span>
@@ -83,7 +83,7 @@ export function TablePagination({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-lg text-forest-400 hover:text-forest-900 hover:bg-forest-50 disabled:opacity-30"
+          className="h-8 w-8 rounded-lg text-corp-blue-400 hover:text-corp-blue-900 hover:bg-corp-blue-50 disabled:opacity-30"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages || totalPages === 0}
         >
@@ -92,7 +92,7 @@ export function TablePagination({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-lg text-forest-400 hover:text-forest-900 hover:bg-forest-50 disabled:opacity-30"
+          className="h-8 w-8 rounded-lg text-corp-blue-400 hover:text-corp-blue-900 hover:bg-corp-blue-50 disabled:opacity-30"
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages || totalPages === 0}
         >

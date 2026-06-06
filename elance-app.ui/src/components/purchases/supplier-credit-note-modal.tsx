@@ -317,7 +317,7 @@ export function SupplierCreditNoteModal({
               <span className="text-[9px] font-extrabold tracking-widest uppercase text-amber-300 font-mono">
                 Avoirs Fournisseurs
               </span>
-              <h2 className="text-lg font-serif font-bold text-amber-50">
+              <h2 className="text-lg font-bold text-amber-50">
                 {parentInvoice ? `Créer un Avoir : Réf ${parentInvoice.docnumber}` : 'Avoir Fournisseur Libre'}
               </h2>
             </div>
@@ -555,7 +555,7 @@ export function SupplierCreditNoteModal({
                       <span className="font-semibold text-sand-800">{fmt(amountTVA)} DT</span>
                     </div>
                     <Separator className="bg-sand-150 my-1" />
-                    <div className="flex justify-between items-center text-sand-900 font-serif text-xs pt-1">
+                    <div className="flex justify-between items-center text-sand-900 text-xs pt-1">
                       <span className="font-extrabold">TOTAL AVOIR TTC:</span>
                       <span className="text-sm font-bold font-mono text-amber-800">
                         {fmt(amountTTC)} DT

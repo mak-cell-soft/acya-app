@@ -226,14 +226,14 @@ export function ArticleFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-background scrollbar-hide">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-5xl p-0 overflow-hidden border-corp-blue-100 shadow-2xl rounded-none sm:rounded-2xl bg-background scrollbar-hide">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100">
+            <div className="w-12 h-12 rounded-2xl bg-corp-blue-50 flex items-center justify-center border border-corp-blue-100">
               {editArticle ? <PencilLine className="w-6 h-6 text-emerald-600" /> : <PlusCircle className="w-6 h-6 text-emerald-600" />}
             </div>
             <div>
-              <DialogTitle className="font-heading text-2xl font-bold tracking-tight">
+              <DialogTitle className="text-2xl font-bold tracking-tight">
                 {editArticle ? "Modifier l'Article" : "Nouvel Article"}
               </DialogTitle>
               <p className="text-muted-foreground text-sm font-medium mt-1">
@@ -253,9 +253,9 @@ export function ArticleFormDialog({
           <form onSubmit={form.handleSubmit(onSubmit)} className="p-8 space-y-8 overflow-y-auto max-h-[70vh]">
             {/* General Information Section */}
             <div className="space-y-6">
-              <div className="flex items-center gap-2 pb-2 border-b border-forest-50">
-                <LayoutGrid className="w-4 h-4 text-forest-600" />
-                <h3 className="font-heading font-bold text-forest-900">Informations Générales</h3>
+              <div className="flex items-center gap-2 pb-2 border-b border-corp-blue-50">
+                <LayoutGrid className="w-4 h-4 text-corp-blue-600" />
+                <h3 className="font-bold text-corp-blue-900">Informations Générales</h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
@@ -263,15 +263,15 @@ export function ArticleFormDialog({
                 <div className="md:col-span-1 space-y-4">
                   <div 
                     className={cn(
-                      "aspect-square rounded-3xl border-2 border-dashed border-forest-100 bg-sand-50/50 flex flex-col items-center justify-center relative overflow-hidden group cursor-pointer transition-all hover:border-forest-600 hover:bg-forest-50/30",
-                      previewImage && "border-solid border-forest-200 bg-white"
+                      "aspect-square rounded-3xl border-2 border-dashed border-corp-blue-100 bg-sand-50/50 flex flex-col items-center justify-center relative overflow-hidden group cursor-pointer transition-all hover:border-corp-blue-600 hover:bg-corp-blue-50/30",
+                      previewImage && "border-solid border-corp-blue-200 bg-white"
                     )}
                     onClick={() => document.getElementById('image-upload')?.click()}
                   >
                     {previewImage ? (
                       <>
                         <img src={previewImage} alt="Preview" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-forest-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="absolute inset-0 bg-corp-blue-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <Camera className="w-8 h-8 text-white" />
                         </div>
                         <button 
@@ -284,7 +284,7 @@ export function ArticleFormDialog({
                       </>
                     ) : (
                       <>
-                        <Camera className="w-10 h-10 text-sand-200 group-hover:text-forest-600 transition-colors" />
+                        <Camera className="w-10 h-10 text-sand-200 group-hover:text-corp-blue-600 transition-colors" />
                         <span className="text-[0.65rem] font-bold text-sand-400 uppercase mt-2">Ajouter Image</span>
                       </>
                     )}
@@ -344,7 +344,7 @@ export function ArticleFormDialog({
                                 </SelectValue>
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent className="rounded-xl border-forest-100 shadow-xl">
+                            <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl">
                               {categories?.map((cat) => (
                                 <SelectItem key={cat.id} value={cat.id.toString()}>{cat.description}</SelectItem>
                               ))}
@@ -368,7 +368,7 @@ export function ArticleFormDialog({
                                 </SelectValue>
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent className="rounded-xl border-forest-100 shadow-xl">
+                            <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl">
                               {filteredSubCategories.map((sub) => (
                                 <SelectItem key={sub.id} value={sub.id.toString()}>{sub.description}</SelectItem>
                               ))}
@@ -386,9 +386,9 @@ export function ArticleFormDialog({
             {/* Wood Properties Section (Conditional) */}
             {selectedCategoryId === "1" && (
               <div className="space-y-6 animate-in slide-in-from-top duration-500">
-                <div className="flex items-center gap-2 pb-2 border-b border-forest-50">
-                  <TreeDeciduous className="w-4 h-4 text-forest-600" />
-                  <h3 className="font-heading font-bold text-forest-900">Propriétés du Bois</h3>
+                <div className="flex items-center gap-2 pb-2 border-b border-corp-blue-50">
+                  <TreeDeciduous className="w-4 h-4 text-corp-blue-600" />
+                  <h3 className="font-bold text-corp-blue-900">Propriétés du Bois</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
@@ -405,7 +405,7 @@ export function ArticleFormDialog({
                               </SelectValue>
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="rounded-xl border-forest-100 shadow-xl">
+                          <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl">
                             {thicknesses?.map((t) => (
                               <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>
                             ))}
@@ -429,7 +429,7 @@ export function ArticleFormDialog({
                               </SelectValue>
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="rounded-xl border-forest-100 shadow-xl">
+                          <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl">
                             {widths?.map((w) => (
                               <SelectItem key={w.id} value={w.id.toString()}>{w.name}</SelectItem>
                             ))}
@@ -440,20 +440,20 @@ export function ArticleFormDialog({
                     )}
                   />
                 </div>
-                <div className="space-y-4 p-6 rounded-3xl bg-forest-50/50 border border-forest-100">
+                <div className="space-y-4 p-6 rounded-3xl bg-corp-blue-50/50 border border-corp-blue-100">
                   <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Longueurs Disponibles (cm)</FormLabel>
                   <div className="flex flex-wrap gap-4">
                     {lengths?.map((l) => (
-                      <div key={l.id} className="flex items-center space-x-2 bg-white px-3 py-2 rounded-xl border border-forest-100 hover:border-forest-600 transition-colors">
+                      <div key={l.id} className="flex items-center space-x-2 bg-white px-3 py-2 rounded-xl border border-corp-blue-100 hover:border-corp-blue-600 transition-colors">
                         <Checkbox 
                           id={`len-${l.id}`} 
                           checked={selectedLengths.includes(l.name)}
                           onCheckedChange={() => handleLengthToggle(l.name)}
-                          className="border-forest-200 data-[state=checked]:bg-forest-600 data-[state=checked]:border-forest-600"
+                          className="border-corp-blue-200 data-[state=checked]:bg-corp-blue-600 data-[state=checked]:border-corp-blue-600"
                         />
                         <label 
                           htmlFor={`len-${l.id}`}
-                          className="text-sm font-bold text-forest-900 cursor-pointer"
+                          className="text-sm font-bold text-corp-blue-900 cursor-pointer"
                         >
                           {l.name}
                         </label>
@@ -466,9 +466,9 @@ export function ArticleFormDialog({
 
             {/* Sales & Pricing Section */}
             <div className="space-y-6">
-              <div className="flex items-center gap-2 pb-2 border-b border-forest-50">
-                <Calculator className="w-4 h-4 text-forest-600" />
-                <h3 className="font-heading font-bold text-forest-900">Vente & Tarification</h3>
+              <div className="flex items-center gap-2 pb-2 border-b border-corp-blue-50">
+                <Calculator className="w-4 h-4 text-corp-blue-600" />
+                <h3 className="font-bold text-corp-blue-900">Vente & Tarification</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField
@@ -506,7 +506,7 @@ export function ArticleFormDialog({
                             </SelectValue>
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="rounded-xl border-forest-100 shadow-xl">
+                        <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl">
                           {tvas?.map((t) => {
                             const numVal = parseFloat(t.value?.toString().replace(',', '.') || '0');
                             return (
@@ -523,7 +523,7 @@ export function ArticleFormDialog({
                 />
                 <FormItem>
                   <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Prix calculé HT</FormLabel>
-                  <div className="h-12 rounded-xl border border-forest-100 bg-sand-50/50 flex items-center px-4 font-bold text-sand-500">
+                  <div className="h-12 rounded-xl border border-corp-blue-100 bg-sand-50/50 flex items-center px-4 font-bold text-sand-500">
                     {calculatedHT.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}
                     <span className="ml-auto text-[0.6rem] uppercase tracking-wider text-sand-300">Auto-Calcul</span>
                   </div>
@@ -545,7 +545,7 @@ export function ArticleFormDialog({
                             </SelectValue>
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="rounded-xl border-forest-100 shadow-xl">
+                        <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl">
                           {Object.values(QuantityUnits).map((unit) => (
                             <SelectItem key={unit} value={unit.substring(0, 3).toUpperCase()}>{unit}</SelectItem>
                           ))}
@@ -587,7 +587,7 @@ export function ArticleFormDialog({
               </div>
             </div>
 
-            <DialogFooter className="pt-8 border-t border-forest-50 gap-3">
+            <DialogFooter className="pt-8 border-t border-corp-blue-50 gap-3">
               <Button 
                 type="button" 
                 variant="ghost" 
@@ -599,7 +599,7 @@ export function ArticleFormDialog({
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="h-12 px-10 bg-forest-600 text-white font-bold hover:bg-forest-800 shadow-lg shadow-forest-600/20 gap-2"
+                className="h-12 px-10 bg-corp-blue-600 text-white font-bold hover:bg-corp-blue-800 shadow-lg shadow-corp-blue-600/20 gap-2"
               >
                 {isLoading ? "Traitement..." : (editArticle ? "Mettre à jour" : "Enregistrer")}
               </Button>

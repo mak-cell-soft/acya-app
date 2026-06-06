@@ -178,7 +178,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-3xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-white font-sans">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-3xl p-0 overflow-hidden border-corp-blue-100 shadow-2xl rounded-none sm:rounded-2xl bg-white font-sans">
         
         {/* Header Block with Premium Light Blue Gradient */}
         <DialogHeader className="bg-corp-blue-50/90 border-b border-corp-blue-100 pb-4 mb-4 p-8 relative backdrop-blur-md">
@@ -187,7 +187,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
               <User className="w-6 h-6" />
             </div>
             <div className="space-y-0.5">
-              <DialogTitle className="font-heading text-2xl font-bold tracking-tight">
+              <DialogTitle className="text-2xl font-bold tracking-tight">
                 Mon Profil
               </DialogTitle>
               <p className="text-muted-foreground text-sm font-medium">
@@ -225,7 +225,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
           <div className="p-8 max-h-[500px] overflow-y-auto">
             {isProfileLoading ? (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <Loader2 className="w-10 h-10 text-forest-600 animate-spin" />
+                <Loader2 className="w-10 h-10 text-corp-blue-600 animate-spin" />
                 <p className="text-sm font-medium text-sand-400">Chargement de vos informations...</p>
               </div>
             ) : (
@@ -237,7 +237,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
                       
                       {/* Login Identifier (Read-only as mapped in Angular implementation) */}
                       <div className="space-y-2">
-                        <Label htmlFor="login" className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        <Label htmlFor="login" className="text-sm font-medium text-slate-700">
                           Identifiant (Login)
                         </Label>
                         <div className="relative">
@@ -253,7 +253,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
 
                       {/* Email Address */}
                       <div className="space-y-2">
-                        <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        <Label htmlFor="email" className="text-sm font-medium text-slate-700">
                           Email
                         </Label>
                         <div className="relative">
@@ -276,7 +276,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
 
                       {/* First Name */}
                       <div className="space-y-2">
-                        <Label htmlFor="firstName" className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        <Label htmlFor="firstName" className="text-sm font-medium text-slate-700">
                           Prénom
                         </Label>
                         <Input
@@ -295,7 +295,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
 
                       {/* Last Name */}
                       <div className="space-y-2">
-                        <Label htmlFor="lastName" className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        <Label htmlFor="lastName" className="text-sm font-medium text-slate-700">
                           Nom
                         </Label>
                         <Input
@@ -314,7 +314,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
 
                       {/* Phone Number */}
                       <div className="space-y-2">
-                        <Label htmlFor="phoneNumber" className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        <Label htmlFor="phoneNumber" className="text-sm font-medium text-slate-700">
                           Téléphone
                         </Label>
                         <div className="relative">
@@ -331,7 +331,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
 
                       {/* Address */}
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="address" className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        <Label htmlFor="address" className="text-sm font-medium text-slate-700">
                           Adresse
                         </Label>
                         <div className="relative">
@@ -382,7 +382,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
                       
                       {/* Current Old Password */}
                       <div className="space-y-2">
-                        <Label htmlFor="oldPassword" className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        <Label htmlFor="oldPassword" className="text-sm font-medium text-slate-700">
                           Mot de passe actuel
                         </Label>
                         <div className="relative">
@@ -412,7 +412,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
 
                       {/* New Password */}
                       <div className="space-y-2">
-                        <Label htmlFor="newPassword" className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        <Label htmlFor="newPassword" className="text-sm font-medium text-slate-700">
                           Nouveau mot de passe
                         </Label>
                         <div className="relative">
@@ -442,7 +442,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
 
                       {/* Confirm New Password */}
                       <div className="space-y-2">
-                        <Label htmlFor="confirmPassword" className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        <Label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700">
                           Confirmer le nouveau mot de passe
                         </Label>
                         <div className="relative">

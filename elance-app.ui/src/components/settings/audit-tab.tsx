@@ -26,14 +26,14 @@ export function AuditTab() {
     });
   };
 
-  if (isLoading) return <Loader2 className="w-6 h-6 animate-spin text-forest-600" />;
+  if (isLoading) return <Loader2 className="w-6 h-6 animate-spin text-corp-blue-600" />;
 
   return (
     <div className="space-y-12">
       <section className="grid lg:grid-cols-3 gap-8">
         <div className="space-y-2">
-          <h3 className="text-lg font-bold text-forest-900 flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-forest-50 text-forest-600">
+          <h3 className="text-lg font-bold text-corp-blue-900 flex items-center gap-2.5">
+            <div className="p-1.5 rounded-lg bg-corp-blue-50 text-corp-blue-600">
               <Shield className="w-5 h-5" />
             </div>
             Sécurité & Audit
@@ -42,7 +42,7 @@ export function AuditTab() {
             Configurez les politiques de conservation des traces et des journaux d'activité.
           </p>
         </div>
-        <Card className="lg:col-span-2 border-forest-100 rounded-xl shadow-sm bg-white overflow-hidden">
+        <Card className="lg:col-span-2 border-corp-blue-100 rounded-xl shadow-sm bg-white overflow-hidden">
           <CardContent className="p-8 space-y-8">
             <div className="flex items-start gap-6 p-6 rounded-2xl bg-amber-50 border border-amber-100">
               <div className="p-2 bg-white rounded-xl shadow-sm text-amber-600">
@@ -59,8 +59,8 @@ export function AuditTab() {
 
             <div className="space-y-4 max-w-md">
               <div className="space-y-2.5">
-                <Label className="text-sm font-bold text-forest-900 flex items-center gap-2">
-                  <History className="w-4 h-4 text-forest-400" /> Durée de conservation
+                <Label className="text-sm font-bold text-corp-blue-900 flex items-center gap-2">
+                  <History className="w-4 h-4 text-corp-blue-400" /> Durée de conservation
                 </Label>
                 <div className="flex items-center gap-4">
                   <Input 
@@ -68,9 +68,9 @@ export function AuditTab() {
                     value={retention}
                     onChange={(e) => setRetention(parseInt(e.target.value))}
                     min={1}
-                    className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:bg-white focus:border-forest-600 font-bold text-lg w-32 pl-4"
+                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:bg-white focus:border-corp-blue-600 font-bold text-lg w-32 pl-4"
                   />
-                  <span className="text-forest-900 font-bold">Mois</span>
+                  <span className="text-corp-blue-900 font-bold">Mois</span>
                 </div>
                 <p className="text-xs text-sand-400 font-medium mt-2 italic">
                   * Les données plus anciennes que cette période seront archivées ou supprimées.
@@ -78,11 +78,11 @@ export function AuditTab() {
               </div>
             </div>
 
-            <div className="flex justify-end pt-4 border-t border-forest-50">
+            <div className="flex justify-end pt-4 border-t border-corp-blue-50">
               <Button 
                 onClick={onSave}
                 disabled={updateEnterprise.isPending}
-                className="bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 gap-2 h-12 px-8 transition-all duration-300"
+                className="bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20 gap-2 h-12 px-8 transition-all duration-300"
               >
                 {updateEnterprise.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                 Enregistrer les paramètres

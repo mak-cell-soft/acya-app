@@ -140,7 +140,7 @@ export function StockTransfersList() {
 
   if (error) {
     return (
-      <div className="py-16 text-center text-rose-500 font-serif italic text-xs">
+      <div className="py-16 text-center text-rose-500 italic text-xs">
         Erreur lors du chargement des transferts. Veuillez rafraîchir.
       </div>
     );
@@ -152,7 +152,7 @@ export function StockTransfersList() {
       {/* Search Header panel with New creation button */}
       <div className="flex flex-row items-center justify-between border-b border-stone-200/40 dark:border-stone-800/40 pb-4">
         <div>
-          <h2 className="text-sm font-serif font-bold text-stone-900 dark:text-stone-50 uppercase tracking-wider">
+          <h2 className="text-sm font-bold text-stone-900 dark:text-stone-50 uppercase tracking-wider">
             Registre des Expéditions Inter-Sites
           </h2>
           <span className="text-[9px] text-stone-400 lowercase leading-normal block">
@@ -170,7 +170,7 @@ export function StockTransfersList() {
 
       {transfers.length === 0 ? (
         <Card className="border-stone-200 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/10">
-          <CardContent className="p-12 text-center text-stone-400 italic text-xs font-serif">
+          <CardContent className="p-12 text-center text-stone-400 italic text-xs">
             Aucun transfert de stock enregistré dans le registre.
           </CardContent>
         </Card>
@@ -267,7 +267,7 @@ export function StockTransfersList() {
       <Dialog open={!!selectedTransfer} onOpenChange={() => setSelectedTransfer(null)}>
         <DialogContent className="bg-white dark:bg-stone-950 rounded-2xl border border-stone-250 dark:border-stone-850 shadow-2xl p-6 sm:max-w-2xl w-full">
           <DialogHeader className="border-b border-stone-200/40 dark:border-stone-800/40 pb-4">
-            <DialogTitle className="text-base font-serif font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider flex items-center gap-2">
+            <DialogTitle className="text-base font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider flex items-center gap-2">
               <Truck className="h-5 w-5 text-amber-500" /> Détails du Transfert Logistique
             </DialogTitle>
             <DialogDescription className="text-xs text-stone-400 leading-normal">

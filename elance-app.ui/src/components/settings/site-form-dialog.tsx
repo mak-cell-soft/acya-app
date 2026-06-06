@@ -79,16 +79,16 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] rounded-2xl p-0 overflow-hidden border-forest-100">
+      <DialogContent className="sm:max-w-[500px] rounded-2xl p-0 overflow-hidden border-corp-blue-100">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <Store className="w-24 h-24" />
           </div>
-          <DialogTitle className="text-2xl font-heading font-bold flex items-center gap-3">
+          <DialogTitle className="text-2xl font-bold flex items-center gap-3">
             <MapPin className="w-6 h-6" />
             Nouveau Site
           </DialogTitle>
-          <DialogDescription className="text-forest-100 text-sm font-medium mt-1">
+          <DialogDescription className="text-corp-blue-100 text-sm font-medium mt-1">
             Ajoutez un nouveau point de vente ou dépôt pour votre entreprise.
           </DialogDescription>
         </DialogHeader>
@@ -96,7 +96,7 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
         <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6 bg-white">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-forest-900">Adresse complète</Label>
+              <Label className="text-sm font-bold text-corp-blue-900">Adresse complète</Label>
               <Input 
                 {...register('address')} 
                 placeholder="Ex: Rue de l'Industrie, Zone Industrielle..."
@@ -107,7 +107,7 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-sm font-bold text-forest-900">Code Postal</Label>
+                <Label className="text-sm font-bold text-corp-blue-900">Code Postal</Label>
                 <Input 
                   {...register('codepost')} 
                   placeholder="2035"
@@ -117,7 +117,7 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
                 {errors.codepost && <p className="text-xs text-red-500 font-medium">{errors.codepost.message}</p>}
               </div>
               <div className="space-y-2">
-                <Label className="text-sm font-bold text-forest-900">Gouvernorat</Label>
+                <Label className="text-sm font-bold text-corp-blue-900">Gouvernorat</Label>
                 <Controller
                   name="gov"
                   control={control}
@@ -138,9 +138,9 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-4 rounded-2xl bg-sand-50/50 border border-forest-50">
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-sand-50/50 border border-corp-blue-50">
               <div className="space-y-0.5">
-                <Label className="text-sm font-bold text-forest-900">Point de Vente</Label>
+                <Label className="text-sm font-bold text-corp-blue-900">Point de Vente</Label>
                 <p className="text-xs text-sand-400 font-medium">Activer si ce site effectue des ventes.</p>
               </div>
               <Controller
@@ -150,7 +150,7 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
                   <Switch 
                     checked={field.value} 
                     onCheckedChange={field.onChange} 
-                    className="data-[state=checked]:bg-forest-600"
+                    className="data-[state=checked]:bg-corp-blue-600"
                   />
                 )}
               />
@@ -162,13 +162,13 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
               type="button" 
               variant="outline" 
               onClick={onClose}
-              className="flex-1 h-12 border-forest-100 text-forest-600 font-bold hover:bg-forest-50"
+              className="flex-1 h-12 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50"
             >
               Annuler
             </Button>
             <Button 
               disabled={createSite.isPending}
-              className="flex-[2] h-12 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
+              className="flex-[2] h-12 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20"
             >
               {createSite.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Créer le site'}
             </Button>

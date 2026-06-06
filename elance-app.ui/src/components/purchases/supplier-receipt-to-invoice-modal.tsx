@@ -183,7 +183,7 @@ export function SupplierReceiptToInvoiceModal({
               <span className="text-[10px] font-bold tracking-widest uppercase text-amber-300">
                 Comptabilisation Factures
               </span>
-              <h2 className="text-xl font-serif text-amber-50">
+              <h2 className="text-xl text-amber-50">
                 Facturer des Bons de Réception : {supplierName}
               </h2>
             </div>
@@ -220,7 +220,7 @@ export function SupplierReceiptToInvoiceModal({
 
               {/* Selected receipts */}
               <div className="space-y-2">
-                <h3 className="font-serif font-bold text-sm text-sand-800">
+                <h3 className="font-bold text-sm text-sand-800">
                   {selectedReceipts.length} documents de réception sélectionnés
                 </h3>
                 <div className="border border-sand-200 rounded-2xl overflow-hidden bg-white shadow-xs max-h-[300px] overflow-y-auto">
@@ -256,7 +256,7 @@ export function SupplierReceiptToInvoiceModal({
 
             {/* Right Column: Taxes & calculations panel */}
             <div className="lg:col-span-5 space-y-5 border-l border-sand-150 pl-6">
-              <h3 className="font-serif font-bold text-sm text-sand-800 border-b border-sand-100 pb-1.5">
+              <h3 className="font-bold text-sm text-sand-800 border-b border-sand-100 pb-1.5">
                 Timbre &amp; Synthèse Financière
               </h3>
 
@@ -286,7 +286,7 @@ export function SupplierReceiptToInvoiceModal({
 
               {/* Aggregates Card */}
               <Card className="rounded-2xl border-sand-200 shadow-xs bg-white p-5 space-y-3.5 font-mono text-xs">
-                <h4 className="font-serif font-bold text-xs text-sand-850 border-b border-sand-50 pb-1">
+                <h4 className="font-bold text-xs text-sand-850 border-b border-sand-50 pb-1">
                   Totaux Combinés
                 </h4>
                 <div className="space-y-2.5 text-sand-600">
@@ -311,7 +311,7 @@ export function SupplierReceiptToInvoiceModal({
                     </div>
                   )}
                   <Separator className="bg-sand-150 my-1" />
-                  <div className="flex justify-between items-center text-sand-900 font-serif text-xs pt-1">
+                  <div className="flex justify-between items-center text-sand-900 text-xs pt-1">
                     <span className="font-bold">TOTAL FACTURÉ TTC:</span>
                     <span className="text-base font-bold font-mono text-amber-800">
                       {fmt(finalNetPayable)} DT

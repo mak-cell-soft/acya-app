@@ -138,18 +138,18 @@ export default function CustomersPage() {
       <div className="space-y-8 animate-in fade-in duration-700">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-heading font-bold text-forest-900 tracking-tight">Gestion des Clients</h1>
+            <h1 className="text-3xl font-bold text-corp-blue-900 tracking-tight">Gestion des Clients</h1>
             <p className="text-sand-400 font-medium mt-1">Gérez votre base client, les soldes et l'historique des ventes.</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="h-11 border-forest-100 text-forest-600 font-bold hover:bg-forest-50">
+            <Button variant="outline" className="h-11 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50">
               <Download className="w-4 h-4 mr-2" /> Exporter
             </Button>
             {hasPermission('customers', 'canAdd') && (
               <Button 
                 onClick={() => setIsImportOpen(true)}
                 variant="outline" 
-                className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50"
+                className="h-11 rounded-xl border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50"
               >
                 <Upload className="w-4 h-4 mr-2" /> Importer
               </Button>
@@ -157,7 +157,7 @@ export default function CustomersPage() {
             {hasPermission('customers', 'canAdd') && (
               <Button 
                 onClick={() => openForm()}
-                className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
+                className="h-11 rounded-xl bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20"
               >
                 <Plus className="w-4 h-4 mr-2" /> Nouveau Client
               </Button>
@@ -165,14 +165,14 @@ export default function CustomersPage() {
           </div>
         </div>
 
-        <Card className="border-forest-100/50 shadow-none rounded-xl overflow-hidden bg-transparent">
-          <CardHeader className="border-b border-forest-50 p-6">
+        <Card className="border-corp-blue-100/50 shadow-none rounded-xl overflow-hidden bg-transparent">
+          <CardHeader className="border-b border-corp-blue-50 p-6">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400" />
                 <Input 
                   placeholder="Rechercher par nom, MF, téléphone..." 
-                  className="pl-10 h-11 rounded-xl border-forest-50 bg-transparent focus:border-forest-600 focus:ring-forest-600 transition-all"
+                  className="pl-10 h-11 rounded-xl border-corp-blue-50 bg-transparent focus:border-corp-blue-600 focus:ring-corp-blue-600 transition-all"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -181,10 +181,10 @@ export default function CustomersPage() {
                 <Button variant="ghost" className="h-11 text-sand-400 font-bold hover:bg-sand-100">
                   <Filter className="w-4 h-4 mr-2" /> Filtres
                 </Button>
-                <div className="h-6 w-[1px] bg-forest-100 mx-2 hidden md:block" />
-                <div className="flex items-center gap-2 px-3 py-2 bg-forest-50 rounded-lg">
-                  <User className="w-4 h-4 text-forest-600" />
-                  <span className="text-sm font-bold text-forest-900">{filteredCustomers.length} Clients</span>
+                <div className="h-6 w-[1px] bg-corp-blue-100 mx-2 hidden md:block" />
+                <div className="flex items-center gap-2 px-3 py-2 bg-corp-blue-50 rounded-lg">
+                  <User className="w-4 h-4 text-corp-blue-600" />
+                  <span className="text-sm font-bold text-corp-blue-900">{filteredCustomers.length} Clients</span>
                 </div>
               </div>
             </div>
@@ -193,21 +193,21 @@ export default function CustomersPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-transparent border-b border-forest-50">
-                    <th className="p-5 text-[0.7rem] font-bold text-forest-900/50 uppercase tracking-widest">Client</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-forest-900/50 uppercase tracking-widest">Matricule Fiscal</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-forest-900/50 uppercase tracking-widest">Contact</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-forest-900/50 uppercase tracking-widest text-right">Solde Actuel (TND)</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-forest-900/50 uppercase tracking-widest text-center">Type</th>
-                    <th className="p-5 text-[0.7rem] font-bold text-forest-900/50 uppercase tracking-widest"></th>
+                  <tr className="bg-transparent border-b border-corp-blue-50">
+                    <th className="p-5 text-[0.7rem] font-bold text-corp-blue-900/50 uppercase tracking-widest">Client</th>
+                    <th className="p-5 text-[0.7rem] font-bold text-corp-blue-900/50 uppercase tracking-widest">Matricule Fiscal</th>
+                    <th className="p-5 text-[0.7rem] font-bold text-corp-blue-900/50 uppercase tracking-widest">Contact</th>
+                    <th className="p-5 text-[0.7rem] font-bold text-corp-blue-900/50 uppercase tracking-widest text-right">Solde Actuel (TND)</th>
+                    <th className="p-5 text-[0.7rem] font-bold text-corp-blue-900/50 uppercase tracking-widest text-center">Type</th>
+                    <th className="p-5 text-[0.7rem] font-bold text-corp-blue-900/50 uppercase tracking-widest"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-forest-50">
+                <tbody className="divide-y divide-corp-blue-50">
                   {isLoading ? (
                     <tr>
                       <td colSpan={6} className="p-20 text-center">
                         <div className="flex flex-col items-center gap-3">
-                          <Loader2 className="w-8 h-8 text-forest-600 animate-spin" />
+                          <Loader2 className="w-8 h-8 text-corp-blue-600 animate-spin" />
                           <p className="text-sand-400 font-bold">Chargement des clients...</p>
                         </div>
                       </td>
@@ -216,18 +216,18 @@ export default function CustomersPage() {
                     <React.Fragment key={item.id}>
                       <tr 
                         className={cn(
-                          "group hover:bg-forest-50/30 transition-all duration-300 cursor-pointer",
-                          expandedId === item.id && "bg-forest-50/50"
+                          "group hover:bg-corp-blue-50/30 transition-all duration-300 cursor-pointer",
+                          expandedId === item.id && "bg-corp-blue-50/50"
                         )}
                         onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
                       >
                         <td className="p-5">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-forest-100 flex items-center justify-center text-forest-600 font-bold text-xs uppercase">
+                            <div className="w-10 h-10 rounded-xl bg-corp-blue-100 flex items-center justify-center text-corp-blue-600 font-bold text-xs uppercase">
                               {(item.name || item.firstname).substring(0, 2)}
                             </div>
                             <div>
-                              <div className="font-bold text-forest-900">{item.name || `${item.firstname} ${item.lastname}`}</div>
+                              <div className="font-bold text-corp-blue-900">{item.name || `${item.firstname} ${item.lastname}`}</div>
                               <div className="text-[0.75rem] text-sand-400 font-medium">{item.firstname} {item.lastname}</div>
                             </div>
                           </div>
@@ -250,7 +250,7 @@ export default function CustomersPage() {
                         <td className="p-5 text-right">
                           <span className={cn(
                             "font-bold",
-                            (item.currentbalance ?? item.openingbalance) < 0 ? "text-rose-600" : "text-forest-900"
+                            (item.currentbalance ?? item.openingbalance) < 0 ? "text-rose-600" : "text-corp-blue-900"
                           )}>
                             {(item.currentbalance ?? item.openingbalance).toLocaleString('fr-TN', { minimumFractionDigits: 3 })}
                           </span>
@@ -270,7 +270,7 @@ export default function CustomersPage() {
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              className="h-9 w-9 rounded-lg text-sand-400 hover:text-forest-600 hover:bg-forest-100/50"
+                              className="h-9 w-9 rounded-lg text-sand-400 hover:text-corp-blue-600 hover:bg-corp-blue-100/50"
                               onClick={(e) => { e.stopPropagation(); openDetails(item); }}
                             >
                               <ExternalLink className="w-4 h-4" />
@@ -281,18 +281,18 @@ export default function CustomersPage() {
                                   <MoreHorizontal className="w-4 h-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="rounded-xl border-forest-100 w-44">
-                                <DropdownMenuItem onClick={() => openAccount(item)} className="gap-2 font-bold text-forest-900 cursor-pointer">
+                              <DropdownMenuContent align="end" className="rounded-xl border-corp-blue-100 w-44">
+                                <DropdownMenuItem onClick={() => openAccount(item)} className="gap-2 font-bold text-corp-blue-900 cursor-pointer">
                                   <CreditCard className="w-4 h-4" /> État de Compte
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => openRecouvrement(item)} className="gap-2 font-bold text-forest-900 cursor-pointer text-green-700">
+                                <DropdownMenuItem onClick={() => openRecouvrement(item)} className="gap-2 font-bold text-corp-blue-900 cursor-pointer text-green-700">
                                   <DollarSign className="w-4 h-4" /> Recouvrement
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => openDetails(item)} className="gap-2 font-bold text-forest-900 cursor-pointer">
+                                <DropdownMenuItem onClick={() => openDetails(item)} className="gap-2 font-bold text-corp-blue-900 cursor-pointer">
                                   <FileText className="w-4 h-4" /> Détails / Grille
                                 </DropdownMenuItem>
                                 {hasPermission('customers', 'canUpdate') && (
-                                  <DropdownMenuItem onClick={() => openForm(item)} className="gap-2 font-bold text-forest-900 cursor-pointer">
+                                  <DropdownMenuItem onClick={() => openForm(item)} className="gap-2 font-bold text-corp-blue-900 cursor-pointer">
                                     <Edit className="w-4 h-4" /> Modifier
                                   </DropdownMenuItem>
                                 )}
@@ -321,7 +321,7 @@ export default function CustomersPage() {
                                 <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
                                   <div className="space-y-4">
                                     <div className="flex items-center gap-2">
-                                      <BadgeInfo className="w-4 h-4 text-forest-600" />
+                                      <BadgeInfo className="w-4 h-4 text-corp-blue-600" />
                                       <h4 className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Informations Générales</h4>
                                     </div>
                                     <div className="flex items-start gap-3">
@@ -332,19 +332,19 @@ export default function CustomersPage() {
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="space-y-4 border-l border-forest-100 pl-8">
+                                  <div className="space-y-4 border-l border-corp-blue-100 pl-8">
                                     <div className="flex items-center gap-2">
-                                      <CreditCard className="w-4 h-4 text-forest-600" />
+                                      <CreditCard className="w-4 h-4 text-corp-blue-600" />
                                       <h4 className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Finances</h4>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                       <div>
                                         <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Plafond Crédit</div>
-                                        <div className="text-sm font-bold text-forest-900">{(item.maximumsalesbar ?? 0).toLocaleString()} TND</div>
+                                        <div className="text-sm font-bold text-corp-blue-900">{(item.maximumsalesbar ?? 0).toLocaleString()} TND</div>
                                       </div>
                                       <div>
                                         <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Remise Max.</div>
-                                        <div className="text-sm font-bold text-forest-900">{item.maximumdiscount}%</div>
+                                        <div className="text-sm font-bold text-corp-blue-900">{item.maximumdiscount}%</div>
                                       </div>
                                     </div>
                                     {/* Shortcut trigger to directly open customer account statement */}
@@ -356,7 +356,7 @@ export default function CustomersPage() {
                                           e.stopPropagation(); 
                                           openAccount(item); 
                                         }}
-                                        className="w-full text-xs font-bold border-forest-200 text-forest-600 hover:bg-forest-50 hover:text-forest-800 transition-all rounded-xl"
+                                        className="w-full text-xs font-bold border-corp-blue-200 text-corp-blue-600 hover:bg-corp-blue-50 hover:text-corp-blue-800 transition-all rounded-xl"
                                       >
                                         <CreditCard className="w-3.5 h-3.5 mr-2" /> État de Compte
                                       </Button>
@@ -373,9 +373,9 @@ export default function CustomersPage() {
                                       </Button>
                                     </div>
                                   </div>
-                                  <div className="space-y-4 border-l border-forest-100 pl-8">
+                                  <div className="space-y-4 border-l border-corp-blue-100 pl-8">
                                     <div className="flex items-center gap-2">
-                                      <FileText className="w-4 h-4 text-forest-600" />
+                                      <FileText className="w-4 h-4 text-corp-blue-600" />
                                       <h4 className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Notes</h4>
                                     </div>
                                     <p className="text-xs text-sand-500 font-medium italic">
@@ -403,14 +403,14 @@ export default function CustomersPage() {
                 </tbody>
               </table>
             </div>
-            <div className="p-6 border-t border-forest-50 flex items-center justify-between">
+            <div className="p-6 border-t border-corp-blue-50 flex items-center justify-between">
               <p className="text-sm text-sand-400 font-medium">
                 Affichage de {filteredCustomers.length} clients
               </p>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold border-forest-50 text-forest-600" disabled>Précédent</Button>
-                <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold bg-forest-600 text-white border-forest-600">1</Button>
-                <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold border-forest-50 text-forest-600">Suivant</Button>
+                <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold border-corp-blue-50 text-corp-blue-600" disabled>Précédent</Button>
+                <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold bg-corp-blue-600 text-white border-corp-blue-600">1</Button>
+                <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold border-corp-blue-50 text-corp-blue-600">Suivant</Button>
               </div>
             </div>
           </CardContent>

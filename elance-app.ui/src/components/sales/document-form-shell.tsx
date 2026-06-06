@@ -976,24 +976,24 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
       <div className="space-y-8 animate-in fade-in duration-700">
         
         {/* Header toolbar */}
-        <div className="flex items-center justify-between border-b border-forest-50 pb-5">
+        <div className="flex items-center justify-between border-b border-corp-blue-50 pb-5">
           <div className="flex items-center gap-3">
             <Button
               variant="outline"
               size="icon"
-              className="h-10 w-10 border-forest-100 text-forest-600 hover:bg-forest-50 shadow-sm"
+              className="h-10 w-10 border-corp-blue-100 text-corp-blue-600 hover:bg-corp-blue-50 shadow-sm"
               onClick={() => router.push('/sales')}
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div>
-              <h1 className="text-2xl font-heading font-bold text-forest-900 tracking-tight">{title}</h1>
+              <h1 className="text-2xl font-bold text-corp-blue-900 tracking-tight">{title}</h1>
               <p className="text-sand-400 font-medium text-xs">{subtitle}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             {activeUserSite && (
-              <Badge className="bg-forest-900/10 hover:bg-forest-900/20 text-forest-800 border border-forest-100 font-bold px-3 py-1.5 rounded-lg flex items-center gap-2">
+              <Badge className="bg-corp-blue-900/10 hover:bg-corp-blue-900/20 text-corp-blue-800 border border-corp-blue-100 font-bold px-3 py-1.5 rounded-lg flex items-center gap-2">
                 <Layers className="w-3.5 h-3.5" />
                 Site actif : {activeUserSite.gov} - {activeUserSite.address}
               </Badge>
@@ -1009,10 +1009,10 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
 
         {/* 1. Main configuration panel */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2 border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm">
-            <CardHeader className="bg-forest-900/5 border-b border-forest-50 p-5">
-              <CardTitle className="text-sm font-heading font-bold text-forest-900 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-forest-600" /> Informations du Document
+          <Card className="lg:col-span-2 border-corp-blue-100/50 shadow-xl shadow-corp-blue-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm">
+            <CardHeader className="bg-corp-blue-900/5 border-b border-corp-blue-50 p-5">
+              <CardTitle className="text-sm font-bold text-corp-blue-900 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-corp-blue-600" /> Informations du Document
               </CardTitle>
               <CardDescription className="text-xs text-sand-400 font-medium">Configurez le client, le transporteur et les données de facturation.</CardDescription>
             </CardHeader>
@@ -1031,7 +1031,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                     }}
                     onFocus={() => setIsCustomerDropdownOpen(true)}
                     placeholder="Sélectionner ou saisir le nom du client..."
-                    className="pl-9 pr-8 h-11 rounded-xl border-forest-50 focus:ring-forest-600 bg-sand-50/50 text-xs font-bold text-forest-900"
+                    className="pl-9 pr-8 h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900"
                   />
                   {selectedCustomer && (
                     <button
@@ -1055,7 +1055,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                       className="fixed inset-0 z-10" 
                       onClick={() => setIsCustomerDropdownOpen(false)} 
                     />
-                    <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto z-20 rounded-xl border border-forest-100 bg-white/95 backdrop-blur-md shadow-2xl p-1.5 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto z-20 rounded-xl border border-corp-blue-100 bg-white/95 backdrop-blur-md shadow-2xl p-1.5 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
                       {filteredCustomersList.map(cust => {
                         const fullName = cust.name || (cust.firstname + ' ' + cust.lastname);
                         return (
@@ -1065,8 +1065,8 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                             className={cn(
                               "w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between",
                               selectedCustomer?.id === cust.id 
-                                ? "bg-forest-600 text-white" 
-                                : "text-forest-900 hover:bg-forest-50"
+                                ? "bg-corp-blue-600 text-white" 
+                                : "text-corp-blue-900 hover:bg-corp-blue-50"
                             )}
                             onClick={() => {
                               setSelectedCustomer(cust);
@@ -1082,7 +1082,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                             <span>{fullName}</span>
                             <span className={cn(
                               "text-[0.65rem] font-medium",
-                              selectedCustomer?.id === cust.id ? "text-forest-200" : "text-sand-400"
+                              selectedCustomer?.id === cust.id ? "text-corp-blue-200" : "text-sand-400"
                             )}>
                               {cust.phonenumberone || 'Sans tel'}
                             </span>
@@ -1113,7 +1113,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                       }}
                       onFocus={() => setIsTransporterDropdownOpen(true)}
                       placeholder="Sélectionner ou saisir le transporteur..."
-                      className="pl-9 pr-8 h-11 rounded-xl border-forest-50 focus:ring-forest-600 bg-sand-50/50 text-xs font-bold text-forest-900"
+                      className="pl-9 pr-8 h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900"
                     />
                     {selectedTransporter && (
                       <button
@@ -1137,7 +1137,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                         className="fixed inset-0 z-10" 
                         onClick={() => setIsTransporterDropdownOpen(false)} 
                       />
-                      <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto z-20 rounded-xl border border-forest-100 bg-white/95 backdrop-blur-md shadow-2xl p-1.5 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto z-20 rounded-xl border border-corp-blue-100 bg-white/95 backdrop-blur-md shadow-2xl p-1.5 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
                         {filteredTransportersList.map(trans => {
                           const fullName = trans.fullname || '';
                           const carDetails = typeof trans.car === 'object' && trans.car !== null ? ((trans.car as any).serialnumber || '') : (trans.car || '');
@@ -1148,8 +1148,8 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                               className={cn(
                                 "w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between",
                                 selectedTransporter?.id === trans.id 
-                                  ? "bg-forest-600 text-white" 
-                                  : "text-forest-900 hover:bg-forest-50"
+                                  ? "bg-corp-blue-600 text-white" 
+                                  : "text-corp-blue-900 hover:bg-corp-blue-50"
                               )}
                               onClick={() => {
                                 setSelectedTransporter(trans);
@@ -1172,7 +1172,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                               {carDetails && (
                                 <span className={cn(
                                   "text-[0.65rem] font-medium",
-                                  selectedTransporter?.id === trans.id ? "text-forest-200" : "text-sand-400"
+                                  selectedTransporter?.id === trans.id ? "text-corp-blue-200" : "text-sand-400"
                                 )}>
                                   {carDetails}
                                 </span>
@@ -1195,7 +1195,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                   <Input 
                     disabled 
                     placeholder="Non requis pour les Devis et Commandes" 
-                    className="h-11 rounded-xl border-forest-50/50 bg-sand-100/30 text-xs font-bold text-sand-400"
+                    className="h-11 rounded-xl border-corp-blue-50/50 bg-sand-100/30 text-xs font-bold text-sand-400"
                   />
                 </div>
               )}
@@ -1204,7 +1204,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
               <div className="space-y-2">
                 <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Référence Client / Externe</label>
                 <Input
-                  className="h-11 rounded-xl border-forest-50 focus:ring-forest-600 bg-sand-50/50 text-xs font-bold text-forest-900"
+                  className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900"
                   placeholder="Ex: BC-1234"
                   value={customerReference}
                   onChange={(e) => setCustomerReference(e.target.value)}
@@ -1218,7 +1218,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                   <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300 pointer-events-none" />
                   <Input
                     type="date"
-                    className="h-11 rounded-xl border-forest-50 focus:ring-forest-600 bg-sand-50/50 text-xs font-bold text-forest-900"
+                    className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900"
                     value={docDate}
                     onChange={(e) => setDocDate(e.target.value)}
                   />
@@ -1229,10 +1229,10 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
               <div className="space-y-2">
                 <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Devise *</label>
                 <Select onValueChange={handleCurrencyChange} value={docCurrency}>
-                  <SelectTrigger className="h-11 rounded-xl border-forest-50 focus:ring-forest-600 bg-sand-50/50 text-xs font-bold text-forest-900">
+                  <SelectTrigger className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900">
                     <SelectValue placeholder="TND" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl border-forest-50 font-bold text-xs">
+                  <SelectContent className="rounded-xl border-corp-blue-50 font-bold text-xs">
                     <SelectItem value="TND" className="font-bold text-xs">TND - Dinar Tunisien</SelectItem>
                     <SelectItem value="EUR" className="font-bold text-xs">EUR - Euro</SelectItem>
                     <SelectItem value="USD" className="font-bold text-xs">USD - Dollar US</SelectItem>
@@ -1247,7 +1247,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                   type="number"
                   step="0.000001"
                   min="0"
-                  className="h-11 rounded-xl border-forest-50 focus:ring-forest-600 bg-sand-50/50 text-xs font-bold text-forest-900"
+                  className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900"
                   value={exchangeRate}
                   onChange={(e) => {
                     const val = parseFloat(e.target.value) || 1.0;
@@ -1268,10 +1268,10 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                     }} 
                     value={selectedTax?.id?.toString() || ''}
                   >
-                    <SelectTrigger className="h-11 rounded-xl border-forest-50 focus:ring-forest-600 bg-sand-50/50 text-xs font-bold text-forest-900">
+                    <SelectTrigger className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900">
                       <SelectValue placeholder="Aucun timbre" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl border-forest-50 font-bold text-xs">
+                    <SelectContent className="rounded-xl border-corp-blue-50 font-bold text-xs">
                       {appvariablesTaxes.map((tax) => (
                         <SelectItem key={tax.id} value={tax.id.toString()} className="font-bold text-xs">
                           {tax.name} ({parseFloat(tax.value).toFixed(3)} TND)
@@ -1297,10 +1297,10 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                     }} 
                     value={selectedRS?.id?.toString() || 'none'}
                   >
-                    <SelectTrigger className="h-11 rounded-xl border-forest-50 focus:ring-forest-600 bg-sand-50/50 text-xs font-bold text-forest-900">
+                    <SelectTrigger className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900">
                       <SelectValue placeholder="Aucune retenue" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl border-forest-50 font-bold text-xs">
+                    <SelectContent className="rounded-xl border-corp-blue-50 font-bold text-xs">
                       <SelectItem value="none" className="font-bold text-xs text-rose-500">Aucune retenue (0%)</SelectItem>
                       {appvariablesRS.map((rs) => (
                         <SelectItem key={rs.id} value={rs.id.toString()} className="font-bold text-xs">
@@ -1316,35 +1316,35 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
           </Card>
 
           {/* Quick Stats sidebar info */}
-          <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm flex flex-col justify-between">
-            <CardHeader className="bg-forest-900/5 border-b border-forest-50 p-5">
-              <CardTitle className="text-sm font-heading font-bold text-forest-900 flex items-center gap-2">
-                <Info className="w-4 h-4 text-forest-600" /> Détails Partenaire
+          <Card className="border-corp-blue-100/50 shadow-xl shadow-corp-blue-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm flex flex-col justify-between">
+            <CardHeader className="bg-corp-blue-900/5 border-b border-corp-blue-50 p-5">
+              <CardTitle className="text-sm font-bold text-corp-blue-900 flex items-center gap-2">
+                <Info className="w-4 h-4 text-corp-blue-600" /> Détails Partenaire
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 flex-1 space-y-4 text-xs">
               {selectedCustomer ? (
                 <div className="space-y-3 font-medium">
-                  <div className="bg-forest-50/50 p-3 rounded-xl border border-forest-100/50 relative group">
+                  <div className="bg-corp-blue-50/50 p-3 rounded-xl border border-corp-blue-100/50 relative group">
                     <button
                       type="button"
                       onClick={() => setIsCustomerFormOpen(true)}
-                      className="absolute right-3 top-3 p-1.5 rounded-lg text-forest-600 hover:text-forest-900 hover:bg-forest-100/70 transition-all cursor-pointer"
+                      className="absolute right-3 top-3 p-1.5 rounded-lg text-corp-blue-600 hover:text-corp-blue-900 hover:bg-corp-blue-100/70 transition-all cursor-pointer"
                       title="Modifier les informations du client"
                     >
                       <Edit className="w-3.5 h-3.5" />
                     </button>
                     <span className="text-[0.6rem] font-bold text-sand-400 uppercase tracking-wider block">Nom Client</span>
-                    <span className="font-bold text-forest-900 text-sm pr-8">{selectedCustomer.name || (selectedCustomer.firstname + ' ' + selectedCustomer.lastname)}</span>
+                    <span className="font-bold text-corp-blue-900 text-sm pr-8">{selectedCustomer.name || (selectedCustomer.firstname + ' ' + selectedCustomer.lastname)}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <span className="text-[0.6rem] font-bold text-sand-400 uppercase block">Téléphone</span>
-                      <span className="font-bold text-forest-800">{selectedCustomer.phonenumberone || '—'}</span>
+                      <span className="font-bold text-corp-blue-800">{selectedCustomer.phonenumberone || '—'}</span>
                     </div>
                     <div>
                       <span className="text-[0.6rem] font-bold text-sand-400 uppercase block">Code Fiscal</span>
-                      <span className="font-bold text-forest-800">{selectedCustomer.description || '—'}</span>
+                      <span className="font-bold text-corp-blue-800">{selectedCustomer.description || '—'}</span>
                     </div>
                   </div>
                   
@@ -1354,12 +1354,12 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                       <Truck className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
                       <div>
                         <span className="text-[0.6rem] font-bold text-amber-700 uppercase tracking-wider block">Transporteur</span>
-                        <span className="font-bold text-forest-900 text-xs block">
+                        <span className="font-bold text-corp-blue-900 text-xs block">
                           {selectedTransporter.fullname || ''}
                         </span>
                         {selectedTransporter.car && (
                           <span className="text-[0.65rem] font-medium text-sand-500 block mt-0.5">
-                            Véhicule / Matricule : <span className="font-bold text-forest-800">{typeof selectedTransporter.car === 'object' && selectedTransporter.car !== null ? ((selectedTransporter.car as any).serialnumber || '') : selectedTransporter.car}</span>
+                            Véhicule / Matricule : <span className="font-bold text-corp-blue-800">{typeof selectedTransporter.car === 'object' && selectedTransporter.car !== null ? ((selectedTransporter.car as any).serialnumber || '') : selectedTransporter.car}</span>
                           </span>
                         )}
                       </div>
@@ -1376,24 +1376,24 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
         </div>
 
         {/* 2. Merchandise lines grid */}
-        <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm">
-          <CardHeader className="border-b border-forest-50 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <Card className="border-corp-blue-100/50 shadow-xl shadow-corp-blue-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm">
+          <CardHeader className="border-b border-corp-blue-50 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <CardTitle className="text-lg font-heading font-bold text-forest-900">Lignes du Document</CardTitle>
+              <CardTitle className="text-lg font-bold text-corp-blue-900">Lignes du Document</CardTitle>
               <CardDescription className="text-xs text-sand-400 mt-0.5 font-medium">Saisissez les articles et frais logistiques constituant le document.</CardDescription>
             </div>
             <div className="flex items-center gap-3">
               {(docType === DocumentTypes.customerDeliveryNote || docType === DocumentTypes.customerInvoice) && (
                 <Button
                   variant="outline"
-                  className="h-10 border-forest-100 text-forest-600 hover:bg-forest-50 font-bold text-xs"
+                  className="h-10 border-corp-blue-100 text-corp-blue-600 hover:bg-corp-blue-50 font-bold text-xs"
                   onClick={addTransportFeeRow}
                 >
                   <Truck className="w-4 h-4 mr-2" /> Frais Logistique
                 </Button>
               )}
               <Button
-                className="h-10 bg-forest-600 hover:bg-forest-800 text-white font-bold shadow-md shadow-forest-600/20 text-xs"
+                className="h-10 bg-corp-blue-600 hover:bg-corp-blue-800 text-white font-bold shadow-md shadow-corp-blue-600/20 text-xs"
                 onClick={addMerchandiseRow}
               >
                 <Plus className="w-4 h-4 mr-2" /> Ajouter Ligne
@@ -1404,7 +1404,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
             <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full min-w-[1100px] text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-sand-50/50 border-b border-forest-50">
+                  <tr className="bg-sand-50/50 border-b border-corp-blue-50">
                     <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-12 text-center">N°</th>
                     <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-96">Article / Description</th>
                     <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-24 text-right">Prix Unit HT</th>
@@ -1416,7 +1416,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                     <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-12"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-forest-50 font-medium">
+                <tbody className="divide-y divide-corp-blue-50 font-medium">
                   {rows.length === 0 ? (
                     <tr>
                       <td colSpan={9} className="p-12 text-center text-sand-400 font-medium italic">
@@ -1457,7 +1457,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                       }
 
                       return (
-                        <tr key={index} className="group hover:bg-forest-50/20 transition-all duration-200">
+                        <tr key={index} className="group hover:bg-corp-blue-50/20 transition-all duration-200">
                           
                           {/* Row Index */}
                           <td className="p-4 text-center font-bold text-sand-400">
@@ -1469,13 +1469,13 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                             {isFee ? (
                               <div className="space-y-1.5">
                                 <Input
-                                  className="h-10 rounded-xl border-forest-50 focus:ring-forest-600 bg-sand-50/40 font-bold text-forest-900"
+                                  className="h-10 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/40 font-bold text-corp-blue-900"
                                   value={row.description}
                                   onChange={(e) => handleRowFieldChange(index, 'description', e.target.value)}
                                   placeholder="Désignation logistique..."
                                 />
                                 {row.transporter_name && (
-                                  <span className="text-[0.65rem] font-bold text-forest-600 bg-forest-50 border border-forest-100 rounded-md px-2 py-0.5 inline-block">
+                                  <span className="text-[0.65rem] font-bold text-corp-blue-600 bg-corp-blue-50 border border-corp-blue-100 rounded-md px-2 py-0.5 inline-block">
                                     Lié à : {row.transporter_name}
                                   </span>
                                 )}
@@ -1502,7 +1502,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                                           setActiveRowArticleDropdown(index);
                                         }}
                                         placeholder="Rechercher réf. ou désignation..."
-                                        className="pl-9 pr-8 h-10 rounded-xl border-forest-50 focus:ring-forest-600 bg-sand-50/40 text-xs font-bold text-forest-900"
+                                        className="pl-9 pr-8 h-10 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/40 text-xs font-bold text-corp-blue-900"
                                       />
                                       {(row.selectedArticle || row.articleSearchInput) && (
                                         <button
@@ -1520,7 +1520,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                                   </PopoverTrigger>
                                   <PopoverContent
                                     align="start"
-                                    className="w-[var(--radix-popover-trigger-width)] max-h-60 overflow-y-auto z-50 rounded-xl border border-forest-100 bg-white/95 backdrop-blur-md shadow-2xl p-1.5 space-y-0.5"
+                                    className="w-[var(--radix-popover-trigger-width)] max-h-60 overflow-y-auto z-50 rounded-xl border border-corp-blue-100 bg-white/95 backdrop-blur-md shadow-2xl p-1.5 space-y-0.5"
                                     onOpenAutoFocus={(e) => e.preventDefault()}
                                   >
                                     {row.filteredArticles.map(art => {
@@ -1532,18 +1532,18 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                                           className={cn(
                                             "w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2",
                                             isSelected
-                                              ? "bg-forest-600 text-white"
-                                              : "text-forest-900 hover:bg-forest-50"
+                                              ? "bg-corp-blue-600 text-white"
+                                              : "text-corp-blue-900 hover:bg-corp-blue-50"
                                           )}
                                           onClick={() => {
                                             handleRowFieldChange(index, 'selectedArticle', art);
                                             setActiveRowArticleDropdown(null);
                                           }}
                                         >
-                                          <Layers className={cn("w-3.5 h-3.5 shrink-0", isSelected ? "text-white" : "text-forest-500")} />
+                                          <Layers className={cn("w-3.5 h-3.5 shrink-0", isSelected ? "text-white" : "text-corp-blue-500")} />
                                           <div className="flex-1 min-w-0">
                                             <div className="font-bold truncate">{art.reference}</div>
-                                            <div className={cn("text-[0.65rem] truncate", isSelected ? "text-forest-200" : "text-sand-400")}>
+                                            <div className={cn("text-[0.65rem] truncate", isSelected ? "text-corp-blue-200" : "text-sand-400")}>
                                               {art.description}
                                             </div>
                                           </div>
@@ -1583,11 +1583,11 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                                         }, 0);
                                       }
                                       return (
-                                        <div className="flex items-center gap-1.5 mt-1.5 text-[0.7rem] font-bold text-forest-700 bg-forest-50/70 border border-forest-100/50 rounded-lg px-2.5 py-1.5 w-fit shadow-sm">
-                                          <Layers className="w-3.5 h-3.5 text-forest-600" />
+                                        <div className="flex items-center gap-1.5 mt-1.5 text-[0.7rem] font-bold text-corp-blue-700 bg-corp-blue-50/70 border border-corp-blue-100/50 rounded-lg px-2.5 py-1.5 w-fit shadow-sm">
+                                          <Layers className="w-3.5 h-3.5 text-corp-blue-600" />
                                           <span>Réf: {stock.packageReference || 'Standard'}</span>
                                           <span className="text-sand-400">|</span>
-                                          <span className="text-forest-600">Stock: {formatQuantity(parseFloat(stock.stockQuantity || 0), row.selectedArticle?.unit)}</span>
+                                          <span className="text-corp-blue-600">Stock: {formatQuantity(parseFloat(stock.stockQuantity || 0), row.selectedArticle?.unit)}</span>
                                         </div>
                                       );
                                     }
@@ -1601,11 +1601,11 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                                             handleRowFieldChange(index, 'selectedStock', selected || null);
                                           }}
                                         >
-                                          <SelectTrigger className="h-8 rounded-lg border-forest-50 focus:ring-forest-600 bg-white text-[0.7rem] font-bold text-forest-900 justify-start gap-2 shadow-sm">
-                                            <Layers className="w-3.5 h-3.5 text-forest-600 shrink-0" />
+                                          <SelectTrigger className="h-8 rounded-lg border-corp-blue-50 focus:ring-corp-blue-600 bg-white text-[0.7rem] font-bold text-corp-blue-900 justify-start gap-2 shadow-sm">
+                                            <Layers className="w-3.5 h-3.5 text-corp-blue-600 shrink-0" />
                                             <SelectValue placeholder="Sélectionner une référence..." />
                                           </SelectTrigger>
-                                          <SelectContent className="rounded-xl border-forest-100 p-1">
+                                          <SelectContent className="rounded-xl border-corp-blue-100 p-1">
                                             {matchingStocks.map((stock) => (
                                               <SelectItem 
                                                 key={stock.merchandiseId} 
@@ -1613,7 +1613,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                                                 className="rounded-lg font-bold text-[0.7rem]"
                                               >
                                                 <div className="flex flex-col py-0.5">
-                                                  <span className="text-forest-900">Réf: {stock.packageReference || 'Standard'}</span>
+                                                  <span className="text-corp-blue-900">Réf: {stock.packageReference || 'Standard'}</span>
                                                   <span className="text-[0.65rem] text-sand-400 font-medium">
                                                     Stock: {formatQuantity(parseFloat(stock.stockQuantity || 0), row.selectedArticle?.unit)} 
                                                     {stock.MerchandiseDescription ? ` • ${stock.MerchandiseDescription}` : ''}
@@ -1642,7 +1642,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                               type="number"
                               step="0.001"
                               min="0"
-                              className="h-10 rounded-xl text-right font-bold border-forest-50 focus:ring-forest-600 bg-sand-50/40 text-forest-900 w-24 ml-auto"
+                              className="h-10 rounded-xl text-right font-bold border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/40 text-corp-blue-900 w-24 ml-auto"
                               value={row.unit_price_ht || ''}
                               onChange={(e) => {
                                 const val = parseFloat(e.target.value) || 0;
@@ -1656,24 +1656,24 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                           <td className="p-4 text-center">
                             {row.isWoodArticle ? (
                               <div className="flex items-center gap-1.5 justify-center">
-                                <div className="h-10 px-3 flex items-center justify-center font-bold text-forest-900 bg-forest-50 rounded-xl border border-forest-100 min-w-20">
+                                <div className="h-10 px-3 flex items-center justify-center font-bold text-corp-blue-900 bg-corp-blue-50 rounded-xl border border-corp-blue-100 min-w-20">
                                   {row.quantity.toFixed(3)} M³
                                 </div>
                                 <Button
                                   variant="outline"
                                   size="icon"
-                                  className="h-9 w-9 border-forest-100 text-forest-600 hover:bg-forest-100 disabled:opacity-50 disabled:pointer-events-none"
+                                  className="h-9 w-9 border-corp-blue-100 text-corp-blue-600 hover:bg-corp-blue-100 disabled:opacity-50 disabled:pointer-events-none"
                                   onClick={() => openWoodLengths(index)}
                                   disabled={isQuantityDisabled}
                                 >
-                                  <PlusCircle className="w-4 h-4 text-forest-600" />
+                                  <PlusCircle className="w-4 h-4 text-corp-blue-600" />
                                 </Button>
                               </div>
                             ) : (
                               <Input
                                 type="number"
                                 min="0"
-                                className="h-10 rounded-xl text-center font-bold border-forest-50 focus:ring-forest-600 bg-sand-50/40 text-forest-900 max-w-28 mx-auto disabled:opacity-50 disabled:bg-sand-100/50"
+                                className="h-10 rounded-xl text-center font-bold border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/40 text-corp-blue-900 max-w-28 mx-auto disabled:opacity-50 disabled:bg-sand-100/50"
                                 value={row.quantity || ''}
                                 onChange={(e) => {
                                   const val = parseFloat(e.target.value) || 0;
@@ -1691,7 +1691,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                               <Input
                                 type="number"
                                 min="0"
-                                className="h-10 rounded-xl text-center font-bold border-forest-50 focus:ring-forest-600 bg-sand-50/40 text-forest-900 pr-5"
+                                className="h-10 rounded-xl text-center font-bold border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/40 text-corp-blue-900 pr-5"
                                 value={row.selldiscountpercentage || ''}
                                 onChange={(e) => {
                                   const val = parseFloat(e.target.value) || 0;
@@ -1705,18 +1705,18 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
 
                           {/* TVA */}
                           <td className="p-4 text-center">
-                            <Badge className="bg-forest-50 text-forest-700 border border-forest-100 font-bold px-2 py-0.5 rounded text-[0.65rem]">
+                            <Badge className="bg-corp-blue-50 text-corp-blue-700 border border-corp-blue-100 font-bold px-2 py-0.5 rounded text-[0.65rem]">
                               {tvaRate}%
                             </Badge>
                           </td>
 
                           {/* Total net HT */}
-                          <td className="p-4 text-right font-bold text-forest-900">
+                          <td className="p-4 text-right font-bold text-corp-blue-900">
                             {row.sellcostprice_net_ht.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} <span className="text-[0.65rem] text-sand-400 font-normal">TND</span>
                           </td>
 
                           {/* Total TTC */}
-                          <td className="p-4 text-right font-bold text-forest-900">
+                          <td className="p-4 text-right font-bold text-corp-blue-900">
                             {row.totalWithTax.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} <span className="text-[0.65rem] text-sand-400 font-normal">TND</span>
                           </td>
 
@@ -1747,12 +1747,12 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
           
           {/* Legend and explanation notes */}
           <div className="space-y-4 text-xs text-sand-400 font-medium">
-            <div className="bg-sand-50/50 border border-forest-50 p-5 rounded-xl">
-              <span className="font-bold text-forest-900 flex items-center gap-1.5 mb-2 text-sm">
-                <Info className="w-4 h-4 text-forest-600" /> Instructions d'utilisation
+            <div className="bg-sand-50/50 border border-corp-blue-50 p-5 rounded-xl">
+              <span className="font-bold text-corp-blue-900 flex items-center gap-1.5 mb-2 text-sm">
+                <Info className="w-4 h-4 text-corp-blue-600" /> Instructions d'utilisation
               </span>
               <ul className="list-disc pl-5 space-y-1.5 text-[0.75rem]">
-                <li>Les articles de type <b>Bois</b> ne permettent pas la saisie directe de la quantité. Cliquez sur le bouton <PlusCircle className="w-3.5 h-3.5 text-forest-600 inline" /> pour spécifier le nombre de pièces par longueur.</li>
+                <li>Les articles de type <b>Bois</b> ne permettent pas la saisie directe de la quantité. Cliquez sur le bouton <PlusCircle className="w-3.5 h-3.5 text-corp-blue-600 inline" /> pour spécifier le nombre de pièces par longueur.</li>
                 <li>Si des règles de tarification spécifiques ou des prix d'achats préférentiels existent pour le client, ils seront automatiquement appliqués en tant que <b>Tarifs négociés</b>.</li>
                 <li>Les frais de transport default à un taux de 19% de TVA et sont automatiquement associés au transporteur principal.</li>
                 {docType === DocumentTypes.customerInvoice && (
@@ -1763,44 +1763,44 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
           </div>
 
           {/* Pricing Summary Card */}
-          <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm">
-            <CardHeader className="bg-forest-900/5 border-b border-forest-50 p-5">
-              <CardTitle className="text-sm font-heading font-bold text-forest-900 flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-forest-600" /> Synthèse Financière (TND)
+          <Card className="border-corp-blue-100/50 shadow-xl shadow-corp-blue-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm">
+            <CardHeader className="bg-corp-blue-900/5 border-b border-corp-blue-50 p-5">
+              <CardTitle className="text-sm font-bold text-corp-blue-900 flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-corp-blue-600" /> Synthèse Financière (TND)
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               
-              <div className="flex items-center justify-between text-xs border-b border-forest-50/50 pb-2.5 font-medium">
+              <div className="flex items-center justify-between text-xs border-b border-corp-blue-50/50 pb-2.5 font-medium">
                 <span className="text-sand-400 font-bold">Total Brut HT</span>
-                <span className="font-bold text-forest-900">{naturalTotals.grossHT.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} TND</span>
+                <span className="font-bold text-corp-blue-900">{naturalTotals.grossHT.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} TND</span>
               </div>
 
-              <div className="flex items-center justify-between text-xs border-b border-forest-50/50 pb-2.5 font-medium">
+              <div className="flex items-center justify-between text-xs border-b border-corp-blue-50/50 pb-2.5 font-medium">
                 <span className="text-sand-400 font-bold">Total Remise commerciale</span>
                 <span className="font-bold text-rose-600">-{finalDiscountValue.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} TND</span>
               </div>
 
-              <div className="flex items-center justify-between text-xs border-b border-forest-50/50 pb-2.5 font-medium">
+              <div className="flex items-center justify-between text-xs border-b border-corp-blue-50/50 pb-2.5 font-medium">
                 <span className="text-sand-400 font-bold">Total TVA (Taxes collectées)</span>
-                <span className="font-bold text-forest-900">{naturalTotals.tva.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} TND</span>
+                <span className="font-bold text-corp-blue-900">{naturalTotals.tva.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} TND</span>
               </div>
 
               {/* Display Stamp Tax details on Invoices */}
               {docType === DocumentTypes.customerInvoice && selectedTax && (
-                <div className="flex items-center justify-between text-xs border-b border-forest-50/50 pb-2.5 font-medium animate-in slide-in-from-top-1">
+                <div className="flex items-center justify-between text-xs border-b border-corp-blue-50/50 pb-2.5 font-medium animate-in slide-in-from-top-1">
                   <span className="text-sand-400 font-bold">Timbre Fiscal (Frais Administratif)</span>
-                  <span className="font-bold text-forest-900">+{parseFloat(selectedTax.value).toLocaleString('fr-TN', { minimumFractionDigits: 3 })} TND</span>
+                  <span className="font-bold text-corp-blue-900">+{parseFloat(selectedTax.value).toLocaleString('fr-TN', { minimumFractionDigits: 3 })} TND</span>
                 </div>
               )}
 
-              <div className="flex items-center justify-between text-xs border-b border-forest-50/50 pb-2.5 font-medium">
+              <div className="flex items-center justify-between text-xs border-b border-corp-blue-50/50 pb-2.5 font-medium">
                 <span className="text-sand-400 font-bold">Total Net TTC calculé</span>
-                <span className="font-bold text-forest-900">{naturalTotals.ttc.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} TND</span>
+                <span className="font-bold text-corp-blue-900">{naturalTotals.ttc.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} TND</span>
               </div>
 
               {/* Editable Grand Total TTC (Rounding differences support) */}
-              <div className="bg-forest-900/5 p-4 rounded-xl border border-forest-100/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="bg-corp-blue-900/5 p-4 rounded-xl border border-corp-blue-100/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block mb-0.5">Montant TTC Final Payable *</label>
                   <span className="text-xs text-sand-400 font-medium">Saisissez une valeur ajustée pour forcer une remise d'arrondi.</span>
@@ -1810,7 +1810,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                     type="number"
                     step="0.001"
                     min="0"
-                    className="h-11 rounded-lg text-right font-heading font-bold text-forest-950 border-forest-200 focus:ring-forest-600 bg-white max-w-44 pr-10 text-sm shadow-sm"
+                    className="h-11 rounded-lg text-right font-bold text-corp-blue-950 border-corp-blue-200 focus:ring-corp-blue-600 bg-white max-w-44 pr-10 text-sm shadow-sm"
                     value={manualNetTTC}
                     onChange={(e) => {
                       const val = parseFloat(e.target.value);
@@ -1839,23 +1839,23 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                   </div>
                   <div className="flex items-center justify-between text-[0.7rem] text-amber-700 font-bold border-t border-amber-200/30 pt-2">
                     <span>Net à Payer (Restant dû par le Client)</span>
-                    <span className="text-sm font-heading font-bold text-forest-950">{finalNetPayable.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} TND</span>
+                    <span className="text-sm font-bold text-corp-blue-950">{finalNetPayable.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} TND</span>
                   </div>
                 </div>
               )}
 
               {/* Actions panel */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-forest-100">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-corp-blue-100">
                 <Button
                   variant="outline"
-                  className="border-forest-100 text-forest-600 hover:bg-forest-50 font-bold h-11 text-xs"
+                  className="border-corp-blue-100 text-corp-blue-600 hover:bg-corp-blue-50 font-bold h-11 text-xs"
                   onClick={() => router.push('/sales')}
                   disabled={isLoading || isSourceLoading}
                 >
                   Annuler
                 </Button>
                 <Button
-                  className="bg-forest-600 hover:bg-forest-800 text-white font-bold h-11 px-6 shadow-lg shadow-forest-600/20 text-xs"
+                  className="bg-corp-blue-600 hover:bg-corp-blue-800 text-white font-bold h-11 px-6 shadow-lg shadow-corp-blue-600/20 text-xs"
                   onClick={handleSubmit}
                   disabled={isLoading || isSourceLoading}
                 >
@@ -1900,17 +1900,17 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
           if (!open) setDeleteConfirmState(prev => ({ ...prev, isOpen: false }));
         }}
       >
-        <AlertDialogContent className="rounded-xl border-forest-100 bg-white/95 backdrop-blur-md shadow-2xl p-6">
+        <AlertDialogContent className="rounded-xl border-corp-blue-100 bg-white/95 backdrop-blur-md shadow-2xl p-6">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-lg font-heading font-bold text-forest-900 flex items-center gap-2">
+            <AlertDialogTitle className="text-lg font-bold text-corp-blue-900 flex items-center gap-2">
               <Trash2 className="w-5 h-5 text-rose-600 animate-pulse" /> Confirmer la suppression
             </AlertDialogTitle>
             <AlertDialogDescription className="text-xs text-sand-500 font-medium mt-2 leading-relaxed">
-              Êtes-vous sûr de vouloir supprimer la ligne <span className="font-bold text-forest-800">{deleteConfirmState.articleName}</span> ? Cette action retirera l'article de ce document.
+              Êtes-vous sûr de vouloir supprimer la ligne <span className="font-bold text-corp-blue-800">{deleteConfirmState.articleName}</span> ? Cette action retirera l'article de ce document.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-6 flex gap-3">
-            <AlertDialogCancel className="rounded-xl border-forest-100 text-forest-600 hover:bg-forest-50 font-bold px-4 py-2 text-xs">
+            <AlertDialogCancel className="rounded-xl border-corp-blue-100 text-corp-blue-600 hover:bg-corp-blue-50 font-bold px-4 py-2 text-xs">
               Annuler
             </AlertDialogCancel>
             <AlertDialogAction 

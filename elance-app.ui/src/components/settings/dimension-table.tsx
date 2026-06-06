@@ -87,33 +87,33 @@ export function DimensionTable({ nature, data }: DimensionTableProps) {
         <Button 
           onClick={() => setIsAddOpen(true)}
           size="sm"
-          className="rounded-xl bg-forest-600 text-white font-bold h-9 px-4 gap-2 hover:bg-forest-800 transition-all shadow-lg shadow-forest-600/20"
+          className="rounded-xl bg-corp-blue-600 text-white font-bold h-9 px-4 gap-2 hover:bg-corp-blue-800 transition-all shadow-lg shadow-corp-blue-600/20"
         >
           <Plus className="w-4 h-4" /> Ajouter
         </Button>
       </div>
 
-      <div className="rounded-xl border border-forest-50 overflow-hidden bg-sand-50/30 flex flex-col h-full">
+      <div className="rounded-xl border border-corp-blue-50 overflow-hidden bg-sand-50/30 flex flex-col h-full">
         <div className="flex-1 overflow-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-forest-50/50 hover:bg-forest-50/50 border-forest-50">
-                <TableHead className="text-forest-900 font-bold">{nature === 'Length' ? 'Valeur (cm)' : 'Valeur (mm)'}</TableHead>
-                <TableHead className="text-forest-900 font-bold">Valeur (m)</TableHead>
+              <TableRow className="bg-corp-blue-50/50 hover:bg-corp-blue-50/50 border-corp-blue-50">
+                <TableHead className="text-corp-blue-900 font-bold">{nature === 'Length' ? 'Valeur (cm)' : 'Valeur (mm)'}</TableHead>
+                <TableHead className="text-corp-blue-900 font-bold">Valeur (m)</TableHead>
                 {/* 
                   Mark React-specific pattern:
                   Only render type column if 'nature' prop is 'Dimension' (Thickness & Width combo)
                 */}
                 {nature === 'Dimension' && (
-                  <TableHead className="text-forest-900 font-bold">Épaisseur / Largeur</TableHead>
+                  <TableHead className="text-corp-blue-900 font-bold">Épaisseur / Largeur</TableHead>
                 )}
-                <TableHead className="text-forest-900 font-bold text-right">Actions</TableHead>
+                <TableHead className="text-corp-blue-900 font-bold text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedData.map((v) => (
-                <TableRow key={v.id} className="hover:bg-white transition-colors border-forest-50">
-                  <TableCell className="font-medium text-forest-900">
+                <TableRow key={v.id} className="hover:bg-white transition-colors border-corp-blue-50">
+                  <TableCell className="font-medium text-corp-blue-900">
                     {editingId === v.id ? (
                       <Input 
                         type="number"
@@ -124,18 +124,18 @@ export function DimensionTable({ nature, data }: DimensionTableProps) {
                           const mVal = nature === 'Length' ? (num / 100).toString() : (num / 1000).toString();
                           setEditValues({ ...editValues, name: val, value: isNaN(num) ? '' : mVal });
                         }}
-                        className="h-9 rounded-lg bg-white border-forest-100"
+                        className="h-9 rounded-lg bg-white border-corp-blue-100"
                       />
                     ) : (
-                      <span className="font-bold text-forest-600">{v.name} {nature === 'Length' ? 'cm' : 'mm'}</span>
+                      <span className="font-bold text-corp-blue-600">{v.name} {nature === 'Length' ? 'cm' : 'mm'}</span>
                     )}
                   </TableCell>
-                  <TableCell className="font-medium text-forest-900 italic">
+                  <TableCell className="font-medium text-corp-blue-900 italic">
                     {editingId === v.id ? (
                       <Input 
                         disabled
                         value={editValues.value || ''} 
-                        className="h-9 rounded-lg bg-sand-100/50 border-forest-100"
+                        className="h-9 rounded-lg bg-sand-100/50 border-corp-blue-100"
                       />
                     ) : `${v.value} m`}
                   </TableCell>
@@ -146,7 +146,7 @@ export function DimensionTable({ nature, data }: DimensionTableProps) {
                   {nature === 'Dimension' && (
                     <TableCell className="font-medium">
                       {v.nature === 'thickness' ? (
-                        <Badge className="bg-forest-50 hover:bg-forest-100 text-forest-700 border border-forest-100 font-bold px-2.5 py-0.5 rounded-lg">
+                        <Badge className="bg-corp-blue-50 hover:bg-corp-blue-100 text-corp-blue-700 border border-corp-blue-100 font-bold px-2.5 py-0.5 rounded-lg">
                           Épaisseur
                         </Badge>
                       ) : (
@@ -169,7 +169,7 @@ export function DimensionTable({ nature, data }: DimensionTableProps) {
                         </>
                       ) : (
                         <>
-                          <Button onClick={() => startEditing(v)} variant="ghost" size="icon" className="h-8 w-8 text-forest-400 hover:text-forest-600 hover:bg-forest-50 rounded-lg">
+                          <Button onClick={() => startEditing(v)} variant="ghost" size="icon" className="h-8 w-8 text-corp-blue-400 hover:text-corp-blue-600 hover:bg-corp-blue-50 rounded-lg">
                             <Edit2 className="w-4 h-4" />
                           </Button>
                           <Button onClick={() => deleteVar.mutate({ id: v.id, nature })} variant="ghost" size="icon" className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg">

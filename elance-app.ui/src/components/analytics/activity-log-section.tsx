@@ -220,7 +220,7 @@ function SentenceWithBold({ text }: { text: string }) {
     <>
       {parts.map((p, i) =>
         i % 2 === 1
-          ? <strong key={i} className="font-bold text-forest-900">{p}</strong>
+          ? <strong key={i} className="font-bold text-corp-blue-900">{p}</strong>
           : <span key={i}>{p}</span>
       )}
     </>
@@ -261,20 +261,20 @@ function ActivityCard({ log, index }: { log: AuditLog; index: number }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ delay: index * 0.04, duration: 0.3 }}
-      className="group flex items-start gap-4 p-4 rounded-2xl bg-white border border-forest-50 hover:border-forest-200 hover:shadow-sm transition-all duration-200"
+      className="group flex items-start gap-4 p-4 rounded-2xl bg-white border border-corp-blue-50 hover:border-corp-blue-200 hover:shadow-sm transition-all duration-200"
     >
       {/* Left action color stripe */}
       <div className={cn('w-1 self-stretch rounded-full flex-shrink-0', style.bar)} />
 
       {/* User avatar */}
-      <div className="w-9 h-9 rounded-xl bg-forest-900 text-white flex items-center justify-center font-bold text-xs flex-shrink-0 select-none">
+      <div className="w-9 h-9 rounded-xl bg-corp-blue-900 text-white flex items-center justify-center font-bold text-xs flex-shrink-0 select-none">
         {initials}
       </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
         <p className="text-sm text-sand-600 font-medium leading-snug">
-          <span className="font-bold text-forest-900">{log.userName ?? 'Système'}</span>{' '}
+          <span className="font-bold text-corp-blue-900">{log.userName ?? 'Système'}</span>{' '}
           <SentenceWithBold text={sentence} />
         </p>
         <div className="flex items-center gap-3 mt-2 flex-wrap">
@@ -339,12 +339,12 @@ export function ActivityLogSection() {
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
-    <Card className="border-forest-100 rounded-2xl bg-white overflow-hidden shadow-xl shadow-forest-900/2">
+    <Card className="border-corp-blue-100 rounded-2xl bg-white overflow-hidden shadow-xl shadow-corp-blue-900/2">
       <CardHeader className="p-8 pb-4">
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
           <div>
-            <CardTitle className="font-heading text-2xl text-forest-900 flex items-center gap-3">
-              <span className="p-2 bg-forest-50 rounded-xl text-forest-700">
+            <CardTitle className="text-2xl text-corp-blue-900 flex items-center gap-3">
+              <span className="p-2 bg-corp-blue-50 rounded-xl text-corp-blue-700">
                 <Shield className="w-5 h-5" />
               </span>
               Journal d&apos;Activité
@@ -363,7 +363,7 @@ export function ActivityLogSection() {
                 placeholder="Filtrer par utilisateur..."
                 value={userSearch}
                 onChange={e => { setUserSearch(e.target.value); setPage(1); }}
-                className="pl-9 h-10 rounded-xl bg-sand-50/50 border-sand-200 w-[220px] text-sm focus-visible:ring-forest-500"
+                className="pl-9 h-10 rounded-xl bg-sand-50/50 border-sand-200 w-[220px] text-sm focus-visible:ring-corp-blue-500"
               />
             </div>
 
@@ -373,8 +373,8 @@ export function ActivityLogSection() {
               size="icon"
               onClick={() => refetch()}
               className={cn(
-                'h-10 w-10 rounded-xl border-sand-200 text-sand-500 hover:text-forest-700 hover:border-forest-300',
-                isFetching && 'animate-spin text-forest-600'
+                'h-10 w-10 rounded-xl border-sand-200 text-sand-500 hover:text-corp-blue-700 hover:border-corp-blue-300',
+                isFetching && 'animate-spin text-corp-blue-600'
               )}
               title="Actualiser"
             >
@@ -392,8 +392,8 @@ export function ActivityLogSection() {
               className={cn(
                 'px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200',
                 actionFilter === tab.id
-                  ? 'bg-white text-forest-900 shadow-sm border border-forest-100'
-                  : 'text-sand-500 hover:text-forest-700'
+                  ? 'bg-white text-corp-blue-900 shadow-sm border border-corp-blue-100'
+                  : 'text-sand-500 hover:text-corp-blue-700'
               )}
             >
               {tab.label}
@@ -407,7 +407,7 @@ export function ActivityLogSection() {
           // Skeleton placeholders
           <div className="space-y-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex items-start gap-4 p-4 rounded-2xl border border-forest-50 animate-pulse">
+              <div key={i} className="flex items-start gap-4 p-4 rounded-2xl border border-corp-blue-50 animate-pulse">
                 <div className="w-1 h-16 rounded-full bg-sand-100 flex-shrink-0" />
                 <div className="w-9 h-9 rounded-xl bg-sand-100 flex-shrink-0" />
                 <div className="flex-1 space-y-2">
@@ -432,16 +432,16 @@ export function ActivityLogSection() {
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="pt-6 flex flex-col sm:flex-row items-center justify-between border-t border-forest-50 mt-6 gap-4">
+              <div className="pt-6 flex flex-col sm:flex-row items-center justify-between border-t border-corp-blue-50 mt-6 gap-4">
                 <span className="text-sm text-sand-500 font-medium">
-                  Page <span className="font-bold text-forest-900">{page}</span> sur {totalPages} <span className="text-sand-400 mx-2">•</span> {totalCount} élément{totalCount !== 1 ? 's' : ''}
+                  Page <span className="font-bold text-corp-blue-900">{page}</span> sur {totalPages} <span className="text-sand-400 mx-2">•</span> {totalCount} élément{totalCount !== 1 ? 's' : ''}
                 </span>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     onClick={() => setPage(p => Math.max(1, p - 1))}
                     disabled={page === 1 || isFetching}
-                    className="rounded-xl border-forest-100 text-forest-700 font-bold hover:bg-forest-50 hover:text-forest-900 transition-colors h-9 px-4"
+                    className="rounded-xl border-corp-blue-100 text-corp-blue-700 font-bold hover:bg-corp-blue-50 hover:text-corp-blue-900 transition-colors h-9 px-4"
                   >
                     Précédent
                   </Button>
@@ -449,7 +449,7 @@ export function ActivityLogSection() {
                     variant="outline"
                     onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                     disabled={page >= totalPages || isFetching}
-                    className="rounded-xl border-forest-100 text-forest-700 font-bold hover:bg-forest-50 hover:text-forest-900 transition-colors h-9 px-4"
+                    className="rounded-xl border-corp-blue-100 text-corp-blue-700 font-bold hover:bg-corp-blue-50 hover:text-corp-blue-900 transition-colors h-9 px-4"
                   >
                     Suivant
                   </Button>

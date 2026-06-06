@@ -139,7 +139,7 @@ export function LeaveCalendarDialog({ isOpen, onClose }: LeaveCalendarDialogProp
             
             <div className="h-6 w-px bg-white/20 hidden sm:block"></div>
             
-            <DialogTitle className="font-heading text-2xl md:text-3xl lg:text-4xl font-medium tracking-tight text-white leading-none whitespace-nowrap">
+            <DialogTitle className="text-2xl md:text-3xl lg:text-4xl font-medium tracking-tight text-white leading-none whitespace-nowrap">
               Planning des <span className="text-transparent bg-clip-text bg-gradient-to-r from-corp-blue-300 to-corp-cyan">Congés</span>
             </DialogTitle>
           </div>
@@ -181,7 +181,7 @@ export function LeaveCalendarDialog({ isOpen, onClose }: LeaveCalendarDialogProp
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <div className="w-32 md:w-36 text-center font-heading font-bold text-white text-lg capitalize">
+              <div className="w-32 md:w-36 text-center font-bold text-white text-lg capitalize">
                 {MONTHS_FR[currentMonth]} <span className="text-corp-blue-300 font-light">{currentYear}</span>
               </div>
               <Button 
@@ -245,7 +245,7 @@ export function LeaveCalendarDialog({ isOpen, onClose }: LeaveCalendarDialogProp
                         <>
                           <div className="flex justify-between items-start mb-1.5 shrink-0">
                             <span className={cn(
-                              "text-xs md:text-sm font-bold font-heading tabular-nums flex items-center justify-center w-6 h-6 md:w-7 md:h-7 rounded-full transition-colors",
+                              "text-xs md:text-sm font-bold tabular-nums flex items-center justify-center w-6 h-6 md:w-7 md:h-7 rounded-full transition-colors",
                               cell.isToday 
                                 ? "bg-corp-blue-600 text-white shadow-md shadow-corp-blue-600/30" 
                                 : isWeekend ? "text-sand-400" : "text-corp-navy group-hover:text-corp-blue-600"
@@ -324,7 +324,7 @@ export function LeaveCalendarDialog({ isOpen, onClose }: LeaveCalendarDialogProp
             >
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h3 className="text-xl md:text-2xl font-heading font-black text-corp-navy leading-none mb-1">
+                  <h3 className="text-xl md:text-2xl font-black text-corp-navy leading-none mb-1">
                     Bilan Annuel des Congés
                   </h3>
                   <p className="text-sand-500 font-medium text-xs md:text-sm">

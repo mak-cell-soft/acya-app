@@ -228,7 +228,7 @@ export default function SalesPage() {
         {/* Banner header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-serif font-bold text-forest-950 tracking-tight">
+            <h1 className="text-3xl font-bold text-corp-blue-950 tracking-tight">
               Gestion des Ventes
             </h1>
             <p className="text-sand-400 font-medium mt-1">
@@ -239,34 +239,34 @@ export default function SalesPage() {
             <Button
               onClick={() => router.push('/sales/deep-search')}
               variant="outline"
-              className="h-11 rounded-xl border-sand-200 text-forest-900 font-bold hover:bg-sand-50"
+              className="h-11 rounded-xl border-sand-200 text-corp-blue-900 font-bold hover:bg-sand-50"
             >
-              <Search className="w-4 h-4 mr-2 text-forest-800" /> Recherche Approfondie
+              <Search className="w-4 h-4 mr-2 text-corp-blue-800" /> Recherche Approfondie
             </Button>
             <Button
               onClick={() => setIsPrintListModalOpen(true)}
               variant="outline"
-              className="h-11 rounded-xl border-sand-200 text-forest-900 font-bold hover:bg-sand-50"
+              className="h-11 rounded-xl border-sand-200 text-corp-blue-900 font-bold hover:bg-sand-50"
             >
-              <Printer className="w-4 h-4 mr-2 text-forest-800" /> Imprimer la liste
+              <Printer className="w-4 h-4 mr-2 text-corp-blue-800" /> Imprimer la liste
             </Button>
             {/* Batch conversion buttons — only for users with canAdd on sales */}
             {hasPermission('sales', 'canAdd') && (
               <Button
                 onClick={() => setIsBatchModalOpen(true)}
                 variant="outline"
-                className="h-11 rounded-xl border-sand-200 text-forest-900 font-bold hover:bg-sand-50"
+                className="h-11 rounded-xl border-sand-200 text-corp-blue-900 font-bold hover:bg-sand-50"
               >
-                <ArrowLeftRight className="w-4 h-4 mr-2 text-forest-800" /> Facturation Groupée
+                <ArrowLeftRight className="w-4 h-4 mr-2 text-corp-blue-800" /> Facturation Groupée
               </Button>
             )}
             {hasPermission('sales', 'canAdd') && (
               <Button
                 onClick={() => setIsSingleBatchModalOpen(true)}
                 variant="outline"
-                className="h-11 rounded-xl border-sand-200 text-forest-900 font-bold hover:bg-sand-50"
+                className="h-11 rounded-xl border-sand-200 text-corp-blue-900 font-bold hover:bg-sand-50"
               >
-                <Layers className="w-4 h-4 mr-2 text-forest-800" /> Facture pour un Client
+                <Layers className="w-4 h-4 mr-2 text-corp-blue-800" /> Facture pour un Client
               </Button>
             )}
             {/* Primary create dropdown — hidden unless user has canAdd permission */}
@@ -310,7 +310,7 @@ export default function SalesPage() {
                 <ChevronLeft className="w-4 h-4" />
               </Button>
               <div className="text-center">
-                <h2 className="text-base font-serif font-bold text-sand-100">
+                <h2 className="text-base font-bold text-sand-100">
                   {MONTHS[selectedMonthIdx]} {selectedYear}
                 </h2>
                 <p className="text-[9px] font-bold text-sand-400 uppercase tracking-widest">
@@ -342,7 +342,7 @@ export default function SalesPage() {
                     className={cn(
                       'rounded-md text-[10px] font-bold py-1.5 border transition-all text-center',
                       selectedMonthIdx === idx
-                        ? 'bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 border-forest-950'
+                        ? 'bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 border-corp-blue-950'
                         : 'bg-white text-sand-600 border-sand-200 hover:bg-sand-50'
                     )}
                   >
@@ -359,7 +359,7 @@ export default function SalesPage() {
               <span className="text-[10px] font-bold text-sand-400 uppercase tracking-wider block">
                 Total Documents Chargés
               </span>
-              <div className="text-3xl font-mono font-bold text-forest-950">
+              <div className="text-3xl font-mono font-bold text-corp-blue-950">
                 {filteredDocuments.length}
               </div>
               <span className="text-xs text-sand-400 font-medium">Pour les critères actuels</span>
@@ -368,7 +368,7 @@ export default function SalesPage() {
               <span className="text-[10px] font-bold text-sand-400 uppercase tracking-wider block">
                 Chiffre d&apos;affaires HT
               </span>
-              <div className="text-2xl font-mono font-bold text-forest-800">
+              <div className="text-2xl font-mono font-bold text-corp-blue-800">
                 {totalRawHtSum.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT
               </div>
               <span className="text-xs text-sand-400 font-medium">Excluant taxes additionnelles</span>
@@ -392,25 +392,25 @@ export default function SalesPage() {
               <TabsList className="bg-sand-100/60 p-1 rounded-xl h-11 border border-sand-200/50">
                 <TabsTrigger
                   value="quote"
-                  className="rounded-lg h-9 px-5 text-xs font-bold uppercase tracking-wider"
+                  className="rounded-lg h-9 px-5 text-sm font-medium"
                 >
                   Devis
                 </TabsTrigger>
                 <TabsTrigger
                   value="order"
-                  className="rounded-lg h-9 px-5 text-xs font-bold uppercase tracking-wider"
+                  className="rounded-lg h-9 px-5 text-sm font-medium"
                 >
                   Commandes
                 </TabsTrigger>
                 <TabsTrigger
                   value="bl"
-                  className="rounded-lg h-9 px-5 text-xs font-bold uppercase tracking-wider"
+                  className="rounded-lg h-9 px-5 text-sm font-medium"
                 >
                   Livraisons (BL)
                 </TabsTrigger>
                 <TabsTrigger
                   value="invoice"
-                  className="rounded-lg h-9 px-5 text-xs font-bold uppercase tracking-wider"
+                  className="rounded-lg h-9 px-5 text-sm font-medium"
                 >
                   Factures
                 </TabsTrigger>
@@ -441,14 +441,14 @@ export default function SalesPage() {
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 font-mono font-bold text-[10px] py-1 px-3.5 rounded-full border border-forest-900 shadow-sm shadow-forest-950/10">
+                        <Badge className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 font-mono font-bold text-[10px] py-1 px-3.5 rounded-full border border-corp-blue-900 shadow-sm shadow-corp-blue-950/10">
                           Jour {selectedDay} / {getDaysCountInMonth(selectedYear, selectedMonthIdx)}
                         </Badge>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setSelectedDay(new Date().getDate())}
-                          className="h-8 rounded-lg border-sand-200 text-[10px] font-bold uppercase tracking-wider text-sand-500 hover:text-forest-900 hover:bg-white"
+                          className="h-8 rounded-lg border-sand-200 text-[10px] font-bold uppercase tracking-wider text-sand-500 hover:text-corp-blue-900 hover:bg-white"
                         >
                           Aujourd&apos;hui
                         </Button>
@@ -472,16 +472,16 @@ export default function SalesPage() {
                             className={cn(
                               'relative flex flex-col items-center justify-center min-w-[40px] h-10 rounded-full border text-xs font-bold transition-all',
                               isSelected
-                                ? 'bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 border-forest-950 shadow-md shadow-corp-blue-500/20 scale-105'
+                                ? 'bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 border-corp-blue-950 shadow-md shadow-corp-blue-500/20 scale-105'
                                 : 'bg-white text-sand-600 border-sand-200 hover:bg-sand-50 hover:border-sand-300',
-                              isCurrentDay && !isSelected && 'ring-2 ring-forest-800/10 text-forest-900 border-forest-800/30'
+                              isCurrentDay && !isSelected && 'ring-2 ring-corp-blue-800/10 text-corp-blue-900 border-corp-blue-800/30'
                             )}
                           >
                             <span>{day}</span>
                             {isCurrentDay && (
                               <span className={cn(
                                 'absolute bottom-1 w-1.5 h-1.5 rounded-full',
-                                isSelected ? 'bg-white' : 'bg-forest-800 animate-pulse'
+                                isSelected ? 'bg-white' : 'bg-corp-blue-800 animate-pulse'
                               )} />
                             )}
                           </button>
@@ -514,7 +514,7 @@ export default function SalesPage() {
                       <tr>
                         <td colSpan={activeTab === 'invoice' ? 11 : activeTab === 'bl' ? 10 : 9} className="py-24 text-center">
                           <div className="flex flex-col items-center justify-center space-y-2">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-forest-600"></div>
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-corp-blue-600"></div>
                             <p className="text-xs text-sand-400 font-bold uppercase tracking-wider">
                               Chargement de la liste...
                             </p>
@@ -543,7 +543,7 @@ export default function SalesPage() {
                             onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
                           >
                             <td className="px-6 py-4">
-                              <span className="font-bold text-forest-950">{item.docnumber || 'Brouillon'}</span>
+                              <span className="font-bold text-corp-blue-950">{item.docnumber || 'Brouillon'}</span>
                             </td>
                             <td className="px-4 py-4">
                               <span className="text-xs text-sand-500">
@@ -557,7 +557,7 @@ export default function SalesPage() {
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-full bg-forest-100 flex items-center justify-center text-[9px] font-bold text-forest-800" title={item.appuser?.person ? `${item.appuser.person.firstname} ${item.appuser.person.lastname}` : item.appuser?.login || 'Système'}>
+                                <div className="w-6 h-6 rounded-full bg-corp-blue-100 flex items-center justify-center text-[9px] font-bold text-corp-blue-800" title={item.appuser?.person ? `${item.appuser.person.firstname} ${item.appuser.person.lastname}` : item.appuser?.login || 'Système'}>
                                   {item.appuser?.person ? `${item.appuser.person.firstname[0]}${item.appuser.person.lastname[0]}`.toUpperCase() : 'SYS'}
                                 </div>
                                 <span className="text-xs font-medium text-sand-700 truncate max-w-[100px]">
@@ -566,8 +566,8 @@ export default function SalesPage() {
                               </div>
                             </td>
                             <td className="px-6 py-4">
-                              <div className="font-serif font-bold text-forest-950 flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-lg bg-forest-50 border border-forest-100/50 flex items-center justify-center text-xs text-forest-800">
+                              <div className="font-bold text-corp-blue-950 flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-lg bg-corp-blue-50 border border-corp-blue-100/50 flex items-center justify-center text-xs text-corp-blue-800">
                                   {(item.counterpart?.name || item.counterpart?.firstname || 'C')?.substring(0, 1)}
                                 </div>
                                 {item.counterpart?.name || `${item.counterpart?.firstname || ''} ${item.counterpart?.lastname || ''}`.trim() || 'Client sans nom'}
@@ -582,7 +582,7 @@ export default function SalesPage() {
                             <td className="px-6 py-4 text-right">
                               {activeTab === 'invoice' && item.withholdingtax ? (
                                 <div className="flex flex-col items-end gap-0.5" onClick={(e) => e.stopPropagation()}>
-                                  <span className="font-mono font-bold text-forest-900 text-sm">
+                                  <span className="font-mono font-bold text-corp-blue-900 text-sm">
                                     {((item.total_net_payable || item.total_net_ttc || 0)).toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT
                                   </span>
                                   <span className="font-mono text-[10px] text-sand-400 line-through">
@@ -593,7 +593,7 @@ export default function SalesPage() {
                                   </Badge>
                                 </div>
                               ) : (
-                                <span className="font-mono font-bold text-forest-800">
+                                <span className="font-mono font-bold text-corp-blue-800">
                                   {(item.total_net_ttc || 0).toLocaleString('fr-FR', { minimumFractionDigits: 3 })}{' '}
                                   DT
                                 </span>
@@ -727,7 +727,7 @@ export default function SalesPage() {
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => setSelectedDocIdForDetail(item.id)}
-                                  className="h-8 w-8 text-sand-400 hover:text-forest-950 hover:bg-sand-100 rounded-lg"
+                                  className="h-8 w-8 text-sand-400 hover:text-corp-blue-950 hover:bg-sand-100 rounded-lg"
                                 >
                                   <FileText className="w-4 h-4" />
                                 </Button>
@@ -774,14 +774,14 @@ export default function SalesPage() {
                                         <DropdownMenuItem
                                           onClick={() => handleConvert(item, 'order')}
                                           disabled={!isOwner}
-                                          className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed" : "text-forest-850")}
+                                          className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed" : "text-corp-blue-850")}
                                         >
                                           <ArrowRight className="w-4 h-4" /> Convertir en Commande
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                           onClick={() => handleConvert(item, 'bl')}
                                           disabled={!isOwner}
-                                          className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed" : "text-forest-850")}
+                                          className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed" : "text-corp-blue-850")}
                                         >
                                           <ArrowRight className="w-4 h-4" /> Convertir en BL
                                         </DropdownMenuItem>
@@ -793,7 +793,7 @@ export default function SalesPage() {
                                       <DropdownMenuItem
                                         onClick={() => handleConvert(item, 'bl')}
                                         disabled={!isOwner}
-                                        className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed" : "text-forest-850")}
+                                        className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed" : "text-corp-blue-850")}
                                       >
                                         <ArrowRight className="w-4 h-4" /> Convertir en BL
                                       </DropdownMenuItem>
@@ -805,7 +805,7 @@ export default function SalesPage() {
                                         onClick={() => handleConvert(item, 'invoice')}
                                         className={cn(
                                           "gap-2 font-semibold cursor-pointer",
-                                          isBlInvoiced || !isOwner ? "text-sand-450 cursor-not-allowed" : "text-forest-850"
+                                          isBlInvoiced || !isOwner ? "text-sand-450 cursor-not-allowed" : "text-corp-blue-850"
                                         )}
                                         disabled={isBlInvoiced || !isOwner}
                                       >
@@ -821,7 +821,7 @@ export default function SalesPage() {
                                           </>
                                         ) : (
                                           <>
-                                            <ArrowRight className="w-4 h-4 text-forest-800" />
+                                            <ArrowRight className="w-4 h-4 text-corp-blue-800" />
                                             Convertir en Facture
                                           </>
                                         )}
@@ -903,7 +903,7 @@ export default function SalesPage() {
                                         
                                         {/* Active Progress Track Line */}
                                         <div 
-                                          className="absolute top-5 left-[-20px] h-[3px] bg-forest-950 rounded-full z-0 transition-all duration-500 ease-in-out" 
+                                          className="absolute top-5 left-[-20px] h-[3px] bg-corp-blue-950 rounded-full z-0 transition-all duration-500 ease-in-out" 
                                           style={{ 
                                             width: 
                                               item.type === DocumentTypes.customerInvoice 
@@ -984,9 +984,9 @@ export default function SalesPage() {
                                                 className={cn(
                                                   'w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all relative',
                                                   isCompleted
-                                                    ? 'bg-forest-950 border-forest-950 text-white'
+                                                    ? 'bg-corp-blue-950 border-corp-blue-950 text-white'
                                                     : step.active
-                                                    ? 'bg-white border-forest-950 text-forest-950 shadow-md shadow-forest-950/15'
+                                                    ? 'bg-white border-corp-blue-950 text-corp-blue-950 shadow-md shadow-corp-blue-950/15'
                                                     : 'bg-white border-sand-200 text-sand-300'
                                                 )}
                                               >
@@ -995,8 +995,8 @@ export default function SalesPage() {
                                                 {/* Subtle current document indicator */}
                                                 {docInfo?.isCurrent && (
                                                   <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-forest-400 opacity-75"></span>
-                                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-forest-500"></span>
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-corp-blue-400 opacity-75"></span>
+                                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-corp-blue-500"></span>
                                                   </span>
                                                 )}
                                               </div>
@@ -1011,7 +1011,7 @@ export default function SalesPage() {
                                                     <span className={cn(
                                                       "text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border leading-none",
                                                       docInfo.isCurrent
-                                                        ? "bg-forest-50 text-forest-800 border-forest-100"
+                                                        ? "bg-corp-blue-50 text-corp-blue-800 border-corp-blue-100"
                                                         : "bg-sand-100/60 text-sand-700 border-sand-200/50"
                                                     )}>
                                                       {docInfo.docnumber}

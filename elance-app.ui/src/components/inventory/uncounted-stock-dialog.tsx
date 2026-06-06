@@ -89,7 +89,7 @@ export function UncountedStockDialog({ open, onOpenChange, inventories }: Uncoun
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-2xl">
         <DialogHeader>
-          <DialogTitle className="text-lg font-serif font-bold text-stone-900 dark:text-stone-50 flex items-center gap-2">
+          <DialogTitle className="text-lg font-bold text-stone-900 dark:text-stone-50 flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-amber-500" />
             Vérifier le stock non inventorié
           </DialogTitle>
@@ -186,14 +186,14 @@ export function UncountedStockDialog({ open, onOpenChange, inventories }: Uncoun
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="text-xs font-bold uppercase tracking-wider border-stone-200 dark:border-stone-800"
+            className="text-sm font-medium border-stone-200 dark:border-stone-800"
           >
             Annuler
           </Button>
           <Button
             onClick={handleGenerateZeroInventory}
             disabled={isCreating || selectedStockIds.size === 0}
-            className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold uppercase tracking-wider"
+            className="bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium"
           >
             {isCreating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle className="h-4 w-4 mr-2" />}
             Générer Inventaire de Mise à Zéro ({selectedStockIds.size})

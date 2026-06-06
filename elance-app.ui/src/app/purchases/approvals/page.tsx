@@ -121,7 +121,7 @@ export default function ApprovalsPage() {
             <ShieldAlert className="w-12 h-12" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-2xl font-serif font-bold text-slate-900">Accès Refusé</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Accès Refusé</h1>
             <p className="text-xs font-semibold text-slate-500 leading-relaxed">
               Désolé, vous n&apos;avez pas les autorisations nécessaires pour gérer les approbations. Veuillez contacter votre administrateur si vous pensez qu&apos;il s&apos;agit d&apos;une erreur.
             </p>
@@ -151,7 +151,7 @@ export default function ApprovalsPage() {
                 Panneau d&apos;approbations
               </span>
             </div>
-            <h1 className="text-3xl font-serif font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
               Approbations en Attente
             </h1>
             <p className="text-sm font-medium text-slate-500 max-w-2xl leading-relaxed">
@@ -196,7 +196,7 @@ export default function ApprovalsPage() {
         {/* Pending Approvals Table Card */}
         <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-white">
           <CardHeader className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100 p-5">
-            <CardTitle className="text-sm font-serif font-bold text-corp-blue-900 flex items-center gap-2">
+            <CardTitle className="text-sm font-bold text-corp-blue-900 flex items-center gap-2">
               <FileText className="w-4 h-4 text-corp-blue-500" /> Demandes de Validation
             </CardTitle>
             <CardDescription className="text-xs text-slate-600 font-medium">

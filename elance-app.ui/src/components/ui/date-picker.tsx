@@ -28,16 +28,16 @@ export function DatePicker({ date, setDate, placeholder = "Sélectionner une dat
         <Button
           variant={"outline"}
           className={cn(
-            "w-full h-11 justify-start text-left font-bold rounded-xl border-forest-100",
+            "w-full h-11 justify-start text-left font-bold rounded-xl border-corp-blue-100",
             !date && "text-sand-400",
             className
           )}
         >
-          <CalendarIcon className="mr-2 h-4 w-4 text-forest-600" />
+          <CalendarIcon className="mr-2 h-4 w-4 text-corp-blue-600" />
           {date ? format(date, "PPP", { locale: fr }) : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 rounded-2xl border-forest-100 shadow-2xl" align="start">
+      <PopoverContent className="w-auto p-0 rounded-2xl border-corp-blue-100 shadow-2xl" align="start">
         <Calendar
           mode="single"
           selected={date}

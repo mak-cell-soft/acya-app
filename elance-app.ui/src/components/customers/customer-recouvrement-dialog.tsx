@@ -179,19 +179,19 @@ export function CustomerRecouvrementDialog({ open, onOpenChange, customerId }: C
               <div className="space-y-3">
                 <Label className="text-base">Type d'affectation</Label>
                 <div className="flex gap-4" role="radiogroup">
-                  <label className="flex items-center space-x-2 cursor-pointer border rounded-lg p-3 flex-1 hover:bg-forest-50 transition-colors">
+                  <label className="flex items-center space-x-2 cursor-pointer border rounded-lg p-3 flex-1 hover:bg-corp-blue-50 transition-colors">
                     <input
                       type="radio"
-                      className="text-forest-600 w-4 h-4"
+                      className="text-corp-blue-600 w-4 h-4"
                       checked={paymentType === 'general'}
                       onChange={() => handlePaymentTypeChange('general')}
                     />
                     <span className="font-medium text-sm">Acompte Global</span>
                   </label>
-                  <label className="flex items-center space-x-2 cursor-pointer border rounded-lg p-3 flex-1 hover:bg-forest-50 transition-colors">
+                  <label className="flex items-center space-x-2 cursor-pointer border rounded-lg p-3 flex-1 hover:bg-corp-blue-50 transition-colors">
                     <input
                       type="radio"
-                      className="text-forest-600 w-4 h-4"
+                      className="text-corp-blue-600 w-4 h-4"
                       checked={paymentType === 'document'}
                       onChange={() => handlePaymentTypeChange('document')}
                     />
@@ -229,7 +229,7 @@ export function CustomerRecouvrementDialog({ open, onOpenChange, customerId }: C
                     </SelectContent>
                   </Select>
                   {recouvrementData?.unpaidInvoices?.length === 0 && (
-                    <div className="text-center py-8 text-forest-500 text-sm">
+                    <div className="text-center py-8 text-corp-blue-500 text-sm">
                       Aucune facture impayée trouvée.
                     </div>
                   )}
@@ -321,7 +321,7 @@ export function CustomerRecouvrementDialog({ open, onOpenChange, customerId }: C
                       size="icon"
                       onClick={handleGenerateReference}
                       disabled={loadingRef}
-                      className="absolute right-1 w-8 h-8 text-forest-600 hover:text-forest-700 hover:bg-forest-50"
+                      className="absolute right-1 w-8 h-8 text-corp-blue-600 hover:text-corp-blue-700 hover:bg-corp-blue-50"
                       title="Générer un numéro"
                     >
                       {loadingRef ? (

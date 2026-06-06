@@ -33,7 +33,7 @@ function FieldInput({
   return (
     // NOTE: Each field is a self-contained labeled unit for consistent vertical rhythm.
     <div className="space-y-2">
-      <Label htmlFor={id} className="text-xs font-bold text-forest-500 uppercase tracking-wider">
+      <Label htmlFor={id} className="text-xs font-bold text-corp-blue-500 uppercase tracking-wider">
         {label}
       </Label>
       <Input
@@ -42,7 +42,7 @@ function FieldInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         dir={rtl ? 'rtl' : 'ltr'}
-        className={`h-10 rounded-xl bg-sand-50/60 border-forest-100 focus:bg-white focus:border-forest-600 transition-all font-medium text-sm${rtl ? ' text-right font-arabic' : ''}`}
+        className={`h-10 rounded-xl bg-sand-50/60 border-corp-blue-100 focus:bg-white focus:border-corp-blue-600 transition-all font-medium text-sm${rtl ? ' text-right font-arabic' : ''}`}
       />
     </div>
   );
@@ -63,13 +63,13 @@ function SectionCard({
   return (
     <section className="grid lg:grid-cols-3 gap-8">
       <div className="space-y-2">
-        <h3 className="text-base font-bold text-forest-900 flex items-center gap-2.5">
-          <div className="p-1.5 rounded-lg bg-forest-50 text-forest-600">{icon}</div>
+        <h3 className="text-base font-bold text-corp-blue-900 flex items-center gap-2.5">
+          <div className="p-1.5 rounded-lg bg-corp-blue-50 text-corp-blue-600">{icon}</div>
           {title}
         </h3>
         <p className="text-[0.85rem] text-sand-400 font-medium leading-relaxed">{subtitle}</p>
       </div>
-      <Card className="lg:col-span-2 border-forest-100 rounded-xl shadow-sm bg-white overflow-hidden">
+      <Card className="lg:col-span-2 border-corp-blue-100 rounded-xl shadow-sm bg-white overflow-hidden">
         <CardContent className="p-6">{children}</CardContent>
       </Card>
     </section>
@@ -81,8 +81,8 @@ function SectionCard({
 function GroupLabel({ label }: { label: string }) {
   return (
     <div className="col-span-full flex items-center gap-3 pt-2 pb-1">
-      <span className="text-[10px] font-bold uppercase tracking-widest text-forest-300">{label}</span>
-      <div className="flex-1 h-px bg-forest-50" />
+      <span className="text-[10px] font-bold uppercase tracking-widest text-corp-blue-300">{label}</span>
+      <div className="flex-1 h-px bg-corp-blue-50" />
     </div>
   );
 }
@@ -124,7 +124,7 @@ export function PrintTab() {
   if (isLoading || (!form && !locale)) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-forest-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-corp-blue-600" />
       </div>
     );
   }
@@ -181,7 +181,7 @@ export function PrintTab() {
         </div>
       </SectionCard>
 
-      <div className="h-px bg-forest-50" />
+      <div className="h-px bg-corp-blue-50" />
 
       {/* ── Section 2 : En-tête document ──────────────────────────────── */}
       <SectionCard
@@ -211,7 +211,7 @@ export function PrintTab() {
         </div>
       </SectionCard>
 
-      <div className="h-px bg-forest-50" />
+      <div className="h-px bg-corp-blue-50" />
 
       {/* ── Section 3 : Informations Client ───────────────────────────── */}
       <SectionCard
@@ -230,7 +230,7 @@ export function PrintTab() {
         </div>
       </SectionCard>
 
-      <div className="h-px bg-forest-50" />
+      <div className="h-px bg-corp-blue-50" />
 
       {/* ── Section 4 : Colonnes du Tableau ───────────────────────────── */}
       <SectionCard
@@ -253,7 +253,7 @@ export function PrintTab() {
         </div>
       </SectionCard>
 
-      <div className="h-px bg-forest-50" />
+      <div className="h-px bg-corp-blue-50" />
 
       {/* ── Section 5 : Totaux & Bas de Page ──────────────────────────── */}
       <SectionCard
@@ -287,7 +287,7 @@ export function PrintTab() {
           onClick={handleSave}
           disabled={updateLocale.isPending}
           id="print-locale-save"
-          className="bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 gap-2 h-12 px-8 transition-all duration-300"
+          className="bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20 gap-2 h-12 px-8 transition-all duration-300"
         >
           {updateLocale.isPending ? (
             <Loader2 className="w-5 h-5 animate-spin" />

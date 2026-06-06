@@ -321,8 +321,8 @@ export function DashboardContent() {
   const renderStockHealth = () => {
     if (isLoadingStockHealth) {
       return (
-        <div className="h-[220px] w-full bg-forest-50/30 animate-pulse rounded-2xl flex items-center justify-center">
-          <span className="text-forest-300 font-medium">Chargement des données...</span>
+        <div className="h-[220px] w-full bg-corp-blue-50/30 animate-pulse rounded-2xl flex items-center justify-center">
+          <span className="text-corp-blue-300 font-medium">Chargement des données...</span>
         </div>
       );
     }
@@ -386,8 +386,8 @@ export function DashboardContent() {
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
-                    <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
-                      <p className="font-bold text-forest-950 mb-3 border-b border-forest-50 pb-2">{label}</p>
+                    <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
+                      <p className="font-bold text-corp-blue-950 mb-3 border-b border-corp-blue-50 pb-2">{label}</p>
                       <div className="space-y-2">
                         {payload.map((entry: any, index: number) => {
                           // Handle custom colors for the first bar (Stock Actuel) which uses cells
@@ -404,7 +404,7 @@ export function DashboardContent() {
                                 <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: dotColor }} />
                                 <span className="text-sm text-sand-500 font-medium">{entry.name}</span>
                               </div>
-                              <span className="font-black text-forest-900 font-mono text-sm">{entry.value}</span>
+                              <span className="font-black text-corp-blue-900 font-mono text-sm">{entry.value}</span>
                             </div>
                           );
                         })}
@@ -457,11 +457,11 @@ export function DashboardContent() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-3xl md:text-4xl font-heading font-bold tracking-tight text-forest-900">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-corp-blue-900">
             Tableau de bord
           </h1>
           <p className="text-sand-400 mt-2 font-medium">
-            Bienvenue, <span className="text-forest-600 font-bold">{user?.fullname}</span>. Voici l'activité générale de votre caisse et de vos parcs.
+            Bienvenue, <span className="text-corp-blue-600 font-bold">{user?.fullname}</span>. Voici l'activité générale de votre caisse et de vos parcs.
           </p>
         </motion.div>
         
@@ -471,14 +471,14 @@ export function DashboardContent() {
             size="lg" 
             variant="outline" 
             onClick={() => router.push('/sales/customer-invoice-modal')}
-            className="h-12 rounded-xl border-forest-100 text-forest-600 hover:bg-forest-50 font-bold"
+            className="h-12 rounded-xl border-corp-blue-100 text-corp-blue-600 hover:bg-corp-blue-50 font-bold"
           >
             Facturer
           </Button>
           <Button 
             size="lg" 
             onClick={() => router.push('/sales')}
-            className="h-12 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 gap-2 px-6"
+            className="h-12 rounded-xl bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20 gap-2 px-6"
           >
             <Plus className="w-5 h-5" /> Nouvelle Vente
           </Button>
@@ -491,11 +491,11 @@ export function DashboardContent() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.6 }}
       >
-        <Card className="border-forest-100/50 bg-white/70 backdrop-blur-md rounded-2xl overflow-hidden shadow-sm">
+        <Card className="border-corp-blue-100/50 bg-white/70 backdrop-blur-md rounded-2xl overflow-hidden shadow-sm">
           <CardContent className="p-8">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 pb-6 border-b border-forest-50">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 pb-6 border-b border-corp-blue-50">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-forest-50 text-forest-600 flex items-center justify-center font-bold">
+                <div className="w-14 h-14 rounded-2xl bg-corp-blue-50 text-corp-blue-600 flex items-center justify-center font-bold">
                   <DollarSign className="w-7 h-7" />
                 </div>
                 <div>
@@ -503,10 +503,10 @@ export function DashboardContent() {
                     Caisse Point de Vente (Espèces) {siteName ? `— ${siteName}` : ''}
                   </p>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <h2 className="text-3xl font-black text-forest-900 tracking-tight">
+                    <h2 className="text-3xl font-black text-corp-blue-900 tracking-tight">
                       {caisseBalance.toFixed(3)}
                     </h2>
-                    <span className="text-sm font-bold text-forest-600">TND</span>
+                    <span className="text-sm font-bold text-corp-blue-600">TND</span>
                   </div>
                 </div>
               </div>
@@ -534,7 +534,7 @@ export function DashboardContent() {
               {/* Timeline Header controls */}
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <span className="text-xs font-bold text-sand-400 uppercase tracking-wider flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-forest-600" />
+                  <Clock className="w-4 h-4 text-corp-blue-600" />
                   Mouvements de Caisse
                 </span>
 
@@ -543,14 +543,14 @@ export function DashboardContent() {
                     variant="ghost" 
                     size="icon" 
                     onClick={handlePrevDay}
-                    className="h-8 w-8 rounded-lg text-forest-600 hover:bg-forest-50"
+                    className="h-8 w-8 rounded-lg text-corp-blue-600 hover:bg-corp-blue-50"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </Button>
 
                   <div className={cn(
                     "px-3 py-1.5 rounded-lg border text-xs font-bold flex items-center gap-1.5",
-                    isTimelineToday ? "bg-forest-50 border-forest-100 text-forest-800" : "bg-white border-border text-sand-400"
+                    isTimelineToday ? "bg-corp-blue-50 border-corp-blue-100 text-corp-blue-800" : "bg-white border-border text-sand-400"
                   )}>
                     <Calendar className="w-3.5 h-3.5" />
                     {isTimelineToday ? "Aujourd'hui" : format(timelineDate, 'EEE dd MMM yyyy', { locale: fr })}
@@ -561,7 +561,7 @@ export function DashboardContent() {
                     size="icon" 
                     onClick={handleNextDay}
                     disabled={isTimelineToday}
-                    className="h-8 w-8 rounded-lg text-forest-600 hover:bg-forest-50 disabled:opacity-30"
+                    className="h-8 w-8 rounded-lg text-corp-blue-600 hover:bg-corp-blue-50 disabled:opacity-30"
                   >
                     <ChevronRight className="w-5 h-5" />
                   </Button>
@@ -571,7 +571,7 @@ export function DashboardContent() {
                   <Button 
                     variant="link" 
                     onClick={handleGoToToday}
-                    className="text-xs text-forest-600 font-bold p-0 h-auto hover:text-forest-800"
+                    className="text-xs text-corp-blue-600 font-bold p-0 h-auto hover:text-corp-blue-800"
                   >
                     Revenir à aujourd'hui
                   </Button>
@@ -581,11 +581,11 @@ export function DashboardContent() {
               {/* Timeline track / lists */}
               {isMovementsLoading ? (
                 <div className="h-28 flex items-center justify-center text-sand-300">
-                  <Loader2 className="w-6 h-6 animate-spin text-forest-600 mr-2" />
+                  <Loader2 className="w-6 h-6 animate-spin text-corp-blue-600 mr-2" />
                   Chargement de la timeline...
                 </div>
               ) : movements.length === 0 ? (
-                <div className="h-28 border border-dashed border-forest-100 rounded-2xl flex flex-col items-center justify-center text-center p-4">
+                <div className="h-28 border border-dashed border-corp-blue-100 rounded-2xl flex flex-col items-center justify-center text-center p-4">
                   <p className="text-sm font-bold text-sand-400">Aucun mouvement enregistré pour cette journée.</p>
                 </div>
               ) : (
@@ -593,7 +593,7 @@ export function DashboardContent() {
                   <div className="flex items-center min-w-max gap-12 relative">
                     
                     {/* Horizontal connector line */}
-                    <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-forest-100/50 -translate-y-1/2 z-0" />
+                    <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-corp-blue-100/50 -translate-y-1/2 z-0" />
 
                     {movements.map((m: any, index: number) => {
                       const isEven = index % 2 === 0;
@@ -650,7 +650,7 @@ export function DashboardContent() {
 
                           {/* Text indicators */}
                           <div className={cn("text-center mt-2 flex flex-col", isEven ? "" : "order-first mb-2 mt-0")}>
-                            <span className="text-[0.7rem] font-bold text-forest-900 leading-tight">
+                            <span className="text-[0.7rem] font-bold text-corp-blue-900 leading-tight">
                               {formatReason(m.reason)}
                             </span>
                             <span className="text-[0.65rem] text-sand-300 font-bold mt-0.5">
@@ -702,14 +702,14 @@ export function DashboardContent() {
               onClick={() => !item.disabled && router.push(item.path)}
               className={cn(
                 "border border-transparent bg-white shadow-none rounded-[20px] cursor-pointer group transition-all duration-300",
-                item.disabled ? "opacity-60 cursor-not-allowed" : "hover:border-forest-600 hover:-translate-y-1 hover:shadow-lg hover:shadow-forest-900/5"
+                item.disabled ? "opacity-60 cursor-not-allowed" : "hover:border-corp-blue-600 hover:-translate-y-1 hover:shadow-lg hover:shadow-corp-blue-900/5"
               )}
             >
               <CardContent className="p-5 flex flex-col items-center justify-center text-center gap-3">
                 <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", item.color)}>
                   <item.icon className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-bold text-forest-900 uppercase tracking-widest">{item.title}</span>
+                <span className="text-xs font-bold text-corp-blue-900 uppercase tracking-widest">{item.title}</span>
               </CardContent>
             </Card>
           </motion.div>
@@ -726,8 +726,8 @@ export function DashboardContent() {
           
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <CreditCard className="w-6 h-6 text-forest-600" />
-              <h2 className="text-2xl font-heading font-bold text-forest-900">
+              <CreditCard className="w-6 h-6 text-corp-blue-600" />
+              <h2 className="text-2xl font-bold text-corp-blue-900">
                 Aperçu des Règlements
               </h2>
             </div>
@@ -749,7 +749,7 @@ export function DashboardContent() {
                     </div>
                     <div>
                       <p className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-wider">{tot.method}</p>
-                      <h3 className="text-sm font-black text-forest-950 mt-0.5">
+                      <h3 className="text-sm font-black text-corp-blue-950 mt-0.5">
                         {tot.total.toFixed(3)} <span className="text-[0.65rem]">TND</span>
                       </h3>
                     </div>
@@ -760,17 +760,17 @@ export function DashboardContent() {
           )}
 
           {/* Table list */}
-          <Card className="border-forest-100 rounded-xl bg-white overflow-hidden shadow-none">
+          <Card className="border-corp-blue-100 rounded-xl bg-white overflow-hidden shadow-none">
             <CardContent className="p-0">
               
               {isPaymentsLoading ? (
                 <div className="p-12 flex items-center justify-center text-sand-300">
-                  <Loader2 className="w-8 h-8 animate-spin text-forest-600 mr-2" />
+                  <Loader2 className="w-8 h-8 animate-spin text-corp-blue-600 mr-2" />
                   Chargement des règlements...
                 </div>
               ) : payments.length === 0 ? (
                 <div className="p-16 text-center">
-                  <div className="w-12 h-12 rounded-full bg-forest-50 text-forest-600 flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 rounded-full bg-corp-blue-50 text-corp-blue-600 flex items-center justify-center mx-auto mb-3">
                     <CreditCard className="w-6 h-6" />
                   </div>
                   <p className="text-sm font-bold text-sand-400">Aucun règlement trouvé pour cette date.</p>
@@ -779,7 +779,7 @@ export function DashboardContent() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-forest-50/50 bg-forest-50/10">
+                      <tr className="border-b border-corp-blue-50/50 bg-corp-blue-50/10">
                         <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider">Heure</th>
                         <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider">Client</th>
                         <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider">Montant</th>
@@ -787,22 +787,22 @@ export function DashboardContent() {
                         <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider">Documents</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-forest-50/20">
+                    <tbody className="divide-y divide-corp-blue-50/20">
                       {paginatedPayments.map((p) => {
                         const dateObj = new Date(p.createdAt || p.paymentDate);
                         
                         return (
-                          <tr key={p.paymentId} className="hover:bg-forest-50/20 transition-all">
-                            <td className="px-6 py-4 text-xs font-bold text-forest-800 whitespace-nowrap">
+                          <tr key={p.paymentId} className="hover:bg-corp-blue-50/20 transition-all">
+                            <td className="px-6 py-4 text-xs font-bold text-corp-blue-800 whitespace-nowrap">
                               <span className="flex items-center gap-1.5 text-sand-400 font-medium">
                                 <Clock className="w-3.5 h-3.5" />
                                 {format(dateObj, 'HH:mm')}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-sm font-bold text-forest-900">
+                            <td className="px-6 py-4 text-sm font-bold text-corp-blue-900">
                               {p.customerName || 'N/A'}
                             </td>
-                            <td className="px-6 py-4 text-sm font-black text-forest-950 whitespace-nowrap">
+                            <td className="px-6 py-4 text-sm font-black text-corp-blue-950 whitespace-nowrap">
                               {p.amount.toFixed(3)} <span className="text-[0.65rem] font-bold text-sand-400">TND</span>
                             </td>
                             <td className="px-6 py-4">
@@ -874,12 +874,12 @@ export function DashboardContent() {
           transition={{ delay: 0.55, duration: 0.5 }}
           className="lg:col-span-1"
         >
-          <Card className="border-forest-100 rounded-[28px] shadow-none bg-white overflow-hidden h-full">
+          <Card className="border-corp-blue-100 rounded-[28px] shadow-none bg-white overflow-hidden h-full">
             <CardHeader className="p-6">
-              <CardTitle className="font-heading text-lg text-forest-900">Ventes (7j)</CardTitle>
+              <CardTitle className="text-lg text-corp-blue-900">Ventes (7j)</CardTitle>
               <CardDescription className="text-sand-400 font-medium flex items-center justify-between">
                 <span>Aujourd'hui</span>
-                <span className="font-bold text-forest-600">{dailySales.toFixed(3)} TND</span>
+                <span className="font-bold text-corp-blue-600">{dailySales.toFixed(3)} TND</span>
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 pt-0">
@@ -906,11 +906,11 @@ export function DashboardContent() {
                       content={({ active, payload, label }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-2xl rounded-2xl p-3 min-w-[150px] animate-in fade-in duration-200">
-                              <p className="font-bold text-forest-950 mb-2 border-b border-forest-50 pb-1 text-xs">{label}</p>
+                            <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-3 min-w-[150px] animate-in fade-in duration-200">
+                              <p className="font-bold text-corp-blue-950 mb-2 border-b border-corp-blue-50 pb-1 text-xs">{label}</p>
                               <div className="flex items-center justify-between gap-3">
                                 <span className="text-xs text-sand-500 font-medium">Ventes</span>
-                                <span className="font-black text-forest-900 font-mono text-xs">{payload[0].value} TND</span>
+                                <span className="font-black text-corp-blue-900 font-mono text-xs">{payload[0].value} TND</span>
                               </div>
                             </div>
                           );
@@ -944,11 +944,11 @@ export function DashboardContent() {
           transition={{ delay: 0.6, duration: 0.5 }}
           className="lg:col-span-2"
         >
-          <Card className="border-forest-100 rounded-[28px] shadow-none bg-white overflow-hidden h-full">
+          <Card className="border-corp-blue-100 rounded-[28px] shadow-none bg-white overflow-hidden h-full">
             <CardHeader className="p-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <CardTitle className="font-heading text-lg text-forest-900">Santé du Stock</CardTitle>
+                  <CardTitle className="text-lg text-corp-blue-900">Santé du Stock</CardTitle>
                   <CardDescription className="text-sand-400 font-medium">Comparaison avec le stock min</CardDescription>
                 </div>
                 <div className="flex items-center gap-3">
@@ -956,7 +956,7 @@ export function DashboardContent() {
                     <select
                       value={selectedStockSubCatId || ""}
                       onChange={(e) => setSelectedStockSubCatId(Number(e.target.value))}
-                      className="h-8 rounded-xl bg-sand-50/50 border-sand-200 px-2 text-xs font-bold text-forest-900 outline-none cursor-pointer focus-visible:ring-forest-500 max-w-[150px]"
+                      className="h-8 rounded-xl bg-sand-50/50 border-sand-200 px-2 text-xs font-bold text-corp-blue-900 outline-none cursor-pointer focus-visible:ring-corp-blue-500 max-w-[150px]"
                     >
                       {stockHealth.map(c => (
                         <option key={c.subCategoryId} value={c.subCategoryId}>{c.subCategoryName}</option>
@@ -979,9 +979,9 @@ export function DashboardContent() {
         open={movementModalType !== null} 
         onOpenChange={(open) => !open && setMovementModalType(null)}
       >
-        <DialogContent className="sm:max-w-md rounded-2xl bg-white border border-forest-100 shadow-2xl p-6">
+        <DialogContent className="sm:max-w-md rounded-2xl bg-white border border-corp-blue-100 shadow-2xl p-6">
           <DialogHeader>
-            <DialogTitle className="text-xl font-heading font-bold text-forest-900 flex items-center gap-2">
+            <DialogTitle className="text-xl font-bold text-corp-blue-900 flex items-center gap-2">
               {movementModalType === 'ENTREE' ? <TrendingUp className="text-emerald-600" /> : <TrendingDown className="text-rose-600" />}
               {movementModalType === 'ENTREE' ? 'Approvisionnement Caisse' : 'Remise de Caisse'}
             </DialogTitle>
@@ -997,7 +997,7 @@ export function DashboardContent() {
           )}>
             <div>
               <p className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-wider">Solde Actuel</p>
-              <h4 className="text-lg font-black text-forest-950 mt-0.5">{caisseBalance.toFixed(3)} TND</h4>
+              <h4 className="text-lg font-black text-corp-blue-950 mt-0.5">{caisseBalance.toFixed(3)} TND</h4>
             </div>
             {movementModalType === 'ENTREE' && approLimit && (
               <div className="text-right">
@@ -1009,7 +1009,7 @@ export function DashboardContent() {
 
           <form onSubmit={handleSubmitMovement} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="amount" className="text-xs font-bold text-forest-900 uppercase tracking-wider">Montant (TND)</Label>
+              <Label htmlFor="amount" className="text-xs font-bold text-corp-blue-900 uppercase tracking-wider">Montant (TND)</Label>
               <Input
                 id="amount"
                 type="number"
@@ -1019,7 +1019,7 @@ export function DashboardContent() {
                 placeholder="0.000"
                 value={movementAmount}
                 onChange={(e) => setMovementAmount(e.target.value)}
-                className="h-11 rounded-xl border-forest-100 focus:ring-forest-600"
+                className="h-11 rounded-xl border-corp-blue-100 focus:ring-corp-blue-600"
               />
               {movementModalType === 'ENTREE' && approLimit && (
                 <p className="text-[0.7rem] text-sand-400 font-bold">
@@ -1029,14 +1029,14 @@ export function DashboardContent() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="reason" className="text-xs font-bold text-forest-900 uppercase tracking-wider">Motif</Label>
+              <Label htmlFor="reason" className="text-xs font-bold text-corp-blue-900 uppercase tracking-wider">Motif</Label>
               <Select value={movementReason} onValueChange={(val: string | null) => setMovementReason(val as string)}>
-                <SelectTrigger className="h-11 w-full rounded-xl border-forest-100">
+                <SelectTrigger className="h-11 w-full rounded-xl border-corp-blue-100">
                   <SelectValue placeholder="Sélectionner le motif">
                     {movementReason ? (MOVEMENT_REASONS[movementReason] || formatReason(movementReason)) : "Sélectionner le motif"}
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-forest-100">
+                <SelectContent className="rounded-xl border-corp-blue-100">
                   {movementModalType === 'ENTREE' ? (
                     <>
                       <SelectItem value="SOLDE_INITIAL">Solde Initial</SelectItem>
@@ -1054,7 +1054,7 @@ export function DashboardContent() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="reference" className="text-xs font-bold text-forest-900 uppercase tracking-wider">Référence / Pièce</Label>
+              <Label htmlFor="reference" className="text-xs font-bold text-corp-blue-900 uppercase tracking-wider">Référence / Pièce</Label>
               <div className="relative">
                 <Input
                   id="reference"
@@ -1062,13 +1062,13 @@ export function DashboardContent() {
                   placeholder="Ex: REF-240522-001"
                   value={movementReference}
                   onChange={(e) => setMovementReference(e.target.value)}
-                  className="h-11 rounded-xl border-forest-100 focus:ring-forest-600 pr-12"
+                  className="h-11 rounded-xl border-corp-blue-100 focus:ring-corp-blue-600 pr-12"
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-1 top-1.5 h-8 w-8 text-sand-400 hover:text-forest-600 hover:bg-forest-50"
+                  className="absolute right-1 top-1.5 h-8 w-8 text-sand-400 hover:text-corp-blue-600 hover:bg-corp-blue-50"
                   onClick={async () => {
                     try {
                       const res = await caisseService.getNextReference();
@@ -1084,23 +1084,23 @@ export function DashboardContent() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes" className="text-xs font-bold text-forest-900 uppercase tracking-wider">Notes</Label>
+              <Label htmlFor="notes" className="text-xs font-bold text-corp-blue-900 uppercase tracking-wider">Notes</Label>
               <Input
                 id="notes"
                 type="text"
                 placeholder="Notes supplémentaires..."
                 value={movementNotes}
                 onChange={(e) => setMovementNotes(e.target.value)}
-                className="h-11 rounded-xl border-forest-100 focus:ring-forest-600"
+                className="h-11 rounded-xl border-corp-blue-100 focus:ring-corp-blue-600"
               />
             </div>
 
-            <DialogFooter className="pt-4 flex justify-end gap-3 border-t border-forest-50">
+            <DialogFooter className="pt-4 flex justify-end gap-3 border-t border-corp-blue-50">
               <Button 
                 type="button" 
                 variant="outline" 
                 onClick={() => setMovementModalType(null)}
-                className="rounded-xl h-11 border-forest-100 text-forest-600"
+                className="rounded-xl h-11 border-corp-blue-100 text-corp-blue-600"
               >
                 Annuler
               </Button>

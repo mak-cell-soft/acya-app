@@ -31,9 +31,9 @@ export function DeleteConfirmDialog({
 }: DeleteConfirmDialogProps) {
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="rounded-xl border-forest-100 shadow-2xl">
+      <AlertDialogContent className="rounded-xl border-corp-blue-100 shadow-2xl">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-forest-900 font-heading text-xl">{title}</AlertDialogTitle>
+          <AlertDialogTitle className="text-corp-blue-900 text-xl">{title}</AlertDialogTitle>
           <AlertDialogDescription className="text-sand-400 font-medium">
             {description}
           </AlertDialogDescription>

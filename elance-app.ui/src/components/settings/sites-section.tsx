@@ -35,7 +35,7 @@ export function SitesSection({ enterpriseId }: { enterpriseId: number }) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-32">
-        <Loader2 className="w-6 h-6 animate-spin text-forest-600" />
+        <Loader2 className="w-6 h-6 animate-spin text-corp-blue-600" />
       </div>
     );
   }
@@ -43,8 +43,8 @@ export function SitesSection({ enterpriseId }: { enterpriseId: number }) {
   return (
     <section className="grid lg:grid-cols-3 gap-8">
       <div className="space-y-2">
-        <h3 className="text-lg font-bold text-forest-900 flex items-center gap-2.5">
-          <div className="p-1.5 rounded-lg bg-forest-50 text-forest-600">
+        <h3 className="text-lg font-bold text-corp-blue-900 flex items-center gap-2.5">
+          <div className="p-1.5 rounded-lg bg-corp-blue-50 text-corp-blue-600">
             <MapPin className="w-5 h-5" />
           </div>
           Points de Vente & Dépôts
@@ -53,30 +53,30 @@ export function SitesSection({ enterpriseId }: { enterpriseId: number }) {
           Gérez vos différents sites d'exploitation et points de vente.
         </p>
       </div>
-      <Card className="lg:col-span-2 border-forest-100 rounded-xl shadow-sm bg-white overflow-hidden">
+      <Card className="lg:col-span-2 border-corp-blue-100 rounded-xl shadow-sm bg-white overflow-hidden">
         <CardContent className="p-8 space-y-6">
           <div className="flex justify-between items-center">
-            <h4 className="text-forest-900 font-bold flex items-center gap-2">
-              <Store className="w-4 h-4 text-forest-500" />
+            <h4 className="text-corp-blue-900 font-bold flex items-center gap-2">
+              <Store className="w-4 h-4 text-corp-blue-500" />
               Liste des Sites ({sites?.length || 0})
             </h4>
             <Button 
               onClick={() => setIsDialogOpen(true)}
-              className="rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold h-10 gap-2 shadow-md shadow-forest-600/10"
+              className="rounded-xl bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold h-10 gap-2 shadow-md shadow-corp-blue-600/10"
             >
               <Plus className="w-4 h-4" /> Ajouter un site
             </Button>
           </div>
 
-          <div className="rounded-xl border border-forest-50 overflow-hidden bg-sand-50/30">
+          <div className="rounded-xl border border-corp-blue-50 overflow-hidden bg-sand-50/30">
             <Table>
               <TableHeader>
-                <TableRow className="bg-forest-50/50 hover:bg-forest-50/50 border-forest-50">
-                  <TableHead className="text-forest-900 font-bold w-[100px]">#</TableHead>
-                  <TableHead className="text-forest-900 font-bold">Adresse</TableHead>
-                  <TableHead className="text-forest-900 font-bold">Gouvernorat</TableHead>
-                  <TableHead className="text-forest-900 font-bold">Type</TableHead>
-                  <TableHead className="text-forest-900 font-bold text-right">Actions</TableHead>
+                <TableRow className="bg-corp-blue-50/50 hover:bg-corp-blue-50/50 border-corp-blue-50">
+                  <TableHead className="text-corp-blue-900 font-bold w-[100px]">#</TableHead>
+                  <TableHead className="text-corp-blue-900 font-bold">Adresse</TableHead>
+                  <TableHead className="text-corp-blue-900 font-bold">Gouvernorat</TableHead>
+                  <TableHead className="text-corp-blue-900 font-bold">Type</TableHead>
+                  <TableHead className="text-corp-blue-900 font-bold text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -88,9 +88,9 @@ export function SitesSection({ enterpriseId }: { enterpriseId: number }) {
                   </TableRow>
                 ) : (
                   sites?.map((site, index) => (
-                    <TableRow key={site.id} className="hover:bg-white transition-colors border-forest-50">
-                      <TableCell className="font-bold text-forest-600">#{index + 1}</TableCell>
-                      <TableCell className="text-forest-900 font-medium">{site.address}</TableCell>
+                    <TableRow key={site.id} className="hover:bg-white transition-colors border-corp-blue-50">
+                      <TableCell className="font-bold text-corp-blue-600">#{index + 1}</TableCell>
+                      <TableCell className="text-corp-blue-900 font-medium">{site.address}</TableCell>
                       <TableCell className="text-sand-600 font-medium">{site.gov}</TableCell>
                       <TableCell>
                         {site.isForsale ? (
@@ -108,15 +108,15 @@ export function SitesSection({ enterpriseId }: { enterpriseId: number }) {
                             </Button>
                           }
                         />
-                          <AlertDialogContent className="rounded-xl border-forest-100">
+                          <AlertDialogContent className="rounded-xl border-corp-blue-100">
                             <AlertDialogHeader>
-                              <AlertDialogTitle className="text-forest-900 font-bold">Supprimer ce site ?</AlertDialogTitle>
+                              <AlertDialogTitle className="text-corp-blue-900 font-bold">Supprimer ce site ?</AlertDialogTitle>
                               <AlertDialogDescription className="text-sand-500 font-medium">
                                 Cette action est irréversible. Le site "{site.address}" sera définitivement retiré de votre configuration.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel className="rounded-xl border-forest-100 font-bold">Annuler</AlertDialogCancel>
+                              <AlertDialogCancel className="rounded-xl border-corp-blue-100 font-bold">Annuler</AlertDialogCancel>
                               <AlertDialogAction 
                                 onClick={() => deleteSite.mutate(site.id)}
                                 className="rounded-xl bg-red-600 text-white hover:bg-red-700 font-bold"

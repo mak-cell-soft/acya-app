@@ -181,25 +181,25 @@ export default function ArticlesPage() {
         {/* Header Section */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl md:text-4xl font-heading font-bold tracking-tight text-forest-900">Gestion des Articles</h1>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-corp-blue-900">Gestion des Articles</h1>
             <p className="text-sand-400 font-medium mt-1">Gérez votre catalogue de bois, panneaux et accessoires.</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="h-11 border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6">
+            <Button variant="outline" className="h-11 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 px-6">
               <Download className="w-4 h-4 mr-2" /> Exporter
             </Button>
             {hasPermission('articles', 'canAdd') && (
               <Button 
                 onClick={() => setIsImportOpen(true)}
                 variant="outline" 
-                className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6"
+                className="h-11 rounded-xl border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 px-6"
               >
                 <Upload className="w-4 h-4 mr-2" /> Importer
               </Button>
             )}
             {hasPermission('articles', 'canAdd') && (
               <Button 
-                className="h-11 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-6"
+                className="h-11 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20 px-6"
                 onClick={() => { setSelectedArticle(null); setIsFormOpen(true); }}
               >
                 <Plus className="w-4 h-4 mr-2" /> Nouvel Article
@@ -209,7 +209,7 @@ export default function ArticlesPage() {
         </header>
 
         {/* Filters and Table Card */}
-        <Card className="border-forest-100/50 shadow-2xl shadow-forest-900/5 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-md">
+        <Card className="border-corp-blue-100/50 shadow-2xl shadow-corp-blue-900/5 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-md">
           <ArticleFilters 
             searchTerm={searchTerm}
             onSearchChange={(val) => { setSearchTerm(val); setCurrentPage(1); }}
@@ -225,7 +225,7 @@ export default function ArticlesPage() {
             <div className="overflow-x-auto scrollbar-hide">
               <table className="w-full min-w-[1000px] text-left border-collapse">
                 <thead>
-                  <tr className="bg-sand-50/50 border-b border-forest-50">
+                  <tr className="bg-sand-50/50 border-b border-corp-blue-50">
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest pl-8">
                       <div className="flex items-center gap-2"><QrCode className="w-3 h-3" /> Référence</div>
                     </th>
@@ -237,7 +237,7 @@ export default function ArticlesPage() {
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-forest-50">
+                <tbody className="divide-y divide-corp-blue-50">
                   {isArticlesLoading ? (
                     <TableSkeleton />
                   ) : filteredArticles.length === 0 ? (
@@ -247,28 +247,28 @@ export default function ArticlesPage() {
                       <React.Fragment key={item.id}>
                         <tr 
                           className={cn(
-                            "group hover:bg-forest-50/30 transition-all duration-300 cursor-pointer border-l-4 border-transparent",
-                            expandedId === item.id && "bg-forest-50/50 border-forest-600"
+                            "group hover:bg-corp-blue-50/30 transition-all duration-300 cursor-pointer border-l-4 border-transparent",
+                            expandedId === item.id && "bg-corp-blue-50/50 border-corp-blue-600"
                           )}
                           onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
                         >
                           <td className="p-5 pl-8">
-                            <span className="font-bold text-forest-900">{item.reference}</span>
+                            <span className="font-bold text-corp-blue-900">{item.reference}</span>
                           </td>
                           <td className="p-5">
                             <div className="font-medium text-sand-800">{item.description}</div>
                             <div className="text-[0.7rem] text-sand-400 font-bold uppercase tracking-wider mt-0.5">{item.subcategory?.description}</div>
                           </td>
                           <td className="p-5">
-                            <Badge variant="outline" className="bg-white border-forest-100 text-forest-600 font-bold rounded-lg px-2.5 py-1">
+                            <Badge variant="outline" className="bg-white border-corp-blue-100 text-corp-blue-600 font-bold rounded-lg px-2.5 py-1">
                               {item.category?.description}
                             </Badge>
                           </td>
                           <td className="p-5 text-right">
-                            <span className="font-bold text-forest-900">{item.sellprice_ttc.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}</span>
+                            <span className="font-bold text-corp-blue-900">{item.sellprice_ttc.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}</span>
                           </td>
                           <td className="p-5 text-center">
-                            <Badge className="bg-forest-100 text-forest-600 hover:bg-forest-200 border-none font-bold rounded-lg">
+                            <Badge className="bg-corp-blue-100 text-corp-blue-600 hover:bg-corp-blue-200 border-none font-bold rounded-lg">
                               {item.tva?.value}
                             </Badge>
                           </td>
@@ -280,7 +280,7 @@ export default function ArticlesPage() {
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="h-9 w-9 text-sand-300 hover:text-forest-600 hover:bg-forest-100/50 transition-all"
+                                className="h-9 w-9 text-sand-300 hover:text-corp-blue-600 hover:bg-corp-blue-100/50 transition-all"
                                 onClick={(e) => { e.stopPropagation(); setSelectedArticle(item); setIsHistoryOpen(true); }}
                               >
                                 <History className="w-4 h-4" />
@@ -288,14 +288,14 @@ export default function ArticlesPage() {
                               
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                  <Button variant="ghost" size="icon" className="h-9 w-9 text-sand-300 hover:text-forest-900">
+                                  <Button variant="ghost" size="icon" className="h-9 w-9 text-sand-300 hover:text-corp-blue-900">
                                     <MoreHorizontal className="w-4 h-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="rounded-2xl border-forest-100 w-48 shadow-xl p-2">
+                                <DropdownMenuContent align="end" className="rounded-2xl border-corp-blue-100 w-48 shadow-xl p-2">
                                   {hasPermission('articles', 'canUpdate') && (
                                     <DropdownMenuItem 
-                                      className="gap-2 font-bold text-forest-900 cursor-pointer rounded-xl h-11"
+                                      className="gap-2 font-bold text-corp-blue-900 cursor-pointer rounded-xl h-11"
                                       onClick={() => { setSelectedArticle(item); setIsFormOpen(true); }}
                                     >
                                       <Edit className="w-4 h-4" /> Modifier
@@ -312,8 +312,8 @@ export default function ArticlesPage() {
                                 </DropdownMenuContent>
                               </DropdownMenu>
 
-                              <div className="p-1 rounded-full bg-forest-50/50">
-                                <ChevronDown className={cn("w-4 h-4 text-forest-300 transition-transform duration-500", expandedId === item.id && "rotate-180 text-forest-600")} />
+                              <div className="p-1 rounded-full bg-corp-blue-50/50">
+                                <ChevronDown className={cn("w-4 h-4 text-corp-blue-300 transition-transform duration-500", expandedId === item.id && "rotate-180 text-corp-blue-600")} />
                               </div>
                             </div>
                           </td>
@@ -328,7 +328,7 @@ export default function ArticlesPage() {
                                   animate={{ height: 'auto', opacity: 1 }}
                                   exit={{ height: 0, opacity: 0 }}
                                   transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-                                  className="overflow-hidden bg-gradient-to-b from-forest-50/50 to-transparent border-b border-forest-50"
+                                  className="overflow-hidden bg-gradient-to-b from-corp-blue-50/50 to-transparent border-b border-corp-blue-50"
                                 >
                                   <div className="p-10 grid grid-cols-1 md:grid-cols-3 gap-12 ml-4">
                                     {item.iswood ? (
@@ -337,20 +337,20 @@ export default function ArticlesPage() {
                                           <TreeDeciduous className="w-3 h-3" /> Propriétés Bois
                                         </div>
                                         <div className="grid grid-cols-2 gap-8">
-                                          <div className="bg-white p-4 rounded-2xl border border-forest-100 shadow-sm">
+                                          <div className="bg-white p-4 rounded-2xl border border-corp-blue-100 shadow-sm">
                                             <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-tighter">Épaisseur</div>
-                                            <div className="text-lg font-bold text-forest-900 mt-1">{item.thickness?.name || '--'} <small className="text-sand-300 font-medium">mm</small></div>
+                                            <div className="text-lg font-bold text-corp-blue-900 mt-1">{item.thickness?.name || '--'} <small className="text-sand-300 font-medium">mm</small></div>
                                           </div>
-                                          <div className="bg-white p-4 rounded-2xl border border-forest-100 shadow-sm">
+                                          <div className="bg-white p-4 rounded-2xl border border-corp-blue-100 shadow-sm">
                                             <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-tighter">Largeur</div>
-                                            <div className="text-lg font-bold text-forest-900 mt-1">{item.width?.name || '--'} <small className="text-sand-300 font-medium">mm</small></div>
+                                            <div className="text-lg font-bold text-corp-blue-900 mt-1">{item.width?.name || '--'} <small className="text-sand-300 font-medium">mm</small></div>
                                           </div>
                                         </div>
-                                        <div className="bg-white p-4 rounded-2xl border border-forest-100 shadow-sm">
+                                        <div className="bg-white p-4 rounded-2xl border border-corp-blue-100 shadow-sm">
                                           <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-tighter">Longueurs</div>
-                                          <div className="text-sm font-bold text-forest-900 mt-2 flex flex-wrap gap-2">
+                                          <div className="text-sm font-bold text-corp-blue-900 mt-2 flex flex-wrap gap-2">
                                             {item.lengths?.replace('[', '').replace(']', '').split(',').map((l, i) => (
-                                              <Badge key={i} className="bg-forest-50 text-forest-600 border-forest-100 rounded-lg">{l.trim()} cm</Badge>
+                                              <Badge key={i} className="bg-corp-blue-50 text-corp-blue-600 border-corp-blue-100 rounded-lg">{l.trim()} cm</Badge>
                                             )) || '--'}
                                           </div>
                                         </div>
@@ -360,19 +360,19 @@ export default function ArticlesPage() {
                                         <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
                                           <Package className="w-3 h-3" /> Unité & Stock
                                         </div>
-                                        <div className="bg-white p-5 rounded-2xl border border-forest-100 shadow-sm flex items-center justify-between">
+                                        <div className="bg-white p-5 rounded-2xl border border-corp-blue-100 shadow-sm flex items-center justify-between">
                                           <div>
                                             <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Unité de vente</div>
-                                            <div className="text-xl font-bold text-forest-900 mt-1">{item.unit}</div>
+                                            <div className="text-xl font-bold text-corp-blue-900 mt-1">{item.unit}</div>
                                           </div>
-                                          <div className="w-12 h-12 rounded-xl bg-forest-50 flex items-center justify-center">
-                                            <Layers className="w-6 h-6 text-forest-600" />
+                                          <div className="w-12 h-12 rounded-xl bg-corp-blue-50 flex items-center justify-center">
+                                            <Layers className="w-6 h-6 text-corp-blue-600" />
                                           </div>
                                         </div>
                                       </div>
                                     )}
 
-                                    <div className="space-y-4 border-l border-forest-100/50 pl-12">
+                                    <div className="space-y-4 border-l border-corp-blue-100/50 pl-12">
                                       <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
                                         <AlertCircle className="w-3 h-3" /> Seuil & Profit
                                       </div>
@@ -381,29 +381,29 @@ export default function ArticlesPage() {
                                           <span className="text-sm font-bold text-amber-700">Seuil d&apos;alerte</span>
                                           <span className="text-lg font-bold text-amber-600">{item.minquantity} <small className="text-[0.6rem]">{item.unit}</small></span>
                                         </div>
-                                        <div className="flex items-center justify-between p-4 bg-forest-50/50 rounded-2xl border border-forest-100">
-                                          <span className="text-sm font-bold text-forest-700">Marge Profit</span>
-                                          <span className="text-lg font-bold text-forest-600">{item.profitmarginpercentage}%</span>
+                                        <div className="flex items-center justify-between p-4 bg-corp-blue-50/50 rounded-2xl border border-corp-blue-100">
+                                          <span className="text-sm font-bold text-corp-blue-700">Marge Profit</span>
+                                          <span className="text-lg font-bold text-corp-blue-600">{item.profitmarginpercentage}%</span>
                                         </div>
                                       </div>
                                     </div>
 
-                                    <div className="space-y-4 border-l border-forest-100/50 pl-12">
+                                    <div className="space-y-4 border-l border-corp-blue-100/50 pl-12">
                                       <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
                                         <History className="w-3 h-3" /> Aperçu Stock
                                       </div>
                                       
-                                      <div className="flex flex-col items-center justify-center py-4 bg-white rounded-3xl border border-forest-50 shadow-sm">
+                                      <div className="flex flex-col items-center justify-center py-4 bg-white rounded-3xl border border-corp-blue-50 shadow-sm">
                                         {isStockLoading ? (
                                           <div className="flex flex-col items-center gap-2 py-4">
-                                            <Loader2 className="w-5 h-5 animate-spin text-forest-600" />
+                                            <Loader2 className="w-5 h-5 animate-spin text-corp-blue-600" />
                                             <span className="text-[0.6rem] font-bold text-sand-300 uppercase tracking-widest">Chargement...</span>
                                           </div>
                                         ) : (
                                           <>
                                             <div className={cn(
                                               "text-3xl font-bold tracking-tighter transition-colors duration-300",
-                                              (stockMap.get(item.id)?.total || 0) === 0 ? "text-rose-500" : "text-forest-900"
+                                              (stockMap.get(item.id)?.total || 0) === 0 ? "text-rose-500" : "text-corp-blue-900"
                                             )}>
                                               {formatQuantity(stockMap.get(item.id)?.total || 0, item.unit)}
                                             </div>
@@ -417,11 +417,11 @@ export default function ArticlesPage() {
                                       {!isStockLoading && (stockMap.get(item.id)?.breakdown || []).length > 0 && (
                                         <div className="space-y-2 mt-3 max-h-36 overflow-y-auto pr-1">
                                           {(stockMap.get(item.id)?.breakdown || []).map((b, idx) => (
-                                            <div key={idx} className="flex justify-between items-center bg-sand-50/50 hover:bg-sand-50 p-2.5 rounded-xl border border-forest-50/40 text-[0.75rem] transition-colors">
+                                            <div key={idx} className="flex justify-between items-center bg-sand-50/50 hover:bg-sand-50 p-2.5 rounded-xl border border-corp-blue-50/40 text-[0.75rem] transition-colors">
                                               <span className="text-sand-600 font-medium truncate max-w-[150px]" title={b.siteName}>
                                                 {b.siteName}
                                               </span>
-                                              <span className="font-bold text-forest-900 font-mono">
+                                              <span className="font-bold text-corp-blue-900 font-mono">
                                                 {formatQuantity(b.quantity, b.unit)} <span className="text-[0.65rem] font-sans font-medium text-sand-450">{b.unit}</span>
                                               </span>
                                             </div>
@@ -430,7 +430,7 @@ export default function ArticlesPage() {
                                       )}
                                       
                                       {!isStockLoading && (stockMap.get(item.id)?.breakdown || []).length === 0 && (
-                                        <div className="text-center py-4 text-xs italic text-sand-300 bg-sand-50/30 rounded-2xl border border-dashed border-forest-100">
+                                        <div className="text-center py-4 text-xs italic text-sand-300 bg-sand-50/30 rounded-2xl border border-dashed border-corp-blue-100">
                                           Aucun stock disponible
                                         </div>
                                       )}
@@ -450,7 +450,7 @@ export default function ArticlesPage() {
             
             {/* Pagination / Footer */}
             {!isArticlesLoading && filteredArticles.length > 0 && (
-              <div className="p-6 border-t border-forest-50 bg-white/50 backdrop-blur-sm">
+              <div className="p-6 border-t border-corp-blue-50 bg-white/50 backdrop-blur-sm">
                 <TablePagination
                   currentPage={currentPage}
                   totalItems={filteredArticles.length}
@@ -470,7 +470,7 @@ export default function ArticlesPage() {
       {/* Floating Scroll Top */}
       <button 
         onClick={scrollToTop}
-        className="fixed bottom-8 right-8 w-12 h-12 bg-forest-900 text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-all group z-50 border border-forest-700"
+        className="fixed bottom-8 right-8 w-12 h-12 bg-corp-blue-900 text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-all group z-50 border border-corp-blue-700"
       >
         <ArrowUpCircle className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
       </button>
@@ -535,7 +535,7 @@ function EmptyState() {
           <div className="w-20 h-20 rounded-2xl bg-sand-50 flex items-center justify-center mb-6">
             <Package className="w-10 h-10 text-sand-200" />
           </div>
-          <h3 className="text-forest-900 font-heading text-xl font-bold">Aucun article trouvé</h3>
+          <h3 className="text-corp-blue-900 text-xl font-bold">Aucun article trouvé</h3>
           <p className="text-sand-400 font-medium max-w-[300px] mt-2">
             Nous n&apos;avons trouvé aucun article correspondant à vos critères de recherche.
           </p>

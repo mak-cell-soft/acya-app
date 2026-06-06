@@ -231,7 +231,7 @@ export default function DeepSearchPage() {
     if (isPurchasesLoading) {
       return (
         <div className="flex flex-col items-center justify-center py-24 space-y-4 animate-in fade-in duration-300">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-forest-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-corp-blue-600"></div>
           <p className="text-sm font-bold text-slate-800/60 animate-pulse">Extraction de l'historique d'achat...</p>
         </div>
       );
@@ -241,7 +241,7 @@ export default function DeepSearchPage() {
       return (
         <Card className="border-slate-200 shadow-sm rounded-xl bg-white animate-in fade-in duration-300">
           <CardHeader className="p-6 border-b border-slate-100">
-            <CardTitle className="text-xl font-serif text-slate-900">Marchandises Achetées</CardTitle>
+            <CardTitle className="text-xl text-slate-900">Marchandises Achetées</CardTitle>
             <CardDescription>
               Historique des marchandises et colis vendus à ce client sur la période sélectionnée.
             </CardDescription>
@@ -251,12 +251,12 @@ export default function DeepSearchPage() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100">
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Référence Article</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Description</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Référence Colis / Pkg</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Quantité Totale</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Prix Moyen HT</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Documents Liés</th>
+                    <th className="px-6 py-4 text-sm font-medium">Référence Article</th>
+                    <th className="px-6 py-4 text-sm font-medium">Description</th>
+                    <th className="px-6 py-4 text-sm font-medium">Référence Colis / Pkg</th>
+                    <th className="px-6 py-4 text-sm font-medium text-right">Quantité Totale</th>
+                    <th className="px-6 py-4 text-sm font-medium text-right">Prix Moyen HT</th>
+                    <th className="px-6 py-4 text-sm font-medium">Documents Liés</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -270,7 +270,7 @@ export default function DeepSearchPage() {
                         <span className={cn(
                           "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold",
                           p.packageReference === 'Standard'
-                            ? "bg-forest-50 text-slate-700 border border-slate-200"
+                            ? "bg-corp-blue-50 text-slate-700 border border-slate-200"
                             : "bg-amber-50 text-amber-700 border border-amber-100"
                         )}>
                           {p.packageReference}
@@ -330,7 +330,7 @@ export default function DeepSearchPage() {
     if (isBuyersLoading) {
       return (
         <div className="flex flex-col items-center justify-center py-24 space-y-4 animate-in fade-in duration-300">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-forest-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-corp-blue-600"></div>
           <p className="text-sm font-bold text-slate-800/60 animate-pulse">Extraction de l'historique acheteurs...</p>
         </div>
       );
@@ -340,7 +340,7 @@ export default function DeepSearchPage() {
       return (
         <Card className="border-slate-200 shadow-sm rounded-xl bg-white animate-in fade-in duration-300">
           <CardHeader className="p-6 border-b border-slate-100">
-            <CardTitle className="text-xl font-serif text-slate-900">Acheteurs de cet Article</CardTitle>
+            <CardTitle className="text-xl text-slate-900">Acheteurs de cet Article</CardTitle>
             <CardDescription>
               {selectedPackage 
                 ? `Liste des clients ayant acheté cet article (${selectedPackage}) sur la période.`
@@ -352,13 +352,13 @@ export default function DeepSearchPage() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100">
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Code Client</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Client / Nom</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Société / Entreprise</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Quantité Achetée</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Total Facturé HT</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Documents</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider"></th>
+                    <th className="px-6 py-4 text-sm font-medium">Code Client</th>
+                    <th className="px-6 py-4 text-sm font-medium">Client / Nom</th>
+                    <th className="px-6 py-4 text-sm font-medium">Société / Entreprise</th>
+                    <th className="px-6 py-4 text-sm font-medium text-right">Quantité Achetée</th>
+                    <th className="px-6 py-4 text-sm font-medium text-right">Total Facturé HT</th>
+                    <th className="px-6 py-4 text-sm font-medium">Documents</th>
+                    <th className="px-6 py-4 text-sm font-medium"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -432,7 +432,7 @@ export default function DeepSearchPage() {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-serif font-bold text-slate-900 tracking-tight">
+              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
                 Recherche Approfondie
               </h1>
               <p className="text-slate-400 font-medium mt-1">
@@ -447,7 +447,7 @@ export default function DeepSearchPage() {
           <CardContent className="p-5 flex flex-col md:flex-row gap-4 items-end justify-between">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 w-full max-w-2xl">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">Mois de Recherche</label>
+                <label className="text-sm font-medium text-slate-800">Mois de Recherche</label>
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(Number(e.target.value))}
@@ -459,7 +459,7 @@ export default function DeepSearchPage() {
                 </select>
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">Année de Recherche</label>
+                <label className="text-sm font-medium text-slate-800">Année de Recherche</label>
                 <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(Number(e.target.value))}
@@ -540,7 +540,7 @@ export default function DeepSearchPage() {
                     
                     {/* Search Combobox Input */}
                     <div className="relative flex-1 w-full">
-                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block mb-1">
+                      <label className="text-sm font-medium text-slate-800 block mb-1">
                         Sélectionner un Client
                       </label>
                       <div className="relative">
@@ -624,7 +624,7 @@ export default function DeepSearchPage() {
                     
                     {/* Article Search Input */}
                     <div className="relative w-full">
-                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block mb-1">
+                      <label className="text-sm font-medium text-slate-800 block mb-1">
                         Sélectionner un Article
                       </label>
                       <div className="relative">
@@ -667,7 +667,7 @@ export default function DeepSearchPage() {
                               }}
                               className="w-full px-4 py-3 text-left hover:bg-slate-50/80 text-sm font-bold text-slate-900 border-b border-slate-100/50 flex flex-col"
                             >
-                              <span className="font-serif">{a.reference}</span>
+                              <span className="">{a.reference}</span>
                               <span className="text-xs font-medium text-slate-400 mt-0.5">{a.description}</span>
                             </button>
                           ))}
@@ -677,7 +677,7 @@ export default function DeepSearchPage() {
 
                     {/* Package Selector */}
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
+                      <label className="text-sm font-medium text-slate-800 block">
                         Type / Référence Colis
                       </label>
                       <Input
@@ -709,7 +709,7 @@ export default function DeepSearchPage() {
                     
                     {/* Search Field */}
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
+                      <label className="text-sm font-medium text-slate-800 block">
                         Recherche
                       </label>
                       <div className="relative">
@@ -725,7 +725,7 @@ export default function DeepSearchPage() {
 
                     {/* Customer Filter */}
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
+                      <label className="text-sm font-medium text-slate-800 block">
                         Filtrer par Client
                       </label>
                       <select
@@ -742,7 +742,7 @@ export default function DeepSearchPage() {
 
                     {/* Document Type Filter */}
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
+                      <label className="text-sm font-medium text-slate-800 block">
                         Type de Document
                       </label>
                       <select
@@ -758,7 +758,7 @@ export default function DeepSearchPage() {
 
                     {/* Payment Status Toggle */}
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
+                      <label className="text-sm font-medium text-slate-800 block">
                         Statut de Paiement
                       </label>
                       <div className="flex items-center h-11 px-4 border border-slate-200 rounded-lg bg-white shadow-sm hover:border-slate-200 transition-colors duration-200">
@@ -769,11 +769,11 @@ export default function DeepSearchPage() {
                             onCheckedChange={(checked) => {
                               setUnpaidPaymentStatusFilter(checked ? 'unpaid' : 'all');
                             }}
-                            className="data-checked:bg-forest-600 transition-colors duration-200"
+                            className="data-checked:bg-corp-blue-600 transition-colors duration-200"
                           />
                           <Label 
                             htmlFor="only-unpaid" 
-                            className="text-xs font-bold text-slate-800 uppercase tracking-wider cursor-pointer select-none"
+                            className="text-sm font-medium text-slate-800 cursor-pointer select-none"
                           >
                             Non Payé uniquement
                           </Label>
@@ -788,7 +788,7 @@ export default function DeepSearchPage() {
                       </div>
                       <div>
                         <p className="text-[10px] font-bold text-rose-800 uppercase tracking-wider">Créances en attente</p>
-                        <p className="text-lg font-black text-rose-700 font-heading">
+                        <p className="text-lg font-black text-rose-700">
                           {/* NOTE: Dynamically updates summary net total based on the filtered document list */}
                           {formatCurrency(filteredUnpaidDocs.reduce((acc, curr) => acc + curr.remainingBalance, 0))}
                         </p>
@@ -802,14 +802,14 @@ export default function DeepSearchPage() {
               {/* Unpaid Documents Table */}
               {isUnpaidLoading ? (
                 <div className="flex flex-col items-center justify-center py-24 space-y-4">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-forest-600"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-corp-blue-600"></div>
                   <p className="text-sm font-bold text-slate-800/60 animate-pulse">Extraction des impayés...</p>
                 </div>
               ) : unpaidDocs.length > 0 ? (
                 filteredUnpaidDocs.length > 0 ? (
                   <Card className="border-slate-200 shadow-sm rounded-xl bg-white">
                     <CardHeader className="p-6 border-b border-slate-100">
-                      <CardTitle className="text-xl font-serif text-slate-900">Bons & Factures non payés</CardTitle>
+                      <CardTitle className="text-xl text-slate-900">Bons & Factures non payés</CardTitle>
                       <CardDescription>
                         Détail de toutes les pièces commerciales présentant un solde restant dû.
                       </CardDescription>
@@ -819,16 +819,16 @@ export default function DeepSearchPage() {
                         <table className="w-full text-left border-collapse">
                           <thead>
                             <tr className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100">
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">N° Document</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Type</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Date</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Client</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Net TTC</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Total Payé</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Solde Restant</th>
+                              <th className="px-6 py-4 text-sm font-medium">N° Document</th>
+                              <th className="px-6 py-4 text-sm font-medium">Type</th>
+                              <th className="px-6 py-4 text-sm font-medium">Date</th>
+                              <th className="px-6 py-4 text-sm font-medium">Client</th>
+                              <th className="px-6 py-4 text-sm font-medium text-right">Net TTC</th>
+                              <th className="px-6 py-4 text-sm font-medium text-right">Total Payé</th>
+                              <th className="px-6 py-4 text-sm font-medium text-right">Solde Restant</th>
                               {/* NOTE: Updated column header from 'Statut Facturation' to 'Statut Payment' */}
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Statut Payment</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider"></th>
+                              <th className="px-6 py-4 text-sm font-medium">Statut Payment</th>
+                              <th className="px-6 py-4 text-sm font-medium"></th>
                             </tr>
                           </thead>
                           <tbody>

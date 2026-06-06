@@ -19,7 +19,7 @@ export function PendingBordereauxSection() {
 
   if (isLoading) {
     return (
-      <Card className="border-forest-100 rounded-2xl bg-white shadow-xl shadow-forest-900/5 mb-8">
+      <Card className="border-corp-blue-100 rounded-2xl bg-white shadow-xl shadow-corp-blue-900/5 mb-8">
         <CardHeader className="p-8 pb-4">
           <Skeleton className="h-8 w-64 rounded-xl" />
           <Skeleton className="h-4 w-96 rounded-lg mt-2" />
@@ -37,14 +37,14 @@ export function PendingBordereauxSection() {
   }
 
   return (
-    <Card className="border-forest-100 rounded-2xl bg-white shadow-xl shadow-forest-900/5 mb-8 overflow-hidden relative">
+    <Card className="border-corp-blue-100 rounded-2xl bg-white shadow-xl shadow-corp-blue-900/5 mb-8 overflow-hidden relative">
       <div className="absolute top-0 right-0 p-8 opacity-5">
-        <Landmark className="w-48 h-48 text-forest-900" />
+        <Landmark className="w-48 h-48 text-corp-blue-900" />
       </div>
       
       <CardHeader className="p-8 pb-6 relative z-10">
-        <CardTitle className="font-heading text-2xl text-forest-900 flex items-center gap-3">
-          <div className="p-2.5 bg-forest-50 text-forest-600 rounded-xl">
+        <CardTitle className="text-2xl text-corp-blue-900 flex items-center gap-3">
+          <div className="p-2.5 bg-corp-blue-50 text-corp-blue-600 rounded-xl">
             <Landmark className="w-6 h-6" />
           </div>
           Validation des Remises en Banque
@@ -60,14 +60,14 @@ export function PendingBordereauxSection() {
             <AccordionItem 
               key={bordereau.reference} 
               value={bordereau.reference}
-              className="border border-forest-100 rounded-2xl px-6 bg-white data-[state=open]:bg-sand-50/30 transition-all duration-300 shadow-sm hover:shadow-md"
+              className="border border-corp-blue-100 rounded-2xl px-6 bg-white data-[state=open]:bg-sand-50/30 transition-all duration-300 shadow-sm hover:shadow-md"
             >
               <AccordionTrigger className="hover:no-underline py-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full pr-4 gap-4">
                   <div className="flex items-center gap-4">
                     <div className="flex flex-col items-start gap-1">
-                      <span className="font-bold font-mono text-forest-900 text-lg flex items-center gap-2">
-                        <Hash className="w-4 h-4 text-forest-400" />
+                      <span className="font-bold font-mono text-corp-blue-900 text-lg flex items-center gap-2">
+                        <Hash className="w-4 h-4 text-corp-blue-400" />
                         {bordereau.reference}
                       </span>
                       <span className="text-sm font-medium text-sand-500 flex items-center gap-2">
@@ -80,7 +80,7 @@ export function PendingBordereauxSection() {
                   <div className="flex items-center gap-6">
                     <div className="text-right flex flex-col">
                       <span className="text-xs font-bold text-sand-400 uppercase tracking-wider">Montant Net</span>
-                      <span className="font-bold font-mono text-forest-700 text-xl">{formatCurrency(bordereau.totalNetAmount)}</span>
+                      <span className="font-bold font-mono text-corp-blue-700 text-xl">{formatCurrency(bordereau.totalNetAmount)}</span>
                     </div>
                     <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200 font-bold px-3 py-1">
                       {bordereau.instrumentCount} Instrument(s)
@@ -89,9 +89,9 @@ export function PendingBordereauxSection() {
                 </div>
               </AccordionTrigger>
               
-              <AccordionContent className="pt-2 pb-6 border-t border-forest-50">
+              <AccordionContent className="pt-2 pb-6 border-t border-corp-blue-50">
                 <div className="space-y-4 mt-4">
-                  <div className="bg-white rounded-xl border border-forest-50 overflow-hidden">
+                  <div className="bg-white rounded-xl border border-corp-blue-50 overflow-hidden">
                     <table className="w-full text-sm text-left">
                       <thead className="bg-sand-50/50 text-sand-500 font-bold uppercase text-xs tracking-wider">
                         <tr>
@@ -102,19 +102,19 @@ export function PendingBordereauxSection() {
                           <th className="px-4 py-3 text-right rounded-tr-xl">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-forest-50">
+                      <tbody className="divide-y divide-corp-blue-50">
                         {bordereau.instruments.map((inst) => (
                           <tr key={inst.id} className="hover:bg-sand-50/30 transition-colors">
                             <td className="px-4 py-3">
                               <div className="flex flex-col">
-                                <span className="font-bold text-forest-900">{inst.type}</span>
+                                <span className="font-bold text-corp-blue-900">{inst.type}</span>
                                 <span className="font-mono text-xs text-sand-500">{inst.instrumentNumber}</span>
                               </div>
                             </td>
-                            <td className="px-4 py-3 font-medium text-forest-800">
+                            <td className="px-4 py-3 font-medium text-corp-blue-800">
                               {inst.owner || inst.customerName}
                             </td>
-                            <td className="px-4 py-3 font-mono font-bold text-forest-700">
+                            <td className="px-4 py-3 font-mono font-bold text-corp-blue-700">
                               {formatCurrency(inst.amount)}
                             </td>
                             <td className="px-4 py-3 text-sand-600">
@@ -138,9 +138,9 @@ export function PendingBordereauxSection() {
                     </table>
                   </div>
                   
-                  <div className="flex items-center justify-between bg-forest-50/50 p-5 rounded-xl border border-forest-100 mt-6">
+                  <div className="flex items-center justify-between bg-corp-blue-50/50 p-5 rounded-xl border border-corp-blue-100 mt-6">
                     <div className="flex flex-col">
-                      <span className="text-sm font-bold text-forest-900">Total Frais (TTC) : <span className="font-mono text-rose-600">{formatCurrency(bordereau.totalFeeWithTax)}</span></span>
+                      <span className="text-sm font-bold text-corp-blue-900">Total Frais (TTC) : <span className="font-mono text-rose-600">{formatCurrency(bordereau.totalFeeWithTax)}</span></span>
                       <span className="text-xs text-sand-500 mt-1">Montant Brut : {formatCurrency(bordereau.totalAmountHT)}</span>
                     </div>
                     <Button 

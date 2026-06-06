@@ -132,16 +132,16 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-background">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl p-0 overflow-hidden border-corp-blue-100 shadow-2xl rounded-none sm:rounded-2xl bg-background">
         
         {/* Header Section */}
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="flex items-center gap-4 animate-in slide-in-from-top duration-500">
-            <div className="w-12 h-12 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100">
+            <div className="w-12 h-12 rounded-2xl bg-corp-blue-50 flex items-center justify-center border border-corp-blue-100">
               <FileText className="w-6 h-6 text-emerald-600" />
             </div>
             <div>
-              <DialogTitle className="font-heading text-2xl font-bold tracking-tight">
+              <DialogTitle className="text-2xl font-bold tracking-tight">
                 Bulletins de Paie
               </DialogTitle>
               <p className="text-muted-foreground text-sm font-medium mt-1">
@@ -159,10 +159,10 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
 
         <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
           {/* Action Toolbar */}
-          <div className="flex justify-between items-center pb-2 border-b border-forest-50">
-            <h3 className="font-heading font-bold text-forest-900 flex items-center gap-2">
+          <div className="flex justify-between items-center pb-2 border-b border-corp-blue-50">
+            <h3 className="font-bold text-corp-blue-900 flex items-center gap-2">
               <span>Bulletins générés</span>
-              <Badge className="bg-forest-50 text-forest-700 border-none font-bold rounded-lg px-2.5 py-0.5">
+              <Badge className="bg-corp-blue-50 text-corp-blue-700 border-none font-bold rounded-lg px-2.5 py-0.5">
                 {payslips.length} fiches
               </Badge>
             </h3>
@@ -170,7 +170,7 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
             {!showAddForm && (
               <Button 
                 onClick={() => setShowAddForm(true)}
-                className="h-10 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold px-4 transition-all duration-300 transform active:scale-95 flex items-center gap-2"
+                className="h-10 rounded-xl bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold px-4 transition-all duration-300 transform active:scale-95 flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" /> Calculer Paie
               </Button>
@@ -186,9 +186,9 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.3 }}
                 onSubmit={handleSubmit}
-                className="bg-sand-50/50 border border-forest-100/50 p-6 rounded-2xl space-y-4 overflow-hidden"
+                className="bg-sand-50/50 border border-corp-blue-100/50 p-6 rounded-2xl space-y-4 overflow-hidden"
               >
-                <div className="flex items-center gap-2 text-forest-800 pb-2 border-b border-forest-50">
+                <div className="flex items-center gap-2 text-corp-blue-800 pb-2 border-b border-corp-blue-50">
                   <Sparkles className="w-4 h-4 text-emerald-600" />
                   <span className="font-bold text-sm">Générer un bulletin pour une nouvelle période</span>
                 </div>
@@ -199,10 +199,10 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
                       <Calendar className="w-3 h-3 text-sand-300" /> Mois
                     </label>
                     <Select value={periodMonth.toString()} onValueChange={(val) => setPeriodMonth(parseInt(val || '1'))}>
-                      <SelectTrigger className="h-11 font-bold text-forest-900">
+                      <SelectTrigger className="h-11 font-bold text-corp-blue-900">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-forest-100 shadow-xl">
+                      <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl">
                         {MONTHS_FR.map(m => (
                           <SelectItem key={m.value} value={m.value.toString()}>{m.label}</SelectItem>
                         ))}
@@ -217,7 +217,7 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
                       required
                       value={periodYear}
                       onChange={(e) => setPeriodYear(parseInt(e.target.value))}
-                      className="h-11 rounded-xl border-forest-100 bg-background font-bold text-forest-900"
+                      className="h-11 rounded-xl border-corp-blue-100 bg-background font-bold text-corp-blue-900"
                     />
                   </div>
 
@@ -231,7 +231,7 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
                         step="0.01"
                         value={bonuses}
                         onChange={(e) => setBonuses(parseFloat(e.target.value) || 0)}
-                        className="h-11 rounded-xl border-forest-100 bg-background pl-8 font-bold text-forest-950"
+                        className="h-11 rounded-xl border-corp-blue-100 bg-background pl-8 font-bold text-corp-blue-950"
                       />
                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-sand-300" />
                     </div>
@@ -247,17 +247,17 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
                         step="0.01"
                         value={deductions}
                         onChange={(e) => setDeductions(parseFloat(e.target.value) || 0)}
-                        className="h-11 rounded-xl border-forest-100 bg-background pl-8 font-bold text-forest-950"
+                        className="h-11 rounded-xl border-corp-blue-100 bg-background pl-8 font-bold text-corp-blue-950"
                       />
                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-sand-300" />
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-forest-50 p-4 rounded-xl border border-forest-100/50 flex justify-between items-center text-xs">
-                  <div className="flex items-center gap-2 text-forest-800 font-medium">
+                <div className="bg-corp-blue-50 p-4 rounded-xl border border-corp-blue-100/50 flex justify-between items-center text-xs">
+                  <div className="flex items-center gap-2 text-corp-blue-800 font-medium">
                     <span>Salaire de base de l&apos;employé :</span>
-                    <span className="font-mono font-bold text-forest-950">{(employee?.basesalary || 0).toFixed(3)} TND</span>
+                    <span className="font-mono font-bold text-corp-blue-950">{(employee?.basesalary || 0).toFixed(3)} TND</span>
                   </div>
                   <span className="text-sand-400 font-medium">Calcul automatique des charges (CNSS, IRPP, CSS)</span>
                 </div>
@@ -274,7 +274,7 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
                   <Button 
                     type="submit" 
                     disabled={generatePayslip.isPending}
-                    className="h-10 bg-forest-600 text-white font-bold hover:bg-forest-800 px-6"
+                    className="h-10 bg-corp-blue-600 text-white font-bold hover:bg-corp-blue-800 px-6"
                   >
                     {generatePayslip.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     Calculer & Enregistrer
@@ -285,10 +285,10 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
           </AnimatePresence>
 
           {/* Table list of payslips */}
-          <div className="overflow-x-auto border border-forest-50 rounded-2xl bg-white shadow-sm">
+          <div className="overflow-x-auto border border-corp-blue-50 rounded-2xl bg-white shadow-sm">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-sand-50/40 border-b border-forest-50">
+                <tr className="bg-sand-50/40 border-b border-corp-blue-50">
                   <th className="p-4 text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest pl-6">Période</th>
                   <th className="p-4 text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest text-right">Salaire Brut</th>
                   <th className="p-4 text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest text-right">Primes / Ret.</th>
@@ -297,11 +297,11 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
                   <th className="p-4 text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest text-right pr-6">PDF</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-forest-50">
+              <tbody className="divide-y divide-corp-blue-50">
                 {isLoading ? (
                   <tr>
                     <td colSpan={6} className="p-12 text-center text-sand-400 font-medium">
-                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-forest-600 mb-2" />
+                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-corp-blue-600 mb-2" />
                       Calcul et chargement des fiches...
                     </td>
                   </tr>
@@ -316,16 +316,16 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
                     const monthLabel = MONTHS_FR.find(m => m.value === payslip.periodmonth)?.label || payslip.periodmonth;
                     const totalCharges = (payslip.cnssamount || 0) + (payslip.irppamount || 0) + (payslip.cssamount || 0);
                     return (
-                      <tr key={payslip.id} className="group hover:bg-forest-50/20 transition-all duration-300">
+                      <tr key={payslip.id} className="group hover:bg-corp-blue-50/20 transition-all duration-300">
                         <td className="p-4 pl-6">
                           <div className="flex flex-col">
-                            <span className="font-bold text-forest-900 text-sm">{monthLabel} {payslip.periodyear}</span>
+                            <span className="font-bold text-corp-blue-900 text-sm">{monthLabel} {payslip.periodyear}</span>
                             <span className="text-[10px] text-sand-300 font-semibold mt-0.5">
                               Créé le {payslip.generatedat ? new Date(payslip.generatedat).toLocaleDateString('fr-FR') : '-'}
                             </span>
                           </div>
                         </td>
-                        <td className="p-4 text-right font-mono font-bold text-forest-950 text-sm">
+                        <td className="p-4 text-right font-mono font-bold text-corp-blue-950 text-sm">
                           {(payslip.brutsalary || 0).toFixed(3)}
                         </td>
                         <td className="p-4 text-right">
@@ -354,7 +354,7 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
                               variant="ghost" 
                               size="icon"
                               onClick={() => setPrintPayslip(payslip)}
-                              className="h-9 w-9 rounded-xl text-forest-600 hover:bg-forest-50 hover:text-forest-800 transition-all duration-300"
+                              className="h-9 w-9 rounded-xl text-corp-blue-600 hover:bg-corp-blue-50 hover:text-corp-blue-800 transition-all duration-300"
                               title="Imprimer"
                             >
                               <Printer className="w-4 h-4" />
@@ -364,7 +364,7 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
                               size="icon"
                               onClick={() => handleDownload(payslip)}
                               disabled={isDownloading !== null}
-                              className="h-9 w-9 rounded-xl text-forest-600 hover:bg-forest-50 hover:text-forest-800 transition-all duration-300"
+                              className="h-9 w-9 rounded-xl text-corp-blue-600 hover:bg-corp-blue-50 hover:text-corp-blue-800 transition-all duration-300"
                               title="Télécharger en PDF"
                             >
                               {isDownloading === payslip.id ? (

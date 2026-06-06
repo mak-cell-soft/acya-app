@@ -213,15 +213,15 @@ export function ExcelInventoryDialog({ isOpen, onClose }: ExcelInventoryDialogPr
     <Dialog open={isOpen} onOpenChange={handleResetAndClose}>
       <DialogContent 
         showCloseButton={false} 
-        className="w-full max-w-full sm:max-w-xl md:max-w-2xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-white font-sans"
+        className="w-full max-w-full sm:max-w-xl md:max-w-2xl p-0 overflow-hidden border-corp-blue-100 shadow-2xl rounded-none sm:rounded-2xl bg-white font-sans"
       >
         <DialogHeader className="border-b border-border pb-4 mb-4 p-6 relative">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-forest-50 flex items-center justify-center border border-forest-100 text-emerald-600">
+            <div className="w-12 h-12 rounded-xl bg-corp-blue-50 flex items-center justify-center border border-corp-blue-100 text-emerald-600">
               <FileSpreadsheet className="w-6 h-6" />
             </div>
             <div>
-              <DialogTitle className="font-heading text-xl font-bold">
+              <DialogTitle className="text-xl font-bold">
                 Import / Export Inventaire
               </DialogTitle>
               <p className="text-muted-foreground text-xs mt-1">
@@ -240,10 +240,10 @@ export function ExcelInventoryDialog({ isOpen, onClose }: ExcelInventoryDialogPr
         <div className="p-6">
           <Tabs defaultValue="export" className="w-full">
             <TabsList className="w-full grid grid-cols-2 mb-6 bg-stone-100 p-1 rounded-xl">
-              <TabsTrigger value="export" className="rounded-lg font-bold data-[state=active]:bg-white data-[state=active]:text-forest-700 data-[state=active]:shadow-sm">
+              <TabsTrigger value="export" className="rounded-lg font-bold data-[state=active]:bg-white data-[state=active]:text-corp-blue-700 data-[state=active]:shadow-sm">
                 1. Exporter le modèle
               </TabsTrigger>
-              <TabsTrigger value="import" className="rounded-lg font-bold data-[state=active]:bg-white data-[state=active]:text-forest-700 data-[state=active]:shadow-sm">
+              <TabsTrigger value="import" className="rounded-lg font-bold data-[state=active]:bg-white data-[state=active]:text-corp-blue-700 data-[state=active]:shadow-sm">
                 2. Importer le comptage
               </TabsTrigger>
             </TabsList>
@@ -284,7 +284,7 @@ export function ExcelInventoryDialog({ isOpen, onClose }: ExcelInventoryDialogPr
                 <Button 
                   onClick={handleExport}
                   disabled={!exportSiteId || isExporting}
-                  className="bg-forest-600 hover:bg-forest-700 text-white h-11 px-8"
+                  className="bg-corp-blue-600 hover:bg-corp-blue-700 text-white h-11 px-8"
                 >
                   {isExporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
                   Télécharger le modèle Excel
@@ -328,8 +328,8 @@ export function ExcelInventoryDialog({ isOpen, onClose }: ExcelInventoryDialogPr
                       className={cn(
                         "border-2 border-dashed rounded-3xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 min-h-[160px]",
                         isDragging 
-                          ? "border-forest-600 bg-forest-50/20 shadow-inner" 
-                          : "border-stone-200 hover:border-forest-600 hover:bg-stone-50"
+                          ? "border-corp-blue-600 bg-corp-blue-50/20 shadow-inner" 
+                          : "border-stone-200 hover:border-corp-blue-600 hover:bg-stone-50"
                       )}
                     >
                       <input 
@@ -365,7 +365,7 @@ export function ExcelInventoryDialog({ isOpen, onClose }: ExcelInventoryDialogPr
                       <Button 
                         disabled={!selectedFile || !importSiteId}
                         onClick={handleProcessFile}
-                        className="bg-forest-600 hover:bg-forest-700 text-white h-11 px-8"
+                        className="bg-corp-blue-600 hover:bg-corp-blue-700 text-white h-11 px-8"
                       >
                         Analyser le fichier
                       </Button>
@@ -381,7 +381,7 @@ export function ExcelInventoryDialog({ isOpen, onClose }: ExcelInventoryDialogPr
                     exit={{ opacity: 0 }}
                     className="flex flex-col items-center justify-center py-12 gap-4"
                   >
-                    <Loader2 className="w-8 h-8 text-forest-600 animate-spin" />
+                    <Loader2 className="w-8 h-8 text-corp-blue-600 animate-spin" />
                     <p className="text-sm font-bold text-stone-600">Analyse en cours...</p>
                   </motion.div>
                 )}
@@ -452,7 +452,7 @@ export function ExcelInventoryDialog({ isOpen, onClose }: ExcelInventoryDialogPr
                       <Button 
                         disabled={parseResult.rows.length === 0 || isCreating}
                         onClick={handleCreateInventory}
-                        className="bg-forest-600 hover:bg-forest-700 text-white h-11 px-8"
+                        className="bg-corp-blue-600 hover:bg-corp-blue-700 text-white h-11 px-8"
                       >
                         {isCreating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
                         Créer l'Inventaire

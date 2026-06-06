@@ -37,7 +37,7 @@ export function ChantierSection() {
             <CheckCircle2 size={13} className="text-corp-cyan animate-pulse" />
             Planification Temps Réel
           </div>
-          <h2 className="font-heading text-[2.2rem] md:text-[3rem] text-white leading-[1.1] tracking-tight font-extrabold">
+          <h2 className="text-[2.2rem] md:text-[3rem] text-white leading-[1.1] tracking-tight font-extrabold">
             Pilotez chaque chantier avec une précision millimétrée
           </h2>
           <p className="text-[1rem] md:text-[1.08rem] leading-relaxed text-slate-400 max-w-[480px] mx-auto lg:mx-0 font-medium">

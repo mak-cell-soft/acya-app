@@ -136,7 +136,7 @@ export function StockListByCategory() {
 
   if (error) {
     return (
-      <div className="py-16 text-center text-rose-500 font-serif italic text-xs">
+      <div className="py-16 text-center text-rose-500 italic text-xs">
         Erreur de récupération des stocks. Veuillez vérifier la connexion au serveur API.
       </div>
     );
@@ -180,7 +180,7 @@ export function StockListByCategory() {
 
       {groupedCategories.length === 0 ? (
         <Card className="border-stone-200 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/10">
-          <CardContent className="p-12 text-center text-stone-400 italic text-xs font-serif">
+          <CardContent className="p-12 text-center text-stone-400 italic text-xs">
             Aucun stock trouvé correspondant aux filtres spécifiés.
           </CardContent>
         </Card>
@@ -204,7 +204,7 @@ export function StockListByCategory() {
                     )}
                   </span>
                   <div>
-                    <h2 className="text-sm font-serif font-bold text-stone-900 dark:text-stone-50 uppercase tracking-wider">
+                    <h2 className="text-sm font-bold text-stone-900 dark:text-stone-50 uppercase tracking-wider">
                       {group.categoryName}
                     </h2>
                     <span className="text-[9px] text-stone-400 lowercase">
@@ -345,7 +345,7 @@ export function StockListByCategory() {
       <Dialog open={!!selectedStock} onOpenChange={() => setSelectedStock(null)}>
         <DialogContent className="bg-white dark:bg-stone-950 rounded-2xl border border-stone-250 dark:border-stone-850 shadow-2xl p-6">
           <DialogHeader>
-            <DialogTitle className="text-base font-serif font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider">
+            <DialogTitle className="text-base font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider">
               Modifier le Seuil d'Alerte
             </DialogTitle>
             <DialogDescription className="text-xs text-stone-400">

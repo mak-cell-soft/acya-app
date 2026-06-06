@@ -140,14 +140,14 @@ export function CreateUserDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full sm:max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-background scrollbar-hide">
+      <DialogContent showCloseButton={false} className="w-full sm:max-w-4xl p-0 overflow-hidden border-corp-blue-100 shadow-2xl rounded-none sm:rounded-2xl bg-background scrollbar-hide">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100">
+            <div className="w-12 h-12 rounded-2xl bg-corp-blue-50 flex items-center justify-center border border-corp-blue-100">
               <PlusCircle className="w-6 h-6 text-emerald-600" />
             </div>
             <div>
-              <DialogTitle className="font-heading text-2xl font-bold tracking-tight">
+              <DialogTitle className="text-2xl font-bold tracking-tight">
                 Créer un Compte Utilisateur
               </DialogTitle>
               <p className="text-muted-foreground text-sm font-medium mt-1">
@@ -183,7 +183,7 @@ export function CreateUserDialog({
                     }
                   }} value={field.value}>
                     <FormControl>
-                      <SelectTrigger className="font-bold text-forest-900">
+                      <SelectTrigger className="font-bold text-corp-blue-900">
                         <SelectValue placeholder="Sélectionner un collaborateur sans compte...">
                           {field.value 
                             ? (() => {
@@ -194,7 +194,7 @@ export function CreateUserDialog({
                         </SelectValue>
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="rounded-xl border-forest-100 shadow-xl max-h-64">
+                    <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl max-h-64">
                       {availablePersons.length === 0 ? (
                         <div className="p-4 text-center text-sm text-sand-400">Tous les collaborateurs ont déjà un compte.</div>
                       ) : (
@@ -220,7 +220,7 @@ export function CreateUserDialog({
                     <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Identifiant (Login)</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input placeholder="Identifiant" className="pl-10 font-bold text-forest-900" {...field} />
+                        <Input placeholder="Identifiant" className="pl-10 font-bold text-corp-blue-900" {...field} />
                         <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300" />
                       </div>
                     </FormControl>
@@ -292,13 +292,13 @@ export function CreateUserDialog({
                     <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Site Par Défaut</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                       <FormControl>
-                        <SelectTrigger className="font-bold text-forest-900">
+                        <SelectTrigger className="font-bold text-corp-blue-900">
                           <SelectValue placeholder="Choisir un site">
                             {field.value && sites ? sites.find(s => s.id.toString() === field.value.toString())?.address : undefined}
                           </SelectValue>
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="rounded-xl border-forest-100 shadow-xl">
+                      <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl">
                         {sites?.map((site) => (
                           <SelectItem key={site.id} value={site.id.toString()}>{site.address}</SelectItem>
                         ))}
@@ -317,22 +317,22 @@ export function CreateUserDialog({
                     <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Rôle d'accès</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value?.toString()}>
                       <FormControl>
-                        <SelectTrigger className="font-bold text-forest-900">
+                        <SelectTrigger className="font-bold text-corp-blue-900">
                           <SelectValue placeholder="Choisir un rôle">
                             {field.value ? ROLE_LABELS[parseInt(field.value.toString())] : undefined}
                           </SelectValue>
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="rounded-xl border-forest-100 shadow-xl">
+                      <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl">
                         <SelectGroup>
-                          <SelectLabel className="font-bold text-forest-900">Niveau d'Accès Système</SelectLabel>
+                          <SelectLabel className="font-bold text-corp-blue-900">Niveau d'Accès Système</SelectLabel>
                           {SYSTEM_ROLES.map((role) => (
                             <SelectItem key={role.value} value={role.value.toString()}>{role.label}</SelectItem>
                           ))}
                         </SelectGroup>
                         <SelectSeparator />
                         <SelectGroup>
-                          <SelectLabel className="font-bold text-forest-900">Fonction / Poste</SelectLabel>
+                          <SelectLabel className="font-bold text-corp-blue-900">Fonction / Poste</SelectLabel>
                           {FUNCTION_ROLES.map((role) => (
                             <SelectItem key={role.value} value={role.value.toString()}>{role.label}</SelectItem>
                           ))}
@@ -349,23 +349,23 @@ export function CreateUserDialog({
               control={form.control}
               name="isactive"
               render={({ field }) => (
-                <FormItem className="flex items-center justify-between p-4 bg-forest-50/50 rounded-2xl border border-forest-100">
+                <FormItem className="flex items-center justify-between p-4 bg-corp-blue-50/50 rounded-2xl border border-corp-blue-100">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-sm font-bold text-forest-900">Compte Actif</FormLabel>
+                    <FormLabel className="text-sm font-bold text-corp-blue-900">Compte Actif</FormLabel>
                     <p className="text-[0.7rem] text-sand-400 font-medium">Créer ce compte en tant qu'actif directement.</p>
                   </div>
                   <FormControl>
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
-                      className="data-[state=checked]:bg-forest-600"
+                      className="data-[state=checked]:bg-corp-blue-600"
                     />
                   </FormControl>
                 </FormItem>
               )}
             />
 
-            <DialogFooter className="pt-6 border-t border-forest-50 gap-3">
+            <DialogFooter className="pt-6 border-t border-corp-blue-50 gap-3">
               <Button 
                 type="button" 
                 variant="ghost" 
@@ -377,7 +377,7 @@ export function CreateUserDialog({
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="h-12 px-10 bg-forest-600 text-white font-bold hover:bg-forest-800 shadow-lg shadow-forest-600/20 gap-2"
+                className="h-12 px-10 bg-corp-blue-600 text-white font-bold hover:bg-corp-blue-800 shadow-lg shadow-corp-blue-600/20 gap-2"
               >
                 {isLoading ? "Traitement..." : "Créer le Compte"}
               </Button>

@@ -92,11 +92,11 @@ export default function ChantiersPage() {
       <div className="h-full flex flex-col space-y-8 animate-in fade-in duration-700">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-heading font-bold text-forest-900 tracking-tight">Gestion des Chantiers</h1>
+            <h1 className="text-3xl font-bold text-corp-blue-900 tracking-tight">Gestion des Chantiers</h1>
             <p className="text-sand-400 font-medium mt-1">Suivi opérationnel, livraison de bois et avancement des projets.</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button className="h-11 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20">
+            <Button className="h-11 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20">
               <Plus className="w-4 h-4 mr-2" /> Nouveau Chantier
             </Button>
           </div>
@@ -109,7 +109,7 @@ export default function ChantiersPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400" />
               <Input
                 placeholder="Rechercher un chantier..."
-                className="pl-10 h-12 rounded-2xl border-forest-100 bg-white shadow-sm focus:ring-forest-600"
+                className="pl-10 h-12 rounded-2xl border-corp-blue-100 bg-white shadow-sm focus:ring-corp-blue-600"
               />
             </div>
 
@@ -122,8 +122,8 @@ export default function ChantiersPage() {
                   className={cn(
                     "p-4 rounded-2xl border transition-all duration-300 cursor-pointer group",
                     selectedId === site.id
-                      ? "bg-forest-900 border-forest-900 text-white shadow-xl shadow-forest-900/10"
-                      : "bg-white border-forest-50 hover:border-forest-200"
+                      ? "bg-corp-blue-900 border-corp-blue-900 text-white shadow-xl shadow-corp-blue-900/10"
+                      : "bg-white border-corp-blue-50 hover:border-corp-blue-200"
                   )}
                 >
                   <div className="flex justify-between items-start mb-2">
@@ -158,7 +158,7 @@ export default function ChantiersPage() {
                         animate={{ width: `${site.progress}%` }}
                         className={cn(
                           "h-full rounded-full",
-                          selectedId === site.id ? "bg-white" : "bg-forest-600"
+                          selectedId === site.id ? "bg-white" : "bg-corp-blue-600"
                         )}
                       />
                     </div>
@@ -178,15 +178,15 @@ export default function ChantiersPage() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.4 }}
               >
-                <Card className="border-forest-100 shadow-xl shadow-forest-900/5 rounded-2xl overflow-hidden bg-white">
+                <Card className="border-corp-blue-100 shadow-xl shadow-corp-blue-900/5 rounded-2xl overflow-hidden bg-white">
                   <div className="pt-8 pb-8 px-8">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                       <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-forest-50 rounded-[18px] border border-forest-100 flex items-center justify-center text-forest-600 shrink-0 shadow-sm">
+                        <div className="w-16 h-16 bg-corp-blue-50 rounded-[18px] border border-corp-blue-100 flex items-center justify-center text-corp-blue-600 shrink-0 shadow-sm">
                           <Building2 className="w-8 h-8" />
                         </div>
                         <div>
-                          <h2 className="text-2xl font-heading font-bold text-forest-900">{selectedSite.name}</h2>
+                          <h2 className="text-2xl font-bold text-corp-blue-900">{selectedSite.name}</h2>
                           <div className="flex items-center gap-4 mt-2">
                             <div className="flex items-center gap-2 text-sm text-sand-400 font-medium">
                               <Users className="w-4 h-4" /> {selectedSite.client}
@@ -199,35 +199,35 @@ export default function ChantiersPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" className="border-forest-100 text-forest-600">
+                        <Button variant="outline" size="icon" className="border-corp-blue-100 text-corp-blue-600">
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="icon" className="border-forest-100 text-forest-600">
+                        <Button variant="outline" size="icon" className="border-corp-blue-100 text-corp-blue-600">
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                      <div className="bg-sand-50/50 p-5 rounded-2xl border border-forest-50">
+                      <div className="bg-sand-50/50 p-5 rounded-2xl border border-corp-blue-50">
                         <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                           <HardHat className="w-3 h-3" /> Effectif Terrain
                         </div>
-                        <div className="text-xl font-bold text-forest-900">{selectedSite.team} Ouvriers</div>
+                        <div className="text-xl font-bold text-corp-blue-900">{selectedSite.team} Ouvriers</div>
                         <p className="text-[0.65rem] text-emerald-600 font-bold mt-1">Équipe active aujourd'hui</p>
                       </div>
-                      <div className="bg-sand-50/50 p-5 rounded-2xl border border-forest-50">
+                      <div className="bg-sand-50/50 p-5 rounded-2xl border border-corp-blue-50">
                         <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                           <Package className="w-3 h-3" /> Livraisons Bois
                         </div>
-                        <div className="text-xl font-bold text-forest-900">{selectedSite.deliveries} Bons</div>
-                        <p className="text-[0.65rem] text-forest-600 font-bold mt-1">Total livraisons BL</p>
+                        <div className="text-xl font-bold text-corp-blue-900">{selectedSite.deliveries} Bons</div>
+                        <p className="text-[0.65rem] text-corp-blue-600 font-bold mt-1">Total livraisons BL</p>
                       </div>
-                      <div className="bg-sand-50/50 p-5 rounded-2xl border border-forest-50">
+                      <div className="bg-sand-50/50 p-5 rounded-2xl border border-corp-blue-50">
                         <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                           <TrendingUp className="w-3 h-3" /> Consommation Budget
                         </div>
-                        <div className="text-xl font-bold text-forest-900">
+                        <div className="text-xl font-bold text-corp-blue-900">
                           {Math.round((selectedSite.spent / selectedSite.budget) * 100)}%
                         </div>
                         <p className="text-[0.65rem] text-timber-600 font-bold mt-1">{selectedSite.spent.toLocaleString()} / {selectedSite.budget.toLocaleString()} TND</p>
@@ -235,9 +235,9 @@ export default function ChantiersPage() {
                     </div>
 
                     <div className="space-y-6">
-                      <div className="flex items-center justify-between border-b border-forest-50 pb-4">
-                        <h3 className="font-heading font-bold text-forest-900">Dernières Livraisons</h3>
-                        <Button variant="link" className="text-forest-600 font-bold text-xs h-auto p-0">Voir tout <ChevronRight className="w-3 h-3 ml-1" /></Button>
+                      <div className="flex items-center justify-between border-b border-corp-blue-50 pb-4">
+                        <h3 className="font-bold text-corp-blue-900">Dernières Livraisons</h3>
+                        <Button variant="link" className="text-corp-blue-600 font-bold text-xs h-auto p-0">Voir tout <ChevronRight className="w-3 h-3 ml-1" /></Button>
                       </div>
 
                       <div className="space-y-3">
@@ -246,13 +246,13 @@ export default function ChantiersPage() {
                           { ref: 'BL-2405-008', date: '10 Mai, 09:15', items: 'Poutrelles H20 (45 pcs)', status: 'Recu' },
                           { ref: 'BL-2404-098', date: '28 Avril, 16:45', items: 'Chêne Rouge (4 M³)', status: 'Recu' },
                         ].map((delivery, i) => (
-                          <div key={i} className="flex items-center justify-between p-4 bg-white border border-forest-50 rounded-2xl hover:border-forest-200 transition-all">
+                          <div key={i} className="flex items-center justify-between p-4 bg-white border border-corp-blue-50 rounded-2xl hover:border-corp-blue-200 transition-all">
                             <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 rounded-xl bg-forest-50 flex items-center justify-center text-forest-600">
+                              <div className="w-10 h-10 rounded-xl bg-corp-blue-50 flex items-center justify-center text-corp-blue-600">
                                 <Package className="w-5 h-5" />
                               </div>
                               <div>
-                                <div className="text-sm font-bold text-forest-900">{delivery.ref}</div>
+                                <div className="text-sm font-bold text-corp-blue-900">{delivery.ref}</div>
                                 <div className="text-[0.65rem] text-sand-400 font-medium">{delivery.items}</div>
                               </div>
                             </div>

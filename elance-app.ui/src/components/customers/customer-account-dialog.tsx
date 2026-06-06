@@ -93,7 +93,7 @@ export function CustomerAccountDialog({
                 <CreditCard className="w-6 h-6" />
               </div>
               <div>
-                <DialogTitle className="font-heading text-2xl font-bold tracking-tight">
+                <DialogTitle className="text-2xl font-bold tracking-tight">
                   État de Compte
                 </DialogTitle>
                 <p className="text-muted-foreground text-sm font-medium mt-1">
@@ -215,7 +215,7 @@ export function CustomerAccountDialog({
                     <th className="p-5 text-[0.65rem] font-bold text-slate-900 uppercase tracking-widest text-right">Solde</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-forest-50">
+                <tbody className="divide-y divide-corp-blue-50">
                   {isLoading || isFetching ? (
                     <tr>
                       <td colSpan={6} className="p-20 text-center">

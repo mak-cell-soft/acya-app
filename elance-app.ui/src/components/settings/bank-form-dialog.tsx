@@ -134,16 +134,16 @@ export function BankFormDialog({ isOpen, onClose, bank }: BankFormDialogProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px] rounded-2xl p-0 overflow-hidden border-forest-100 shadow-2xl">
+      <DialogContent className="sm:max-w-[700px] rounded-2xl p-0 overflow-hidden border-corp-blue-100 shadow-2xl">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <LandmarkIcon className="w-32 h-32" />
           </div>
-          <DialogTitle className="text-2xl font-heading font-bold flex items-center gap-3 relative z-10">
+          <DialogTitle className="text-2xl font-bold flex items-center gap-3 relative z-10">
             <Landmark className="w-6 h-6" />
             {isEditing ? 'Modifier la Banque' : 'Ajouter une Banque'}
           </DialogTitle>
-          <DialogDescription className="text-forest-100 text-sm font-medium mt-1 relative z-10">
+          <DialogDescription className="text-corp-blue-100 text-sm font-medium mt-1 relative z-10">
             Configurez les détails du compte bancaire et les frais d'opérations.
           </DialogDescription>
         </DialogHeader>
@@ -151,21 +151,21 @@ export function BankFormDialog({ isOpen, onClose, bank }: BankFormDialogProps) {
         <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-8 bg-white max-h-[80vh] overflow-y-auto custom-scrollbar">
           {/* Section 1: Informations Bancaires */}
           <div className="space-y-4">
-            <h4 className="text-sm font-bold text-forest-900 uppercase tracking-wider flex items-center gap-2 mb-4">
-              <Building2 className="w-4 h-4 text-forest-400" />
+            <h4 className="text-sm font-bold text-corp-blue-900 uppercase tracking-wider flex items-center gap-2 mb-4">
+              <Building2 className="w-4 h-4 text-corp-blue-400" />
               Compte & Agence
             </h4>
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-sm font-bold text-forest-800">Banque</Label>
+                <Label className="text-sm font-bold text-corp-blue-800">Banque</Label>
                 <Select value={selectedRef} onValueChange={handleBankChange}>
                   <SelectTrigger className="bg-sand-50 ">
                     <SelectValue placeholder="Sélectionner une banque" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl border-forest-100">
+                  <SelectContent className="rounded-xl border-corp-blue-100">
                     {BANKS_TN.sort((a, b) => a.key.localeCompare(b.key)).map((b) => (
-                      <SelectItem key={b.key} value={b.key} className="rounded-lg focus:bg-forest-50 focus:text-forest-900">
+                      <SelectItem key={b.key} value={b.key} className="rounded-lg focus:bg-corp-blue-50 focus:text-corp-blue-900">
                         {b.key}
                       </SelectItem>
                     ))}
@@ -175,7 +175,7 @@ export function BankFormDialog({ isOpen, onClose, bank }: BankFormDialogProps) {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-bold text-forest-800">Désignation</Label>
+                <Label className="text-sm font-bold text-corp-blue-800">Désignation</Label>
                 <div className="relative">
                   <Input 
                     {...register('designation')} 
@@ -187,7 +187,7 @@ export function BankFormDialog({ isOpen, onClose, bank }: BankFormDialogProps) {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-bold text-forest-800">Agence</Label>
+                <Label className="text-sm font-bold text-corp-blue-800">Agence</Label>
                 <div className="relative">
                   <Input 
                     {...register('agency')} 
@@ -195,13 +195,13 @@ export function BankFormDialog({ isOpen, onClose, bank }: BankFormDialogProps) {
                     placeholder="ex: Tunis Centre"
                     className="bg-sand-50 pl-10" 
                   />
-                  <MapPin className="absolute left-3 top-3.5 w-5 h-5 text-forest-400" />
+                  <MapPin className="absolute left-3 top-3.5 w-5 h-5 text-corp-blue-400" />
                 </div>
                 {errors.agency && <p className="text-xs text-red-500 font-medium">{errors.agency.message}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-bold text-forest-800">RIB</Label>
+                <Label className="text-sm font-bold text-corp-blue-800">RIB</Label>
                 <div className="relative">
                   <Input 
                     {...register('rib')} 
@@ -209,14 +209,14 @@ export function BankFormDialog({ isOpen, onClose, bank }: BankFormDialogProps) {
                     placeholder="20 chiffres"
                     className="bg-sand-50 pl-10" 
                   />
-                  <CreditCard className="absolute left-3 top-3.5 w-5 h-5 text-forest-400" />
+                  <CreditCard className="absolute left-3 top-3.5 w-5 h-5 text-corp-blue-400" />
                 </div>
                 {errors.rib && <p className="text-xs text-red-500 font-medium">{errors.rib.message}</p>}
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-forest-800">IBAN</Label>
+              <Label className="text-sm font-bold text-corp-blue-800">IBAN</Label>
               <div className="relative">
                 <Input 
                   {...register('iban')} 
@@ -224,7 +224,7 @@ export function BankFormDialog({ isOpen, onClose, bank }: BankFormDialogProps) {
                   placeholder="TN59 ..."
                   className="bg-sand-50 pl-10" 
                 />
-                <Globe className="absolute left-3 top-3.5 w-5 h-5 text-forest-400" />
+                <Globe className="absolute left-3 top-3.5 w-5 h-5 text-corp-blue-400" />
               </div>
               {errors.iban && <p className="text-xs text-red-500 font-medium">{errors.iban.message}</p>}
             </div>
@@ -232,31 +232,31 @@ export function BankFormDialog({ isOpen, onClose, bank }: BankFormDialogProps) {
 
           {/* Section 2: Frais & Solde */}
           <div className="space-y-4">
-            <h4 className="text-sm font-bold text-forest-900 uppercase tracking-wider flex items-center gap-2 mb-4">
-              <Wallet className="w-4 h-4 text-forest-400" />
+            <h4 className="text-sm font-bold text-corp-blue-900 uppercase tracking-wider flex items-center gap-2 mb-4">
+              <Wallet className="w-4 h-4 text-corp-blue-400" />
               Frais d'Opérations (HT) & Solde
             </h4>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-sm font-bold text-forest-800">Frais Chèque HT</Label>
+                <Label className="text-sm font-bold text-corp-blue-800">Frais Chèque HT</Label>
                 <Input type="number" step="0.001" {...register('chequeDepositFeeHT')} className="bg-sand-50 " />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm font-bold text-forest-800">Frais Traite HT</Label>
+                <Label className="text-sm font-bold text-corp-blue-800">Frais Traite HT</Label>
                 <Input type="number" step="0.001" {...register('traiteDepositFeeHT')} className="bg-sand-50 " />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm font-bold text-forest-800">Frais Virement HT</Label>
+                <Label className="text-sm font-bold text-corp-blue-800">Frais Virement HT</Label>
                 <Input type="number" step="0.001" {...register('wireTransferFeeHT')} className="bg-sand-50 " />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm font-bold text-forest-800">Frais Divers HT</Label>
+                <Label className="text-sm font-bold text-corp-blue-800">Frais Divers HT</Label>
                 <Input type="number" step="0.001" {...register('miscFeeHT')} className="bg-sand-50 " />
               </div>
               <div className="space-y-2 col-span-2">
-                <Label className="text-sm font-bold text-forest-800">Solde Initial</Label>
-                <Input type="number" step="0.001" {...register('initialBalance')} className="bg-forest-50 font-bold text-forest-900" />
+                <Label className="text-sm font-bold text-corp-blue-800">Solde Initial</Label>
+                <Input type="number" step="0.001" {...register('initialBalance')} className="bg-corp-blue-50 font-bold text-corp-blue-900" />
               </div>
             </div>
           </div>
@@ -266,13 +266,13 @@ export function BankFormDialog({ isOpen, onClose, bank }: BankFormDialogProps) {
               type="button" 
               variant="outline" 
               onClick={onClose}
-              className="flex-1 h-12 border-forest-100 text-forest-600 font-bold hover:bg-forest-50"
+              className="flex-1 h-12 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50"
             >
               Annuler
             </Button>
             <Button 
               disabled={createBank.isPending || updateBank.isPending}
-              className="flex-[2] h-12 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
+              className="flex-[2] h-12 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20"
             >
               {createBank.isPending || updateBank.isPending ? (
                 <Loader2 className="w-5 h-5 animate-spin" />

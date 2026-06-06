@@ -90,18 +90,18 @@ export function PermissionsDialog({ isOpen, onClose, user }: PermissionsDialogPr
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[1200px] max-w-[95vw] w-[95vw] bg-sand-50/95 backdrop-blur-md border-forest-100/50 shadow-2xl p-0 overflow-hidden rounded-xl">
-        <div className="bg-white border-b border-forest-50 p-6 flex items-center justify-between">
+      <DialogContent className="sm:max-w-[1200px] max-w-[95vw] w-[95vw] bg-sand-50/95 backdrop-blur-md border-corp-blue-100/50 shadow-2xl p-0 overflow-hidden rounded-xl">
+        <div className="bg-white border-b border-corp-blue-50 p-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-forest-600 text-white flex items-center justify-center shadow-lg shadow-forest-600/20">
+            <div className="w-12 h-12 rounded-2xl bg-corp-blue-600 text-white flex items-center justify-center shadow-lg shadow-corp-blue-600/20">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <DialogTitle className="text-xl font-heading font-bold text-forest-900">
+              <DialogTitle className="text-xl font-bold text-corp-blue-900">
                 Gestion des Permissions
               </DialogTitle>
               <p className="text-sm font-medium text-sand-500 mt-0.5">
-                Utilisateur: <span className="font-bold text-forest-700">{user?.login}</span> 
+                Utilisateur: <span className="font-bold text-corp-blue-700">{user?.login}</span> 
                 {user?.person && ` (${user.person.firstname} ${user.person.lastname})`}
               </p>
             </div>
@@ -128,11 +128,11 @@ export function PermissionsDialog({ isOpen, onClose, user }: PermissionsDialogPr
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
                       key={mod.key}
-                      className="bg-white border border-forest-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
+                      className="bg-white border border-corp-blue-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
                     >
-                      <div className="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-forest-50">
-                        <h4 className="font-bold text-forest-900 flex items-center gap-2 text-sm">
-                          <div className="w-8 h-8 rounded-full bg-forest-50 flex items-center justify-center text-forest-600">
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-corp-blue-50">
+                        <h4 className="font-bold text-corp-blue-900 flex items-center gap-2 text-sm">
+                          <div className="w-8 h-8 rounded-full bg-corp-blue-50 flex items-center justify-center text-corp-blue-600">
                             {/* Icon mapping could go here, fallback to ShieldCheck */}
                             <ShieldCheck className="w-4 h-4" />
                           </div>
@@ -196,7 +196,7 @@ export function PermissionsDialog({ isOpen, onClose, user }: PermissionsDialogPr
           )}
         </div>
 
-        <DialogFooter className="bg-white border-t border-forest-50 p-6 rounded-b-[24px]">
+        <DialogFooter className="bg-white border-t border-corp-blue-50 p-6 rounded-b-[24px]">
           <div className="flex w-full justify-between items-center">
             <p className="text-xs text-sand-400 font-medium flex items-center gap-2">
               <RefreshCw className="w-3 h-3" /> Les modifications s'appliqueront à la prochaine connexion
@@ -208,7 +208,7 @@ export function PermissionsDialog({ isOpen, onClose, user }: PermissionsDialogPr
               <Button 
                 onClick={handleSave} 
                 disabled={updatePermissionsMutation.isPending}
-                className="bg-forest-600 hover:bg-forest-700 text-white font-bold h-11 px-6 shadow-lg shadow-forest-600/20"
+                className="bg-corp-blue-600 hover:bg-corp-blue-700 text-white font-bold h-11 px-6 shadow-lg shadow-corp-blue-600/20"
               >
                 {updatePermissionsMutation.isPending ? (
                   <RefreshCw className="w-4 h-4 mr-2 animate-spin" />

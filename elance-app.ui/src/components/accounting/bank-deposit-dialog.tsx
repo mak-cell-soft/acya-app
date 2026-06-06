@@ -170,7 +170,7 @@ export function BankDepositDialog({
               <Landmark className="w-5 h-5" />
             </span>
             <div>
-              <DialogTitle className="text-xl font-serif font-bold text-slate-900 dark:text-slate-50">
+              <DialogTitle className="text-xl font-bold text-slate-900 dark:text-slate-50">
                 {isCentral ? 'Versement Caisse Principale' : 'Nouveau Versement en Banque'}
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500 mt-0.5">

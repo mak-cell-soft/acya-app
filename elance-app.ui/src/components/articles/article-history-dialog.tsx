@@ -44,7 +44,7 @@ export function ArticleHistoryDialog({ isOpen, onClose, article }: ArticleHistor
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-forest-50 bg-sand-50/50">
+            <tr className="border-b border-corp-blue-50 bg-sand-50/50">
               <th className="p-4 text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest">Date</th>
               {type !== 'catalog' && (
                 <>
@@ -57,7 +57,7 @@ export function ArticleHistoryDialog({ isOpen, onClose, article }: ArticleHistor
               <th className="p-4 text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest text-right">P.U TTC</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-forest-50">
+          <tbody className="divide-y divide-corp-blue-50">
             {data.map((item, idx) => {
               const date = item.transactiondate || item.creationdate;
               const priceTTC = item.pricevalue;
@@ -77,11 +77,11 @@ export function ArticleHistoryDialog({ isOpen, onClose, article }: ArticleHistor
               }
 
               return (
-                <tr key={idx} className="hover:bg-forest-50/30 transition-colors">
+                <tr key={idx} className="hover:bg-corp-blue-50/30 transition-colors">
                   <td className="p-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-3 h-3 text-sand-300" />
-                      <span className="text-sm font-medium text-forest-900">
+                      <span className="text-sm font-medium text-corp-blue-900">
                         {date ? format(new Date(date), "dd/MM/yyyy", { locale: fr }) : '--'}
                       </span>
                     </div>
@@ -91,14 +91,14 @@ export function ArticleHistoryDialog({ isOpen, onClose, article }: ArticleHistor
                       <td className="p-4">
                         <Badge variant="outline" className={cn(
                           "font-bold rounded-lg px-2",
-                          type === 'sales' ? "border-amber-100 bg-amber-50 text-amber-600" : "border-forest-100 bg-forest-50 text-forest-600"
+                          type === 'sales' ? "border-amber-100 bg-amber-50 text-amber-600" : "border-corp-blue-100 bg-corp-blue-50 text-corp-blue-600"
                         )}>
                           {item.docnumber}
                         </Badge>
                       </td>
                       {type === 'purchase' && (
                         <td className="p-4">
-                          <span className="text-sm font-bold text-forest-900">{item.counterpartname || '--'}</span>
+                          <span className="text-sm font-bold text-corp-blue-900">{item.counterpartname || '--'}</span>
                         </td>
                       )}
                     </>
@@ -110,10 +110,10 @@ export function ArticleHistoryDialog({ isOpen, onClose, article }: ArticleHistor
                     </div>
                   </td>
                   <td className="p-4 text-right">
-                    <span className="text-sm font-bold text-forest-900">{finalHT.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}</span>
+                    <span className="text-sm font-bold text-corp-blue-900">{finalHT.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}</span>
                   </td>
                   <td className="p-4 text-right">
-                    <span className="text-sm font-bold text-forest-600 bg-forest-50 px-2 py-1 rounded-lg">
+                    <span className="text-sm font-bold text-corp-blue-600 bg-corp-blue-50 px-2 py-1 rounded-lg">
                       {finalTTC.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}
                     </span>
                   </td>
@@ -130,14 +130,14 @@ export function ArticleHistoryDialog({ isOpen, onClose, article }: ArticleHistor
     <Dialog open={isOpen} onOpenChange={onClose}>
       {/* // NOTE: Using responsive width constraints (w-full max-w-full on mobile, scaling up to md:max-w-4xl on desktop)
           // to override the default DialogContent max-width layout limits and prevent table compression. */}
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-white">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl p-0 overflow-hidden border-corp-blue-100 shadow-2xl rounded-none sm:rounded-2xl bg-white">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100">
+            <div className="w-12 h-12 rounded-2xl bg-corp-blue-50 flex items-center justify-center border border-corp-blue-100">
               <History className="w-6 h-6 text-emerald-600" />
             </div>
             <div>
-              <DialogTitle className="font-heading text-2xl font-bold tracking-tight">Historique des Prix</DialogTitle>
+              <DialogTitle className="text-2xl font-bold tracking-tight">Historique des Prix</DialogTitle>
               <div className="flex items-center gap-2 mt-1">
                 <Badge className="bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border-emerald-500/30 font-bold">
                   {article?.reference}
@@ -157,31 +157,31 @@ export function ArticleHistoryDialog({ isOpen, onClose, article }: ArticleHistor
         <div className="p-8">
           <Tabs defaultValue="catalog" className="w-full">
             <TabsList className="grid grid-cols-3 h-14 p-1.5 bg-sand-100 rounded-[20px] mb-8">
-              <TabsTrigger value="catalog" className="rounded-2xl font-bold data-[state=active]:bg-white data-[state=active]:text-forest-900 data-[state=active]:shadow-lg gap-2">
+              <TabsTrigger value="catalog" className="rounded-2xl font-bold data-[state=active]:bg-white data-[state=active]:text-corp-blue-900 data-[state=active]:shadow-lg gap-2">
                 <Tag className="w-4 h-4" /> Catalogue
               </TabsTrigger>
-              <TabsTrigger value="sales" className="rounded-2xl font-bold data-[state=active]:bg-white data-[state=active]:text-forest-900 data-[state=active]:shadow-lg gap-2">
+              <TabsTrigger value="sales" className="rounded-2xl font-bold data-[state=active]:bg-white data-[state=active]:text-corp-blue-900 data-[state=active]:shadow-lg gap-2">
                 <ShoppingCart className="w-4 h-4" /> Ventes
               </TabsTrigger>
-              <TabsTrigger value="purchase" className="rounded-2xl font-bold data-[state=active]:bg-white data-[state=active]:text-forest-900 data-[state=active]:shadow-lg gap-2">
+              <TabsTrigger value="purchase" className="rounded-2xl font-bold data-[state=active]:bg-white data-[state=active]:text-corp-blue-900 data-[state=active]:shadow-lg gap-2">
                 <ListOrdered className="w-4 h-4" /> Achats
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="catalog" className="mt-0 focus-visible:outline-none">
-              <div className="rounded-xl border border-forest-50 overflow-hidden bg-sand-50/30">
+              <div className="rounded-xl border border-corp-blue-50 overflow-hidden bg-sand-50/30">
                 <HistoryTable data={catalogHistory.data || []} type="catalog" />
               </div>
             </TabsContent>
 
             <TabsContent value="sales" className="mt-0 focus-visible:outline-none">
-              <div className="rounded-xl border border-forest-50 overflow-hidden bg-sand-50/30">
+              <div className="rounded-xl border border-corp-blue-50 overflow-hidden bg-sand-50/30">
                 <HistoryTable data={salesHistory.data || []} type="sales" />
               </div>
             </TabsContent>
 
             <TabsContent value="purchase" className="mt-0 focus-visible:outline-none">
-              <div className="rounded-xl border border-forest-50 overflow-hidden bg-sand-50/30">
+              <div className="rounded-xl border border-corp-blue-50 overflow-hidden bg-sand-50/30">
                 <HistoryTable data={purchaseHistory.data || []} type="purchase" />
               </div>
             </TabsContent>
@@ -219,7 +219,7 @@ function EmptyState({ type }: { type: string }) {
       <div className="w-16 h-16 rounded-3xl bg-sand-100 flex items-center justify-center mb-6">
         <Icon className="w-8 h-8 text-sand-300" />
       </div>
-      <h4 className="text-forest-900 font-bold text-lg">Aucun historique</h4>
+      <h4 className="text-corp-blue-900 font-bold text-lg">Aucun historique</h4>
       <p className="text-sand-400 font-medium max-w-[240px] mt-2">
         Il n&apos;y a pas encore d&apos;enregistrements pour cette catégorie.
       </p>

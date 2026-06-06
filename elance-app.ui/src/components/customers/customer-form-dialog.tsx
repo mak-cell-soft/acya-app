@@ -215,15 +215,15 @@ export function CustomerFormDialog({
       */}
       <DialogContent 
         showCloseButton={false}
-        className="w-full max-w-full sm:max-w-xl md:max-w-3xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-background h-full sm:h-auto max-h-screen sm:max-h-[90vh] flex flex-col"
+        className="w-full max-w-full sm:max-w-xl md:max-w-3xl lg:max-w-5xl p-0 overflow-hidden border-corp-blue-100 shadow-2xl rounded-none sm:rounded-2xl bg-background h-full sm:h-auto max-h-screen sm:max-h-[90vh] flex flex-col"
       >
         <DialogHeader className="border-b border-border pb-4 mb-4 p-6 sm:p-8 relative shrink-0">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100 text-emerald-600 shrink-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-corp-blue-50 flex items-center justify-center border border-corp-blue-100 text-emerald-600 shrink-0">
               {editCustomer ? <UserPen className="w-5 h-5 sm:w-6 sm:h-6" /> : <UserPlus className="w-5 h-5 sm:w-6 sm:h-6" />}
             </div>
             <div>
-              <DialogTitle className="font-heading text-xl sm:text-2xl font-bold tracking-tight">
+              <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight">
                 {editCustomer ? "Modifier le Client" : "Nouveau Client"}
               </DialogTitle>
               <p className="text-muted-foreground text-[0.7rem] sm:text-sm font-medium mt-1">
@@ -245,7 +245,7 @@ export function CustomerFormDialog({
             {!editCustomer && (
               <div className="flex justify-center">
                 <Tabs value={mode} onValueChange={handleModeChange} className="w-full max-w-md">
-                  <TabsList className="grid w-full grid-cols-2 rounded-2xl p-1 bg-sand-50 border border-forest-50 h-12">
+                  <TabsList className="grid w-full grid-cols-2 rounded-2xl p-1 bg-sand-50 border border-corp-blue-50 h-12">
                     <TabsTrigger value="individual" className="rounded-xl font-bold gap-2">
                       <User className="w-4 h-4" /> <span className="hidden xs:inline">Personne Physique</span><span className="xs:hidden">Physique</span>
                     </TabsTrigger>
@@ -261,9 +261,9 @@ export function CustomerFormDialog({
               {/* Left Column: Core Identity */}
               <div className="space-y-8">
                 <div className="space-y-6">
-                  <div className="flex items-center gap-2 pb-2 border-b border-forest-50">
-                    <BadgeInfo className="w-4 h-4 text-forest-600" />
-                    <h3 className="font-heading font-bold text-forest-900">Identité</h3>
+                  <div className="flex items-center gap-2 pb-2 border-b border-corp-blue-50">
+                    <BadgeInfo className="w-4 h-4 text-corp-blue-600" />
+                    <h3 className="font-bold text-corp-blue-900">Identité</h3>
                   </div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -279,7 +279,7 @@ export function CustomerFormDialog({
                                 <SelectValue placeholder="Titre" />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent className="rounded-xl border-forest-100">
+                            <SelectContent className="rounded-xl border-corp-blue-100">
                               {(mode === 'society' ? SOCIETY_PREFIXES : CUSTOMER_PREFIXES).map(p => (
                                 <SelectItem key={p.id} value={p.id}>{p.id}</SelectItem>
                               ))}
@@ -374,7 +374,7 @@ export function CustomerFormDialog({
                                 </SelectValue>
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent className="rounded-xl border-forest-100">
+                            <SelectContent className="rounded-xl border-corp-blue-100">
                               {CUSTOMER_ACTIVITIES.map(a => (
                                 <SelectItem key={a.key} value={a.key.toString()}>{a.value}</SelectItem>
                               ))}
@@ -406,7 +406,7 @@ export function CustomerFormDialog({
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="absolute right-1 top-1 h-10 w-10 rounded-lg text-forest-600 group-hover:bg-forest-50"
+                                className="absolute right-1 top-1 h-10 w-10 rounded-lg text-corp-blue-600 group-hover:bg-corp-blue-50"
                                 onClick={() => setIsTaxModalOpen(true)}
                               >
                                 <BadgeInfo className="w-4 h-4" />
@@ -432,9 +432,9 @@ export function CustomerFormDialog({
                 </div>
 
                 <div className="space-y-6">
-                  <div className="flex items-center gap-2 pb-2 border-b border-forest-50">
-                    <MapPin className="w-4 h-4 text-forest-600" />
-                    <h3 className="font-heading font-bold text-forest-900">Localisation & Contact</h3>
+                  <div className="flex items-center gap-2 pb-2 border-b border-corp-blue-50">
+                    <MapPin className="w-4 h-4 text-corp-blue-600" />
+                    <h3 className="font-bold text-corp-blue-900">Localisation & Contact</h3>
                   </div>
                   <FormField
                     control={form.control}
@@ -461,7 +461,7 @@ export function CustomerFormDialog({
                               <SelectValue placeholder="Sélectionner" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="rounded-xl border-forest-100 h-64">
+                          <SelectContent className="rounded-xl border-corp-blue-100 h-64">
                             {GOUVERNORATES_TN.map(g => (
                               <SelectItem key={g.key} value={g.value}>{g.value}</SelectItem>
                             ))}
@@ -511,9 +511,9 @@ export function CustomerFormDialog({
               {/* Right Column: Finance & Settings */}
               <div className="space-y-8">
                 <div className="space-y-6">
-                  <div className="flex items-center gap-2 pb-2 border-b border-forest-50">
-                    <CreditCard className="w-4 h-4 text-forest-600" />
-                    <h3 className="font-heading font-bold text-forest-900">Finance & Crédit</h3>
+                  <div className="flex items-center gap-2 pb-2 border-b border-corp-blue-50">
+                    <CreditCard className="w-4 h-4 text-corp-blue-600" />
+                    <h3 className="font-bold text-corp-blue-900">Finance & Crédit</h3>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
@@ -552,7 +552,7 @@ export function CustomerFormDialog({
                       <FormItem>
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Solde d'Ouverture (TND)</FormLabel>
                         <FormControl>
-                          <Input type="number" step="0.001" className="font-bold text-forest-900" {...field} />
+                          <Input type="number" step="0.001" className="font-bold text-corp-blue-900" {...field} />
                         </FormControl>
                         <FormDescription className="text-[0.65rem]">Position financière initiale du client</FormDescription>
                         <FormMessage />
@@ -560,10 +560,10 @@ export function CustomerFormDialog({
                     )}
                   />
 
-                  <div className="p-6 rounded-3xl bg-forest-50 border border-forest-100 space-y-4">
+                  <div className="p-6 rounded-3xl bg-corp-blue-50 border border-corp-blue-100 space-y-4">
                     <div className="flex items-center gap-2">
-                      <Building className="w-4 h-4 text-forest-600" />
-                      <h4 className="text-sm font-bold text-forest-900">Détails Bancaires</h4>
+                      <Building className="w-4 h-4 text-corp-blue-600" />
+                      <h4 className="text-sm font-bold text-corp-blue-900">Détails Bancaires</h4>
                     </div>
                     <div className="grid grid-cols-1 gap-4">
                       <FormField
@@ -577,7 +577,7 @@ export function CustomerFormDialog({
                                   <SelectValue placeholder="Banque" />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent className="rounded-xl border-forest-100">
+                              <SelectContent className="rounded-xl border-corp-blue-100">
                                 {BANKS_TN.map(b => (
                                   <SelectItem key={b.id} value={b.value}>{b.value}</SelectItem>
                                 ))}
@@ -602,9 +602,9 @@ export function CustomerFormDialog({
                 </div>
 
                 <div className="space-y-6">
-                  <div className="flex items-center gap-2 pb-2 border-b border-forest-50">
-                    <FileText className="w-4 h-4 text-forest-600" />
-                    <h3 className="font-heading font-bold text-forest-900">Notes & Paramètres</h3>
+                  <div className="flex items-center gap-2 pb-2 border-b border-corp-blue-50">
+                    <FileText className="w-4 h-4 text-corp-blue-600" />
+                    <h3 className="font-bold text-corp-blue-900">Notes & Paramètres</h3>
                   </div>
                   <FormField
                     control={form.control}
@@ -626,11 +626,11 @@ export function CustomerFormDialog({
                           <Checkbox
                             checked={field.value}
                             onCheckedChange={field.onChange}
-                            className="w-5 h-5 rounded-lg border-sand-300 data-[state=checked]:bg-forest-600 data-[state=checked]:border-forest-600"
+                            className="w-5 h-5 rounded-lg border-sand-300 data-[state=checked]:bg-corp-blue-600 data-[state=checked]:border-corp-blue-600"
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
-                          <FormLabel className="text-sm font-bold text-forest-900">Client et Fournisseur</FormLabel>
+                          <FormLabel className="text-sm font-bold text-corp-blue-900">Client et Fournisseur</FormLabel>
                           <p className="text-[0.7rem] text-sand-400 font-medium">Ce client sera également visible dans le module Fournisseurs.</p>
                         </div>
                       </FormItem>
@@ -640,7 +640,7 @@ export function CustomerFormDialog({
               </div>
             </div>
 
-            <DialogFooter className="pt-8 border-t border-forest-50 gap-3">
+            <DialogFooter className="pt-8 border-t border-corp-blue-50 gap-3">
               <Button 
                 type="button" 
                 variant="ghost" 
@@ -652,7 +652,7 @@ export function CustomerFormDialog({
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="h-12 px-10 bg-forest-600 text-white font-bold hover:bg-forest-800 shadow-lg shadow-forest-600/20 gap-2"
+                className="h-12 px-10 bg-corp-blue-600 text-white font-bold hover:bg-corp-blue-800 shadow-lg shadow-corp-blue-600/20 gap-2"
               >
                 {isLoading ? "Traitement..." : (editCustomer ? "Mettre à jour" : "Enregistrer")}
               </Button>

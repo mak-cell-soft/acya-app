@@ -22,12 +22,9 @@ export function CTASection() {
         transition={{ duration: 0.8, type: 'spring', stiffness: 60 }}
         className="max-w-[850px] mx-auto text-center relative z-10 space-y-8"
       >
-        <div className="inline-flex items-center gap-2 bg-corp-blue-500/10 border border-corp-cyan/20 rounded-full px-4.5 py-1.5 text-xs font-bold tracking-wide text-corp-cyan uppercase shadow-sm">
-          <Sparkles size={13} className="text-corp-cyan" />
-          Prenez une longueur d'avance
-        </div>
+
         
-        <h2 className="font-heading text-[2.2rem] md:text-[3.4rem] text-white leading-[1.1] font-extrabold tracking-tight">
+        <h2 className="text-[2.2rem] md:text-[3.4rem] text-white leading-[1.1] font-extrabold tracking-tight">
           Prêt à propulser votre entreprise <br className="hidden md:block" /> vers de <span className="bg-gradient-to-r from-corp-cyan via-corp-blue-300 to-corp-blue-400 bg-clip-text text-transparent">nouveaux sommets</span> ?
         </h2>
         

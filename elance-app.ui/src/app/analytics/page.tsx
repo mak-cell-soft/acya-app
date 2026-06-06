@@ -186,7 +186,7 @@ export default function AnalyticsPage() {
 
   const renderPieChart = () => {
     if (!isMounted || isLoadingKpis) {
-      return <div className="h-full w-full bg-forest-50/30 animate-pulse rounded-2xl" />;
+      return <div className="h-full w-full bg-corp-blue-50/30 animate-pulse rounded-2xl" />;
     }
     
     if (salesByCategory.length === 0) {
@@ -221,13 +221,13 @@ export default function AnalyticsPage() {
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
                 return (
-                  <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
+                  <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: payload[0].payload.fill }} />
-                      <span className="font-bold text-forest-950">{payload[0].name}</span>
+                      <span className="font-bold text-corp-blue-950">{payload[0].name}</span>
                     </div>
                     <div className="flex items-baseline gap-1.5 pl-6">
-                      <span className="text-2xl font-black text-forest-900 font-mono">{payload[0].value}</span>
+                      <span className="text-2xl font-black text-corp-blue-900 font-mono">{payload[0].value}</span>
                       <span className="text-xs text-sand-500 font-medium">doc(s)</span>
                     </div>
                   </div>
@@ -245,8 +245,8 @@ export default function AnalyticsPage() {
   const renderSupplierChart = () => {
     if (!isMounted || isLoadingSupplierChart) {
       return (
-        <div className="h-full w-full bg-forest-50/30 animate-pulse rounded-2xl flex items-center justify-center">
-          <span className="text-forest-300 font-medium">Chargement des données...</span>
+        <div className="h-full w-full bg-corp-blue-50/30 animate-pulse rounded-2xl flex items-center justify-center">
+          <span className="text-corp-blue-300 font-medium">Chargement des données...</span>
         </div>
       );
     }
@@ -292,8 +292,8 @@ export default function AnalyticsPage() {
             content={({ active, payload, label }) => {
               if (active && payload && payload.length) {
                 return (
-                  <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-2xl rounded-2xl p-4 min-w-[220px] animate-in fade-in zoom-in-95 duration-200">
-                    <p className="font-bold text-forest-950 mb-3 border-b border-forest-50 pb-2">{label}</p>
+                  <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[220px] animate-in fade-in zoom-in-95 duration-200">
+                    <p className="font-bold text-corp-blue-950 mb-3 border-b border-corp-blue-50 pb-2">{label}</p>
                     <div className="space-y-3">
                       {payload.map((entry: any, index: number) => (
                         <div key={index} className="flex flex-col gap-1">
@@ -301,7 +301,7 @@ export default function AnalyticsPage() {
                             <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: entry.name === 'purchases' ? '#D97706' : '#10B981' }} />
                             <span className="text-sm text-sand-500 font-medium">{entry.name === 'purchases' ? 'Achats TTC' : 'Règlements'}</span>
                           </div>
-                          <span className="font-black text-forest-900 font-mono text-sm pl-4">{formatCurrency(Number(entry.value || 0))}</span>
+                          <span className="font-black text-corp-blue-900 font-mono text-sm pl-4">{formatCurrency(Number(entry.value || 0))}</span>
                         </div>
                       ))}
                     </div>
@@ -316,7 +316,7 @@ export default function AnalyticsPage() {
             align="right" 
             iconType="circle" 
             wrapperStyle={{ paddingBottom: '30px' }} 
-            formatter={(value) => <span className="text-forest-900 font-medium ml-1">{value === 'purchases' ? 'Achats TTC' : 'Règlements'}</span>}
+            formatter={(value) => <span className="text-corp-blue-900 font-medium ml-1">{value === 'purchases' ? 'Achats TTC' : 'Règlements'}</span>}
           />
           <Bar dataKey="purchases" name="purchases" fill="url(#colorPurchases)" radius={[6, 6, 0, 0]} barSize={28} animationDuration={1200} animationEasing="ease-out" />
           <Bar dataKey="payments" name="payments" fill="url(#colorPayments)" radius={[6, 6, 0, 0]} barSize={28} animationDuration={1200} animationEasing="ease-out" />
@@ -328,7 +328,7 @@ export default function AnalyticsPage() {
   const renderTopClients = () => {
     if (isLoadingKpis) {
       return new Array(5).fill(0).map((_, i) => (
-        <div key={`skeleton-client-${i}`} className="flex items-center justify-between p-4 bg-sand-50/50 rounded-2xl border border-forest-50">
+        <div key={`skeleton-client-${i}`} className="flex items-center justify-between p-4 bg-sand-50/50 rounded-2xl border border-corp-blue-50">
           <Skeleton className="h-5 w-32 rounded" />
           <Skeleton className="h-5 w-24 rounded" />
         </div>
@@ -340,13 +340,13 @@ export default function AnalyticsPage() {
     }
 
     return kpis.topClients.map((client, i) => (
-      <div key={client.id} className="flex items-center justify-between p-4 bg-sand-50/50 rounded-2xl border border-forest-50 hover:border-forest-200 transition-colors">
+      <div key={client.id} className="flex items-center justify-between p-4 bg-sand-50/50 rounded-2xl border border-corp-blue-50 hover:border-corp-blue-200 transition-colors">
         <div className="flex items-center gap-3">
-          <span className="w-6 h-6 flex items-center justify-center bg-forest-100 text-forest-700 rounded-full text-xs font-bold">{i + 1}</span>
-          <span className="font-bold text-forest-900">{client.name}</span>
+          <span className="w-6 h-6 flex items-center justify-center bg-corp-blue-100 text-corp-blue-700 rounded-full text-xs font-bold">{i + 1}</span>
+          <span className="font-bold text-corp-blue-900">{client.name}</span>
         </div>
         <div className="text-right">
-          <div className="font-bold font-mono text-forest-600">{formatCurrency(client.totalAmount)}</div>
+          <div className="font-bold font-mono text-corp-blue-600">{formatCurrency(client.totalAmount)}</div>
         </div>
       </div>
     ));
@@ -355,8 +355,8 @@ export default function AnalyticsPage() {
   const renderReceivables = () => {
     if (isLoadingKpis) {
       return (
-        <div className="h-[400px] w-full bg-forest-50/30 animate-pulse rounded-2xl flex items-center justify-center">
-          <span className="text-forest-300 font-medium">Chargement des créances...</span>
+        <div className="h-[400px] w-full bg-corp-blue-50/30 animate-pulse rounded-2xl flex items-center justify-center">
+          <span className="text-corp-blue-300 font-medium">Chargement des créances...</span>
         </div>
       );
     }
@@ -389,11 +389,11 @@ export default function AnalyticsPage() {
           {filteredReceivables.map((client, i) => {
             const progress = client.totalInvoiced > 0 ? (client.totalPaid / client.totalInvoiced) * 100 : 0;
             return (
-              <div key={client.id} className="flex flex-col gap-2 p-4 bg-sand-50/50 rounded-2xl border border-forest-50 hover:border-forest-200 transition-colors">
+              <div key={client.id} className="flex flex-col gap-2 p-4 bg-sand-50/50 rounded-2xl border border-corp-blue-50 hover:border-corp-blue-200 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <span className="w-6 h-6 flex items-center justify-center bg-rose-100 text-rose-700 rounded-full text-xs font-bold">{i + 1}</span>
-                    <span className="font-bold text-forest-900 line-clamp-1" title={client.name}>{client.name}</span>
+                    <span className="font-bold text-corp-blue-900 line-clamp-1" title={client.name}>{client.name}</span>
                   </div>
                   <div className="text-right pl-2">
                     <div className="font-bold font-mono text-rose-600">{formatCurrency(client.outstanding)}</div>
@@ -437,8 +437,8 @@ export default function AnalyticsPage() {
                 content={({ active, payload, label }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
-                        <p className="font-bold text-forest-950 mb-2 border-b border-forest-50 pb-2">{label}</p>
+                      <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
+                        <p className="font-bold text-corp-blue-950 mb-2 border-b border-corp-blue-50 pb-2">{label}</p>
                         <div className="flex items-center justify-between gap-4">
                           <span className="text-sm text-sand-500 font-medium">Reste à payer</span>
                           <span className="font-black text-rose-600 font-mono text-sm">{formatCurrency(Number(payload[0].value || 0))}</span>
@@ -464,8 +464,8 @@ export default function AnalyticsPage() {
   const renderTopSubCategories = () => {
     if (isLoadingTopSubCategories) {
       return (
-        <div className="h-[400px] w-full bg-forest-50/30 animate-pulse rounded-2xl flex items-center justify-center">
-          <span className="text-forest-300 font-medium">Chargement des données...</span>
+        <div className="h-[400px] w-full bg-corp-blue-50/30 animate-pulse rounded-2xl flex items-center justify-center">
+          <span className="text-corp-blue-300 font-medium">Chargement des données...</span>
         </div>
       );
     }
@@ -528,15 +528,15 @@ export default function AnalyticsPage() {
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
                   return (
-                    <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-2xl rounded-2xl p-4 min-w-[220px] animate-in fade-in zoom-in-95 duration-200">
+                    <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[220px] animate-in fade-in zoom-in-95 duration-200">
                       <div className="flex items-center gap-3 mb-2">
                         <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: payload[0].payload.fill }} />
-                        <span className="font-bold text-forest-950 text-sm">{data.articleName}</span>
+                        <span className="font-bold text-corp-blue-950 text-sm">{data.articleName}</span>
                       </div>
                       <div className="pl-6 space-y-1">
                         <div className="flex items-center justify-between gap-4">
                           <span className="text-xs text-sand-500 font-medium">Quantité</span>
-                          <span className="font-black text-forest-900 font-mono text-sm">{data.quantitySold}</span>
+                          <span className="font-black text-corp-blue-900 font-mono text-sm">{data.quantitySold}</span>
                         </div>
                         <div className="flex items-center justify-between gap-4">
                           <span className="text-xs text-sand-500 font-medium">CA TTC</span>
@@ -558,8 +558,8 @@ export default function AnalyticsPage() {
   const renderStockHealth = () => {
     if (isLoadingStockHealth) {
       return (
-        <div className="h-[400px] w-full bg-forest-50/30 animate-pulse rounded-2xl flex items-center justify-center">
-          <span className="text-forest-300 font-medium">Chargement des données...</span>
+        <div className="h-[400px] w-full bg-corp-blue-50/30 animate-pulse rounded-2xl flex items-center justify-center">
+          <span className="text-corp-blue-300 font-medium">Chargement des données...</span>
         </div>
       );
     }
@@ -623,8 +623,8 @@ export default function AnalyticsPage() {
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
-                    <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
-                      <p className="font-bold text-forest-950 mb-3 border-b border-forest-50 pb-2">{label}</p>
+                    <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
+                      <p className="font-bold text-corp-blue-950 mb-3 border-b border-corp-blue-50 pb-2">{label}</p>
                       <div className="space-y-2">
                         {payload.map((entry: any, index: number) => {
                           const isCustomColor = entry.name === 'Stock Actuel' && entry.payload;
@@ -640,7 +640,7 @@ export default function AnalyticsPage() {
                                 <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: dotColor }} />
                                 <span className="text-sm text-sand-500 font-medium">{entry.name}</span>
                               </div>
-                              <span className="font-black text-forest-900 font-mono text-sm">{entry.value}</span>
+                              <span className="font-black text-corp-blue-900 font-mono text-sm">{entry.value}</span>
                             </div>
                           );
                         })}
@@ -701,15 +701,15 @@ export default function AnalyticsPage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-3xl md:text-4xl font-heading font-bold tracking-tight text-forest-900">Analyses Business</h1>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-corp-blue-900">Analyses Business</h1>
             <p className="text-sand-400 mt-2 font-medium">
               Intelligence commerciale et performance opérationnelle du parc.
             </p>
           </motion.div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-white rounded-xl border border-forest-100 p-1 shadow-sm">
+            <div className="flex items-center gap-2 bg-white rounded-xl border border-corp-blue-100 p-1 shadow-sm">
               <select 
-                className="h-9 rounded-lg bg-transparent px-3 py-1 text-sm font-bold text-forest-900 outline-none cursor-pointer"
+                className="h-9 rounded-lg bg-transparent px-3 py-1 text-sm font-bold text-corp-blue-900 outline-none cursor-pointer"
                 value={chartYear}
                 onChange={(e) => setChartYear(Number(e.target.value))}
               >
@@ -717,9 +717,9 @@ export default function AnalyticsPage() {
                 <option value={new Date().getFullYear() - 1}>Année {new Date().getFullYear() - 1}</option>
                 <option value={new Date().getFullYear() - 2}>Année {new Date().getFullYear() - 2}</option>
               </select>
-              <div className="w-px h-5 bg-forest-100"></div>
+              <div className="w-px h-5 bg-corp-blue-100"></div>
               <select 
-                className="h-9 rounded-lg bg-transparent px-3 py-1 text-sm font-bold text-forest-900 outline-none cursor-pointer"
+                className="h-9 rounded-lg bg-transparent px-3 py-1 text-sm font-bold text-corp-blue-900 outline-none cursor-pointer"
                 value={chartMonth}
                 onChange={(e) => setChartMonth(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
               >
@@ -738,7 +738,7 @@ export default function AnalyticsPage() {
                 <option value="12">Décembre</option>
               </select>
             </div>
-            <Button className="h-12 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-6">
+            <Button className="h-12 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20 px-6">
               <Download className="w-4 h-4 mr-2" /> Rapport Complet
             </Button>
           </div>
@@ -754,7 +754,7 @@ export default function AnalyticsPage() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
           {isLoadingKpis ? (
             new Array(5).fill(0).map((_, i) => (
-              <Card key={`skeleton-kpi-${i}`} className="border-forest-100/50 bg-white shadow-xl shadow-forest-900/5 rounded-xl overflow-hidden">
+              <Card key={`skeleton-kpi-${i}`} className="border-corp-blue-100/50 bg-white shadow-xl shadow-corp-blue-900/5 rounded-xl overflow-hidden">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <Skeleton className="h-4 w-24 rounded" />
                   <Skeleton className="h-8 w-8 rounded-lg" />
@@ -774,7 +774,7 @@ export default function AnalyticsPage() {
                 transition={{ delay: i * 0.1, duration: 0.5 }}
               >
                 <Card className={cn(
-                  "border-forest-100/50 bg-white shadow-xl shadow-forest-900/5 rounded-xl overflow-hidden group hover:border-forest-600 transition-all duration-500",
+                  "border-corp-blue-100/50 bg-white shadow-xl shadow-corp-blue-900/5 rounded-xl overflow-hidden group hover:border-corp-blue-600 transition-all duration-500",
                   stat.warning && "border-amber-200 hover:border-amber-500",
                   stat.isAchat && "border-amber-900/10 bg-amber-950/[0.02] hover:border-amber-600"
                 )}>
@@ -786,7 +786,7 @@ export default function AnalyticsPage() {
                     <div className={cn(
                       "p-2 rounded-lg transition-colors",
                       stat.warning ? "bg-amber-50 text-amber-600 group-hover:bg-amber-500 group-hover:text-white" : 
-                      (stat.isAchat ? "bg-amber-50 text-amber-900 group-hover:bg-amber-600 group-hover:text-white" : "bg-forest-50 text-forest-600 group-hover:bg-forest-600 group-hover:text-white")
+                      (stat.isAchat ? "bg-amber-50 text-amber-900 group-hover:bg-amber-600 group-hover:text-white" : "bg-corp-blue-50 text-corp-blue-600 group-hover:bg-corp-blue-600 group-hover:text-white")
                     )}>
                       <stat.icon className="h-4 w-4" />
                     </div>
@@ -794,7 +794,7 @@ export default function AnalyticsPage() {
                   <CardContent>
                     <div className={cn(
                       "text-2xl font-bold font-mono tracking-tight",
-                      stat.isAchat ? "text-amber-900" : "text-forest-900"
+                      stat.isAchat ? "text-amber-900" : "text-corp-blue-900"
                     )}>{stat.value}</div>
                     <div className="flex items-center gap-1 mt-2">
                       {stat.trend === 'up' ? (
@@ -816,10 +816,10 @@ export default function AnalyticsPage() {
 
         <div className="grid gap-8 lg:grid-cols-12">
           {/* Supplier Purchases vs Payments Chart */}
-          <Card className="lg:col-span-12 border-forest-100 rounded-2xl shadow-xl shadow-forest-900/2 bg-white overflow-hidden">
+          <Card className="lg:col-span-12 border-corp-blue-100 rounded-2xl shadow-xl shadow-corp-blue-900/2 bg-white overflow-hidden">
             <CardHeader className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <CardTitle className="font-heading text-2xl text-forest-900">Achats vs Règlements par Fournisseur</CardTitle>
+                <CardTitle className="text-2xl text-corp-blue-900">Achats vs Règlements par Fournisseur</CardTitle>
                 <CardDescription className="text-sand-400 font-medium">Comparaison de l'engagement financier et du niveau de règlement.</CardDescription>
               </div>
               <div className="flex items-center gap-3">
@@ -834,16 +834,16 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* Revenue Evolution */}
-          <Card className="lg:col-span-8 border-forest-100 rounded-2xl shadow-xl shadow-forest-900/2 bg-white overflow-hidden">
+          <Card className="lg:col-span-8 border-corp-blue-100 rounded-2xl shadow-xl shadow-corp-blue-900/2 bg-white overflow-hidden">
             <CardHeader className="p-8">
-              <CardTitle className="font-heading text-2xl text-forest-900">Évolution Revenue & Marge</CardTitle>
+              <CardTitle className="text-2xl text-corp-blue-900">Évolution Revenue & Marge</CardTitle>
               <CardDescription className="text-sand-400 font-medium">Comparaison mensuelle du chiffre d&apos;affaires et de la rentabilité brute.</CardDescription>
             </CardHeader>
             <CardContent className="p-8 pt-0">
               <div className="h-[400px] w-full relative min-h-0">
                 {!isMounted || isLoadingMonthly ? (
-                  <div className="h-full w-full bg-forest-50/30 animate-pulse rounded-2xl flex items-center justify-center">
-                    <span className="text-forest-300 font-medium">Chargement des données...</span>
+                  <div className="h-full w-full bg-corp-blue-50/30 animate-pulse rounded-2xl flex items-center justify-center">
+                    <span className="text-corp-blue-300 font-medium">Chargement des données...</span>
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
@@ -871,8 +871,8 @@ export default function AnalyticsPage() {
                         content={({ active, payload, label }) => {
                           if (active && payload && payload.length) {
                             return (
-                              <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
-                                <p className="font-bold text-forest-950 mb-3 border-b border-forest-50 pb-2">{label}</p>
+                              <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
+                                <p className="font-bold text-corp-blue-950 mb-3 border-b border-corp-blue-50 pb-2">{label}</p>
                                 <div className="space-y-3">
                                   {payload.map((entry: any, index: number) => (
                                     <div key={index} className="flex flex-col gap-1">
@@ -880,7 +880,7 @@ export default function AnalyticsPage() {
                                         <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: entry.color }} />
                                         <span className="text-sm text-sand-500 font-medium">{entry.name}</span>
                                       </div>
-                                      <span className="font-black text-forest-900 font-mono text-sm pl-4">{formatCurrency(Number(entry.value || 0))}</span>
+                                      <span className="font-black text-corp-blue-900 font-mono text-sm pl-4">{formatCurrency(Number(entry.value || 0))}</span>
                                     </div>
                                   ))}
                                 </div>
@@ -901,9 +901,9 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* Sales by Category (Now by Document Type for accuracy given our API) */}
-          <Card className="lg:col-span-4 border-forest-100 rounded-2xl shadow-xl shadow-forest-900/2 bg-white overflow-hidden">
+          <Card className="lg:col-span-4 border-corp-blue-100 rounded-2xl shadow-xl shadow-corp-blue-900/2 bg-white overflow-hidden">
             <CardHeader className="p-8">
-              <CardTitle className="font-heading text-2xl text-forest-900">Activité par Document</CardTitle>
+              <CardTitle className="text-2xl text-corp-blue-900">Activité par Document</CardTitle>
               <CardDescription className="text-sand-400 font-medium">Répartition du volume des opérations.</CardDescription>
             </CardHeader>
             <CardContent className="p-8 pt-0">
@@ -915,7 +915,7 @@ export default function AnalyticsPage() {
                   <div key={cat.name} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full" style={{backgroundColor: COLORS[i % COLORS.length]}} />
-                      <span className="text-xs font-bold text-forest-900 capitalize">{cat.name}</span>
+                      <span className="text-xs font-bold text-corp-blue-900 capitalize">{cat.name}</span>
                     </div>
                     <span className="text-xs font-bold text-sand-400">{cat.value} doc(s)</span>
                   </div>
@@ -927,9 +927,9 @@ export default function AnalyticsPage() {
 
         {/* Top Clients & Performance */}
         <div className="grid gap-8 md:grid-cols-2">
-          <Card className="border-forest-100 rounded-2xl bg-white overflow-hidden">
+          <Card className="border-corp-blue-100 rounded-2xl bg-white overflow-hidden">
             <CardHeader className="p-8">
-              <CardTitle className="text-xl text-forest-900">Top Clients (CA du mois)</CardTitle>
+              <CardTitle className="text-xl text-corp-blue-900">Top Clients (CA du mois)</CardTitle>
             </CardHeader>
             <CardContent className="p-8 pt-0">
               <div className="space-y-4">
@@ -938,9 +938,9 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
           
-          <Card className="border-forest-100 rounded-2xl bg-white overflow-hidden">
+          <Card className="border-corp-blue-100 rounded-2xl bg-white overflow-hidden">
             <CardHeader className="p-8">
-              <CardTitle className="text-xl text-forest-900">Clients / Fournisseurs</CardTitle>
+              <CardTitle className="text-xl text-corp-blue-900">Clients / Fournisseurs</CardTitle>
               <CardDescription className="text-sand-400 font-medium">Total: {customers.length + suppliers.length}</CardDescription>
             </CardHeader>
             <CardContent className="p-8 pt-0">
@@ -968,12 +968,12 @@ export default function AnalyticsPage() {
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-xl rounded-xl p-3 min-w-[150px] animate-in fade-in duration-200">
+                            <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-xl rounded-xl p-3 min-w-[150px] animate-in fade-in duration-200">
                               <div className="flex items-center gap-2 mb-1">
                                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: payload[0].payload.fill }} />
-                                <span className="font-bold text-forest-950 text-xs">{payload[0].name}</span>
+                                <span className="font-bold text-corp-blue-950 text-xs">{payload[0].name}</span>
                               </div>
-                              <p className="text-xl font-black text-forest-900 font-mono pl-4">{payload[0].value}</p>
+                              <p className="text-xl font-black text-corp-blue-900 font-mono pl-4">{payload[0].value}</p>
                             </div>
                           );
                         }
@@ -993,7 +993,7 @@ export default function AnalyticsPage() {
           <CardHeader className="p-8 pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="font-heading text-2xl text-forest-900">Suivi des Créances Clients</CardTitle>
+                <CardTitle className="text-2xl text-corp-blue-900">Suivi des Créances Clients</CardTitle>
                 <CardDescription className="text-sand-400 font-medium">Surveillance globale des factures impayées (Balance = Débit - Crédit)</CardDescription>
               </div>
               <div className="flex items-center gap-4">
@@ -1003,7 +1003,7 @@ export default function AnalyticsPage() {
                     placeholder="Rechercher un client..." 
                     value={receivablesSearch}
                     onChange={(e) => setReceivablesSearch(e.target.value)}
-                    className="pl-9 bg-sand-50/50 border-sand-200 rounded-xl w-[250px] focus-visible:ring-forest-500"
+                    className="pl-9 bg-sand-50/50 border-sand-200 rounded-xl w-[250px] focus-visible:ring-corp-blue-500"
                   />
                 </div>
                 <div className="bg-rose-50 p-3 rounded-2xl text-rose-600 hidden sm:block">
@@ -1021,9 +1021,9 @@ export default function AnalyticsPage() {
         {/* Stock Health & Top SubCategories */}
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Stock Health Pie */}
-          <Card className="lg:col-span-1 border-forest-100 rounded-2xl bg-white overflow-hidden shadow-xl shadow-forest-900/2">
+          <Card className="lg:col-span-1 border-corp-blue-100 rounded-2xl bg-white overflow-hidden shadow-xl shadow-corp-blue-900/2">
             <CardHeader className="p-8 pb-4">
-              <CardTitle className="font-heading text-2xl text-forest-900">Santé du Stock</CardTitle>
+              <CardTitle className="text-2xl text-corp-blue-900">Santé du Stock</CardTitle>
               <CardDescription className="text-sand-400 font-medium">Répartition globale des articles</CardDescription>
             </CardHeader>
             <CardContent className="p-8 pt-0">
@@ -1053,12 +1053,12 @@ export default function AnalyticsPage() {
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-xl rounded-xl p-3 min-w-[150px] animate-in fade-in duration-200">
+                            <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-xl rounded-xl p-3 min-w-[150px] animate-in fade-in duration-200">
                               <div className="flex items-center gap-2 mb-1">
                                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: payload[0].payload.fill }} />
-                                <span className="font-bold text-forest-950 text-xs">{payload[0].name}</span>
+                                <span className="font-bold text-corp-blue-950 text-xs">{payload[0].name}</span>
                               </div>
-                              <p className="text-xl font-black text-forest-900 font-mono pl-4">{payload[0].value}</p>
+                              <p className="text-xl font-black text-corp-blue-900 font-mono pl-4">{payload[0].value}</p>
                             </div>
                           );
                         }
@@ -1072,11 +1072,11 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-2 border-forest-100 rounded-2xl bg-white overflow-hidden shadow-xl shadow-forest-900/2">
+          <Card className="lg:col-span-2 border-corp-blue-100 rounded-2xl bg-white overflow-hidden shadow-xl shadow-corp-blue-900/2">
             <CardHeader className="p-8 pb-4">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <CardTitle className="font-heading text-2xl text-forest-900">Top Ventes par Sous-Catégorie</CardTitle>
+                  <CardTitle className="text-2xl text-corp-blue-900">Top Ventes par Sous-Catégorie</CardTitle>
                   <CardDescription className="text-sand-400 font-medium">Les sous-catégories les plus performantes (quantité et CA).</CardDescription>
                 </div>
               <div className="flex bg-sand-100/50 p-1 rounded-xl">
@@ -1084,7 +1084,7 @@ export default function AnalyticsPage() {
                   <select
                     value={selectedSalesSubCatId || ""}
                     onChange={(e) => setSelectedSalesSubCatId(Number(e.target.value))}
-                    className="h-9 rounded-lg bg-transparent px-3 text-sm font-bold text-forest-900 outline-none cursor-pointer mr-2 border-r border-sand-200"
+                    className="h-9 rounded-lg bg-transparent px-3 text-sm font-bold text-corp-blue-900 outline-none cursor-pointer mr-2 border-r border-sand-200"
                   >
                     {topSubCategories.map(c => (
                       <option key={c.subCategoryId} value={c.subCategoryId}>{c.subCategoryName}</option>
@@ -1098,8 +1098,8 @@ export default function AnalyticsPage() {
                     className={cn(
                       "px-4 py-1.5 rounded-lg text-sm font-bold transition-all",
                       topSalesMonths === m 
-                        ? "bg-white text-forest-900 shadow-sm" 
-                        : "text-sand-500 hover:text-forest-700"
+                        ? "bg-white text-corp-blue-900 shadow-sm" 
+                        : "text-sand-500 hover:text-corp-blue-700"
                     )}
                   >
                     {m} mois
@@ -1115,11 +1115,11 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Stock Health per SubCategory */}
-        <Card className="border-forest-100 rounded-2xl bg-white overflow-hidden shadow-xl shadow-forest-900/2">
+        <Card className="border-corp-blue-100 rounded-2xl bg-white overflow-hidden shadow-xl shadow-corp-blue-900/2">
           <CardHeader className="p-8 pb-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <CardTitle className="font-heading text-2xl text-forest-900">Santé du Stock par Sous-Catégorie</CardTitle>
+                <CardTitle className="text-2xl text-corp-blue-900">Santé du Stock par Sous-Catégorie</CardTitle>
                 <CardDescription className="text-sand-400 font-medium">Comparaison du stock actuel avec le seuil d'alerte (stock minimum).</CardDescription>
               </div>
               <div className="flex items-center gap-3">
@@ -1127,7 +1127,7 @@ export default function AnalyticsPage() {
                   <select
                     value={selectedStockSubCatId || ""}
                     onChange={(e) => setSelectedStockSubCatId(Number(e.target.value))}
-                    className="h-9 rounded-xl bg-sand-50/50 border-sand-200 px-3 text-sm font-bold text-forest-900 outline-none cursor-pointer focus-visible:ring-forest-500"
+                    className="h-9 rounded-xl bg-sand-50/50 border-sand-200 px-3 text-sm font-bold text-corp-blue-900 outline-none cursor-pointer focus-visible:ring-corp-blue-500"
                   >
                     {stockHealth.map(c => (
                       <option key={c.subCategoryId} value={c.subCategoryId}>{c.subCategoryName}</option>
@@ -1137,7 +1137,7 @@ export default function AnalyticsPage() {
                 <select
                   value={stockSiteId || ""}
                   onChange={(e) => setStockSiteId(e.target.value ? Number(e.target.value) : undefined)}
-                  className="h-9 rounded-xl bg-sand-50/50 border-sand-200 px-3 text-sm font-bold text-forest-900 outline-none cursor-pointer focus-visible:ring-forest-500"
+                  className="h-9 rounded-xl bg-sand-50/50 border-sand-200 px-3 text-sm font-bold text-corp-blue-900 outline-none cursor-pointer focus-visible:ring-corp-blue-500"
                 >
                   <option value="">Tous les sites (Entreprise)</option>
                   <option value="1">Site Principal</option>

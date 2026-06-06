@@ -176,15 +176,15 @@ export function CustomerDetailsDialog({
         Without specifying these responsive breakpoint overrides, Tailwind specificity would keep the 
         dialog restricted to md width even on desktop viewports.
       */}
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-6xl h-[90vh] p-0 overflow-hidden border-forest-100 shadow-2xl rounded-2xl bg-white flex flex-col">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-6xl h-[90vh] p-0 overflow-hidden border-corp-blue-100 shadow-2xl rounded-2xl bg-white flex flex-col">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative flex-shrink-0">
           <div className="flex items-center gap-6">
-            <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-forest-800 to-forest-700 flex items-center justify-center border border-forest-600 text-emerald-600 font-heading text-2xl font-bold shadow-inner">
+            <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-corp-blue-800 to-corp-blue-700 flex items-center justify-center border border-corp-blue-600 text-emerald-600 text-2xl font-bold shadow-inner">
               {initials || "CL"}
             </div>
             <div>
               <div className="flex items-center gap-3">
-                <DialogTitle className="font-heading text-3xl font-bold tracking-tight">
+                <DialogTitle className="text-3xl font-bold tracking-tight">
                   {customer.firstname} {customer.lastname}
                 </DialogTitle>
                 <Badge className="bg-emerald-500/20 text-emerald-600 border-none rounded-lg px-2 font-bold text-xs">
@@ -206,12 +206,12 @@ export function CustomerDetailsDialog({
 
         <div className="flex-1 overflow-hidden flex flex-col">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full flex flex-col">
-            <div className="px-8 border-b border-forest-50 bg-sand-50/30 flex-shrink-0">
+            <div className="px-8 border-b border-corp-blue-50 bg-sand-50/30 flex-shrink-0">
               <TabsList className="bg-transparent h-14 p-0 gap-8">
-                <TabsTrigger value="info" className="h-14 rounded-none border-b-2 border-transparent data-[state=active]:border-forest-600 data-[state=active]:bg-transparent data-[state=active]:text-forest-900 data-[state=active]:shadow-none font-bold text-sand-400 gap-2 px-1">
+                <TabsTrigger value="info" className="h-14 rounded-none border-b-2 border-transparent data-[state=active]:border-corp-blue-600 data-[state=active]:bg-transparent data-[state=active]:text-corp-blue-900 data-[state=active]:shadow-none font-bold text-sand-400 gap-2 px-1">
                   <User className="w-4 h-4" /> Profil & Contact
                 </TabsTrigger>
-                <TabsTrigger value="grid" className="h-14 rounded-none border-b-2 border-transparent data-[state=active]:border-forest-600 data-[state=active]:bg-transparent data-[state=active]:text-forest-900 data-[state=active]:shadow-none font-bold text-sand-400 gap-2 px-1">
+                <TabsTrigger value="grid" className="h-14 rounded-none border-b-2 border-transparent data-[state=active]:border-corp-blue-600 data-[state=active]:bg-transparent data-[state=active]:text-corp-blue-900 data-[state=active]:shadow-none font-bold text-sand-400 gap-2 px-1">
                   <Tag className="w-4 h-4" /> Grille Tarifaire
                 </TabsTrigger>
               </TabsList>
@@ -223,20 +223,20 @@ export function CustomerDetailsDialog({
                   {/* Personal Info Card */}
                   <div className="md:col-span-2 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="p-6 rounded-xl bg-white border border-forest-50 shadow-sm space-y-4">
-                        <div className="flex items-center gap-2 text-forest-600">
+                      <div className="p-6 rounded-xl bg-white border border-corp-blue-50 shadow-sm space-y-4">
+                        <div className="flex items-center gap-2 text-corp-blue-600">
                           <BadgeInfo className="w-4 h-4" />
                           <h4 className="text-[0.65rem] font-bold uppercase tracking-widest text-sand-400">Détails Identité</h4>
                         </div>
                         <div className="space-y-4">
                           <div>
                             <div className="text-[0.6rem] text-sand-300 uppercase font-bold">Raison Sociale</div>
-                            <div className="font-bold text-forest-900">{customer.name || "—"}</div>
+                            <div className="font-bold text-corp-blue-900">{customer.name || "—"}</div>
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <div className="text-[0.6rem] text-sand-300 uppercase font-bold">Activité</div>
-                              <div className="text-sm font-bold text-forest-800">{activityLabel}</div>
+                              <div className="text-sm font-bold text-corp-blue-800">{activityLabel}</div>
                             </div>
                             <div>
                               <div className="text-[0.6rem] text-sand-300 uppercase font-bold">CIN</div>
@@ -256,54 +256,54 @@ export function CustomerDetailsDialog({
                         </div>
                       </div>
 
-                      <div className="p-6 rounded-xl bg-white border border-forest-50 shadow-sm space-y-4">
-                        <div className="flex items-center gap-2 text-forest-600">
+                      <div className="p-6 rounded-xl bg-white border border-corp-blue-50 shadow-sm space-y-4">
+                        <div className="flex items-center gap-2 text-corp-blue-600">
                           <MapPin className="w-4 h-4" />
                           <h4 className="text-[0.65rem] font-bold uppercase tracking-widest text-sand-400">Localisation</h4>
                         </div>
                         <div className="space-y-4">
                           <div>
                             <div className="text-[0.6rem] text-sand-300 uppercase font-bold">Adresse</div>
-                            <div className="text-sm font-medium text-forest-800 leading-relaxed">{customer.address}</div>
+                            <div className="text-sm font-medium text-corp-blue-800 leading-relaxed">{customer.address}</div>
                           </div>
                           <div>
                             <div className="text-[0.6rem] text-sand-300 uppercase font-bold">Gouvernorat</div>
-                            <div className="text-sm font-bold text-forest-900">{govLabel}</div>
+                            <div className="text-sm font-bold text-corp-blue-900">{govLabel}</div>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="p-6 rounded-xl bg-forest-900 text-white shadow-xl space-y-4">
+                    <div className="p-6 rounded-xl bg-corp-blue-900 text-white shadow-xl space-y-4">
                       <div className="flex items-center gap-2 text-emerald-400">
                         <Phone className="w-4 h-4" />
-                        <h4 className="text-[0.65rem] font-bold uppercase tracking-widest text-forest-300">Contact & Communication</h4>
+                        <h4 className="text-[0.65rem] font-bold uppercase tracking-widest text-corp-blue-300">Contact & Communication</h4>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-forest-800 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-xl bg-corp-blue-800 flex items-center justify-center">
                             <Phone className="w-4 h-4" />
                           </div>
                           <div>
-                            <div className="text-[0.6rem] text-forest-400 uppercase font-bold">Principal</div>
+                            <div className="text-[0.6rem] text-corp-blue-400 uppercase font-bold">Principal</div>
                             <div className="text-sm font-bold">{customer.phonenumberone}</div>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-forest-800 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-xl bg-corp-blue-800 flex items-center justify-center">
                             <Phone className="w-4 h-4 opacity-50" />
                           </div>
                           <div>
-                            <div className="text-[0.6rem] text-forest-400 uppercase font-bold">Secondaire</div>
+                            <div className="text-[0.6rem] text-corp-blue-400 uppercase font-bold">Secondaire</div>
                             <div className="text-sm font-bold">{customer.phonenumbertwo || "—"}</div>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-forest-800 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-xl bg-corp-blue-800 flex items-center justify-center">
                             <Mail className="w-4 h-4" />
                           </div>
                           <div>
-                            <div className="text-[0.6rem] text-forest-400 uppercase font-bold">Email</div>
+                            <div className="text-[0.6rem] text-corp-blue-400 uppercase font-bold">Email</div>
                             <div className="text-sm font-bold truncate max-w-[150px]">{customer.email || "—"}</div>
                           </div>
                         </div>
@@ -313,30 +313,30 @@ export function CustomerDetailsDialog({
 
                   {/* Financial Summary Card */}
                   <div className="space-y-6">
-                    <div className="p-8 rounded-2xl bg-sand-50 border border-forest-50 shadow-inner flex flex-col items-center text-center space-y-6">
-                      <CreditCard className="w-12 h-12 text-forest-600" />
+                    <div className="p-8 rounded-2xl bg-sand-50 border border-corp-blue-50 shadow-inner flex flex-col items-center text-center space-y-6">
+                      <CreditCard className="w-12 h-12 text-corp-blue-600" />
                       <div>
                         <div className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest mb-1">Solde Actuel</div>
-                        <div className="text-4xl font-heading font-bold text-forest-900 tracking-tight">
+                        <div className="text-4xl font-bold text-corp-blue-900 tracking-tight">
                           {customer.openingbalance.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}
                         </div>
                         <div className="text-[0.6rem] font-bold text-sand-300 uppercase mt-1">TND</div>
                       </div>
-                      <div className="w-full space-y-3 pt-6 border-t border-forest-100">
+                      <div className="w-full space-y-3 pt-6 border-t border-corp-blue-100">
                         <div className="flex items-center justify-between">
                           <span className="text-[0.65rem] font-bold text-sand-400 uppercase">Remise Max.</span>
-                          <Badge className="bg-forest-100 text-forest-700 border-none font-bold">{customer.maximumdiscount}%</Badge>
+                          <Badge className="bg-corp-blue-100 text-corp-blue-700 border-none font-bold">{customer.maximumdiscount}%</Badge>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-[0.65rem] font-bold text-sand-400 uppercase">Plafond</span>
-                          <span className="text-sm font-bold text-forest-900">{(customer.maximumsalesbar ?? 0).toLocaleString()} TND</span>
+                          <span className="text-sm font-bold text-corp-blue-900">{(customer.maximumsalesbar ?? 0).toLocaleString()} TND</span>
                         </div>
                       </div>
                       {/* Direct shortcut to load the account ledger statement */}
                       {onOpenAccount && (
                         <Button
                           onClick={() => onOpenAccount(customer)}
-                          className="w-full mt-4 h-11 rounded-xl bg-forest-600 hover:bg-forest-800 text-white font-bold shadow-lg shadow-forest-600/20 flex items-center justify-center gap-2 transition-all"
+                          className="w-full mt-4 h-11 rounded-xl bg-corp-blue-600 hover:bg-corp-blue-800 text-white font-bold shadow-lg shadow-corp-blue-600/20 flex items-center justify-center gap-2 transition-all"
                         >
                           <CreditCard className="w-4 h-4" />
                           État de Compte
@@ -344,7 +344,7 @@ export function CustomerDetailsDialog({
                       )}
                     </div>
                     
-                    <div className="p-6 rounded-xl bg-white border border-forest-50 space-y-3">
+                    <div className="p-6 rounded-xl bg-white border border-corp-blue-50 space-y-3">
                       <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest flex items-center gap-2">
                         <FileText className="w-4 h-4" /> Notes internes
                       </div>
@@ -359,8 +359,8 @@ export function CustomerDetailsDialog({
               <TabsContent value="grid" className="m-0 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="space-y-6">
                   {/* Add Rule Form */}
-                  <div className="p-6 rounded-3xl bg-sand-50 border border-forest-50 space-y-4">
-                    <h4 className="font-heading font-bold text-forest-900 flex items-center gap-2">
+                  <div className="p-6 rounded-3xl bg-sand-50 border border-corp-blue-50 space-y-4">
+                    <h4 className="font-bold text-corp-blue-900 flex items-center gap-2">
                       <Plus className="w-4 h-4" /> Ajouter une règle
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-10 gap-4 items-end">
@@ -368,7 +368,7 @@ export function CustomerDetailsDialog({
                         <label className="text-[0.65rem] font-bold text-sand-400 uppercase">Article</label>
                         <div>
                           <Select onValueChange={(val) => setSelectedArticleId(val || "")} value={selectedArticleId}>
-                            <SelectTrigger className="border-forest-50 w-full !w-full">
+                            <SelectTrigger className="border-corp-blue-50 w-full !w-full">
                               <SelectValue placeholder="Choisir un article">
                                 {selectedArticle ? (
                                   selectedArticle.description 
@@ -377,13 +377,13 @@ export function CustomerDetailsDialog({
                                 ) : undefined}
                               </SelectValue>
                             </SelectTrigger>
-                            <SelectContent className="rounded-xl border-forest-100 max-h-[300px] overflow-y-auto">
+                            <SelectContent className="rounded-xl border-corp-blue-100 max-h-[300px] overflow-y-auto">
                               {/* Sticky search input inside the select dropdown */}
-                              <div className="p-2 sticky top-0 bg-white border-b border-forest-50 z-10" onClick={(e) => e.stopPropagation()}>
+                              <div className="p-2 sticky top-0 bg-white border-b border-corp-blue-50 z-10" onClick={(e) => e.stopPropagation()}>
                                 <div className="relative">
                                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-sand-300" />
                                   <Input 
-                                    className="pl-8 h-8 text-xs rounded-lg border-forest-50 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                    className="pl-8 h-8 text-xs rounded-lg border-corp-blue-50 focus-visible:ring-0 focus-visible:ring-offset-0"
                                     placeholder="Rechercher..."
                                     value={articleSearch}
                                     onChange={(e) => setArticleSearch(e.target.value)}
@@ -412,7 +412,7 @@ export function CustomerDetailsDialog({
                         <div className="relative">
                           <Input 
                             type="number" 
-                            className="border-forest-50 font-bold"
+                            className="border-corp-blue-50 font-bold"
                             value={discountRate}
                             onChange={(e) => setDiscountRate(parseFloat(e.target.value))}
                           />
@@ -423,7 +423,7 @@ export function CustomerDetailsDialog({
                         <label className="text-[0.65rem] font-bold text-sand-400 uppercase">Date Début</label>
                         <Input 
                           type="date" 
-                          className="border-forest-50 text-xs text-forest-800"
+                          className="border-corp-blue-50 text-xs text-corp-blue-800"
                           value={validFrom}
                           onChange={(e) => setValidFrom(e.target.value)}
                         />
@@ -432,13 +432,13 @@ export function CustomerDetailsDialog({
                         <label className="text-[0.65rem] font-bold text-sand-400 uppercase">Date Fin</label>
                         <Input 
                           type="date" 
-                          className="border-forest-50 text-xs text-forest-800"
+                          className="border-corp-blue-50 text-xs text-corp-blue-800"
                           value={validUntil}
                           onChange={(e) => setValidUntil(e.target.value)}
                         />
                       </div>
                       <Button 
-                        className="w-full h-10 bg-forest-600 hover:bg-forest-800 text-white font-bold shadow-lg shadow-forest-600/20 md:col-span-2"
+                        className="w-full h-10 bg-corp-blue-600 hover:bg-corp-blue-800 text-white font-bold shadow-lg shadow-corp-blue-600/20 md:col-span-2"
                         onClick={handleAddRule}
                         disabled={!selectedArticleId || discountRate <= 0}
                       >
@@ -448,17 +448,17 @@ export function CustomerDetailsDialog({
                   </div>
 
                   {/* Rules Table */}
-                  <div className="rounded-xl border border-forest-50 overflow-hidden shadow-sm bg-white">
+                  <div className="rounded-xl border border-corp-blue-50 overflow-hidden shadow-sm bg-white">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="bg-sand-50/50 border-b border-forest-50">
+                        <tr className="bg-sand-50/50 border-b border-corp-blue-50">
                           <th className="p-5 text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest">Article</th>
                           <th className="p-5 text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest">Remise</th>
                           <th className="p-5 text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest">Validité</th>
                           <th className="p-5 text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest text-right">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-forest-50">
+                      <tbody className="divide-y divide-corp-blue-50">
                         {rulesLoading ? (
                           <tr>
                             <td colSpan={4} className="p-10 text-center text-sand-300 italic">Chargement des règles...</td>
@@ -468,12 +468,12 @@ export function CustomerDetailsDialog({
                             <tr key={rule.id} className="hover:bg-sand-50/30 transition-colors">
                               <td className="p-5">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-lg bg-forest-50 flex items-center justify-center text-forest-600">
+                                  <div className="w-8 h-8 rounded-lg bg-corp-blue-50 flex items-center justify-center text-corp-blue-600">
                                     <Tag className="w-4 h-4" />
                                   </div>
                                   <div>
                                     {/* Fallback to local catalog if the relation is missing or returned REF-ERR/Article inconnu */}
-                                    <div className="font-bold text-forest-900 text-sm">{getArticleRefFallback(rule)}</div>
+                                    <div className="font-bold text-corp-blue-900 text-sm">{getArticleRefFallback(rule)}</div>
                                     <div className="text-[0.7rem] text-sand-400 font-medium">{getArticleNameFallback(rule)}</div>
                                   </div>
                                 </div>

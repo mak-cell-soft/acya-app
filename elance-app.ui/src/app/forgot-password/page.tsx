@@ -31,7 +31,7 @@ export default function ForgotPasswordPage() {
     <div className="flex min-h-screen items-center justify-center bg-sand-50 px-4 relative overflow-hidden font-sans">
       {/* Background patterns */}
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(#1D9E75_0.5px,transparent_0.5px)] [background-size:24px_24px] opacity-[0.03]" />
-      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-forest-50/20 via-transparent to-timber-50/20 pointer-events-none" />
+      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-corp-blue-50/20 via-transparent to-timber-50/20 pointer-events-none" />
       
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -54,12 +54,12 @@ export default function ForgotPasswordPage() {
                 </linearGradient>
               </defs>
             </svg>
-            <span className="text-3xl font-heading font-bold text-forest-900 tracking-tight">Élancé</span>
+            <span className="text-3xl font-bold text-corp-blue-900 tracking-tight">Élancé</span>
           </Link>
           <div className="h-1 w-12 bg-timber-400 rounded-full" />
         </div>
 
-        <Card className="border-forest-100/50 shadow-2xl shadow-forest-900/5 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-xl">
+        <Card className="border-corp-blue-100/50 shadow-2xl shadow-corp-blue-900/5 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-xl">
           {isSubmitted ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -67,14 +67,14 @@ export default function ForgotPasswordPage() {
               transition={{ duration: 0.5 }}
             >
               <CardHeader className="space-y-4 p-8 text-center">
-                <div className="mx-auto w-16 h-16 rounded-2xl bg-forest-50 flex items-center justify-center mb-2">
-                  <CheckCircle2 className="w-9 h-9 text-forest-600" />
+                <div className="mx-auto w-16 h-16 rounded-2xl bg-corp-blue-50 flex items-center justify-center mb-2">
+                  <CheckCircle2 className="w-9 h-9 text-corp-blue-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-heading font-bold text-forest-900">Vérifiez vos emails</CardTitle>
+                  <CardTitle className="text-2xl font-bold text-corp-blue-900">Vérifiez vos emails</CardTitle>
                   <CardDescription className="text-sand-400 font-medium mt-2">
                     Nous avons envoyé un lien de réinitialisation à<br />
-                    <span className="font-bold text-forest-600 underline decoration-timber-400/30 underline-offset-4">{email}</span>
+                    <span className="font-bold text-corp-blue-600 underline decoration-timber-400/30 underline-offset-4">{email}</span>
                   </CardDescription>
                 </div>
               </CardHeader>
@@ -83,14 +83,14 @@ export default function ForgotPasswordPage() {
                   Vous n'avez pas reçu l'email ? Vérifiez vos spams ou{' '}
                   <button
                     onClick={() => setIsSubmitted(false)}
-                    className="text-forest-600 font-bold hover:text-forest-800 transition-colors"
+                    className="text-corp-blue-600 font-bold hover:text-corp-blue-800 transition-colors"
                   >
                     réessayez avec une autre adresse
                   </button>
                 </p>
               </CardContent>
               <CardFooter className="p-8 pt-6">
-                <Button asChild variant="outline" className="w-full h-12 border-forest-100 text-forest-600 hover:bg-forest-50 font-bold">
+                <Button asChild variant="outline" className="w-full h-12 border-corp-blue-100 text-corp-blue-600 hover:bg-corp-blue-50 font-bold">
                   <Link href="/login" className="gap-2">
                     <ArrowLeft className="w-4 h-4" /> Retour à la connexion
                   </Link>
@@ -100,7 +100,7 @@ export default function ForgotPasswordPage() {
           ) : (
             <>
               <CardHeader className="space-y-2 p-8 pb-6">
-                <CardTitle className="text-2xl font-heading font-bold text-center text-forest-900">Mot de passe oublié ?</CardTitle>
+                <CardTitle className="text-2xl font-bold text-center text-corp-blue-900">Mot de passe oublié ?</CardTitle>
                 <CardDescription className="text-center text-sand-400 font-medium">
                   Saisissez votre email et nous vous enverrons un lien de réinitialisation.
                 </CardDescription>
@@ -108,7 +108,7 @@ export default function ForgotPasswordPage() {
               <form onSubmit={handleSubmit}>
                 <CardContent className="px-8 space-y-4">
                   <div className="space-y-2.5">
-                    <Label htmlFor="email" className="text-sm font-bold text-forest-900 ml-1">Email</Label>
+                    <Label htmlFor="email" className="text-sm font-bold text-corp-blue-900 ml-1">Email</Label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-sand-300" />
                       <Input
@@ -118,7 +118,7 @@ export default function ForgotPasswordPage() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="h-12 rounded-xl bg-sand-50 border-forest-100 pl-12 focus:border-forest-600 focus:ring-forest-600 outline-none transition-all font-medium"
+                        className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 pl-12 focus:border-corp-blue-600 focus:ring-corp-blue-600 outline-none transition-all font-medium"
                         disabled={isLoading}
                       />
                     </div>
@@ -127,7 +127,7 @@ export default function ForgotPasswordPage() {
                 <CardFooter className="p-8 pt-8 flex flex-col gap-6">
                   <Button 
                     type="submit" 
-                    className="w-full h-12 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 text-[1rem] transition-all duration-300 active:scale-95"
+                    className="w-full h-12 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20 text-[1rem] transition-all duration-300 active:scale-95"
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -137,7 +137,7 @@ export default function ForgotPasswordPage() {
                   </Button>
                   <Link 
                     href="/login" 
-                    className="flex items-center justify-center gap-2 text-sm font-bold text-sand-400 hover:text-forest-600 transition-all group"
+                    className="flex items-center justify-center gap-2 text-sm font-bold text-sand-400 hover:text-corp-blue-600 transition-all group"
                   >
                     <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" /> Retour à la connexion
                   </Link>

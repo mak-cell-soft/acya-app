@@ -73,7 +73,7 @@ export function MinimumStockDialog({
       <DialogContent className="sm:max-w-[480px] bg-stone-50 dark:bg-stone-900 border border-stone-200/85 dark:border-stone-800/85 shadow-2xl rounded-2xl">
         <form onSubmit={handleSubmit}>
           <DialogHeader className="space-y-3">
-            <DialogTitle className="text-xl font-serif font-bold text-stone-900 dark:text-stone-50 tracking-tight">
+            <DialogTitle className="text-xl font-bold text-stone-900 dark:text-stone-50 tracking-tight">
               Ajuster le Seuil Minimum
             </DialogTitle>
             <DialogDescription className="text-stone-500 dark:text-stone-400 text-xs leading-relaxed">

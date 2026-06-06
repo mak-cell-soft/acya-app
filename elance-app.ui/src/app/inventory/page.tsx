@@ -102,7 +102,7 @@ function InventoryListContent() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-serif font-bold text-stone-900 dark:text-stone-50 tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50 tracking-tight flex items-center gap-2">
               <ClipboardList className="h-6 w-6 text-amber-500" />
               Inventaires Physiques
             </h1>
@@ -144,7 +144,7 @@ function InventoryListContent() {
           <CardContent className="flex flex-col items-center justify-center py-24 text-center space-y-4">
             <ClipboardList className="h-12 w-12 text-stone-300 dark:text-stone-700" />
             <div className="space-y-1">
-              <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider font-serif">Aucun inventaire</h3>
+              <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider">Aucun inventaire</h3>
               <p className="text-xs text-stone-500 max-w-sm mx-auto">
                 Commencez par ajouter un nouvel inventaire physique pour ajuster vos stocks.
               </p>
@@ -152,7 +152,7 @@ function InventoryListContent() {
             <Button
               variant="outline"
               onClick={() => router.push('/inventory/new')}
-              className="mt-4 h-11 rounded-lg text-xs font-bold uppercase tracking-wider border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-800"
+              className="mt-4 h-11 rounded-lg text-sm font-medium border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-800"
             >
               Créer un inventaire
             </Button>
@@ -312,7 +312,7 @@ function InventoryListContent() {
       <Dialog open={!!inventoryToValidate} onOpenChange={() => setInventoryToValidate(null)}>
         <DialogContent className="bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl">
           <DialogHeader>
-            <DialogTitle className="text-lg font-serif font-bold text-stone-900 dark:text-stone-50 flex items-center gap-2">
+            <DialogTitle className="text-lg font-bold text-stone-900 dark:text-stone-50 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
               Confirmer la validation
             </DialogTitle>
@@ -324,7 +324,7 @@ function InventoryListContent() {
             <Button
               variant="outline"
               onClick={() => setInventoryToValidate(null)}
-              className="text-xs font-bold uppercase tracking-wider border-stone-200 dark:border-stone-800"
+              className="text-sm font-medium border-stone-200 dark:border-stone-800"
               disabled={isValidating}
             >
               Annuler
@@ -332,7 +332,7 @@ function InventoryListContent() {
             <Button
               onClick={handleValidate}
               disabled={isValidating}
-              className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold uppercase tracking-wider"
+              className="bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium"
             >
               {isValidating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle className="h-4 w-4 mr-2" />}
               Confirmer Validation

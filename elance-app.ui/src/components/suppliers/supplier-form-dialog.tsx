@@ -173,14 +173,14 @@ export function SupplierFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-5xl lg:max-w-7xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-background h-full sm:h-auto max-h-screen sm:max-h-[90vh] flex flex-col">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-5xl lg:max-w-7xl p-0 overflow-hidden border-corp-blue-100 shadow-2xl rounded-none sm:rounded-2xl bg-background h-full sm:h-auto max-h-screen sm:max-h-[90vh] flex flex-col">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-6 sm:p-8 relative shrink-0">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100 text-emerald-600 shrink-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-corp-blue-50 flex items-center justify-center border border-corp-blue-100 text-emerald-600 shrink-0">
               {editSupplier ? <UserPen className="w-5 h-5 sm:w-6 sm:h-6" /> : <UserPlus className="w-5 h-5 sm:w-6 sm:h-6" />}
             </div>
             <div>
-              <DialogTitle className="font-heading text-xl sm:text-2xl font-bold tracking-tight">
+              <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight">
                 {editSupplier ? "Modifier le Fournisseur" : "Nouveau Fournisseur"}
               </DialogTitle>
               <p className="text-muted-foreground text-[0.7rem] sm:text-sm font-medium mt-1">
@@ -202,9 +202,9 @@ export function SupplierFormDialog({
               {/* Left Column: Identity */}
               <div className="space-y-8">
                 <div className="space-y-6">
-                  <div className="flex items-center gap-2 pb-2 border-b border-forest-50">
-                    <BadgeInfo className="w-4 h-4 text-forest-600" />
-                    <h3 className="font-heading font-bold text-forest-900">Identité Entreprise</h3>
+                  <div className="flex items-center gap-2 pb-2 border-b border-corp-blue-50">
+                    <BadgeInfo className="w-4 h-4 text-corp-blue-600" />
+                    <h3 className="font-bold text-corp-blue-900">Identité Entreprise</h3>
                   </div>
                   
                   <div className="grid grid-cols-3 gap-4">
@@ -220,7 +220,7 @@ export function SupplierFormDialog({
                                 <SelectValue placeholder="Titre" />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent className="rounded-xl border-forest-100">
+                            <SelectContent className="rounded-xl border-corp-blue-100">
                               {SOCIETY_PREFIXES.map(p => (
                                 <SelectItem key={p.id} value={p.id}>{p.id}</SelectItem>
                               ))}
@@ -278,7 +278,7 @@ export function SupplierFormDialog({
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="absolute right-1 top-1 h-10 w-10 rounded-lg text-forest-600 group-hover:bg-forest-50"
+                                className="absolute right-1 top-1 h-10 w-10 rounded-lg text-corp-blue-600 group-hover:bg-corp-blue-50"
                                 onClick={() => setIsTaxModalOpen(true)}
                               >
                                 <BadgeInfo className="w-4 h-4" />
@@ -303,7 +303,7 @@ export function SupplierFormDialog({
                                 </SelectValue>
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent className="rounded-xl border-forest-100">
+                            <SelectContent className="rounded-xl border-corp-blue-100">
                               {SUPPLIER_CATEGORIES.map(c => (
                                 <SelectItem key={c.id} value={c.id.toString()}>{c.value}</SelectItem>
                               ))}
@@ -317,7 +317,7 @@ export function SupplierFormDialog({
 
                   <div className="p-6 rounded-3xl bg-sand-50/50 border border-sand-100 space-y-4">
                     <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-forest-600" />
+                      <User className="w-4 h-4 text-corp-blue-600" />
                       <h4 className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Responsable / Représentant</h4>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -350,9 +350,9 @@ export function SupplierFormDialog({
                 </div>
 
                 <div className="space-y-6">
-                  <div className="flex items-center gap-2 pb-2 border-b border-forest-50">
-                    <MapPin className="w-4 h-4 text-forest-600" />
-                    <h3 className="font-heading font-bold text-forest-900">Localisation & Contact</h3>
+                  <div className="flex items-center gap-2 pb-2 border-b border-corp-blue-50">
+                    <MapPin className="w-4 h-4 text-corp-blue-600" />
+                    <h3 className="font-bold text-corp-blue-900">Localisation & Contact</h3>
                   </div>
                   <FormField
                     control={form.control}
@@ -379,7 +379,7 @@ export function SupplierFormDialog({
                               <SelectValue placeholder="Sélectionner" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="rounded-xl border-forest-100 h-64">
+                          <SelectContent className="rounded-xl border-corp-blue-100 h-64">
                             {GOUVERNORATES_TN.map(g => (
                               <SelectItem key={g.key} value={g.value}>{g.value}</SelectItem>
                             ))}
@@ -429,9 +429,9 @@ export function SupplierFormDialog({
               {/* Right Column: Finance */}
               <div className="space-y-8">
                 <div className="space-y-6">
-                  <div className="flex items-center gap-2 pb-2 border-b border-forest-50">
-                    <CreditCard className="w-4 h-4 text-forest-600" />
-                    <h3 className="font-heading font-bold text-forest-900">Finance & Règlement</h3>
+                  <div className="flex items-center gap-2 pb-2 border-b border-corp-blue-50">
+                    <CreditCard className="w-4 h-4 text-corp-blue-600" />
+                    <h3 className="font-bold text-corp-blue-900">Finance & Règlement</h3>
                   </div>
                   
                   <FormField
@@ -441,7 +441,7 @@ export function SupplierFormDialog({
                       <FormItem>
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Solde d'Ouverture (TND)</FormLabel>
                         <FormControl>
-                          <Input type="number" step="0.001" className="font-bold text-forest-900" {...field} />
+                          <Input type="number" step="0.001" className="font-bold text-corp-blue-900" {...field} />
                         </FormControl>
                         <FormDescription className="text-[0.65rem]">Dette ou avoir initial lors de l'enregistrement</FormDescription>
                         <FormMessage />
@@ -449,10 +449,10 @@ export function SupplierFormDialog({
                     )}
                   />
 
-                  <div className="p-6 rounded-3xl bg-forest-50 border border-forest-100 space-y-4">
+                  <div className="p-6 rounded-3xl bg-corp-blue-50 border border-corp-blue-100 space-y-4">
                     <div className="flex items-center gap-2">
-                      <Building className="w-4 h-4 text-forest-600" />
-                      <h4 className="text-sm font-bold text-forest-900">Coordonnées Bancaires</h4>
+                      <Building className="w-4 h-4 text-corp-blue-600" />
+                      <h4 className="text-sm font-bold text-corp-blue-900">Coordonnées Bancaires</h4>
                     </div>
                     <div className="grid grid-cols-1 gap-4">
                       <FormField
@@ -466,7 +466,7 @@ export function SupplierFormDialog({
                                   <SelectValue placeholder="Choisir la banque" />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent className="rounded-xl border-forest-100">
+                              <SelectContent className="rounded-xl border-corp-blue-100">
                                 {BANKS_TN.map(b => (
                                   <SelectItem key={b.id} value={b.value}>{b.value}</SelectItem>
                                 ))}
@@ -491,9 +491,9 @@ export function SupplierFormDialog({
                 </div>
 
                 <div className="space-y-6">
-                  <div className="flex items-center gap-2 pb-2 border-b border-forest-50">
-                    <FileText className="w-4 h-4 text-forest-600" />
-                    <h3 className="font-heading font-bold text-forest-900">Paramètres Additionnels</h3>
+                  <div className="flex items-center gap-2 pb-2 border-b border-corp-blue-50">
+                    <FileText className="w-4 h-4 text-corp-blue-600" />
+                    <h3 className="font-bold text-corp-blue-900">Paramètres Additionnels</h3>
                   </div>
                   
                   <FormField
@@ -505,11 +505,11 @@ export function SupplierFormDialog({
                           <Checkbox
                             checked={field.value}
                             onCheckedChange={field.onChange}
-                            className="w-5 h-5 rounded-lg border-sand-300 data-[state=checked]:bg-forest-600 data-[state=checked]:border-forest-600"
+                            className="w-5 h-5 rounded-lg border-sand-300 data-[state=checked]:bg-corp-blue-600 data-[state=checked]:border-corp-blue-600"
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
-                          <FormLabel className="text-sm font-bold text-forest-900">Fournisseur et Client</FormLabel>
+                          <FormLabel className="text-sm font-bold text-corp-blue-900">Fournisseur et Client</FormLabel>
                           <p className="text-[0.7rem] text-sand-400 font-medium">Ce fournisseur sera également visible dans le module Clients.</p>
                         </div>
                       </FormItem>
@@ -519,7 +519,7 @@ export function SupplierFormDialog({
               </div>
             </div>
 
-            <DialogFooter className="pt-8 border-t border-forest-50 gap-3">
+            <DialogFooter className="pt-8 border-t border-corp-blue-50 gap-3">
               <Button 
                 type="button" 
                 variant="ghost" 
@@ -531,7 +531,7 @@ export function SupplierFormDialog({
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="h-12 px-10 bg-forest-600 text-white font-bold hover:bg-forest-800 shadow-lg shadow-forest-600/20 gap-2"
+                className="h-12 px-10 bg-corp-blue-600 text-white font-bold hover:bg-corp-blue-800 shadow-lg shadow-corp-blue-600/20 gap-2"
               >
                 {isLoading ? "Traitement..." : (editSupplier ? "Mettre à jour" : "Enregistrer")}
               </Button>

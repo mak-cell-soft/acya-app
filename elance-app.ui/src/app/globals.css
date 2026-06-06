@@ -9,9 +9,9 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-dm-sans), sans-serif;
-  --font-mono: var(--font-geist-mono);
-  --font-serif: 'Sentient', var(--font-playfair-display), serif;
-  --font-heading: 'Sentient', var(--font-playfair-display), serif;
+  --font-mono: var(--font-dm-sans), sans-serif;
+  --font-serif: var(--font-dm-sans), sans-serif;
+  --font-heading: var(--font-dm-sans), sans-serif;
 
   --shadow-sm: none;
   --shadow: none;
@@ -21,12 +21,6 @@
   --shadow-2xl: none;
   --shadow-inner: none;
 
-  --color-forest-50: var(--forest-50);
-  --color-forest-100: var(--forest-100);
-  --color-forest-600: var(--color-primary);
-  --color-forest-800: var(--forest-800);
-  --color-forest-900: var(--forest-900);
-  --color-forest-950: var(--forest-950);
 
   --color-timber-100: var(--timber-100);
   --color-timber-400: var(--timber-400);
@@ -110,12 +104,6 @@
   --ring: var(--corp-blue-600);
   --radius: 1rem;
 
-  --forest-50: #EAF3EE;
-  --forest-100: #B6D5C4;
-  --forest-600: #0B3B24;
-  --forest-800: #082d1b;
-  --forest-900: #061a10;
-  --forest-950: #04100a;
 
   --timber-100: #F0E8DC;
   --timber-400: #8C6239;
@@ -161,12 +149,6 @@
   --input: #1E293B;
   --ring: var(--corp-blue-500);
 
-  --forest-50: #EAF3EE;
-  --forest-100: #B6D5C4;
-  --forest-600: #0B3B24;
-  --forest-800: #082d1b;
-  --forest-900: #061a10;
-  --forest-950: #04100a;
 
   --timber-100: #F0E8DC;
   --timber-400: #8C6239;
@@ -203,9 +185,6 @@
     @apply font-sans scroll-smooth;
   }
 
-  h1, h2, h3, h4, h5, h6, label, th {
-    font-family: var(--font-heading);
-  }
 
   /* Subtle Premium Scrollbar */
   ::-webkit-scrollbar {

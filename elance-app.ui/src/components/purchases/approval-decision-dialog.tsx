@@ -128,7 +128,7 @@ export function ApprovalDecisionDialog({
               <span className="text-[10px] font-bold tracking-widest uppercase text-amber-500 font-mono">
                 Approbations
               </span>
-              <h2 className="text-base font-serif font-bold text-amber-50 flex items-center gap-2">
+              <h2 className="text-base font-bold text-amber-50 flex items-center gap-2">
                 <Gavel className="w-4 h-4 text-amber-500" /> Actions d&apos;approbation
               </h2>
             </div>

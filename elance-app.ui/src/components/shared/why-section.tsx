@@ -47,7 +47,7 @@ export function WhySection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="font-heading text-[2.2rem] md:text-[2.8rem] text-slate-900 leading-[1.1] tracking-tight font-extrabold"
+            className="text-[2.2rem] md:text-[2.8rem] text-slate-900 leading-[1.1] tracking-tight font-extrabold"
           >
             L'ERP pensé exclusivement pour votre métier
           </motion.h2>
@@ -70,7 +70,7 @@ export function WhySection() {
                 <div className="p-3.5 rounded-2xl bg-slate-50 group-hover:bg-corp-blue-50 transition-colors duration-500">
                   {r.icon}
                 </div>
-                <div className="font-heading text-[2.8rem] font-black text-slate-100 leading-none group-hover:text-corp-blue-100/50 transition-colors duration-500">
+                <div className="text-[2.8rem] font-black text-slate-100 leading-none group-hover:text-corp-blue-100/50 transition-colors duration-500">
                   {r.num}
                 </div>
               </div>

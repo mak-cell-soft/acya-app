@@ -49,7 +49,7 @@ function StockDashboardContent() {
       {/* Header and top metadata bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-stone-900 dark:text-stone-50 tracking-tight">
+          <h1 className="text-3xl font-bold text-stone-900 dark:text-stone-50 tracking-tight">
             Stock & Logistique
           </h1>
           <p className="text-stone-500 dark:text-stone-400 text-xs mt-1 leading-normal">

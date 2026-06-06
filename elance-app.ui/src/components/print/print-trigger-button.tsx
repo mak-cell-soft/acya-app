@@ -263,13 +263,13 @@ export function PrintVariantDialog({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[480px] rounded-xl border border-sand-200 bg-white p-6 shadow-2xl">
         <DialogHeader className="space-y-2">
-          <DialogTitle className="text-2xl font-serif font-bold text-forest-950 flex items-center gap-2">
-            <Printer className="w-5.5 h-5.5 text-forest-800" />
+          <DialogTitle className="text-2xl font-bold text-corp-blue-950 flex items-center gap-2">
+            <Printer className="w-5.5 h-5.5 text-corp-blue-800" />
             Impression Document
           </DialogTitle>
           <DialogDescription className="text-sm text-sand-500 font-medium">
             Choisissez le format d&apos;impression adapté à votre matériel. 
-            Document N° <span className="font-mono font-bold text-forest-900">
+            Document N° <span className="font-mono font-bold text-corp-blue-900">
               {docType === 'transfer'
                 ? (transfer?.docSortie || 'Brouillon')
                 : docType === 'payslip'
@@ -281,7 +281,7 @@ export function PrintVariantDialog({
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-forest-800" />
+            <Loader2 className="w-8 h-8 animate-spin text-corp-blue-800" />
             <p className="text-xs font-bold text-sand-400 uppercase tracking-widest">
               Chargement des paramètres entreprise...
             </p>
@@ -292,13 +292,13 @@ export function PrintVariantDialog({
             <button
               onClick={() => handlePrint('standard')}
               disabled={printing}
-              className="flex items-start text-left gap-4 p-4 rounded-[16px] border border-sand-200 bg-white hover:bg-sand-50/50 hover:border-forest-800/40 transition-all group"
+              className="flex items-start text-left gap-4 p-4 rounded-[16px] border border-sand-200 bg-white hover:bg-sand-50/50 hover:border-corp-blue-800/40 transition-all group"
             >
-              <div className="p-2.5 rounded-xl bg-forest-50 border border-forest-100 text-forest-800 group-hover:bg-forest-100/50 transition-colors">
+              <div className="p-2.5 rounded-xl bg-corp-blue-50 border border-corp-blue-100 text-corp-blue-800 group-hover:bg-corp-blue-100/50 transition-colors">
                 <LayoutTemplate className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <h4 className="text-sm font-bold text-forest-950 group-hover:text-forest-800 transition-colors">
+                <h4 className="text-sm font-bold text-corp-blue-950 group-hover:text-corp-blue-800 transition-colors">
                   Format Standard (Laser / A4)
                 </h4>
                 <p className="text-xs text-sand-400 font-medium leading-relaxed">
@@ -311,13 +311,13 @@ export function PrintVariantDialog({
             <button
               onClick={() => handlePrint('light')}
               disabled={printing}
-              className="flex items-start text-left gap-4 p-4 rounded-[16px] border border-sand-200 bg-white hover:bg-sand-50/50 hover:border-forest-800/40 transition-all group"
+              className="flex items-start text-left gap-4 p-4 rounded-[16px] border border-sand-200 bg-white hover:bg-sand-50/50 hover:border-corp-blue-800/40 transition-all group"
             >
               <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-100 text-amber-800 group-hover:bg-amber-100/50 transition-colors">
                 <FileText className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <h4 className="text-sm font-bold text-forest-950 group-hover:text-forest-800 transition-colors">
+                <h4 className="text-sm font-bold text-corp-blue-950 group-hover:text-corp-blue-800 transition-colors">
                   Format Léger (Matricielle / Aiguilles)
                 </h4>
                 <p className="text-xs text-sand-400 font-medium leading-relaxed">

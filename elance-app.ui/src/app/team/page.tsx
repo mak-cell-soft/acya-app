@@ -195,20 +195,20 @@ export default function TeamPage() {
         {/* Page Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-heading font-bold text-forest-900 tracking-tight">Équipe & RH</h1>
+            <h1 className="text-3xl font-bold text-corp-blue-900 tracking-tight">Équipe & RH</h1>
             <p className="text-sand-400 font-medium mt-1">Gérez vos collaborateurs, leurs contrats et les profils d&apos;utilisateurs de l&apos;application.</p>
           </div>
           
           <div className="flex items-center gap-3">
             <Button 
               variant="outline" 
-              className="h-11 border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-5"
+              className="h-11 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 px-5"
               onClick={() => setIsCalendarDialogOpen(true)}
             >
               <Calendar className="w-4 h-4 mr-2 text-emerald-600 animate-pulse" /> Planning Congés
             </Button>
             <Button 
-              className="h-11 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-5 transition-all duration-300 transform active:scale-95"
+              className="h-11 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20 px-5 transition-all duration-300 transform active:scale-95"
               onClick={() => {
                 if (activeTab === 'employees') {
                   setSelectedPerson(null);
@@ -232,18 +232,18 @@ export default function TeamPage() {
             setExpandedId(null);
           }}
         >
-          <TabsList className="bg-sand-50 border border-forest-50/50 p-1.5 rounded-2xl w-full md:w-auto">
+          <TabsList className="bg-sand-50 border border-corp-blue-50/50 p-1.5 rounded-2xl w-full md:w-auto">
             <TabsTrigger value="employees" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-              <Users className="w-4 h-4 mr-2 text-forest-600" /> Collaborateurs
+              <Users className="w-4 h-4 mr-2 text-corp-blue-600" /> Collaborateurs
             </TabsTrigger>
             <TabsTrigger value="users" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-              <ShieldCheck className="w-4 h-4 mr-2 text-forest-600" /> Utilisateurs App
+              <ShieldCheck className="w-4 h-4 mr-2 text-corp-blue-600" /> Utilisateurs App
             </TabsTrigger>
           </TabsList>
 
           {/* Search and Filters Panel */}
-          <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm mt-6">
-            <CardHeader className="border-b border-forest-50 p-6">
+          <Card className="border-corp-blue-100/50 shadow-xl shadow-corp-blue-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm mt-6">
+            <CardHeader className="border-b border-corp-blue-50 p-6">
               <div className="flex flex-col md:flex-row md:items-center gap-4">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400" />
@@ -253,16 +253,16 @@ export default function TeamPage() {
                         ? "Rechercher par nom, CIN, rôle..." 
                         : "Rechercher par identifiant, email, collaborateur..."
                     }
-                    className="pl-10 h-11 rounded-xl border-forest-50 bg-sand-50/50 focus:border-forest-600 focus:ring-forest-600 transition-all font-medium text-forest-900 placeholder:text-sand-300"
+                    className="pl-10 h-11 rounded-xl border-corp-blue-50 bg-sand-50/50 focus:border-corp-blue-600 focus:ring-corp-blue-600 transition-all font-medium text-corp-blue-900 placeholder:text-sand-300"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 px-4 py-2.5 bg-forest-50 rounded-xl">
-                    <Users className="w-4 h-4 text-forest-600" />
-                    <span className="text-sm font-bold text-forest-900">
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-corp-blue-50 rounded-xl">
+                    <Users className="w-4 h-4 text-corp-blue-600" />
+                    <span className="text-sm font-bold text-corp-blue-900">
                       {activeTab === 'employees' 
                         ? `${filteredPersons.length} Membres` 
                         : `${filteredUsers.length} Comptes`
@@ -280,7 +280,7 @@ export default function TeamPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse min-w-[900px]">
                     <thead>
-                      <tr className="bg-sand-50/50 border-b border-forest-50">
+                      <tr className="bg-sand-50/50 border-b border-corp-blue-50">
                         <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest pl-8">Collaborateur</th>
                         <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">CIN & CNSS</th>
                         <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Contact</th>
@@ -289,7 +289,7 @@ export default function TeamPage() {
                         <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest"></th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-forest-50">
+                    <tbody className="divide-y divide-corp-blue-50">
                       {isPersonsLoading ? (
                         <TableSkeleton cols={6} />
                       ) : filteredPersons.length === 0 ? (
@@ -299,21 +299,21 @@ export default function TeamPage() {
                           <React.Fragment key={item.id}>
                             <tr 
                               className={cn(
-                                "group hover:bg-forest-50/30 transition-all duration-300 cursor-pointer border-l-4 border-transparent",
-                                expandedId === item.id && "bg-forest-50/50 border-forest-600"
+                                "group hover:bg-corp-blue-50/30 transition-all duration-300 cursor-pointer border-l-4 border-transparent",
+                                expandedId === item.id && "bg-corp-blue-50/50 border-corp-blue-600"
                               )}
                               onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
                             >
                               <td className="p-5 pl-8">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-full bg-forest-100/70 text-forest-700 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                                  <div className="w-10 h-10 rounded-full bg-corp-blue-100/70 text-corp-blue-700 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
                                     {item.firstname[0]}{item.lastname[0]}
                                   </div>
                                   <div>
-                                    <div className="font-bold text-forest-900 text-sm flex items-center gap-2">
+                                    <div className="font-bold text-corp-blue-900 text-sm flex items-center gap-2">
                                       {item.firstname} {item.lastname}
                                       {item.isappuser && (
-                                        <Badge className="bg-forest-100 text-forest-700 border-none rounded-lg text-[0.65rem] py-0.5 px-2 hover:bg-forest-100 flex items-center gap-1 font-bold">
+                                        <Badge className="bg-corp-blue-100 text-corp-blue-700 border-none rounded-lg text-[0.65rem] py-0.5 px-2 hover:bg-corp-blue-100 flex items-center gap-1 font-bold">
                                           <UserCheck className="w-3 h-3" /> App
                                         </Badge>
                                       )}
@@ -326,7 +326,7 @@ export default function TeamPage() {
                               </td>
                               <td className="p-5">
                                 <div className="flex flex-col gap-1 text-xs">
-                                  <span className="font-semibold text-sand-600">CIN: <span className="font-mono text-forest-900">{item.cin || 'N/A'}</span></span>
+                                  <span className="font-semibold text-sand-600">CIN: <span className="font-mono text-corp-blue-900">{item.cin || 'N/A'}</span></span>
                                   <span className="font-medium text-sand-400">CNSS: <span className="font-mono text-sand-600">{item.idcnss || 'N/A'}</span></span>
                                 </div>
                               </td>
@@ -335,7 +335,7 @@ export default function TeamPage() {
                                   <Phone className="w-3.5 h-3.5 text-sand-400" /> {item.phonenumber || 'Non renseigné'}
                                 </div>
                               </td>
-                              <td className="p-5 text-right font-bold text-forest-950">
+                              <td className="p-5 text-right font-bold text-corp-blue-950">
                                 {item.basesalary.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} <span className="text-[0.65rem] text-sand-300 font-medium">TND</span>
                               </td>
                               <td className="p-5 text-center font-semibold text-sand-600 text-xs">
@@ -345,13 +345,13 @@ export default function TeamPage() {
                                 <div className="flex items-center justify-end gap-2">
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                      <Button variant="ghost" size="icon" className="h-9 w-9 text-sand-300 hover:text-forest-900">
+                                      <Button variant="ghost" size="icon" className="h-9 w-9 text-sand-300 hover:text-corp-blue-900">
                                         <MoreHorizontal className="w-4 h-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="rounded-2xl border-forest-100 w-48 p-2 shadow-xl">
+                                    <DropdownMenuContent align="end" className="rounded-2xl border-corp-blue-100 w-48 p-2 shadow-xl">
                                       <DropdownMenuItem 
-                                        className="gap-2 font-bold text-forest-900 cursor-pointer rounded-xl h-11"
+                                        className="gap-2 font-bold text-corp-blue-900 cursor-pointer rounded-xl h-11"
                                         onClick={() => {
                                           setSelectedPerson(item);
                                           setIsEmployeeDialogOpen(true);
@@ -360,7 +360,7 @@ export default function TeamPage() {
                                         <Edit className="w-4 h-4 text-emerald-600" /> Modifier
                                       </DropdownMenuItem>
                                       <DropdownMenuItem 
-                                        className="gap-2 font-bold text-forest-900 cursor-pointer rounded-xl h-11"
+                                        className="gap-2 font-bold text-corp-blue-900 cursor-pointer rounded-xl h-11"
                                         onClick={() => {
                                           setSelectedPerson(item);
                                           setIsLeaveDialogOpen(true);
@@ -369,7 +369,7 @@ export default function TeamPage() {
                                         <Calendar className="w-4 h-4 text-emerald-600" /> Congés
                                       </DropdownMenuItem>
                                       <DropdownMenuItem 
-                                        className="gap-2 font-bold text-forest-900 cursor-pointer rounded-xl h-11"
+                                        className="gap-2 font-bold text-corp-blue-900 cursor-pointer rounded-xl h-11"
                                         onClick={() => {
                                           setSelectedPerson(item);
                                           setIsPayslipDialogOpen(true);
@@ -378,7 +378,7 @@ export default function TeamPage() {
                                         <FileText className="w-4 h-4 text-emerald-600" /> Fiches de Paie
                                       </DropdownMenuItem>
                                       <DropdownMenuItem 
-                                        className="gap-2 font-bold text-forest-900 cursor-pointer rounded-xl h-11"
+                                        className="gap-2 font-bold text-corp-blue-900 cursor-pointer rounded-xl h-11"
                                         onClick={() => {
                                           setSelectedPerson(item);
                                           setIsAdvanceDialogOpen(true);
@@ -397,8 +397,8 @@ export default function TeamPage() {
                                       </DropdownMenuItem>
                                     </DropdownMenuContent>
                                   </DropdownMenu>
-                                  <div className="p-1 rounded-full bg-forest-50/50">
-                                    <ChevronDown className={cn("w-4 h-4 text-forest-300 transition-transform duration-500", expandedId === item.id && "rotate-180 text-forest-600")} />
+                                  <div className="p-1 rounded-full bg-corp-blue-50/50">
+                                    <ChevronDown className={cn("w-4 h-4 text-corp-blue-300 transition-transform duration-500", expandedId === item.id && "rotate-180 text-corp-blue-600")} />
                                   </div>
                                 </div>
                               </td>
@@ -414,7 +414,7 @@ export default function TeamPage() {
                                       animate={{ height: 'auto', opacity: 1 }}
                                       exit={{ height: 0, opacity: 0 }}
                                       transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-                                      className="overflow-hidden bg-gradient-to-b from-forest-50/50 to-transparent border-b border-forest-50"
+                                      className="overflow-hidden bg-gradient-to-b from-corp-blue-50/50 to-transparent border-b border-corp-blue-50"
                                     >
                                       <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8 ml-4">
                                         
@@ -423,43 +423,43 @@ export default function TeamPage() {
                                           <h4 className="text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest flex items-center gap-1.5">
                                             <MapPin className="w-3.5 h-3.5" /> Résidence & Domicile
                                           </h4>
-                                          <div className="bg-white p-4 rounded-2xl border border-forest-100 shadow-sm space-y-2">
+                                          <div className="bg-white p-4 rounded-2xl border border-corp-blue-100 shadow-sm space-y-2">
                                             <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Adresse</div>
-                                            <div className="text-sm font-semibold text-forest-900">{item.address || 'Non spécifiée'}</div>
+                                            <div className="text-sm font-semibold text-corp-blue-900">{item.address || 'Non spécifiée'}</div>
                                             {item.birthtown && (
-                                              <div className="text-xs text-sand-400 font-medium">Né(e) à: <span className="font-bold text-forest-600">{item.birthtown}</span></div>
+                                              <div className="text-xs text-sand-400 font-medium">Né(e) à: <span className="font-bold text-corp-blue-600">{item.birthtown}</span></div>
                                             )}
                                           </div>
                                         </div>
 
                                         {/* Financial details */}
-                                        <div className="space-y-4 border-l border-forest-100/50 pl-8">
+                                        <div className="space-y-4 border-l border-corp-blue-100/50 pl-8">
                                           <h4 className="text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest flex items-center gap-1.5">
                                             <Clock className="w-3.5 h-3.5" /> Heures & Banque
                                           </h4>
-                                          <div className="bg-white p-4 rounded-2xl border border-forest-100 shadow-sm space-y-3">
+                                          <div className="bg-white p-4 rounded-2xl border border-corp-blue-100 shadow-sm space-y-3">
                                             <div className="flex justify-between items-center">
                                               <span className="text-[0.65rem] font-bold text-sand-400 uppercase">H. Sup cumulées</span>
-                                              <span className="text-sm font-bold text-forest-900">{item.overtimehours} hrs</span>
+                                              <span className="text-sm font-bold text-corp-blue-900">{item.overtimehours} hrs</span>
                                             </div>
-                                            <div className="border-t border-forest-50 pt-2">
+                                            <div className="border-t border-corp-blue-50 pt-2">
                                               <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Coordonnées Bancaires</div>
-                                              <div className="text-xs font-bold text-forest-700 mt-1">{item.bankname || 'Aucune banque'}</div>
+                                              <div className="text-xs font-bold text-corp-blue-700 mt-1">{item.bankname || 'Aucune banque'}</div>
                                               <div className="text-xs font-mono text-sand-400 mt-0.5">{item.bankaccount || 'N/A'}</div>
                                             </div>
                                           </div>
                                         </div>
 
                                         {/* Contract documents */}
-                                        <div className="space-y-4 border-l border-forest-100/50 pl-8">
+                                        <div className="space-y-4 border-l border-corp-blue-100/50 pl-8">
                                           <h4 className="text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest flex items-center gap-1.5">
                                             <FileText className="w-3.5 h-3.5" /> Documents Associés
                                           </h4>
                                           <div className="flex flex-wrap gap-2 pt-2">
-                                            <Badge className="bg-white text-sand-600 border border-forest-100 font-bold rounded-lg py-1 px-2.5">Contrat CDI</Badge>
-                                            <Badge className="bg-white text-sand-600 border border-forest-100 font-bold rounded-lg py-1 px-2.5">Copie CIN</Badge>
+                                            <Badge className="bg-white text-sand-600 border border-corp-blue-100 font-bold rounded-lg py-1 px-2.5">Contrat CDI</Badge>
+                                            <Badge className="bg-white text-sand-600 border border-corp-blue-100 font-bold rounded-lg py-1 px-2.5">Copie CIN</Badge>
                                             {item.idcnss && (
-                                              <Badge className="bg-white text-sand-600 border border-forest-100 font-bold rounded-lg py-1 px-2.5">Fiche CNSS</Badge>
+                                              <Badge className="bg-white text-sand-600 border border-corp-blue-100 font-bold rounded-lg py-1 px-2.5">Fiche CNSS</Badge>
                                             )}
                                           </div>
                                         </div>
@@ -483,7 +483,7 @@ export default function TeamPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse min-w-[900px]">
                     <thead>
-                      <tr className="bg-sand-50/50 border-b border-forest-50">
+                      <tr className="bg-sand-50/50 border-b border-corp-blue-50">
                         <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest pl-8">Compte Utilisateur</th>
                         <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Collaborateur Lié</th>
                         <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Site Assigné</th>
@@ -492,7 +492,7 @@ export default function TeamPage() {
                         <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest"></th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-forest-50">
+                    <tbody className="divide-y divide-corp-blue-50">
                       {isUsersLoading ? (
                         <TableSkeleton cols={6} />
                       ) : filteredUsers.length === 0 ? (
@@ -504,15 +504,15 @@ export default function TeamPage() {
                           return (
                             <tr 
                               key={item.id}
-                              className="group hover:bg-forest-50/30 transition-all duration-300 cursor-pointer border-l-4 border-transparent"
+                              className="group hover:bg-corp-blue-50/30 transition-all duration-300 cursor-pointer border-l-4 border-transparent"
                             >
                               <td className="p-5 pl-8">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-2xl bg-forest-900 text-white flex items-center justify-center font-bold text-xs uppercase shadow-md shadow-forest-900/10">
+                                  <div className="w-10 h-10 rounded-2xl bg-corp-blue-900 text-white flex items-center justify-center font-bold text-xs uppercase shadow-md shadow-corp-blue-900/10">
                                     <KeyRound className="w-4 h-4 text-emerald-400" />
                                   </div>
                                   <div>
-                                    <div className="font-bold text-forest-900 text-sm">{item.login}</div>
+                                    <div className="font-bold text-corp-blue-900 text-sm">{item.login}</div>
                                     <div className="text-[0.75rem] text-sand-400 font-semibold flex items-center gap-1 mt-0.5">
                                       <Mail className="w-3 h-3" /> {item.email}
                                     </div>
@@ -522,10 +522,10 @@ export default function TeamPage() {
                               <td className="p-5">
                                 {item.person ? (
                                   <div className="flex items-center gap-2">
-                                    <div className="w-6 h-6 rounded-full bg-forest-50 text-forest-700 flex items-center justify-center font-bold text-[0.65rem] uppercase">
+                                    <div className="w-6 h-6 rounded-full bg-corp-blue-50 text-corp-blue-700 flex items-center justify-center font-bold text-[0.65rem] uppercase">
                                       {item.person.firstname[0]}{item.person.lastname[0]}
                                     </div>
-                                    <span className="font-semibold text-sm text-forest-900">
+                                    <span className="font-semibold text-sm text-corp-blue-900">
                                       {item.person.firstname} {item.person.lastname}
                                     </span>
                                   </div>
@@ -534,7 +534,7 @@ export default function TeamPage() {
                                 )}
                               </td>
                               <td className="p-5">
-                                <div className="flex items-center gap-1.5 text-sm font-semibold text-forest-800">
+                                <div className="flex items-center gap-1.5 text-sm font-semibold text-corp-blue-800">
                                   <Building className="w-4 h-4 text-sand-300" /> {userSite?.address || `Site ID: ${item.defaultsite || 'Non assigné'}`}
                                 </div>
                               </td>
@@ -542,7 +542,7 @@ export default function TeamPage() {
                                 {item.person?.role ? (
                                   <Badge 
                                     className="rounded-lg px-2.5 py-1 font-bold text-[0.7rem] border-none text-white shadow-sm"
-                                    style={{ backgroundColor: ROLE_COLORS[item.person.role] || 'var(--color-forest-600)' }}
+                                    style={{ backgroundColor: ROLE_COLORS[item.person.role] || 'var(--color-corp-blue-600)' }}
                                   >
                                     {ROLE_LABELS[item.person.role] || 'Inconnu'}
                                   </Badge>
@@ -563,7 +563,7 @@ export default function TeamPage() {
                               <td className="p-5 text-right pr-8">
                                 <div className="flex items-center justify-end gap-2">
                                   <Button 
-                                    className="h-9 font-bold bg-white hover:bg-forest-50 border border-forest-100 text-forest-700 px-4 text-xs"
+                                    className="h-9 font-bold bg-white hover:bg-corp-blue-50 border border-corp-blue-100 text-corp-blue-700 px-4 text-xs"
                                     onClick={(e) => {
                                       // NOTE: Prevent row expansion click event bubbling
                                       e.stopPropagation();
@@ -577,14 +577,14 @@ export default function TeamPage() {
                                   {/* NOTE: If the app user is linked to an employee (person), allow managing their leaves, payslips, and advances. */}
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                      <Button variant="ghost" size="icon" className="h-9 w-9 text-sand-300 hover:text-forest-900">
+                                      <Button variant="ghost" size="icon" className="h-9 w-9 text-sand-300 hover:text-corp-blue-900">
                                         <MoreHorizontal className="w-4 h-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="rounded-2xl border-forest-100 w-48 p-2 shadow-xl">
+                                    <DropdownMenuContent align="end" className="rounded-2xl border-corp-blue-100 w-48 p-2 shadow-xl">
                                       <DropdownMenuItem 
                                         className={cn(
-                                          "gap-2 font-bold text-forest-900 rounded-xl h-11",
+                                          "gap-2 font-bold text-corp-blue-900 rounded-xl h-11",
                                           !item.person ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
                                         )}
                                         disabled={!item.person}
@@ -599,7 +599,7 @@ export default function TeamPage() {
                                       </DropdownMenuItem>
                                       <DropdownMenuItem 
                                         className={cn(
-                                          "gap-2 font-bold text-forest-900 rounded-xl h-11",
+                                          "gap-2 font-bold text-corp-blue-900 rounded-xl h-11",
                                           !item.person ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
                                         )}
                                         disabled={!item.person}
@@ -614,7 +614,7 @@ export default function TeamPage() {
                                       </DropdownMenuItem>
                                       <DropdownMenuItem 
                                         className={cn(
-                                          "gap-2 font-bold text-forest-900 rounded-xl h-11",
+                                          "gap-2 font-bold text-corp-blue-900 rounded-xl h-11",
                                           !isAdmin ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
                                         )}
                                         disabled={!isAdmin}
@@ -629,7 +629,7 @@ export default function TeamPage() {
                                       </DropdownMenuItem>
                                       <DropdownMenuItem 
                                         className={cn(
-                                          "gap-2 font-bold text-forest-900 rounded-xl h-11",
+                                          "gap-2 font-bold text-corp-blue-900 rounded-xl h-11",
                                           !item.person ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
                                         )}
                                         disabled={!item.person}
@@ -799,7 +799,7 @@ function EmptyState({ message }: EmptyStateProps) {
           <div className="w-16 h-16 rounded-xl bg-sand-50 flex items-center justify-center mb-4">
             <Users className="w-8 h-8 text-sand-300" />
           </div>
-          <h3 className="text-forest-900 font-heading text-lg font-bold">Aucune donnée</h3>
+          <h3 className="text-corp-blue-900 text-lg font-bold">Aucune donnée</h3>
           <p className="text-sand-400 text-sm font-medium mt-1 max-w-[280px]">
             {message}
           </p>

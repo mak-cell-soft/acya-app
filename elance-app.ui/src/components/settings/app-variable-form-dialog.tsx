@@ -122,16 +122,16 @@ export function AppVariableFormDialog({ isOpen, onClose, nature }: AppVariableFo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] rounded-2xl p-0 overflow-hidden border-forest-100 shadow-2xl">
+      <DialogContent className="sm:max-w-[500px] rounded-2xl p-0 overflow-hidden border-corp-blue-100 shadow-2xl">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <Icon className="w-24 h-24" />
           </div>
-          <DialogTitle className="text-2xl font-heading font-bold flex items-center gap-3 relative z-10">
+          <DialogTitle className="text-2xl font-bold flex items-center gap-3 relative z-10">
             <Icon className="w-6 h-6" />
             Ajouter {NATURE_LABELS[nature]}
           </DialogTitle>
-          <DialogDescription className="text-forest-100 text-sm font-medium mt-1 relative z-10">
+          <DialogDescription className="text-corp-blue-100 text-sm font-medium mt-1 relative z-10">
             Créez une nouvelle variable de configuration pour le système.
           </DialogDescription>
         </DialogHeader>
@@ -139,7 +139,7 @@ export function AppVariableFormDialog({ isOpen, onClose, nature }: AppVariableFo
         <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6 bg-white">
           {nature === 'Dimension' && (
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-forest-800">Type de Dimension</Label>
+              <Label className="text-sm font-bold text-corp-blue-800">Type de Dimension</Label>
               <Select 
                 value={selectedNature} 
                 onValueChange={(val) => setValue('nature', val!)}
@@ -147,7 +147,7 @@ export function AppVariableFormDialog({ isOpen, onClose, nature }: AppVariableFo
                 <SelectTrigger className="bg-sand-50 ">
                   <SelectValue placeholder="Sélectionner le type" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-forest-100">
+                <SelectContent className="rounded-xl border-corp-blue-100">
                   <SelectItem value="thickness" className="rounded-lg">Épaisseur</SelectItem>
                   <SelectItem value="width" className="rounded-lg">Largeur</SelectItem>
                 </SelectContent>
@@ -157,7 +157,7 @@ export function AppVariableFormDialog({ isOpen, onClose, nature }: AppVariableFo
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-forest-800">
+              <Label className="text-sm font-bold text-corp-blue-800">
                 {nature === 'Dimension' ? 'Valeur (mm)' : nature === 'Length' ? 'Valeur (cm)' : 'Nom / Libellé'}
               </Label>
               <Input 
@@ -169,41 +169,41 @@ export function AppVariableFormDialog({ isOpen, onClose, nature }: AppVariableFo
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-forest-800">
+              <Label className="text-sm font-bold text-corp-blue-800">
                 {nature === 'Dimension' || nature === 'Length' ? 'Valeur (m)' : 'Valeur'}
               </Label>
               <Input 
                 {...register('value')}
                 readOnly={nature === 'Dimension' || nature === 'Length'}
                 placeholder={nature === 'Dimension' || nature === 'Length' ? '0.02' : 'ex: 19'}
-                className={`h-12 rounded-xl border-forest-100 ${nature === 'Dimension' || nature === 'Length' ? 'bg-sand-100/50 cursor-not-allowed' : 'bg-sand-50 focus:border-forest-600'}`}
+                className={`h-12 rounded-xl border-corp-blue-100 ${nature === 'Dimension' || nature === 'Length' ? 'bg-sand-100/50 cursor-not-allowed' : 'bg-sand-50 focus:border-corp-blue-600'}`}
               />
               {errors.value && <p className="text-xs text-red-500 font-medium">{errors.value.message}</p>}
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-sand-50 rounded-2xl border border-forest-50">
+          <div className="flex items-center justify-between p-4 bg-sand-50 rounded-2xl border border-corp-blue-50">
             <div className="space-y-0.5">
-              <Label className="text-sm font-bold text-forest-800">Actif</Label>
+              <Label className="text-sm font-bold text-corp-blue-800">Actif</Label>
               <p className="text-xs text-sand-500">Rendre cette variable utilisable immédiatement</p>
             </div>
             <Switch 
               checked={watch('isactive')}
               onCheckedChange={(val) => setValue('isactive', val)}
-              className="data-[state=checked]:bg-forest-600"
+              className="data-[state=checked]:bg-corp-blue-600"
             />
           </div>
 
           {nature !== 'Dimension' && nature !== 'Length' && (
-            <div className="flex items-center justify-between p-4 bg-sand-50 rounded-2xl border border-forest-50">
+            <div className="flex items-center justify-between p-4 bg-sand-50 rounded-2xl border border-corp-blue-50">
               <div className="space-y-0.5">
-                <Label className="text-sm font-bold text-forest-800">Par défaut</Label>
+                <Label className="text-sm font-bold text-corp-blue-800">Par défaut</Label>
                 <p className="text-xs text-sand-500">Utiliser cette valeur par défaut dans les formulaires</p>
               </div>
               <Switch 
                 checked={watch('isdefault')}
                 onCheckedChange={(val) => setValue('isdefault', val)}
-                className="data-[state=checked]:bg-forest-600"
+                className="data-[state=checked]:bg-corp-blue-600"
               />
             </div>
           )}
@@ -213,13 +213,13 @@ export function AppVariableFormDialog({ isOpen, onClose, nature }: AppVariableFo
               type="button" 
               variant="outline" 
               onClick={onClose}
-              className="flex-1 h-12 border-forest-100 text-forest-600 font-bold hover:bg-forest-50"
+              className="flex-1 h-12 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50"
             >
               Annuler
             </Button>
             <Button 
               disabled={createVar.isPending}
-              className="flex-[2] h-12 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
+              className="flex-[2] h-12 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20"
             >
               {createVar.isPending ? (
                 <Loader2 className="w-5 h-5 animate-spin" />

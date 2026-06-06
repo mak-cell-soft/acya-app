@@ -8,7 +8,7 @@
  * — the same stable endpoint used by batch conversions, avoiding the /convert 500 error.
  *
  * Color tokens used here are only from globals.css:
- *   forest-50, forest-100, forest-600, forest-800, forest-900, forest-950
+ *   corp-blue-50, corp-blue-100, corp-blue-600, corp-blue-800, corp-blue-900, corp-blue-950
  *   sand-50, sand-100, sand-400, sand-800
  *   timber-100, timber-400, timber-600
  *   white, black
@@ -182,16 +182,16 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.96, opacity: 0, y: 12 }}
           transition={{ type: 'spring', stiffness: 340, damping: 28 }}
-          className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-forest-100 z-10"
+          className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-corp-blue-100 z-10"
         >
           {/* ── Header ───────────────────────────────────────────────────── */}
-          <div className="flex items-center justify-between px-7 py-5 border-b border-forest-100 bg-forest-50">
+          <div className="flex items-center justify-between px-7 py-5 border-b border-corp-blue-100 bg-corp-blue-50">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-forest-100 flex items-center justify-center">
-                <FileText className="w-5 h-5 text-forest-800" />
+              <div className="w-10 h-10 rounded-xl bg-corp-blue-100 flex items-center justify-center">
+                <FileText className="w-5 h-5 text-corp-blue-800" />
               </div>
               <div>
-                <h2 className="text-base font-heading font-bold text-forest-950 tracking-tight">
+                <h2 className="text-base font-bold text-corp-blue-950 tracking-tight">
                   Convertir en Facture
                 </h2>
                 <p className="text-[11px] text-sand-400 font-medium">
@@ -201,7 +201,7 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center text-sand-400 hover:text-forest-950 hover:bg-forest-100 transition-colors"
+              className="w-8 h-8 flex items-center justify-center text-sand-400 hover:text-corp-blue-950 hover:bg-corp-blue-100 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -211,16 +211,16 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
           <div className="px-7 py-6 space-y-5 bg-white">
 
             {/* Document source summary */}
-            <div className="bg-forest-50 border border-forest-100 rounded-2xl p-4 space-y-3">
+            <div className="bg-corp-blue-50 border border-corp-blue-100 rounded-2xl p-4 space-y-3">
               <p className="text-[10px] text-sand-400 font-bold uppercase tracking-widest">
                 Document source
               </p>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-bold font-mono text-forest-950">
+                <span className="text-sm font-bold font-mono text-corp-blue-950">
                   {bl.docnumber}
                 </span>
                 <ArrowRight className="w-4 h-4 text-sand-400 shrink-0" />
-                <Badge className="text-[10px] bg-forest-100 text-forest-800 border-0 font-bold px-2">
+                <Badge className="text-[10px] bg-corp-blue-100 text-corp-blue-800 border-0 font-bold px-2">
                   Bon de Livraison
                 </Badge>
                 <ArrowRight className="w-3 h-3 text-sand-400 shrink-0" />
@@ -230,7 +230,7 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
               </div>
               <div className="text-[12px] text-sand-400 font-medium">
                 Client :{' '}
-                <span className="text-forest-950 font-bold">{customerName}</span>
+                <span className="text-corp-blue-950 font-bold">{customerName}</span>
               </div>
             </div>
 
@@ -246,8 +246,8 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
                   className={cn(
                     'rounded-2xl border px-3 py-3 text-center',
                     highlight
-                      ? 'bg-forest-50 border-forest-100'
-                      : 'bg-white border-forest-100'
+                      ? 'bg-corp-blue-50 border-corp-blue-100'
+                      : 'bg-white border-corp-blue-100'
                   )}
                 >
                   <p className="text-[10px] text-sand-400 font-bold uppercase tracking-wider mb-1">
@@ -256,7 +256,7 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
                   <p
                     className={cn(
                       'text-sm font-bold font-mono',
-                      highlight ? 'text-forest-800' : 'text-forest-950'
+                      highlight ? 'text-corp-blue-800' : 'text-corp-blue-950'
                     )}
                   >
                     {fmt(value)} DT
@@ -267,8 +267,8 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
 
             {/* Stamp tax selector */}
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[11px] font-bold text-forest-950 uppercase tracking-widest">
-                <Landmark className="w-3.5 h-3.5 text-forest-600" />
+              <label className="flex items-center gap-2 text-[11px] font-bold text-corp-blue-950 uppercase tracking-widest">
+                <Landmark className="w-3.5 h-3.5 text-corp-blue-600" />
                 Droit de timbre (Taxe)
               </label>
 
@@ -276,7 +276,7 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
                 value={stampTaxId}
                 onValueChange={(val) => setStampTaxId(val ?? '')}
               >
-                <SelectTrigger className="h-10 text-sm font-medium border-forest-100 rounded-xl bg-forest-50 text-forest-950">
+                <SelectTrigger className="h-10 text-sm font-medium border-corp-blue-100 rounded-xl bg-corp-blue-50 text-corp-blue-950">
                   <SelectValue placeholder="Sélectionner une taxe...">
                     {/* Show the formatted label for the selected value */}
                     {activeStamp ? taxLabel(activeStamp) : 'Sélectionner une taxe...'}
@@ -287,7 +287,7 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
                     <SelectItem
                       key={t.id}
                       value={String(t.id)}
-                      className="text-sm text-forest-950"
+                      className="text-sm text-corp-blue-950"
                     >
                       {taxLabel(t)}
                     </SelectItem>
@@ -323,12 +323,12 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
           </div>
 
           {/* ── Footer actions ───────────────────────────────────────────── */}
-          <div className="flex items-center justify-end gap-3 px-7 py-5 border-t border-forest-100 bg-forest-50">
+          <div className="flex items-center justify-end gap-3 px-7 py-5 border-t border-corp-blue-100 bg-corp-blue-50">
             <Button
               variant="outline"
               onClick={onClose}
               disabled={isConverting}
-              className="h-10 px-5 border-forest-100 bg-white text-forest-900 hover:bg-forest-100 font-semibold text-sm"
+              className="h-10 px-5 border-corp-blue-100 bg-white text-corp-blue-900 hover:bg-corp-blue-100 font-semibold text-sm"
             >
               Annuler
             </Button>

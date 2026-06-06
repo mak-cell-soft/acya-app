@@ -80,7 +80,7 @@ export function SupplierAccountDialog({
                 <CreditCard className="w-8 h-8" />
               </div>
               <div className="space-y-1">
-                <DialogTitle className="font-heading text-3xl font-bold tracking-tight">
+                <DialogTitle className="text-3xl font-bold tracking-tight">
                   État de Compte Fournisseur
                 </DialogTitle>
                 <p className="text-muted-foreground font-medium flex items-center gap-2">
@@ -114,7 +114,7 @@ export function SupplierAccountDialog({
               </Popover>
               <Button 
                 variant="outline" 
-                className="h-12 border-slate-200 bg-slate-50 text-foreground hover:bg-forest-700 hover:text-foreground font-bold px-5"
+                className="h-12 border-slate-200 bg-slate-50 text-foreground hover:bg-corp-blue-700 hover:text-foreground font-bold px-5"
                 onClick={() => setIsPrintOpen(true)}
               >
                 <Printer className="w-4 h-4 mr-2 text-emerald-600" /> Imprimer
@@ -134,25 +134,25 @@ export function SupplierAccountDialog({
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 flex-shrink-0">
             <div className="p-6 rounded-3xl bg-slate-50 border border-slate-200 space-y-2">
               <div className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest">Solde Avant Période</div>
-              <div className="text-xl font-heading font-bold text-slate-900">
+              <div className="text-xl font-bold text-slate-900">
                 {statement?.balanceBeforePeriod.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} <span className="text-xs font-bold text-slate-500">TND</span>
               </div>
             </div>
             <div className="p-6 rounded-3xl bg-emerald-50 border border-emerald-100 space-y-2">
               <div className="text-[0.65rem] font-bold text-emerald-600 uppercase tracking-widest">Total Achats (Débit)</div>
-              <div className="text-xl font-heading font-bold text-emerald-700">
+              <div className="text-xl font-bold text-emerald-700">
                 {statement?.totalDebit.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} <span className="text-xs font-bold text-emerald-400">TND</span>
               </div>
             </div>
             <div className="p-6 rounded-3xl bg-rose-50 border border-rose-100 space-y-2">
               <div className="text-[0.65rem] font-bold text-rose-600 uppercase tracking-widest">Total Règlements (Crédit)</div>
-              <div className="text-xl font-heading font-bold text-rose-700">
+              <div className="text-xl font-bold text-rose-700">
                 {statement?.totalCredit.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} <span className="text-xs font-bold text-rose-400">TND</span>
               </div>
             </div>
             <div className="p-6 rounded-[28px] bg-corp-blue-50 border border-corp-blue-200 space-y-2 shadow-xl shadow-corp-blue-900/5">
               <div className="text-[0.65rem] font-bold text-corp-blue-600 uppercase tracking-widest">Solde Final Actuel</div>
-              <div className="text-xl font-heading font-bold text-corp-blue-900">
+              <div className="text-xl font-bold text-corp-blue-900">
                 {statement?.closingBalance.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} <span className="text-xs font-bold text-corp-blue-600">TND</span>
               </div>
             </div>
@@ -168,7 +168,7 @@ export function SupplierAccountDialog({
               />
             </div>
             <div className="flex items-center gap-4">
-              <div className="h-4 w-[1px] bg-forest-100" />
+              <div className="h-4 w-[1px] bg-corp-blue-100" />
               <div className="flex items-center gap-2">
                 <span className="text-[0.7rem] font-bold text-slate-500 uppercase tracking-tighter">Afficher</span>
                 <Badge variant="outline" className="bg-white border-slate-200 text-slate-900 font-bold px-3 py-1 rounded-lg">
@@ -180,7 +180,7 @@ export function SupplierAccountDialog({
 
           {/* Ledger Table */}
           <div className="flex-1 overflow-hidden border border-slate-100 rounded-3xl bg-white shadow-sm flex flex-col">
-            <div className="overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-forest-100 scrollbar-track-transparent">
+            <div className="overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-corp-blue-100 scrollbar-track-transparent">
               <table className="w-full text-left border-collapse">
                 <thead className="sticky top-0 z-10 bg-slate-50/80 backdrop-blur-md border-b border-slate-100">
                   <tr>
@@ -191,7 +191,7 @@ export function SupplierAccountDialog({
                     <th className="p-5 text-[0.65rem] font-black text-slate-500 uppercase tracking-widest text-right">Solde Progressif</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-forest-50">
+                <tbody className="divide-y divide-corp-blue-50">
                   {isLoading ? (
                     <tr>
                       <td colSpan={5} className="p-20 text-center">

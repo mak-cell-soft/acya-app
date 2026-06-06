@@ -491,7 +491,7 @@ function NewStockTransferContent() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-serif font-bold text-stone-900 dark:text-stone-50">
+            <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50">
               Nouveau Bon de Sortie
             </h1>
             <p className="text-stone-500 dark:text-stone-400 text-xs mt-0.5 leading-normal">
@@ -507,7 +507,7 @@ function NewStockTransferContent() {
         <div className="lg:col-span-4 space-y-6">
           <Card className="bg-stone-50/50 dark:bg-stone-900/40 border-stone-200/60 dark:border-stone-800/60 rounded-2xl shadow-sm">
             <CardHeader className="border-b border-stone-200/40 dark:border-stone-800/40 pb-4">
-              <CardTitle className="text-sm font-serif font-bold text-stone-900 dark:text-stone-50 uppercase tracking-wider flex items-center gap-2">
+              <CardTitle className="text-sm font-bold text-stone-900 dark:text-stone-50 uppercase tracking-wider flex items-center gap-2">
                 <Layers className="h-4 w-4 text-amber-500" /> Paramètres d'Expédition
               </CardTitle>
             </CardHeader>
@@ -629,7 +629,7 @@ function NewStockTransferContent() {
 
           {/* Dynamic Totals Summary card */}
           <Card className="bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 rounded-2xl shadow-md p-5 space-y-4">
-            <h3 className="text-xs font-serif font-bold text-stone-800 dark:text-stone-200 uppercase tracking-widest">
+            <h3 className="text-xs font-bold text-stone-800 dark:text-stone-200 uppercase tracking-widest">
               Résumé Logistique
             </h3>
             
@@ -664,7 +664,7 @@ function NewStockTransferContent() {
           <Card className="bg-white dark:bg-stone-900/40 border-stone-200/60 dark:border-stone-800/60 rounded-2xl shadow-sm">
             <CardHeader className="border-b border-stone-200/40 dark:border-stone-800/40 pb-4 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-sm font-serif font-bold text-stone-900 dark:text-stone-50 uppercase tracking-wider flex items-center gap-2">
+                <CardTitle className="text-sm font-bold text-stone-900 dark:text-stone-50 uppercase tracking-wider flex items-center gap-2">
                   <Boxes className="h-4 w-4 text-amber-500" /> Articles à Transférer
                 </CardTitle>
                 <CardDescription className="text-[10px] text-stone-400 lowercase mt-0.5">
@@ -683,7 +683,7 @@ function NewStockTransferContent() {
             </CardHeader>
             <CardContent className="p-0">
               {rows.length === 0 ? (
-                <div className="p-12 text-center text-stone-400 font-serif italic text-xs">
+                <div className="p-12 text-center text-stone-400 italic text-xs">
                   Aucun article. Cliquez sur "Ajouter Ligne" pour ajouter des marchandises à transférer.
                 </div>
               ) : (

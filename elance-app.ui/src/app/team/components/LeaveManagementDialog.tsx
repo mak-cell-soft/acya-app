@@ -142,16 +142,16 @@ export function LeaveManagementDialog({ isOpen, onClose, employee }: LeaveManage
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-background">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl p-0 overflow-hidden border-corp-blue-100 shadow-2xl rounded-none sm:rounded-2xl bg-background">
         
         {/* Header Section */}
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="flex items-center gap-4 animate-in slide-in-from-top duration-500">
-            <div className="w-12 h-12 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100">
+            <div className="w-12 h-12 rounded-2xl bg-corp-blue-50 flex items-center justify-center border border-corp-blue-100">
               <CalendarDays className="w-6 h-6 text-emerald-600" />
             </div>
             <div>
-              <DialogTitle className="font-heading text-2xl font-bold tracking-tight">
+              <DialogTitle className="text-2xl font-bold tracking-tight">
                 Gestion des Congés
               </DialogTitle>
               <p className="text-muted-foreground text-sm font-medium mt-1">
@@ -169,10 +169,10 @@ export function LeaveManagementDialog({ isOpen, onClose, employee }: LeaveManage
 
         <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
           {/* Action Toolbar */}
-          <div className="flex justify-between items-center pb-2 border-b border-forest-50">
-            <h3 className="font-heading font-bold text-forest-900 flex items-center gap-2">
+          <div className="flex justify-between items-center pb-2 border-b border-corp-blue-50">
+            <h3 className="font-bold text-corp-blue-900 flex items-center gap-2">
               <span>Historique des absences</span>
-              <Badge className="bg-forest-50 text-forest-700 border-none font-bold rounded-lg px-2.5 py-0.5">
+              <Badge className="bg-corp-blue-50 text-corp-blue-700 border-none font-bold rounded-lg px-2.5 py-0.5">
                 {leaves.length} demandes
               </Badge>
             </h3>
@@ -180,7 +180,7 @@ export function LeaveManagementDialog({ isOpen, onClose, employee }: LeaveManage
             {!showAddForm && (
               <Button 
                 onClick={() => setShowAddForm(true)}
-                className="h-10 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold px-4 transition-all duration-300 transform active:scale-95 flex items-center gap-2"
+                className="h-10 rounded-xl bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold px-4 transition-all duration-300 transform active:scale-95 flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" /> Nouvelle Demande
               </Button>
@@ -196,9 +196,9 @@ export function LeaveManagementDialog({ isOpen, onClose, employee }: LeaveManage
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.3 }}
                 onSubmit={handleSubmit}
-                className="bg-sand-50/50 border border-forest-100/50 p-6 rounded-2xl space-y-4 overflow-hidden"
+                className="bg-sand-50/50 border border-corp-blue-100/50 p-6 rounded-2xl space-y-4 overflow-hidden"
               >
-                <div className="flex items-center gap-2 text-forest-800 pb-2 border-b border-forest-50">
+                <div className="flex items-center gap-2 text-corp-blue-800 pb-2 border-b border-corp-blue-50">
                   <Sparkles className="w-4 h-4 text-emerald-600" />
                   <span className="font-bold text-sm">Formuler une nouvelle demande de congé</span>
                 </div>
@@ -207,10 +207,10 @@ export function LeaveManagementDialog({ isOpen, onClose, employee }: LeaveManage
                   <div className="space-y-1.5">
                     <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest">Type de congé</label>
                     <Select value={leaveType} onValueChange={(val) => setLeaveType(val || 'Annuel')}>
-                      <SelectTrigger className="h-11 font-bold text-forest-900">
+                      <SelectTrigger className="h-11 font-bold text-corp-blue-900">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-forest-100 shadow-xl">
+                      <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl">
                         <SelectItem value="Annuel">Annuel</SelectItem>
                         <SelectItem value="Maladie">Maladie</SelectItem>
                         <SelectItem value="Maternité">Maternité</SelectItem>
@@ -228,7 +228,7 @@ export function LeaveManagementDialog({ isOpen, onClose, employee }: LeaveManage
                       required
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="h-11 rounded-xl border-forest-100 bg-background font-semibold"
+                      className="h-11 rounded-xl border-corp-blue-100 bg-background font-semibold"
                     />
                   </div>
 
@@ -239,13 +239,13 @@ export function LeaveManagementDialog({ isOpen, onClose, employee }: LeaveManage
                       required
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="h-11 rounded-xl border-forest-100 bg-background font-semibold"
+                      className="h-11 rounded-xl border-corp-blue-100 bg-background font-semibold"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest">Durée estimée</label>
-                    <div className="h-11 rounded-xl border border-forest-100 bg-forest-50/50 flex items-center px-4 font-mono font-bold text-forest-900">
+                    <div className="h-11 rounded-xl border border-corp-blue-100 bg-corp-blue-50/50 flex items-center px-4 font-mono font-bold text-corp-blue-900">
                       {durationDays} {durationDays > 1 ? 'jours' : 'jour'}
                     </div>
                   </div>
@@ -270,7 +270,7 @@ export function LeaveManagementDialog({ isOpen, onClose, employee }: LeaveManage
                   <Button 
                     type="submit" 
                     disabled={addLeave.isPending || durationDays <= 0}
-                    className="h-10 bg-forest-600 text-white font-bold hover:bg-forest-800 px-6"
+                    className="h-10 bg-corp-blue-600 text-white font-bold hover:bg-corp-blue-800 px-6"
                   >
                     {addLeave.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     Soumettre
@@ -281,10 +281,10 @@ export function LeaveManagementDialog({ isOpen, onClose, employee }: LeaveManage
           </AnimatePresence>
 
           {/* Table list of leaves */}
-          <div className="overflow-x-auto border border-forest-50 rounded-2xl bg-white shadow-sm">
+          <div className="overflow-x-auto border border-corp-blue-50 rounded-2xl bg-white shadow-sm">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-sand-50/40 border-b border-forest-50">
+                <tr className="bg-sand-50/40 border-b border-corp-blue-50">
                   <th className="p-4 text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest pl-6">Type</th>
                   <th className="p-4 text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest">Période</th>
                   <th className="p-4 text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest text-center">Durée</th>
@@ -292,11 +292,11 @@ export function LeaveManagementDialog({ isOpen, onClose, employee }: LeaveManage
                   <th className="p-4 text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest text-right pr-6">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-forest-50">
+              <tbody className="divide-y divide-corp-blue-50">
                 {isLoading ? (
                   <tr>
                     <td colSpan={5} className="p-12 text-center text-sand-400 font-medium">
-                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-forest-600 mb-2" />
+                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-corp-blue-600 mb-2" />
                       Chargement des absences...
                     </td>
                   </tr>
@@ -308,17 +308,17 @@ export function LeaveManagementDialog({ isOpen, onClose, employee }: LeaveManage
                   </tr>
                 ) : (
                   leaves.map((leave: Leave) => (
-                    <tr key={leave.id} className="group hover:bg-forest-50/20 transition-all duration-300">
+                    <tr key={leave.id} className="group hover:bg-corp-blue-50/20 transition-all duration-300">
                       <td className="p-4 pl-6">
-                        <span className="font-bold text-forest-900 text-sm">{leave.leavetype}</span>
+                        <span className="font-bold text-corp-blue-900 text-sm">{leave.leavetype}</span>
                       </td>
                       <td className="p-4">
                         <div className="flex flex-col text-xs text-sand-600 font-semibold gap-0.5">
-                          <span>Du <span className="text-forest-950 font-bold">{new Date(leave.startdate).toLocaleDateString('fr-FR')}</span></span>
-                          <span>Au <span className="text-forest-950 font-bold">{new Date(leave.enddate).toLocaleDateString('fr-FR')}</span></span>
+                          <span>Du <span className="text-corp-blue-950 font-bold">{new Date(leave.startdate).toLocaleDateString('fr-FR')}</span></span>
+                          <span>Au <span className="text-corp-blue-950 font-bold">{new Date(leave.enddate).toLocaleDateString('fr-FR')}</span></span>
                         </div>
                       </td>
-                      <td className="p-4 text-center font-mono font-bold text-forest-900 text-sm">
+                      <td className="p-4 text-center font-mono font-bold text-corp-blue-900 text-sm">
                         {leave.durationdays} jrs
                       </td>
                       <td className="p-4 text-center">
@@ -364,7 +364,7 @@ export function LeaveManagementDialog({ isOpen, onClose, employee }: LeaveManage
                             variant="ghost" 
                             size="icon"
                             onClick={() => setPrintLeave(leave)}
-                            className="h-8 w-8 rounded-lg text-forest-600 hover:bg-forest-50 hover:text-forest-750"
+                            className="h-8 w-8 rounded-lg text-corp-blue-600 hover:bg-corp-blue-50 hover:text-corp-blue-750"
                             title="Imprimer le congé"
                           >
                             <Printer className="w-4 h-4" />

@@ -172,8 +172,8 @@ export function GlobalTransferConfirmDialog() {
     <Dialog open={!!selectedTransferForConfirm} onOpenChange={handleClose}>
       <DialogContent className="bg-white dark:bg-zinc-950 rounded-2xl border border-zinc-200 dark:border-zinc-850 shadow-2xl p-6 sm:max-w-xl w-full animate-in zoom-in-95 duration-200">
         <DialogHeader className="border-b border-zinc-100 dark:border-zinc-900 pb-4">
-          <DialogTitle className="text-sm font-serif font-bold text-zinc-900 dark:text-zinc-50 uppercase tracking-wider flex items-center gap-2">
-            <Truck className="h-5 w-5 text-forest-600" />
+          <DialogTitle className="text-sm font-bold text-zinc-900 dark:text-zinc-50 uppercase tracking-wider flex items-center gap-2">
+            <Truck className="h-5 w-5 text-corp-blue-600" />
             Réception Inter-Sites
           </DialogTitle>
           <DialogDescription className="text-xs text-zinc-400">
@@ -191,7 +191,7 @@ export function GlobalTransferConfirmDialog() {
           </div>
           <div className="space-y-1">
             <span className="text-[10px] uppercase font-bold text-zinc-400">N° Bon Sortie</span>
-            <div className="font-mono font-bold text-forest-700 dark:text-forest-400">
+            <div className="font-mono font-bold text-corp-blue-700 dark:text-corp-blue-400">
               {selectedTransferForConfirm?.transferRef}
             </div>
           </div>
@@ -203,7 +203,7 @@ export function GlobalTransferConfirmDialog() {
           
           {isLoadingDetails ? (
             <div className="py-8 flex justify-center">
-              <Loader2 className="h-5 w-5 animate-spin text-forest-600" />
+              <Loader2 className="h-5 w-5 animate-spin text-corp-blue-600" />
             </div>
           ) : details.length === 0 ? (
             <div className="py-4 text-center italic text-zinc-400 text-xs">
@@ -230,7 +230,7 @@ export function GlobalTransferConfirmDialog() {
                       <td className="p-2.5 font-mono text-[10px] text-zinc-500">
                         {item.refPaquet || item.packageReference || 'Standard'}
                       </td>
-                      <td className="p-2.5 text-right pr-3 font-mono font-bold text-forest-800 dark:text-forest-400">
+                      <td className="p-2.5 text-right pr-3 font-mono font-bold text-corp-blue-800 dark:text-corp-blue-400">
                         {formatQuantity(item.quantity, item.unit)}
                         <span className="text-[9px] text-zinc-450 ml-0.5">{item.unit}</span>
                       </td>
@@ -255,7 +255,7 @@ export function GlobalTransferConfirmDialog() {
               </Button>
               <Button
                 onClick={() => setIsConfirmingMode(true)}
-                className="h-10 text-xs font-bold bg-forest-600 hover:bg-forest-700 text-white rounded-xl flex items-center gap-1"
+                className="h-10 text-xs font-bold bg-corp-blue-600 hover:bg-corp-blue-700 text-white rounded-xl flex items-center gap-1"
               >
                 <Check className="h-4 w-4" />
                 Réceptionner
@@ -264,7 +264,7 @@ export function GlobalTransferConfirmDialog() {
           ) : isConfirmingMode ? (
             <div className="space-y-3.5 bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-xl border border-zinc-200/50 dark:border-zinc-800/40">
               <h4 className="text-[10px] uppercase font-bold text-zinc-900 dark:text-zinc-100 tracking-wider flex items-center gap-1">
-                <Lock className="h-3.5 w-3.5 text-forest-600" />
+                <Lock className="h-3.5 w-3.5 text-corp-blue-600" />
                 Clé de validation logistique
               </h4>
 
@@ -291,7 +291,7 @@ export function GlobalTransferConfirmDialog() {
                     value={actionComment}
                     onChange={(e) => setActionComment(e.target.value)}
                     placeholder="Facultatif (ex: colis vérifié et conforme)..."
-                    className="flex min-h-[50px] w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs focus:ring-forest-550/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950"
+                    className="flex min-h-[50px] w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs focus:ring-corp-blue-550/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-corp-blue-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950"
                   />
                 </div>
               </div>

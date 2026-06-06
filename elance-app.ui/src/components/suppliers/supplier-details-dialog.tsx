@@ -48,18 +48,18 @@ export function SupplierDetailsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-5xl lg:max-w-7xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-white">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-5xl lg:max-w-7xl p-0 overflow-hidden border-corp-blue-100 shadow-2xl rounded-none sm:rounded-2xl bg-white">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="flex items-center gap-6">
-            <div className="w-16 h-16 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100 text-emerald-600 font-bold text-2xl">
+            <div className="w-16 h-16 rounded-2xl bg-corp-blue-50 flex items-center justify-center border border-corp-blue-100 text-emerald-600 font-bold text-2xl">
               {supplier.name.substring(0, 2).toUpperCase()}
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-3">
-                <DialogTitle className="font-heading text-3xl font-bold tracking-tight">
+                <DialogTitle className="text-3xl font-bold tracking-tight">
                   {supplier.prefix} {supplier.name}
                 </DialogTitle>
-                <Badge variant="outline" className="border-forest-100 text-emerald-600 bg-forest-50/50 rounded-lg">
+                <Badge variant="outline" className="border-corp-blue-100 text-emerald-600 bg-corp-blue-50/50 rounded-lg">
                   {supplier.isactive ? "Actif" : "Inactif"}
                 </Badge>
               </div>
@@ -78,11 +78,11 @@ export function SupplierDetailsDialog({
 
         <div className="p-0">
           <Tabs defaultValue="profile" className="w-full">
-            <div className="px-8 bg-slate-50/50 border-b border-forest-100">
+            <div className="px-8 bg-slate-50/50 border-b border-corp-blue-100">
               <TabsList className="h-16 bg-transparent gap-8">
                 <TabsTrigger 
                   value="profile" 
-                  className="h-16 rounded-none border-b-2 border-transparent data-[state=active]:border-forest-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 font-bold text-sand-400 data-[state=active]:text-forest-900"
+                  className="h-16 rounded-none border-b-2 border-transparent data-[state=active]:border-corp-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 font-bold text-sand-400 data-[state=active]:text-corp-blue-900"
                 >
                   Profil & Contact
                 </TabsTrigger>
@@ -95,13 +95,13 @@ export function SupplierDetailsDialog({
                 <div className="md:col-span-2 space-y-8">
                   <div className="grid grid-cols-2 gap-8">
                     <div className="p-6 rounded-3xl bg-sand-50/50 border border-sand-100 space-y-4">
-                      <div className="flex items-center gap-2 text-forest-600 font-bold text-xs uppercase tracking-widest">
+                      <div className="flex items-center gap-2 text-corp-blue-600 font-bold text-xs uppercase tracking-widest">
                         <BadgeInfo className="w-4 h-4" /> Identité Fiscale
                       </div>
                       <div className="space-y-3">
                         <div>
                           <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Matricule Fiscal</div>
-                          <div className="font-mono font-bold text-forest-900">{supplier.taxregistrationnumber || "—"}</div>
+                          <div className="font-mono font-bold text-corp-blue-900">{supplier.taxregistrationnumber || "—"}</div>
                         </div>
                         <div>
                           <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Description</div>
@@ -111,22 +111,22 @@ export function SupplierDetailsDialog({
                     </div>
 
                     <div className="p-6 rounded-3xl bg-sand-50/50 border border-sand-100 space-y-4">
-                      <div className="flex items-center gap-2 text-forest-600 font-bold text-xs uppercase tracking-widest">
+                      <div className="flex items-center gap-2 text-corp-blue-600 font-bold text-xs uppercase tracking-widest">
                         <MapPin className="w-4 h-4" /> Localisation
                       </div>
                       <div className="space-y-4">
                         <div>
                           <div className="text-[0.6rem] text-sand-300 uppercase font-bold">Adresse</div>
-                          <div className="text-sm font-bold text-forest-900 leading-snug">
+                          <div className="text-sm font-bold text-corp-blue-900 leading-snug">
                             {supplier.address || "Adresse non renseignée"}
                           </div>
                         </div>
                         <div>
                           <div className="text-[0.6rem] text-sand-300 uppercase font-bold">Gouvernorat</div>
-                          <div className="text-sm font-bold text-forest-900">{govLabel}</div>
+                          <div className="text-sm font-bold text-corp-blue-900">{govLabel}</div>
                         </div>
                       </div>
-                      <Button variant="ghost" className="h-8 rounded-lg text-forest-600 hover:bg-forest-50 p-0 font-bold text-xs">
+                      <Button variant="ghost" className="h-8 rounded-lg text-corp-blue-600 hover:bg-corp-blue-50 p-0 font-bold text-xs">
                         Voir sur Maps <ArrowUpRight className="w-3 h-3 ml-1" />
                       </Button>
                     </div>
@@ -137,7 +137,7 @@ export function SupplierDetailsDialog({
                       <Phone className="w-32 h-32" />
                     </div>
                     <div className="relative z-10 space-y-6">
-                      <h4 className="font-heading font-bold text-xl">Contact Direct</h4>
+                      <h4 className="font-bold text-xl">Contact Direct</h4>
                       <div className="grid grid-cols-2 gap-8">
                         <div className="space-y-4">
                           <div className="flex items-center gap-3">
@@ -155,7 +155,7 @@ export function SupplierDetailsDialog({
                                 <Phone className="w-5 h-5" />
                               </div>
                               <div>
-                                <div className="text-[0.6rem] font-bold text-forest-400 uppercase tracking-widest">Bureau</div>
+                                <div className="text-[0.6rem] font-bold text-corp-blue-400 uppercase tracking-widest">Bureau</div>
                                 <div className="text-sm font-bold">{supplier.phonenumbertwo}</div>
                               </div>
                             </div>
@@ -167,7 +167,7 @@ export function SupplierDetailsDialog({
                               <Mail className="w-5 h-5" />
                             </div>
                             <div className="overflow-hidden">
-                              <div className="text-[0.6rem] font-bold text-forest-400 uppercase tracking-widest">E-mail</div>
+                              <div className="text-[0.6rem] font-bold text-corp-blue-400 uppercase tracking-widest">E-mail</div>
                               <div className="text-sm font-bold truncate">{supplier.email || "—"}</div>
                             </div>
                           </div>
@@ -176,7 +176,7 @@ export function SupplierDetailsDialog({
                               <User className="w-5 h-5" />
                             </div>
                             <div>
-                              <div className="text-[0.6rem] font-bold text-forest-400 uppercase tracking-widest">Représentant</div>
+                              <div className="text-[0.6rem] font-bold text-corp-blue-400 uppercase tracking-widest">Représentant</div>
                               <div className="text-sm font-bold truncate">{supplier.firstname} {supplier.lastname}</div>
                             </div>
                           </div>
@@ -194,7 +194,7 @@ export function SupplierDetailsDialog({
                     </div>
                     <div className="space-y-1">
                       <h4 className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest">Situation Financière</h4>
-                      <div className="text-3xl font-heading font-black text-forest-900">
+                      <div className="text-3xl font-black text-corp-blue-900">
                         {Math.abs(supplier.openingbalance).toLocaleString('fr-TN', { minimumFractionDigits: 3 })} <span className="text-sm font-bold">TND</span>
                       </div>
                       <div className={cn(
@@ -209,7 +209,7 @@ export function SupplierDetailsDialog({
                     <div className="pt-6 border-t border-sand-200 space-y-4">
                       <div className="flex items-center justify-between text-xs font-bold">
                         <span className="text-sand-400 uppercase">Dernier Achat</span>
-                        <span className="text-forest-900">12 Mai 2026</span>
+                        <span className="text-corp-blue-900">12 Mai 2026</span>
                       </div>
                       <div className="flex items-center justify-between text-xs font-bold">
                         <span className="text-sand-400 uppercase">Échéances en cours</span>
@@ -218,17 +218,17 @@ export function SupplierDetailsDialog({
                     </div>
                   </div>
 
-                  <div className="p-6 rounded-xl border border-forest-100 space-y-4">
-                    <div className="flex items-center gap-2 text-forest-600 font-bold text-xs uppercase tracking-widest">
+                  <div className="p-6 rounded-xl border border-corp-blue-100 space-y-4">
+                    <div className="flex items-center gap-2 text-corp-blue-600 font-bold text-xs uppercase tracking-widest">
                       <Building className="w-4 h-4" /> Banque & RIB
                     </div>
                     {supplier.bankname ? (
                       <div className="space-y-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-forest-50 flex items-center justify-center text-forest-600 font-black text-[0.6rem]">
+                          <div className="w-8 h-8 rounded-lg bg-corp-blue-50 flex items-center justify-center text-corp-blue-600 font-black text-[0.6rem]">
                             {supplier.bankname.substring(0, 3)}
                           </div>
-                          <div className="text-sm font-bold text-forest-900">{supplier.bankname}</div>
+                          <div className="text-sm font-bold text-corp-blue-900">{supplier.bankname}</div>
                         </div>
                         <div className="p-3 bg-sand-50 rounded-xl font-mono text-[0.7rem] text-sand-600 break-all leading-tight">
                           {supplier.bankaccountnumber || "RIB NON RENSEIGNÉ"}

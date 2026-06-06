@@ -138,11 +138,11 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
   }, [instruments, selectedIds]);
 
   return (
-    <Card className="border-forest-100/50 bg-white shadow-none rounded-xl overflow-hidden">
+    <Card className="border-corp-blue-100/50 bg-white shadow-none rounded-xl overflow-hidden">
       <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4">
         <div>
-          <CardTitle className="text-xl font-heading font-bold text-forest-900 flex items-center gap-2">
-            <Wallet className="w-5 h-5 text-forest-600" />
+          <CardTitle className="text-xl font-bold text-corp-blue-900 flex items-center gap-2">
+            <Wallet className="w-5 h-5 text-corp-blue-600" />
             Portefeuille Instruments {side === 'Customer' ? '(Clients)' : side === 'Supplier' ? '(Fournisseurs)' : '(Chèques / Traites)'}
           </CardTitle>
           <CardDescription className="text-sand-400 font-medium">
@@ -174,13 +174,13 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
       </CardHeader>
       
       <CardContent className="p-0">
-        <div className="px-6 py-4 border-b border-forest-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="px-6 py-4 border-b border-corp-blue-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <Tabs value={tab} onValueChange={(val) => handleTabChange(val as 'pending' | 'versed')} className="w-full md:w-auto">
             <TabsList className="bg-sand-50/50 p-1 rounded-xl">
-              <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-forest-900 data-[state=active]:shadow-sm font-bold text-sm px-6">
+              <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-corp-blue-900 data-[state=active]:shadow-sm font-bold text-sm px-6">
                 En portefeuille
               </TabsTrigger>
-              <TabsTrigger value="versed" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-forest-900 data-[state=active]:shadow-sm font-bold text-sm px-6">
+              <TabsTrigger value="versed" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-corp-blue-900 data-[state=active]:shadow-sm font-bold text-sm px-6">
                 Remis en banque
               </TabsTrigger>
             </TabsList>
@@ -211,12 +211,12 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
 
         {isLoading ? (
           <div className="p-16 flex items-center justify-center text-sand-300">
-            <Loader2 className="w-8 h-8 animate-spin text-forest-600 mr-2" />
+            <Loader2 className="w-8 h-8 animate-spin text-corp-blue-600 mr-2" />
             Chargement des instruments...
           </div>
         ) : instruments.length === 0 ? (
           <div className="p-16 text-center">
-            <div className="w-12 h-12 rounded-full bg-forest-50 text-forest-600 flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 rounded-full bg-corp-blue-50 text-corp-blue-600 flex items-center justify-center mx-auto mb-3">
               <CreditCard className="w-6 h-6" />
             </div>
             <p className="text-sm font-bold text-sand-400">Aucun instrument trouvé dans ce dossier.</p>
@@ -225,7 +225,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-forest-50/50 bg-forest-50/10">
+                <tr className="border-b border-corp-blue-50/50 bg-corp-blue-50/10">
                   {(tab === 'pending' || (tab === 'versed' && side === 'Supplier')) && (
                     <th className="px-6 py-4 w-12">
                       <Checkbox 
@@ -247,9 +247,9 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-forest-50/20">
+              <tbody className="divide-y divide-corp-blue-50/20">
                 {paginatedInstruments.map((inst) => (
-                  <tr key={inst.id} className="hover:bg-forest-50/20 transition-all">
+                  <tr key={inst.id} className="hover:bg-corp-blue-50/20 transition-all">
                     {(tab === 'pending' || (tab === 'versed' && side === 'Supplier')) && (
                       <td className="px-6 py-4">
                         {(tab === 'pending' || inst.bankSettlementStatus === 'VERSED') && (
@@ -263,17 +263,17 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
                     )}
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <Badge variant="outline" className="w-fit text-[0.65rem] font-bold uppercase mb-1 border-forest-100 text-forest-700 bg-forest-50/50">
+                        <Badge variant="outline" className="w-fit text-[0.65rem] font-bold uppercase mb-1 border-corp-blue-100 text-corp-blue-700 bg-corp-blue-50/50">
                           {inst.type}
                         </Badge>
-                        <span className="text-sm font-bold text-forest-900">{inst.instrumentNumber}</span>
+                        <span className="text-sm font-bold text-corp-blue-900">{inst.instrumentNumber}</span>
                         <span className="text-xs font-medium text-sand-400">{inst.bank}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-forest-900">{inst.customerName || 'N/A'}</span>
-                        <span className="text-xs font-bold text-forest-600/70">{inst.documentNumber}</span>
+                        <span className="text-sm font-bold text-corp-blue-900">{inst.customerName || 'N/A'}</span>
+                        <span className="text-xs font-bold text-corp-blue-600/70">{inst.documentNumber}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -289,7 +289,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="text-sm font-black text-forest-950">
+                      <span className="text-sm font-black text-corp-blue-950">
                         {inst.amount.toFixed(3)}
                       </span>
                       <span className="text-[0.65rem] font-bold text-sand-400 ml-1">TND</span>
@@ -297,7 +297,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
                     {tab === 'versed' && (
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">
-                          <span className="text-xs font-black text-forest-800 bg-forest-100 px-2 py-1 rounded w-fit border border-forest-200">
+                          <span className="text-xs font-black text-corp-blue-800 bg-corp-blue-100 px-2 py-1 rounded w-fit border border-corp-blue-200">
                             {inst.bordereauReference || '-'}
                           </span>
                           <span className="text-[0.65rem] font-bold uppercase tracking-wider text-sand-400">
@@ -311,7 +311,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
               </tbody>
             </table>
             
-            <div className="border-t border-forest-50 p-4">
+            <div className="border-t border-corp-blue-50 p-4">
           <TablePagination
             currentPage={page}
             totalItems={filteredInstruments.length}
@@ -329,36 +329,36 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
 
       {/* Bordereau Creation Modal */}
       <Dialog open={isBordereauModalOpen} onOpenChange={setIsBordereauModalOpen}>
-        <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden border-forest-100 rounded-xl">
+        <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden border-corp-blue-100 rounded-xl">
           <DialogHeader className="p-6 pb-0">
-            <DialogTitle className="text-2xl font-heading font-bold text-forest-900">
+            <DialogTitle className="text-2xl font-bold text-corp-blue-900">
               {side === 'Supplier' ? 'Décaisser les Paiements' : 'Créer un Bordereau'}
             </DialogTitle>
             <DialogDescription className="text-sand-400 font-medium">
-              {side === 'Supplier' ? 'Décaissement de ' : 'Remise en banque de '}{selectedIds.length} instrument(s) pour un total de <strong className="text-forest-700">{selectedTotal.toFixed(3)} TND</strong>.
+              {side === 'Supplier' ? 'Décaissement de ' : 'Remise en banque de '}{selectedIds.length} instrument(s) pour un total de <strong className="text-corp-blue-700">{selectedTotal.toFixed(3)} TND</strong>.
             </DialogDescription>
             {nextReference && side !== 'Supplier' && (
-              <div className="mt-3 bg-forest-50/50 border border-forest-100 rounded-lg p-3 flex items-center justify-between">
-                <span className="text-xs font-bold text-forest-800 uppercase tracking-wider">Référence Générée</span>
-                <span className="text-sm font-black text-forest-950 bg-white px-2 py-1 rounded shadow-sm">{nextReference}</span>
+              <div className="mt-3 bg-corp-blue-50/50 border border-corp-blue-100 rounded-lg p-3 flex items-center justify-between">
+                <span className="text-xs font-bold text-corp-blue-800 uppercase tracking-wider">Référence Générée</span>
+                <span className="text-sm font-black text-corp-blue-950 bg-white px-2 py-1 rounded shadow-sm">{nextReference}</span>
               </div>
             )}
           </DialogHeader>
 
           <div className="p-6 space-y-5">
             <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-sand-500">
+              <Label className="text-sm font-medium text-sand-500">
                 Compte Bancaire Cible
               </Label>
               <Select value={selectedBankId} onValueChange={(val: string | null) => setSelectedBankId(val as string)}>
-                <SelectTrigger className="h-12 rounded-xl border-forest-100 focus:ring-forest-600/20 focus:border-forest-600">
+                <SelectTrigger className="h-12 rounded-xl border-corp-blue-100 focus:ring-corp-blue-600/20 focus:border-corp-blue-600">
                   <SelectValue placeholder="Sélectionnez une banque">
                     {selectedBankId 
                       ? `${banks.find(b => b.id.toString() === selectedBankId)?.designation || ''} - ${banks.find(b => b.id.toString() === selectedBankId)?.rib || ''}` 
                       : "Sélectionnez une banque"}
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-forest-100">
+                <SelectContent className="rounded-xl border-corp-blue-100">
                   {banks.map((b) => (
                     <SelectItem key={b.id} value={b.id.toString()} className="font-medium rounded-lg">
                       {b.designation} - {b.rib}
@@ -369,23 +369,23 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-sand-500">
+              <Label className="text-sm font-medium text-sand-500">
                 Notes / Référence Externe
               </Label>
               <Input 
                 value={notes} 
                 onChange={e => setNotes(e.target.value)}
                 placeholder="Ex: Bordereau apporté par Jean"
-                className="h-12 rounded-xl border-forest-100 focus:ring-forest-600/20 focus:border-forest-600 placeholder:text-sand-300"
+                className="h-12 rounded-xl border-corp-blue-100 focus:ring-corp-blue-600/20 focus:border-corp-blue-600 placeholder:text-sand-300"
               />
             </div>
           </div>
 
-          <DialogFooter className="p-6 pt-0 bg-sand-50/30 flex justify-end gap-3 border-t border-forest-50/50 mt-4">
+          <DialogFooter className="p-6 pt-0 bg-sand-50/30 flex justify-end gap-3 border-t border-corp-blue-50/50 mt-4">
             <Button 
               variant="outline" 
               onClick={() => { setIsBordereauModalOpen(false); setNextReference(null); }}
-              className="h-11 px-6 rounded-xl font-bold border-forest-100 text-forest-600 hover:bg-forest-50"
+              className="h-11 px-6 rounded-xl font-bold border-corp-blue-100 text-corp-blue-600 hover:bg-corp-blue-50"
             >
               Annuler
             </Button>

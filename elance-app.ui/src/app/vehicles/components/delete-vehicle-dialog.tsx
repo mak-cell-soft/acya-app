@@ -31,18 +31,18 @@ export function DeleteVehicleDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md p-0 overflow-hidden border-forest-100 shadow-2xl rounded-2xl bg-white">
+      <DialogContent className="max-w-md p-0 overflow-hidden border-corp-blue-100 shadow-2xl rounded-2xl bg-white">
         <div className="p-8 space-y-6">
           <div className="w-16 h-16 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 mx-auto">
             <Trash2 className="w-8 h-8" />
           </div>
           
           <div className="text-center space-y-2">
-            <DialogTitle className="font-heading text-2xl font-bold text-forest-900 tracking-tight">
+            <DialogTitle className="text-2xl font-bold text-corp-blue-900 tracking-tight">
               Supprimer le véhicule ?
             </DialogTitle>
             <DialogDescription className="text-sand-400 font-medium px-4">
-              Vous êtes sur le point de supprimer <span className="text-forest-900 font-bold">{vehicle.brand} ({vehicle.serialnumber})</span>.
+              Vous êtes sur le point de supprimer <span className="text-corp-blue-900 font-bold">{vehicle.brand} ({vehicle.serialnumber})</span>.
               Cette action retirera le véhicule de la liste active.
             </DialogDescription>
           </div>
@@ -55,7 +55,7 @@ export function DeleteVehicleDialog({
           </div>
         </div>
 
-        <DialogFooter className="p-6 bg-sand-50 border-t border-forest-50 gap-3">
+        <DialogFooter className="p-6 bg-sand-50 border-t border-corp-blue-50 gap-3">
           <Button 
             type="button" 
             variant="ghost" 

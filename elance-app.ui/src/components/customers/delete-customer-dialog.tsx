@@ -33,16 +33,16 @@ export function DeleteCustomerDialog({
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent className="rounded-2xl border-rose-100 shadow-2xl">
         <AlertDialogHeader>
-          <AlertDialogTitle className="font-heading text-2xl font-bold text-forest-900">
+          <AlertDialogTitle className="text-2xl font-bold text-corp-blue-900">
             Supprimer le client ?
           </AlertDialogTitle>
           <AlertDialogDescription className="text-sand-500 font-medium pt-2">
-            Êtes-vous sûr de vouloir supprimer <span className="font-bold text-forest-900">{customer.firstname} {customer.lastname}</span> ? 
+            Êtes-vous sûr de vouloir supprimer <span className="font-bold text-corp-blue-900">{customer.firstname} {customer.lastname}</span> ? 
             Cette action est irréversible et supprimera toutes les données associées.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="pt-6">
-          <AlertDialogCancel onClick={onClose} className="rounded-xl font-bold border-forest-50 text-sand-400">
+          <AlertDialogCancel onClick={onClose} className="rounded-xl font-bold border-corp-blue-50 text-sand-400">
             Annuler
           </AlertDialogCancel>
           <AlertDialogAction 

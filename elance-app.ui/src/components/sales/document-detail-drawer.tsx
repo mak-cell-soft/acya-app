@@ -154,7 +154,7 @@ export function DocumentDetailDrawer({
           className="relative w-full max-w-4xl h-full bg-white shadow-2xl flex flex-col z-10 border-l border-sand-100"
         >
           {/* Header */}
-          <div className="px-6 py-5 bg-forest-950 text-white flex items-center justify-between border-b border-forest-900">
+          <div className="px-6 py-5 bg-corp-blue-950 text-white flex items-center justify-between border-b border-corp-blue-900">
             <div className="space-y-1">
               <div className="flex items-center gap-3">
                 <span className="text-xs uppercase font-bold tracking-widest text-sand-400">
@@ -162,7 +162,7 @@ export function DocumentDetailDrawer({
                 </span>
                 {doc && getStatusBadge(doc.docstatus)}
               </div>
-              <h2 className="text-2xl font-serif tracking-wide text-sand-100">
+              <h2 className="text-2xl tracking-wide text-sand-100">
                 {doc ? doc.docnumber || 'Brouillon' : 'Chargement...'}
               </h2>
             </div>
@@ -171,7 +171,7 @@ export function DocumentDetailDrawer({
                 <Button
                   onClick={handlePrint}
                   variant="ghost"
-                  className="text-sand-100 hover:bg-forest-900 hover:text-white"
+                  className="text-sand-100 hover:bg-corp-blue-900 hover:text-white"
                 >
                   <Printer className="w-4 h-4 mr-2" /> Imprimer
                 </Button>
@@ -180,7 +180,7 @@ export function DocumentDetailDrawer({
                 onClick={onClose}
                 variant="ghost"
                 size="icon"
-                className="text-sand-300 hover:bg-forest-900 hover:text-white "
+                className="text-sand-300 hover:bg-corp-blue-900 hover:text-white "
               >
                 <X className="w-5 h-5" />
               </Button>
@@ -191,7 +191,7 @@ export function DocumentDetailDrawer({
           <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-[#fcfbfa]">
             {loading ? (
               <div className="flex flex-col items-center justify-center h-64 space-y-4">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-forest-600"></div>
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-corp-blue-600"></div>
                 <p className="text-xs text-sand-400 font-bold uppercase tracking-widest">
                   Chargement des détails...
                 </p>
@@ -250,7 +250,7 @@ export function DocumentDetailDrawer({
                   {/* Client Info Card */}
                   <Card className="rounded-[20px] border-sand-200/80 shadow-xs bg-white">
                     <CardContent className="p-6 space-y-4">
-                      <div className="flex items-center gap-2 text-forest-800 font-serif">
+                      <div className="flex items-center gap-2 text-corp-blue-800">
                         <User className="w-5 h-5 text-sand-500" />
                         <span className="font-bold text-lg">Informations Client</span>
                       </div>
@@ -283,7 +283,7 @@ export function DocumentDetailDrawer({
                   {/* Document Params Card */}
                   <Card className="rounded-[20px] border-sand-200/80 shadow-xs bg-white">
                     <CardContent className="p-6 space-y-4">
-                      <div className="flex items-center gap-2 text-forest-800 font-serif">
+                      <div className="flex items-center gap-2 text-corp-blue-800">
                         <FileText className="w-5 h-5 text-sand-500" />
                         <span className="font-bold text-lg">Paramètres Transaction</span>
                       </div>
@@ -333,7 +333,7 @@ export function DocumentDetailDrawer({
 
                 {/* Items Grid Table */}
                 <div className="space-y-3">
-                  <h3 className="font-serif font-bold text-lg text-forest-950 px-1">Lignes Articles</h3>
+                  <h3 className="font-bold text-lg text-corp-blue-950 px-1">Lignes Articles</h3>
                   <div className="border border-sand-200/80 rounded-[20px] overflow-hidden bg-white shadow-xs">
                     <table className="w-full border-collapse text-left text-sm">
                       <thead>
@@ -411,7 +411,7 @@ export function DocumentDetailDrawer({
                   <div className="md:col-span-6 space-y-4">
                     {doc.description && (
                       <Card className="rounded-[20px] border-sand-200/60 shadow-xs bg-white p-6">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-sand-400 mb-2">
+                        <h4 className="text-sm font-medium text-sand-400 mb-2">
                           Notes / Observations
                         </h4>
                         <p className="text-sm text-sand-700 leading-relaxed font-sans">{doc.description}</p>
@@ -421,7 +421,7 @@ export function DocumentDetailDrawer({
 
                   {/* Calculations Sheet */}
                   <div className="md:col-span-6 border border-sand-200/80 rounded-xl overflow-hidden bg-white shadow-xs p-6 space-y-4">
-                    <h3 className="font-serif font-bold text-lg text-forest-950 border-b border-sand-100 pb-2">
+                    <h3 className="font-bold text-lg text-corp-blue-950 border-b border-sand-100 pb-2">
                       Détail Financier
                     </h3>
                     <div className="space-y-3">
@@ -467,9 +467,9 @@ export function DocumentDetailDrawer({
                       <Separator className="bg-sand-200 mt-2" />
  
                       {/* Final Net Payable */}
-                      <div className="flex justify-between items-center text-forest-950 font-serif pt-2">
+                      <div className="flex justify-between items-center text-corp-blue-950 pt-2">
                         <span className="text-base font-bold">Net à Payer (TTC):</span>
-                        <span className="text-2xl font-bold font-mono text-forest-800">
+                        <span className="text-2xl font-bold font-mono text-corp-blue-800">
                           {formatMoney(doc.total_net_payable || doc.total_net_ttc || 0, doc.currency)}
                         </span>
                       </div>

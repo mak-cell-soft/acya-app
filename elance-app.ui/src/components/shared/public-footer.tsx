@@ -21,7 +21,7 @@ export function PublicFooter() {
               <span className="w-1.5 h-1.5 rounded-full bg-corp-cyan animate-pulse" />
               Optimisez votre rentabilité
             </div>
-            <h3 className="font-heading text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
               Prêt à propulser votre entreprise ?
             </h3>
             <p className="text-[0.95rem] text-slate-600 max-w-[580px] leading-relaxed font-semibold">
@@ -105,7 +105,7 @@ export function PublicFooter() {
                   </linearGradient>
                 </defs>
               </svg>
-              <span className="text-2xl font-heading font-bold text-slate-800 tracking-tight">Élancé</span>
+              <span className="text-2xl font-bold text-slate-800 tracking-tight">Élancé</span>
             </Link>
             <p className="text-[0.9rem] leading-relaxed text-slate-500 max-w-[280px] font-semibold">
               L'ERP de nouvelle génération spécialisé pour le secteur bois, matériaux, négoce et construction. Propulsé par ACYA Consulting.

@@ -82,16 +82,10 @@ export function HeroSection() {
           animate="visible"
           className="lg:col-span-6 space-y-8 text-center lg:text-left"
         >
-          {/* Animated v2.0 Launch Tag */}
-          <motion.div variants={itemVariants} className="inline-flex">
-            <span className="inline-flex items-center gap-2 bg-corp-blue-500/10 border border-corp-blue-500/20 rounded-full px-4.5 py-1.5 text-xs font-bold tracking-wide text-corp-blue-700 uppercase shadow-sm">
-              <Sparkles size={14} className="text-corp-cyan animate-spin duration-[4000ms]" />
-              ERP Métier Bois & Négoce v2.0
-            </span>
-          </motion.div>
+
 
           {/* Majestic Heading with Dual-Tone Gradients */}
-          <motion.h1 variants={itemVariants} className="font-heading text-[2.6rem] sm:text-[3.2rem] md:text-[3.8rem] lg:text-[4rem] leading-[1.1] text-slate-900 font-extrabold tracking-tight">
+          <motion.h1 variants={itemVariants} className="text-[2.6rem] sm:text-[3.2rem] md:text-[3.8rem] lg:text-[4rem] leading-[1.1] text-slate-900 font-extrabold tracking-tight">
             Propulsez la gestion de votre négoce et <span className="bg-gradient-to-r from-corp-blue-600 via-corp-blue-700 to-corp-cyan bg-clip-text text-transparent">vos chantiers</span>
           </motion.h1>
 
@@ -277,10 +271,7 @@ export function HeroSection() {
                     alt="Élancé ERP Tableau de Bord"
                     className="w-full h-full object-cover rounded-2xl border border-slate-200/60 shadow-md group-hover/img:scale-[1.015] transition-transform duration-700 ease-out"
                   />
-                  <div className="absolute bottom-6 right-6 z-20 bg-slate-900/90 backdrop-blur-md text-white rounded-xl px-4 py-2 text-[0.68rem] font-bold shadow-lg border border-slate-800 flex items-center gap-2 pointer-events-none opacity-0 group-hover/img:opacity-100 transition-opacity duration-300">
-                    <Sparkles size={12} className="text-corp-cyan" />
-                    ACYA Consulting Concept
-                  </div>
+
                 </motion.div>
               )}
             </AnimatePresence>

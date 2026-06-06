@@ -305,7 +305,7 @@ export function CustomerBatchConversionModal({
     if (loadingBls) {
       return (
         <div className="flex flex-col items-center justify-center py-20 space-y-2">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-forest-600"></div>
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-corp-blue-600"></div>
           <p className="text-xs text-sand-400 font-medium">Chargement des BLs...</p>
         </div>
       );
@@ -348,10 +348,10 @@ export function CustomerBatchConversionModal({
                   <button
                     type="button"
                     onClick={() => toggleSelectBl(bl.id)}
-                    className="text-forest-750 focus:outline-none"
+                    className="text-corp-blue-750 focus:outline-none"
                   >
                     {isChecked ? (
-                      <CheckSquare className="w-4 h-4 text-forest-800" />
+                      <CheckSquare className="w-4 h-4 text-corp-blue-800" />
                     ) : (
                       <Square className="w-4 h-4 text-sand-300" />
                     )}
@@ -399,12 +399,12 @@ export function CustomerBatchConversionModal({
           className="relative w-full max-w-4xl bg-white rounded-xl shadow-2xl overflow-hidden border border-sand-100 z-10 flex flex-col max-h-[90vh]"
         >
           {/* Header */}
-          <div className="px-6 py-5 bg-forest-950 text-white flex items-center justify-between">
+          <div className="px-6 py-5 bg-corp-blue-950 text-white flex items-center justify-between">
             <div className="space-y-0.5">
               <span className="text-[10px] font-bold tracking-widest uppercase text-sand-400">
                 Facturation Groupée
               </span>
-              <h2 className="text-xl font-serif text-sand-100">
+              <h2 className="text-xl text-sand-100">
                 Générer Facture Groupée de la Journée
               </h2>
             </div>
@@ -412,7 +412,7 @@ export function CustomerBatchConversionModal({
               onClick={onClose}
               variant="ghost"
               size="icon"
-              className="text-sand-300 hover:bg-forest-900 hover:text-white "
+              className="text-sand-300 hover:bg-corp-blue-900 hover:text-white "
             >
               <X className="w-5 h-5" />
             </Button>
@@ -430,7 +430,7 @@ export function CustomerBatchConversionModal({
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="h-10 rounded-xl border-sand-200 focus:ring-forest-800 bg-white text-xs font-medium text-sand-800"
+                  className="h-10 rounded-xl border-sand-200 focus:ring-corp-blue-800 bg-white text-xs font-medium text-sand-800"
                 />
               </div>
 
@@ -451,7 +451,7 @@ export function CustomerBatchConversionModal({
                     }}
                     onFocus={() => setIsCustomerDropdownOpen(true)}
                     placeholder="Choisir ou rechercher le client à facturer..."
-                    className="pl-9 pr-8 h-10 rounded-xl border-sand-200 focus:ring-forest-800 bg-white text-xs font-medium text-sand-800"
+                    className="pl-9 pr-8 h-10 rounded-xl border-sand-200 focus:ring-corp-blue-800 bg-white text-xs font-medium text-sand-800"
                   />
                   {(selectedCustomerId || customerSearchQuery) && (
                     <button
@@ -485,7 +485,7 @@ export function CustomerBatchConversionModal({
                             className={cn(
                               "w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-between",
                               isSelected
-                                ? "bg-forest-800 text-white"
+                                ? "bg-corp-blue-800 text-white"
                                 : "text-sand-800 hover:bg-sand-50"
                             )}
                             onClick={() => {
@@ -498,7 +498,7 @@ export function CustomerBatchConversionModal({
                             {cust.phonenumberone && (
                               <span className={cn(
                                 "text-[10px]",
-                                isSelected ? "text-forest-200" : "text-sand-400"
+                                isSelected ? "text-corp-blue-200" : "text-sand-400"
                               )}>
                                 {cust.phonenumberone}
                               </span>
@@ -519,13 +519,13 @@ export function CustomerBatchConversionModal({
               {/* Delivery Notes Grid */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-serif font-bold text-base text-forest-950">Bons de livraison non-facturés</h3>
+                  <h3 className="font-bold text-base text-corp-blue-950">Bons de livraison non-facturés</h3>
                   {nonInvoicedBls.length > 0 && (
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={handleSelectAll}
-                      className="text-xs text-forest-800 font-bold hover:bg-forest-50"
+                      className="text-xs text-corp-blue-800 font-bold hover:bg-corp-blue-50"
                     >
                       {selectedBlIds.length === nonInvoicedBls.length
                         ? 'Tout désélectionner'
@@ -542,7 +542,7 @@ export function CustomerBatchConversionModal({
 
             {/* Right Column: Invoice config & financial summary (5 cols) */}
             <div className="lg:col-span-5 space-y-6 border-l border-sand-100 pl-6">
-              <h3 className="font-serif font-bold text-base text-forest-950 border-b border-sand-100 pb-1.5">
+              <h3 className="font-bold text-base text-corp-blue-950 border-b border-sand-100 pb-1.5">
                 Paramètres de la Facture
               </h3>
 
@@ -630,7 +630,7 @@ export function CustomerBatchConversionModal({
                         setDiscountPercent(isNaN(val) ? 0 : Math.min(100, Math.max(0, val)));
                       }}
                       placeholder="0.0%"
-                      className="pl-9 text-right font-mono h-10 rounded-xl border-sand-200 focus:ring-forest-800 bg-white text-xs font-medium text-sand-800"
+                      className="pl-9 text-right font-mono h-10 rounded-xl border-sand-200 focus:ring-corp-blue-800 bg-white text-xs font-medium text-sand-800"
                     />
                   </div>
                 </div>
@@ -641,7 +641,7 @@ export function CustomerBatchConversionModal({
                     id="round-ttc-option"
                     checked={isRounded}
                     onChange={(e) => setIsRounded(e.target.checked)}
-                    className="rounded border-sand-300 text-forest-800 focus:ring-forest-800 h-4 w-4 accent-forest-800 cursor-pointer"
+                    className="rounded border-sand-300 text-corp-blue-800 focus:ring-corp-blue-800 h-4 w-4 accent-corp-blue-800 cursor-pointer"
                   />
                   <label htmlFor="round-ttc-option" className="text-xs font-bold text-sand-700 cursor-pointer select-none">
                     Arrondir le Net à Payer (TTC)
@@ -662,7 +662,7 @@ export function CustomerBatchConversionModal({
 
               {/* Calculations board */}
               <Card className="rounded-[20px] border-sand-200 shadow-xs bg-white p-5 space-y-3 font-mono text-xs">
-                <h4 className="font-serif font-bold text-sm text-forest-950 border-b border-sand-50 pb-1.5">
+                <h4 className="font-bold text-sm text-corp-blue-950 border-b border-sand-50 pb-1.5">
                   Synthèse Financière
                 </h4>
                 <div className="space-y-2 text-sand-600">
@@ -702,9 +702,9 @@ export function CustomerBatchConversionModal({
                     </div>
                   )}
                   <Separator className="bg-sand-100 my-1" />
-                  <div className="flex justify-between items-center text-forest-950 font-serif text-sm pt-1">
+                  <div className="flex justify-between items-center text-corp-blue-950 text-sm pt-1">
                     <span className="font-bold">Net à Payer (TTC):</span>
-                    <span className="text-base font-bold font-mono text-forest-800">
+                    <span className="text-base font-bold font-mono text-corp-blue-800">
                       {finalNetPayable.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT
                     </span>
                   </div>
@@ -727,7 +727,7 @@ export function CustomerBatchConversionModal({
               type="submit"
               disabled={submitting || selectedBlIds.length === 0}
               onClick={handleConvert}
-              className="bg-forest-950 hover:bg-forest-900 text-white shadow-md min-w-[150px] text-xs font-bold"
+              className="bg-corp-blue-950 hover:bg-corp-blue-900 text-white shadow-md min-w-[150px] text-xs font-bold"
             >
               {submitting ? 'Génération...' : `Générer Facture (${selectedBlIds.length} BL)`}
             </Button>

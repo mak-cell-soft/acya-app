@@ -28,10 +28,10 @@ export function Breadcrumbs() {
   if (segments.length === 0) return null;
 
   return (
-    <nav className="flex items-center gap-2 text-[0.7rem] font-bold uppercase tracking-[0.15em] text-sand-400 mb-6">
+    <nav className="flex items-center gap-2 text-sm font-medium text-sand-400 mb-6">
       <Link 
         href="/dashboard" 
-        className="flex items-center gap-1.5 hover:text-forest-600 transition-colors"
+        className="flex items-center gap-1.5 hover:text-corp-blue-600 transition-colors"
       >
         <Home className="w-3 h-3" />
         Élancé
@@ -47,13 +47,13 @@ export function Breadcrumbs() {
 
         return (
           <React.Fragment key={href}>
-            <ChevronRight className="w-3 h-3 text-forest-100" />
+            <ChevronRight className="w-3 h-3 text-corp-blue-100" />
             {isLast ? (
-              <span className="text-forest-900">{label}</span>
+              <span className="text-corp-blue-900">{label}</span>
             ) : (
               <Link 
                 href={href} 
-                className="hover:text-forest-600 transition-colors"
+                className="hover:text-corp-blue-600 transition-colors"
               >
                 {label}
               </Link>

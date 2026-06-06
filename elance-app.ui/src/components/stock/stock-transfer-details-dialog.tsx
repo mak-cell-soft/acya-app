@@ -142,7 +142,7 @@ export function StockTransferDetailsDialog({
       <DialogContent className="sm:max-w-[720px] max-h-[90vh] overflow-y-auto bg-stone-50 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-2xl rounded-2xl p-6">
         <DialogHeader className="border-b border-stone-200/40 dark:border-stone-800/40 pb-4 mb-4">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-serif font-bold text-stone-900 dark:text-stone-50">
+            <DialogTitle className="text-xl font-bold text-stone-900 dark:text-stone-50">
               Détails du Transfert
             </DialogTitle>
             {transfer && (
@@ -167,7 +167,7 @@ export function StockTransferDetailsDialog({
         {loading ? (
           <div className="py-12 flex justify-center items-center space-x-2">
             <Loader2 className="h-5 w-5 animate-spin text-amber-500" />
-            <span className="text-sm font-medium text-stone-600 dark:text-stone-400 font-serif">Chargement des articles...</span>
+            <span className="text-sm font-medium text-stone-600 dark:text-stone-400">Chargement des articles...</span>
           </div>
         ) : (
           <div className="space-y-6">

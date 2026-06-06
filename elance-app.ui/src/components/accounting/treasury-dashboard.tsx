@@ -148,14 +148,14 @@ export function TreasuryDashboard() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-slate-100 pb-6">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="p-2 bg-forest-950/10 text-forest-900 rounded-xl">
+            <span className="p-2 bg-corp-blue-950/10 text-corp-blue-900 rounded-xl">
               <Landmark className="w-5 h-5" />
             </span>
-            <span className="text-[10px] font-bold tracking-widest text-forest-800 uppercase font-mono">
+            <span className="text-[10px] font-bold tracking-widest text-corp-blue-800 uppercase font-mono">
               Dashboard
             </span>
           </div>
-          <h1 className="text-3xl font-serif font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
             Trésorerie & Banques
           </h1>
           <p className="text-sm font-medium text-slate-500 max-w-2xl leading-relaxed">
@@ -215,7 +215,7 @@ export function TreasuryDashboard() {
             </div>
             <Button
               onClick={() => setIsDepositDialogOpen(true)}
-              className="w-full h-10 bg-forest-50 hover:bg-forest-100 text-forest-900 border border-forest-200/50 rounded-xl font-bold text-xs gap-2 transition-all shadow-sm"
+              className="w-full h-10 bg-corp-blue-50 hover:bg-corp-blue-100 text-corp-blue-900 border border-corp-blue-200/50 rounded-xl font-bold text-xs gap-2 transition-all shadow-sm"
             >
               <Coins className="w-4 h-4 text-amber-500" />
               Verser en Banque
@@ -224,12 +224,12 @@ export function TreasuryDashboard() {
 
           {/* Card 2: Caisses Points de Vente */}
           <Card className="rounded-xl border-slate-150 shadow-sm bg-white p-6 space-y-4 border relative overflow-hidden group hover:shadow-md transition-all duration-300">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-forest-900/5 rounded-full -mr-8 -mt-8 transition-transform duration-500 group-hover:scale-110" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-corp-blue-900/5 rounded-full -mr-8 -mt-8 transition-transform duration-500 group-hover:scale-110" />
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">
                 Caisses Points de Vente
               </span>
-              <span className="p-1.5 bg-forest-50 text-forest-900 rounded-lg">
+              <span className="p-1.5 bg-corp-blue-50 text-corp-blue-900 rounded-lg">
                 <Store className="w-4 h-4" />
               </span>
             </div>
@@ -243,17 +243,17 @@ export function TreasuryDashboard() {
               </h3>
               <p className="text-[10px] text-slate-400 font-medium">Total des liquidités dans les boutiques</p>
             </div>
-            <div className="pt-2 text-[10px] text-forest-800 font-semibold flex items-center gap-1">
+            <div className="pt-2 text-[10px] text-corp-blue-800 font-semibold flex items-center gap-1">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Mise à jour en temps réel des terminaux
             </div>
           </Card>
 
           {/* Card 3: Total en Banque */}
-          <Card className="rounded-xl border-forest-200/50 shadow-sm bg-forest-50 text-forest-900 p-6 space-y-4 border relative overflow-hidden group hover:shadow-lg hover:shadow-forest-200/30 transition-all duration-300">
+          <Card className="rounded-xl border-corp-blue-200/50 shadow-sm bg-corp-blue-50 text-corp-blue-900 p-6 space-y-4 border relative overflow-hidden group hover:shadow-lg hover:shadow-corp-blue-200/30 transition-all duration-300">
             <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -mr-8 -mt-8 transition-transform duration-500 group-hover:scale-110" />
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-forest-600 uppercase tracking-widest font-mono">
+              <span className="text-[10px] font-bold text-corp-blue-600 uppercase tracking-widest font-mono">
                 Disponibilités en Banque
               </span>
               <span className="p-1.5 bg-amber-100/50 text-amber-600 rounded-lg">
@@ -263,14 +263,14 @@ export function TreasuryDashboard() {
             <div className="space-y-1">
               <h3 className="text-2xl font-mono font-extrabold text-amber-600 tracking-tight">
                 {isLoadingBanks ? (
-                  <span className="inline-block w-24 h-6 bg-forest-200 animate-pulse rounded" />
+                  <span className="inline-block w-24 h-6 bg-corp-blue-200 animate-pulse rounded" />
                 ) : (
                   formatCurrency(totalBankBalances)
                 )}
               </h3>
-              <p className="text-[10px] text-forest-600 font-medium">Avoir global sur l'ensemble des comptes</p>
+              <p className="text-[10px] text-corp-blue-600 font-medium">Avoir global sur l'ensemble des comptes</p>
             </div>
-            <div className="pt-2 text-[10px] text-forest-600 font-medium border-t border-forest-200/50 mt-2">
+            <div className="pt-2 text-[10px] text-corp-blue-600 font-medium border-t border-corp-blue-200/50 mt-2">
               Comptabilisation des versements validés
             </div>
           </Card>
@@ -281,8 +281,8 @@ export function TreasuryDashboard() {
           {/* Left: Site Caisses Breakdown */}
           <Card className="lg:col-span-5 border-slate-100 shadow-md shadow-slate-900/5 rounded-xl overflow-hidden bg-white border">
             <CardHeader className="border-b border-slate-100 p-5 bg-gradient-to-br from-corp-blue-50 via-[#EBF1FA] to-[#F8FAFF]">
-              <CardTitle className="text-sm font-serif font-bold text-slate-900 flex items-center gap-2">
-                <Store className="w-4 h-4 text-forest-850" />
+              <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Store className="w-4 h-4 text-corp-blue-850" />
                 Caisse par Point de Vente
               </CardTitle>
               <CardDescription className="text-[10px]">
@@ -323,8 +323,8 @@ export function TreasuryDashboard() {
           {/* Right: Bank Accounts Details */}
           <Card className="lg:col-span-7 border-slate-100 shadow-md shadow-slate-900/5 rounded-xl overflow-hidden bg-white border">
             <CardHeader className="border-b border-slate-100 p-5 bg-gradient-to-br from-corp-blue-50 via-[#EBF1FA] to-[#F8FAFF]">
-              <CardTitle className="text-sm font-serif font-bold text-slate-900 flex items-center gap-2">
-                <Landmark className="w-4 h-4 text-forest-850" />
+              <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Landmark className="w-4 h-4 text-corp-blue-850" />
                 Soldes Bancaires par Compte
               </CardTitle>
               <CardDescription className="text-[10px]">
@@ -357,7 +357,7 @@ export function TreasuryDashboard() {
                           <TableCell className="font-mono text-slate-500 text-[11px]">
                             {bank.rib || '—'}
                           </TableCell>
-                          <TableCell className="text-right font-mono font-bold text-forest-900">
+                          <TableCell className="text-right font-mono font-bold text-corp-blue-900">
                             {formatCurrency(bank.currentBalance || 0)}
                           </TableCell>
                         </TableRow>
@@ -385,13 +385,13 @@ export function TreasuryDashboard() {
           transition={{ delay: 0.1, duration: 0.45, ease: 'easeOut' }}
         >
           <Card className="border-slate-100 shadow-md shadow-slate-900/5 rounded-xl overflow-hidden bg-white border mt-6">
-            <div className="px-6 py-4 bg-gradient-to-r from-forest-50 to-white border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="px-6 py-4 bg-gradient-to-r from-corp-blue-50 to-white border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-2.5">
-                <span className="p-1.5 bg-white text-forest-600 rounded-lg shadow-sm border border-slate-100">
+                <span className="p-1.5 bg-white text-corp-blue-600 rounded-lg shadow-sm border border-slate-100">
                   <FileSearch className="w-4 h-4" />
                 </span>
                 <div>
-                  <h3 className="text-sm font-serif font-bold text-slate-900">
+                  <h3 className="text-sm font-bold text-slate-900">
                     Rapprochement Bancaire
                   </h3>
                   <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono">
@@ -588,7 +588,7 @@ export function TreasuryDashboard() {
                   <CreditCard className="w-4 h-4" />
                 </span>
                 <div>
-                  <h3 className="text-sm font-serif font-bold text-corp-blue-900">
+                  <h3 className="text-sm font-bold text-corp-blue-900">
                     Gestion des Comptes Bancaires
                   </h3>
                   <p className="text-[9px] font-bold text-corp-blue-600/80 uppercase tracking-widest font-mono">
@@ -662,7 +662,7 @@ export function TreasuryDashboard() {
                           <TableCell className="text-right font-mono">
                             {formatCurrency(bank.wireTransferFeeHT || 0)}
                           </TableCell>
-                          <TableCell className="text-right font-mono font-bold text-forest-900">
+                          <TableCell className="text-right font-mono font-bold text-corp-blue-900">
                             {formatCurrency(bank.initialBalance || 0)}
                           </TableCell>
 
@@ -693,7 +693,7 @@ export function TreasuryDashboard() {
                                   size="icon"
                                   variant="ghost"
                                   onClick={() => handleEditBank(bank)}
-                                  className="h-8 w-8 rounded-lg text-slate-500 hover:text-forest-900 hover:bg-forest-50"
+                                  className="h-8 w-8 rounded-lg text-slate-500 hover:text-corp-blue-900 hover:bg-corp-blue-50"
                                   title="Modifier"
                                 >
                                   <Pencil className="w-3.5 h-3.5" />
@@ -724,7 +724,7 @@ export function TreasuryDashboard() {
                             </p>
                             <Button
                               onClick={handleAddBank}
-                              className="h-9 px-5 bg-forest-900 hover:bg-forest-950 text-white font-bold text-xs gap-2"
+                              className="h-9 px-5 bg-corp-blue-900 hover:bg-corp-blue-950 text-white font-bold text-xs gap-2"
                             >
                               <Plus className="w-3.5 h-3.5" />
                               Ajouter le premier compte

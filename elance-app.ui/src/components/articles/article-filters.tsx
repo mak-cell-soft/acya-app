@@ -43,19 +43,19 @@ export function ArticleFilters({
   }, [selectedCategory, categories]);
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center gap-4 p-6 border-b border-forest-50 bg-white/50 backdrop-blur-sm">
+    <div className="flex flex-col md:flex-row md:items-center gap-4 p-6 border-b border-corp-blue-50 bg-white/50 backdrop-blur-sm">
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400" />
         <Input 
           placeholder="Rechercher par référence, désignation..." 
-          className="pl-10 h-11 rounded-xl border-forest-50 bg-sand-50/50 focus:border-forest-600 focus:ring-forest-600 transition-all font-medium"
+          className="pl-10 h-11 rounded-xl border-corp-blue-50 bg-sand-50/50 focus:border-corp-blue-600 focus:ring-corp-blue-600 transition-all font-medium"
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
         />
         {searchTerm && (
           <button 
             onClick={() => onSearchChange('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-sand-300 hover:text-forest-600 transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-sand-300 hover:text-corp-blue-600 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -64,14 +64,14 @@ export function ArticleFilters({
       
       <div className="flex flex-wrap items-center gap-3">
         <Select value={selectedCategory} onValueChange={(val) => { if (val) onCategoryChange(val); onSubCategoryChange('all'); }}>
-          <SelectTrigger className="w-[200px] h-11 rounded-xl border-forest-50 bg-white font-bold text-forest-900">
+          <SelectTrigger className="w-[200px] h-11 rounded-xl border-corp-blue-50 bg-white font-bold text-corp-blue-900">
             <SelectValue placeholder="Toutes les catégories">
               {selectedCategory === 'all' 
                 ? 'Toutes les catégories' 
                 : categories?.find(c => c.id.toString() === selectedCategory)?.description}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent className="rounded-xl border-forest-100 shadow-xl">
+          <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl">
             <SelectItem value="all" className="font-bold">
               <div className="flex items-center gap-2">
                 <LayoutGrid className="w-4 h-4 text-sand-400" />
@@ -91,14 +91,14 @@ export function ArticleFilters({
           onValueChange={(val) => { if (val) onSubCategoryChange(val); }}
           disabled={selectedCategory === 'all' || filteredSubCategories.length === 0}
         >
-          <SelectTrigger className="w-[200px] h-11 rounded-xl border-forest-50 bg-white font-bold text-forest-900">
+          <SelectTrigger className="w-[200px] h-11 rounded-xl border-corp-blue-50 bg-white font-bold text-corp-blue-900">
             <SelectValue placeholder="Toutes les sous-catégories">
               {selectedSubCategory === 'all' 
                 ? 'Toutes les sous-catégories' 
                 : filteredSubCategories.find(sub => sub.id.toString() === selectedSubCategory)?.description}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent className="rounded-xl border-forest-100 shadow-xl">
+          <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl">
             <SelectItem value="all" className="font-bold">Toutes les sous-catégories</SelectItem>
             {filteredSubCategories.map((sub) => (
               <SelectItem key={sub.id} value={sub.id.toString()} className="font-medium">
@@ -108,7 +108,7 @@ export function ArticleFilters({
           </SelectContent>
         </Select>
 
-        <div className="h-6 w-[1px] bg-forest-100 mx-1 hidden md:block" />
+        <div className="h-6 w-[1px] bg-corp-blue-100 mx-1 hidden md:block" />
 
         {(searchTerm || selectedCategory !== 'all' || selectedSubCategory !== 'all') && (
           <Button 
@@ -121,9 +121,9 @@ export function ArticleFilters({
           </Button>
         )}
 
-        <div className="flex items-center gap-2 px-4 py-2 bg-forest-50 rounded-xl border border-forest-100/50">
-          <TreeDeciduous className="w-4 h-4 text-forest-600" />
-          <span className="text-sm font-bold text-forest-900 whitespace-nowrap">{count} Articles</span>
+        <div className="flex items-center gap-2 px-4 py-2 bg-corp-blue-50 rounded-xl border border-corp-blue-100/50">
+          <TreeDeciduous className="w-4 h-4 text-corp-blue-600" />
+          <span className="text-sm font-bold text-corp-blue-900 whitespace-nowrap">{count} Articles</span>
         </div>
       </div>
     </div>

@@ -78,33 +78,33 @@ export default function LoginPage() {
       >
         <div className="flex flex-col items-center mb-10">
           <Link href="/" className="group transition-transform hover:scale-105">
-            <svg className="w-20 h-20 md:w-24 md:h-24 transition-transform duration-700 group-hover:rotate-[360deg] shadow-2xl shadow-corp-blue-500/10 rounded-2xl" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="40" height="40" rx="10" fill="url(#logo_bg_grad)" className="opacity-10 group-hover:opacity-15 transition-opacity" />
-              <path d="M20 3L35 11.5V28.5L20 37L5 28.5V11.5L20 3" stroke="url(#logo_stroke_grad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M20 9L31 17.25L27 20.25L20 15L13 20.25L9 17.25L20 9Z" fill="url(#logo_stroke_grad)"/>
-              <rect x="17.5" y="18" width="5" height="11" rx="1.5" fill="url(#logo_stroke_grad)" />
-              <path d="M12 25H28" stroke="url(#logo_stroke_grad)" strokeWidth="1.5" strokeLinecap="round"/>
-              <path d="M14 29H26" stroke="#06B6D4" strokeWidth="2" strokeLinecap="round"/>
-              <defs>
-                <linearGradient id="logo_bg_grad" x1="0" y1="0" x2="40" y2="40">
-                  <stop offset="0%" stopColor="#2563EB"/>
-                  <stop offset="100%" stopColor="#06B6D4"/>
-                </linearGradient>
-                <linearGradient id="logo_stroke_grad" x1="0" y1="0" x2="40" y2="40">
-                  <stop offset="0%" stopColor="#3B82F6"/>
-                  <stop offset="60%" stopColor="#2563EB"/>
-                  <stop offset="100%" stopColor="#06B6D4"/>
-                </linearGradient>
-              </defs>
-            </svg>
+            <svg className="w-10 h-10 md:w-11 md:h-11 transition-transform duration-700 group-hover:scale-105" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14 34L14 18L6 26V34H14Z" fill="url(#logo_grad_1)" />
+                  <path d="M24 34L24 10L16 18V34H24Z" fill="url(#logo_grad_2)" />
+                  <path d="M34 34L34 2L26 10V34H34Z" fill="url(#logo_grad_3)" />
+                  <defs>
+                    <linearGradient id="logo_grad_1" x1="6" y1="18" x2="14" y2="34">
+                      <stop offset="0%" stopColor="#60A5FA"/>
+                      <stop offset="100%" stopColor="#3B82F6"/>
+                    </linearGradient>
+                    <linearGradient id="logo_grad_2" x1="16" y1="10" x2="24" y2="34">
+                      <stop offset="0%" stopColor="#3B82F6"/>
+                      <stop offset="100%" stopColor="#2563EB"/>
+                    </linearGradient>
+                    <linearGradient id="logo_grad_3" x1="26" y1="2" x2="34" y2="34">
+                      <stop offset="0%" stopColor="#2563EB"/>
+                      <stop offset="100%" stopColor="#1D4ED8"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
           </Link>
-          <h1 className="text-3xl font-heading font-bold text-forest-900 mt-6 tracking-tight">Élancé</h1>
+          <h1 className="text-3xl font-bold text-corp-blue-900 mt-6 tracking-tight">Élancé</h1>
           <p className="text-sand-400 font-medium text-sm uppercase tracking-[0.1em] mt-1">by ACYA Consulting</p>
         </div>
 
-        <Card className="border-forest-100 shadow-[0_20px_60px_rgba(11,59,36,0.08)] bg-card/80 backdrop-blur-md rounded-2xl overflow-hidden">
+        <Card className="border-corp-blue-100 shadow-[0_20px_60px_rgba(11,59,36,0.08)] bg-card/80 backdrop-blur-md rounded-2xl overflow-hidden">
           <CardHeader className="space-y-2 pt-10 pb-6">
-            <CardTitle className="text-2xl font-bold text-center text-forest-900">Bienvenue</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center text-corp-blue-900">Bienvenue</CardTitle>
             <CardDescription className="text-center text-sand-400">
               Connectez-vous à votre espace professionnel
             </CardDescription>
@@ -112,7 +112,7 @@ export default function LoginPage() {
           <form onSubmit={handleLogin}>
             <CardContent className="grid gap-6 px-8">
               <div className="grid gap-2">
-                <Label htmlFor="email" className="text-forest-800 font-bold ml-1">Email Professionnel</Label>
+                <Label htmlFor="email" className="text-corp-blue-800 font-bold ml-1">Email Professionnel</Label>
                 <Input
                   id="email"
                   type="email"
@@ -124,7 +124,7 @@ export default function LoginPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="password" title="password" className="text-forest-800 font-bold ml-1">Mot de passe</Label>
+                <Label htmlFor="password" title="password" className="text-corp-blue-800 font-bold ml-1">Mot de passe</Label>
                 <div className="relative flex items-center">
                   <Input
                     id="password"
@@ -139,7 +139,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 text-sand-400 hover:text-forest-750 transition-colors p-1"
+                    className="absolute right-3.5 text-sand-400 hover:text-corp-blue-750 transition-colors p-1"
                     title={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                   >
                     {showPassword ? (
@@ -156,7 +156,7 @@ export default function LoginPage() {
                   <input 
                     type="checkbox" 
                     id="remember" 
-                    className="w-4 h-4 rounded border-forest-100 text-forest-600 focus:ring-forest-600 cursor-pointer" 
+                    className="w-4 h-4 rounded border-corp-blue-100 text-corp-blue-600 focus:ring-corp-blue-600 cursor-pointer" 
                   />
                   <label htmlFor="remember" className="text-xs text-sand-600 cursor-pointer">Se souvenir de moi</label>
                 </div>
@@ -188,15 +188,15 @@ export default function LoginPage() {
                       type="button"
                       onClick={handleForgotPassword}
                       disabled={isForgotLoading}
-                      className="h-10 bg-forest-600 hover:bg-forest-700 text-xs px-4"
+                      className="h-10 bg-corp-blue-600 hover:bg-corp-blue-700 text-xs px-4"
                     >
                       {isForgotLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Générer"}
                     </Button>
                   </div>
                   {resetToken && (
                     <div className="mt-3 p-3 bg-card rounded-lg border border-border animate-in fade-in slide-in-from-top-2">
-                      <div className="text-[10px] uppercase tracking-wider text-forest-600 font-bold mb-1">Votre code :</div>
-                      <div className="text-lg font-mono font-bold text-center tracking-widest text-forest-900 bg-background py-2 rounded">
+                      <div className="text-[10px] uppercase tracking-wider text-corp-blue-600 font-bold mb-1">Votre code :</div>
+                      <div className="text-lg font-mono font-bold text-center tracking-widest text-corp-blue-900 bg-background py-2 rounded">
                         {resetToken}
                       </div>
                       <p className="text-[10px] text-sand-400 mt-2 text-center">
@@ -204,7 +204,7 @@ export default function LoginPage() {
                       </p>
                       <Link 
                         href={`/forgot-password?token=${resetToken}`}
-                        className="mt-3 block w-full text-center py-2 bg-sand-100 hover:bg-sand-200 text-forest-900 text-[10px] font-bold uppercase tracking-wider rounded transition-colors"
+                        className="mt-3 block w-full text-center py-2 bg-sand-100 hover:bg-sand-200 text-corp-blue-900 text-[10px] font-bold uppercase tracking-wider rounded transition-colors"
                       >
                         Aller à la réinitialisation
                       </Link>
@@ -216,7 +216,7 @@ export default function LoginPage() {
             <CardFooter className="flex flex-col gap-6 px-8 pb-10 pt-4">
               <Button
                 type="submit"
-                className="w-full h-14 bg-forest-600 text-white text-lg font-bold shadow-lg shadow-forest-600/20 hover:bg-forest-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+                className="w-full h-14 bg-corp-blue-600 text-white text-lg font-bold shadow-lg shadow-corp-blue-600/20 hover:bg-corp-blue-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -226,7 +226,7 @@ export default function LoginPage() {
               </Button>
               <div className="text-center text-sm text-sand-400">
                 Nouveau sur la plateforme ?{' '}
-                <Link href="#" className="text-forest-600 font-bold hover:text-forest-800 hover:underline transition-all">
+                <Link href="#" className="text-corp-blue-600 font-bold hover:text-corp-blue-800 hover:underline transition-all">
                   Contactez-nous
                 </Link>
               </div>
