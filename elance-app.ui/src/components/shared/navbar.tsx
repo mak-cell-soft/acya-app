@@ -123,19 +123,19 @@ export function Navbar({ onMenuClick }: NavbarProps) {
               <span className="text-[10px] text-sand-500 font-semibold">{getRoleTranslated(user?.role)}</span>
             </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64 rounded-2xl border-forest-100 shadow-xl p-0 overflow-hidden">
+          <DropdownMenuContent align="end" className="w-64 rounded-2xl border-corp-blue-100 shadow-xl p-0 overflow-hidden">
             {/* Rich visual header containing user profile summary */}
-            <div className="bg-gradient-to-r from-forest-900 to-forest-800 p-4 text-white">
+            <div className="bg-corp-blue-50/90 backdrop-blur-md border-b border-corp-blue-100 p-4 text-corp-blue-950">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-forest-800 flex items-center justify-center border border-forest-700 text-emerald-400 font-bold text-lg shadow-inner">
+                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center border border-corp-blue-200 text-corp-blue-600 font-bold text-lg shadow-sm">
                   {(user?.fullname || 'U').charAt(0).toUpperCase()}
                 </div>
                 <div className="space-y-0.5">
-                  <div className="font-heading font-bold text-sm leading-tight text-white">{user?.fullname}</div>
-                  <div className="text-[10px] font-semibold text-emerald-300 uppercase tracking-wider">{getRoleTranslated(user?.role)}</div>
+                  <div className="font-heading font-bold text-sm leading-tight text-corp-blue-950">{user?.fullname}</div>
+                  <div className="text-[10px] font-semibold text-corp-blue-600 uppercase tracking-wider">{getRoleTranslated(user?.role)}</div>
                   {user?.defaultSite && (
-                    <div className="flex items-center gap-1 text-[10px] font-medium text-forest-200 mt-1">
-                      <MapPin className="h-3 w-3 text-emerald-400" />
+                    <div className="flex items-center gap-1 text-[10px] font-medium text-corp-blue-500 mt-1">
+                      <MapPin className="h-3 w-3 text-corp-blue-400" />
                       <span>{user.defaultSite}</span>
                     </div>
                   )}

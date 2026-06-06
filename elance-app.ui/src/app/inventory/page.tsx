@@ -97,7 +97,7 @@ function InventoryListContent() {
           <Button
             variant="ghost"
             onClick={() => router.push('/stock')}
-            className="h-10 w-10 p-0 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-850"
+            className="h-10 w-10 p-0 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -116,22 +116,22 @@ function InventoryListContent() {
           <Button
             variant="outline"
             onClick={() => setIsExcelDialogOpen(true)}
-            className="h-11 px-5 bg-white hover:bg-stone-50 text-stone-900 border-stone-200 dark:bg-stone-900 dark:border-stone-800 dark:text-stone-50 dark:hover:bg-stone-800 rounded-xl gap-2 font-semibold text-xs uppercase tracking-wider transition-all shadow-sm"
+            className="h-11 px-5 bg-white hover:bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-50 dark:hover:bg-slate-800 rounded-lg gap-2 font-semibold text-xs uppercase tracking-wider transition-all shadow-sm"
           >
-            <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+            <FileSpreadsheet className="h-4 w-4 text-corp-blue-600" />
             Import / Export Excel
           </Button>
           <Button
             variant="outline"
             onClick={() => setIsUncountedDialogOpen(true)}
-            className="h-11 px-5 bg-white hover:bg-stone-50 text-stone-900 border-stone-200 dark:bg-stone-900 dark:border-stone-800 dark:text-stone-50 dark:hover:bg-stone-800 rounded-xl gap-2 font-semibold text-xs uppercase tracking-wider transition-all shadow-sm"
+            className="h-11 px-5 bg-white hover:bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-50 dark:hover:bg-slate-800 rounded-lg gap-2 font-semibold text-xs uppercase tracking-wider transition-all shadow-sm"
           >
             <SearchCode className="h-4 w-4 text-amber-500" />
             Vérifier Oublis
           </Button>
           <Button
             onClick={() => router.push('/inventory/new')}
-            className="h-11 px-5 bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-50 dark:hover:bg-stone-200 dark:text-stone-900 rounded-xl gap-2 font-semibold text-xs uppercase tracking-wider transition-all shadow-sm"
+            className="h-11 px-5 bg-corp-blue-600 hover:bg-corp-blue-700 text-white rounded-lg gap-2 font-semibold text-xs uppercase tracking-wider transition-all shadow-sm"
           >
             <PlusCircle className="h-4 w-4" />
             Nouvel Inventaire
@@ -152,7 +152,7 @@ function InventoryListContent() {
             <Button
               variant="outline"
               onClick={() => router.push('/inventory/new')}
-              className="mt-4 text-xs font-bold uppercase tracking-wider border-stone-200 dark:border-stone-800"
+              className="mt-4 h-11 rounded-lg text-xs font-bold uppercase tracking-wider border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-800"
             >
               Créer un inventaire
             </Button>
@@ -223,7 +223,7 @@ function InventoryListContent() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-7 w-7 p-0 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-800 text-stone-400"
+                              className="h-8 w-8 p-0 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
                             >
                               {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                             </Button>

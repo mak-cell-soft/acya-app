@@ -203,6 +203,10 @@
     @apply font-sans scroll-smooth;
   }
 
+  h1, h2, h3, h4, h5, h6, label, th {
+    font-family: var(--font-heading);
+  }
+
   /* Subtle Premium Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;

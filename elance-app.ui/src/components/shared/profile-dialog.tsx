@@ -180,10 +180,10 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-3xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-white font-sans">
         
-        {/* Header Block with Premium Forest Green Gradient */}
-        <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
+        {/* Header Block with Premium Light Blue Gradient */}
+        <DialogHeader className="bg-corp-blue-50/90 border-b border-corp-blue-100 pb-4 mb-4 p-8 relative backdrop-blur-md">
           <div className="flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100 text-emerald-600 font-bold text-xl shadow-inner">
+            <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center border border-corp-blue-200 text-corp-blue-600 font-bold text-xl shadow-sm">
               <User className="w-6 h-6" />
             </div>
             <div className="space-y-0.5">
@@ -205,17 +205,17 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
 
         {/* Dynamic Tab Layout Wrapper */}
         <Tabs defaultValue="info" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="px-8 bg-forest-900/5 border-b border-forest-100">
+          <div className="px-8 border-b border-slate-100">
             <TabsList className="h-14 bg-transparent gap-8">
               <TabsTrigger 
                 value="info" 
-                className="h-14 rounded-none border-b-2 border-transparent data-[state=active]:border-forest-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 font-bold text-sand-400 data-[state=active]:text-forest-900 gap-2 transition-all"
+                className="h-14 rounded-none border-b-2 border-transparent data-[state=active]:border-corp-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 font-bold text-slate-400 data-[state=active]:text-corp-blue-950 gap-2 transition-all"
               >
                 <User className="w-4 h-4" /> Informations
               </TabsTrigger>
               <TabsTrigger 
                 value="security" 
-                className="h-14 rounded-none border-b-2 border-transparent data-[state=active]:border-forest-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 font-bold text-sand-400 data-[state=active]:text-forest-900 gap-2 transition-all"
+                className="h-14 rounded-none border-b-2 border-transparent data-[state=active]:border-corp-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 font-bold text-slate-400 data-[state=active]:text-corp-blue-950 gap-2 transition-all"
               >
                 <Shield className="w-4 h-4" /> Sécurité
               </TabsTrigger>
@@ -237,33 +237,33 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
                       
                       {/* Login Identifier (Read-only as mapped in Angular implementation) */}
                       <div className="space-y-2">
-                        <Label htmlFor="login" className="text-xs font-bold uppercase tracking-wider text-forest-800">
+                        <Label htmlFor="login" className="text-xs font-bold uppercase tracking-wider text-slate-700">
                           Identifiant (Login)
                         </Label>
                         <div className="relative">
-                          <User className="absolute left-3 top-3 h-4 w-4 text-sand-300" />
+                          <User className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
                           <Input
                             id="login"
                             value={login}
                             disabled
-                            className="pl-10 bg-sand-50/50 w-full text-sand-400 cursor-not-allowed font-medium font-mono"
+                            className="pl-10 bg-slate-100 border-slate-200 h-11 w-full rounded-lg text-slate-500 cursor-not-allowed font-medium font-mono shadow-sm"
                           />
                         </div>
                       </div>
 
                       {/* Email Address */}
                       <div className="space-y-2">
-                        <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-forest-800">
+                        <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-slate-700">
                           Email
                         </Label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-3 h-4 w-4 text-sand-300" />
+                          <Mail className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
                           <Input
                             id="email"
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className={`pl-10 bg-white border-forest-100 h-10 w-full rounded-xl focus:border-forest-600 focus:ring-4 focus:ring-forest-600/10 transition-all ${infoErrors.email ? 'border-rose-500' : ''}`}
+                            className={`pl-10 bg-slate-50/50 border-slate-200 h-11 w-full rounded-lg focus:bg-white focus:border-corp-blue-500 focus:ring-4 focus:ring-corp-blue-500/10 transition-all shadow-sm ${infoErrors.email ? 'border-rose-500' : ''}`}
                             placeholder="example@mail.com"
                           />
                         </div>
@@ -276,14 +276,14 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
 
                       {/* First Name */}
                       <div className="space-y-2">
-                        <Label htmlFor="firstName" className="text-xs font-bold uppercase tracking-wider text-forest-800">
+                        <Label htmlFor="firstName" className="text-xs font-bold uppercase tracking-wider text-slate-700">
                           Prénom
                         </Label>
                         <Input
                           id="firstName"
                           value={firstName}
                           onChange={(e) => setFirstName(e.target.value)}
-                          className={`bg-white border-forest-100 h-10 w-full rounded-xl focus:border-forest-600 focus:ring-4 focus:ring-forest-600/10 transition-all ${infoErrors.firstName ? 'border-rose-500' : ''}`}
+                          className={`bg-slate-50/50 border-slate-200 h-11 w-full rounded-lg focus:bg-white focus:border-corp-blue-500 focus:ring-4 focus:ring-corp-blue-500/10 transition-all shadow-sm ${infoErrors.firstName ? 'border-rose-500' : ''}`}
                           placeholder="Votre prénom"
                         />
                         {infoErrors.firstName && (
@@ -295,14 +295,14 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
 
                       {/* Last Name */}
                       <div className="space-y-2">
-                        <Label htmlFor="lastName" className="text-xs font-bold uppercase tracking-wider text-forest-800">
+                        <Label htmlFor="lastName" className="text-xs font-bold uppercase tracking-wider text-slate-700">
                           Nom
                         </Label>
                         <Input
                           id="lastName"
                           value={lastName}
                           onChange={(e) => setLastName(e.target.value)}
-                          className={`bg-white border-forest-100 h-10 w-full rounded-xl focus:border-forest-600 focus:ring-4 focus:ring-forest-600/10 transition-all ${infoErrors.lastName ? 'border-rose-500' : ''}`}
+                          className={`bg-slate-50/50 border-slate-200 h-11 w-full rounded-lg focus:bg-white focus:border-corp-blue-500 focus:ring-4 focus:ring-corp-blue-500/10 transition-all shadow-sm ${infoErrors.lastName ? 'border-rose-500' : ''}`}
                           placeholder="Votre nom"
                         />
                         {infoErrors.lastName && (
@@ -314,16 +314,16 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
 
                       {/* Phone Number */}
                       <div className="space-y-2">
-                        <Label htmlFor="phoneNumber" className="text-xs font-bold uppercase tracking-wider text-forest-800">
+                        <Label htmlFor="phoneNumber" className="text-xs font-bold uppercase tracking-wider text-slate-700">
                           Téléphone
                         </Label>
                         <div className="relative">
-                          <Phone className="absolute left-3 top-3 h-4 w-4 text-sand-300" />
+                          <Phone className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
                           <Input
                             id="phoneNumber"
                             value={phoneNumber}
                             onChange={(e) => setPhoneNumber(e.target.value)}
-                            className="pl-10 bg-white border-forest-100 h-10 w-full rounded-xl focus:border-forest-600 focus:ring-4 focus:ring-forest-600/10 transition-all"
+                            className="pl-10 bg-slate-50/50 border-slate-200 h-11 w-full rounded-lg focus:bg-white focus:border-corp-blue-500 focus:ring-4 focus:ring-corp-blue-500/10 transition-all shadow-sm"
                             placeholder="Numéro de téléphone"
                           />
                         </div>
@@ -331,17 +331,17 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
 
                       {/* Address */}
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="address" className="text-xs font-bold uppercase tracking-wider text-forest-800">
+                        <Label htmlFor="address" className="text-xs font-bold uppercase tracking-wider text-slate-700">
                           Adresse
                         </Label>
                         <div className="relative">
-                          <MapPin className="absolute left-3 top-3 h-4 w-4 text-sand-300" />
+                          <MapPin className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
                           <textarea
                             id="address"
                             value={address}
                             onChange={(e) => setAddress(e.target.value)}
                             rows={3}
-                            className="pl-10 pt-2.5 bg-white border border-forest-100 w-full rounded-xl focus:border-forest-600 focus:ring-4 focus:ring-forest-600/10 transition-all text-sm outline-none resize-none font-sans"
+                            className="pl-10 pt-3.5 bg-slate-50/50 border border-slate-200 w-full rounded-lg focus:bg-white focus:border-corp-blue-500 focus:ring-4 focus:ring-corp-blue-500/10 transition-all text-sm outline-none resize-none shadow-sm"
                             placeholder="Votre adresse complète"
                           />
                         </div>
@@ -350,19 +350,19 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
                     </div>
 
                     {/* Submitting Buttons */}
-                    <div className="flex items-center justify-end gap-3 pt-6 border-t border-forest-50">
+                    <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
                       <Button 
                         type="button" 
                         variant="outline" 
                         onClick={onClose}
-                        className="h-11 border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6"
+                        className="h-11 rounded-lg border-slate-200 text-slate-600 font-bold hover:bg-slate-50 hover:text-slate-900 px-6"
                       >
                         Annuler
                       </Button>
                       <Button 
                         type="submit"
                         disabled={updateProfileMutation.isPending}
-                        className="h-11 bg-forest-600 text-white hover:bg-forest-800 font-bold px-6 shadow-lg shadow-forest-600/10 gap-2"
+                        className="h-11 rounded-lg bg-corp-blue-600 text-white hover:bg-corp-blue-700 font-bold px-6 shadow-md shadow-corp-blue-600/20 gap-2"
                       >
                         {updateProfileMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                         Enregistrer les modifications
@@ -382,23 +382,23 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
                       
                       {/* Current Old Password */}
                       <div className="space-y-2">
-                        <Label htmlFor="oldPassword" className="text-xs font-bold uppercase tracking-wider text-forest-800">
+                        <Label htmlFor="oldPassword" className="text-xs font-bold uppercase tracking-wider text-slate-700">
                           Mot de passe actuel
                         </Label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-3 h-4 w-4 text-sand-300" />
+                          <Lock className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
                           <Input
                             id="oldPassword"
                             type={hideOld ? "password" : "text"}
                             value={oldPassword}
                             onChange={(e) => setOldPassword(e.target.value)}
-                            className={`pl-10 pr-10 bg-white border-forest-100 h-10 w-full rounded-xl focus:border-forest-600 focus:ring-4 focus:ring-forest-600/10 transition-all ${passwordErrors.oldPassword ? 'border-rose-500' : ''}`}
+                            className={`pl-10 pr-10 bg-slate-50/50 border-slate-200 h-11 w-full rounded-lg focus:bg-white focus:border-corp-blue-500 focus:ring-4 focus:ring-corp-blue-500/10 transition-all shadow-sm ${passwordErrors.oldPassword ? 'border-rose-500' : ''}`}
                             placeholder="Saisir votre mot de passe actuel"
                           />
                           <button
                             type="button"
                             onClick={() => setHideOld(!hideOld)}
-                            className="absolute right-3 top-3 h-4 w-4 text-sand-400 hover:text-forest-600 cursor-pointer"
+                            className="absolute right-3 top-3.5 h-4 w-4 text-slate-400 hover:text-corp-blue-600 cursor-pointer"
                           >
                             {hideOld ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
@@ -412,23 +412,23 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
 
                       {/* New Password */}
                       <div className="space-y-2">
-                        <Label htmlFor="newPassword" className="text-xs font-bold uppercase tracking-wider text-forest-800">
+                        <Label htmlFor="newPassword" className="text-xs font-bold uppercase tracking-wider text-slate-700">
                           Nouveau mot de passe
                         </Label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-3 h-4 w-4 text-sand-300" />
+                          <Lock className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
                           <Input
                             id="newPassword"
                             type={hideNew ? "password" : "text"}
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            className={`pl-10 pr-10 bg-white border-forest-100 h-10 w-full rounded-xl focus:border-forest-600 focus:ring-4 focus:ring-forest-600/10 transition-all ${passwordErrors.newPassword ? 'border-rose-500' : ''}`}
+                            className={`pl-10 pr-10 bg-slate-50/50 border-slate-200 h-11 w-full rounded-lg focus:bg-white focus:border-corp-blue-500 focus:ring-4 focus:ring-corp-blue-500/10 transition-all shadow-sm ${passwordErrors.newPassword ? 'border-rose-500' : ''}`}
                             placeholder="Minimum 6 caractères"
                           />
                           <button
                             type="button"
                             onClick={() => setHideNew(!hideNew)}
-                            className="absolute right-3 top-3 h-4 w-4 text-sand-400 hover:text-forest-600 cursor-pointer"
+                            className="absolute right-3 top-3.5 h-4 w-4 text-slate-400 hover:text-corp-blue-600 cursor-pointer"
                           >
                             {hideNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
@@ -442,23 +442,23 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
 
                       {/* Confirm New Password */}
                       <div className="space-y-2">
-                        <Label htmlFor="confirmPassword" className="text-xs font-bold uppercase tracking-wider text-forest-800">
+                        <Label htmlFor="confirmPassword" className="text-xs font-bold uppercase tracking-wider text-slate-700">
                           Confirmer le nouveau mot de passe
                         </Label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-3 h-4 w-4 text-sand-300" />
+                          <Lock className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
                           <Input
                             id="confirmPassword"
                             type={hideConfirm ? "password" : "text"}
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
-                            className={`pl-10 pr-10 bg-white border-forest-100 h-10 w-full rounded-xl focus:border-forest-600 focus:ring-4 focus:ring-forest-600/10 transition-all ${passwordErrors.confirmPassword ? 'border-rose-500' : ''}`}
+                            className={`pl-10 pr-10 bg-slate-50/50 border-slate-200 h-11 w-full rounded-lg focus:bg-white focus:border-corp-blue-500 focus:ring-4 focus:ring-corp-blue-500/10 transition-all shadow-sm ${passwordErrors.confirmPassword ? 'border-rose-500' : ''}`}
                             placeholder="Confirmer votre nouveau mot de passe"
                           />
                           <button
                             type="button"
                             onClick={() => setHideConfirm(!hideConfirm)}
-                            className="absolute right-3 top-3 h-4 w-4 text-sand-400 hover:text-forest-600 cursor-pointer"
+                            className="absolute right-3 top-3.5 h-4 w-4 text-slate-400 hover:text-corp-blue-600 cursor-pointer"
                           >
                             {hideConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
@@ -473,19 +473,19 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
                     </div>
 
                     {/* Actions Panel */}
-                    <div className="flex items-center justify-end gap-3 pt-6 border-t border-forest-50">
+                    <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
                       <Button 
                         type="button" 
                         variant="outline" 
                         onClick={onClose}
-                        className="h-11 border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6"
+                        className="h-11 rounded-lg border-slate-200 text-slate-600 font-bold hover:bg-slate-50 hover:text-slate-900 px-6"
                       >
                         Annuler
                       </Button>
                       <Button 
                         type="submit"
                         disabled={updatePasswordMutation.isPending}
-                        className="h-11 bg-forest-600 text-white hover:bg-forest-800 font-bold px-6 shadow-lg shadow-forest-600/10 gap-2"
+                        className="h-11 rounded-lg bg-corp-blue-600 text-white hover:bg-corp-blue-700 font-bold px-6 shadow-md shadow-corp-blue-600/20 gap-2"
                       >
                         {updatePasswordMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                         Mettre à jour le mot de passe

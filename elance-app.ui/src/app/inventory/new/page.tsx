@@ -403,7 +403,7 @@ function NewInventoryContent() {
           <Button
             variant="ghost"
             onClick={() => router.push('/inventory')}
-            className="h-10 w-10 p-0 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-850"
+            className="h-10 w-10 p-0 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -431,14 +431,14 @@ function NewInventoryContent() {
               <div className="space-y-2">
                 <Label htmlFor="site" className="text-[10px] uppercase font-bold text-stone-500">Dépôt *</Label>
                 <Select value={siteId} onValueChange={(val) => handleSiteChange(val || '')}>
-                  <SelectTrigger id="site" className="h-11 bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-800 rounded-xl text-xs font-semibold">
+                  <SelectTrigger id="site" className="h-11 bg-slate-50/50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg text-xs font-semibold focus:ring-corp-blue-500/20 focus:border-corp-blue-500">
                     <SelectValue placeholder="Sélectionner...">
                       {allSites.find(s => s.id.toString() === siteId) 
                         ? `${allSites.find(s => s.id.toString() === siteId)?.gov} - ${allSites.find(s => s.id.toString() === siteId)?.address}`
                         : undefined}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-800 rounded-xl">
+                  <SelectContent className="bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg">
                     {allSites.map((site) => (
                       <SelectItem key={site.id} value={site.id.toString()} className="text-xs font-medium">
                         {site.gov} - {site.address}
@@ -455,7 +455,7 @@ function NewInventoryContent() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Responsable comptage, zone spécifique..."
-                  className="flex min-h-[80px] w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs focus:ring-amber-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-950 dark:border-stone-800 dark:bg-stone-950 dark:placeholder:text-stone-400 dark:focus-visible:ring-stone-300"
+                  className="flex min-h-[80px] w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs focus:ring-corp-blue-500/20 focus:bg-white focus-visible:outline-none focus-visible:border-corp-blue-500 focus-visible:ring-2 dark:border-slate-800 dark:bg-slate-950 dark:placeholder:text-slate-400 dark:focus-visible:ring-slate-300"
                 />
               </div>
 
@@ -485,7 +485,7 @@ function NewInventoryContent() {
             <Button
               type="submit"
               disabled={isSaving}
-              className="w-full h-11 bg-stone-900 hover:bg-stone-800 dark:bg-stone-50 dark:hover:bg-stone-200 dark:text-stone-900 text-white font-semibold text-xs uppercase tracking-wider gap-2 shadow-sm transition-all"
+              className="w-full h-11 bg-corp-blue-600 hover:bg-corp-blue-700 text-white rounded-lg font-semibold text-xs uppercase tracking-wider gap-2 shadow-sm transition-all"
             >
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
               Enregistrer l'Inventaire
@@ -508,7 +508,7 @@ function NewInventoryContent() {
                 type="button"
                 variant="outline"
                 onClick={addRow}
-                className="h-9 px-3 border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-lg gap-1.5 font-semibold text-[10px] uppercase tracking-wider transition-all"
+                className="h-9 px-3 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg gap-1.5 font-semibold text-[10px] uppercase tracking-wider transition-all"
               >
                 <PlusCircle className="h-3.5 w-3.5" />
                 Ajouter Ligne
@@ -549,7 +549,7 @@ function NewInventoryContent() {
                                     value={row.articleSearchInput}
                                     onChange={(e) => handleArticleSearchChange(row.id, e.target.value)}
                                     placeholder="Rechercher article..."
-                                    className="bg-stone-50/50 dark:bg-stone-950/40 border-stone-200 dark:border-stone-800 rounded-lg text-xs font-semibold"
+                                    className="h-11 bg-slate-50/50 border-slate-200 rounded-lg text-xs font-semibold focus:bg-white focus:border-corp-blue-500 focus:ring-corp-blue-500/20"
                                     onFocus={() => {
                                       setRows(prev => prev.map(r => r.id === row.id ? { ...r, isArticleDropdownOpen: true } : r));
                                     }}
@@ -603,7 +603,7 @@ function NewInventoryContent() {
                                     }
                                   }}
                                 >
-                                  <SelectTrigger className="w-[180px] h-9 text-xs">
+                                  <SelectTrigger className="w-[180px] h-11 text-xs bg-slate-50/50 border-slate-200 rounded-lg focus:bg-white focus:border-corp-blue-500 focus:ring-corp-blue-500/20">
                                     <SelectValue placeholder="Choisir un colis" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -627,10 +627,10 @@ function NewInventoryContent() {
                                   onChange={(e) => handlePackageChange(row.id, e.target.value)}
                                   placeholder={row.isWoodArticle ? "N° Colis *" : "Standard"}
                                   disabled={!row.selectedArticle}
-                                  className={`bg-stone-50/50 dark:bg-stone-950/40 font-mono text-xs rounded-lg h-9 w-[120px] ${
+                                  className={`bg-slate-50/50 font-mono text-xs rounded-lg h-11 w-[120px] focus:bg-white focus:border-corp-blue-500 focus:ring-corp-blue-500/20 ${
                                     row.isWoodArticle && !row.packagereference 
                                       ? 'border-amber-300 focus:border-amber-500 bg-amber-50/20' 
-                                      : 'border-stone-200 dark:border-stone-800'
+                                      : 'border-slate-200'
                                   }`}
                                 />
                                 <Button 
@@ -682,7 +682,7 @@ function NewInventoryContent() {
                               onChange={(e) => handleQuantityChange(row.id, parseFloat(e.target.value) || 0)}
                               placeholder="0.00"
                               disabled={!row.selectedArticle || row.isWoodArticle}
-                              className="bg-stone-50/50 dark:bg-stone-950/40 text-right font-mono font-bold text-xs border-stone-200 dark:border-stone-800 rounded-lg focus:bg-white"
+                              className="h-11 bg-slate-50/50 text-right font-mono font-bold text-xs border-slate-200 rounded-lg focus:bg-white focus:border-corp-blue-500 focus:ring-corp-blue-500/20"
                             />
                           </td>
 
@@ -692,10 +692,10 @@ function NewInventoryContent() {
                                 type="button"
                                 variant="outline"
                                 onClick={() => openLengthsModal(row)}
-                                className={`h-9 px-3 rounded-lg gap-1.5 font-bold text-[10px] uppercase tracking-wider border-stone-200 dark:border-stone-800 shadow-sm ${
+                                className={`h-11 px-3 rounded-lg gap-1.5 font-bold text-[10px] uppercase tracking-wider border-slate-200 shadow-sm transition-all ${
                                   row.listLengths.length > 0 
-                                    ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-400' 
-                                    : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-50'
+                                    ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' 
+                                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
                                 }`}
                               >
                                 <TreeDeciduous className="h-3.5 w-3.5" />
