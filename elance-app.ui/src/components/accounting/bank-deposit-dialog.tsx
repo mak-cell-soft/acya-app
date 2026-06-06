@@ -209,7 +209,7 @@ export function BankDepositDialog({
                   value={selectedSiteId}
                   onValueChange={(val: string | null) => setValue('salesSiteId', val as string)}
                 >
-                  <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-[#fafafa] focus:bg-white text-xs font-semibold">
+                  <SelectTrigger className="h-11 bg-[#fafafa] focus:text-xs font-semibold">
                     <SelectValue placeholder="Sélectionner le site" />
                   </SelectTrigger>
                   <SelectContent>
@@ -236,7 +236,7 @@ export function BankDepositDialog({
                 onValueChange={(val: string | null) => setValue('bankId', val as string)}
                 disabled={isLoadingBanks}
               >
-                <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-[#fafafa] focus:bg-white text-xs font-semibold">
+                <SelectTrigger className="h-11 bg-[#fafafa] focus:text-xs font-semibold">
                   <SelectValue placeholder="Sélectionner la banque de destination">
                     {(() => {
                       const selectedBank = bankId ? banks.find(b => b.id.toString() === bankId) : undefined;
@@ -267,7 +267,7 @@ export function BankDepositDialog({
                   value={depositType}
                   onValueChange={(val: string | null) => setValue('depositType', val as 'ESPECE' | 'CHEQUE' | 'TRAITE')}
                 >
-                  <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-[#fafafa] focus:bg-white text-xs font-semibold">
+                  <SelectTrigger className="h-11 bg-[#fafafa] focus:text-xs font-semibold">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -290,7 +290,7 @@ export function BankDepositDialog({
                     step="0.001"
                     placeholder="0.000"
                     {...register('amount')}
-                    className="h-11 rounded-xl border-slate-200 bg-[#fafafa] focus:bg-white text-xs font-semibold pr-12 font-mono"
+                    className="h-11 bg-[#fafafa] focus:text-xs font-semibold pr-12 font-mono"
                   />
                   <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 font-mono">
                     TND
@@ -313,7 +313,7 @@ export function BankDepositDialog({
                   id="reference"
                   placeholder="Ex: BORD-240522-001"
                   {...register('reference')}
-                  className="pl-10 pr-12 h-11 rounded-xl border-slate-200 bg-[#fafafa] focus:bg-white text-xs font-semibold"
+                  className="pl-10 pr-12 h-11 bg-[#fafafa] focus:text-xs font-semibold"
                 />
                 <Button
                   type="button"
@@ -355,14 +355,14 @@ export function BankDepositDialog({
               type="button"
               variant="outline"
               onClick={onClose}
-              className="h-11 px-5 rounded-xl border-slate-200 hover:bg-slate-50 text-xs font-bold"
+              className="h-11 px-5 border-slate-200 hover:bg-slate-50 text-xs font-bold"
             >
               Annuler
             </Button>
             <Button
               type="submit"
               disabled={loading || createDeposit.isPending}
-              className="h-11 px-6 bg-slate-900 hover:bg-slate-850 dark:bg-slate-50 dark:hover:bg-slate-200 text-white dark:text-slate-900 rounded-xl font-bold text-xs gap-2 shadow-sm"
+              className="h-11 px-6 bg-slate-900 hover:bg-slate-850 dark:bg-slate-50 dark:hover:bg-slate-200 text-white dark:text-slate-900 font-bold text-xs gap-2 shadow-sm"
             >
               {loading || createDeposit.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -377,3 +377,5 @@ export function BankDepositDialog({
     </Dialog>
   );
 }
+
+

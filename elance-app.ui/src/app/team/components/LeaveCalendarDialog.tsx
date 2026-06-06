@@ -113,7 +113,7 @@ export function LeaveCalendarDialog({ isOpen, onClose }: LeaveCalendarDialogProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full max-w-[98vw] md:max-w-[90vw] lg:max-w-7xl p-0 overflow-y-auto max-h-[95vh] md:max-h-[90vh] border-none shadow-[0_32px_64px_-12px_rgba(0,0,0,0.15)] rounded-[32px] bg-sand-50 custom-scrollbar">
+      <DialogContent showCloseButton={false} className="w-full max-w-[98vw] md:max-w-[90vw] lg:max-w-7xl p-0 overflow-y-auto max-h-[95vh] md:max-h-[90vh] border-none shadow-[0_32px_64px_-12px_rgba(0,0,0,0.15)] rounded-2xl bg-sand-50 custom-scrollbar">
         
         {/* Editorial Header */}
         <div className="relative bg-corp-navy px-5 py-4 md:px-8 md:py-5 overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4 z-10 shrink-0">
@@ -122,7 +122,7 @@ export function LeaveCalendarDialog({ isOpen, onClose }: LeaveCalendarDialogProp
           
           <button 
             onClick={onClose}
-            className="absolute top-3 right-3 md:top-4 md:right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center transition-all text-sand-300 hover:text-white shadow-lg hover:rotate-90 duration-300 z-50"
+            className="absolute top-3 right-3 md:top-4 md:right-4 w-8 h-8 bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center transition-all text-sand-300 hover:text-white shadow-lg hover:rotate-90 duration-300 z-50"
           >
             <X className="w-4 h-4" />
           </button>
@@ -177,7 +177,7 @@ export function LeaveCalendarDialog({ isOpen, onClose }: LeaveCalendarDialogProp
                 variant="ghost" 
                 size="icon" 
                 onClick={handlePrevMonth}
-                className="h-8 w-8 rounded-xl hover:bg-white/15 text-corp-blue-200 hover:text-white transition-all"
+                className="h-8 w-8 hover:bg-white/15 text-corp-blue-200 hover:text-white transition-all"
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
@@ -188,7 +188,7 @@ export function LeaveCalendarDialog({ isOpen, onClose }: LeaveCalendarDialogProp
                 variant="ghost" 
                 size="icon" 
                 onClick={handleNextMonth}
-                className="h-8 w-8 rounded-xl hover:bg-white/15 text-corp-blue-200 hover:text-white transition-all"
+                className="h-8 w-8 hover:bg-white/15 text-corp-blue-200 hover:text-white transition-all"
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -202,7 +202,7 @@ export function LeaveCalendarDialog({ isOpen, onClose }: LeaveCalendarDialogProp
           {viewMode === 'calendar' ? (
             <>
               {/* The Grid */}
-              <div className="bg-white rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-sand-100/50 overflow-hidden flex-1 flex flex-col">
+              <div className="bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-sand-100/50 overflow-hidden flex-1 flex flex-col">
             
             {/* Weekdays */}
             <div className="grid grid-cols-7 border-b border-sand-100 bg-white shrink-0">
@@ -320,7 +320,7 @@ export function LeaveCalendarDialog({ isOpen, onClose }: LeaveCalendarDialogProp
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-              className="bg-white rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-sand-100/50 overflow-hidden flex-1 flex flex-col p-6 md:p-8"
+              className="bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-sand-100/50 overflow-hidden flex-1 flex flex-col p-6 md:p-8"
             >
               <div className="flex items-center justify-between mb-8">
                 <div>
@@ -414,3 +414,5 @@ export function LeaveCalendarDialog({ isOpen, onClose }: LeaveCalendarDialogProp
     </Dialog>
   );
 }
+
+

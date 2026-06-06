@@ -136,7 +136,7 @@ export function ApprovalDecisionDialog({
               onClick={onClose}
               variant="ghost"
               size="icon"
-              className="text-slate-400 hover:bg-slate-800 hover:text-white rounded-full w-8 h-8"
+              className="text-slate-400 hover:bg-slate-800 hover:text-white w-8 h-8"
             >
               <X className="w-5 h-5" />
             </Button>
@@ -207,7 +207,7 @@ export function ApprovalDecisionDialog({
                   <MessageSquare className="w-3.5 h-3.5 text-rose-600" /> Motif de rejet *
                 </label>
                 <Select value={rejectionReason} onValueChange={(val) => setRejectionReason(val || '')}>
-                  <SelectTrigger className="h-11 rounded-xl border-slate-200 focus:ring-rose-650 bg-white text-xs font-bold text-slate-900 w-full">
+                  <SelectTrigger className="h-11 text-xs font-bold text-slate-900 w-full">
                     <SelectValue placeholder="Sélectionner un motif de rejet..." />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-slate-200 font-bold text-xs">
@@ -228,7 +228,7 @@ export function ApprovalDecisionDialog({
               type="button"
               variant="ghost"
               onClick={onClose}
-              className="border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-100 font-bold text-xs"
+              className="border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs"
             >
               Annuler
             </Button>
@@ -260,3 +260,5 @@ export function ApprovalDecisionDialog({
     </AnimatePresence>
   );
 }
+
+

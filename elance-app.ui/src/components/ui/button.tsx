@@ -23,14 +23,14 @@ const buttonVariants = cva(
       size: {
         default:
           "h-10 gap-2 px-4",
-        xs: "h-7 gap-1 rounded-[min(var(--radius-md),10px)] px-2.5 text-xs",
-        sm: "h-8.5 gap-1.5 rounded-[min(var(--radius-md),12px)] px-3 text-[0.8rem]",
+        xs: "h-7 gap-1 px-2.5 text-xs",
+        sm: "h-8.5 gap-1.5 px-3 text-[0.8rem]",
         lg: "h-11 gap-2 px-6 text-base",
         icon: "size-10",
         "icon-xs":
-          "size-7 rounded-[min(var(--radius-md),10px)]",
+          "size-7",
         "icon-sm":
-          "size-8.5 rounded-[min(var(--radius-md),12px)]",
+          "size-8.5",
         "icon-lg": "size-11",
       },
     },
@@ -62,3 +62,4 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button"
 
 export { Button, buttonVariants }
+

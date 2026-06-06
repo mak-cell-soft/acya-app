@@ -122,7 +122,7 @@ export function AppVariableFormDialog({ isOpen, onClose, nature }: AppVariableFo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] rounded-[32px] p-0 overflow-hidden border-forest-100 shadow-2xl">
+      <DialogContent className="sm:max-w-[500px] rounded-2xl p-0 overflow-hidden border-forest-100 shadow-2xl">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <Icon className="w-24 h-24" />
@@ -144,7 +144,7 @@ export function AppVariableFormDialog({ isOpen, onClose, nature }: AppVariableFo
                 value={selectedNature} 
                 onValueChange={(val) => setValue('nature', val!)}
               >
-                <SelectTrigger className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:ring-forest-600">
+                <SelectTrigger className="bg-sand-50 ">
                   <SelectValue placeholder="Sélectionner le type" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-forest-100">
@@ -163,7 +163,7 @@ export function AppVariableFormDialog({ isOpen, onClose, nature }: AppVariableFo
               <Input 
                 {...register('name')}
                 placeholder={nature === 'Dimension' || nature === 'Length' ? 'ex: 20' : 'ex: Standard'}
-                className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600"
+                className="bg-sand-50 "
               />
               {errors.name && <p className="text-xs text-red-500 font-medium">{errors.name.message}</p>}
             </div>
@@ -213,13 +213,13 @@ export function AppVariableFormDialog({ isOpen, onClose, nature }: AppVariableFo
               type="button" 
               variant="outline" 
               onClick={onClose}
-              className="flex-1 h-12 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50"
+              className="flex-1 h-12 border-forest-100 text-forest-600 font-bold hover:bg-forest-50"
             >
               Annuler
             </Button>
             <Button 
               disabled={createVar.isPending}
-              className="flex-[2] h-12 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
+              className="flex-[2] h-12 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
             >
               {createVar.isPending ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -233,3 +233,5 @@ export function AppVariableFormDialog({ isOpen, onClose, nature }: AppVariableFo
     </Dialog>
   );
 }
+
+

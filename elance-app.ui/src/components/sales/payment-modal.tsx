@@ -334,7 +334,7 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ type: 'spring', damping: 20 }}
-          className="relative w-full max-w-2xl bg-white rounded-[24px] shadow-2xl overflow-hidden border border-sand-100 z-10 flex flex-col max-h-[90vh]"
+          className="relative w-full max-w-2xl bg-white rounded-xl shadow-2xl overflow-hidden border border-sand-100 z-10 flex flex-col max-h-[90vh]"
         >
           {/* Header */}
           <div className="px-6 py-4 bg-white border-b border-slate-100 flex items-center justify-between">
@@ -352,7 +352,7 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
               onClick={onClose}
               variant="ghost"
               size="icon"
-              className="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700"
+              className="w-8 h-8 bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -691,7 +691,7 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
               type="button"
               variant="ghost"
               onClick={onClose}
-              className="rounded-xl border border-slate-200 font-bold text-xs hover:bg-slate-100 text-slate-600 h-10 px-5"
+              className="border border-slate-200 font-bold text-xs hover:bg-slate-100 text-slate-600 h-10 px-5"
             >
               Annuler
             </Button>
@@ -699,7 +699,7 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
               type="submit"
               disabled={submitting || loading}
               onClick={handleConfirm}
-              className="bg-sky-500 hover:bg-sky-600 text-white rounded-xl shadow-md min-w-[170px] h-10 font-bold text-xs gap-2 flex items-center justify-center"
+              className="bg-sky-500 hover:bg-sky-600 text-white shadow-md min-w-[170px] h-10 font-bold text-xs gap-2 flex items-center justify-center"
             >
               {submitting ? (
                 <>
@@ -719,3 +719,4 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
     </AnimatePresence>
   );
 }
+

@@ -724,7 +724,7 @@ function SupplierPaymentsPageContent() {
             </div>
           </motion.div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-16 text-center bg-white border border-slate-150 rounded-[32px] p-8 shadow-xs">
+          <div className="flex flex-col items-center justify-center py-16 text-center bg-white border border-slate-150 rounded-2xl p-8 shadow-xs">
             <div className="w-14 h-14 rounded-full bg-slate-50 border border-slate-100/80 flex items-center justify-center text-slate-450 mb-4">
               <Building2 className="w-7 h-7 text-amber-500" />
             </div>
@@ -788,3 +788,4 @@ export default function SupplierPaymentsPage() {
     </Suspense>
   );
 }
+

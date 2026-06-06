@@ -41,7 +41,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex h-10 w-fit items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 text-sm text-foreground whitespace-nowrap transition-all outline-none select-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-4 aria-invalid:ring-destructive/10 data-placeholder:text-muted-foreground/70 data-[size=default]:h-10 data-[size=sm]:h-8.5 data-[size=sm]:rounded-[min(var(--radius-md),10px)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:bg-input/20 dark:hover:bg-input/30 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "flex h-11 w-full items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50/50 px-3 text-sm text-foreground whitespace-nowrap transition-all outline-none select-none focus-visible:border-corp-blue-500 focus-visible:ring-4 focus-visible:ring-corp-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-4 aria-invalid:ring-destructive/10 data-placeholder:text-muted-foreground/70 data-[size=default]:h-11 data-[size=sm]:h-8.5 data-[size=sm]:rounded-[min(var(--radius-md),10px)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:bg-input/20 dark:border-input dark:hover:bg-input/30 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}
@@ -199,3 +199,4 @@ export {
   SelectTrigger,
   SelectValue,
 }
+

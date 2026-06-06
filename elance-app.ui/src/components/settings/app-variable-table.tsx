@@ -188,3 +188,4 @@ export function AppVariableTable({ nature, data }: AppVariableTableProps) {
   </div>
 );
 }
+

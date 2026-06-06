@@ -142,7 +142,7 @@ export default function CustomersPage() {
             <p className="text-sand-400 font-medium mt-1">Gérez votre base client, les soldes et l'historique des ventes.</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50">
+            <Button variant="outline" className="h-11 border-forest-100 text-forest-600 font-bold hover:bg-forest-50">
               <Download className="w-4 h-4 mr-2" /> Exporter
             </Button>
             {hasPermission('customers', 'canAdd') && (
@@ -165,7 +165,7 @@ export default function CustomersPage() {
           </div>
         </div>
 
-        <Card className="border-forest-100/50 shadow-none rounded-[24px] overflow-hidden bg-transparent">
+        <Card className="border-forest-100/50 shadow-none rounded-xl overflow-hidden bg-transparent">
           <CardHeader className="border-b border-forest-50 p-6">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               <div className="relative flex-1">
@@ -178,7 +178,7 @@ export default function CustomersPage() {
                 />
               </div>
               <div className="flex items-center gap-3">
-                <Button variant="ghost" className="h-11 rounded-xl text-sand-400 font-bold hover:bg-sand-100">
+                <Button variant="ghost" className="h-11 text-sand-400 font-bold hover:bg-sand-100">
                   <Filter className="w-4 h-4 mr-2" /> Filtres
                 </Button>
                 <div className="h-6 w-[1px] bg-forest-100 mx-2 hidden md:block" />
@@ -467,3 +467,4 @@ export default function CustomersPage() {
     </DashboardLayout>
   );
 }
+

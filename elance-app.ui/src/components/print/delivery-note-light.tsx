@@ -169,3 +169,4 @@ export function DeliveryNoteLight({ document, enterprise }: DeliveryNoteLightPro
     </div>
   );
 }
+

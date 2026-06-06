@@ -57,14 +57,14 @@ export function BankTable() {
   if (isLoading) return (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="h-[280px] rounded-[32px] bg-sand-100/50 animate-pulse border border-sand-200" />
+        <div key={i} className="h-[280px] rounded-2xl bg-sand-100/50 animate-pulse border border-sand-200" />
       ))}
     </div>
   );
 
   return (
     <div className="space-y-10">
-      <div className="flex justify-between items-center bg-white p-4 rounded-[24px] border border-forest-50 shadow-sm">
+      <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-forest-50 shadow-sm">
         <div className="flex items-center gap-4 pl-2">
           <div className="w-10 h-10 rounded-full bg-forest-50 flex items-center justify-center text-forest-600">
             <Landmark className="w-5 h-5" />
@@ -76,7 +76,7 @@ export function BankTable() {
         </div>
         <Button 
           onClick={handleAdd}
-          className="rounded-xl bg-forest-600 text-white font-bold h-11 px-6 gap-2 hover:bg-forest-800 transition-all shadow-lg shadow-forest-600/10"
+          className="bg-forest-600 text-white font-bold h-11 px-6 gap-2 hover:bg-forest-800 transition-all shadow-lg shadow-forest-600/10"
         >
           <Plus className="w-4 h-4" /> Ajouter un Compte
         </Button>
@@ -86,7 +86,7 @@ export function BankTable() {
         {paginatedData.map((bank) => (
           <div 
             key={bank.id} 
-            className="group relative bg-white rounded-[32px] p-8 border border-forest-100 shadow-sm hover:shadow-xl hover:border-forest-200 transition-all duration-500 overflow-hidden"
+            className="group relative bg-white rounded-2xl p-8 border border-forest-100 shadow-sm hover:shadow-xl hover:border-forest-200 transition-all duration-500 overflow-hidden"
           >
             {/* Background Decorative Pattern */}
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-forest-50/50 rounded-full blur-3xl group-hover:bg-forest-100/50 transition-colors" />
@@ -105,7 +105,7 @@ export function BankTable() {
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-sand-100 transition-colors text-forest-400">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-sand-100 transition-colors text-forest-400">
                       <MoreVertical className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -184,7 +184,7 @@ export function BankTable() {
           <Button 
             onClick={handleAdd}
             variant="outline"
-            className="mt-6 rounded-xl border-forest-100 text-forest-600 font-bold gap-2 hover:bg-white"
+            className="mt-6 border-forest-100 text-forest-600 font-bold gap-2 hover:bg-white"
           >
             <Plus className="w-4 h-4" /> Ajouter une Banque
           </Button>
@@ -207,3 +207,4 @@ export function BankTable() {
     </div>
   );
 }
+

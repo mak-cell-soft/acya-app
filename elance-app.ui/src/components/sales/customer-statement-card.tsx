@@ -101,7 +101,7 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
           </div>
           <button 
             onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/70 hover:text-white"
+            className="p-2 hover:bg-white/10 transition-colors text-white/70 hover:text-white"
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -345,7 +345,7 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
         <div className="p-6 border-t border-forest-100 flex justify-end bg-sand-50/30">
           <Button 
             onClick={onClose}
-            className="bg-forest-900 hover:bg-forest-950 text-white font-bold h-11 px-8 rounded-xl shadow-md shadow-forest-950/15"
+            className="bg-forest-900 hover:bg-forest-950 text-white font-bold h-11 px-8 shadow-md shadow-forest-950/15"
           >
             Fermer
           </Button>
@@ -355,3 +355,4 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
     </div>
   );
 }
+

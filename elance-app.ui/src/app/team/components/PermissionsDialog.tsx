@@ -90,7 +90,7 @@ export function PermissionsDialog({ isOpen, onClose, user }: PermissionsDialogPr
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[1200px] max-w-[95vw] w-[95vw] bg-sand-50/95 backdrop-blur-md border-forest-100/50 shadow-2xl p-0 overflow-hidden rounded-[24px]">
+      <DialogContent className="sm:max-w-[1200px] max-w-[95vw] w-[95vw] bg-sand-50/95 backdrop-blur-md border-forest-100/50 shadow-2xl p-0 overflow-hidden rounded-xl">
         <div className="bg-white border-b border-forest-50 p-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-forest-600 text-white flex items-center justify-center shadow-lg shadow-forest-600/20">
@@ -202,13 +202,13 @@ export function PermissionsDialog({ isOpen, onClose, user }: PermissionsDialogPr
               <RefreshCw className="w-3 h-3" /> Les modifications s'appliqueront à la prochaine connexion
             </p>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={onClose} className="rounded-xl font-bold h-11 px-6">
+              <Button variant="outline" onClick={onClose} className="font-bold h-11 px-6">
                 Annuler
               </Button>
               <Button 
                 onClick={handleSave} 
                 disabled={updatePermissionsMutation.isPending}
-                className="bg-forest-600 hover:bg-forest-700 text-white rounded-xl font-bold h-11 px-6 shadow-lg shadow-forest-600/20"
+                className="bg-forest-600 hover:bg-forest-700 text-white font-bold h-11 px-6 shadow-lg shadow-forest-600/20"
               >
                 {updatePermissionsMutation.isPending ? (
                   <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -224,3 +224,5 @@ export function PermissionsDialog({ isOpen, onClose, user }: PermissionsDialogPr
     </Dialog>
   );
 }
+
+

@@ -19,7 +19,7 @@ export function PendingBordereauxSection() {
 
   if (isLoading) {
     return (
-      <Card className="border-forest-100 rounded-[32px] bg-white shadow-xl shadow-forest-900/5 mb-8">
+      <Card className="border-forest-100 rounded-2xl bg-white shadow-xl shadow-forest-900/5 mb-8">
         <CardHeader className="p-8 pb-4">
           <Skeleton className="h-8 w-64 rounded-xl" />
           <Skeleton className="h-4 w-96 rounded-lg mt-2" />
@@ -37,7 +37,7 @@ export function PendingBordereauxSection() {
   }
 
   return (
-    <Card className="border-forest-100 rounded-[32px] bg-white shadow-xl shadow-forest-900/5 mb-8 overflow-hidden relative">
+    <Card className="border-forest-100 rounded-2xl bg-white shadow-xl shadow-forest-900/5 mb-8 overflow-hidden relative">
       <div className="absolute top-0 right-0 p-8 opacity-5">
         <Landmark className="w-48 h-48 text-forest-900" />
       </div>
@@ -161,3 +161,4 @@ export function PendingBordereauxSection() {
     </Card>
   );
 }
+

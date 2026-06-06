@@ -96,7 +96,7 @@ export default function ChantiersPage() {
             <p className="text-sand-400 font-medium mt-1">Suivi opérationnel, livraison de bois et avancement des projets.</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20">
+            <Button className="h-11 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20">
               <Plus className="w-4 h-4 mr-2" /> Nouveau Chantier
             </Button>
           </div>
@@ -178,7 +178,7 @@ export default function ChantiersPage() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.4 }}
               >
-                <Card className="border-forest-100 shadow-xl shadow-forest-900/5 rounded-[32px] overflow-hidden bg-white">
+                <Card className="border-forest-100 shadow-xl shadow-forest-900/5 rounded-2xl overflow-hidden bg-white">
                   <div className="pt-8 pb-8 px-8">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                       <div className="flex items-center gap-6">
@@ -199,10 +199,10 @@ export default function ChantiersPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" className="rounded-xl border-forest-100 text-forest-600">
+                        <Button variant="outline" size="icon" className="border-forest-100 text-forest-600">
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="icon" className="rounded-xl border-forest-100 text-forest-600">
+                        <Button variant="outline" size="icon" className="border-forest-100 text-forest-600">
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </div>
@@ -284,5 +284,6 @@ export default function ChantiersPage() {
     </DashboardLayout>
   );
 }
+
 
 

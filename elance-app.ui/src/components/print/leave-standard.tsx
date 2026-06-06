@@ -194,3 +194,4 @@ export function LeaveStandard({ employee, leave, enterprise }: LeaveStandardProp
     </div>
   );
 }
+

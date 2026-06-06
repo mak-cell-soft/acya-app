@@ -42,7 +42,7 @@ export function PublicFooter() {
               </div>
               <button 
                 type="submit"
-                className="h-12 px-6 rounded-xl bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white font-bold text-sm transition-all duration-300 shadow-lg shadow-corp-blue-900/10 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                className="h-12 px-6 bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white font-bold text-sm transition-all duration-300 shadow-lg shadow-corp-blue-900/10 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
               >
                 Nous contacter
                 <ArrowRight className="w-4 h-4" />
@@ -206,4 +206,5 @@ export function PublicFooter() {
     </footer>
   );
 }
+
 

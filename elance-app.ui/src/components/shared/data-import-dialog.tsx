@@ -199,7 +199,7 @@ export function DataImportDialog({
     <Dialog open={isOpen} onOpenChange={handleResetAndClose}>
       <DialogContent 
         showCloseButton={false} 
-        className="w-full max-w-full sm:max-w-xl md:max-w-2xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-white font-sans"
+        className="w-full max-w-full sm:max-w-xl md:max-w-2xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-white font-sans"
       >
         {/* PREMIUM FOREST GREEN HEADER BLOCK */}
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
@@ -218,7 +218,7 @@ export function DataImportDialog({
           </div>
           <button 
             onClick={handleResetAndClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 hover:scale-105 transition-all text-foreground"
+            className="absolute right-6 top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 hover:scale-105 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -345,7 +345,7 @@ export function DataImportDialog({
                     type="button" 
                     variant="outline" 
                     onClick={handleResetAndClose}
-                    className="rounded-xl h-11 border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6"
+                    className="h-11 border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6"
                   >
                     Annuler
                   </Button>
@@ -353,7 +353,7 @@ export function DataImportDialog({
                     type="button"
                     disabled={!selectedFile}
                     onClick={handleImport}
-                    className="rounded-xl h-11 bg-forest-600 hover:bg-forest-800 text-white font-bold px-8 shadow-lg shadow-forest-600/20 disabled:bg-sand-100 disabled:text-sand-400 disabled:shadow-none transition-all duration-300"
+                    className="h-11 bg-forest-600 hover:bg-forest-800 text-white font-bold px-8 shadow-lg shadow-forest-600/20 disabled:bg-sand-100 disabled:text-sand-400 disabled:shadow-none transition-all duration-300"
                   >
                     Lancer l'importation
                   </Button>
@@ -480,7 +480,7 @@ export function DataImportDialog({
                   <Button 
                     type="button"
                     onClick={handleResetAndClose}
-                    className="rounded-xl h-11 bg-forest-600 hover:bg-forest-800 text-white font-bold px-8 shadow-lg shadow-forest-600/20"
+                    className="h-11 bg-forest-600 hover:bg-forest-800 text-white font-bold px-8 shadow-lg shadow-forest-600/20"
                   >
                     Terminer
                   </Button>
@@ -494,3 +494,5 @@ export function DataImportDialog({
     </Dialog>
   );
 }
+
+

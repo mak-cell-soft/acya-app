@@ -209,3 +209,4 @@ export function StockTransferStandard({ transfer, details, enterprise }: StockTr
     </div>
   );
 }
+

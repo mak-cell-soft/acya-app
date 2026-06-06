@@ -54,7 +54,7 @@ export default function SettingsPage() {
           className="w-full space-y-12"
         >
           <div className="sticky top-0 z-10 py-4 bg-background/80 backdrop-blur-md">
-            <TabsList className="bg-sand-50/80 p-1.5 rounded-[24px] border border-forest-100/50 shadow-sm inline-flex h-auto">
+            <TabsList className="bg-sand-50/80 p-1.5 rounded-xl border border-forest-100/50 shadow-sm inline-flex h-auto">
               <TabsTrigger 
                 value="enterprise" 
                 className="rounded-[18px] px-8 py-3.5 data-[state=active]:bg-forest-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-forest-600/20 font-bold gap-3 transition-all duration-300"
@@ -126,3 +126,4 @@ export default function SettingsPage() {
     </DashboardLayout>
   );
 }
+

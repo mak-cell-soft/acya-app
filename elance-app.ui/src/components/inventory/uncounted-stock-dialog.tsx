@@ -104,7 +104,7 @@ export function UncountedStockDialog({ open, onOpenChange, inventories }: Uncoun
               Inventaire de référence
             </label>
             <Select value={selectedInvId} onValueChange={(val) => setSelectedInvId(val || '')}>
-              <SelectTrigger className="w-full text-xs h-10">
+              <SelectTrigger className="w-full text-xs ">
                 <SelectValue placeholder="Sélectionnez un inventaire...">
                   {selectedInv ? `${selectedInv.docnumber || `INV-${selectedInv.id}`} - ${selectedInv.sales_site?.address || 'Site inconnu'}` : undefined}
                 </SelectValue>
@@ -203,3 +203,5 @@ export function UncountedStockDialog({ open, onOpenChange, inventories }: Uncoun
     </Dialog>
   );
 }
+
+

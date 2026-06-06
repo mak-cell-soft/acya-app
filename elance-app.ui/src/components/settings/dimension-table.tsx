@@ -209,3 +209,4 @@ export function DimensionTable({ nature, data }: DimensionTableProps) {
     </div>
   );
 }
+

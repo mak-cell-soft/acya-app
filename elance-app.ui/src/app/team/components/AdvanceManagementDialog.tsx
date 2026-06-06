@@ -145,7 +145,7 @@ export function AdvanceManagementDialog({ isOpen, onClose, employee }: AdvanceMa
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-background">
         
         {/* Header Section */}
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
@@ -164,7 +164,7 @@ export function AdvanceManagementDialog({ isOpen, onClose, employee }: AdvanceMa
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
+            className="absolute right-6 top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -262,7 +262,7 @@ export function AdvanceManagementDialog({ isOpen, onClose, employee }: AdvanceMa
                   <Button 
                     type="submit" 
                     disabled={addAdvance.isPending || amount <= 0}
-                    className="h-10 rounded-xl bg-forest-600 text-white font-bold hover:bg-forest-800 px-6"
+                    className="h-10 bg-forest-600 text-white font-bold hover:bg-forest-800 px-6"
                   >
                     {addAdvance.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     Enregistrer l&apos;avance
@@ -462,3 +462,5 @@ export function AdvanceManagementDialog({ isOpen, onClose, employee }: AdvanceMa
     </Dialog>
   );
 }
+
+

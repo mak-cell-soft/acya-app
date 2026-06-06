@@ -59,7 +59,7 @@ export function CategoryAccordion() {
       <div className="flex justify-end">
         <Button 
           onClick={openAddCategory}
-          className="rounded-xl bg-forest-600 text-white font-bold h-11 gap-2 px-6 shadow-lg shadow-forest-600/20 hover:bg-forest-700 transition-all"
+          className="bg-forest-600 text-white font-bold h-11 gap-2 px-6 shadow-lg shadow-forest-600/20 hover:bg-forest-700 transition-all"
         >
           <Plus className="w-5 h-5" />
           Nouvelle Catégorie
@@ -226,3 +226,4 @@ export function CategoryAccordion() {
     </div>
   );
 }
+

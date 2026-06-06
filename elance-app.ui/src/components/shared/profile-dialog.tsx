@@ -178,7 +178,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-3xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-white font-sans">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-3xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-white font-sans">
         
         {/* Header Block with Premium Forest Green Gradient */}
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
@@ -197,7 +197,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 hover:scale-105 transition-all text-foreground"
+            className="absolute right-6 top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 hover:scale-105 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -246,7 +246,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
                             id="login"
                             value={login}
                             disabled
-                            className="pl-10 bg-sand-50/50 border-forest-100 h-10 w-full rounded-xl text-sand-400 cursor-not-allowed font-medium font-mono"
+                            className="pl-10 bg-sand-50/50 w-full text-sand-400 cursor-not-allowed font-medium font-mono"
                           />
                         </div>
                       </div>
@@ -355,14 +355,14 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
                         type="button" 
                         variant="outline" 
                         onClick={onClose}
-                        className="rounded-xl h-11 border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6"
+                        className="h-11 border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6"
                       >
                         Annuler
                       </Button>
                       <Button 
                         type="submit"
                         disabled={updateProfileMutation.isPending}
-                        className="rounded-xl h-11 bg-forest-600 text-white hover:bg-forest-800 font-bold px-6 shadow-lg shadow-forest-600/10 gap-2"
+                        className="h-11 bg-forest-600 text-white hover:bg-forest-800 font-bold px-6 shadow-lg shadow-forest-600/10 gap-2"
                       >
                         {updateProfileMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                         Enregistrer les modifications
@@ -478,14 +478,14 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
                         type="button" 
                         variant="outline" 
                         onClick={onClose}
-                        className="rounded-xl h-11 border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6"
+                        className="h-11 border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6"
                       >
                         Annuler
                       </Button>
                       <Button 
                         type="submit"
                         disabled={updatePasswordMutation.isPending}
-                        className="rounded-xl h-11 bg-forest-600 text-white hover:bg-forest-800 font-bold px-6 shadow-lg shadow-forest-600/10 gap-2"
+                        className="h-11 bg-forest-600 text-white hover:bg-forest-800 font-bold px-6 shadow-lg shadow-forest-600/10 gap-2"
                       >
                         {updatePasswordMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                         Mettre à jour le mot de passe
@@ -501,3 +501,5 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
     </Dialog>
   );
 }
+
+

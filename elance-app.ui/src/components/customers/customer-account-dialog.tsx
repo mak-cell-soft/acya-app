@@ -85,7 +85,7 @@ export function CustomerAccountDialog({
         Without specifying these responsive breakpoint overrides, Tailwind specificity would keep the 
         dialog restricted to md width even on desktop viewports.
       */}
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-5xl lg:max-w-7xl h-[90vh] p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white flex flex-col">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-5xl lg:max-w-7xl h-[90vh] p-0 overflow-hidden border-forest-100 shadow-2xl rounded-2xl bg-white flex flex-col">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative flex-shrink-0">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
@@ -118,7 +118,7 @@ export function CustomerAccountDialog({
               </div>
               <Button 
                 variant="outline" 
-                className="h-11 rounded-xl bg-forest-50 border-forest-100 text-foreground hover:bg-forest-700"
+                className="h-11 bg-forest-50 border-forest-100 text-foreground hover:bg-forest-700"
                 onClick={() => setIsPrintOpen(true)}
               >
                 <Printer className="w-4 h-4 mr-2" /> Imprimer
@@ -127,7 +127,7 @@ export function CustomerAccountDialog({
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
+            className="absolute right-6 top-6 w-10 h-10 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-5 h-5" />
           </button>
@@ -181,7 +181,7 @@ export function CustomerAccountDialog({
               </div>
             </div>
 
-            <div className="p-6 rounded-[32px] bg-forest-900 text-white shadow-xl space-y-3 relative overflow-hidden group">
+            <div className="p-6 rounded-2xl bg-forest-900 text-white shadow-xl space-y-3 relative overflow-hidden group">
               <div className="absolute right-[-20px] bottom-[-20px] opacity-10 group-hover:scale-110 transition-transform duration-700">
                 <CreditCard className="w-32 h-32" />
               </div>
@@ -202,7 +202,7 @@ export function CustomerAccountDialog({
           </div>
 
           {/* Ledger Table */}
-          <div className="flex-1 bg-white rounded-[32px] border border-forest-50 shadow-sm overflow-hidden flex flex-col">
+          <div className="flex-1 bg-white rounded-2xl border border-forest-50 shadow-sm overflow-hidden flex flex-col">
             <div className="flex-1 overflow-y-auto scrollbar-hide">
               <table className="w-full text-left border-collapse">
                 <thead className="sticky top-0 z-20">
@@ -297,7 +297,7 @@ export function CustomerAccountDialog({
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="rounded-xl h-10 font-bold border-forest-50"
+                    className="h-10 font-bold border-forest-50"
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(prev => prev - 1)}
                   >
@@ -306,7 +306,7 @@ export function CustomerAccountDialog({
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="rounded-xl h-10 font-bold border-forest-50"
+                    className="h-10 font-bold border-forest-50"
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(prev => prev + 1)}
                   >
@@ -332,3 +332,5 @@ export function CustomerAccountDialog({
     </Dialog>
   );
 }
+
+

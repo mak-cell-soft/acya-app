@@ -215,7 +215,7 @@ export function CustomerFormDialog({
       */}
       <DialogContent 
         showCloseButton={false}
-        className="w-full max-w-full sm:max-w-xl md:max-w-3xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background h-full sm:h-auto max-h-screen sm:max-h-[90vh] flex flex-col"
+        className="w-full max-w-full sm:max-w-xl md:max-w-3xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-background h-full sm:h-auto max-h-screen sm:max-h-[90vh] flex flex-col"
       >
         <DialogHeader className="border-b border-border pb-4 mb-4 p-6 sm:p-8 relative shrink-0">
           <div className="flex items-center gap-4">
@@ -233,7 +233,7 @@ export function CustomerFormDialog({
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-4 top-4 sm:right-6 sm:top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
+            className="absolute right-4 top-4 sm:right-6 sm:top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -275,7 +275,7 @@ export function CustomerFormDialog({
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Civilité</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background transition-all">
+                              <SelectTrigger className="transition-all">
                                 <SelectValue placeholder="Titre" />
                               </SelectTrigger>
                             </FormControl>
@@ -295,7 +295,7 @@ export function CustomerFormDialog({
                         <FormItem className="col-span-1">
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Nom</FormLabel>
                           <FormControl>
-                            <Input className="h-12 rounded-xl border-forest-100 bg-background transition-all" placeholder="Nom" {...field} />
+                            <Input className="transition-all" placeholder="Nom" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -308,7 +308,7 @@ export function CustomerFormDialog({
                         <FormItem className="col-span-1">
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Prénom</FormLabel>
                           <FormControl>
-                            <Input className="h-12 rounded-xl border-forest-100 bg-background transition-all" placeholder="Prénom" {...field} />
+                            <Input className="transition-all" placeholder="Prénom" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -325,7 +325,7 @@ export function CustomerFormDialog({
                           <FormItem>
                             <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Raison Sociale</FormLabel>
                             <FormControl>
-                              <Input className="h-12 rounded-xl border-forest-100 font-bold" placeholder="Nom de l'entreprise" {...field} />
+                              <Input className="font-bold" placeholder="Nom de l'entreprise" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -338,7 +338,7 @@ export function CustomerFormDialog({
                           <FormItem>
                             <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Description</FormLabel>
                             <FormControl>
-                              <Input className="h-12 rounded-xl border-forest-100" placeholder="Description courte" {...field} />
+                              <Input  placeholder="Description courte" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -355,7 +355,7 @@ export function CustomerFormDialog({
                         <FormItem>
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">CIN</FormLabel>
                           <FormControl>
-                            <Input className="h-12 rounded-xl border-forest-100" placeholder="00000000" {...field} />
+                            <Input  placeholder="00000000" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -368,7 +368,7 @@ export function CustomerFormDialog({
                         <FormItem>
                           <Select onValueChange={field.onChange} value={field.value?.toString()}>
                             <FormControl>
-                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
+                              <SelectTrigger >
                                 <SelectValue placeholder="Activité">
                                   {CUSTOMER_ACTIVITIES.find(a => a.key.toString() === field.value?.toString() || a.value === field.value?.toString())?.value}
                                 </SelectValue>
@@ -396,7 +396,7 @@ export function CustomerFormDialog({
                           <FormControl>
                             <div className="relative group">
                               <Input 
-                                className="h-12 rounded-xl border-forest-100 bg-background font-mono cursor-pointer pr-12" 
+                                className="font-mono cursor-pointer pr-12" 
                                 placeholder="Cliquez pour saisir le MF" 
                                 {...field} 
                                 readOnly
@@ -423,7 +423,7 @@ export function CustomerFormDialog({
                         <FormItem>
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Patente</FormLabel>
                           <FormControl>
-                            <Input className="h-12 rounded-xl border-forest-100 bg-background" placeholder="Code Patente" {...field} onChange={e => field.onChange(e.target.value.toUpperCase())} />
+                            <Input  placeholder="Code Patente" {...field} onChange={e => field.onChange(e.target.value.toUpperCase())} />
                           </FormControl>
                         </FormItem>
                       )}
@@ -443,7 +443,7 @@ export function CustomerFormDialog({
                       <FormItem>
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Adresse Complète</FormLabel>
                         <FormControl>
-                          <Input className="h-12 rounded-xl border-forest-100" placeholder="Numéro, Rue..." {...field} />
+                          <Input  placeholder="Numéro, Rue..." {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -457,7 +457,7 @@ export function CustomerFormDialog({
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Gouvernorat</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value?.toString()}>
                           <FormControl>
-                            <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
+                            <SelectTrigger >
                               <SelectValue placeholder="Sélectionner" />
                             </SelectTrigger>
                           </FormControl>
@@ -481,7 +481,7 @@ export function CustomerFormDialog({
                           <FormControl>
                             <div className="relative">
                               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300" />
-                              <Input className="h-12 rounded-xl border-forest-100 pl-10" placeholder="71 000 000" {...field} />
+                              <Input className="pl-10" placeholder="71 000 000" {...field} />
                             </div>
                           </FormControl>
                           <FormMessage />
@@ -497,7 +497,7 @@ export function CustomerFormDialog({
                           <FormControl>
                             <div className="relative">
                               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300" />
-                              <Input className="h-12 rounded-xl border-forest-100 pl-10" placeholder="client@email.tn" {...field} />
+                              <Input className="pl-10" placeholder="client@email.tn" {...field} />
                             </div>
                           </FormControl>
                           <FormMessage />
@@ -524,7 +524,7 @@ export function CustomerFormDialog({
                         <FormItem>
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Remise Max (%)</FormLabel>
                           <FormControl>
-                            <Input type="number" className="h-12 rounded-xl border-forest-100" {...field} />
+                            <Input type="number"  {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -537,7 +537,7 @@ export function CustomerFormDialog({
                         <FormItem>
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Plafond Crédit</FormLabel>
                           <FormControl>
-                            <Input type="number" className="h-12 rounded-xl border-forest-100 font-bold" {...field} />
+                            <Input type="number" className="font-bold" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -552,7 +552,7 @@ export function CustomerFormDialog({
                       <FormItem>
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Solde d'Ouverture (TND)</FormLabel>
                         <FormControl>
-                          <Input type="number" step="0.001" className="h-12 rounded-xl border-forest-100 font-bold text-forest-900" {...field} />
+                          <Input type="number" step="0.001" className="font-bold text-forest-900" {...field} />
                         </FormControl>
                         <FormDescription className="text-[0.65rem]">Position financière initiale du client</FormDescription>
                         <FormMessage />
@@ -573,7 +573,7 @@ export function CustomerFormDialog({
                           <FormItem>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
-                                <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
+                                <SelectTrigger >
                                   <SelectValue placeholder="Banque" />
                                 </SelectTrigger>
                               </FormControl>
@@ -592,7 +592,7 @@ export function CustomerFormDialog({
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input className="h-12 rounded-xl border-forest-100 bg-background font-mono" placeholder="RIB / Numéro de compte" {...field} />
+                              <Input className="font-mono" placeholder="RIB / Numéro de compte" {...field} />
                             </FormControl>
                           </FormItem>
                         )}
@@ -612,7 +612,7 @@ export function CustomerFormDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input className="h-24 rounded-xl border-forest-100 align-top py-3" placeholder="Notes additionnelles..." {...field} />
+                          <Input className="h-24 align-top py-3" placeholder="Notes additionnelles..." {...field} />
                         </FormControl>
                       </FormItem>
                     )}
@@ -645,14 +645,14 @@ export function CustomerFormDialog({
                 type="button" 
                 variant="ghost" 
                 onClick={onClose}
-                className="h-12 px-8 rounded-xl font-bold text-sand-400 hover:bg-sand-50"
+                className="h-12 px-8 font-bold text-sand-400 hover:bg-sand-50"
               >
                 Annuler
               </Button>
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="h-12 px-10 rounded-xl bg-forest-600 text-white font-bold hover:bg-forest-800 shadow-lg shadow-forest-600/20 gap-2"
+                className="h-12 px-10 bg-forest-600 text-white font-bold hover:bg-forest-800 shadow-lg shadow-forest-600/20 gap-2"
               >
                 {isLoading ? "Traitement..." : (editCustomer ? "Mettre à jour" : "Enregistrer")}
               </Button>
@@ -669,3 +669,5 @@ export function CustomerFormDialog({
     </Dialog>
   );
 }
+
+

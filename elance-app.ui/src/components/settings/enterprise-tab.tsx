@@ -114,7 +114,7 @@ export function EnterpriseTab() {
               Informations légales et coordonnées de votre établissement.
             </p>
           </div>
-          <Card className="lg:col-span-2 border-forest-100 rounded-[24px] shadow-sm bg-white overflow-hidden">
+          <Card className="lg:col-span-2 border-forest-100 rounded-xl shadow-sm bg-white overflow-hidden">
             <CardContent className="p-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2.5">
@@ -205,7 +205,7 @@ export function EnterpriseTab() {
               Détails sur le représentant légal et l'adresse du siège social.
             </p>
           </div>
-          <Card className="lg:col-span-2 border-forest-100 rounded-[24px] shadow-sm bg-white overflow-hidden">
+          <Card className="lg:col-span-2 border-forest-100 rounded-xl shadow-sm bg-white overflow-hidden">
             <CardContent className="p-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2.5">
@@ -264,7 +264,7 @@ export function EnterpriseTab() {
               <div className="flex justify-end pt-4">
                 <Button 
                   disabled={!isDirty || updateEnterprise.isPending}
-                  className="rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 gap-2 h-12 px-8 transition-all duration-300"
+                  className="bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 gap-2 h-12 px-8 transition-all duration-300"
                 >
                   {updateEnterprise.isPending ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -286,3 +286,4 @@ export function EnterpriseTab() {
     </div>
   );
 }
+

@@ -185,7 +185,7 @@ export function WoodLengthsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-4xl sm:max-w-4xl md:max-w-4xl rounded-[24px] border-forest-100 bg-white/95 backdrop-blur-md shadow-2xl p-6 overflow-hidden">
+      <DialogContent className="w-full max-w-4xl sm:max-w-4xl md:max-w-4xl rounded-xl border-forest-100 bg-white/95 backdrop-blur-md shadow-2xl p-6 overflow-hidden">
         <DialogHeader className="mb-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-forest-100 flex items-center justify-center text-forest-600 shadow-md">
@@ -314,11 +314,11 @@ export function WoodLengthsDialog({
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="rounded-xl border-forest-100 hover:bg-forest-50 font-bold" onClick={onClose}>
+            <Button variant="outline" className="border-forest-100 hover:bg-forest-50 font-bold" onClick={onClose}>
               <X className="w-4 h-4 mr-2" /> Annuler
             </Button>
             <Button
-              className="rounded-xl bg-forest-600 hover:bg-forest-800 text-white font-bold shadow-lg shadow-forest-600/20"
+              className="bg-forest-600 hover:bg-forest-800 text-white font-bold shadow-lg shadow-forest-600/20"
               onClick={handleSubmit}
               disabled={validationErrors.length > 0}
             >
@@ -330,3 +330,5 @@ export function WoodLengthsDialog({
     </Dialog>
   );
 }
+
+

@@ -273,7 +273,7 @@ export default function SalesPage() {
             {hasPermission('sales', 'canAdd') && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button className="h-11 rounded-xl bg-forest-950 text-white hover:bg-forest-900 font-bold shadow-lg shadow-forest-950/20">
+                  <Button className="h-11 bg-forest-950 text-white hover:bg-forest-900 font-bold shadow-lg shadow-forest-950/20">
                     <Plus className="w-4 h-4 mr-2" /> Nouveau Document
                   </Button>
                 </DropdownMenuTrigger>
@@ -299,13 +299,13 @@ export default function SalesPage() {
         {/* Dynamic Month Navigator & KPIs */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           {/* Navigator */}
-          <Card className="lg:col-span-4 border-sand-200 shadow-sm rounded-[24px] bg-white overflow-hidden flex flex-col justify-between">
+          <Card className="lg:col-span-4 border-sand-200 shadow-sm rounded-xl bg-white overflow-hidden flex flex-col justify-between">
             <div className="p-4 bg-forest-950 text-white flex items-center justify-between">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handlePrevMonth}
-                className="text-white hover:bg-white/10 h-8 w-8 rounded-full"
+                className="text-white hover:bg-white/10 h-8 w-8 "
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
@@ -321,7 +321,7 @@ export default function SalesPage() {
                 variant="ghost"
                 size="icon"
                 onClick={handleNextMonth}
-                className="text-white hover:bg-white/10 h-8 w-8 rounded-full"
+                className="text-white hover:bg-white/10 h-8 w-8 "
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -354,7 +354,7 @@ export default function SalesPage() {
           </Card>
 
           {/* Core Monthly KPIs */}
-          <Card className="lg:col-span-8 border-sand-200 shadow-sm rounded-[24px] bg-white p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+          <Card className="lg:col-span-8 border-sand-200 shadow-sm rounded-xl bg-white p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-sand-400 uppercase tracking-wider block">
                 Total Documents Chargés
@@ -386,7 +386,7 @@ export default function SalesPage() {
         </div>
 
         {/* Tab view */}
-        <Card className="border-sand-200/80 shadow-md rounded-[24px] overflow-hidden bg-white">
+        <Card className="border-sand-200/80 shadow-md rounded-xl overflow-hidden bg-white">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <CardHeader className="border-b border-sand-100 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-sand-50/30">
               <TabsList className="bg-sand-100/60 p-1 rounded-xl h-11 border border-sand-200/50">
@@ -1240,3 +1240,4 @@ export default function SalesPage() {
     </DashboardLayout>
   );
 }
+

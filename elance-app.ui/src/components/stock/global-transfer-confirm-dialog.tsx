@@ -390,7 +390,7 @@ export function GlobalTransferConfirmDialog() {
           <Button
             variant="outline"
             onClick={handleClose}
-            className="h-10 text-xs font-bold border-zinc-200 dark:border-zinc-800 rounded-xl"
+            className="h-10 text-xs font-bold border-zinc-200 dark:border-zinc-800 "
           >
             Plus tard
           </Button>
@@ -399,3 +399,5 @@ export function GlobalTransferConfirmDialog() {
     </Dialog>
   );
 }
+
+

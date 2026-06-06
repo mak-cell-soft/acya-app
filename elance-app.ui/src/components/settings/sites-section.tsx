@@ -53,7 +53,7 @@ export function SitesSection({ enterpriseId }: { enterpriseId: number }) {
           Gérez vos différents sites d'exploitation et points de vente.
         </p>
       </div>
-      <Card className="lg:col-span-2 border-forest-100 rounded-[24px] shadow-sm bg-white overflow-hidden">
+      <Card className="lg:col-span-2 border-forest-100 rounded-xl shadow-sm bg-white overflow-hidden">
         <CardContent className="p-8 space-y-6">
           <div className="flex justify-between items-center">
             <h4 className="text-forest-900 font-bold flex items-center gap-2">
@@ -108,7 +108,7 @@ export function SitesSection({ enterpriseId }: { enterpriseId: number }) {
                             </Button>
                           }
                         />
-                          <AlertDialogContent className="rounded-[24px] border-forest-100">
+                          <AlertDialogContent className="rounded-xl border-forest-100">
                             <AlertDialogHeader>
                               <AlertDialogTitle className="text-forest-900 font-bold">Supprimer ce site ?</AlertDialogTitle>
                               <AlertDialogDescription className="text-sand-500 font-medium">
@@ -144,3 +144,4 @@ export function SitesSection({ enterpriseId }: { enterpriseId: number }) {
     </section>
   );
 }
+

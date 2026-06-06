@@ -198,3 +198,4 @@ export function AdvanceStandard({ employee, advance, enterprise }: AdvanceStanda
     </div>
   );
 }
+

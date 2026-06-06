@@ -147,3 +147,4 @@ export function StockTransferLight({ transfer, details, enterprise }: StockTrans
     </div>
   );
 }
+

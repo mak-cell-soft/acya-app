@@ -176,7 +176,7 @@ export function CustomerDetailsDialog({
         Without specifying these responsive breakpoint overrides, Tailwind specificity would keep the 
         dialog restricted to md width even on desktop viewports.
       */}
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-6xl h-[90vh] p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white flex flex-col">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-6xl h-[90vh] p-0 overflow-hidden border-forest-100 shadow-2xl rounded-2xl bg-white flex flex-col">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative flex-shrink-0">
           <div className="flex items-center gap-6">
             <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-forest-800 to-forest-700 flex items-center justify-center border border-forest-600 text-emerald-600 font-heading text-2xl font-bold shadow-inner">
@@ -198,7 +198,7 @@ export function CustomerDetailsDialog({
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
+            className="absolute right-6 top-6 w-10 h-10 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-5 h-5" />
           </button>
@@ -223,7 +223,7 @@ export function CustomerDetailsDialog({
                   {/* Personal Info Card */}
                   <div className="md:col-span-2 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="p-6 rounded-[24px] bg-white border border-forest-50 shadow-sm space-y-4">
+                      <div className="p-6 rounded-xl bg-white border border-forest-50 shadow-sm space-y-4">
                         <div className="flex items-center gap-2 text-forest-600">
                           <BadgeInfo className="w-4 h-4" />
                           <h4 className="text-[0.65rem] font-bold uppercase tracking-widest text-sand-400">Détails Identité</h4>
@@ -256,7 +256,7 @@ export function CustomerDetailsDialog({
                         </div>
                       </div>
 
-                      <div className="p-6 rounded-[24px] bg-white border border-forest-50 shadow-sm space-y-4">
+                      <div className="p-6 rounded-xl bg-white border border-forest-50 shadow-sm space-y-4">
                         <div className="flex items-center gap-2 text-forest-600">
                           <MapPin className="w-4 h-4" />
                           <h4 className="text-[0.65rem] font-bold uppercase tracking-widest text-sand-400">Localisation</h4>
@@ -274,7 +274,7 @@ export function CustomerDetailsDialog({
                       </div>
                     </div>
 
-                    <div className="p-6 rounded-[24px] bg-forest-900 text-white shadow-xl space-y-4">
+                    <div className="p-6 rounded-xl bg-forest-900 text-white shadow-xl space-y-4">
                       <div className="flex items-center gap-2 text-emerald-400">
                         <Phone className="w-4 h-4" />
                         <h4 className="text-[0.65rem] font-bold uppercase tracking-widest text-forest-300">Contact & Communication</h4>
@@ -313,7 +313,7 @@ export function CustomerDetailsDialog({
 
                   {/* Financial Summary Card */}
                   <div className="space-y-6">
-                    <div className="p-8 rounded-[32px] bg-sand-50 border border-forest-50 shadow-inner flex flex-col items-center text-center space-y-6">
+                    <div className="p-8 rounded-2xl bg-sand-50 border border-forest-50 shadow-inner flex flex-col items-center text-center space-y-6">
                       <CreditCard className="w-12 h-12 text-forest-600" />
                       <div>
                         <div className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest mb-1">Solde Actuel</div>
@@ -344,7 +344,7 @@ export function CustomerDetailsDialog({
                       )}
                     </div>
                     
-                    <div className="p-6 rounded-[24px] bg-white border border-forest-50 space-y-3">
+                    <div className="p-6 rounded-xl bg-white border border-forest-50 space-y-3">
                       <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest flex items-center gap-2">
                         <FileText className="w-4 h-4" /> Notes internes
                       </div>
@@ -368,7 +368,7 @@ export function CustomerDetailsDialog({
                         <label className="text-[0.65rem] font-bold text-sand-400 uppercase">Article</label>
                         <div>
                           <Select onValueChange={(val) => setSelectedArticleId(val || "")} value={selectedArticleId}>
-                            <SelectTrigger className="h-10 rounded-xl bg-white border-forest-50 w-full !w-full">
+                            <SelectTrigger className="border-forest-50 w-full !w-full">
                               <SelectValue placeholder="Choisir un article">
                                 {selectedArticle ? (
                                   selectedArticle.description 
@@ -412,7 +412,7 @@ export function CustomerDetailsDialog({
                         <div className="relative">
                           <Input 
                             type="number" 
-                            className="h-10 rounded-xl bg-white border-forest-50 font-bold"
+                            className="border-forest-50 font-bold"
                             value={discountRate}
                             onChange={(e) => setDiscountRate(parseFloat(e.target.value))}
                           />
@@ -423,7 +423,7 @@ export function CustomerDetailsDialog({
                         <label className="text-[0.65rem] font-bold text-sand-400 uppercase">Date Début</label>
                         <Input 
                           type="date" 
-                          className="h-10 rounded-xl bg-white border-forest-50 text-xs text-forest-800"
+                          className="border-forest-50 text-xs text-forest-800"
                           value={validFrom}
                           onChange={(e) => setValidFrom(e.target.value)}
                         />
@@ -432,13 +432,13 @@ export function CustomerDetailsDialog({
                         <label className="text-[0.65rem] font-bold text-sand-400 uppercase">Date Fin</label>
                         <Input 
                           type="date" 
-                          className="h-10 rounded-xl bg-white border-forest-50 text-xs text-forest-800"
+                          className="border-forest-50 text-xs text-forest-800"
                           value={validUntil}
                           onChange={(e) => setValidUntil(e.target.value)}
                         />
                       </div>
                       <Button 
-                        className="w-full h-10 rounded-xl bg-forest-600 hover:bg-forest-800 text-white font-bold shadow-lg shadow-forest-600/20 md:col-span-2"
+                        className="w-full h-10 bg-forest-600 hover:bg-forest-800 text-white font-bold shadow-lg shadow-forest-600/20 md:col-span-2"
                         onClick={handleAddRule}
                         disabled={!selectedArticleId || discountRate <= 0}
                       >
@@ -448,7 +448,7 @@ export function CustomerDetailsDialog({
                   </div>
 
                   {/* Rules Table */}
-                  <div className="rounded-[24px] border border-forest-50 overflow-hidden shadow-sm bg-white">
+                  <div className="rounded-xl border border-forest-50 overflow-hidden shadow-sm bg-white">
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-sand-50/50 border-b border-forest-50">
@@ -520,3 +520,5 @@ export function CustomerDetailsDialog({
     </Dialog>
   );
 }
+
+

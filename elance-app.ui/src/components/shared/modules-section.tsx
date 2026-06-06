@@ -93,7 +93,7 @@ export function ModulesSection() {
             <motion.div
               key={m.title}
               variants={cardVariants}
-              className={`group relative overflow-hidden rounded-[24px] border p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(37,99,235,0.06)] cursor-default ${
+              className={`group relative overflow-hidden rounded-xl border p-8 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(37,99,235,0.06)] cursor-default ${
                 m.highlighted 
                   ? 'border-corp-cyan/50 bg-gradient-to-br from-white to-corp-blue-50/10 shadow-lg shadow-corp-blue-500/5' 
                   : 'border-slate-200/80 bg-white hover:border-corp-blue-300'
@@ -134,3 +134,4 @@ export function ModulesSection() {
     </section>
   );
 }
+

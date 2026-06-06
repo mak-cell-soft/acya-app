@@ -102,7 +102,7 @@ export default function LoginPage() {
           <p className="text-sand-400 font-medium text-sm uppercase tracking-[0.1em] mt-1">by ACYA Consulting</p>
         </div>
 
-        <Card className="border-forest-100 shadow-[0_20px_60px_rgba(11,59,36,0.08)] bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden">
+        <Card className="border-forest-100 shadow-[0_20px_60px_rgba(11,59,36,0.08)] bg-card/80 backdrop-blur-md rounded-2xl overflow-hidden">
           <CardHeader className="space-y-2 pt-10 pb-6">
             <CardTitle className="text-2xl font-bold text-center text-forest-900">Bienvenue</CardTitle>
             <CardDescription className="text-center text-sand-400">
@@ -120,7 +120,6 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="h-12 bg-sand-50/50 border-forest-100 rounded-xl focus:border-forest-600 focus:ring-forest-600 transition-all px-4"
                   disabled={isLoading}
                 />
               </div>
@@ -134,7 +133,7 @@ export default function LoginPage() {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="h-12 bg-sand-50/50 border-forest-100 rounded-xl focus:border-forest-600 focus:ring-forest-600 transition-all pl-4 pr-12 w-full"
+                    className="pr-12"
                     disabled={isLoading}
                   />
                   <button
@@ -217,7 +216,7 @@ export default function LoginPage() {
             <CardFooter className="flex flex-col gap-6 px-8 pb-10 pt-4">
               <Button
                 type="submit"
-                className="w-full h-14 rounded-xl bg-forest-600 text-white text-lg font-bold shadow-lg shadow-forest-600/20 hover:bg-forest-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+                className="w-full h-14 bg-forest-600 text-white text-lg font-bold shadow-lg shadow-forest-600/20 hover:bg-forest-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -238,3 +237,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

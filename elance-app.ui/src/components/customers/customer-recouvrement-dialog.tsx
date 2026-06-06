@@ -182,7 +182,7 @@ export function CustomerRecouvrementDialog({ open, onOpenChange, customerId }: C
                   <label className="flex items-center space-x-2 cursor-pointer border rounded-lg p-3 flex-1 hover:bg-forest-50 transition-colors">
                     <input
                       type="radio"
-                      className="text-forest-600 focus:ring-forest-500 w-4 h-4"
+                      className="text-forest-600 w-4 h-4"
                       checked={paymentType === 'general'}
                       onChange={() => handlePaymentTypeChange('general')}
                     />
@@ -191,7 +191,7 @@ export function CustomerRecouvrementDialog({ open, onOpenChange, customerId }: C
                   <label className="flex items-center space-x-2 cursor-pointer border rounded-lg p-3 flex-1 hover:bg-forest-50 transition-colors">
                     <input
                       type="radio"
-                      className="text-forest-600 focus:ring-forest-500 w-4 h-4"
+                      className="text-forest-600 w-4 h-4"
                       checked={paymentType === 'document'}
                       onChange={() => handlePaymentTypeChange('document')}
                     />
@@ -321,7 +321,7 @@ export function CustomerRecouvrementDialog({ open, onOpenChange, customerId }: C
                       size="icon"
                       onClick={handleGenerateReference}
                       disabled={loadingRef}
-                      className="absolute right-1 w-8 h-8 rounded-md text-forest-600 hover:text-forest-700 hover:bg-forest-50"
+                      className="absolute right-1 w-8 h-8 text-forest-600 hover:text-forest-700 hover:bg-forest-50"
                       title="Générer un numéro"
                     >
                       {loadingRef ? (
@@ -365,3 +365,5 @@ export function CustomerRecouvrementDialog({ open, onOpenChange, customerId }: C
     </Dialog>
   );
 }
+
+

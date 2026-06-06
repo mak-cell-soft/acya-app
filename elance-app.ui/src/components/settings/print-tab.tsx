@@ -69,7 +69,7 @@ function SectionCard({
         </h3>
         <p className="text-[0.85rem] text-sand-400 font-medium leading-relaxed">{subtitle}</p>
       </div>
-      <Card className="lg:col-span-2 border-forest-100 rounded-[24px] shadow-sm bg-white overflow-hidden">
+      <Card className="lg:col-span-2 border-forest-100 rounded-xl shadow-sm bg-white overflow-hidden">
         <CardContent className="p-6">{children}</CardContent>
       </Card>
     </section>
@@ -287,7 +287,7 @@ export function PrintTab() {
           onClick={handleSave}
           disabled={updateLocale.isPending}
           id="print-locale-save"
-          className="rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 gap-2 h-12 px-8 transition-all duration-300"
+          className="bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 gap-2 h-12 px-8 transition-all duration-300"
         >
           {updateLocale.isPending ? (
             <Loader2 className="w-5 h-5 animate-spin" />
@@ -300,3 +300,4 @@ export function PrintTab() {
     </motion.div>
   );
 }
+

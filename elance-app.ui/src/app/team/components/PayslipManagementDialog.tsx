@@ -132,7 +132,7 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-background">
         
         {/* Header Section */}
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
@@ -151,7 +151,7 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
+            className="absolute right-6 top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -199,7 +199,7 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
                       <Calendar className="w-3 h-3 text-sand-300" /> Mois
                     </label>
                     <Select value={periodMonth.toString()} onValueChange={(val) => setPeriodMonth(parseInt(val || '1'))}>
-                      <SelectTrigger className="h-11 rounded-xl border-forest-100 bg-background font-bold text-forest-900">
+                      <SelectTrigger className="h-11 font-bold text-forest-900">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-forest-100 shadow-xl">
@@ -274,7 +274,7 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
                   <Button 
                     type="submit" 
                     disabled={generatePayslip.isPending}
-                    className="h-10 rounded-xl bg-forest-600 text-white font-bold hover:bg-forest-800 px-6"
+                    className="h-10 bg-forest-600 text-white font-bold hover:bg-forest-800 px-6"
                   >
                     {generatePayslip.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     Calculer & Enregistrer
@@ -399,3 +399,5 @@ export function PayslipManagementDialog({ isOpen, onClose, employee }: PayslipMa
     </Dialog>
   );
 }
+
+

@@ -118,13 +118,13 @@ export function HeroSection() {
 
           {/* Action CTAs with Interactive Anchors */}
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 pt-4 justify-center lg:justify-start">
-            <Button asChild className="h-14 px-8 rounded-xl bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white font-bold text-[1rem] transition-all duration-300 shadow-lg shadow-corp-blue-900/15 hover:scale-[1.03] active:scale-[0.97] group">
+            <Button asChild className="h-14 px-8 bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white font-bold text-[1rem] transition-all duration-300 shadow-lg shadow-corp-blue-900/15 hover:scale-[1.03] active:scale-[0.97] group">
               <Link href="/register" className="flex items-center gap-2">
                 Essai Gratuit 14 Jours
                 <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
-            <Button asChild variant="outline" className="h-14 px-8 rounded-xl border-slate-200 bg-white text-slate-700 hover:border-corp-blue-600 hover:text-corp-blue-600 text-[1rem] font-bold transition-all duration-300 shadow-sm hover:scale-[1.02] active:scale-[0.98] group">
+            <Button asChild variant="outline" className="h-14 px-8 border-slate-200 bg-white text-slate-700 hover:border-corp-blue-600 hover:text-corp-blue-600 text-[1rem] font-bold transition-all duration-300 shadow-sm hover:scale-[1.02] active:scale-[0.98] group">
               <Link href="#modules" className="flex items-center gap-2">
                 <Play size={16} className="fill-current text-slate-400 group-hover:text-corp-blue-600" />
                 Voir la Démo Vidéo
@@ -322,3 +322,4 @@ export function HeroSection() {
     </section>
   );
 }
+

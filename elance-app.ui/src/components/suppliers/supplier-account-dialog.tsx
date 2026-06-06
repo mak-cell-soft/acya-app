@@ -72,7 +72,7 @@ export function SupplierAccountDialog({
         Without specifying these responsive breakpoint overrides, Tailwind specificity would keep the 
         dialog restricted to md width even on desktop/tablet viewports.
       */}
-      <DialogContent showCloseButton={false} className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-7xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white max-h-[90vh] flex flex-col">
+      <DialogContent showCloseButton={false} className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-7xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-2xl bg-white max-h-[90vh] flex flex-col">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative flex-shrink-0">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-6">
@@ -92,7 +92,7 @@ export function SupplierAccountDialog({
             <div className="flex items-center gap-3">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="h-12 rounded-xl border-forest-100 bg-forest-50 text-foreground hover:bg-forest-700 hover:text-foreground font-bold px-5">
+                  <Button variant="outline" className="h-12 border-forest-100 bg-forest-50 text-foreground hover:bg-forest-700 hover:text-foreground font-bold px-5">
                     <CalendarIcon className="w-4 h-4 mr-2 text-emerald-600" />
                     {format(dateRange.from, "dd MMM", { locale: fr })} - {format(dateRange.to, "dd MMM yyyy", { locale: fr })}
                   </Button>
@@ -114,7 +114,7 @@ export function SupplierAccountDialog({
               </Popover>
               <Button 
                 variant="outline" 
-                className="h-12 rounded-xl border-forest-100 bg-forest-50 text-foreground hover:bg-forest-700 hover:text-foreground font-bold px-5"
+                className="h-12 border-forest-100 bg-forest-50 text-foreground hover:bg-forest-700 hover:text-foreground font-bold px-5"
                 onClick={() => setIsPrintOpen(true)}
               >
                 <Printer className="w-4 h-4 mr-2 text-emerald-600" /> Imprimer
@@ -123,7 +123,7 @@ export function SupplierAccountDialog({
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
+            className="absolute right-6 top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -164,7 +164,7 @@ export function SupplierAccountDialog({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400" />
               <Input 
                 placeholder="Rechercher une opération..." 
-                className="h-10 rounded-xl border-forest-50 bg-sand-50/50 pl-10 text-sm focus:ring-forest-600"
+                className="border-forest-50 bg-sand-50/50 pl-10 text-sm "
               />
             </div>
             <div className="flex items-center gap-4">
@@ -288,3 +288,5 @@ export function SupplierAccountDialog({
     </Dialog>
   );
 }
+
+

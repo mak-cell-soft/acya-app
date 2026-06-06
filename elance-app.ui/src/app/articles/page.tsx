@@ -185,7 +185,7 @@ export default function ArticlesPage() {
             <p className="text-sand-400 font-medium mt-1">Gérez votre catalogue de bois, panneaux et accessoires.</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6">
+            <Button variant="outline" className="h-11 border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6">
               <Download className="w-4 h-4 mr-2" /> Exporter
             </Button>
             {hasPermission('articles', 'canAdd') && (
@@ -199,7 +199,7 @@ export default function ArticlesPage() {
             )}
             {hasPermission('articles', 'canAdd') && (
               <Button 
-                className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-6"
+                className="h-11 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-6"
                 onClick={() => { setSelectedArticle(null); setIsFormOpen(true); }}
               >
                 <Plus className="w-4 h-4 mr-2" /> Nouvel Article
@@ -209,7 +209,7 @@ export default function ArticlesPage() {
         </header>
 
         {/* Filters and Table Card */}
-        <Card className="border-forest-100/50 shadow-2xl shadow-forest-900/5 rounded-[32px] overflow-hidden bg-white/80 backdrop-blur-md">
+        <Card className="border-forest-100/50 shadow-2xl shadow-forest-900/5 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-md">
           <ArticleFilters 
             searchTerm={searchTerm}
             onSearchChange={(val) => { setSearchTerm(val); setCurrentPage(1); }}
@@ -280,7 +280,7 @@ export default function ArticlesPage() {
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="h-9 w-9 rounded-xl text-sand-300 hover:text-forest-600 hover:bg-forest-100/50 transition-all"
+                                className="h-9 w-9 text-sand-300 hover:text-forest-600 hover:bg-forest-100/50 transition-all"
                                 onClick={(e) => { e.stopPropagation(); setSelectedArticle(item); setIsHistoryOpen(true); }}
                               >
                                 <History className="w-4 h-4" />
@@ -288,7 +288,7 @@ export default function ArticlesPage() {
                               
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-sand-300 hover:text-forest-900">
+                                  <Button variant="ghost" size="icon" className="h-9 w-9 text-sand-300 hover:text-forest-900">
                                     <MoreHorizontal className="w-4 h-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
@@ -470,7 +470,7 @@ export default function ArticlesPage() {
       {/* Floating Scroll Top */}
       <button 
         onClick={scrollToTop}
-        className="fixed bottom-8 right-8 w-12 h-12 rounded-2xl bg-forest-900 text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-all group z-50 border border-forest-700"
+        className="fixed bottom-8 right-8 w-12 h-12 bg-forest-900 text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-all group z-50 border border-forest-700"
       >
         <ArrowUpCircle className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
       </button>
@@ -532,7 +532,7 @@ function EmptyState() {
     <tr>
       <td colSpan={7} className="p-20 text-center">
         <div className="flex flex-col items-center justify-center">
-          <div className="w-20 h-20 rounded-[32px] bg-sand-50 flex items-center justify-center mb-6">
+          <div className="w-20 h-20 rounded-2xl bg-sand-50 flex items-center justify-center mb-6">
             <Package className="w-10 h-10 text-sand-200" />
           </div>
           <h3 className="text-forest-900 font-heading text-xl font-bold">Aucun article trouvé</h3>
@@ -544,3 +544,4 @@ function EmptyState() {
     </tr>
   );
 }
+

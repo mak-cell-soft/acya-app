@@ -213,7 +213,7 @@ export function ExcelInventoryDialog({ isOpen, onClose }: ExcelInventoryDialogPr
     <Dialog open={isOpen} onOpenChange={handleResetAndClose}>
       <DialogContent 
         showCloseButton={false} 
-        className="w-full max-w-full sm:max-w-xl md:max-w-2xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-white font-sans"
+        className="w-full max-w-full sm:max-w-xl md:max-w-2xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-white font-sans"
       >
         <DialogHeader className="border-b border-border pb-4 mb-4 p-6 relative">
           <div className="flex items-center gap-4">
@@ -231,7 +231,7 @@ export function ExcelInventoryDialog({ isOpen, onClose }: ExcelInventoryDialogPr
           </div>
           <button 
             onClick={handleResetAndClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 hover:scale-105 transition-all text-foreground"
+            className="absolute right-6 top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 hover:scale-105 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -284,7 +284,7 @@ export function ExcelInventoryDialog({ isOpen, onClose }: ExcelInventoryDialogPr
                 <Button 
                   onClick={handleExport}
                   disabled={!exportSiteId || isExporting}
-                  className="bg-forest-600 hover:bg-forest-700 text-white rounded-xl h-11 px-8"
+                  className="bg-forest-600 hover:bg-forest-700 text-white h-11 px-8"
                 >
                   {isExporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
                   Télécharger le modèle Excel
@@ -365,7 +365,7 @@ export function ExcelInventoryDialog({ isOpen, onClose }: ExcelInventoryDialogPr
                       <Button 
                         disabled={!selectedFile || !importSiteId}
                         onClick={handleProcessFile}
-                        className="bg-forest-600 hover:bg-forest-700 text-white rounded-xl h-11 px-8"
+                        className="bg-forest-600 hover:bg-forest-700 text-white h-11 px-8"
                       >
                         Analyser le fichier
                       </Button>
@@ -452,7 +452,7 @@ export function ExcelInventoryDialog({ isOpen, onClose }: ExcelInventoryDialogPr
                       <Button 
                         disabled={parseResult.rows.length === 0 || isCreating}
                         onClick={handleCreateInventory}
-                        className="bg-forest-600 hover:bg-forest-700 text-white rounded-xl h-11 px-8"
+                        className="bg-forest-600 hover:bg-forest-700 text-white h-11 px-8"
                       >
                         {isCreating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
                         Créer l'Inventaire
@@ -468,3 +468,5 @@ export function ExcelInventoryDialog({ isOpen, onClose }: ExcelInventoryDialogPr
     </Dialog>
   );
 }
+
+

@@ -202,13 +202,13 @@ export default function TeamPage() {
           <div className="flex items-center gap-3">
             <Button 
               variant="outline" 
-              className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-5"
+              className="h-11 border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-5"
               onClick={() => setIsCalendarDialogOpen(true)}
             >
               <Calendar className="w-4 h-4 mr-2 text-emerald-600 animate-pulse" /> Planning Congés
             </Button>
             <Button 
-              className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-5 transition-all duration-300 transform active:scale-95"
+              className="h-11 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-5 transition-all duration-300 transform active:scale-95"
               onClick={() => {
                 if (activeTab === 'employees') {
                   setSelectedPerson(null);
@@ -242,7 +242,7 @@ export default function TeamPage() {
           </TabsList>
 
           {/* Search and Filters Panel */}
-          <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-[24px] overflow-hidden bg-white/80 backdrop-blur-sm mt-6">
+          <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm mt-6">
             <CardHeader className="border-b border-forest-50 p-6">
               <div className="flex flex-col md:flex-row md:items-center gap-4">
                 <div className="relative flex-1">
@@ -345,7 +345,7 @@ export default function TeamPage() {
                                 <div className="flex items-center justify-end gap-2">
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-sand-300 hover:text-forest-900">
+                                      <Button variant="ghost" size="icon" className="h-9 w-9 text-sand-300 hover:text-forest-900">
                                         <MoreHorizontal className="w-4 h-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
@@ -563,7 +563,7 @@ export default function TeamPage() {
                               <td className="p-5 text-right pr-8">
                                 <div className="flex items-center justify-end gap-2">
                                   <Button 
-                                    className="h-9 font-bold bg-white hover:bg-forest-50 border border-forest-100 text-forest-700 rounded-xl px-4 text-xs"
+                                    className="h-9 font-bold bg-white hover:bg-forest-50 border border-forest-100 text-forest-700 px-4 text-xs"
                                     onClick={(e) => {
                                       // NOTE: Prevent row expansion click event bubbling
                                       e.stopPropagation();
@@ -577,7 +577,7 @@ export default function TeamPage() {
                                   {/* NOTE: If the app user is linked to an employee (person), allow managing their leaves, payslips, and advances. */}
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-sand-300 hover:text-forest-900">
+                                      <Button variant="ghost" size="icon" className="h-9 w-9 text-sand-300 hover:text-forest-900">
                                         <MoreHorizontal className="w-4 h-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
@@ -796,7 +796,7 @@ function EmptyState({ message }: EmptyStateProps) {
     <tr>
       <td colSpan={10} className="p-20 text-center">
         <div className="flex flex-col items-center justify-center animate-in fade-in duration-500">
-          <div className="w-16 h-16 rounded-[24px] bg-sand-50 flex items-center justify-center mb-4">
+          <div className="w-16 h-16 rounded-xl bg-sand-50 flex items-center justify-center mb-4">
             <Users className="w-8 h-8 text-sand-300" />
           </div>
           <h3 className="text-forest-900 font-heading text-lg font-bold">Aucune donnée</h3>
@@ -808,6 +808,7 @@ function EmptyState({ message }: EmptyStateProps) {
     </tr>
   );
 }
+
 
 
 

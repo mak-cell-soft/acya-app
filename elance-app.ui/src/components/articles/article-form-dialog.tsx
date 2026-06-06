@@ -226,7 +226,7 @@ export function ArticleFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background scrollbar-hide">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-background scrollbar-hide">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100">
@@ -243,7 +243,7 @@ export function ArticleFormDialog({
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
+            className="absolute right-6 top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -308,7 +308,7 @@ export function ArticleFormDialog({
                         <FormItem>
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Référence</FormLabel>
                           <FormControl>
-                            <Input placeholder="Ex: RF163100..." className="h-12 rounded-xl border-forest-100 bg-background" {...field} />
+                            <Input placeholder="Ex: RF163100..."  {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -321,7 +321,7 @@ export function ArticleFormDialog({
                         <FormItem>
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Désignation</FormLabel>
                           <FormControl>
-                            <Input placeholder="Ex: Bois Rouge Finlandais..." className="h-12 rounded-xl border-forest-100 bg-background" {...field} />
+                            <Input placeholder="Ex: Bois Rouge Finlandais..."  {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -338,7 +338,7 @@ export function ArticleFormDialog({
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Catégorie</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                             <FormControl>
-                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
+                              <SelectTrigger >
                                 <SelectValue placeholder="Choisir une catégorie">
                                   {field.value && categories ? categories.find(c => c.id.toString() === field.value.toString())?.description : undefined}
                                 </SelectValue>
@@ -362,7 +362,7 @@ export function ArticleFormDialog({
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Sous-catégorie</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value?.toString() || ""} disabled={!selectedCategoryId}>
                             <FormControl>
-                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
+                              <SelectTrigger >
                                 <SelectValue placeholder="Choisir une sous-catégorie">
                                   {field.value ? filteredSubCategories.find(sub => sub.id.toString() === field.value.toString())?.description : undefined}
                                 </SelectValue>
@@ -399,7 +399,7 @@ export function ArticleFormDialog({
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Épaisseur (mm)</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                           <FormControl>
-                            <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
+                            <SelectTrigger >
                               <SelectValue placeholder="Choisir une épaisseur">
                                 {field.value && thicknesses ? thicknesses.find(t => t.id.toString() === field.value!.toString())?.name : undefined}
                               </SelectValue>
@@ -423,7 +423,7 @@ export function ArticleFormDialog({
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Largeur (mm)</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                           <FormControl>
-                            <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
+                            <SelectTrigger >
                               <SelectValue placeholder="Choisir une largeur">
                                 {field.value && widths ? widths.find(w => w.id.toString() === field.value!.toString())?.name : undefined}
                               </SelectValue>
@@ -479,7 +479,7 @@ export function ArticleFormDialog({
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Prix Vente TTC</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input type="number" step="0.001" className="h-12 rounded-xl border-forest-100 bg-background pr-12 font-bold" {...field} />
+                          <Input type="number" step="0.001" className="pr-12 font-bold" {...field} />
                           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sand-300 font-bold text-xs uppercase">TND</span>
                         </div>
                       </FormControl>
@@ -495,7 +495,7 @@ export function ArticleFormDialog({
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">TVA (%)</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                         <FormControl>
-                          <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background font-bold">
+                          <SelectTrigger className="font-bold">
                             <SelectValue placeholder="Choisir TVA">
                               {field.value && tvas ? (() => {
                                 const tva = tvas.find(t => t.id.toString() === field.value.toString());
@@ -539,7 +539,7 @@ export function ArticleFormDialog({
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Unité</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value} disabled={selectedCategoryId === "1"}>
                         <FormControl>
-                          <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background font-bold">
+                          <SelectTrigger className="font-bold">
                             <SelectValue placeholder="Unité">
                               {field.value ? Object.values(QuantityUnits).find(u => u.substring(0, 3).toUpperCase() === field.value) : undefined}
                             </SelectValue>
@@ -562,7 +562,7 @@ export function ArticleFormDialog({
                     <FormItem>
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Quantité Min.</FormLabel>
                       <FormControl>
-                        <Input type="number" className="h-12 rounded-xl border-forest-100 bg-background font-bold" {...field} />
+                        <Input type="number" className="font-bold" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -576,7 +576,7 @@ export function ArticleFormDialog({
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Marge (%)</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input type="number" className="h-12 rounded-xl border-forest-100 bg-background pr-8 font-bold" {...field} />
+                          <Input type="number" className="pr-8 font-bold" {...field} />
                           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sand-300 font-bold">%</span>
                         </div>
                       </FormControl>
@@ -592,14 +592,14 @@ export function ArticleFormDialog({
                 type="button" 
                 variant="ghost" 
                 onClick={onClose}
-                className="h-12 px-8 rounded-xl font-bold text-sand-400 hover:bg-sand-50"
+                className="h-12 px-8 font-bold text-sand-400 hover:bg-sand-50"
               >
                 Annuler
               </Button>
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="h-12 px-10 rounded-xl bg-forest-600 text-white font-bold hover:bg-forest-800 shadow-lg shadow-forest-600/20 gap-2"
+                className="h-12 px-10 bg-forest-600 text-white font-bold hover:bg-forest-800 shadow-lg shadow-forest-600/20 gap-2"
               >
                 {isLoading ? "Traitement..." : (editArticle ? "Mettre à jour" : "Enregistrer")}
               </Button>
@@ -610,3 +610,5 @@ export function ArticleFormDialog({
     </Dialog>
   );
 }
+
+

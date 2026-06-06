@@ -31,7 +31,7 @@ export function DeleteCustomerDialog({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="rounded-[32px] border-rose-100 shadow-2xl">
+      <AlertDialogContent className="rounded-2xl border-rose-100 shadow-2xl">
         <AlertDialogHeader>
           <AlertDialogTitle className="font-heading text-2xl font-bold text-forest-900">
             Supprimer le client ?
@@ -57,3 +57,5 @@ export function DeleteCustomerDialog({
     </AlertDialog>
   );
 }
+
+

@@ -341,7 +341,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-full sm:max-w-xl md:max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-white max-h-[90vh] flex flex-col">
+      <DialogContent className="w-full max-w-full sm:max-w-xl md:max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-white max-h-[90vh] flex flex-col">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-6 md:p-8 relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <Truck className="w-24 h-24" />
@@ -369,7 +369,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                 <Input 
                   {...register('brand')}
                   placeholder="Ex: Toyota Hilux"
-                  className="h-11 rounded-xl bg-sand-50/50 border-forest-50 focus:border-forest-600 focus:ring-1 focus:ring-forest-600 font-semibold"
+                  className="h-11 bg-sand-50/50 border-forest-50 focus:ring-1 font-semibold"
                 />
                 {errors.brand && <p className="text-xs text-red-500 font-semibold mt-1">{errors.brand.message}</p>}
               </div>
@@ -406,7 +406,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                         }
                       }}
                     >
-                      <SelectTrigger className="h-11 rounded-xl border-forest-50 focus:ring-forest-600 font-black text-center text-lg bg-white shadow-sm justify-center gap-1.5">
+                      <SelectTrigger className="h-11 border-forest-50 font-black text-center text-lg shadow-sm justify-center gap-1.5">
                         <SelectValue placeholder="Série" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-forest-100">
@@ -463,7 +463,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                     {...register('mileage')}
                     type="number"
                     placeholder="Ex: 150000"
-                    className="h-11 rounded-xl bg-sand-50/50 border-forest-50 focus:border-forest-600 pr-12 focus:ring-1 focus:ring-forest-600 font-semibold"
+                    className="h-11 bg-sand-50/50 border-forest-50 pr-12 focus:ring-1 font-semibold"
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-sand-400">km</span>
                 </div>
@@ -561,7 +561,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
               <h3 className="text-sm font-bold text-forest-900 uppercase tracking-wider">Carte Carburant</h3>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-sand-50/20 p-6 rounded-[24px] border border-forest-50/40 shadow-inner">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-sand-50/20 p-6 rounded-xl border border-forest-50/40 shadow-inner">
               {/* Form Input Fields */}
               <div className="lg:col-span-7 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -573,7 +573,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                       value={watchFuelType || ""} 
                       onValueChange={(val) => setValue('fuelcardtype', val)}
                     >
-                      <SelectTrigger className="h-11 rounded-xl bg-white border-forest-50 focus:ring-forest-600 font-semibold text-forest-900 shadow-sm">
+                      <SelectTrigger className="h-11 border-forest-50 font-semibold text-forest-900 shadow-sm">
                         <SelectValue placeholder="Choisir la carte" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-forest-100">
@@ -591,7 +591,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                     <Input 
                       value={watchFuelEnterprise || ''}
                       readOnly
-                      className="h-11 rounded-xl bg-sand-100 cursor-not-allowed border-forest-50 text-sand-500 font-bold"
+                      className="h-11 bg-sand-100 cursor-not-allowed border-forest-50 text-sand-500 font-bold"
                     />
                   </div>
                 </div>
@@ -605,7 +605,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                       value={watchFuelConductor || ""}
                       onValueChange={(val) => setValue('fuelcardconductor', val)}
                     >
-                      <SelectTrigger className="h-11 rounded-xl bg-white border-forest-50 focus:ring-forest-600 font-semibold text-forest-900 shadow-sm">
+                      <SelectTrigger className="h-11 border-forest-50 font-semibold text-forest-900 shadow-sm">
                         <SelectValue placeholder="Sélectionner un conducteur" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-forest-100">
@@ -628,7 +628,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                     <Input 
                       {...register('fuelcardnumber')}
                       placeholder="Ex: 1407 083580"
-                      className="h-11 rounded-xl bg-white border-forest-50 focus:border-forest-600 focus:ring-1 focus:ring-forest-600 font-semibold text-forest-900 shadow-sm"
+                      className="h-11 border-forest-50 focus:ring-1 font-semibold text-forest-900 shadow-sm"
                     />
                   </div>
                 </div>
@@ -642,7 +642,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                       value={computedSerial || '---'}
                       readOnly
                       placeholder="Identique au matricule"
-                      className="h-11 rounded-xl bg-sand-100 cursor-not-allowed border-forest-50 text-sand-500 font-mono font-bold"
+                      className="h-11 bg-sand-100 cursor-not-allowed border-forest-50 text-sand-500 font-mono font-bold"
                     />
                   </div>
 
@@ -654,7 +654,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                       {...register('fuelcardamount', { valueAsNumber: true })}
                       type="number"
                       placeholder="Ex: 500"
-                      className="h-11 rounded-xl bg-white border-forest-50 focus:border-forest-600 focus:ring-1 focus:ring-forest-600 font-semibold text-forest-900 shadow-sm"
+                      className="h-11 border-forest-50 focus:ring-1 font-semibold text-forest-900 shadow-sm"
                     />
                   </div>
                 </div>
@@ -735,13 +735,13 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
               type="button" 
               variant="outline" 
               onClick={onClose}
-              className="flex-1 h-12 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50"
+              className="flex-1 h-12 border-forest-100 text-forest-600 font-bold hover:bg-forest-50"
             >
               Annuler
             </Button>
             <Button 
               disabled={loading}
-              className="flex-[2] h-12 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
+              className="flex-[2] h-12 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -755,3 +755,5 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
     </Dialog>
   );
 }
+
+

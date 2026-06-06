@@ -346,7 +346,7 @@ export function WithholdingTaxModal({
             type="button"
             variant="ghost"
             onClick={onClose}
-            className="rounded-xl border border-sand-200 font-bold text-xs hover:bg-sand-100"
+            className="border border-sand-200 font-bold text-xs hover:bg-sand-100"
           >
             Annuler
           </Button>
@@ -354,7 +354,7 @@ export function WithholdingTaxModal({
             type="button"
             onClick={handleConfirm}
             disabled={submitting || selectedRateId === 'Aucune RS' || !reference.trim()}
-            className="bg-forest-900 hover:bg-forest-950 text-white rounded-xl px-5 h-10 font-bold text-xs gap-2 flex items-center"
+            className="bg-forest-900 hover:bg-forest-950 text-white px-5 h-10 font-bold text-xs gap-2 flex items-center"
           >
             {submitting ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -368,3 +368,4 @@ export function WithholdingTaxModal({
     </div>
   );
 }
+

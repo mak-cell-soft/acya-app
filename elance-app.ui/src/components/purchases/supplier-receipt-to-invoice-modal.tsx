@@ -191,7 +191,7 @@ export function SupplierReceiptToInvoiceModal({
               onClick={onClose}
               variant="ghost"
               size="icon"
-              className="text-amber-200 hover:bg-amber-800 hover:text-white rounded-full w-8 h-8"
+              className="text-amber-200 hover:bg-amber-800 hover:text-white w-8 h-8"
             >
               <X className="w-5 h-5" />
             </Button>
@@ -339,7 +339,7 @@ export function SupplierReceiptToInvoiceModal({
               type="button"
               variant="ghost"
               onClick={onClose}
-              className="border border-sand-200 text-sand-700 rounded-xl hover:bg-sand-100 font-bold text-xs"
+              className="border border-sand-200 text-sand-700 hover:bg-sand-100 font-bold text-xs"
             >
               Annuler
             </Button>
@@ -347,7 +347,7 @@ export function SupplierReceiptToInvoiceModal({
               type="button"
               disabled={submitting || !supplierReference.trim()}
               onClick={handleSubmit}
-              className="bg-amber-900 hover:bg-amber-950 text-white rounded-xl shadow-md px-6 h-10 font-bold text-xs gap-2 flex items-center"
+              className="bg-amber-900 hover:bg-amber-950 text-white shadow-md px-6 h-10 font-bold text-xs gap-2 flex items-center"
             >
               {submitting ? (
                 <>
@@ -367,3 +367,4 @@ export function SupplierReceiptToInvoiceModal({
     </AnimatePresence>
   );
 }
+

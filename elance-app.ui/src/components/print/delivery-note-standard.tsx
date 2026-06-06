@@ -271,3 +271,4 @@ export function DeliveryNoteStandard({ document, enterprise }: DeliveryNoteStand
     </div>
   );
 }
+

@@ -674,3 +674,4 @@ export function StockTimelinePanel() {
     </div>
   );
 }
+

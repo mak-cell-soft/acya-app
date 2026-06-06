@@ -199,8 +199,9 @@ export default function SupplierDashboardPage({ params }: PageProps) {
           <p className="text-sand-400 font-medium text-center max-w-md">
             Impossible de récupérer les statistiques du tableau de bord. Veuillez vérifier l&apos;existence du fournisseur.
           </p>
-          <Button onClick={handleBack} variant="outline" className="mt-2 border-forest-100 text-forest-600 rounded-xl hover:bg-forest-50">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Retour aux fournisseurs
+          <Button onClick={handleBack} variant="outline" className="mt-2 border-forest-100 text-forest-600 hover:bg-forest-50">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Retour à la liste des fournisseurs
           </Button>
         </div>
       </DashboardLayout>

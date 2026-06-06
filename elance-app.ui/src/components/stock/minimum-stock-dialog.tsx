@@ -120,14 +120,14 @@ export function MinimumStockDialog({
               variant="outline"
               onClick={onClose}
               disabled={submitting}
-              className="py-5 px-5 hover:bg-stone-100 dark:hover:bg-stone-800/60 transition-all rounded-xl border-stone-200/80 dark:border-stone-800 text-xs font-semibold uppercase tracking-wider"
+              className="py-5 px-5 hover:bg-stone-100 dark:hover:bg-stone-800/60 transition-all border-stone-200/80 dark:border-stone-800 text-xs font-semibold uppercase tracking-wider"
             >
               Annuler
             </Button>
             <Button
               type="submit"
               disabled={submitting}
-              className="py-5 px-6 bg-stone-900 hover:bg-stone-800 dark:bg-stone-50 dark:hover:bg-stone-200 dark:text-stone-950 text-white transition-all rounded-xl text-xs font-semibold uppercase tracking-wider gap-2 shadow-sm"
+              className="py-5 px-6 bg-stone-900 hover:bg-stone-800 dark:bg-stone-50 dark:hover:bg-stone-200 dark:text-stone-950 text-white transition-all text-xs font-semibold uppercase tracking-wider gap-2 shadow-sm"
             >
               {submitting ? (
                 <>
@@ -144,3 +144,5 @@ export function MinimumStockDialog({
     </Dialog>
   );
 }
+
+

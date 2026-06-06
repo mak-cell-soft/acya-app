@@ -651,7 +651,7 @@ function NewStockTransferContent() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-11 bg-stone-900 hover:bg-stone-800 dark:bg-stone-50 dark:hover:bg-stone-200 dark:text-stone-900 text-white rounded-xl font-semibold text-xs uppercase tracking-wider gap-2 shadow-sm transition-all"
+              className="w-full h-11 bg-stone-900 hover:bg-stone-800 dark:bg-stone-50 dark:hover:bg-stone-200 dark:text-stone-900 text-white font-semibold text-xs uppercase tracking-wider gap-2 shadow-sm transition-all"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
               Enregistrer le Transfert
@@ -876,3 +876,4 @@ export default function NewStockTransferPage() {
     </DashboardLayout>
   );
 }
+

@@ -189,3 +189,4 @@ export function InvoiceLight({ document, enterprise }: InvoiceLightProps) {
     </div>
   );
 }
+

@@ -185,3 +185,4 @@ export function PayslipLight({ employee, payslip, enterprise }: PayslipLightProp
     </div>
   );
 }
+

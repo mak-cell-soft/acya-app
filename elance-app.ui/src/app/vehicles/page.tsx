@@ -272,13 +272,13 @@ export default function VehiclesPage() {
             <p className="text-sand-400 font-medium mt-1">Suivi de la maintenance, des kilométrages et des cartes carburant.</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="h-11 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50">
+            <Button variant="outline" className="h-11 border-forest-100 text-forest-600 font-bold hover:bg-forest-50">
               <Download className="w-4 h-4 mr-2" /> Rapport
             </Button>
             {hasPermission('vehicles', 'canAdd') && (
               <Button 
                 onClick={openAddDialog}
-                className="h-11 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
+                className="h-11 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
               >
                 <Plus className="w-4 h-4 mr-2" /> Ajouter un Véhicule
               </Button>
@@ -309,7 +309,7 @@ export default function VehiclesPage() {
         </div>
 
         {/* Vehicle list container */}
-        <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-[24px] overflow-hidden bg-white/80 backdrop-blur-sm">
+        <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm">
           <CardHeader className="border-b border-forest-50 p-6">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               <div className="relative flex-1">
@@ -322,7 +322,7 @@ export default function VehiclesPage() {
                 />
               </div>
               <div className="flex items-center gap-3">
-                <Button variant="ghost" className="h-11 rounded-xl text-sand-400 font-bold hover:bg-sand-100">
+                <Button variant="ghost" className="h-11 text-sand-400 font-bold hover:bg-sand-100">
                   <Filter className="w-4 h-4 mr-2" /> Filtres
                 </Button>
               </div>
@@ -595,3 +595,4 @@ export default function VehiclesPage() {
     </DashboardLayout>
   );
 }
+

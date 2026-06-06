@@ -137,7 +137,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
   }, [instruments, selectedIds]);
 
   return (
-    <Card className="border-forest-100/50 bg-white shadow-none rounded-[24px] overflow-hidden">
+    <Card className="border-forest-100/50 bg-white shadow-none rounded-xl overflow-hidden">
       <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4">
         <div>
           <CardTitle className="text-xl font-heading font-bold text-forest-900 flex items-center gap-2">
@@ -323,7 +323,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
 
       {/* Bordereau Creation Modal */}
       <Dialog open={isBordereauModalOpen} onOpenChange={setIsBordereauModalOpen}>
-        <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden border-forest-100 rounded-[24px]">
+        <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden border-forest-100 rounded-xl">
           <DialogHeader className="p-6 pb-0">
             <DialogTitle className="text-2xl font-heading font-bold text-forest-900">
               {side === 'Supplier' ? 'Décaisser les Paiements' : 'Créer un Bordereau'}
@@ -386,7 +386,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
             <Button 
               onClick={handleCreateBordereau}
               disabled={!selectedBankId || createBordereauMutation.isPending}
-              className="h-11 px-6 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20 gap-2 disabled:opacity-50"
+              className="h-11 px-6 font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20 gap-2 disabled:opacity-50"
             >
               {createBordereauMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -401,3 +401,4 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
     </Card>
   );
 }
+

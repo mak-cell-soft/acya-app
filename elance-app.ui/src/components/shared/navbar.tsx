@@ -79,7 +79,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         <Button 
           variant="ghost" 
           size="icon" 
-          className="lg:hidden h-10 w-10 rounded-xl text-forest-800"
+          className="lg:hidden h-10 w-10 text-forest-800"
           onClick={onMenuClick}
         >
           <Menu className="h-6 w-6" />
@@ -401,3 +401,4 @@ function NavbarNotifications() {
     </DropdownMenu>
   );
 }
+

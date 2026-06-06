@@ -76,7 +76,7 @@ export function TaxRegistrationDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md rounded-[32px] border-forest-100 shadow-2xl p-0 overflow-hidden">
+      <DialogContent className="max-w-md rounded-2xl border-forest-100 shadow-2xl p-0 overflow-hidden">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8">
           <DialogTitle className="font-heading text-2xl font-bold tracking-tight flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-forest-50 flex items-center justify-center border border-forest-100">
@@ -95,7 +95,7 @@ export function TaxRegistrationDialog({
             <div className="flex-1 space-y-2">
               <Label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest">Identifiant</Label>
               <Input 
-                className="h-12 rounded-xl border-forest-100 font-bold font-mono text-center text-lg focus:ring-forest-600 focus:border-forest-600"
+                className="font-bold font-mono text-center text-lg "
                 placeholder="1234567P"
                 maxLength={8}
                 value={parts.part1}
@@ -109,7 +109,7 @@ export function TaxRegistrationDialog({
             <div className="w-16 space-y-2">
               <Label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest text-center block">Cat.</Label>
               <Input 
-                className="h-12 rounded-xl border-forest-100 font-bold font-mono text-center text-lg focus:ring-forest-600 focus:border-forest-600"
+                className="font-bold font-mono text-center text-lg "
                 placeholder="A"
                 maxLength={1}
                 value={parts.part2a}
@@ -123,7 +123,7 @@ export function TaxRegistrationDialog({
             <div className="w-16 space-y-2">
               <Label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest text-center block">TVA</Label>
               <Input 
-                className="h-12 rounded-xl border-forest-100 font-bold font-mono text-center text-lg focus:ring-forest-600 focus:border-forest-600"
+                className="font-bold font-mono text-center text-lg "
                 placeholder="M"
                 maxLength={1}
                 value={parts.part2b}
@@ -137,7 +137,7 @@ export function TaxRegistrationDialog({
             <div className="w-20 space-y-2">
               <Label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest text-center block">Code</Label>
               <Input 
-                className="h-12 rounded-xl border-forest-100 font-bold font-mono text-center text-lg focus:ring-forest-600 focus:border-forest-600"
+                className="font-bold font-mono text-center text-lg "
                 placeholder="000"
                 maxLength={3}
                 value={parts.part3}
@@ -164,14 +164,14 @@ export function TaxRegistrationDialog({
           <Button 
             variant="ghost" 
             onClick={onClose}
-            className="rounded-xl font-bold text-sand-400"
+            className="font-bold text-sand-400"
           >
             Annuler
           </Button>
           <Button 
             disabled={!isValid()}
             onClick={handleConfirm}
-            className="rounded-xl bg-forest-600 hover:bg-forest-800 text-white font-bold shadow-lg shadow-forest-600/20 px-8"
+            className="bg-forest-600 hover:bg-forest-800 text-white font-bold shadow-lg shadow-forest-600/20 px-8"
           >
             Confirmer l'Identifiant
           </Button>
@@ -180,3 +180,5 @@ export function TaxRegistrationDialog({
     </Dialog>
   );
 }
+
+

@@ -209,14 +209,14 @@ export default function ProvidersPage() {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-10 w-10 rounded-xl text-sand-400 hover:text-forest-600 hover:bg-forest-100/50 transition-all"
+                className="h-10 w-10 text-sand-400 hover:text-forest-600 hover:bg-forest-100/50 transition-all"
                 onClick={(e) => { e.stopPropagation(); handleOpenDetails(item); }}
               >
                 <ExternalLink className="w-4 h-4" />
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                  <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-sand-400 hover:bg-sand-100">
+                  <Button variant="ghost" size="icon" className="h-10 w-10 text-sand-400 hover:bg-sand-100">
                     <MoreHorizontal className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -334,7 +334,7 @@ export default function ProvidersPage() {
                         </div>
                       </div>
                       <Button 
-                        className="w-full bg-forest-900 text-white rounded-xl h-11 font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-lg shadow-forest-900/10"
+                        className="w-full bg-forest-900 text-white h-11 font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-lg shadow-forest-900/10"
                         onClick={() => router.push(`/suppliers/${item.id}/dashboard`)}
                       >
                         Tableau de Bord Complet
@@ -359,7 +359,7 @@ export default function ProvidersPage() {
             <p className="text-sand-400 font-medium mt-1">Gérez vos sources d&apos;approvisionnement et vos dettes fournisseurs.</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="h-12 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6">
+            <Button variant="outline" className="h-12 border-forest-100 text-forest-600 font-bold hover:bg-forest-50 px-6">
               <Download className="w-4 h-4 mr-2" /> Exporter
             </Button>
             {hasPermission('providers', 'canAdd') && (
@@ -374,7 +374,7 @@ export default function ProvidersPage() {
             {hasPermission('providers', 'canAdd') && (
               <Button 
                 onClick={handleOpenCreate}
-                className="h-12 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-6"
+                className="h-12 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-6"
               >
                 <Plus className="w-4 h-4 mr-2" /> Nouveau Fournisseur
               </Button>
@@ -382,7 +382,7 @@ export default function ProvidersPage() {
           </div>
         </div>
 
-        <Card className="border-forest-100/50 shadow-2xl shadow-forest-900/5 rounded-[32px] overflow-hidden bg-white/80 backdrop-blur-md">
+        <Card className="border-forest-100/50 shadow-2xl shadow-forest-900/5 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-md">
           <CardHeader className="border-b border-forest-50 p-8 bg-white/50">
             <div className="flex flex-col md:flex-row md:items-center gap-6">
               <div className="relative flex-1">
@@ -395,7 +395,7 @@ export default function ProvidersPage() {
                 />
               </div>
               <div className="flex items-center gap-4">
-                <Button variant="ghost" className="h-12 rounded-xl text-sand-400 font-bold hover:bg-sand-100 px-5">
+                <Button variant="ghost" className="h-12 text-sand-400 font-bold hover:bg-sand-100 px-5">
                   <Filter className="w-4 h-4 mr-2" /> Filtres
                 </Button>
                 <div className="h-8 w-px bg-forest-100 mx-2 hidden md:block" />
@@ -468,3 +468,4 @@ export default function ProvidersPage() {
     </DashboardLayout>
   );
 }
+

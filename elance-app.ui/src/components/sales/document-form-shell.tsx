@@ -981,7 +981,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
             <Button
               variant="outline"
               size="icon"
-              className="h-10 w-10 rounded-xl border-forest-100 text-forest-600 hover:bg-forest-50 shadow-sm"
+              className="h-10 w-10 border-forest-100 text-forest-600 hover:bg-forest-50 shadow-sm"
               onClick={() => router.push('/sales')}
             >
               <ArrowLeft className="w-4 h-4" />
@@ -1009,7 +1009,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
 
         {/* 1. Main configuration panel */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2 border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-[24px] overflow-hidden bg-white/80 backdrop-blur-sm">
+          <Card className="lg:col-span-2 border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm">
             <CardHeader className="bg-forest-900/5 border-b border-forest-50 p-5">
               <CardTitle className="text-sm font-heading font-bold text-forest-900 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-forest-600" /> Informations du Document
@@ -1316,7 +1316,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
           </Card>
 
           {/* Quick Stats sidebar info */}
-          <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-[24px] overflow-hidden bg-white/80 backdrop-blur-sm flex flex-col justify-between">
+          <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm flex flex-col justify-between">
             <CardHeader className="bg-forest-900/5 border-b border-forest-50 p-5">
               <CardTitle className="text-sm font-heading font-bold text-forest-900 flex items-center gap-2">
                 <Info className="w-4 h-4 text-forest-600" /> Détails Partenaire
@@ -1376,7 +1376,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
         </div>
 
         {/* 2. Merchandise lines grid */}
-        <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-[24px] overflow-hidden bg-white/80 backdrop-blur-sm">
+        <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm">
           <CardHeader className="border-b border-forest-50 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <CardTitle className="text-lg font-heading font-bold text-forest-900">Lignes du Document</CardTitle>
@@ -1386,14 +1386,14 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
               {(docType === DocumentTypes.customerDeliveryNote || docType === DocumentTypes.customerInvoice) && (
                 <Button
                   variant="outline"
-                  className="h-10 rounded-xl border-forest-100 text-forest-600 hover:bg-forest-50 font-bold text-xs"
+                  className="h-10 border-forest-100 text-forest-600 hover:bg-forest-50 font-bold text-xs"
                   onClick={addTransportFeeRow}
                 >
                   <Truck className="w-4 h-4 mr-2" /> Frais Logistique
                 </Button>
               )}
               <Button
-                className="h-10 rounded-xl bg-forest-600 hover:bg-forest-800 text-white font-bold shadow-md shadow-forest-600/20 text-xs"
+                className="h-10 bg-forest-600 hover:bg-forest-800 text-white font-bold shadow-md shadow-forest-600/20 text-xs"
                 onClick={addMerchandiseRow}
               >
                 <Plus className="w-4 h-4 mr-2" /> Ajouter Ligne
@@ -1662,7 +1662,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                                 <Button
                                   variant="outline"
                                   size="icon"
-                                  className="h-9 w-9 rounded-xl border-forest-100 text-forest-600 hover:bg-forest-100 disabled:opacity-50 disabled:pointer-events-none"
+                                  className="h-9 w-9 border-forest-100 text-forest-600 hover:bg-forest-100 disabled:opacity-50 disabled:pointer-events-none"
                                   onClick={() => openWoodLengths(index)}
                                   disabled={isQuantityDisabled}
                                 >
@@ -1725,7 +1725,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-9 w-9 rounded-xl text-sand-400 hover:text-rose-600 hover:bg-rose-50/50"
+                              className="h-9 w-9 text-sand-400 hover:text-rose-600 hover:bg-rose-50/50"
                               onClick={() => handleDeleteClick(index)}
                             >
                               <Trash2 className="w-4 h-4" />
@@ -1747,7 +1747,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
           
           {/* Legend and explanation notes */}
           <div className="space-y-4 text-xs text-sand-400 font-medium">
-            <div className="bg-sand-50/50 border border-forest-50 p-5 rounded-[24px]">
+            <div className="bg-sand-50/50 border border-forest-50 p-5 rounded-xl">
               <span className="font-bold text-forest-900 flex items-center gap-1.5 mb-2 text-sm">
                 <Info className="w-4 h-4 text-forest-600" /> Instructions d'utilisation
               </span>
@@ -1763,7 +1763,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
           </div>
 
           {/* Pricing Summary Card */}
-          <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-[24px] overflow-hidden bg-white/80 backdrop-blur-sm">
+          <Card className="border-forest-100/50 shadow-xl shadow-forest-900/5 rounded-xl overflow-hidden bg-white/80 backdrop-blur-sm">
             <CardHeader className="bg-forest-900/5 border-b border-forest-50 p-5">
               <CardTitle className="text-sm font-heading font-bold text-forest-900 flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-forest-600" /> Synthèse Financière (TND)
@@ -1848,14 +1848,14 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-forest-100">
                 <Button
                   variant="outline"
-                  className="rounded-xl border-forest-100 text-forest-600 hover:bg-forest-50 font-bold h-11 text-xs"
+                  className="border-forest-100 text-forest-600 hover:bg-forest-50 font-bold h-11 text-xs"
                   onClick={() => router.push('/sales')}
                   disabled={isLoading || isSourceLoading}
                 >
                   Annuler
                 </Button>
                 <Button
-                  className="rounded-xl bg-forest-600 hover:bg-forest-800 text-white font-bold h-11 px-6 shadow-lg shadow-forest-600/20 text-xs"
+                  className="bg-forest-600 hover:bg-forest-800 text-white font-bold h-11 px-6 shadow-lg shadow-forest-600/20 text-xs"
                   onClick={handleSubmit}
                   disabled={isLoading || isSourceLoading}
                 >
@@ -1900,7 +1900,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
           if (!open) setDeleteConfirmState(prev => ({ ...prev, isOpen: false }));
         }}
       >
-        <AlertDialogContent className="rounded-[24px] border-forest-100 bg-white/95 backdrop-blur-md shadow-2xl p-6">
+        <AlertDialogContent className="rounded-xl border-forest-100 bg-white/95 backdrop-blur-md shadow-2xl p-6">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-heading font-bold text-forest-900 flex items-center gap-2">
               <Trash2 className="w-5 h-5 text-rose-600 animate-pulse" /> Confirmer la suppression
@@ -1926,3 +1926,4 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
     </DashboardLayout>
   );
 }
+

@@ -137,7 +137,7 @@ export function CategoryFormDialog({ isOpen, onClose, category }: CategoryFormDi
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] rounded-[32px] p-0 overflow-hidden border-forest-100 shadow-2xl">
+      <DialogContent className="sm:max-w-[600px] rounded-2xl p-0 overflow-hidden border-forest-100 shadow-2xl">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <FolderTree className="w-32 h-32" />
@@ -170,7 +170,7 @@ export function CategoryFormDialog({ isOpen, onClose, category }: CategoryFormDi
                 <Input 
                   {...register('reference')} 
                   placeholder="ex: PIN"
-                  className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 font-medium" 
+                  className="bg-sand-50 font-medium" 
                 />
                 {errors.reference && <p className="text-xs text-red-500 font-medium">{errors.reference.message}</p>}
               </div>
@@ -179,7 +179,7 @@ export function CategoryFormDialog({ isOpen, onClose, category }: CategoryFormDi
                 <Input 
                   {...register('description')} 
                   placeholder="ex: Pin Sylvestre"
-                  className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 font-medium" 
+                  className="bg-sand-50 font-medium" 
                 />
                 {errors.description && <p className="text-xs text-red-500 font-medium">{errors.description.message}</p>}
               </div>
@@ -210,7 +210,7 @@ export function CategoryFormDialog({ isOpen, onClose, category }: CategoryFormDi
                     <Input 
                       {...register(`subcategories.${index}.reference` as const)} 
                       placeholder="Réf"
-                      className="h-10 rounded-lg bg-sand-50/50 border-forest-50 focus:border-forest-400 text-sm"
+                      className="rounded-lg bg-sand-50/50 border-forest-50 text-sm"
                     />
                     {errors.subcategories?.[index]?.reference && (
                       <p className="text-[10px] text-red-500 font-medium">{errors.subcategories[index]?.reference?.message}</p>
@@ -220,7 +220,7 @@ export function CategoryFormDialog({ isOpen, onClose, category }: CategoryFormDi
                     <Input 
                       {...register(`subcategories.${index}.description` as const)} 
                       placeholder="Désignation"
-                      className="h-10 rounded-lg bg-sand-50/50 border-forest-50 focus:border-forest-400 text-sm"
+                      className="rounded-lg bg-sand-50/50 border-forest-50 text-sm"
                     />
                     {errors.subcategories?.[index]?.description && (
                       <p className="text-[10px] text-red-500 font-medium">{errors.subcategories[index]?.description?.message}</p>
@@ -249,13 +249,13 @@ export function CategoryFormDialog({ isOpen, onClose, category }: CategoryFormDi
               type="button" 
               variant="outline" 
               onClick={onClose}
-              className="flex-1 h-12 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50"
+              className="flex-1 h-12 border-forest-100 text-forest-600 font-bold hover:bg-forest-50"
             >
               Annuler
             </Button>
             <Button 
               disabled={createCategory.isPending || updateCategory.isPending}
-              className="flex-[2] h-12 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
+              className="flex-[2] h-12 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
             >
               {createCategory.isPending || updateCategory.isPending ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -269,3 +269,5 @@ export function CategoryFormDialog({ isOpen, onClose, category }: CategoryFormDi
     </Dialog>
   );
 }
+
+

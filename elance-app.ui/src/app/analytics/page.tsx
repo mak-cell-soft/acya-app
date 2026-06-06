@@ -738,7 +738,7 @@ export default function AnalyticsPage() {
                 <option value="12">Décembre</option>
               </select>
             </div>
-            <Button className="h-12 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-6">
+            <Button className="h-12 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 px-6">
               <Download className="w-4 h-4 mr-2" /> Rapport Complet
             </Button>
           </div>
@@ -754,7 +754,7 @@ export default function AnalyticsPage() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
           {isLoadingKpis ? (
             new Array(5).fill(0).map((_, i) => (
-              <Card key={`skeleton-kpi-${i}`} className="border-forest-100/50 bg-white shadow-xl shadow-forest-900/5 rounded-[24px] overflow-hidden">
+              <Card key={`skeleton-kpi-${i}`} className="border-forest-100/50 bg-white shadow-xl shadow-forest-900/5 rounded-xl overflow-hidden">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <Skeleton className="h-4 w-24 rounded" />
                   <Skeleton className="h-8 w-8 rounded-lg" />
@@ -774,7 +774,7 @@ export default function AnalyticsPage() {
                 transition={{ delay: i * 0.1, duration: 0.5 }}
               >
                 <Card className={cn(
-                  "border-forest-100/50 bg-white shadow-xl shadow-forest-900/5 rounded-[24px] overflow-hidden group hover:border-forest-600 transition-all duration-500",
+                  "border-forest-100/50 bg-white shadow-xl shadow-forest-900/5 rounded-xl overflow-hidden group hover:border-forest-600 transition-all duration-500",
                   stat.warning && "border-amber-200 hover:border-amber-500",
                   stat.isAchat && "border-amber-900/10 bg-amber-950/[0.02] hover:border-amber-600"
                 )}>
@@ -816,7 +816,7 @@ export default function AnalyticsPage() {
 
         <div className="grid gap-8 lg:grid-cols-12">
           {/* Supplier Purchases vs Payments Chart */}
-          <Card className="lg:col-span-12 border-forest-100 rounded-[32px] shadow-xl shadow-forest-900/2 bg-white overflow-hidden">
+          <Card className="lg:col-span-12 border-forest-100 rounded-2xl shadow-xl shadow-forest-900/2 bg-white overflow-hidden">
             <CardHeader className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <CardTitle className="font-heading text-2xl text-forest-900">Achats vs Règlements par Fournisseur</CardTitle>
@@ -834,7 +834,7 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* Revenue Evolution */}
-          <Card className="lg:col-span-8 border-forest-100 rounded-[32px] shadow-xl shadow-forest-900/2 bg-white overflow-hidden">
+          <Card className="lg:col-span-8 border-forest-100 rounded-2xl shadow-xl shadow-forest-900/2 bg-white overflow-hidden">
             <CardHeader className="p-8">
               <CardTitle className="font-heading text-2xl text-forest-900">Évolution Revenue & Marge</CardTitle>
               <CardDescription className="text-sand-400 font-medium">Comparaison mensuelle du chiffre d&apos;affaires et de la rentabilité brute.</CardDescription>
@@ -901,7 +901,7 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* Sales by Category (Now by Document Type for accuracy given our API) */}
-          <Card className="lg:col-span-4 border-forest-100 rounded-[32px] shadow-xl shadow-forest-900/2 bg-white overflow-hidden">
+          <Card className="lg:col-span-4 border-forest-100 rounded-2xl shadow-xl shadow-forest-900/2 bg-white overflow-hidden">
             <CardHeader className="p-8">
               <CardTitle className="font-heading text-2xl text-forest-900">Activité par Document</CardTitle>
               <CardDescription className="text-sand-400 font-medium">Répartition du volume des opérations.</CardDescription>
@@ -927,7 +927,7 @@ export default function AnalyticsPage() {
 
         {/* Top Clients & Performance */}
         <div className="grid gap-8 md:grid-cols-2">
-          <Card className="border-forest-100 rounded-[32px] bg-white overflow-hidden">
+          <Card className="border-forest-100 rounded-2xl bg-white overflow-hidden">
             <CardHeader className="p-8">
               <CardTitle className="text-xl text-forest-900">Top Clients (CA du mois)</CardTitle>
             </CardHeader>
@@ -938,7 +938,7 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
           
-          <Card className="border-forest-100 rounded-[32px] bg-white overflow-hidden">
+          <Card className="border-forest-100 rounded-2xl bg-white overflow-hidden">
             <CardHeader className="p-8">
               <CardTitle className="text-xl text-forest-900">Clients / Fournisseurs</CardTitle>
               <CardDescription className="text-sand-400 font-medium">Total: {customers.length + suppliers.length}</CardDescription>
@@ -989,7 +989,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Suivi des Créances Clients */}
-        <Card className="border-rose-100 rounded-[32px] bg-white overflow-hidden shadow-xl shadow-rose-900/5">
+        <Card className="border-rose-100 rounded-2xl bg-white overflow-hidden shadow-xl shadow-rose-900/5">
           <CardHeader className="p-8 pb-4">
             <div className="flex items-center justify-between">
               <div>
@@ -1021,7 +1021,7 @@ export default function AnalyticsPage() {
         {/* Stock Health & Top SubCategories */}
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Stock Health Pie */}
-          <Card className="lg:col-span-1 border-forest-100 rounded-[32px] bg-white overflow-hidden shadow-xl shadow-forest-900/2">
+          <Card className="lg:col-span-1 border-forest-100 rounded-2xl bg-white overflow-hidden shadow-xl shadow-forest-900/2">
             <CardHeader className="p-8 pb-4">
               <CardTitle className="font-heading text-2xl text-forest-900">Santé du Stock</CardTitle>
               <CardDescription className="text-sand-400 font-medium">Répartition globale des articles</CardDescription>
@@ -1072,7 +1072,7 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-2 border-forest-100 rounded-[32px] bg-white overflow-hidden shadow-xl shadow-forest-900/2">
+          <Card className="lg:col-span-2 border-forest-100 rounded-2xl bg-white overflow-hidden shadow-xl shadow-forest-900/2">
             <CardHeader className="p-8 pb-4">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -1115,7 +1115,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Stock Health per SubCategory */}
-        <Card className="border-forest-100 rounded-[32px] bg-white overflow-hidden shadow-xl shadow-forest-900/2">
+        <Card className="border-forest-100 rounded-2xl bg-white overflow-hidden shadow-xl shadow-forest-900/2">
           <CardHeader className="p-8 pb-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
@@ -1158,3 +1158,4 @@ export default function AnalyticsPage() {
     </DashboardLayout>
   );
 }
+

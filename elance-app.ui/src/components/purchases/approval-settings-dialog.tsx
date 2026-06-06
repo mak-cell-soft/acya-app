@@ -135,7 +135,7 @@ export function ApprovalSettingsDialog({
               onClick={onClose}
               variant="ghost"
               size="icon"
-              className="text-slate-400 hover:bg-slate-800 hover:text-white rounded-full w-8 h-8"
+              className="text-slate-400 hover:bg-slate-800 hover:text-white w-8 h-8"
             >
               <X className="w-5 h-5" />
             </Button>
@@ -229,7 +229,7 @@ export function ApprovalSettingsDialog({
               type="button"
               variant="ghost"
               onClick={onClose}
-              className="border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-100 font-bold text-xs"
+              className="border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs"
               disabled={saving}
             >
               Annuler
@@ -238,7 +238,7 @@ export function ApprovalSettingsDialog({
               type="button"
               disabled={loading || saving}
               onClick={handleSave}
-              className="bg-amber-900 hover:bg-amber-950 text-white rounded-xl shadow-md px-6 h-10 font-bold text-xs gap-2 flex items-center"
+              className="bg-amber-900 hover:bg-amber-950 text-white shadow-md px-6 h-10 font-bold text-xs gap-2 flex items-center"
             >
               {saving ? (
                 <>
@@ -258,3 +258,5 @@ export function ApprovalSettingsDialog({
     </AnimatePresence>
   );
 }
+
+

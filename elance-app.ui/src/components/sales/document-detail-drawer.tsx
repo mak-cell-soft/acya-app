@@ -180,7 +180,7 @@ export function DocumentDetailDrawer({
                 onClick={onClose}
                 variant="ghost"
                 size="icon"
-                className="text-sand-300 hover:bg-forest-900 hover:text-white rounded-full"
+                className="text-sand-300 hover:bg-forest-900 hover:text-white "
               >
                 <X className="w-5 h-5" />
               </Button>
@@ -420,7 +420,7 @@ export function DocumentDetailDrawer({
                   </div>
 
                   {/* Calculations Sheet */}
-                  <div className="md:col-span-6 border border-sand-200/80 rounded-[24px] overflow-hidden bg-white shadow-xs p-6 space-y-4">
+                  <div className="md:col-span-6 border border-sand-200/80 rounded-xl overflow-hidden bg-white shadow-xs p-6 space-y-4">
                     <h3 className="font-serif font-bold text-lg text-forest-950 border-b border-sand-100 pb-2">
                       Détail Financier
                     </h3>
@@ -486,3 +486,4 @@ export function DocumentDetailDrawer({
     </AnimatePresence>
   );
 }
+

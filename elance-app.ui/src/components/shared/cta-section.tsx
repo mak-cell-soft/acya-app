@@ -36,13 +36,13 @@ export function CTASection() {
         </p>
         
         <div className="flex flex-col sm:flex-row justify-center gap-5 pt-4">
-          <Button asChild className="h-16 px-10 rounded-xl bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white font-bold text-[1rem] transition-all duration-300 shadow-2xl shadow-corp-blue-900/30 hover:scale-[1.03] active:scale-[0.97] group cursor-pointer">
+          <Button asChild className="h-16 px-10 bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white font-bold text-[1rem] transition-all duration-300 shadow-2xl shadow-corp-blue-900/30 hover:scale-[1.03] active:scale-[0.97] group cursor-pointer">
             <Link href="/enterprise-registration" className="flex items-center gap-2">
               Planifier une démo gratuite
               <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
             </Link>
           </Button>
-          <Button asChild variant="outline" className="h-16 px-10 rounded-xl border-white/10 bg-white/5 text-white hover:bg-white/10 hover:border-white transition-all duration-300 text-[1rem] font-bold shadow-lg shadow-black/10 group cursor-pointer">
+          <Button asChild variant="outline" className="h-16 px-10 border-white/10 bg-white/5 text-white hover:bg-white/10 hover:border-white transition-all duration-300 text-[1rem] font-bold shadow-lg shadow-black/10 group cursor-pointer">
             <Link href="#contact" className="flex items-center gap-2">
               <MessageSquare size={16} className="text-slate-400 group-hover:text-corp-cyan" />
               Nous contacter
@@ -53,3 +53,4 @@ export function CTASection() {
     </section>
   );
 }
+

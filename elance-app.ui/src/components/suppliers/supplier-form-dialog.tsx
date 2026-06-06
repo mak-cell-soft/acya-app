@@ -173,7 +173,7 @@ export function SupplierFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-5xl lg:max-w-7xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background h-full sm:h-auto max-h-screen sm:max-h-[90vh] flex flex-col">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-5xl lg:max-w-7xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-background h-full sm:h-auto max-h-screen sm:max-h-[90vh] flex flex-col">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-6 sm:p-8 relative shrink-0">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100 text-emerald-600 shrink-0">
@@ -190,7 +190,7 @@ export function SupplierFormDialog({
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-4 top-4 sm:right-6 sm:top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
+            className="absolute right-4 top-4 sm:right-6 sm:top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -216,7 +216,7 @@ export function SupplierFormDialog({
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Titre</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value || ""}>
                             <FormControl>
-                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
+                              <SelectTrigger >
                                 <SelectValue placeholder="Titre" />
                               </SelectTrigger>
                             </FormControl>
@@ -236,7 +236,7 @@ export function SupplierFormDialog({
                         <FormItem className="col-span-2">
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Raison Sociale</FormLabel>
                           <FormControl>
-                            <Input className="h-12 rounded-xl border-forest-100 font-bold" placeholder="Nom de l'entreprise" {...field} />
+                            <Input className="font-bold" placeholder="Nom de l'entreprise" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -251,7 +251,7 @@ export function SupplierFormDialog({
                       <FormItem>
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Activité / Description</FormLabel>
                         <FormControl>
-                          <Input className="h-12 rounded-xl border-forest-100" placeholder="Ex: Vente de bois rouge..." {...field} />
+                          <Input  placeholder="Ex: Vente de bois rouge..." {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -268,7 +268,7 @@ export function SupplierFormDialog({
                           <FormControl>
                             <div className="relative group">
                               <Input 
-                                className="h-12 rounded-xl border-forest-100 bg-background font-mono cursor-pointer pr-12" 
+                                className="font-mono cursor-pointer pr-12" 
                                 placeholder="Cliquez pour saisir le MF" 
                                 {...field} 
                                 readOnly
@@ -297,7 +297,7 @@ export function SupplierFormDialog({
                           <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Catégorie</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                             <FormControl>
-                              <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
+                              <SelectTrigger >
                                 <SelectValue placeholder="Catégorie">
                                   {SUPPLIER_CATEGORIES.find(c => c.id.toString() === field.value?.toString() || c.value === field.value?.toString())?.value}
                                 </SelectValue>
@@ -327,7 +327,7 @@ export function SupplierFormDialog({
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input className="h-11 rounded-xl border-forest-100 bg-background" placeholder="Prénom" {...field} />
+                              <Input className="h-11 " placeholder="Prénom" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -339,7 +339,7 @@ export function SupplierFormDialog({
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input className="h-11 rounded-xl border-forest-100 bg-background" placeholder="Nom" {...field} />
+                              <Input className="h-11 " placeholder="Nom" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -361,7 +361,7 @@ export function SupplierFormDialog({
                       <FormItem>
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Adresse Siège</FormLabel>
                         <FormControl>
-                          <Input className="h-12 rounded-xl border-forest-100 bg-background" placeholder="Numéro, Rue, Ville..." {...field} />
+                          <Input  placeholder="Numéro, Rue, Ville..." {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -375,7 +375,7 @@ export function SupplierFormDialog({
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Gouvernorat</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                           <FormControl>
-                            <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
+                            <SelectTrigger >
                               <SelectValue placeholder="Sélectionner" />
                             </SelectTrigger>
                           </FormControl>
@@ -399,7 +399,7 @@ export function SupplierFormDialog({
                           <FormControl>
                             <div className="relative">
                               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300" />
-                              <Input className="h-12 rounded-xl border-forest-100 pl-10" placeholder="71 000 000" {...field} />
+                              <Input className="pl-10" placeholder="71 000 000" {...field} />
                             </div>
                           </FormControl>
                           <FormMessage />
@@ -415,7 +415,7 @@ export function SupplierFormDialog({
                           <FormControl>
                             <div className="relative">
                               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300" />
-                              <Input className="h-12 rounded-xl border-forest-100 pl-10" placeholder="contact@fournisseur.tn" {...field} />
+                              <Input className="pl-10" placeholder="contact@fournisseur.tn" {...field} />
                             </div>
                           </FormControl>
                           <FormMessage />
@@ -441,7 +441,7 @@ export function SupplierFormDialog({
                       <FormItem>
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Solde d'Ouverture (TND)</FormLabel>
                         <FormControl>
-                          <Input type="number" step="0.001" className="h-12 rounded-xl border-forest-100 font-bold text-forest-900" {...field} />
+                          <Input type="number" step="0.001" className="font-bold text-forest-900" {...field} />
                         </FormControl>
                         <FormDescription className="text-[0.65rem]">Dette ou avoir initial lors de l'enregistrement</FormDescription>
                         <FormMessage />
@@ -462,7 +462,7 @@ export function SupplierFormDialog({
                           <FormItem>
                             <Select onValueChange={field.onChange} value={field.value || ""}>
                               <FormControl>
-                                <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background">
+                                <SelectTrigger >
                                   <SelectValue placeholder="Choisir la banque" />
                                 </SelectTrigger>
                               </FormControl>
@@ -481,7 +481,7 @@ export function SupplierFormDialog({
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input className="h-12 rounded-xl border-forest-100 bg-background font-mono uppercase" placeholder="RIB / Numéro de compte" {...field} />
+                              <Input className="font-mono uppercase" placeholder="RIB / Numéro de compte" {...field} />
                             </FormControl>
                           </FormItem>
                         )}
@@ -524,14 +524,14 @@ export function SupplierFormDialog({
                 type="button" 
                 variant="ghost" 
                 onClick={onClose}
-                className="h-12 px-8 rounded-xl font-bold text-sand-400 hover:bg-sand-50"
+                className="h-12 px-8 font-bold text-sand-400 hover:bg-sand-50"
               >
                 Annuler
               </Button>
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="h-12 px-10 rounded-xl bg-forest-600 text-white font-bold hover:bg-forest-800 shadow-lg shadow-forest-600/20 gap-2"
+                className="h-12 px-10 bg-forest-600 text-white font-bold hover:bg-forest-800 shadow-lg shadow-forest-600/20 gap-2"
               >
                 {isLoading ? "Traitement..." : (editSupplier ? "Mettre à jour" : "Enregistrer")}
               </Button>
@@ -548,3 +548,5 @@ export function SupplierFormDialog({
     </Dialog>
   );
 }
+
+

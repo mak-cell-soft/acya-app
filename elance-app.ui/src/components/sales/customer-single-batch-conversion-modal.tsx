@@ -371,7 +371,7 @@ export function CustomerSingleBatchConversionModal({
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="relative w-full max-w-4xl bg-white rounded-[24px] shadow-2xl overflow-hidden border border-sand-100 z-10 flex flex-col max-h-[90vh]"
+          className="relative w-full max-w-4xl bg-white rounded-xl shadow-2xl overflow-hidden border border-sand-100 z-10 flex flex-col max-h-[90vh]"
         >
           {/* Header styling matching the primary Forest design guidelines */}
           <div className="px-6 py-5 bg-forest-950 text-white flex items-center justify-between">
@@ -387,7 +387,7 @@ export function CustomerSingleBatchConversionModal({
               onClick={onClose}
               variant="ghost"
               size="icon"
-              className="text-sand-300 hover:bg-forest-900 hover:text-white rounded-full"
+              className="text-sand-300 hover:bg-forest-900 hover:text-white "
             >
               <X className="w-5 h-5" />
             </Button>
@@ -636,7 +636,7 @@ export function CustomerSingleBatchConversionModal({
               type="button"
               variant="outline"
               onClick={onClose}
-              className="border-sand-300 text-sand-700 rounded-xl hover:bg-sand-100 text-xs"
+              className="border-sand-300 text-sand-700 hover:bg-sand-100 text-xs"
             >
               Annuler
             </Button>
@@ -644,7 +644,7 @@ export function CustomerSingleBatchConversionModal({
               type="submit"
               disabled={submitting || selectedBlIds.length === 0}
               onClick={handleConvert}
-              className="bg-forest-950 hover:bg-forest-900 text-white rounded-xl shadow-md min-w-[150px] text-xs font-bold"
+              className="bg-forest-950 hover:bg-forest-900 text-white shadow-md min-w-[150px] text-xs font-bold"
             >
               {submitting ? 'Génération...' : `Générer Facture (${selectedBlIds.length} BL)`}
             </Button>
@@ -654,3 +654,4 @@ export function CustomerSingleBatchConversionModal({
     </AnimatePresence>
   );
 }
+

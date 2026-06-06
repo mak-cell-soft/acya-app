@@ -123,7 +123,7 @@ export function EditUserDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full max-w-lg p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background scrollbar-hide">
+      <DialogContent showCloseButton={false} className="w-full max-w-lg p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-background scrollbar-hide">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100">
@@ -140,7 +140,7 @@ export function EditUserDialog({
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
+            className="absolute right-6 top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -157,7 +157,7 @@ export function EditUserDialog({
                   <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Identifiant (Login)</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Input placeholder="Identifiant" className="h-12 rounded-xl border-forest-100 bg-background pl-10 font-bold text-forest-900" {...field} />
+                      <Input placeholder="Identifiant" className="pl-10 font-bold text-forest-900" {...field} />
                       <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300" />
                     </div>
                   </FormControl>
@@ -174,7 +174,7 @@ export function EditUserDialog({
                   <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Adresse Email</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Input type="email" placeholder="Email" className="h-12 rounded-xl border-forest-100 bg-background pl-10 font-medium" {...field} />
+                      <Input type="email" placeholder="Email" className="pl-10 font-medium" {...field} />
                       <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300" />
                     </div>
                   </FormControl>
@@ -191,7 +191,7 @@ export function EditUserDialog({
                   <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Site Par Défaut</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                     <FormControl>
-                      <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background font-bold text-forest-900">
+                      <SelectTrigger className="font-bold text-forest-900">
                         <SelectValue placeholder="Choisir un site">
                           {field.value && sites ? sites.find(s => s.id.toString() === field.value.toString())?.address : undefined}
                         </SelectValue>
@@ -217,7 +217,7 @@ export function EditUserDialog({
                     <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Rôle d'accès</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value?.toString()}>
                       <FormControl>
-                        <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background font-bold text-forest-900">
+                        <SelectTrigger className="font-bold text-forest-900">
                           <SelectValue placeholder="Choisir un rôle">
                             {field.value ? ROLE_LABELS[parseInt(field.value.toString())] : undefined}
                           </SelectValue>
@@ -253,7 +253,7 @@ export function EditUserDialog({
                   <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Changer le mot de passe (Laisser vide pour ne pas modifier)</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Input type="password" placeholder="Nouveau mot de passe" className="h-12 rounded-xl border-forest-100 bg-background pl-10 font-medium font-mono" {...field} value={field.value || ""} />
+                      <Input type="password" placeholder="Nouveau mot de passe" className="pl-10 font-medium font-mono" {...field} value={field.value || ""} />
                       <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300" />
                     </div>
                   </FormControl>
@@ -287,14 +287,14 @@ export function EditUserDialog({
                 type="button" 
                 variant="ghost" 
                 onClick={onClose}
-                className="h-12 px-8 rounded-xl font-bold text-sand-400 hover:bg-sand-50"
+                className="h-12 px-8 font-bold text-sand-400 hover:bg-sand-50"
               >
                 Annuler
               </Button>
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="h-12 px-10 rounded-xl bg-forest-600 text-white font-bold hover:bg-forest-800 shadow-lg shadow-forest-600/20 gap-2"
+                className="h-12 px-10 bg-forest-600 text-white font-bold hover:bg-forest-800 shadow-lg shadow-forest-600/20 gap-2"
               >
                 {isLoading ? "Traitement..." : "Enregistrer"}
               </Button>
@@ -305,3 +305,5 @@ export function EditUserDialog({
     </Dialog>
   );
 }
+
+

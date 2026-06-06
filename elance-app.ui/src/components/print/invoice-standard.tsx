@@ -295,3 +295,4 @@ export function InvoiceStandard({ document, enterprise }: InvoiceStandardProps) 
     </div>
   );
 }
+

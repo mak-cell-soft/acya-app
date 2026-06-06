@@ -159,7 +159,7 @@ export function AddEmployeeDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-background scrollbar-hide">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl lg:max-w-5xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-background scrollbar-hide">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100">
@@ -176,7 +176,7 @@ export function AddEmployeeDialog({
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
+            className="absolute right-6 top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -200,7 +200,7 @@ export function AddEmployeeDialog({
                     <FormItem>
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Prénom</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Jean" className="h-12 rounded-xl border-forest-100 bg-background font-medium" {...field} />
+                        <Input placeholder="Ex: Jean" className="font-medium" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -213,7 +213,7 @@ export function AddEmployeeDialog({
                     <FormItem>
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Nom</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Dupont" className="h-12 rounded-xl border-forest-100 bg-background font-medium" {...field} />
+                        <Input placeholder="Ex: Dupont" className="font-medium" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -226,7 +226,7 @@ export function AddEmployeeDialog({
                     <FormItem>
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">CIN</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: 01234567" className="h-12 rounded-xl border-forest-100 bg-background font-medium font-mono" {...field} />
+                        <Input placeholder="Ex: 01234567" className="font-medium font-mono" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -242,7 +242,7 @@ export function AddEmployeeDialog({
                     <FormItem>
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Date de Naissance</FormLabel>
                       <FormControl>
-                        <Input type="date" className="h-12 rounded-xl border-forest-100 bg-background font-medium" {...field} value={field.value || ""} />
+                        <Input type="date" className="font-medium" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -255,7 +255,7 @@ export function AddEmployeeDialog({
                     <FormItem>
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Lieu de Naissance</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Paris" className="h-12 rounded-xl border-forest-100 bg-background font-medium" {...field} value={field.value || ""} />
+                        <Input placeholder="Ex: Paris" className="font-medium" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -268,7 +268,7 @@ export function AddEmployeeDialog({
                     <FormItem>
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">N° CNSS</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: 12-3456789-0" className="h-12 rounded-xl border-forest-100 bg-background font-medium font-mono" {...field} value={field.value || ""} />
+                        <Input placeholder="Ex: 12-3456789-0" className="font-medium font-mono" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -285,7 +285,7 @@ export function AddEmployeeDialog({
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Téléphone</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input placeholder="Ex: +216 20 000 000" className="h-12 rounded-xl border-forest-100 bg-background pl-10 font-medium" {...field} value={field.value || ""} />
+                          <Input placeholder="Ex: +216 20 000 000" className="pl-10 font-medium" {...field} value={field.value || ""} />
                           <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300" />
                         </div>
                       </FormControl>
@@ -300,7 +300,7 @@ export function AddEmployeeDialog({
                     <FormItem className="md:col-span-2">
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Adresse Complète</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Rue de la Liberté, Tunis" className="h-12 rounded-xl border-forest-100 bg-background font-medium" {...field} value={field.value || ""} />
+                        <Input placeholder="Ex: Rue de la Liberté, Tunis" className="font-medium" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -325,7 +325,7 @@ export function AddEmployeeDialog({
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Rôle / Fonction</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value?.toString() || "30"}>
                         <FormControl>
-                          <SelectTrigger className="h-12 rounded-xl border-forest-100 bg-background font-bold text-forest-900">
+                          <SelectTrigger className="font-bold text-forest-900">
                             <SelectValue placeholder="Choisir un poste">
                               {field.value ? ROLE_LABELS[parseInt(field.value.toString())] : undefined}
                             </SelectValue>
@@ -358,7 +358,7 @@ export function AddEmployeeDialog({
                     <FormItem>
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Date d&apos;embauche</FormLabel>
                       <FormControl>
-                        <Input type="date" className="h-12 rounded-xl border-forest-100 bg-background font-medium" {...field} value={field.value || ""} />
+                        <Input type="date" className="font-medium" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -371,7 +371,7 @@ export function AddEmployeeDialog({
                     <FormItem>
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Date de sortie (Optionnel)</FormLabel>
                       <FormControl>
-                        <Input type="date" className="h-12 rounded-xl border-forest-100 bg-background font-medium" {...field} value={field.value || ""} />
+                        <Input type="date" className="font-medium" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -388,7 +388,7 @@ export function AddEmployeeDialog({
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Salaire de Base</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input type="number" step="0.01" placeholder="0.00" className="h-12 rounded-xl border-forest-100 bg-background pr-12 font-bold text-forest-900" {...field} />
+                          <Input type="number" step="0.01" placeholder="0.00" className="pr-12 font-bold text-forest-900" {...field} />
                           <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300" />
                           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sand-300 font-bold text-xs uppercase">TND</span>
                         </div>
@@ -404,7 +404,7 @@ export function AddEmployeeDialog({
                     <FormItem>
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Heures Sup. Initiales</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.5" placeholder="0" className="h-12 rounded-xl border-forest-100 bg-background font-bold text-forest-900" {...field} />
+                        <Input type="number" step="0.5" placeholder="0" className="font-bold text-forest-900" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -428,7 +428,7 @@ export function AddEmployeeDialog({
                     <FormItem>
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Nom de la Banque</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: BIAT" className="h-12 rounded-xl border-forest-100 bg-background font-medium" {...field} value={field.value || ""} />
+                        <Input placeholder="Ex: BIAT" className="font-medium" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -441,7 +441,7 @@ export function AddEmployeeDialog({
                     <FormItem className="md:col-span-2">
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">RIB Bancaire</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: 01 234 5678901234567 89" className="h-12 rounded-xl border-forest-100 bg-background font-mono font-bold text-forest-900" {...field} value={field.value || ""} />
+                        <Input placeholder="Ex: 01 234 5678901234567 89" className="font-mono font-bold text-forest-900" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -455,14 +455,14 @@ export function AddEmployeeDialog({
                 type="button" 
                 variant="ghost" 
                 onClick={onClose}
-                className="h-12 px-8 rounded-xl font-bold text-sand-400 hover:bg-sand-50"
+                className="h-12 px-8 font-bold text-sand-400 hover:bg-sand-50"
               >
                 Annuler
               </Button>
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="h-12 px-10 rounded-xl bg-forest-600 text-white font-bold hover:bg-forest-800 shadow-lg shadow-forest-600/20 gap-2"
+                className="h-12 px-10 bg-forest-600 text-white font-bold hover:bg-forest-800 shadow-lg shadow-forest-600/20 gap-2"
               >
                 {isLoading ? "Traitement..." : (editEmployee ? "Mettre à jour" : "Enregistrer")}
               </Button>
@@ -473,3 +473,5 @@ export function AddEmployeeDialog({
     </Dialog>
   );
 }
+
+

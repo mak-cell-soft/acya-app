@@ -114,7 +114,7 @@ export function ArticleFilters({
           <Button 
             variant="ghost" 
             onClick={onReset}
-            className="h-11 rounded-xl text-rose-500 font-bold hover:bg-rose-50 hover:text-rose-600 gap-2"
+            className="h-11 text-rose-500 font-bold hover:bg-rose-50 hover:text-rose-600 gap-2"
           >
             <Filter className="w-4 h-4" />
             Réinitialiser
@@ -129,3 +129,4 @@ export function ArticleFilters({
     </div>
   );
 }
+

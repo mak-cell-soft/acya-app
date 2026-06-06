@@ -61,7 +61,7 @@ export function WhySection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: i * 0.15, type: 'spring', stiffness: 80 }}
-              className="group bg-white rounded-[24px] border border-slate-200/80 p-8 md:p-10 shadow-[0_10px_35px_-10px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_50px_rgba(37,99,235,0.06)] transition-all duration-500 hover:-translate-y-2 hover:border-corp-blue-200 relative overflow-hidden"
+              className="group bg-white rounded-xl border border-slate-200/80 p-8 md:p-10 shadow-[0_10px_35px_-10px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_50px_rgba(37,99,235,0.06)] transition-all duration-500 hover:-translate-y-2 hover:border-corp-blue-200 relative overflow-hidden"
             >
               {/* Glassmorphic Background Hover Glow */}
               <div className="absolute -right-16 -top-16 w-32 h-32 rounded-full bg-corp-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none blur-xl" />
@@ -87,3 +87,4 @@ export function WhySection() {
     </section>
   );
 }
+

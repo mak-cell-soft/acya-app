@@ -130,7 +130,7 @@ export function ArticleHistoryDialog({ isOpen, onClose, article }: ArticleHistor
     <Dialog open={isOpen} onOpenChange={onClose}>
       {/* // NOTE: Using responsive width constraints (w-full max-w-full on mobile, scaling up to md:max-w-4xl on desktop)
           // to override the default DialogContent max-width layout limits and prevent table compression. */}
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-white">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-4xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-white">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100">
@@ -148,7 +148,7 @@ export function ArticleHistoryDialog({ isOpen, onClose, article }: ArticleHistor
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
+            className="absolute right-6 top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -169,19 +169,19 @@ export function ArticleHistoryDialog({ isOpen, onClose, article }: ArticleHistor
             </TabsList>
 
             <TabsContent value="catalog" className="mt-0 focus-visible:outline-none">
-              <div className="rounded-[24px] border border-forest-50 overflow-hidden bg-sand-50/30">
+              <div className="rounded-xl border border-forest-50 overflow-hidden bg-sand-50/30">
                 <HistoryTable data={catalogHistory.data || []} type="catalog" />
               </div>
             </TabsContent>
 
             <TabsContent value="sales" className="mt-0 focus-visible:outline-none">
-              <div className="rounded-[24px] border border-forest-50 overflow-hidden bg-sand-50/30">
+              <div className="rounded-xl border border-forest-50 overflow-hidden bg-sand-50/30">
                 <HistoryTable data={salesHistory.data || []} type="sales" />
               </div>
             </TabsContent>
 
             <TabsContent value="purchase" className="mt-0 focus-visible:outline-none">
-              <div className="rounded-[24px] border border-forest-50 overflow-hidden bg-sand-50/30">
+              <div className="rounded-xl border border-forest-50 overflow-hidden bg-sand-50/30">
                 <HistoryTable data={purchaseHistory.data || []} type="purchase" />
               </div>
             </TabsContent>
@@ -226,4 +226,6 @@ function EmptyState({ type }: { type: string }) {
     </div>
   );
 }
+
+
 

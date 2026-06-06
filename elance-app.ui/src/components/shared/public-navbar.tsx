@@ -154,7 +154,7 @@ export function PublicNavbar() {
 
           {/* Mobile Toggle */}
           <button 
-            className="md:hidden p-2 rounded-full transition-colors hover:bg-slate-100 text-slate-800"
+            className="md:hidden p-2 transition-colors hover:bg-slate-100 text-slate-800"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -178,7 +178,7 @@ export function PublicNavbar() {
 
               <div className="flex flex-col h-full p-8 pt-24 relative z-10">
                 <button 
-                  className="absolute top-6 right-6 p-2.5 rounded-full bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors"
+                  className="absolute top-6 right-6 p-2.5 bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <X size={24} />
@@ -213,10 +213,10 @@ export function PublicNavbar() {
 
                 <div className="mt-auto space-y-4">
                   <div className="h-px bg-slate-100 mb-8" />
-                  <Button asChild variant="outline" className="w-full h-14 text-lg border-slate-200 text-slate-800 rounded-xl hover:bg-slate-50 font-bold">
+                  <Button asChild variant="outline" className="w-full h-14 text-lg border-slate-200 text-slate-800 hover:bg-slate-50 font-bold">
                     <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Se connecter</Link>
                   </Button>
-                  <Button asChild className="w-full h-14 text-lg bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white rounded-xl font-bold shadow-md shadow-corp-blue-900/10">
+                  <Button asChild className="w-full h-14 text-lg bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white font-bold shadow-md shadow-corp-blue-900/10">
                     <Link href="/enterprise-registration" onClick={() => setIsMobileMenuOpen(false)}>Demander une démo</Link>
                   </Button>
                 </div>
@@ -228,3 +228,4 @@ export function PublicNavbar() {
     </div>
   );
 }
+

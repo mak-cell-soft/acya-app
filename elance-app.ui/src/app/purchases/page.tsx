@@ -362,7 +362,7 @@ export default function PurchasesPage() {
               <Link href="/purchases/approvals" passHref>
                 <Button
                   variant="outline"
-                  className="h-11 rounded-xl border-amber-900/20 text-amber-900 font-bold hover:bg-amber-50 gap-2 flex items-center transition-all duration-300"
+                  className="h-11 border-amber-900/20 text-amber-900 font-bold hover:bg-amber-50 gap-2 flex items-center transition-all duration-300"
                 >
                   <Gavel className="w-4 h-4 text-amber-700 animate-pulse" /> Approbations
                 </Button>
@@ -371,7 +371,7 @@ export default function PurchasesPage() {
             <Link href="/purchases/payments" passHref>
               <Button
                 variant="outline"
-                className="h-11 rounded-xl border-amber-900/20 text-amber-900 font-bold hover:bg-amber-50 gap-2 flex items-center transition-all duration-300"
+                className="h-11 border-amber-900/20 text-amber-900 font-bold hover:bg-amber-50 gap-2 flex items-center transition-all duration-300"
               >
                 <Coins className="w-4 h-4" /> Règlements Fournisseurs
               </Button>
@@ -387,7 +387,7 @@ export default function PurchasesPage() {
             {hasPermission('purchases', 'canAdd') && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button className="h-11 rounded-xl bg-amber-900 text-white hover:bg-amber-950 font-bold shadow-lg shadow-amber-900/10 gap-2 flex items-center transition-all duration-300">
+                  <Button className="h-11 bg-amber-900 text-white hover:bg-amber-950 font-bold shadow-lg shadow-amber-900/10 gap-2 flex items-center transition-all duration-300">
                     <Plus className="w-4 h-4" /> Nouveau Document
                   </Button>
                 </DropdownMenuTrigger>
@@ -411,14 +411,14 @@ export default function PurchasesPage() {
         </div>
 
         {/* Dynamic Period Navigator Card */}
-        <Card className="border-slate-100 shadow-md shadow-slate-900/5 rounded-[24px] bg-white overflow-hidden border">
+        <Card className="border-slate-100 shadow-md shadow-slate-900/5 rounded-xl bg-white overflow-hidden border">
           <div className="px-6 py-4 bg-slate-900 text-white flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handlePrevMonth}
-                className="text-white hover:bg-white/10 h-9 w-9 rounded-xl transition-colors"
+                className="text-white hover:bg-white/10 h-9 w-9 transition-colors"
               >
                 <ChevronLeft className="w-5 h-5" />
               </Button>
@@ -434,7 +434,7 @@ export default function PurchasesPage() {
                 variant="ghost"
                 size="icon"
                 onClick={handleNextMonth}
-                className="text-white hover:bg-white/10 h-9 w-9 rounded-xl transition-colors"
+                className="text-white hover:bg-white/10 h-9 w-9 transition-colors"
               >
                 <ChevronRight className="w-5 h-5" />
               </Button>
@@ -594,7 +594,7 @@ export default function PurchasesPage() {
         </div>
 
         {/* Workspace Card: Search filters & dynamic data table */}
-        <Card className="border-slate-100 shadow-xl shadow-slate-900/5 rounded-[24px] overflow-hidden bg-white border">
+        <Card className="border-slate-100 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-white border">
           <Tabs value={activeTab} onValueChange={(val) => {
             setActiveTab(val);
             setExpandedId(null);
@@ -1452,3 +1452,4 @@ export default function PurchasesPage() {
     </DashboardLayout>
   );
 }
+

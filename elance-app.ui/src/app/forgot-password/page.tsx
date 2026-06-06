@@ -59,7 +59,7 @@ export default function ForgotPasswordPage() {
           <div className="h-1 w-12 bg-timber-400 rounded-full" />
         </div>
 
-        <Card className="border-forest-100/50 shadow-2xl shadow-forest-900/5 rounded-[32px] overflow-hidden bg-white/80 backdrop-blur-xl">
+        <Card className="border-forest-100/50 shadow-2xl shadow-forest-900/5 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-xl">
           {isSubmitted ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -90,7 +90,7 @@ export default function ForgotPasswordPage() {
                 </p>
               </CardContent>
               <CardFooter className="p-8 pt-6">
-                <Button asChild variant="outline" className="w-full h-12 rounded-xl border-forest-100 text-forest-600 hover:bg-forest-50 font-bold">
+                <Button asChild variant="outline" className="w-full h-12 border-forest-100 text-forest-600 hover:bg-forest-50 font-bold">
                   <Link href="/login" className="gap-2">
                     <ArrowLeft className="w-4 h-4" /> Retour à la connexion
                   </Link>
@@ -127,7 +127,7 @@ export default function ForgotPasswordPage() {
                 <CardFooter className="p-8 pt-8 flex flex-col gap-6">
                   <Button 
                     type="submit" 
-                    className="w-full h-12 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 text-[1rem] transition-all duration-300 active:scale-95"
+                    className="w-full h-12 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20 text-[1rem] transition-all duration-300 active:scale-95"
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -150,3 +150,4 @@ export default function ForgotPasswordPage() {
     </div>
   );
 }
+

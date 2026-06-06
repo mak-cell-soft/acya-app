@@ -194,7 +194,7 @@ export default function ApprovalsPage() {
         </div>
 
         {/* Pending Approvals Table Card */}
-        <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-[24px] overflow-hidden bg-white">
+        <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-white">
           <CardHeader className="bg-slate-900 text-white p-5">
             <CardTitle className="text-sm font-serif font-bold text-amber-50 flex items-center gap-2">
               <FileText className="w-4 h-4 text-amber-500" /> Demandes de Validation
@@ -338,3 +338,4 @@ export default function ApprovalsPage() {
     </DashboardLayout>
   );
 }
+

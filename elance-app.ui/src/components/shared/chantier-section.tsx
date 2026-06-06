@@ -44,7 +44,7 @@ export function ChantierSection() {
             Du premier coup de pelle à la réception finale, Élancé centralise vos effectifs, équipements mobiles, livraisons de bois et marges chantiers.
           </p>
           <div className="pt-4">
-            <Button asChild variant="outline" className="h-14 px-8 rounded-xl border-white/15 bg-white/5 text-white hover:bg-white/10 hover:border-corp-cyan/50 hover:text-corp-cyan transition-all duration-300 text-[0.95rem] font-bold shadow-lg shadow-black/10 group cursor-pointer">
+            <Button asChild variant="outline" className="h-14 px-8 border-white/15 bg-white/5 text-white hover:bg-white/10 hover:border-corp-cyan/50 hover:text-corp-cyan transition-all duration-300 text-[0.95rem] font-bold shadow-lg shadow-black/10 group cursor-pointer">
               <Link href="/register" className="flex items-center gap-2">
                 Découvrir le module chantier
                 <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
@@ -62,7 +62,7 @@ export function ChantierSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: i * 0.1, type: 'spring', stiffness: 90 }}
-              className="group flex flex-col gap-5 p-6 rounded-[24px] border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-corp-cyan/30 transition-all duration-500 hover:-translate-y-1"
+              className="group flex flex-col gap-5 p-6 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-corp-cyan/30 transition-all duration-500 hover:-translate-y-1"
             >
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[1.2rem] transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 group-hover:bg-corp-blue-500/10 group-hover:border-corp-cyan/30">
                 {f.icon}
@@ -82,3 +82,4 @@ export function ChantierSection() {
     </section>
   );
 }
+

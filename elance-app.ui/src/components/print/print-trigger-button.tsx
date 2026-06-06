@@ -261,7 +261,7 @@ export function PrintVariantDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[480px] rounded-[24px] border border-sand-200 bg-white p-6 shadow-2xl">
+      <DialogContent className="sm:max-w-[480px] rounded-xl border border-sand-200 bg-white p-6 shadow-2xl">
         <DialogHeader className="space-y-2">
           <DialogTitle className="text-2xl font-serif font-bold text-forest-950 flex items-center gap-2">
             <Printer className="w-5.5 h-5.5 text-forest-800" />
@@ -332,7 +332,7 @@ export function PrintVariantDialog({
           <Button
             variant="outline"
             onClick={onClose}
-            className="rounded-xl border-sand-200 text-sand-600 font-bold hover:bg-sand-50"
+            className="border-sand-200 text-sand-600 font-bold hover:bg-sand-50"
             disabled={printing}
           >
             Annuler
@@ -342,3 +342,4 @@ export function PrintVariantDialog({
     </Dialog>
   );
 }
+

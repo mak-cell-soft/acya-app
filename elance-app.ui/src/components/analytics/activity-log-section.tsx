@@ -339,7 +339,7 @@ export function ActivityLogSection() {
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
-    <Card className="border-forest-100 rounded-[32px] bg-white overflow-hidden shadow-xl shadow-forest-900/2">
+    <Card className="border-forest-100 rounded-2xl bg-white overflow-hidden shadow-xl shadow-forest-900/2">
       <CardHeader className="p-8 pb-4">
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
           <div>
@@ -462,3 +462,4 @@ export function ActivityLogSection() {
     </Card>
   );
 }
+

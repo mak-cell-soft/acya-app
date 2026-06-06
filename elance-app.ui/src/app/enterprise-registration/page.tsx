@@ -553,13 +553,13 @@ export default function EnterpriseRegistrationPage() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="flex justify-end gap-4 pt-4"
           >
-            <Button type="button" variant="outline" asChild className="h-14 px-8 text-base font-bold rounded-xl border-slate-200 hover:bg-slate-50 text-slate-600">
+            <Button type="button" variant="outline" asChild className="h-14 px-8 text-base font-bold border-slate-200 hover:bg-slate-50 text-slate-600">
               <Link href="/">Annuler</Link>
             </Button>
             <Button 
               type="submit" 
               disabled={isSubmitting || sites.length === 0} 
-              className="h-14 px-10 text-base font-bold rounded-xl bg-linear-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white shadow-xl shadow-corp-blue-900/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0"
+              className="h-14 px-10 text-base font-bold bg-linear-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white shadow-xl shadow-corp-blue-900/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0"
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-3">
@@ -582,3 +582,4 @@ export default function EnterpriseRegistrationPage() {
     </div>
   );
 }
+

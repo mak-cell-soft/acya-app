@@ -63,13 +63,13 @@ export default function NotFound() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
-            <Button asChild size="lg" className="w-full sm:w-auto h-14 rounded-2xl bg-forest-900 text-white hover:bg-forest-800 shadow-xl shadow-forest-900/20 font-bold px-8 gap-3">
+            <Button asChild size="lg" className="w-full sm:w-auto h-14 bg-forest-900 text-white hover:bg-forest-800 shadow-xl shadow-forest-900/20 font-bold px-8 gap-3">
               <Link href="/dashboard">
                 <Home className="w-5 h-5" /> Retour au Dashboard
               </Link>
             </Button>
             
-            <Button asChild variant="outline" size="lg" className="w-full sm:w-auto h-14 rounded-2xl border-forest-100 text-forest-900 hover:bg-forest-50 font-bold px-8 gap-3">
+            <Button asChild variant="outline" size="lg" className="w-full sm:w-auto h-14 border-forest-100 text-forest-900 hover:bg-forest-50 font-bold px-8 gap-3">
               <Link href="/">
                 <ArrowLeft className="w-5 h-5" /> Page d'accueil
               </Link>
@@ -86,3 +86,4 @@ export default function NotFound() {
     </div>
   );
 }
+

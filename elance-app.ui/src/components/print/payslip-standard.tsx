@@ -342,3 +342,4 @@ export function PayslipStandard({ employee, payslip, enterprise }: PayslipStanda
     </div>
   );
 }
+

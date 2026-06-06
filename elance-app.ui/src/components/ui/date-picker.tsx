@@ -49,3 +49,4 @@ export function DatePicker({ date, setDate, placeholder = "Sélectionner une dat
     </Popover>
   )
 }
+

@@ -31,7 +31,7 @@ export function DeleteVehicleDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md p-0 overflow-hidden border-forest-100 shadow-2xl rounded-[32px] bg-white">
+      <DialogContent className="max-w-md p-0 overflow-hidden border-forest-100 shadow-2xl rounded-2xl bg-white">
         <div className="p-8 space-y-6">
           <div className="w-16 h-16 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 mx-auto">
             <Trash2 className="w-8 h-8" />
@@ -60,7 +60,7 @@ export function DeleteVehicleDialog({
             type="button" 
             variant="ghost" 
             onClick={onClose}
-            className="flex-1 h-12 rounded-xl font-bold text-sand-400 hover:bg-white"
+            className="flex-1 h-12 font-bold text-sand-400 hover:bg-white"
           >
             Annuler
           </Button>
@@ -68,7 +68,7 @@ export function DeleteVehicleDialog({
             type="button" 
             disabled={isLoading}
             onClick={onConfirm}
-            className="flex-1 h-12 rounded-xl bg-rose-600 text-white font-bold hover:bg-rose-700 shadow-lg shadow-rose-600/20 gap-2"
+            className="flex-1 h-12 bg-rose-600 text-white font-bold hover:bg-rose-700 shadow-lg shadow-rose-600/20 gap-2"
           >
             {isLoading ? "Suppression..." : "Confirmer"}
           </Button>
@@ -76,7 +76,7 @@ export function DeleteVehicleDialog({
         
         <button 
           onClick={onClose}
-          className="absolute right-6 top-6 w-8 h-8 rounded-full bg-sand-100 flex items-center justify-center hover:bg-sand-200 transition-all text-sand-400"
+          className="absolute right-6 top-6 w-8 h-8 bg-sand-100 flex items-center justify-center hover:bg-sand-200 transition-all text-sand-400"
         >
           <X className="w-4 h-4" />
         </button>
@@ -84,3 +84,5 @@ export function DeleteVehicleDialog({
     </Dialog>
   );
 }
+
+

@@ -655,7 +655,7 @@ function NewSupplierOrderPageContent() {
             <Button
               variant="outline"
               size="icon"
-              className="h-10 w-10 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm"
+              className="h-10 w-10 border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm"
               onClick={() => router.push('/purchases')}
             >
               <ArrowLeft className="w-4 h-4" />
@@ -674,7 +674,7 @@ function NewSupplierOrderPageContent() {
             <Button
               variant="outline"
               size="icon"
-              className="h-10 w-10 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm"
+              className="h-10 w-10 border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm"
               onClick={handlePrint}
               title="Imprimer"
             >
@@ -683,7 +683,7 @@ function NewSupplierOrderPageContent() {
             <Button
               variant="outline"
               size="icon"
-              className="h-10 w-10 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm"
+              className="h-10 w-10 border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm"
               onClick={handleEmail}
               title="Envoyer par Email"
             >
@@ -694,7 +694,7 @@ function NewSupplierOrderPageContent() {
 
         {/* 1. Main configuration panel */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2 border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-[24px] overflow-hidden bg-white">
+          <Card className="lg:col-span-2 border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-white">
             <CardHeader className="bg-slate-900 text-white p-5">
               <CardTitle className="text-sm font-serif font-bold text-amber-50 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-500" /> Informations d&apos;Entête de la Commande
@@ -896,7 +896,7 @@ function NewSupplierOrderPageContent() {
           </Card>
 
           {/* Right Summary Totals Card */}
-          <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-[24px] overflow-hidden bg-slate-900 text-white">
+          <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-slate-900 text-white">
             <CardHeader className="border-b border-slate-800 p-5 bg-slate-950">
               <CardTitle className="text-sm font-serif font-bold text-amber-50 flex items-center gap-2">
                 <Coins className="w-4 h-4 text-amber-500" /> Synthèse Financière
@@ -940,7 +940,7 @@ function NewSupplierOrderPageContent() {
                 <Button 
                   onClick={handleSubmit} 
                   disabled={isSubmitting}
-                  className="w-full h-11 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-bold shadow-lg shadow-amber-900/20 gap-2 flex items-center justify-center transition-all duration-300 disabled:opacity-40"
+                  className="w-full h-11 bg-amber-700 hover:bg-amber-800 text-white font-bold shadow-lg shadow-amber-900/20 gap-2 flex items-center justify-center transition-all duration-300 disabled:opacity-40"
                 >
                   {isSubmitting ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mx-auto"></div>
@@ -964,7 +964,7 @@ function NewSupplierOrderPageContent() {
         </div>
 
         {/* 2. Interactive panel to search and add Article rows */}
-        <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-[24px] overflow-hidden bg-white">
+        <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-white">
           <CardHeader className="bg-amber-900/5 border-b border-slate-100 p-5">
             <CardTitle className="text-sm font-serif font-bold text-slate-800 flex items-center gap-2">
               <PlusCircle className="w-4 h-4 text-amber-700" /> Ajouter des Articles à la Commande
@@ -1132,7 +1132,7 @@ function NewSupplierOrderPageContent() {
                 <Button
                   onClick={handleAddMerchandiseRow}
                   disabled={!newRowArticle || newRowQuantity <= 0}
-                  className="w-full h-10 bg-slate-900 hover:bg-slate-950 text-white font-bold rounded-xl shadow-lg gap-2 flex items-center justify-center transition-all disabled:opacity-40"
+                  className="w-full h-10 bg-slate-900 hover:bg-slate-950 text-white font-bold shadow-lg gap-2 flex items-center justify-center transition-all disabled:opacity-40"
                 >
                   <Plus className="w-4 h-4" /> Ajouter à la liste
                 </Button>
@@ -1187,7 +1187,7 @@ function NewSupplierOrderPageContent() {
               <Button
                 onClick={handleAddTransportRow}
                 disabled={!selectedTransporter}
-                className="w-full h-10 bg-amber-900 hover:bg-amber-950 text-white font-bold rounded-xl gap-2 flex items-center justify-center transition-all disabled:opacity-40"
+                className="w-full h-10 bg-amber-900 hover:bg-amber-950 text-white font-bold gap-2 flex items-center justify-center transition-all disabled:opacity-40"
               >
                 <Truck className="w-4 h-4" /> Frais Transport
               </Button>
@@ -1197,7 +1197,7 @@ function NewSupplierOrderPageContent() {
         </Card>
 
         {/* 3. Dynamic Items Table Grid */}
-        <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-[24px] overflow-hidden bg-white">
+        <Card className="border-slate-200/60 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-white">
           <CardHeader className="bg-slate-900 text-white p-5">
             <CardTitle className="text-sm font-serif font-bold text-amber-50 flex items-center gap-2">
               <FileText className="w-4 h-4 text-amber-500" /> Nomenclature des Articles Commandés
@@ -1392,3 +1392,4 @@ export default function NewSupplierOrderPage() {
     </Suspense>
   );
 }
+

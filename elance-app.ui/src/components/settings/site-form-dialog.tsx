@@ -79,7 +79,7 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] rounded-[32px] p-0 overflow-hidden border-forest-100">
+      <DialogContent className="sm:max-w-[500px] rounded-2xl p-0 overflow-hidden border-forest-100">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <Store className="w-24 h-24" />
@@ -100,7 +100,7 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
               <Input 
                 {...register('address')} 
                 placeholder="Ex: Rue de l'Industrie, Zone Industrielle..."
-                className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 outline-none transition-all font-medium" 
+                className="bg-sand-50 outline-none transition-all font-medium" 
               />
               {errors.address && <p className="text-xs text-red-500 font-medium">{errors.address.message}</p>}
             </div>
@@ -112,7 +112,7 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
                   {...register('codepost')} 
                   placeholder="2035"
                   maxLength={4}
-                  className="h-12 rounded-xl bg-sand-50 border-forest-100 focus:border-forest-600 outline-none transition-all font-medium" 
+                  className="bg-sand-50 outline-none transition-all font-medium" 
                 />
                 {errors.codepost && <p className="text-xs text-red-500 font-medium">{errors.codepost.message}</p>}
               </div>
@@ -123,7 +123,7 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
                   control={control}
                   render={({ field }) => (
                     <Select onValueChange={(val) => field.onChange(val || '')} value={field.value}>
-                      <SelectTrigger className="h-12 rounded-xl bg-sand-50 border-forest-100">
+                      <SelectTrigger className="bg-sand-50 ">
                         <SelectValue placeholder="Choisir" />
                       </SelectTrigger>
                       <SelectContent>
@@ -162,13 +162,13 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
               type="button" 
               variant="outline" 
               onClick={onClose}
-              className="flex-1 h-12 rounded-xl border-forest-100 text-forest-600 font-bold hover:bg-forest-50"
+              className="flex-1 h-12 border-forest-100 text-forest-600 font-bold hover:bg-forest-50"
             >
               Annuler
             </Button>
             <Button 
               disabled={createSite.isPending}
-              className="flex-[2] h-12 rounded-xl bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
+              className="flex-[2] h-12 bg-forest-600 text-white hover:bg-forest-800 font-bold shadow-lg shadow-forest-600/20"
             >
               {createSite.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Créer le site'}
             </Button>
@@ -178,3 +178,5 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
     </Dialog>
   );
 }
+
+

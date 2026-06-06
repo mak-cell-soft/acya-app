@@ -201,7 +201,7 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-xl text-sand-400 hover:text-forest-950 hover:bg-forest-100 transition-colors"
+              className="w-8 h-8 flex items-center justify-center text-sand-400 hover:text-forest-950 hover:bg-forest-100 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -328,7 +328,7 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
               variant="outline"
               onClick={onClose}
               disabled={isConverting}
-              className="h-10 px-5 rounded-xl border-forest-100 bg-white text-forest-900 hover:bg-forest-100 font-semibold text-sm"
+              className="h-10 px-5 border-forest-100 bg-white text-forest-900 hover:bg-forest-100 font-semibold text-sm"
             >
               Annuler
             </Button>
@@ -336,7 +336,7 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
             <Button
               onClick={handleConvert}
               disabled={isConverting || !stampTaxId}
-              className="h-10 px-6 rounded-xl font-bold text-sm gap-2"
+              className="h-10 px-6 font-bold text-sm gap-2"
               style={{ backgroundColor: '#04100a', color: '#ffffff' }}
             >
               {isConverting ? (
@@ -357,3 +357,4 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
     </AnimatePresence>
   );
 }
+

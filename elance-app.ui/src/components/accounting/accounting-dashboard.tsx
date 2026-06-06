@@ -335,7 +335,7 @@ export default function AccountingDashboard() {
           <Button 
             variant="outline" 
             onClick={refreshAll} 
-            className="rounded-xl border-slate-200 hover:bg-slate-50 gap-2 h-11 px-4 font-bold"
+            className="border-slate-200 hover:bg-slate-50 gap-2 h-11 px-4 font-bold"
           >
             <RefreshCw className="w-4 h-4 text-slate-600" />
             Actualiser
@@ -394,7 +394,7 @@ export default function AccountingDashboard() {
           {/* Treasury KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {/* Card 1: Caisse Principale */}
-            <Card className="rounded-[24px] border-slate-150 shadow-sm bg-white p-6 space-y-4 border relative overflow-hidden group hover:shadow-md transition-all duration-300">
+            <Card className="rounded-xl border-slate-150 shadow-sm bg-white p-6 space-y-4 border relative overflow-hidden group hover:shadow-md transition-all duration-300">
               <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full -mr-8 -mt-8 transition-transform duration-500 group-hover:scale-110" />
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -433,7 +433,7 @@ export default function AccountingDashboard() {
             </Card>
 
             {/* Card 2: Caisses Points de Vente */}
-            <Card className="rounded-[24px] border-slate-150 shadow-sm bg-white p-6 space-y-4 border relative overflow-hidden group hover:shadow-md transition-all duration-300">
+            <Card className="rounded-xl border-slate-150 shadow-sm bg-white p-6 space-y-4 border relative overflow-hidden group hover:shadow-md transition-all duration-300">
               <div className="absolute top-0 right-0 w-32 h-32 bg-forest-900/5 rounded-full -mr-8 -mt-8 transition-transform duration-500 group-hover:scale-110" />
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">
@@ -460,7 +460,7 @@ export default function AccountingDashboard() {
             </Card>
 
             {/* Card 3: Total en Banque */}
-            <Card className="rounded-[24px] border-slate-150 shadow-sm bg-slate-900 text-white p-6 space-y-4 border-none relative overflow-hidden group hover:shadow-lg hover:shadow-slate-900/10 transition-all duration-300">
+            <Card className="rounded-xl border-slate-150 shadow-sm bg-slate-900 text-white p-6 space-y-4 border-none relative overflow-hidden group hover:shadow-lg hover:shadow-slate-900/10 transition-all duration-300">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-8 -mt-8 transition-transform duration-500 group-hover:scale-110" />
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">
@@ -489,7 +489,7 @@ export default function AccountingDashboard() {
           {/* Details Grid — Site breakdown + Bank balances */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left: Site Caisses Breakdown */}
-            <Card className="lg:col-span-5 border-slate-100 shadow-md shadow-slate-900/5 rounded-[24px] overflow-hidden bg-white border">
+            <Card className="lg:col-span-5 border-slate-100 shadow-md shadow-slate-900/5 rounded-xl overflow-hidden bg-white border">
               <CardHeader className="border-b border-slate-100 p-5 bg-slate-50/50">
                 <CardTitle className="text-sm font-serif font-bold text-slate-900 flex items-center gap-2">
                   <Store className="w-4 h-4 text-forest-850" />
@@ -531,7 +531,7 @@ export default function AccountingDashboard() {
             </Card>
 
             {/* Right: Bank Accounts Details */}
-            <Card className="lg:col-span-7 border-slate-100 shadow-md shadow-slate-900/5 rounded-[24px] overflow-hidden bg-white border">
+            <Card className="lg:col-span-7 border-slate-100 shadow-md shadow-slate-900/5 rounded-xl overflow-hidden bg-white border">
               <CardHeader className="border-b border-slate-100 p-5 bg-slate-50/50">
                 <CardTitle className="text-sm font-serif font-bold text-slate-900 flex items-center gap-2">
                   <Landmark className="w-4 h-4 text-forest-850" />
@@ -607,7 +607,7 @@ export default function AccountingDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.45, ease: 'easeOut' }}
           >
-            <Card className="border-slate-100 shadow-md shadow-slate-900/5 rounded-[24px] overflow-hidden bg-white border">
+            <Card className="border-slate-100 shadow-md shadow-slate-900/5 rounded-xl overflow-hidden bg-white border">
               {/* Card Header: dark stripe matching the treasury section aesthetic */}
               <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
@@ -626,7 +626,7 @@ export default function AccountingDashboard() {
                 {/* Add new bank button */}
                 <Button
                   onClick={handleAddBank}
-                  className="h-9 px-4 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold text-xs rounded-xl gap-2 shadow-sm transition-all"
+                  className="h-9 px-4 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold text-xs gap-2 shadow-sm transition-all"
                 >
                   <Plus className="w-4 h-4" />
                   Ajouter une Banque
@@ -757,7 +757,7 @@ export default function AccountingDashboard() {
                               </p>
                               <Button
                                 onClick={handleAddBank}
-                                className="h-9 px-5 bg-forest-900 hover:bg-forest-950 text-white font-bold text-xs rounded-xl gap-2"
+                                className="h-9 px-5 bg-forest-900 hover:bg-forest-950 text-white font-bold text-xs gap-2"
                               >
                                 <Plus className="w-3.5 h-3.5" />
                                 Ajouter le premier compte
@@ -776,7 +776,7 @@ export default function AccountingDashboard() {
       )}
 
       {/* Month Navigator */}
-      <Card className="border-slate-100 shadow-md shadow-slate-900/5 rounded-[24px] bg-white overflow-hidden border">
+      <Card className="border-slate-100 shadow-md shadow-slate-900/5 rounded-xl bg-white overflow-hidden border">
         <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-amber-500" />
@@ -906,7 +906,7 @@ export default function AccountingDashboard() {
         </div>
 
         {/* Achats Table & Filters */}
-        <Card className="border-slate-100 shadow-xl shadow-slate-900/5 rounded-[24px] overflow-hidden bg-white border">
+        <Card className="border-slate-100 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-white border">
           <CardHeader className="border-b border-slate-100 p-6 space-y-4">
             <div className="relative">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -1083,7 +1083,7 @@ export default function AccountingDashboard() {
         </div>
 
         {/* Ventes Table & Filters */}
-        <Card className="border-slate-100 shadow-xl shadow-slate-900/5 rounded-[24px] overflow-hidden bg-white border">
+        <Card className="border-slate-100 shadow-xl shadow-slate-900/5 rounded-xl overflow-hidden bg-white border">
           <CardHeader className="border-b border-slate-100 p-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="relative">
@@ -1208,3 +1208,4 @@ export default function AccountingDashboard() {
     </div>
   );
 }
+

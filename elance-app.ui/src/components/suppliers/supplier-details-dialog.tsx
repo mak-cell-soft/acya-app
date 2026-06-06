@@ -48,7 +48,7 @@ export function SupplierDetailsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-5xl lg:max-w-7xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-[32px] bg-white">
+      <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-5xl lg:max-w-7xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-none sm:rounded-2xl bg-white">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="flex items-center gap-6">
             <div className="w-16 h-16 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100 text-emerald-600 font-bold text-2xl">
@@ -70,7 +70,7 @@ export function SupplierDetailsDialog({
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
+            className="absolute right-6 top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -132,7 +132,7 @@ export function SupplierDetailsDialog({
                     </div>
                   </div>
 
-                  <div className="p-8 rounded-[32px] bg-forest-900 text-white relative overflow-hidden group">
+                  <div className="p-8 rounded-2xl bg-forest-900 text-white relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-500">
                       <Phone className="w-32 h-32" />
                     </div>
@@ -188,7 +188,7 @@ export function SupplierDetailsDialog({
 
                 {/* Financial Summary */}
                 <div className="space-y-6">
-                  <div className="p-8 rounded-[32px] bg-sand-50 border border-sand-100 space-y-6 relative overflow-hidden">
+                  <div className="p-8 rounded-2xl bg-sand-50 border border-sand-100 space-y-6 relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-4 opacity-5">
                       <Wallet className="w-24 h-24" />
                     </div>
@@ -218,7 +218,7 @@ export function SupplierDetailsDialog({
                     </div>
                   </div>
 
-                  <div className="p-6 rounded-[24px] border border-forest-100 space-y-4">
+                  <div className="p-6 rounded-xl border border-forest-100 space-y-4">
                     <div className="flex items-center gap-2 text-forest-600 font-bold text-xs uppercase tracking-widest">
                       <Building className="w-4 h-4" /> Banque & RIB
                     </div>
@@ -267,3 +267,5 @@ function User({ className }: { className?: string }) {
     </svg>
   );
 }
+
+

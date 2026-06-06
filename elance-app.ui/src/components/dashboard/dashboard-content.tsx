@@ -491,7 +491,7 @@ export function DashboardContent() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.6 }}
       >
-        <Card className="border-forest-100/50 bg-white/70 backdrop-blur-md rounded-[32px] overflow-hidden shadow-sm">
+        <Card className="border-forest-100/50 bg-white/70 backdrop-blur-md rounded-2xl overflow-hidden shadow-sm">
           <CardContent className="p-8">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 pb-6 border-b border-forest-50">
               <div className="flex items-center gap-4">
@@ -760,7 +760,7 @@ export function DashboardContent() {
           )}
 
           {/* Table list */}
-          <Card className="border-forest-100 rounded-[24px] bg-white overflow-hidden shadow-none">
+          <Card className="border-forest-100 rounded-xl bg-white overflow-hidden shadow-none">
             <CardContent className="p-0">
               
               {isPaymentsLoading ? (
@@ -1123,3 +1123,4 @@ export function DashboardContent() {
     </div>
   );
 }
+
