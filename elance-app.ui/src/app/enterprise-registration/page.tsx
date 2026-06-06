@@ -10,13 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Building2, Mail, Phone, MapPin, User, Briefcase, Plus, Trash2, ShieldCheck, Store, ArrowLeft, Eye, EyeOff, FileText, CheckCircle2, Factory } from 'lucide-react';
+import { Building2, Mail, Phone, MapPin, User, Briefcase, Plus, Trash2, ShieldCheck, Store, ArrowLeft, Eye, EyeOff, FileText, CheckCircle2, Factory, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { PublicNavbar } from '@/components/shared/public-navbar';
-import { PublicFooter } from '@/components/shared/public-footer';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 const siteSchema = z.object({
@@ -76,9 +75,7 @@ const jobDescOptions = [
 ];
 
 const roles = [
-  { key: 'ADMIN', value: 'Administrateur' },
-  { key: 'MANAGER', value: 'Manager' },
-  { key: 'USER', value: 'Utilisateur' }
+  { key: '20', value: 'Administrateur' }
 ];
 
 const governorats = [
@@ -89,6 +86,7 @@ const governorats = [
 ];
 
 export default function EnterpriseRegistrationPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -131,13 +129,57 @@ export default function EnterpriseRegistrationPage() {
   const onSubmit = async (data: RegistrationFormValues) => {
     setIsSubmitting(true);
     try {
-      // Simulate API Call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log('Form data:', data);
+      const payload = {
+        name: data.name,
+        description: data.description,
+        email: data.email,
+        phone: data.phone,
+        mobileOne: data.mobileOne,
+        mobileTwo: data.mobileTwo,
+        matriculeFiscal: data.matriculeFiscal,
+        devise: data.devise,
+        commercialregister: data.commercialRegister,
+        capital: data.capital,
+        siegeAddress: data.siegeAddress,
+        nameResponsable: data.nameResponsable,
+        surnameResponsable: data.surnameResponsable,
+        positionResponsable: data.positionResponsable,
+        issalingwood: data.isWoodSelling ?? false,
+        sites: data.sites.map(s => ({
+          gov: s.gov,
+          address: s.address,
+          isForsale: s.isForSale ?? false
+        })),
+        user: {
+          name: data.appUsername,
+          surname: data.appUserSurname,
+          email: data.emailAppUser,
+          password: data.passwordAppUser,
+          role: data.selectedRole
+        }
+      };
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://acya.site/api/';
+      const response = await fetch(`${apiUrl}Enterprise/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(errorData || 'Erreur lors de l\'enregistrement');
+      }
+
       toast.success("Entreprise enregistrée avec succès !");
-    } catch (error) {
+      setTimeout(() => {
+        router.push('/login');
+      }, 1500);
+    } catch (error: any) {
       console.error(error);
-      toast.error("Erreur lors de l'enregistrement.");
+      toast.error(error.message || "Erreur lors de l'enregistrement.");
     } finally {
       setIsSubmitting(false);
     }
@@ -146,54 +188,60 @@ export default function EnterpriseRegistrationPage() {
   const isWoodSelling = watch("isWoodSelling");
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-corp-blue-50/40 to-slate-100 flex flex-col font-sans selection:bg-corp-blue-500/20">
-      <PublicNavbar />
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-corp-blue-50 via-[#EBF1FA] to-[#F8FAFF] px-4 py-12 relative overflow-hidden font-sans">
+      {/* Background patterns */}
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(var(--color-corp-blue-200)_1px,transparent_1px)] [background-size:24px_24px] opacity-30" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-corp-blue-100/50 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-corp-blue-50/50 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
 
-      <main className="flex-1 pt-32 pb-24 px-4 sm:px-6 md:px-10 max-w-[1400px] mx-auto w-full">
-        {/* Animated Header */}
-        <div className="mb-12 text-center max-w-3xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-corp-blue-600 hover:text-corp-blue-800 transition-colors mb-6 bg-corp-blue-50 px-4 py-1.5 rounded-full border border-corp-blue-100">
-              <ArrowLeft size={16} />
-              Retour à l&apos;accueil
-            </Link>
-            <h1 className="text-4xl md:text-5xl font-extrabold font-heading text-slate-900 tracking-tight mb-4">
-              Inscription <span className="bg-linear-to-r from-corp-blue-600 to-corp-cyan bg-clip-text text-transparent">Entreprise</span>
-            </h1>
-            <p className="text-lg text-slate-600 font-medium">
-              Rejoignez la plateforme Élancé et digitalisez votre activité commerciale dès aujourd&apos;hui.
-            </p>
-          </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="w-full max-w-4xl relative z-10"
+      >
+        <div className="flex flex-col items-center mb-10">
+          <Link href="/" className="group transition-transform hover:scale-105">
+            <svg className="w-20 h-20 md:w-24 md:h-24 transition-transform duration-700 group-hover:rotate-[360deg] shadow-2xl shadow-corp-blue-500/10 rounded-2xl" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="40" height="40" rx="10" fill="url(#logo_bg_grad)" className="opacity-10 group-hover:opacity-15 transition-opacity" />
+              <path d="M20 3L35 11.5V28.5L20 37L5 28.5V11.5L20 3" stroke="url(#logo_stroke_grad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M20 9L31 17.25L27 20.25L20 15L13 20.25L9 17.25L20 9Z" fill="url(#logo_stroke_grad)"/>
+              <rect x="17.5" y="18" width="5" height="11" rx="1.5" fill="url(#logo_stroke_grad)" />
+              <path d="M12 25H28" stroke="url(#logo_stroke_grad)" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M14 29H26" stroke="#06B6D4" strokeWidth="2" strokeLinecap="round"/>
+              <defs>
+                <linearGradient id="logo_bg_grad" x1="0" y1="0" x2="40" y2="40">
+                  <stop offset="0%" stopColor="#2563EB"/>
+                  <stop offset="100%" stopColor="#06B6D4"/>
+                </linearGradient>
+                <linearGradient id="logo_stroke_grad" x1="0" y1="0" x2="40" y2="40">
+                  <stop offset="0%" stopColor="#3B82F6"/>
+                  <stop offset="60%" stopColor="#2563EB"/>
+                  <stop offset="100%" stopColor="#06B6D4"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </Link>
+          <h1 className="text-3xl font-heading font-bold text-forest-900 mt-6 tracking-tight">Inscription Entreprise</h1>
+          <p className="text-sand-400 font-medium text-sm mt-1">Rejoignez la plateforme Élancé</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-            {/* Left Column: Enterprise Details */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-            >
-              <Card className="border-0 shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white/80 backdrop-blur-xl h-full rounded-2xl overflow-hidden">
-                <div className="h-2 w-full bg-linear-to-r from-forest-600 to-timber-400"></div>
-                <CardHeader className="pb-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-forest-50 text-forest-600 flex items-center justify-center shrink-0">
-                      <Building2 size={24} />
-                    </div>
-                    <div>
-                      <CardTitle className="text-2xl font-bold text-slate-800">Détails de l&apos;Entreprise</CardTitle>
-                      <CardDescription className="text-slate-500 font-medium">Informations générales et légales</CardDescription>
-                    </div>
+        <Card className="border-forest-100 shadow-[0_20px_60px_rgba(11,59,36,0.08)] bg-card/80 backdrop-blur-md rounded-2xl overflow-hidden">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <CardContent className="space-y-10 px-6 sm:px-10 pt-10 pb-8">
+              
+              {/* Entreprise Section */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 border-b border-sand-100 pb-3">
+                  <div className="w-10 h-10 rounded-xl bg-forest-50 text-forest-600 flex items-center justify-center shrink-0">
+                    <Building2 size={20} />
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-5">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-800">Détails de l&apos;Entreprise</h2>
+                    <p className="text-sm text-slate-500 font-medium">Informations générales et légales</p>
+                  </div>
+                </div>
+                <div className="space-y-5">
                   <div className="space-y-1.5">
                     <Label className="text-slate-700 font-semibold">Nom de l&apos;entreprise *</Label>
                     <Input {...register("name")} placeholder="Ex: Menuiserie Dupont" className="h-11 bg-slate-50/50 border-slate-200 focus:border-corp-blue-500 focus:ring-corp-blue-500/20" />
@@ -268,30 +316,21 @@ export default function EnterpriseRegistrationPage() {
                     {errors.siegeAddress && <p className="text-red-500 text-xs font-medium mt-1">{errors.siegeAddress.message}</p>}
                   </div>
 
-                </CardContent>
-              </Card>
-            </motion.div>
+                </div>
+              </div>
 
-            {/* Right Column: Admin & Legal */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <Card className="border-0 shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white/80 backdrop-blur-xl h-full rounded-2xl overflow-hidden">
-                <div className="h-2 w-full bg-linear-to-r from-corp-blue-600 to-corp-cyan"></div>
-                <CardHeader className="pb-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-corp-blue-50 text-corp-blue-600 flex items-center justify-center shrink-0">
-                      <ShieldCheck size={24} />
-                    </div>
-                    <div>
-                      <CardTitle className="text-2xl font-bold text-slate-800">Administrateur & Accès</CardTitle>
-                      <CardDescription className="text-slate-500 font-medium">Représentant légal et compte utilisateur</CardDescription>
-                    </div>
+              {/* Administrateur Section */}
+              <div className="space-y-6 pt-6">
+                <div className="flex items-center gap-3 border-b border-sand-100 pb-3">
+                  <div className="w-10 h-10 rounded-xl bg-corp-blue-50 text-corp-blue-600 flex items-center justify-center shrink-0">
+                    <ShieldCheck size={20} />
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-800">Administrateur & Accès</h2>
+                    <p className="text-sm text-slate-500 font-medium">Représentant légal et compte utilisateur</p>
+                  </div>
+                </div>
+                <div className="space-y-6">
                   
                   {/* Responsable */}
                   <div className="p-5 bg-slate-50/80 rounded-xl border border-slate-100 space-y-4">
@@ -404,29 +443,21 @@ export default function EnterpriseRegistrationPage() {
 
                   </div>
 
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
-
-          {/* Sites Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            <Card className="border-0 shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white/80 backdrop-blur-xl rounded-2xl overflow-hidden">
-              <div className="h-2 w-full bg-linear-to-r from-timber-600 to-corp-cyan"></div>
-              <CardHeader className="pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-timber-100 text-timber-600 flex items-center justify-center shrink-0">
-                    <Store size={24} />
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl font-bold text-slate-800">Sites de Vente & Dépôts</CardTitle>
-                    <CardDescription className="text-slate-500 font-medium">Ajoutez au minimum un site pour l&apos;entreprise</CardDescription>
-                  </div>
                 </div>
+              </div>
+
+              {/* Sites Section */}
+              <div className="space-y-6 pt-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-3 border-b border-sand-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-timber-50 text-timber-600 flex items-center justify-center shrink-0">
+                      <Store size={20} />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-slate-800">Sites de Vente & Dépôts</h2>
+                      <p className="text-sm text-slate-500 font-medium">Ajoutez au minimum un site pour l&apos;entreprise</p>
+                    </div>
+                  </div>
                 <Dialog open={isSiteDialogOpen} onOpenChange={setIsSiteDialogOpen}>
                   <DialogTrigger asChild>
                     <Button type="button" className="h-11 px-6 bg-slate-800 hover:bg-slate-900 text-white rounded-lg gap-2">
@@ -480,8 +511,8 @@ export default function EnterpriseRegistrationPage() {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
-              </CardHeader>
-              <CardContent className="space-y-6">
+              </div>
+              <div className="space-y-6">
 
                 {errors.sites && <p className="text-red-500 text-sm font-medium">{errors.sites.message}</p>}
 
@@ -541,44 +572,35 @@ export default function EnterpriseRegistrationPage() {
                     <p className="text-slate-500 font-medium text-center">Aucun site enregistré.<br/>Veuillez en ajouter au minimum un.</p>
                   </div>
                 )}
-                
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Actions */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex justify-end gap-4 pt-4"
-          >
-            <Button type="button" variant="outline" asChild className="h-14 px-8 text-base font-bold border-slate-200 hover:bg-slate-50 text-slate-600">
-              <Link href="/">Annuler</Link>
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting || sites.length === 0} 
-              className="h-14 px-10 text-base font-bold bg-linear-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white shadow-xl shadow-corp-blue-900/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0"
-            >
-              {isSubmitting ? (
-                <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Enregistrement...
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 size={20} />
-                  Enregistrer l&apos;Entreprise
-                </div>
-              )}
-            </Button>
-          </motion.div>
-
-        </form>
-      </main>
-
-      <PublicFooter />
+              </div>
+            </div>
+            </CardContent>
+            
+            <CardFooter className="flex flex-col sm:flex-row justify-end gap-4 px-6 sm:px-10 py-6 bg-slate-50 border-t border-slate-100">
+              <Button type="button" variant="outline" asChild className="h-14 px-8 text-base font-bold border-slate-200 hover:bg-slate-50 text-slate-600 w-full sm:w-auto">
+                <Link href="/">Annuler</Link>
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting || sites.length === 0} 
+                className="h-14 px-10 text-base font-bold bg-linear-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white shadow-xl shadow-corp-blue-900/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 w-full sm:w-auto"
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Enregistrement...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 size={20} />
+                    Enregistrer l&apos;Entreprise
+                  </div>
+                )}
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
+      </motion.div>
     </div>
   );
 }

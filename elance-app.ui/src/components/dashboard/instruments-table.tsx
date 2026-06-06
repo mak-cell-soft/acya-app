@@ -88,10 +88,11 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
   }, [filteredInstruments, page, pageSize]);
 
   const toggleSelectAll = () => {
-    if (selectedIds.length === paginatedInstruments.length) {
+    const selectable = paginatedInstruments.filter(i => tab === 'pending' || i.bankSettlementStatus === 'VERSED');
+    if (selectedIds.length === selectable.length && selectable.length > 0) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(paginatedInstruments.map(i => i.id));
+      setSelectedIds(selectable.map(i => i.id));
     }
   };
 
@@ -228,7 +229,10 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
                   {(tab === 'pending' || (tab === 'versed' && side === 'Supplier')) && (
                     <th className="px-6 py-4 w-12">
                       <Checkbox 
-                        checked={selectedIds.length === paginatedInstruments.length && paginatedInstruments.length > 0} 
+                        checked={
+                          selectedIds.length > 0 && 
+                          selectedIds.length === paginatedInstruments.filter(i => tab === 'pending' || i.bankSettlementStatus === 'VERSED').length
+                        } 
                         onCheckedChange={toggleSelectAll} 
                         className="w-5 h-5 rounded-[6px] border-2 border-slate-300 bg-white hover:border-corp-blue-500 data-[state=checked]:bg-corp-blue-600 data-[state=checked]:border-corp-blue-600 shadow-sm transition-all"
                       />
@@ -248,11 +252,13 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
                   <tr key={inst.id} className="hover:bg-forest-50/20 transition-all">
                     {(tab === 'pending' || (tab === 'versed' && side === 'Supplier')) && (
                       <td className="px-6 py-4">
-                        <Checkbox 
-                          checked={selectedIds.includes(inst.id)} 
-                          onCheckedChange={() => toggleSelect(inst.id)}
-                          className="w-5 h-5 rounded-[6px] border-2 border-slate-300 bg-white hover:border-corp-blue-500 data-[state=checked]:bg-corp-blue-600 data-[state=checked]:border-corp-blue-600 shadow-sm transition-all cursor-pointer"
-                        />
+                        {(tab === 'pending' || inst.bankSettlementStatus === 'VERSED') && (
+                          <Checkbox 
+                            checked={selectedIds.includes(inst.id)} 
+                            onCheckedChange={() => toggleSelect(inst.id)}
+                            className="w-5 h-5 rounded-[6px] border-2 border-slate-300 bg-white hover:border-corp-blue-500 data-[state=checked]:bg-corp-blue-600 data-[state=checked]:border-corp-blue-600 shadow-sm transition-all cursor-pointer"
+                          />
+                        )}
                       </td>
                     )}
                     <td className="px-6 py-4">
