@@ -18,6 +18,7 @@ export function useCreateBordereau() {
     onSuccess: () => {
       toast.success('Bordereau créé avec succès');
       queryClient.invalidateQueries({ queryKey: ['payment-instruments'] });
+      queryClient.invalidateQueries({ queryKey: ['bank-statement'] });
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || 'Erreur lors de la création du bordereau');
@@ -42,6 +43,7 @@ export function useRemoveInstrumentFromBordereau() {
       toast.success('Instrument retiré du bordereau');
       queryClient.invalidateQueries({ queryKey: ['pending-bordereaux'] });
       queryClient.invalidateQueries({ queryKey: ['payment-instruments'] });
+      queryClient.invalidateQueries({ queryKey: ['bank-statement'] });
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || 'Erreur lors du retrait de l\'instrument');
@@ -58,6 +60,7 @@ export function useValidateBordereau() {
       queryClient.invalidateQueries({ queryKey: ['pending-bordereaux'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-payments'] });
       queryClient.invalidateQueries({ queryKey: ['banks'] });
+      queryClient.invalidateQueries({ queryKey: ['bank-statement'] });
       toast.success("Bordereau validé avec succès");
     },
     onError: (error: any) => {
@@ -85,6 +88,7 @@ export function useClearTraite() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-traites-to-clear'] });
       queryClient.invalidateQueries({ queryKey: ['banks'] });
+      queryClient.invalidateQueries({ queryKey: ['bank-statement'] });
       toast.success("Traite encaissée avec succès");
     },
     onError: (error: any) => {
@@ -101,6 +105,7 @@ export function useDisburseInstruments() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payment-instruments'] });
       queryClient.invalidateQueries({ queryKey: ['banks'] });
+      queryClient.invalidateQueries({ queryKey: ['bank-statement'] });
       toast.success("Instruments décaissés avec succès");
     },
     onError: (error: any) => {
@@ -116,6 +121,7 @@ export function useDeliverInstruments() {
     mutationFn: paymentService.deliverSupplierInstruments,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payment-instruments'] });
+      queryClient.invalidateQueries({ queryKey: ['bank-statement'] });
       toast.success("Instruments remis au fournisseur avec succès");
     },
     onError: (error: any) => {

@@ -74,6 +74,7 @@ namespace ms.webapp.api.acya.infrastructure
     public virtual DbSet<DocumentApproval> DocumentApprovals { get; set; }
     public virtual DbSet<PricingGrid> PricingGrids { get; set; }
     public virtual DbSet<BankDeposit> BankDeposits { get; set; }
+    public virtual DbSet<BankTransaction> BankTransactions { get; set; }
     public virtual DbSet<CaisseMovement> CaisseMovements { get; set; }
     public virtual DbSet<ms.webapp.api.acya.core.Permissions.UserPermissions> UserPermissions { get; set; }
 

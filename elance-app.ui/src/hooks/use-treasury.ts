@@ -55,6 +55,8 @@ export function useCreateBankDeposit() {
       queryClient.invalidateQueries({ queryKey: ['treasury'] });
       // Also invalidate general caisse/site balance query in case it is loaded elsewhere
       queryClient.invalidateQueries({ queryKey: ['caisse'] });
+      // Also invalidate bank-statement to update rapprochement bancaire
+      queryClient.invalidateQueries({ queryKey: ['bank-statement'] });
       
       toast.success('Versement en banque effectué avec succès');
     },

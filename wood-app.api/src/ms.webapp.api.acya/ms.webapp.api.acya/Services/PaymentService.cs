@@ -860,6 +860,8 @@ namespace ms.webapp.api.acya.api.Services
         {
             var deposits = await _context.BankDeposits
                 .Include(b => b.PaymentInstrument)
+                    .ThenInclude(p => p.Payment)
+                        .ThenInclude(p => p.Customer)
                 .Include(b => b.Bank)
                 .Where(b => b.Reference == reference && !b.IsDeleted && b.PaymentInstrument != null && b.PaymentInstrument.BankSettlementStatus == "PENDING")
                 .ToListAsync();
@@ -888,6 +890,22 @@ namespace ms.webapp.api.acya.api.Services
                             {
                                 _context.Banks.Update(bank);
                             }
+
+                            string ownerName = instrument.Payment?.Customer?.Fullname ?? instrument.Payment?.Customer?.Name ?? instrument.Owner ?? "Inconnu";
+                            var bankTx = new ms.webapp.api.acya.core.Entities.BankTransaction
+                            {
+                                BankId = deposit.BankId,
+                                TransactionDate = instrument.PaidAtBankDate.Value,
+                                Description = $"Encaissement {instrument.Type} {instrument.InstrumentNumber} - {ownerName}",
+                                Debit = deposit.NetAmount,
+                                Credit = 0,
+                                Reference = deposit.Reference,
+                                CreationDate = DateTime.UtcNow,
+                                UpdateDate = DateTime.UtcNow,
+                                IsDeleted = false,
+                                IsReconciled = false
+                            };
+                            await _context.BankTransactions.AddAsync(bankTx);
                         }
                         // For TRAITE, it remains IsPaidAtBank = false and Bank.InitialBalance is untouched.
 
@@ -940,6 +958,8 @@ namespace ms.webapp.api.acya.api.Services
         {
             var deposit = await _context.BankDeposits
                 .Include(b => b.PaymentInstrument)
+                    .ThenInclude(p => p.Payment)
+                        .ThenInclude(p => p.Customer)
                 .Include(b => b.Bank)
                 .FirstOrDefaultAsync(b => !b.IsDeleted && b.PaymentInstrumentId == instrumentId);
 
@@ -963,6 +983,22 @@ namespace ms.webapp.api.acya.api.Services
                     _context.Banks.Update(deposit.Bank);
                 }
 
+                string ownerName = instrument.Payment?.Customer?.Fullname ?? instrument.Payment?.Customer?.Name ?? instrument.Owner ?? "Inconnu";
+                var bankTx = new ms.webapp.api.acya.core.Entities.BankTransaction
+                {
+                    BankId = deposit.BankId,
+                    TransactionDate = instrument.PaidAtBankDate.Value,
+                    Description = $"Encaissement {instrument.Type} {instrument.InstrumentNumber} - {ownerName}",
+                    Debit = deposit.NetAmount,
+                    Credit = 0,
+                    Reference = deposit.Reference,
+                    CreationDate = DateTime.UtcNow,
+                    UpdateDate = DateTime.UtcNow,
+                    IsDeleted = false,
+                    IsReconciled = false
+                };
+                await _context.BankTransactions.AddAsync(bankTx);
+
                 _context.PaymentInstruments.Update(instrument);
 
                 await _context.SaveChangesAsync();
@@ -979,6 +1015,7 @@ namespace ms.webapp.api.acya.api.Services
         {
             var instruments = await _context.PaymentInstruments
                 .Include(pi => pi.Payment)
+                    .ThenInclude(p => p.Customer)
                 .Where(pi => dto.InstrumentIds.Contains(pi.Id))
                 .ToListAsync();
 
@@ -1036,6 +1073,22 @@ namespace ms.webapp.api.acya.api.Services
                         instrument.BankSettlementStatus = "CLEARED";
                         instrument.IsPaidAtBank = true;
                         instrument.PaidAtBankDate = dto.DisburseDate;
+
+                        string ownerName = instrument.Payment?.Customer?.Fullname ?? instrument.Payment?.Customer?.Name ?? instrument.Owner ?? "Inconnu";
+                        var bankTx = new ms.webapp.api.acya.core.Entities.BankTransaction
+                        {
+                            BankId = dto.BankId,
+                            TransactionDate = dto.DisburseDate,
+                            Description = $"Décaissement {instrument.Type} {instrument.InstrumentNumber} - {ownerName}",
+                            Debit = 0,
+                            Credit = amount,
+                            Reference = disbursementRef,
+                            CreationDate = DateTime.UtcNow,
+                            UpdateDate = DateTime.UtcNow,
+                            IsDeleted = false,
+                            IsReconciled = false
+                        };
+                        await _context.BankTransactions.AddAsync(bankTx);
 
                         _context.PaymentInstruments.Update(instrument);
                     }

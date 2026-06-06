@@ -28,14 +28,12 @@ import { BankFormDialog } from '@/components/settings/bank-form-dialog';
 import { PendingBordereauxSection } from '@/components/analytics/pending-bordereaux';
 import { PendingTraitesSection } from '@/components/accounting/pending-traites';
 import { InstrumentsTable } from '@/components/dashboard/instruments-table';
+import { useBankStatement } from '@/hooks/use-bank-transactions';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-// Mock Bank Transactions for the Rapprochement table
-const mockBankTransactions = [
-  { id: 1, date: '2026-06-05', description: 'Virement Fournisseur A', amount: -1500.00, type: 'Débit', status: 'Non Rapproché' },
-  { id: 2, date: '2026-06-04', description: 'Encaissement Client X', amount: 3200.50, type: 'Crédit', status: 'Rapproché' },
-  { id: 3, date: '2026-06-03', description: 'Frais Bancaires', amount: -25.00, type: 'Débit', status: 'Non Rapproché' },
-  { id: 4, date: '2026-06-02', description: 'Chèque N° 123456', amount: -850.00, type: 'Débit', status: 'Rapproché' },
-  { id: 5, date: '2026-06-01', description: 'Dépôt Espèces', amount: 1000.00, type: 'Crédit', status: 'Rapproché' },
+const MONTHS = [
+  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
 ];
 
 export function TreasuryDashboard() {
@@ -61,6 +59,23 @@ export function TreasuryDashboard() {
 
   const { data: banksList = [], isLoading: isLoadingBanksList } = useBanks();
   const deleteBankMutation = useDeleteBank();
+
+  // Rapprochement Bancaire state
+  const [statementBankId, setStatementBankId] = useState<number | null>(null);
+  const [statementYear, setStatementYear] = useState<number>(new Date().getFullYear());
+  const [statementMonth, setStatementMonth] = useState<number>(new Date().getMonth() + 1);
+
+  React.useEffect(() => {
+    if (banksList.length > 0 && !statementBankId) {
+      setStatementBankId(banksList[0].id);
+    }
+  }, [banksList, statementBankId]);
+
+  const { data: bankStatement, isLoading: isLoadingStatement, refetch: refetchStatement } = useBankStatement(
+    statementBankId ?? 0,
+    statementYear,
+    statementMonth
+  );
 
   const handleBankFormClose = () => {
     setIsBankFormOpen(false);
@@ -93,6 +108,7 @@ export function TreasuryDashboard() {
       refetchBanks();
       refetchMainCaisse();
       refetchSites();
+      if (statementBankId) refetchStatement();
     }
   };
 
@@ -369,7 +385,7 @@ export function TreasuryDashboard() {
           transition={{ delay: 0.1, duration: 0.45, ease: 'easeOut' }}
         >
           <Card className="border-slate-100 shadow-md shadow-slate-900/5 rounded-xl overflow-hidden bg-white border mt-6">
-            <div className="px-6 py-4 bg-gradient-to-r from-forest-50 to-white border-b border-slate-100 flex items-center justify-between">
+            <div className="px-6 py-4 bg-gradient-to-r from-forest-50 to-white border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-2.5">
                 <span className="p-1.5 bg-white text-forest-600 rounded-lg shadow-sm border border-slate-100">
                   <FileSearch className="w-4 h-4" />
@@ -383,48 +399,161 @@ export function TreasuryDashboard() {
                   </p>
                 </div>
               </div>
+
+              {/* Filters */}
+              <div className="flex flex-wrap items-center gap-3">
+                <Select
+                  value={statementBankId?.toString() || ''}
+                  onValueChange={(val) => setStatementBankId(Number(val))}
+                >
+                  <SelectTrigger className="w-[200px] h-9 text-xs">
+                    <SelectValue placeholder="Sélectionner une banque">
+                      {statementBankId ? banksList.find((b: any) => b.id === statementBankId)?.designation : "Sélectionner une banque"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {banksList.map((bank: any) => (
+                      <SelectItem key={bank.id} value={bank.id.toString()}>
+                        {bank.designation}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={statementMonth.toString()}
+                  onValueChange={(val) => setStatementMonth(Number(val))}
+                >
+                  <SelectTrigger className="w-[120px] h-9 text-xs">
+                    <SelectValue placeholder="Mois">
+                      {MONTHS[statementMonth - 1]}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MONTHS.map((m, i) => (
+                      <SelectItem key={i} value={(i + 1).toString()}>
+                        {m}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={statementYear.toString()}
+                  onValueChange={(val) => setStatementYear(Number(val))}
+                >
+                  <SelectTrigger className="w-[100px] h-9 text-xs">
+                    <SelectValue placeholder="Année">
+                      {statementYear}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[...Array(5)].map((_, i) => {
+                      const y = new Date().getFullYear() - i;
+                      return (
+                        <SelectItem key={y} value={y.toString()}>
+                          {y}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <CardContent className="p-0">
+            <CardContent className="p-0 relative min-h-[200px]">
+              {isLoadingStatement ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm z-10">
+                  <RefreshCw className="w-6 h-6 text-corp-blue-500 animate-spin mb-2" />
+                  <p className="text-xs font-medium text-slate-500">Chargement des transactions...</p>
+                </div>
+              ) : null}
+
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader className="bg-slate-50/70 border-b border-slate-100">
                     <TableRow className="text-slate-400 font-bold uppercase tracking-wider text-[9px] hover:bg-transparent">
                       <TableHead className="font-bold py-3 w-32">Date</TableHead>
                       <TableHead className="font-bold py-3">Description</TableHead>
-                      <TableHead className="font-bold py-3 text-center">Type</TableHead>
-                      <TableHead className="text-right font-bold py-3">Montant</TableHead>
+                      <TableHead className="text-right font-bold py-3 text-rose-600/70">Débit</TableHead>
+                      <TableHead className="text-right font-bold py-3 text-emerald-600/70">Crédit</TableHead>
                       <TableHead className="text-center font-bold py-3">Statut</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody className="text-slate-700 font-medium text-xs">
-                    {mockBankTransactions.map((tx) => (
+                    {/* Solde Initial Row */}
+                    {bankStatement && (
+                      <TableRow className="bg-slate-50/50 hover:bg-slate-50/50">
+                        <TableCell className="font-mono text-slate-500 text-[10px]">
+                          01/{statementMonth.toString().padStart(2, '0')}/{statementYear}
+                        </TableCell>
+                        <TableCell className="font-bold text-slate-800 italic">
+                          Solde initial au 01 {MONTHS[statementMonth - 1]} {statementYear}
+                        </TableCell>
+                        <TableCell className="text-right font-mono font-bold text-rose-600">
+                          {bankStatement.initialBalance < 0 ? formatCurrency(Math.abs(bankStatement.initialBalance)) : '-'}
+                        </TableCell>
+                        <TableCell className="text-right font-mono font-bold text-emerald-600">
+                          {bankStatement.initialBalance >= 0 ? formatCurrency(bankStatement.initialBalance) : '-'}
+                        </TableCell>
+                        <TableCell className="text-center"></TableCell>
+                      </TableRow>
+                    )}
+
+                    {bankStatement?.transactions.map((tx: any) => (
                       <TableRow key={tx.id} className="hover:bg-slate-50/60 transition-colors">
-                        <TableCell className="font-mono text-slate-500">{formatDate(tx.date)}</TableCell>
+                        <TableCell className="font-mono text-slate-500">{formatDate(tx.transactionDate)}</TableCell>
                         <TableCell className="font-semibold text-slate-800">{tx.description}</TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="outline" className={cn(
-                            "font-mono text-[10px] px-2 py-0.5 border-transparent",
-                            tx.type === 'Crédit' ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
-                          )}>
-                            {tx.type}
-                          </Badge>
+                        <TableCell className="text-right font-mono font-bold text-rose-600">
+                          {tx.debit > 0 ? formatCurrency(tx.debit) : '-'}
                         </TableCell>
-                        <TableCell className="text-right font-mono font-bold">
-                          <span className={tx.amount > 0 ? "text-emerald-600" : "text-rose-600"}>
-                            {tx.amount > 0 ? '+' : ''}{formatCurrency(tx.amount)}
-                          </span>
+                        <TableCell className="text-right font-mono font-bold text-emerald-600">
+                          {tx.credit > 0 ? formatCurrency(tx.credit) : '-'}
                         </TableCell>
                         <TableCell className="text-center">
-                          <Badge variant={tx.status === 'Rapproché' ? 'default' : 'secondary'} className={cn(
+                          <Badge variant={tx.isReconciled ? 'default' : 'secondary'} className={cn(
                             "font-bold text-[10px]",
-                            tx.status === 'Rapproché' ? "bg-corp-blue-600" : "bg-slate-200 text-slate-600"
+                            tx.isReconciled ? "bg-corp-blue-600" : "bg-slate-200 text-slate-600"
                           )}>
-                            {tx.status}
+                            {tx.isReconciled ? 'Rapproché' : 'Non Rapproché'}
                           </Badge>
                         </TableCell>
                       </TableRow>
                     ))}
+
+                    {/* Empty State */}
+                    {bankStatement?.transactions.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-6 text-slate-400 italic">
+                          Aucune transaction enregistrée pour ce mois.
+                        </TableCell>
+                      </TableRow>
+                    )}
+
+                    {/* Solde Final Row */}
+                    {bankStatement && (() => {
+                      const finalBalance = bankStatement.initialBalance 
+                        + bankStatement.transactions.reduce((acc: number, t: any) => acc + t.debit, 0)
+                        - bankStatement.transactions.reduce((acc: number, t: any) => acc + t.credit, 0);
+
+                      return (
+                        <TableRow className="bg-slate-100/50 hover:bg-slate-100/50 border-t-2 border-slate-200">
+                          <TableCell className="font-mono text-slate-500 text-[10px]">
+                            Fin {MONTHS[statementMonth - 1]}
+                          </TableCell>
+                          <TableCell className="font-bold text-slate-900">
+                            Solde final
+                          </TableCell>
+                          <TableCell className="text-right font-mono font-bold text-rose-600">
+                            {finalBalance < 0 ? formatCurrency(Math.abs(finalBalance)) : '-'}
+                          </TableCell>
+                          <TableCell className="text-right font-mono font-bold text-emerald-600">
+                            {finalBalance >= 0 ? formatCurrency(finalBalance) : '-'}
+                          </TableCell>
+                          <TableCell className="text-center"></TableCell>
+                        </TableRow>
+                      );
+                    })()}
                   </TableBody>
                 </Table>
               </div>

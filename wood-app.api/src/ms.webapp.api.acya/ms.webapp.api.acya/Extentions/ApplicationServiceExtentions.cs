@@ -61,10 +61,12 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<IPaymentService, PaymentService>();
       services.AddScoped<IBalanceService, BalanceService>();
       services.AddScoped<IStockMovementService, StockMovementService>();
+      services.AddScoped<IBankTransactionService, ms.webapp.api.acya.Services.BankTransactionService>();
       services.AddScoped<IAuditService, AuditService>();
       services.AddScoped<IAnalyticsService, AnalyticsService>();
       services.AddScoped<ISalaryCalculationService, SalaryCalculationService>();
       services.AddScoped<BankDepositRepository>();
+      services.AddScoped<BankTransactionRepository>();
       services.AddScoped<CaisseMovementRepository>();
       services.AddScoped<UserPermissionsRepository>();
       services.AddScoped<AuditTrailInterceptor>();
