@@ -218,10 +218,10 @@ export default function DeepSearchPage() {
   const purchasesContent = useMemo(() => {
     if (!selectedCustomer) {
       return (
-        <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-forest-200 rounded-2xl bg-sand-50/20 animate-in fade-in duration-300">
-          <Users className="w-12 h-12 text-forest-300 mb-3" />
-          <h3 className="text-sm font-bold text-forest-900">Veuillez sélectionner un client</h3>
-          <p className="text-xs text-forest-500 mt-1 max-w-xs">
+        <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50 animate-in fade-in duration-300">
+          <Users className="w-12 h-12 text-slate-300 mb-3" />
+          <h3 className="text-sm font-bold text-slate-900">Veuillez sélectionner un client</h3>
+          <p className="text-xs text-slate-500 mt-1 max-w-xs">
             Entrez le nom d'un client ci-dessus pour charger sa fiche d'achats détaillée et son état de compte.
           </p>
         </div>
@@ -232,16 +232,16 @@ export default function DeepSearchPage() {
       return (
         <div className="flex flex-col items-center justify-center py-24 space-y-4 animate-in fade-in duration-300">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-forest-600"></div>
-          <p className="text-sm font-bold text-forest-800/60 animate-pulse">Extraction de l'historique d'achat...</p>
+          <p className="text-sm font-bold text-slate-800/60 animate-pulse">Extraction de l'historique d'achat...</p>
         </div>
       );
     }
 
     if (purchases.length > 0) {
       return (
-        <Card className="border-sand-200 shadow-sm rounded-2xl bg-white animate-in fade-in duration-300">
-          <CardHeader className="p-6 border-b border-forest-50">
-            <CardTitle className="text-xl font-serif text-forest-950">Marchandises Achetées</CardTitle>
+        <Card className="border-slate-200 shadow-sm rounded-xl bg-white animate-in fade-in duration-300">
+          <CardHeader className="p-6 border-b border-slate-100">
+            <CardTitle className="text-xl font-serif text-slate-900">Marchandises Achetées</CardTitle>
             <CardDescription>
               Historique des marchandises et colis vendus à ce client sur la période sélectionnée.
             </CardDescription>
@@ -261,31 +261,31 @@ export default function DeepSearchPage() {
                 </thead>
                 <tbody>
                   {purchases.map((p, idx) => (
-                    <tr key={idx} className="border-b border-forest-50 hover:bg-forest-50/20 transition-colors">
-                      <td className="px-6 py-4 font-bold text-forest-950">{p.articleReference}</td>
-                      <td className="px-6 py-4 text-forest-700 max-w-[200px] truncate" title={p.articleDescription}>
+                    <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4 font-bold text-slate-900">{p.articleReference}</td>
+                      <td className="px-6 py-4 text-slate-700 max-w-[200px] truncate" title={p.articleDescription}>
                         {p.articleDescription}
                       </td>
                       <td className="px-6 py-4">
                         <span className={cn(
                           "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold",
                           p.packageReference === 'Standard'
-                            ? "bg-forest-50 text-forest-700 border border-forest-100"
+                            ? "bg-forest-50 text-slate-700 border border-slate-200"
                             : "bg-amber-50 text-amber-700 border border-amber-100"
                         )}>
                           {p.packageReference}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right font-bold text-forest-900">
-                        {p.totalQuantity} <span className="text-xs font-normal text-sand-400 ml-1">{p.unit}</span>
+                      <td className="px-6 py-4 text-right font-bold text-slate-900">
+                        {p.totalQuantity} <span className="text-xs font-normal text-slate-400 ml-1">{p.unit}</span>
                       </td>
-                      <td className="px-6 py-4 text-right font-black text-forest-950">{formatCurrency(p.averagePriceHT)}</td>
+                      <td className="px-6 py-4 text-right font-black text-slate-900">{formatCurrency(p.averagePriceHT)}</td>
                       <td className="px-6 py-4">
                         <div className="flex flex-wrap gap-1 max-w-[200px]">
                           {p.relatedDocuments.map((doc, dIdx) => (
                             <span 
                               key={dIdx} 
-                              className="inline-flex px-1.5 py-0.5 rounded bg-sand-50 text-[10px] font-bold text-sand-600 border border-sand-200"
+                              className="inline-flex px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-slate-600 border border-slate-200"
                             >
                               {doc}
                             </span>
@@ -303,10 +303,10 @@ export default function DeepSearchPage() {
     }
 
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-forest-200 rounded-2xl bg-sand-50/20 animate-in fade-in duration-300">
-        <ShoppingBag className="w-12 h-12 text-forest-300 mb-3 animate-bounce" />
-        <h3 className="text-sm font-bold text-forest-900">Aucun achat trouvé</h3>
-        <p className="text-xs text-forest-500 mt-1 max-w-sm">
+      <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50 animate-in fade-in duration-300">
+        <ShoppingBag className="w-12 h-12 text-slate-300 mb-3 animate-bounce" />
+        <h3 className="text-sm font-bold text-slate-900">Aucun achat trouvé</h3>
+        <p className="text-xs text-slate-500 mt-1 max-w-sm">
           Ce client n'a pas effectué d'achat sur la période spécifiée.
         </p>
       </div>
@@ -317,10 +317,10 @@ export default function DeepSearchPage() {
   const buyersContent = useMemo(() => {
     if (!selectedArticle) {
       return (
-        <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-forest-200 rounded-2xl bg-sand-50/20 animate-in fade-in duration-300">
-          <ShoppingBag className="w-12 h-12 text-forest-300 mb-3" />
-          <h3 className="text-sm font-bold text-forest-900">Veuillez sélectionner un article</h3>
-          <p className="text-xs text-forest-500 mt-1 max-w-xs">
+        <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50 animate-in fade-in duration-300">
+          <ShoppingBag className="w-12 h-12 text-slate-300 mb-3" />
+          <h3 className="text-sm font-bold text-slate-900">Veuillez sélectionner un article</h3>
+          <p className="text-xs text-slate-500 mt-1 max-w-xs">
             Recherchez et sélectionnez un article ci-dessus pour afficher la liste complète des clients qui l'ont acheté.
           </p>
         </div>
@@ -331,16 +331,16 @@ export default function DeepSearchPage() {
       return (
         <div className="flex flex-col items-center justify-center py-24 space-y-4 animate-in fade-in duration-300">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-forest-600"></div>
-          <p className="text-sm font-bold text-forest-800/60 animate-pulse">Extraction de l'historique acheteurs...</p>
+          <p className="text-sm font-bold text-slate-800/60 animate-pulse">Extraction de l'historique acheteurs...</p>
         </div>
       );
     }
 
     if (buyers.length > 0) {
       return (
-        <Card className="border-sand-200 shadow-sm rounded-2xl bg-white animate-in fade-in duration-300">
-          <CardHeader className="p-6 border-b border-forest-50">
-            <CardTitle className="text-xl font-serif text-forest-950">Acheteurs de cet Article</CardTitle>
+        <Card className="border-slate-200 shadow-sm rounded-xl bg-white animate-in fade-in duration-300">
+          <CardHeader className="p-6 border-b border-slate-100">
+            <CardTitle className="text-xl font-serif text-slate-900">Acheteurs de cet Article</CardTitle>
             <CardDescription>
               {selectedPackage 
                 ? `Liste des clients ayant acheté cet article (${selectedPackage}) sur la période.`
@@ -363,18 +363,18 @@ export default function DeepSearchPage() {
                 </thead>
                 <tbody>
                   {buyers.map((b, idx) => (
-                    <tr key={idx} className="border-b border-forest-50 hover:bg-forest-50/20 transition-colors">
-                      <td className="px-6 py-4 text-xs text-sand-500 font-bold">{b.customerCode || '-'}</td>
-                      <td className="px-6 py-4 font-bold text-forest-950">{b.customerName}</td>
-                      <td className="px-6 py-4 text-forest-700">{b.customerCompany || '-'}</td>
-                      <td className="px-6 py-4 text-right font-black text-forest-900">{b.totalQuantity} {selectedArticle.unit}</td>
-                      <td className="px-6 py-4 text-right font-black text-forest-950">{formatCurrency(b.totalCostHT)}</td>
+                    <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4 text-xs text-slate-500 font-bold">{b.customerCode || '-'}</td>
+                      <td className="px-6 py-4 font-bold text-slate-900">{b.customerName}</td>
+                      <td className="px-6 py-4 text-slate-700">{b.customerCompany || '-'}</td>
+                      <td className="px-6 py-4 text-right font-black text-slate-900">{b.totalQuantity} {selectedArticle.unit}</td>
+                      <td className="px-6 py-4 text-right font-black text-slate-900">{formatCurrency(b.totalCostHT)}</td>
                       <td className="px-6 py-4">
                         <div className="flex flex-wrap gap-1 max-w-[200px]">
                           {b.relatedDocuments.map((doc, dIdx) => (
                             <span 
                               key={dIdx} 
-                              className="inline-flex px-1.5 py-0.5 rounded bg-sand-50 text-[10px] font-bold text-sand-600 border border-sand-200"
+                              className="inline-flex px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-slate-600 border border-slate-200"
                             >
                               {doc}
                             </span>
@@ -387,7 +387,7 @@ export default function DeepSearchPage() {
                           variant="ghost" 
                           size="sm" 
                           onClick={() => openStatementForCustomerId(b.customerId)}
-                          className="h-8 text-xs font-bold border-forest-200 text-forest-600 hover:bg-forest-50 hover:text-forest-800 rounded-xl"
+                          className="h-8 text-xs font-bold border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800 rounded-lg"
                           title="État de compte client"
                         >
                           <CreditCard className="w-3.5 h-3.5 mr-1" /> État
@@ -404,10 +404,10 @@ export default function DeepSearchPage() {
     }
 
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-forest-200 rounded-2xl bg-sand-50/20 animate-in fade-in duration-300">
-        <Users className="w-12 h-12 text-forest-300 mb-3 animate-bounce" />
-        <h3 className="text-sm font-bold text-forest-900">Aucun acheteur trouvé</h3>
-        <p className="text-xs text-forest-500 mt-1 max-w-sm">
+      <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50 animate-in fade-in duration-300">
+        <Users className="w-12 h-12 text-slate-300 mb-3 animate-bounce" />
+        <h3 className="text-sm font-bold text-slate-900">Aucun acheteur trouvé</h3>
+        <p className="text-xs text-slate-500 mt-1 max-w-sm">
           {selectedPackage 
             ? `Aucun client n'a acheté cet article (${selectedPackage}) sur la période spécifiée.`
             : "Aucun client n'a acheté cet article sur la période spécifiée."}
@@ -427,15 +427,15 @@ export default function DeepSearchPage() {
               variant="outline"
               size="icon"
               onClick={() => router.push('/sales')}
-              className="h-11 w-11 rounded-xl border-sand-200 text-forest-900 hover:bg-sand-50"
+              className="h-11 w-11 rounded-lg border-slate-200 text-slate-900 hover:bg-slate-100"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-serif font-bold text-forest-950 tracking-tight">
+              <h1 className="text-3xl font-serif font-bold text-slate-900 tracking-tight">
                 Recherche Approfondie
               </h1>
-              <p className="text-sand-400 font-medium mt-1">
+              <p className="text-slate-400 font-medium mt-1">
                 Explorez l'historique complet de vos transactions, acheteurs par article et créances impayées.
               </p>
             </div>
@@ -443,15 +443,15 @@ export default function DeepSearchPage() {
         </div>
 
         {/* Global Period Filters */}
-        <Card className="border-sand-200 shadow-sm rounded-2xl bg-white">
+        <Card className="border-slate-200 shadow-sm rounded-xl bg-white">
           <CardContent className="p-5 flex flex-col md:flex-row gap-4 items-end justify-between">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 w-full max-w-2xl">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-forest-800 uppercase tracking-wider">Mois de Recherche</label>
+                <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">Mois de Recherche</label>
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                  className="w-full h-11 px-3 border border-forest-100 rounded-xl bg-white font-bold text-sm text-forest-900 focus:outline-none focus:ring-2 focus:ring-forest-600"
+                  className="w-full h-11 px-3 border border-slate-200 rounded-lg bg-white font-bold text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-corp-blue-600"
                 >
                   {MONTHS.map(m => (
                     <option key={m.val} value={m.val}>{m.label}</option>
@@ -459,11 +459,11 @@ export default function DeepSearchPage() {
                 </select>
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-forest-800 uppercase tracking-wider">Année de Recherche</label>
+                <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">Année de Recherche</label>
                 <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(Number(e.target.value))}
-                  className="w-full h-11 px-3 border border-forest-100 rounded-xl bg-white font-bold text-sm text-forest-900 focus:outline-none focus:ring-2 focus:ring-forest-600"
+                  className="w-full h-11 px-3 border border-slate-200 rounded-lg bg-white font-bold text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-corp-blue-600"
                 >
                   <option value={0}>Toutes les années</option>
                   {YEARS.filter(y => y > 0).map(y => (
@@ -481,7 +481,7 @@ export default function DeepSearchPage() {
                   setSelectedMonth(0);
                   setSelectedYear(0);
                 }}
-                className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 font-bold h-11 rounded-xl"
+                className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 font-bold h-11 rounded-lg"
               >
                 Réinitialiser la période
               </Button>
@@ -490,14 +490,14 @@ export default function DeepSearchPage() {
         </Card>
 
         {/* Custom Tab Navigation */}
-        <div className="flex border-b border-forest-100/50">
+        <div className="flex border-b border-slate-200/50">
           <button
             onClick={() => setActiveSubTab('purchases')}
             className={cn(
               "px-6 py-3.5 text-sm font-bold border-b-2 transition-all flex items-center gap-2",
               activeSubTab === 'purchases'
-                ? "border-forest-900 text-forest-900 bg-forest-50/10"
-                : "border-transparent text-sand-400 hover:text-forest-950"
+                ? "border-corp-blue-600 text-slate-900 bg-corp-blue-50/50"
+                : "border-transparent text-slate-400 hover:text-slate-900"
             )}
           >
             <ShoppingBag className="w-4 h-4" /> Achats par Client
@@ -507,8 +507,8 @@ export default function DeepSearchPage() {
             className={cn(
               "px-6 py-3.5 text-sm font-bold border-b-2 transition-all flex items-center gap-2",
               activeSubTab === 'buyers'
-                ? "border-forest-900 text-forest-900 bg-forest-50/10"
-                : "border-transparent text-sand-400 hover:text-forest-950"
+                ? "border-corp-blue-600 text-slate-900 bg-corp-blue-50/50"
+                : "border-transparent text-slate-400 hover:text-slate-900"
             )}
           >
             <Users className="w-4 h-4" /> Acheteurs par Article
@@ -518,8 +518,8 @@ export default function DeepSearchPage() {
             className={cn(
               "px-6 py-3.5 text-sm font-bold border-b-2 transition-all flex items-center gap-2",
               activeSubTab === 'unpaid'
-                ? "border-forest-900 text-forest-900 bg-forest-50/10"
-                : "border-transparent text-sand-400 hover:text-forest-950"
+                ? "border-corp-blue-600 text-slate-900 bg-corp-blue-50/50"
+                : "border-transparent text-slate-400 hover:text-slate-900"
             )}
           >
             <FileText className="w-4 h-4" /> Factures/BL Impayés
@@ -534,13 +534,13 @@ export default function DeepSearchPage() {
             <div className="space-y-6">
               
               {/* Customer Selector Card */}
-              <Card className="border-sand-200 shadow-sm rounded-2xl bg-white overflow-visible">
+              <Card className="border-slate-200 shadow-sm rounded-xl bg-white overflow-visible">
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row gap-4 items-center">
                     
                     {/* Search Combobox Input */}
                     <div className="relative flex-1 w-full">
-                      <label className="text-xs font-bold text-forest-800 uppercase tracking-wider block mb-1">
+                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block mb-1">
                         Sélectionner un Client
                       </label>
                       <div className="relative">
@@ -553,9 +553,9 @@ export default function DeepSearchPage() {
                             setIsCustomerDropdownOpen(true);
                           }}
                           onFocus={() => setIsCustomerDropdownOpen(true)}
-                          className="h-11 pl-10 pr-10 border-forest-100 rounded-xl focus:border-forest-600 focus:ring-forest-600 text-forest-900 font-bold"
+                          className="h-11 pl-10 pr-10 border-slate-200 rounded-lg focus:border-corp-blue-600 focus:ring-corp-blue-600 text-slate-900 font-bold"
                         />
-                        <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-forest-600" />
+                        <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-600" />
                         
                         {(customerSearch || selectedCustomer) && (
                           <button
@@ -564,7 +564,7 @@ export default function DeepSearchPage() {
                               setCustomerSearch('');
                               setIsCustomerDropdownOpen(false);
                             }}
-                            className="absolute right-3.5 top-3.5 text-sand-400 hover:text-forest-900"
+                            className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-900"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -573,7 +573,7 @@ export default function DeepSearchPage() {
 
                       {/* Dropdown Items list */}
                       {isCustomerDropdownOpen && filteredCustomers.length > 0 && !selectedCustomer && (
-                        <div className="absolute z-30 w-full mt-1 bg-white border border-forest-100 shadow-2xl rounded-2xl overflow-hidden animate-in fade-in duration-100">
+                        <div className="absolute z-30 w-full mt-1 bg-white border border-slate-200 shadow-2xl rounded-xl overflow-hidden animate-in fade-in duration-100">
                           {filteredCustomers.map((c) => (
                             <button
                               key={c.id}
@@ -581,10 +581,10 @@ export default function DeepSearchPage() {
                                 setSelectedCustomer(c);
                                 setIsCustomerDropdownOpen(false);
                               }}
-                              className="w-full px-4 py-3 text-left hover:bg-forest-50/50 text-sm font-bold text-forest-900 border-b border-forest-50/50 flex flex-col"
+                              className="w-full px-4 py-3 text-left hover:bg-slate-50/80 text-sm font-bold text-slate-900 border-b border-slate-100/50 flex flex-col"
                             >
                               <span>{c.firstname} {c.lastname}</span>
-                              {c.name && <span className="text-xs font-medium text-sand-400 mt-0.5">{c.name}</span>}
+                              {c.name && <span className="text-xs font-medium text-slate-400 mt-0.5">{c.name}</span>}
                             </button>
                           ))}
                         </div>
@@ -596,7 +596,7 @@ export default function DeepSearchPage() {
                       <div className="flex gap-2 w-full md:w-auto self-end">
                         <Button
                           onClick={() => setIsStatementOpen(true)}
-                          className="bg-corp-blue-600 hover:bg-corp-blue-700 text-white font-bold h-11 px-6 rounded-xl flex-1 md:flex-none shadow-lg shadow-corp-blue-500/20"
+                          className="bg-corp-blue-600 hover:bg-corp-blue-700 text-white font-bold h-11 px-6 rounded-lg flex-1 md:flex-none shadow-lg shadow-corp-blue-500/20"
                         >
                           <BookOpen className="w-4 h-4 mr-2" /> État de Compte Client
                         </Button>
@@ -618,13 +618,13 @@ export default function DeepSearchPage() {
             <div className="space-y-6">
               
               {/* Article Selector Card */}
-              <Card className="border-sand-200 shadow-sm rounded-2xl bg-white overflow-visible">
+              <Card className="border-slate-200 shadow-sm rounded-xl bg-white overflow-visible">
                 <CardContent className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     
                     {/* Article Search Input */}
                     <div className="relative w-full">
-                      <label className="text-xs font-bold text-forest-800 uppercase tracking-wider block mb-1">
+                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block mb-1">
                         Sélectionner un Article
                       </label>
                       <div className="relative">
@@ -637,9 +637,9 @@ export default function DeepSearchPage() {
                             setIsArticleDropdownOpen(true);
                           }}
                           onFocus={() => setIsArticleDropdownOpen(true)}
-                          className="h-11 pl-10 pr-10 border-forest-100 rounded-xl focus:border-forest-600 focus:ring-forest-600 text-forest-900 font-bold"
+                          className="h-11 pl-10 pr-10 border-slate-200 rounded-lg focus:border-corp-blue-600 focus:ring-corp-blue-600 text-slate-900 font-bold"
                         />
-                        <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-forest-600" />
+                        <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-600" />
                         
                         {(articleSearch || selectedArticle) && (
                           <button
@@ -648,7 +648,7 @@ export default function DeepSearchPage() {
                               setArticleSearch('');
                               setIsArticleDropdownOpen(false);
                             }}
-                            className="absolute right-3.5 top-3.5 text-sand-400 hover:text-forest-900"
+                            className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-900"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -657,7 +657,7 @@ export default function DeepSearchPage() {
 
                       {/* Dropdown Items list */}
                       {isArticleDropdownOpen && filteredArticles.length > 0 && !selectedArticle && (
-                        <div className="absolute z-30 w-full mt-1 bg-white border border-forest-100 shadow-2xl rounded-2xl overflow-hidden animate-in fade-in duration-100">
+                        <div className="absolute z-30 w-full mt-1 bg-white border border-slate-200 shadow-2xl rounded-xl overflow-hidden animate-in fade-in duration-100">
                           {filteredArticles.map((a) => (
                             <button
                               key={a.id}
@@ -665,10 +665,10 @@ export default function DeepSearchPage() {
                                 setSelectedArticle(a);
                                 setIsArticleDropdownOpen(false);
                               }}
-                              className="w-full px-4 py-3 text-left hover:bg-forest-50/50 text-sm font-bold text-forest-900 border-b border-forest-50/50 flex flex-col"
+                              className="w-full px-4 py-3 text-left hover:bg-slate-50/80 text-sm font-bold text-slate-900 border-b border-slate-100/50 flex flex-col"
                             >
                               <span className="font-serif">{a.reference}</span>
-                              <span className="text-xs font-medium text-sand-400 mt-0.5">{a.description}</span>
+                              <span className="text-xs font-medium text-slate-400 mt-0.5">{a.description}</span>
                             </button>
                           ))}
                         </div>
@@ -677,14 +677,14 @@ export default function DeepSearchPage() {
 
                     {/* Package Selector */}
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-forest-800 uppercase tracking-wider block">
+                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
                         Type / Référence Colis
                       </label>
                       <Input
                         placeholder="Recherche par colis (ex: Standard ou BR-154-20)"
                         value={selectedPackage}
                         onChange={(e) => setSelectedPackage(e.target.value)}
-                        className="h-11 border-forest-100 rounded-xl focus:border-forest-600 focus:ring-forest-600 text-forest-900 font-bold"
+                        className="h-11 border-slate-200 rounded-lg focus:border-corp-blue-600 focus:ring-corp-blue-600 text-slate-900 font-bold"
                       />
                     </div>
 
@@ -703,13 +703,13 @@ export default function DeepSearchPage() {
             <div className="space-y-6">
               
               {/* Unpaid Filters Card */}
-              <Card className="border-sand-200 shadow-sm rounded-2xl bg-white">
+              <Card className="border-slate-200 shadow-sm rounded-xl bg-white">
                 <CardContent className="p-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                     
                     {/* Search Field */}
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-forest-800 uppercase tracking-wider block">
+                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
                         Recherche
                       </label>
                       <div className="relative">
@@ -717,21 +717,21 @@ export default function DeepSearchPage() {
                           placeholder="N° Doc ou Nom Client..."
                           value={unpaidSearchTerm}
                           onChange={(e) => setUnpaidSearchTerm(e.target.value)}
-                          className="h-11 pl-9 border-forest-100 rounded-xl focus:border-forest-600 focus:ring-forest-600 text-forest-900 font-bold"
+                          className="h-11 pl-9 border-slate-200 rounded-lg focus:border-corp-blue-600 focus:ring-corp-blue-600 text-slate-900 font-bold"
                         />
-                        <Search className="absolute left-3 top-3.5 w-4 h-4 text-forest-600" />
+                        <Search className="absolute left-3 top-3.5 w-4 h-4 text-slate-600" />
                       </div>
                     </div>
 
                     {/* Customer Filter */}
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-forest-800 uppercase tracking-wider block">
+                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
                         Filtrer par Client
                       </label>
                       <select
                         value={unpaidCustomerFilter}
                         onChange={(e) => setUnpaidCustomerFilter(Number(e.target.value))}
-                        className="w-full h-11 px-3 border border-forest-100 rounded-xl bg-white font-bold text-sm text-forest-900 focus:outline-none focus:ring-2 focus:ring-forest-600"
+                        className="w-full h-11 px-3 border border-slate-200 rounded-lg bg-white font-bold text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-corp-blue-600"
                       >
                         <option value={0}>Tous les clients</option>
                         {allCustomers.map(c => (
@@ -742,13 +742,13 @@ export default function DeepSearchPage() {
 
                     {/* Document Type Filter */}
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-forest-800 uppercase tracking-wider block">
+                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
                         Type de Document
                       </label>
                       <select
                         value={unpaidDocTypeFilter}
                         onChange={(e) => setUnpaidDocTypeFilter(e.target.value as 'all' | 'invoice' | 'delivery')}
-                        className="w-full h-11 px-3 border border-forest-100 rounded-xl bg-white font-bold text-sm text-forest-900 focus:outline-none focus:ring-2 focus:ring-forest-600"
+                        className="w-full h-11 px-3 border border-slate-200 rounded-lg bg-white font-bold text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-corp-blue-600"
                       >
                         <option value="all">Tous les types</option>
                         <option value="invoice">Facture uniquement</option>
@@ -758,10 +758,10 @@ export default function DeepSearchPage() {
 
                     {/* Payment Status Toggle */}
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-forest-800 uppercase tracking-wider block">
+                      <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
                         Statut de Paiement
                       </label>
-                      <div className="flex items-center h-11 px-4 border border-forest-100 rounded-xl bg-white shadow-sm hover:border-forest-200 transition-colors duration-200">
+                      <div className="flex items-center h-11 px-4 border border-slate-200 rounded-lg bg-white shadow-sm hover:border-slate-200 transition-colors duration-200">
                         <div className="flex items-center gap-3">
                           <Switch
                             id="only-unpaid"
@@ -773,7 +773,7 @@ export default function DeepSearchPage() {
                           />
                           <Label 
                             htmlFor="only-unpaid" 
-                            className="text-xs font-bold text-forest-800 uppercase tracking-wider cursor-pointer select-none"
+                            className="text-xs font-bold text-slate-800 uppercase tracking-wider cursor-pointer select-none"
                           >
                             Non Payé uniquement
                           </Label>
@@ -782,8 +782,8 @@ export default function DeepSearchPage() {
                     </div>
 
                     {/* Total Outstanding Summary */}
-                    <div className="bg-rose-50/30 border border-rose-200/50 rounded-2xl p-4 flex items-center gap-3">
-                      <div className="p-2.5 bg-rose-100 text-rose-700 rounded-xl">
+                    <div className="bg-rose-50/30 border border-rose-200/50 rounded-xl p-4 flex items-center gap-3">
+                      <div className="p-2.5 bg-rose-100 text-rose-700 rounded-lg">
                         <AlertCircle className="w-5 h-5" />
                       </div>
                       <div>
@@ -803,13 +803,13 @@ export default function DeepSearchPage() {
               {isUnpaidLoading ? (
                 <div className="flex flex-col items-center justify-center py-24 space-y-4">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-forest-600"></div>
-                  <p className="text-sm font-bold text-forest-800/60 animate-pulse">Extraction des impayés...</p>
+                  <p className="text-sm font-bold text-slate-800/60 animate-pulse">Extraction des impayés...</p>
                 </div>
               ) : unpaidDocs.length > 0 ? (
                 filteredUnpaidDocs.length > 0 ? (
-                  <Card className="border-sand-200 shadow-sm rounded-2xl bg-white">
-                    <CardHeader className="p-6 border-b border-forest-50">
-                      <CardTitle className="text-xl font-serif text-forest-950">Bons & Factures non payés</CardTitle>
+                  <Card className="border-slate-200 shadow-sm rounded-xl bg-white">
+                    <CardHeader className="p-6 border-b border-slate-100">
+                      <CardTitle className="text-xl font-serif text-slate-900">Bons & Factures non payés</CardTitle>
                       <CardDescription>
                         Détail de toutes les pièces commerciales présentant un solde restant dû.
                       </CardDescription>
@@ -833,8 +833,8 @@ export default function DeepSearchPage() {
                           </thead>
                           <tbody>
                             {paginatedUnpaidDocs.map((doc) => (
-                              <tr key={doc.documentId} className="border-b border-forest-50 hover:bg-forest-50/20 transition-colors">
-                                <td className="px-6 py-4 font-bold text-forest-950">{doc.docNumber}</td>
+                              <tr key={doc.documentId} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                                <td className="px-6 py-4 font-bold text-slate-900">{doc.docNumber}</td>
                                 <td className="px-6 py-4">
                                   <span className={cn(
                                     "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border",
@@ -843,16 +843,16 @@ export default function DeepSearchPage() {
                                     {getDocTypeLabel(doc.type)}
                                   </span>
                                 </td>
-                                <td className="px-6 py-4 text-sm font-medium text-forest-700">
+                                <td className="px-6 py-4 text-sm font-medium text-slate-700">
                                   {new Date(doc.creationDate).toLocaleDateString('fr-FR')}
                                 </td>
                                 <td className="px-6 py-4">
-                                  <div className="font-bold text-forest-950">{doc.counterPartName}</div>
+                                  <div className="font-bold text-slate-900">{doc.counterPartName}</div>
                                   {doc.counterPartCompany && (
-                                    <div className="text-[10px] text-sand-400 font-medium">{doc.counterPartCompany}</div>
+                                    <div className="text-[10px] text-slate-400 font-medium">{doc.counterPartCompany}</div>
                                   )}
                                 </td>
-                                <td className="px-6 py-4 text-right font-bold text-forest-900">{formatCurrency(doc.totalNetTTC)}</td>
+                                <td className="px-6 py-4 text-right font-bold text-slate-900">{formatCurrency(doc.totalNetTTC)}</td>
                                 <td className="px-6 py-4 text-right font-bold text-emerald-600">{formatCurrency(doc.totalPaid)}</td>
                                 <td className="px-6 py-4 text-right font-black text-rose-600 bg-rose-50/10">{formatCurrency(doc.remainingBalance)}</td>
                                 <td className="px-6 py-4">
@@ -872,7 +872,7 @@ export default function DeepSearchPage() {
                                     variant="ghost" 
                                     size="sm" 
                                     onClick={() => openStatementForCustomerId(doc.counterPartId)}
-                                    className="h-8 text-xs font-bold border-forest-200 text-forest-600 hover:bg-forest-50 hover:text-forest-800 rounded-xl"
+                                    className="h-8 text-xs font-bold border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800 rounded-lg"
                                     title="État de compte client"
                                   >
                                     <CreditCard className="w-3.5 h-3.5 mr-1" /> État
@@ -898,20 +898,20 @@ export default function DeepSearchPage() {
                   </Card>
                 ) : (
                   /* Custom empty state when documents exist but none match the payment status filter */
-                  <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-forest-200 rounded-2xl bg-sand-50/20">
-                    <Filter className="w-12 h-12 text-forest-300 mb-3" />
-                    <h3 className="text-sm font-bold text-forest-900">Aucun résultat</h3>
-                    <p className="text-xs text-forest-500 mt-1 max-w-sm">
+                  <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50">
+                    <Filter className="w-12 h-12 text-slate-300 mb-3" />
+                    <h3 className="text-sm font-bold text-slate-900">Aucun résultat</h3>
+                    <p className="text-xs text-slate-500 mt-1 max-w-sm">
                       Aucun document ne correspond au statut de paiement sélectionné.
                     </p>
                   </div>
                 )
               ) : (
                 /* Standard empty state when there are no unpaid documents at all */
-                <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-forest-200 rounded-2xl bg-sand-50/20">
+                <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50">
                   <CheckCircle className="w-12 h-12 text-emerald-500 mb-3 animate-pulse" />
-                  <h3 className="text-sm font-bold text-forest-900">Aucun document impayé</h3>
-                  <p className="text-xs text-forest-500 mt-1 max-w-sm">
+                  <h3 className="text-sm font-bold text-slate-900">Aucun document impayé</h3>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm">
                     Toutes vos créances clients sur la période spécifiée ont été entièrement régularisées !
                   </p>
                 </div>

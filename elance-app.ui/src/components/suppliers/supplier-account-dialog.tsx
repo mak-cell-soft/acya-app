@@ -72,11 +72,11 @@ export function SupplierAccountDialog({
         Without specifying these responsive breakpoint overrides, Tailwind specificity would keep the 
         dialog restricted to md width even on desktop/tablet viewports.
       */}
-      <DialogContent showCloseButton={false} className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-7xl p-0 overflow-hidden border-forest-100 shadow-2xl rounded-2xl bg-white max-h-[90vh] flex flex-col">
+      <DialogContent showCloseButton={false} className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-7xl p-0 overflow-hidden border-slate-200 shadow-2xl rounded-2xl bg-white max-h-[90vh] flex flex-col">
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative flex-shrink-0">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-2xl bg-forest-50 flex items-center justify-center border border-forest-100 text-emerald-600">
+              <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-200 text-emerald-600">
                 <CreditCard className="w-8 h-8" />
               </div>
               <div className="space-y-1">
@@ -92,12 +92,12 @@ export function SupplierAccountDialog({
             <div className="flex items-center gap-3">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="h-12 border-forest-100 bg-forest-50 text-foreground hover:bg-forest-700 hover:text-foreground font-bold px-5">
+                  <Button variant="outline" className="h-12 border-slate-200 bg-slate-50 text-foreground hover:bg-slate-100 hover:text-slate-900 font-bold px-5">
                     <CalendarIcon className="w-4 h-4 mr-2 text-emerald-600" />
                     {format(dateRange.from, "dd MMM", { locale: fr })} - {format(dateRange.to, "dd MMM yyyy", { locale: fr })}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 rounded-2xl border-forest-100 shadow-xl" align="end">
+                <PopoverContent className="w-auto p-0 rounded-2xl border-slate-200 shadow-xl" align="end">
                   <Calendar
                     autoFocus
                     mode="range"
@@ -114,7 +114,7 @@ export function SupplierAccountDialog({
               </Popover>
               <Button 
                 variant="outline" 
-                className="h-12 border-forest-100 bg-forest-50 text-foreground hover:bg-forest-700 hover:text-foreground font-bold px-5"
+                className="h-12 border-slate-200 bg-slate-50 text-foreground hover:bg-forest-700 hover:text-foreground font-bold px-5"
                 onClick={() => setIsPrintOpen(true)}
               >
                 <Printer className="w-4 h-4 mr-2 text-emerald-600" /> Imprimer
@@ -132,10 +132,10 @@ export function SupplierAccountDialog({
         <div className="flex-1 overflow-hidden flex flex-col p-8 gap-8">
           {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 flex-shrink-0">
-            <div className="p-6 rounded-3xl bg-sand-50 border border-sand-100 space-y-2">
-              <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest">Solde Avant Période</div>
-              <div className="text-xl font-heading font-bold text-forest-900">
-                {statement?.balanceBeforePeriod.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} <span className="text-xs font-bold text-sand-400">TND</span>
+            <div className="p-6 rounded-3xl bg-slate-50 border border-slate-200 space-y-2">
+              <div className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest">Solde Avant Période</div>
+              <div className="text-xl font-heading font-bold text-slate-900">
+                {statement?.balanceBeforePeriod.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} <span className="text-xs font-bold text-slate-500">TND</span>
               </div>
             </div>
             <div className="p-6 rounded-3xl bg-emerald-50 border border-emerald-100 space-y-2">
@@ -150,10 +150,10 @@ export function SupplierAccountDialog({
                 {statement?.totalCredit.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} <span className="text-xs font-bold text-rose-400">TND</span>
               </div>
             </div>
-            <div className="p-6 rounded-[28px] bg-forest-900 border border-forest-800 space-y-2 shadow-xl shadow-forest-900/20">
-              <div className="text-[0.65rem] font-bold text-forest-400 uppercase tracking-widest">Solde Final Actuel</div>
-              <div className="text-xl font-heading font-bold text-white">
-                {statement?.closingBalance.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} <span className="text-xs font-bold text-forest-400">TND</span>
+            <div className="p-6 rounded-[28px] bg-corp-blue-50 border border-corp-blue-200 space-y-2 shadow-xl shadow-corp-blue-900/5">
+              <div className="text-[0.65rem] font-bold text-corp-blue-600 uppercase tracking-widest">Solde Final Actuel</div>
+              <div className="text-xl font-heading font-bold text-corp-blue-900">
+                {statement?.closingBalance.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} <span className="text-xs font-bold text-corp-blue-600">TND</span>
               </div>
             </div>
           </div>
@@ -161,17 +161,17 @@ export function SupplierAccountDialog({
           {/* Table Controls */}
           <div className="flex items-center justify-between flex-shrink-0">
             <div className="relative w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <Input 
                 placeholder="Rechercher une opération..." 
-                className="border-forest-50 bg-sand-50/50 pl-10 text-sm "
+                className="border-slate-100 bg-slate-50/50 pl-10 text-sm "
               />
             </div>
             <div className="flex items-center gap-4">
               <div className="h-4 w-[1px] bg-forest-100" />
               <div className="flex items-center gap-2">
-                <span className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-tighter">Afficher</span>
-                <Badge variant="outline" className="bg-white border-forest-100 text-forest-900 font-bold px-3 py-1 rounded-lg">
+                <span className="text-[0.7rem] font-bold text-slate-500 uppercase tracking-tighter">Afficher</span>
+                <Badge variant="outline" className="bg-white border-slate-200 text-slate-900 font-bold px-3 py-1 rounded-lg">
                   Toutes les transactions
                 </Badge>
               </div>
@@ -179,16 +179,16 @@ export function SupplierAccountDialog({
           </div>
 
           {/* Ledger Table */}
-          <div className="flex-1 overflow-hidden border border-forest-50 rounded-3xl bg-white shadow-sm flex flex-col">
+          <div className="flex-1 overflow-hidden border border-slate-100 rounded-3xl bg-white shadow-sm flex flex-col">
             <div className="overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-forest-100 scrollbar-track-transparent">
               <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 z-10 bg-sand-50/80 backdrop-blur-md border-b border-forest-50">
+                <thead className="sticky top-0 z-10 bg-slate-50/80 backdrop-blur-md border-b border-slate-100">
                   <tr>
-                    <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-widest">Date</th>
-                    <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-widest">Type / Libellé</th>
-                    <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-widest text-right">Débit (Achat)</th>
-                    <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-widest text-right">Crédit (Paiement)</th>
-                    <th className="p-5 text-[0.65rem] font-black text-sand-400 uppercase tracking-widest text-right">Solde Progressif</th>
+                    <th className="p-5 text-[0.65rem] font-black text-slate-500 uppercase tracking-widest">Date</th>
+                    <th className="p-5 text-[0.65rem] font-black text-slate-500 uppercase tracking-widest">Type / Libellé</th>
+                    <th className="p-5 text-[0.65rem] font-black text-slate-500 uppercase tracking-widest text-right">Débit (Achat)</th>
+                    <th className="p-5 text-[0.65rem] font-black text-slate-500 uppercase tracking-widest text-right">Crédit (Paiement)</th>
+                    <th className="p-5 text-[0.65rem] font-black text-slate-500 uppercase tracking-widest text-right">Solde Progressif</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-forest-50">
@@ -196,25 +196,25 @@ export function SupplierAccountDialog({
                     <tr>
                       <td colSpan={5} className="p-20 text-center">
                         <div className="flex flex-col items-center gap-3">
-                          <div className="w-12 h-12 border-4 border-forest-100 border-t-forest-600 rounded-full animate-spin" />
-                          <p className="text-sm font-bold text-sand-400 uppercase tracking-widest">Chargement du relevé...</p>
+                          <div className="w-12 h-12 border-4 border-slate-200 border-t-corp-blue-600 rounded-full animate-spin" />
+                          <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Chargement du relevé...</p>
                         </div>
                       </td>
                     </tr>
                   ) : statement?.transactions.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="p-20 text-center">
-                        <p className="text-sm font-bold text-sand-400">Aucune transaction sur cette période</p>
+                        <p className="text-sm font-bold text-slate-500">Aucune transaction sur cette période</p>
                       </td>
                     </tr>
                   ) : (
                     statement?.transactions.map((tx, idx) => (
-                      <tr key={idx} className="group hover:bg-forest-50/30 transition-colors">
+                      <tr key={idx} className="group hover:bg-slate-50/50 transition-colors">
                         <td className="p-5">
-                          <div className="text-sm font-bold text-forest-900">
+                          <div className="text-sm font-bold text-slate-900">
                             {format(new Date(tx.transactionDate), "dd MMM yyyy", { locale: fr })}
                           </div>
-                          <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-tighter">
+                          <div className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-tighter">
                             {format(new Date(tx.transactionDate), "HH:mm")}
                           </div>
                         </td>
@@ -227,17 +227,17 @@ export function SupplierAccountDialog({
                               {tx.debit > 0 ? <ArrowDownLeft className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
                             </div>
                             <div>
-                              <div className="text-sm font-bold text-forest-900">{tx.type}</div>
-                              <div className="text-xs text-sand-400 font-medium max-w-xs truncate">
+                              <div className="text-sm font-bold text-slate-900">{tx.type}</div>
+                              <div className="text-xs text-slate-500 font-medium max-w-xs truncate">
                                 {tx.description || `Opération n°${tx.id}`}
                               </div>
                             </div>
                           </div>
                         </td>
-                        <td className="p-5 text-right font-mono font-bold text-forest-900">
+                        <td className="p-5 text-right font-mono font-bold text-slate-900">
                           {tx.debit > 0 ? tx.debit.toLocaleString('fr-TN', { minimumFractionDigits: 3 }) : "-"}
                         </td>
-                        <td className="p-5 text-right font-mono font-bold text-forest-900">
+                        <td className="p-5 text-right font-mono font-bold text-slate-900">
                           {tx.credit > 0 ? tx.credit.toLocaleString('fr-TN', { minimumFractionDigits: 3 }) : "-"}
                         </td>
                         <td className="p-5 text-right">
@@ -256,17 +256,17 @@ export function SupplierAccountDialog({
             </div>
             
             {/* Footer Summary */}
-            <div className="p-6 bg-sand-50/50 border-t border-forest-50 flex items-center justify-between flex-shrink-0">
-              <div className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">
+            <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
+              <div className="text-[0.7rem] font-bold text-slate-500 uppercase tracking-widest">
                 {statement?.transactions.length || 0} Transactions affichées
               </div>
               <div className="flex items-center gap-8">
                 <div className="text-right">
-                  <div className="text-[0.6rem] font-bold text-sand-400 uppercase">Cumul Débit</div>
+                  <div className="text-[0.6rem] font-bold text-slate-500 uppercase">Cumul Débit</div>
                   <div className="text-sm font-bold text-emerald-700">{statement?.totalDebit.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-[0.6rem] font-bold text-sand-400 uppercase">Cumul Crédit</div>
+                  <div className="text-[0.6rem] font-bold text-slate-500 uppercase">Cumul Crédit</div>
                   <div className="text-sm font-bold text-rose-700">{statement?.totalCredit.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}</div>
                 </div>
               </div>

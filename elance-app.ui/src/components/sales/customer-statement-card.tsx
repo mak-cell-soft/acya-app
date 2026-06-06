@@ -89,19 +89,19 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-forest-950/60 backdrop-blur-sm p-4 md:p-6 animate-in fade-in duration-200">
-      <div className="relative bg-background border border-forest-800/20 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden font-sans">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 md:p-6 animate-in fade-in duration-200">
+      <div className="relative bg-background border border-slate-200/50 rounded-xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden font-sans">
         
         {/* Header */}
-        <div className="p-6 border-b border-forest-100 flex items-center justify-between bg-forest-900 text-white">
+        <div className="p-6 border-b border-slate-200 flex items-center justify-between bg-gradient-to-br from-corp-blue-50 via-[#EBF1FA] to-[#F8FAFF] text-slate-900">
           <div>
-            <span className="text-xs font-bold tracking-widest text-timber-400 uppercase">État de Compte Client</span>
+            <span className="text-xs font-bold tracking-widest text-corp-blue-600 uppercase">État de Compte Client</span>
             <h2 className="text-2xl font-bold font-heading mt-0.5">{customer.firstname} {customer.lastname}</h2>
-            {customer.name && <p className="text-sm text-white/60 mt-0.5">{customer.name}</p>}
+            {customer.name && <p className="text-sm text-slate-500 mt-0.5">{customer.name}</p>}
           </div>
           <button 
             onClick={onClose}
-            className="p-2 hover:bg-white/10 transition-colors text-white/70 hover:text-white"
+            className="p-2 hover:bg-white/10 transition-colors text-slate-400 hover:text-slate-900"
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -116,15 +116,15 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             
             {/* Current Balance */}
-            <Card className="border border-forest-100 bg-sand-50/50 shadow-sm relative overflow-hidden group">
+            <Card className="border border-slate-200 bg-slate-100/50 shadow-sm relative overflow-hidden group">
               <div className="absolute right-3 top-3 opacity-10 group-hover:scale-110 transition-transform duration-300">
-                <Scale className="w-16 h-16 text-forest-900" />
+                <Scale className="w-16 h-16 text-slate-900" />
               </div>
               <CardContent className="p-5">
-                <p className="text-xs font-bold uppercase tracking-wider text-forest-600/70">Solde Actuel</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-600/70">Solde Actuel</p>
                 <p className={cn(
                   "text-2xl font-black mt-2 font-heading tracking-tight",
-                  (statement?.closingBalance ?? 0) < 0 ? "text-rose-600" : "text-forest-900"
+                  (statement?.closingBalance ?? 0) < 0 ? "text-rose-600" : "text-slate-900"
                 )}>
                   {formatCurrency(statement?.closingBalance ?? 0)}
                 </p>
@@ -132,12 +132,12 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
             </Card>
 
             {/* Period Debit */}
-            <Card className="border border-forest-100 bg-sand-50/50 shadow-sm relative overflow-hidden group">
+            <Card className="border border-slate-200 bg-slate-100/50 shadow-sm relative overflow-hidden group">
               <div className="absolute right-3 top-3 opacity-10 group-hover:scale-110 transition-transform duration-300">
                 <ArrowUpRight className="w-16 h-16 text-emerald-600" />
               </div>
               <CardContent className="p-5">
-                <p className="text-xs font-bold uppercase tracking-wider text-forest-600/70">Débit Période</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-600/70">Débit Période</p>
                 <p className="text-2xl font-black mt-2 text-emerald-700 font-heading tracking-tight">
                   {formatCurrency(statement?.totalDebit ?? 0)}
                 </p>
@@ -145,12 +145,12 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
             </Card>
 
             {/* Period Credit */}
-            <Card className="border border-forest-100 bg-sand-50/50 shadow-sm relative overflow-hidden group">
+            <Card className="border border-slate-200 bg-slate-100/50 shadow-sm relative overflow-hidden group">
               <div className="absolute right-3 top-3 opacity-10 group-hover:scale-110 transition-transform duration-300">
                 <ArrowDownLeft className="w-16 h-16 text-blue-600" />
               </div>
               <CardContent className="p-5">
-                <p className="text-xs font-bold uppercase tracking-wider text-forest-600/70">Crédit Période</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-600/70">Crédit Période</p>
                 <p className="text-2xl font-black mt-2 text-blue-700 font-heading tracking-tight">
                   {formatCurrency(statement?.totalCredit ?? 0)}
                 </p>
@@ -160,21 +160,21 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
           </div>
 
           {/* Period Filters */}
-          <div className="flex flex-col sm:flex-row items-end gap-4 p-4 bg-forest-50/20 border border-forest-100/50 rounded-2xl">
+          <div className="flex flex-col sm:flex-row items-end gap-4 p-4 bg-slate-50/50 border border-slate-200/50 rounded-xl">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1 w-full">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-forest-800">Date Début</label>
+                <label className="text-xs font-bold text-slate-800">Date Début</label>
                 <DatePicker date={startDate} setDate={setStartDate} />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-forest-800">Date Fin</label>
+                <label className="text-xs font-bold text-slate-800">Date Fin</label>
                 <DatePicker date={endDate} setDate={setEndDate} />
               </div>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
               <Button 
                 onClick={() => refetch()}
-                className="bg-forest-600 hover:bg-forest-700 text-white font-bold h-11 px-6 rounded-xl flex-1 sm:flex-none shadow-md shadow-forest-900/10"
+                className="bg-forest-600 hover:bg-forest-700 text-slate-900 font-bold h-11 px-6 rounded-lg flex-1 sm:flex-none shadow-md shadow-corp-blue-900/10"
               >
                 Actualiser
               </Button>
@@ -186,7 +186,7 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
                   setEndDate(today);
                   setTimeout(() => refetch(), 0);
                 }}
-                className="border-forest-200 text-forest-700 hover:bg-forest-50 h-11 w-11 rounded-xl"
+                className="border-slate-200 text-slate-700 hover:bg-slate-50 h-11 w-11 rounded-lg"
                 title="Réinitialiser les dates"
               >
                 <RotateCcw className="w-4 h-4" />
@@ -197,32 +197,32 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
           {/* Transactions Ledger */}
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 space-y-4">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-forest-600"></div>
-              <p className="text-sm font-bold text-forest-800/60 animate-pulse">Chargement de l'état de compte...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-corp-blue-600"></div>
+              <p className="text-sm font-bold text-slate-800/60 animate-pulse">Chargement de l'état de compte...</p>
             </div>
           ) : transactions.length > 0 ? (
             <div className="space-y-4">
-              <div className="border border-forest-100 rounded-2xl overflow-hidden shadow-sm bg-white">
+              <div className="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white">
                 <Table>
-                  <TableHeader className="bg-forest-900">
-                    <TableRow className="hover:bg-forest-900 border-forest-800">
-                      <TableHead className="text-white font-bold w-[120px]">Date</TableHead>
-                      <TableHead className="text-white font-bold w-[200px]">Type</TableHead>
-                      <TableHead className="text-white font-bold">Description</TableHead>
-                      <TableHead className="text-white font-bold text-right w-[150px]">Débit</TableHead>
-                      <TableHead className="text-white font-bold text-right w-[150px]">Crédit</TableHead>
-                      <TableHead className="text-white font-bold text-right w-[150px]">Solde Progressif</TableHead>
+                  <TableHeader className="bg-slate-50/80">
+                    <TableRow className="hover:bg-slate-50/80 border-slate-200/50">
+                      <TableHead className="text-slate-900 font-bold w-[120px]">Date</TableHead>
+                      <TableHead className="text-slate-900 font-bold w-[200px]">Type</TableHead>
+                      <TableHead className="text-slate-900 font-bold">Description</TableHead>
+                      <TableHead className="text-slate-900 font-bold text-right w-[150px]">Débit</TableHead>
+                      <TableHead className="text-slate-900 font-bold text-right w-[150px]">Crédit</TableHead>
+                      <TableHead className="text-slate-900 font-bold text-right w-[150px]">Solde Progressif</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     
                     {/* Solde Avant Période Row */}
                     {currentPage === 1 && (
-                      <TableRow className="bg-sand-50/55 hover:bg-sand-50/70 border-b border-forest-100/50">
-                        <TableCell colSpan={5} className="font-bold text-forest-800 italic">
+                      <TableRow className="bg-slate-100/55 hover:bg-slate-100/70 border-b border-slate-200/50">
+                        <TableCell colSpan={5} className="font-bold text-slate-800 italic">
                           Solde avant période
                         </TableCell>
-                        <TableCell className="text-right font-black text-forest-900">
+                        <TableCell className="text-right font-black text-slate-900">
                           {formatCurrency(statement?.balanceBeforePeriod ?? 0)}
                         </TableCell>
                       </TableRow>
@@ -240,11 +240,11 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
                         <TableRow 
                           key={entry.id} 
                           className={cn(
-                            "border-b border-forest-50 hover:bg-forest-50/20 transition-colors",
+                            "border-b border-slate-100 hover:bg-slate-50/50 transition-colors",
                             isUnpaid && "bg-rose-50/30 hover:bg-rose-50/50"
                           )}
                         >
-                          <TableCell className="font-medium text-forest-900">
+                          <TableCell className="font-medium text-slate-900">
                             {format(new Date(entry.transactionDate), 'dd/MM/yyyy')}
                           </TableCell>
                           <TableCell>
@@ -257,12 +257,12 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
                               {getDocTypeLabel(entry.type)}
                             </span>
                             {entry.relatedDeliveryNoteRefs && entry.relatedDeliveryNoteRefs.length > 0 && (
-                              <div className="text-[10px] text-forest-500 font-medium mt-1">
+                              <div className="text-[10px] text-slate-500 font-medium mt-1">
                                 <span className="font-bold">BL:</span> {entry.relatedDeliveryNoteRefs.join(', ')}
                               </div>
                             )}
                           </TableCell>
-                          <TableCell className="text-forest-700 max-w-[250px] truncate" title={entry.description}>
+                          <TableCell className="text-slate-700 max-w-[250px] truncate" title={entry.description}>
                             {entry.description || '-'}
                           </TableCell>
                           <TableCell className="text-right font-bold text-rose-600">
@@ -271,7 +271,7 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
                           <TableCell className="text-right font-bold text-emerald-600">
                             {entry.credit > 0 ? formatCurrency(entry.credit) : ''}
                           </TableCell>
-                          <TableCell className="text-right font-black text-forest-900">
+                          <TableCell className="text-right font-black text-slate-900">
                             {formatCurrency(entry.runningBalance)}
                           </TableCell>
                         </TableRow>
@@ -284,8 +284,8 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between p-4 bg-sand-50/55 rounded-2xl border border-forest-100">
-                  <span className="text-xs font-bold text-forest-800">
+                <div className="flex items-center justify-between p-4 bg-slate-100/55 rounded-xl border border-slate-200">
+                  <span className="text-xs font-bold text-slate-800">
                     Page {currentPage} sur {totalPages} ({transactions.length} transactions)
                   </span>
                   <div className="flex items-center gap-1">
@@ -294,7 +294,7 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
                       size="icon"
                       onClick={() => setCurrentPage(1)}
                       disabled={currentPage === 1}
-                      className="h-8 w-8 rounded-lg border-forest-200 text-forest-700 disabled:opacity-50"
+                      className="h-8 w-8 rounded-lg border-slate-200 text-slate-700 disabled:opacity-50"
                     >
                       <ChevronsLeft className="w-4 h-4" />
                     </Button>
@@ -303,7 +303,7 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
                       size="icon"
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="h-8 w-8 rounded-lg border-forest-200 text-forest-700 disabled:opacity-50"
+                      className="h-8 w-8 rounded-lg border-slate-200 text-slate-700 disabled:opacity-50"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </Button>
@@ -312,7 +312,7 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
                       size="icon"
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
-                      className="h-8 w-8 rounded-lg border-forest-200 text-forest-700 disabled:opacity-50"
+                      className="h-8 w-8 rounded-lg border-slate-200 text-slate-700 disabled:opacity-50"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </Button>
@@ -321,7 +321,7 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
                       size="icon"
                       onClick={() => setCurrentPage(totalPages)}
                       disabled={currentPage === totalPages}
-                      className="h-8 w-8 rounded-lg border-forest-200 text-forest-700 disabled:opacity-50"
+                      className="h-8 w-8 rounded-lg border-slate-200 text-slate-700 disabled:opacity-50"
                     >
                       <ChevronsRight className="w-4 h-4" />
                     </Button>
@@ -330,10 +330,10 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
               )}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-forest-200 rounded-2xl bg-sand-50/20">
-              <Receipt className="w-12 h-12 text-forest-300 mb-3" />
-              <h3 className="text-sm font-bold text-forest-900">Aucun mouvement trouvé</h3>
-              <p className="text-xs text-forest-500 mt-1 max-w-sm">
+            <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50">
+              <Receipt className="w-12 h-12 text-slate-300 mb-3" />
+              <h3 className="text-sm font-bold text-slate-900">Aucun mouvement trouvé</h3>
+              <p className="text-xs text-slate-500 mt-1 max-w-sm">
                 Il n'y a aucune écriture comptable pour ce client sur la période sélectionnée.
               </p>
             </div>
@@ -342,10 +342,10 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-forest-100 flex justify-end bg-sand-50/30">
+        <div className="p-6 border-t border-slate-200 flex justify-end bg-slate-100/30">
           <Button 
             onClick={onClose}
-            className="bg-forest-900 hover:bg-forest-950 text-white font-bold h-11 px-8 shadow-md shadow-forest-950/15"
+            className="bg-forest-900 hover:bg-forest-950 text-slate-900 font-bold h-11 px-8 shadow-md shadow-corp-blue-900/10"
           >
             Fermer
           </Button>

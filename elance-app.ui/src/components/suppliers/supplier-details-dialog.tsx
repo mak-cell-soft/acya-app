@@ -78,7 +78,7 @@ export function SupplierDetailsDialog({
 
         <div className="p-0">
           <Tabs defaultValue="profile" className="w-full">
-            <div className="px-8 bg-forest-900/5 border-b border-forest-100">
+            <div className="px-8 bg-slate-50/50 border-b border-forest-100">
               <TabsList className="h-16 bg-transparent gap-8">
                 <TabsTrigger 
                   value="profile" 
@@ -132,7 +132,7 @@ export function SupplierDetailsDialog({
                     </div>
                   </div>
 
-                  <div className="p-8 rounded-2xl bg-forest-900 text-white relative overflow-hidden group">
+                  <div className="p-8 rounded-2xl bg-corp-blue-50 border border-corp-blue-200 text-corp-blue-900 shadow-md relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-500">
                       <Phone className="w-32 h-32" />
                     </div>
@@ -145,7 +145,7 @@ export function SupplierDetailsDialog({
                               <Phone className="w-5 h-5" />
                             </div>
                             <div>
-                              <div className="text-[0.6rem] font-bold text-forest-400 uppercase tracking-widest">Téléphone</div>
+                              <div className="text-[0.6rem] font-bold text-corp-blue-600 uppercase tracking-widest">Téléphone</div>
                               <div className="text-sm font-bold">{supplier.phonenumberone}</div>
                             </div>
                           </div>
