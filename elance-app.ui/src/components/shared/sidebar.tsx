@@ -20,7 +20,8 @@ import {
   UserCheck,
   ClipboardList,
   X,
-  Calculator
+  Calculator,
+  Landmark
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -43,6 +44,8 @@ type NavItem = {
   href: string;
   icon: any;
   module?: PermissionModuleKey;
+  exact?: boolean;
+  adminOnly?: boolean;
 };
 
 type NavGroup = {
@@ -55,7 +58,8 @@ const navGroups: NavGroup[] = [
     title: 'Général', 
     items: [
       { name: 'Analyses', href: '/analytics', icon: BarChart3, module: 'analytics' },
-      { name: 'Pré-Analyse Comptable', href: '/accounting', icon: Calculator, module: 'accounting' },
+      { name: 'Pré-Analyse Comptable', href: '/accounting', icon: Calculator, module: 'accounting', exact: true },
+      { name: 'Trésorerie & Banques', href: '/accounting/treasury', icon: Landmark, module: 'accounting', adminOnly: true },
       { name: 'Tableau de bord', href: '/dashboard', icon: LayoutDashboard },
     ]
   },
@@ -98,10 +102,12 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const logout = useAuthStore((state) => state.logout);
+  const { user, logout } = useAuthStore();
   const router = useRouter();
   const { hasAnyPermission } = usePermissionGuard();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  
+  const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin';
 
   const handleLogout = () => {
     logout();
@@ -203,8 +209,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         <div className={cn("flex-1 overflow-y-auto py-4 custom-scrollbar", isCollapsed ? "px-3" : "px-6")}>
           {navGroups.map((group) => {
-            // Filter items based on permissions
+            // Filter items based on permissions and roles
             const filteredItems = group.items.filter((item) => {
+              if (item.adminOnly && !isAdmin) {
+                return false;
+              }
               if (item.module) {
                 return hasAnyPermission(item.module);
               }
@@ -225,7 +234,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 )}
                 <nav className="space-y-1">
                   {filteredItems.map((item) => {
-                    const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                    const isActive = item.exact 
+                      ? pathname === item.href 
+                      : pathname === item.href || pathname.startsWith(item.href + '/');
                     return (
                       <Link
                         key={item.name}
