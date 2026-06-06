@@ -352,36 +352,42 @@ function SupplierPaymentsPageContent() {
                   >
                     <defs>
                       <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2} />
+                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
                         <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.5} />
                     <XAxis
                       dataKey="name"
                       tickLine={false}
                       axisLine={false}
-                      tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: '700' }}
+                      tick={{ fill: '#64748B', fontSize: 11, fontWeight: 500 }}
+                      dy={10}
                     />
                     <YAxis
                       tickLine={false}
                       axisLine={false}
-                      tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: '700' }}
+                      tick={{ fill: '#64748B', fontSize: 11, fontWeight: 500 }}
+                      tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                      dx={-5}
                     />
                     <Tooltip
+                      cursor={{ stroke: '#f59e0b', strokeWidth: 1, strokeDasharray: '5 5' }}
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-slate-900 border border-slate-800 text-white px-4 py-3 rounded-2xl shadow-xl flex flex-col gap-0.5">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                Date: {payload[0].payload.originalData.dueDate ? new Date(payload[0].payload.originalData.dueDate).toLocaleDateString('fr-FR') : ''}
-                              </span>
-                              <span className="text-xs font-black text-amber-400 font-mono mt-1">
-                                {payload[0].value?.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} TND
-                              </span>
-                              <span className="text-[9px] text-slate-400 font-medium italic mt-1">
-                                Cliquer pour voir les détails
-                              </span>
+                            <div className="bg-white/95 backdrop-blur-md border border-amber-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
+                              <p className="font-bold text-slate-800 mb-2 border-b border-amber-50 pb-2 text-xs">
+                                Échéance du {payload[0].payload.originalData.dueDate ? new Date(payload[0].payload.originalData.dueDate).toLocaleDateString('fr-FR') : ''}
+                              </p>
+                              <div className="flex flex-col gap-1">
+                                <span className="text-xl font-black text-amber-500 font-mono tracking-tight">
+                                  {payload[0].value?.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} TND
+                                </span>
+                                <span className="text-[10px] text-slate-400 font-medium italic mt-1">
+                                  Cliquer pour voir les détails
+                                </span>
+                              </div>
                             </div>
                           );
                         }

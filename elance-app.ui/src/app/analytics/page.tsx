@@ -204,18 +204,37 @@ export default function AnalyticsPage() {
             data={salesByCategory}
             cx="50%"
             cy="50%"
-            innerRadius={70}
+            innerRadius={65}
             outerRadius={90}
-            paddingAngle={5}
+            paddingAngle={6}
             dataKey="value"
             stroke="none"
+            animationDuration={1500}
+            animationEasing="ease-out"
           >
             {salesByCategory.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} style={{ filter: 'drop-shadow(0px 4px 6px rgba(0,0,0,0.1))' }} />
             ))}
           </Pie>
           <Tooltip 
-            contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}
+            cursor={false}
+            content={({ active, payload }) => {
+              if (active && payload && payload.length) {
+                return (
+                  <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: payload[0].payload.fill }} />
+                      <span className="font-bold text-forest-950">{payload[0].name}</span>
+                    </div>
+                    <div className="flex items-baseline gap-1.5 pl-6">
+                      <span className="text-2xl font-black text-forest-900 font-mono">{payload[0].value}</span>
+                      <span className="text-xs text-sand-500 font-medium">doc(s)</span>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            }}
           />
           <Legend verticalAlign="bottom" align="center" iconType="circle" wrapperStyle={{paddingTop: '20px'}} />
         </PieChart>
@@ -242,37 +261,65 @@ export default function AnalyticsPage() {
 
     return (
       <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-        <BarChart data={supplierChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+        <BarChart data={supplierChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} barGap={8}>
+          <defs>
+            <linearGradient id="colorPurchases" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#D97706" stopOpacity={1} />
+              <stop offset="100%" stopColor="#92400E" stopOpacity={0.8} />
+            </linearGradient>
+            <linearGradient id="colorPayments" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#10B981" stopOpacity={1} />
+              <stop offset="100%" stopColor="#059669" stopOpacity={0.8} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.5} />
           <XAxis 
             dataKey="name" 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: '#94A3B8', fontSize: 12 }} 
-            dy={10} 
+            tick={{ fill: '#64748B', fontSize: 11, fontWeight: 500 }} 
+            dy={15} 
           />
           <YAxis 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: '#94A3B8', fontSize: 12 }}
+            tick={{ fill: '#64748B', fontSize: 11, fontWeight: 500 }}
             tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} 
+            dx={-10}
           />
           <Tooltip 
-            contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}
-            formatter={(value: any, name: any) => [
-              formatCurrency(Number(value || 0)), 
-              name === 'purchases' ? 'Achats TTC' : 'Règlements'
-            ]}
+            cursor={{ fill: '#F8FAFC', opacity: 0.6 }}
+            content={({ active, payload, label }) => {
+              if (active && payload && payload.length) {
+                return (
+                  <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-2xl rounded-2xl p-4 min-w-[220px] animate-in fade-in zoom-in-95 duration-200">
+                    <p className="font-bold text-forest-950 mb-3 border-b border-forest-50 pb-2">{label}</p>
+                    <div className="space-y-3">
+                      {payload.map((entry: any, index: number) => (
+                        <div key={index} className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: entry.name === 'purchases' ? '#D97706' : '#10B981' }} />
+                            <span className="text-sm text-sand-500 font-medium">{entry.name === 'purchases' ? 'Achats TTC' : 'Règlements'}</span>
+                          </div>
+                          <span className="font-black text-forest-900 font-mono text-sm pl-4">{formatCurrency(Number(entry.value || 0))}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            }}
           />
           <Legend 
             verticalAlign="top" 
             align="right" 
             iconType="circle" 
-            wrapperStyle={{ paddingBottom: '20px' }} 
+            wrapperStyle={{ paddingBottom: '30px' }} 
             formatter={(value) => <span className="text-forest-900 font-medium ml-1">{value === 'purchases' ? 'Achats TTC' : 'Règlements'}</span>}
           />
-          <Bar dataKey="purchases" name="purchases" fill="#92400E" radius={[4, 4, 0, 0]} barSize={32} animationDuration={800} />
-          <Bar dataKey="payments" name="payments" fill="#1D9E75" radius={[4, 4, 0, 0]} barSize={32} animationDuration={800} />
+          <Bar dataKey="purchases" name="purchases" fill="url(#colorPurchases)" radius={[6, 6, 0, 0]} barSize={28} animationDuration={1200} animationEasing="ease-out" />
+          <Bar dataKey="payments" name="payments" fill="url(#colorPayments)" radius={[6, 6, 0, 0]} barSize={28} animationDuration={1200} animationEasing="ease-out" />
         </BarChart>
       </ResponsiveContainer>
     );
@@ -368,13 +415,13 @@ export default function AnalyticsPage() {
         
         <div className="h-[400px] w-full hidden lg:block">
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-            <BarChart data={filteredReceivables} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#F1F5F9" />
+            <BarChart data={filteredReceivables} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }} barGap={6}>
+              <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#E2E8F0" strokeOpacity={0.5} />
               <XAxis 
                 type="number" 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fill: '#94A3B8', fontSize: 12 }}
+                tick={{ fill: '#64748B', fontSize: 11, fontWeight: 500 }}
                 tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} 
               />
               <YAxis 
@@ -382,14 +429,27 @@ export default function AnalyticsPage() {
                 dataKey="name" 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fill: '#94A3B8', fontSize: 11 }}
-                width={100}
+                tick={{ fill: '#64748B', fontSize: 11, fontWeight: 500 }}
+                width={120}
               />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}
-                formatter={(value: any) => [formatCurrency(Number(value || 0)), 'Reste à payer']}
+                cursor={{ fill: '#F8FAFC', opacity: 0.6 }}
+                content={({ active, payload, label }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
+                        <p className="font-bold text-forest-950 mb-2 border-b border-forest-50 pb-2">{label}</p>
+                        <div className="flex items-center justify-between gap-4">
+                          <span className="text-sm text-sand-500 font-medium">Reste à payer</span>
+                          <span className="font-black text-rose-600 font-mono text-sm">{formatCurrency(Number(payload[0].value || 0))}</span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
               />
-              <Bar dataKey="outstanding" name="Outstanding" radius={[0, 4, 4, 0]} barSize={20}>
+              <Bar dataKey="outstanding" name="Outstanding" radius={[0, 6, 6, 0]} barSize={24} animationDuration={1200} animationEasing="ease-out">
                 {filteredReceivables.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.oldestInvoiceDays > 90 ? '#E11D48' : entry.oldestInvoiceDays > 30 ? '#D97706' : '#1D9E75'} />
                 ))}
@@ -437,38 +497,57 @@ export default function AnalyticsPage() {
               data={articles}
               cx="50%"
               cy="50%"
-              innerRadius={80}
+              innerRadius={75}
               outerRadius={120}
-              paddingAngle={2}
+              paddingAngle={4}
               dataKey="quantitySold"
               nameKey="articleName"
               stroke="none"
+              animationDuration={1500}
+              animationEasing="ease-out"
               label={({ cx, cy, midAngle, innerRadius, outerRadius, value, index, payload }: any) => {
                 const RADIAN = Math.PI / 180;
-                const radius = outerRadius * 1.1;
+                const radius = outerRadius * 1.15;
                 const x = cx + radius * Math.cos(-midAngle * RADIAN);
                 const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                
-                // Only show label if it's a significant slice to avoid overlap
-                if (articles.length > 5 && value < (articles[0]?.quantitySold || 0) * 0.1) return null;
-                
+                if (articles.length > 5 && value < (articles[0]?.quantitySold || 0) * 0.08) return null;
                 return (
-                  <text x={x} y={y} fill="#4B5563" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs font-medium">
-                    [{payload.reference}] {payload.articleName.substring(0, 20)}{payload.articleName.length > 20 ? '...' : ''}
+                  <text x={x} y={y} fill="#475569" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-[11px] font-bold">
+                    {payload.articleName.substring(0, 20)}{payload.articleName.length > 20 ? '...' : ''}
                   </text>
                 );
               }}
             >
               {articles.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} style={{ filter: 'drop-shadow(0px 4px 6px rgba(0,0,0,0.1))' }} />
               ))}
             </Pie>
             <Tooltip 
-              contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}
-              formatter={(value: any, name: any, props: any) => [
-                `${value} unités (${formatCurrency(props.payload.revenueTTC)})`, 
-                name
-              ]}
+              cursor={false}
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const data = payload[0].payload;
+                  return (
+                    <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-2xl rounded-2xl p-4 min-w-[220px] animate-in fade-in zoom-in-95 duration-200">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: payload[0].payload.fill }} />
+                        <span className="font-bold text-forest-950 text-sm">{data.articleName}</span>
+                      </div>
+                      <div className="pl-6 space-y-1">
+                        <div className="flex items-center justify-between gap-4">
+                          <span className="text-xs text-sand-500 font-medium">Quantité</span>
+                          <span className="font-black text-forest-900 font-mono text-sm">{data.quantitySold}</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-4">
+                          <span className="text-xs text-sand-500 font-medium">CA TTC</span>
+                          <span className="font-black text-emerald-600 font-mono text-sm">{formatCurrency(data.revenueTTC)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -507,49 +586,89 @@ export default function AnalyticsPage() {
     return (
       <div className="h-[400px] w-full flex flex-col gap-4">
         <ResponsiveContainer width="100%" height="80%" minWidth={1} minHeight={1}>
-          <BarChart data={articles} margin={{ top: 20, right: 30, left: 20, bottom: 25 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+          <BarChart data={articles} margin={{ top: 20, right: 30, left: 20, bottom: 25 }} barGap={6}>
+            <defs>
+              <linearGradient id="colorHealthyStock" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10B981" stopOpacity={1} />
+                <stop offset="100%" stopColor="#059669" stopOpacity={0.8} />
+              </linearGradient>
+              <linearGradient id="colorWarningStock" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#FBBF24" stopOpacity={1} />
+                <stop offset="100%" stopColor="#D97706" stopOpacity={0.8} />
+              </linearGradient>
+              <linearGradient id="colorDangerStock" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#FB7185" stopOpacity={1} />
+                <stop offset="100%" stopColor="#E11D48" stopOpacity={0.8} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.5} />
             <XAxis 
               dataKey="articleName" 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fill: '#94A3B8', fontSize: 10 }} 
-              dy={10} 
+              tick={{ fill: '#64748B', fontSize: 11, fontWeight: 500 }} 
+              dy={15} 
               angle={-45}
               textAnchor="end"
-              height={60}
+              height={70}
             />
             <YAxis 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fill: '#94A3B8', fontSize: 12 }}
+              tick={{ fill: '#64748B', fontSize: 12, fontWeight: 500 }}
+              dx={-10}
             />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}
-              formatter={(value: any, name: any) => {
-                const displayName = name === 'Stock Actuel' ? 'Stock Actuel' : 
-                                    name === 'Stock Minimum' ? 'Stock Minimum' : name;
-                return [value, displayName];
+              cursor={{ fill: '#F8FAFC', opacity: 0.6 }}
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
+                      <p className="font-bold text-forest-950 mb-3 border-b border-forest-50 pb-2">{label}</p>
+                      <div className="space-y-2">
+                        {payload.map((entry: any, index: number) => {
+                          const isCustomColor = entry.name === 'Stock Actuel' && entry.payload;
+                          let dotColor = entry.color;
+                          if (isCustomColor) {
+                            if (entry.payload.currentStock <= entry.payload.minimumStock && entry.payload.minimumStock > 0) dotColor = '#E11D48';
+                            else if (entry.payload.currentStock <= entry.payload.minimumStock * 1.2 && entry.payload.minimumStock > 0) dotColor = '#F59E0B';
+                            else dotColor = '#10B981';
+                          }
+                          return (
+                            <div key={index} className="flex items-center justify-between gap-6">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: dotColor }} />
+                                <span className="text-sm text-sand-500 font-medium">{entry.name}</span>
+                              </div>
+                              <span className="font-black text-forest-900 font-mono text-sm">{entry.value}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
               }}
             />
             <Legend 
               verticalAlign="top" 
               align="right" 
               iconType="circle" 
-              wrapperStyle={{ paddingBottom: '20px' }}
+              wrapperStyle={{ paddingBottom: '30px' }}
             />
-            <Bar dataKey="currentStock" name="Stock Actuel" fill="#1D9E75" radius={[4, 4, 0, 0]} barSize={20}>
+            <Bar dataKey="currentStock" name="Stock Actuel" radius={[6, 6, 0, 0]} barSize={24} animationDuration={1200} animationEasing="ease-out">
               {articles.map((entry, index) => {
-                let color = '#1D9E75'; // healthy
+                let colorId = 'url(#colorHealthyStock)'; // healthy
                 if (entry.currentStock <= entry.minimumStock && entry.minimumStock > 0) {
-                  color = '#E11D48'; // danger
+                  colorId = 'url(#colorDangerStock)'; // danger
                 } else if (entry.currentStock <= entry.minimumStock * 1.2 && entry.minimumStock > 0) {
-                  color = '#F59E0B'; // warning
+                  colorId = 'url(#colorWarningStock)'; // warning
                 }
-                return <Cell key={`cell-${index}`} fill={color} />;
+                return <Cell key={`cell-${index}`} fill={colorId} />;
               })}
             </Bar>
-            <Bar dataKey="minimumStock" name="Stock Minimum" fill="#94A3B8" radius={[4, 4, 0, 0]} barSize={20} opacity={0.5} />
+            <Bar dataKey="minimumStock" name="Stock Minimum" fill="#CBD5E1" radius={[6, 6, 0, 0]} barSize={24} opacity={0.6} animationDuration={1200} animationEasing="ease-out" />
           </BarChart>
         </ResponsiveContainer>
         <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
@@ -728,28 +847,52 @@ export default function AnalyticsPage() {
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                    <AreaChart data={monthlyData || []}>
+                    <AreaChart data={monthlyData || []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#1D9E75" stopOpacity={0.2}/>
-                          <stop offset="95%" stopColor="#1D9E75" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="colorMargin" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                      <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 12}} dy={10} />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.5} />
+                      <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 11, fontWeight: 500}} dy={15} />
                       <YAxis 
                         axisLine={false} 
                         tickLine={false} 
-                        tick={{fill: '#94A3B8', fontSize: 12}}
+                        tick={{fill: '#64748B', fontSize: 11, fontWeight: 500}}
                         tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} 
+                        dx={-10}
                       />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        formatter={(value: any, name: any) => [formatCurrency(Number(value || 0)), String(name)]}
+                        content={({ active, payload, label }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
+                                <p className="font-bold text-forest-950 mb-3 border-b border-forest-50 pb-2">{label}</p>
+                                <div className="space-y-3">
+                                  {payload.map((entry: any, index: number) => (
+                                    <div key={index} className="flex flex-col gap-1">
+                                      <div className="flex items-center gap-2">
+                                        <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: entry.color }} />
+                                        <span className="text-sm text-sand-500 font-medium">{entry.name}</span>
+                                      </div>
+                                      <span className="font-black text-forest-900 font-mono text-sm pl-4">{formatCurrency(Number(entry.value || 0))}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
                       />
-                      <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#1D9E75" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
-                      <Area type="monotone" dataKey="margin" name="Marge" stroke="#534AB7" strokeWidth={3} fill="transparent" />
+                      <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ paddingBottom: '20px' }} />
+                      <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" animationDuration={1500} animationEasing="ease-out" />
+                      <Area type="monotone" dataKey="margin" name="Marge" stroke="#6366F1" strokeWidth={3} fillOpacity={1} fill="url(#colorMargin)" animationDuration={1500} animationEasing="ease-out" />
                     </AreaChart>
                   </ResponsiveContainer>
                 )}
@@ -813,13 +956,29 @@ export default function AnalyticsPage() {
                       outerRadius={80}
                       paddingAngle={4}
                       dataKey="value"
+                      stroke="none"
+                      animationDuration={1500}
+                      animationEasing="ease-out"
                     >
-                      <Cell fill="#1D9E75" />
-                      <Cell fill="#D4AF37" />
+                      <Cell fill="#10B981" style={{ filter: 'drop-shadow(0px 4px 6px rgba(0,0,0,0.1))' }} />
+                      <Cell fill="#F59E0B" style={{ filter: 'drop-shadow(0px 4px 6px rgba(0,0,0,0.1))' }} />
                     </Pie>
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #E2E8F0' }}
-                      itemStyle={{ color: '#0B3B24', fontWeight: 'bold' }}
+                      cursor={false}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-xl rounded-xl p-3 min-w-[150px] animate-in fade-in duration-200">
+                              <div className="flex items-center gap-2 mb-1">
+                                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: payload[0].payload.fill }} />
+                                <span className="font-bold text-forest-950 text-xs">{payload[0].name}</span>
+                              </div>
+                              <p className="text-xl font-black text-forest-900 font-mono pl-4">{payload[0].value}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
                     />
                     <Legend verticalAlign="bottom" height={36} iconType="circle" />
                   </PieChart>
@@ -881,14 +1040,30 @@ export default function AnalyticsPage() {
                       innerRadius={80}
                       paddingAngle={4}
                       dataKey="value"
+                      stroke="none"
+                      animationDuration={1500}
+                      animationEasing="ease-out"
                     >
-                      <Cell fill={chartColors.green} />
-                      <Cell fill={chartColors.orange} />
-                      <Cell fill={chartColors.red} />
+                      <Cell fill="#10B981" style={{ filter: 'drop-shadow(0px 4px 6px rgba(0,0,0,0.1))' }} />
+                      <Cell fill="#F59E0B" style={{ filter: 'drop-shadow(0px 4px 6px rgba(0,0,0,0.1))' }} />
+                      <Cell fill="#EF4444" style={{ filter: 'drop-shadow(0px 4px 6px rgba(0,0,0,0.1))' }} />
                     </Pie>
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #E2E8F0' }}
-                      itemStyle={{ color: '#0B3B24', fontWeight: 'bold' }}
+                      cursor={false}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-xl rounded-xl p-3 min-w-[150px] animate-in fade-in duration-200">
+                              <div className="flex items-center gap-2 mb-1">
+                                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: payload[0].payload.fill }} />
+                                <span className="font-bold text-forest-950 text-xs">{payload[0].name}</span>
+                              </div>
+                              <p className="text-xl font-black text-forest-900 font-mono pl-4">{payload[0].value}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
                     />
                     <Legend verticalAlign="bottom" height={36} iconType="circle" />
                   </PieChart>

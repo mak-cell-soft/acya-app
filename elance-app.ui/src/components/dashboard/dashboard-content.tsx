@@ -349,49 +349,90 @@ export function DashboardContent() {
     return (
       <div className="h-[220px] w-full flex flex-col gap-4">
         <ResponsiveContainer width="100%" height="80%" minWidth={1} minHeight={1}>
-          <BarChart data={articles} margin={{ top: 20, right: 30, left: 20, bottom: 25 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+          <BarChart data={articles} margin={{ top: 20, right: 30, left: 20, bottom: 25 }} barGap={6}>
+            <defs>
+              <linearGradient id="colorHealthy" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10B981" stopOpacity={1} />
+                <stop offset="100%" stopColor="#059669" stopOpacity={0.8} />
+              </linearGradient>
+              <linearGradient id="colorWarning" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#FBBF24" stopOpacity={1} />
+                <stop offset="100%" stopColor="#D97706" stopOpacity={0.8} />
+              </linearGradient>
+              <linearGradient id="colorDanger" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#FB7185" stopOpacity={1} />
+                <stop offset="100%" stopColor="#E11D48" stopOpacity={0.8} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.5} />
             <XAxis 
               dataKey="articleName" 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fill: '#94A3B8', fontSize: 10 }} 
-              dy={10} 
+              tick={{ fill: '#64748B', fontSize: 11, fontWeight: 500 }} 
+              dy={15} 
               angle={-45}
               textAnchor="end"
-              height={60}
+              height={70}
             />
             <YAxis 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fill: '#94A3B8', fontSize: 12 }}
+              tick={{ fill: '#64748B', fontSize: 12, fontWeight: 500 }}
+              dx={-10}
             />
             <ChartTooltip 
-              contentStyle={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}
-              formatter={(value: any, name: any) => {
-                const displayName = name === 'Stock Actuel' ? 'Stock Actuel' : 
-                                    name === 'Stock Minimum' ? 'Stock Minimum' : name;
-                return [value, displayName];
+              cursor={{ fill: '#F8FAFC', opacity: 0.6 }}
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
+                      <p className="font-bold text-forest-950 mb-3 border-b border-forest-50 pb-2">{label}</p>
+                      <div className="space-y-2">
+                        {payload.map((entry: any, index: number) => {
+                          // Handle custom colors for the first bar (Stock Actuel) which uses cells
+                          const isCustomColor = entry.name === 'Stock Actuel' && entry.payload;
+                          let dotColor = entry.color;
+                          if (isCustomColor) {
+                            if (entry.payload.currentStock <= entry.payload.minimumStock && entry.payload.minimumStock > 0) dotColor = '#E11D48';
+                            else if (entry.payload.currentStock <= entry.payload.minimumStock * 1.2 && entry.payload.minimumStock > 0) dotColor = '#F59E0B';
+                            else dotColor = '#10B981';
+                          }
+                          return (
+                            <div key={index} className="flex items-center justify-between gap-6">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: dotColor }} />
+                                <span className="text-sm text-sand-500 font-medium">{entry.name}</span>
+                              </div>
+                              <span className="font-black text-forest-900 font-mono text-sm">{entry.value}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
               }}
             />
             <ChartLegend 
               verticalAlign="top" 
               align="right" 
               iconType="circle" 
-              wrapperStyle={{ paddingBottom: '20px' }}
+              wrapperStyle={{ paddingBottom: '30px' }}
             />
-            <Bar dataKey="currentStock" name="Stock Actuel" fill="#1D9E75" radius={[4, 4, 0, 0]} barSize={20}>
+            <Bar dataKey="currentStock" name="Stock Actuel" radius={[6, 6, 0, 0]} barSize={24} animationDuration={1200} animationEasing="ease-out">
               {articles.map((entry, index) => {
-                let color = '#1D9E75'; // healthy
+                let colorId = 'url(#colorHealthy)'; // healthy
                 if (entry.currentStock <= entry.minimumStock && entry.minimumStock > 0) {
-                  color = '#E11D48'; // danger
+                  colorId = 'url(#colorDanger)'; // danger
                 } else if (entry.currentStock <= entry.minimumStock * 1.2 && entry.minimumStock > 0) {
-                  color = '#F59E0B'; // warning
+                  colorId = 'url(#colorWarning)'; // warning
                 }
-                return <Cell key={`cell-${index}`} fill={color} />;
+                return <Cell key={`cell-${index}`} fill={colorId} />;
               })}
             </Bar>
-            <Bar dataKey="minimumStock" name="Stock Minimum" fill="#94A3B8" radius={[4, 4, 0, 0]} barSize={20} opacity={0.5} />
+            <Bar dataKey="minimumStock" name="Stock Minimum" fill="#CBD5E1" radius={[6, 6, 0, 0]} barSize={24} opacity={0.6} animationDuration={1200} animationEasing="ease-out" />
           </BarChart>
         </ResponsiveContainer>
         <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
@@ -844,33 +885,51 @@ export function DashboardContent() {
             <CardContent className="p-6 pt-0">
               <div className="h-[220px] w-full">
                 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                  <BarChart data={salesChartData}>
+                  <BarChart data={salesChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={6}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.5} />
                     <XAxis 
                       dataKey="name" 
-                      stroke="#94A3B8" 
-                      fontSize={11} 
+                      tick={{ fill: '#64748B', fontSize: 11, fontWeight: 500 }}
                       tickLine={false} 
                       axisLine={false} 
-                      dy={5}
+                      dy={10}
                     />
                     <YAxis 
-                      stroke="#94A3B8" 
-                      fontSize={11} 
+                      tick={{ fill: '#64748B', fontSize: 11, fontWeight: 500 }}
                       tickLine={false} 
                       axisLine={false} 
-                      width={30}
+                      width={40}
+                      tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                     />
                     <ChartTooltip 
-                      contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #E2E8F0' }}
-                      itemStyle={{ color: '#0B3B24', fontWeight: 'bold' }}
-                      cursor={{ fill: '#F8FAFC', radius: 4 }}
+                      cursor={{ fill: '#F8FAFC', opacity: 0.6 }}
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-white/95 backdrop-blur-md border border-forest-100 shadow-2xl rounded-2xl p-3 min-w-[150px] animate-in fade-in duration-200">
+                              <p className="font-bold text-forest-950 mb-2 border-b border-forest-50 pb-1 text-xs">{label}</p>
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-xs text-sand-500 font-medium">Ventes</span>
+                                <span className="font-black text-forest-900 font-mono text-xs">{payload[0].value} TND</span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
                     />
                     <Bar 
                       dataKey="total" 
-                      fill="#0B3B24" 
-                      radius={[4, 4, 0, 0]} 
-                      barSize={20}
-                    />
+                      name="Ventes"
+                      radius={[6, 6, 0, 0]} 
+                      barSize={24}
+                      animationDuration={1200} 
+                      animationEasing="ease-out"
+                    >
+                      {salesChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill="#10B981" />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>

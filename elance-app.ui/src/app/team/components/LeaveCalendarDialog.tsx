@@ -345,24 +345,35 @@ export function LeaveCalendarDialog({ isOpen, onClose }: LeaveCalendarDialogProp
                         <stop offset="95%" stopColor="#0EA5E9" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.5} />
                     <XAxis 
                       dataKey="name" 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fontSize: 11, fill: '#64748B', fontWeight: 600 }} 
+                      tick={{ fontSize: 11, fill: '#64748B', fontWeight: 500 }} 
                       dy={10} 
                     />
                     <YAxis 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fontSize: 11, fill: '#64748B', fontWeight: 600 }} 
+                      tick={{ fontSize: 11, fill: '#64748B', fontWeight: 500 }} 
                     />
                     <Tooltip 
-                      contentStyle={{ borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}
-                      itemStyle={{ color: '#0F172A', fontWeight: 'bold' }}
-                      labelStyle={{ color: '#64748B', marginBottom: '4px', fontWeight: 600, textTransform: 'uppercase', fontSize: '10px' }}
                       cursor={{ stroke: '#0EA5E9', strokeWidth: 1, strokeDasharray: '5 5' }}
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[180px] animate-in fade-in zoom-in-95 duration-200">
+                              <p className="font-bold text-corp-navy mb-3 border-b border-corp-blue-50 pb-2">{label}</p>
+                              <div className="flex items-center justify-between gap-4">
+                                <span className="text-sm text-sand-500 font-medium">Jours de congé</span>
+                                <span className="font-black text-corp-blue-600 font-mono text-sm">{payload[0].value}</span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
                     />
                     <Area 
                       type="monotone" 
@@ -372,6 +383,8 @@ export function LeaveCalendarDialog({ isOpen, onClose }: LeaveCalendarDialogProp
                       strokeWidth={3} 
                       fillOpacity={1} 
                       fill="url(#colorTotal)" 
+                      animationDuration={1500}
+                      animationEasing="ease-out"
                       activeDot={{ r: 6, fill: '#0EA5E9', stroke: '#fff', strokeWidth: 2 }}
                     />
                   </AreaChart>
