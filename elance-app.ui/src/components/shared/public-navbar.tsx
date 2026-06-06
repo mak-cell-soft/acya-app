@@ -88,24 +88,24 @@ export function PublicNavbar() {
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative flex items-center justify-center">
               {/* Structural SVG Logo */}
-              <svg className="w-8.5 h-8.5 md:w-9.5 md:h-9.5 transition-transform duration-700 group-hover:rotate-[360deg]" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="40" height="40" rx="10" fill="url(#logo_bg_grad)" className="opacity-10 group-hover:opacity-15 transition-opacity" />
-                <path d="M20 3L35 11.5V28.5L20 37L5 28.5V11.5L20 3" stroke="url(#logo_stroke_grad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M20 9L31 17.25L27 20.25L20 15L13 20.25L9 17.25L20 9Z" fill="url(#logo_stroke_grad)"/>
-                <rect x="17.5" y="18" width="5" height="11" rx="1.5" fill="url(#logo_stroke_grad)" />
-                <path d="M12 25H28" stroke="url(#logo_stroke_grad)" strokeWidth="1.5" strokeLinecap="round"/>
-                <path d="M14 29H26" stroke="#06B6D4" strokeWidth="2" strokeLinecap="round"/>
+              <svg className="w-8.5 h-8.5 md:w-9.5 md:h-9.5 transition-transform duration-700 group-hover:scale-110 drop-shadow-sm" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <defs>
-                  <linearGradient id="logo_bg_grad" x1="0" y1="0" x2="40" y2="40">
-                    <stop offset="0%" stopColor="#2563EB"/>
-                    <stop offset="100%" stopColor="#06B6D4"/>
+                  <linearGradient id="logo_grad_1" x1="0" y1="0" x2="40" y2="40">
+                    <stop offset="0%" stopColor="#60A5FA"/>
+                    <stop offset="100%" stopColor="#3B82F6"/>
                   </linearGradient>
-                  <linearGradient id="logo_stroke_grad" x1="0" y1="0" x2="40" y2="40">
+                  <linearGradient id="logo_grad_2" x1="0" y1="0" x2="40" y2="40">
                     <stop offset="0%" stopColor="#3B82F6"/>
-                    <stop offset="60%" stopColor="#2563EB"/>
-                    <stop offset="100%" stopColor="#06B6D4"/>
+                    <stop offset="100%" stopColor="#2563EB"/>
+                  </linearGradient>
+                  <linearGradient id="logo_grad_3" x1="0" y1="0" x2="40" y2="40">
+                    <stop offset="0%" stopColor="#2563EB"/>
+                    <stop offset="100%" stopColor="#1D4ED8"/>
                   </linearGradient>
                 </defs>
+                <path d="M 20 3 L 27.79 7.5 L 27.79 16.5 L 20 21 L 12.21 16.5 L 12.21 7.5 Z" fill="url(#logo_grad_1)" />
+                <path d="M 11.34 18 L 19.13 22.5 L 19.13 31.5 L 11.34 36 L 3.55 31.5 L 3.55 22.5 Z" fill="url(#logo_grad_2)" />
+                <path d="M 28.66 18 L 36.45 22.5 L 36.45 31.5 L 28.66 36 L 20.87 31.5 L 20.87 22.5 Z" fill="url(#logo_grad_3)" />
               </svg>
             </div>
             <span className="text-xl md:text-2xl font-bold font-heading tracking-tight text-slate-900 group-hover:text-corp-blue-600 transition-colors duration-300">

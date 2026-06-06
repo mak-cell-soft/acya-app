@@ -78,28 +78,27 @@ export default function LoginPage() {
       >
         <div className="flex flex-col items-center mb-10">
           <Link href="/" className="group transition-transform hover:scale-105">
-            <svg className="w-10 h-10 md:w-11 md:h-11 transition-transform duration-700 group-hover:scale-105" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M14 34L14 18L6 26V34H14Z" fill="url(#logo_grad_1)" />
-                  <path d="M24 34L24 10L16 18V34H24Z" fill="url(#logo_grad_2)" />
-                  <path d="M34 34L34 2L26 10V34H34Z" fill="url(#logo_grad_3)" />
-                  <defs>
-                    <linearGradient id="logo_grad_1" x1="6" y1="18" x2="14" y2="34">
-                      <stop offset="0%" stopColor="#60A5FA"/>
-                      <stop offset="100%" stopColor="#3B82F6"/>
-                    </linearGradient>
-                    <linearGradient id="logo_grad_2" x1="16" y1="10" x2="24" y2="34">
-                      <stop offset="0%" stopColor="#3B82F6"/>
-                      <stop offset="100%" stopColor="#2563EB"/>
-                    </linearGradient>
-                    <linearGradient id="logo_grad_3" x1="26" y1="2" x2="34" y2="34">
-                      <stop offset="0%" stopColor="#2563EB"/>
-                      <stop offset="100%" stopColor="#1D4ED8"/>
-                    </linearGradient>
-                  </defs>
-                </svg>
+            <svg className="w-16 h-16 md:w-20 md:h-20 drop-shadow-xl transition-transform duration-700 group-hover:scale-105" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="logo_grad_1" x1="0" y1="0" x2="40" y2="40">
+                  <stop offset="0%" stopColor="#60A5FA"/>
+                  <stop offset="100%" stopColor="#3B82F6"/>
+                </linearGradient>
+                <linearGradient id="logo_grad_2" x1="0" y1="0" x2="40" y2="40">
+                  <stop offset="0%" stopColor="#3B82F6"/>
+                  <stop offset="100%" stopColor="#2563EB"/>
+                </linearGradient>
+                <linearGradient id="logo_grad_3" x1="0" y1="0" x2="40" y2="40">
+                  <stop offset="0%" stopColor="#2563EB"/>
+                  <stop offset="100%" stopColor="#1D4ED8"/>
+                </linearGradient>
+              </defs>
+              <path d="M 20 3 L 27.79 7.5 L 27.79 16.5 L 20 21 L 12.21 16.5 L 12.21 7.5 Z" fill="url(#logo_grad_1)" />
+              <path d="M 11.34 18 L 19.13 22.5 L 19.13 31.5 L 11.34 36 L 3.55 31.5 L 3.55 22.5 Z" fill="url(#logo_grad_2)" />
+              <path d="M 28.66 18 L 36.45 22.5 L 36.45 31.5 L 28.66 36 L 20.87 31.5 L 20.87 22.5 Z" fill="url(#logo_grad_3)" />
+            </svg>
           </Link>
           <h1 className="text-3xl font-bold text-corp-blue-900 mt-6 tracking-tight">Élancé</h1>
-          <p className="text-sand-400 font-medium text-sm uppercase tracking-[0.1em] mt-1">by ACYA Consulting</p>
         </div>
 
         <Card className="border-corp-blue-100 shadow-[0_20px_60px_rgba(11,59,36,0.08)] bg-card/80 backdrop-blur-md rounded-2xl overflow-hidden">

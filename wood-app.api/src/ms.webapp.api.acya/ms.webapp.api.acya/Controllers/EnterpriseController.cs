@@ -64,6 +64,18 @@ namespace ms.webapp.api.acya.api.Controllers
         var user = new AppUser(userDto);
         user.EnterpriseId = newEnterprise.Id;
 
+        if (newEnterprise.Sites != null)
+        {
+          if (dto.user.defaultSiteIndex.HasValue && newEnterprise.Sites.Count > dto.user.defaultSiteIndex.Value)
+          {
+            user.IdSalesSite = newEnterprise.Sites.ElementAt(dto.user.defaultSiteIndex.Value).Id;
+          }
+          else if (newEnterprise.Sites.Count == 1)
+          {
+            user.IdSalesSite = newEnterprise.Sites.First().Id;
+          }
+        }
+
         if (await _userRepository.Add(user) != null)
         {
           // Capture the real auto-generated ID assigned by the DB

@@ -65,16 +65,16 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative min-h-[95vh] flex items-center overflow-hidden bg-gradient-to-br from-[#FAFBFD] via-[#F4F7FC] to-[#FDFEFE] pt-32 pb-20">
+    <section className="relative min-h-[95vh] flex items-center overflow-hidden bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 pt-32 pb-20">
       {/* Premium Multi-layered Glow Mesh */}
       <div className="absolute top-[-10%] right-[-5%] w-[45vw] h-[45vw] rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.08)_0%,transparent_65%)] pointer-events-none blur-[60px]" />
       <div className="absolute bottom-[-15%] left-[-5%] w-[45vw] h-[45vw] rounded-full bg-[radial-gradient(circle,rgba(6,182,212,0.06)_0%,transparent_65%)] pointer-events-none blur-[60px]" />
-      
+
       {/* Decorative Interactive Grid in background */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-35 pointer-events-none" />
 
       <div className="max-w-[1250px] mx-auto px-6 md:px-10 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center w-full relative z-10">
-        
+
         {/* Left Side: Advanced Copywriting & Conversion Triggers */}
         <motion.div
           variants={containerVariants}
@@ -129,7 +129,7 @@ export function HeroSection() {
 
         {/* Right Side: Spectacular Interactive SaaS Dashboard Mockup */}
         <div className="lg:col-span-6 flex flex-col items-center w-full relative">
-          
+
           {/* Animated decorative ring behind dashboard */}
           <motion.div
             variants={orbitAnimation}
@@ -152,15 +152,15 @@ export function HeroSection() {
                 <span className="w-3.5 h-3.5 rounded-full bg-amber-400" />
                 <span className="w-3.5 h-3.5 rounded-full bg-emerald-400" />
               </div>
-              
+
               {/* Premium Tab Switcher */}
               <div className="bg-slate-100/90 p-1 rounded-xl flex items-center gap-1 border border-slate-200/60 shadow-inner">
                 <button
                   onClick={() => setActiveTab('interactive')}
                   className={cn(
                     "px-3 py-1 rounded-lg text-[0.72rem] font-bold transition-all duration-300 cursor-pointer",
-                    activeTab === 'interactive' 
-                      ? "bg-white text-corp-blue-600 shadow-sm" 
+                    activeTab === 'interactive'
+                      ? "bg-white text-corp-blue-600 shadow-sm"
                       : "text-slate-500 hover:text-slate-800"
                   )}
                 >
@@ -170,8 +170,8 @@ export function HeroSection() {
                   onClick={() => setActiveTab('mockup')}
                   className={cn(
                     "px-3 py-1 rounded-lg text-[0.72rem] font-bold transition-all duration-300 cursor-pointer",
-                    activeTab === 'mockup' 
-                      ? "bg-white text-corp-blue-600 shadow-sm" 
+                    activeTab === 'mockup'
+                      ? "bg-white text-corp-blue-600 shadow-sm"
                       : "text-slate-500 hover:text-slate-800"
                   )}
                 >
@@ -221,9 +221,9 @@ export function HeroSection() {
                     <div className="h-28 flex items-end justify-between gap-3 pt-4">
                       {[45, 65, 80, 55, 95, 70, 85, 110, 90, 105].map((val, i) => (
                         <div key={i} className="flex-1 flex flex-col items-center group cursor-pointer">
-                          <motion.div 
-                            initial={{ height: 0 }} 
-                            animate={{ height: `${val}%` }} 
+                          <motion.div
+                            initial={{ height: 0 }}
+                            animate={{ height: `${val}%` }}
                             transition={{ delay: 0.1 + i * 0.04, duration: 0.8, ease: 'easeOut' }}
                             className={cn(
                               "w-full rounded-t-md transition-all duration-300 relative group-hover:brightness-105 shadow-sm",
@@ -231,10 +231,10 @@ export function HeroSection() {
                             )}
                           >
                             <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[0.62rem] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none leading-none">
-                              {val*12}m³
+                              {val * 12}m³
                             </div>
                           </motion.div>
-                          <span className="text-[0.6rem] font-bold text-slate-400 mt-2 block">J-{10-i}</span>
+                          <span className="text-[0.6rem] font-bold text-slate-400 mt-2 block">J-{10 - i}</span>
                         </div>
                       ))}
                     </div>

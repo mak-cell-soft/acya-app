@@ -54,10 +54,14 @@ const registrationSchema = z.object({
   isWoodSelling: z.boolean().optional(),
 
   // Sites
-  sites: z.array(siteSchema).min(1, "Au moins un site de vente est requis")
+  sites: z.array(siteSchema).min(1, "Au moins un site de vente est requis"),
+  defaultSiteIndex: z.number().optional()
 }).refine((data) => data.passwordAppUser === data.confirmPasswordAppUser, {
   message: "Les mots de passe ne correspondent pas",
   path: ["confirmPasswordAppUser"]
+}).refine((data) => data.sites.length <= 1 || data.defaultSiteIndex !== undefined, {
+  message: "Veuillez sélectionner le site d'affectation pour l'administrateur",
+  path: ["defaultSiteIndex"]
 });
 
 type RegistrationFormValues = z.infer<typeof registrationSchema>;
@@ -157,7 +161,8 @@ export default function EnterpriseRegistrationPage() {
           surname: data.appUserSurname,
           email: data.emailAppUser,
           password: data.passwordAppUser,
-          role: data.selectedRole
+          role: data.selectedRole,
+          defaultSiteIndex: data.sites.length === 1 ? 0 : data.defaultSiteIndex
         }
       };
 
@@ -301,9 +306,11 @@ export default function EnterpriseRegistrationPage() {
                         </div>
                         <div className="space-y-1.5">
                           <Label >Devise *</Label>
-                          <Select onValueChange={(val: string | null) => { if (val) setValue("devise", val); }}>
+                          <Select value={watch("devise")} onValueChange={(val: string | null) => { if (val) setValue("devise", val); }}>
                             <SelectTrigger className="h-11 bg-slate-50/50">
-                              <SelectValue placeholder="Sélectionner une devise" />
+                              <SelectValue placeholder="Sélectionner une devise">
+                                {watch("devise") ? devisesOptions.find(opt => opt.key === watch("devise"))?.value : undefined}
+                              </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                               {devisesOptions.map(opt => (
@@ -374,9 +381,11 @@ export default function EnterpriseRegistrationPage() {
                         </div>
                         <div className="space-y-1.5">
                           <Label >Fonction *</Label>
-                          <Select onValueChange={(val: string | null) => { if (val) setValue("positionResponsable", val); }}>
+                          <Select value={watch("positionResponsable")} onValueChange={(val: string | null) => { if (val) setValue("positionResponsable", val); }}>
                             <SelectTrigger className="bg-white h-11">
-                              <SelectValue placeholder="Sélectionner la fonction" />
+                              <SelectValue placeholder="Sélectionner la fonction">
+                                {watch("positionResponsable") ? jobDescOptions.find(opt => opt.key === watch("positionResponsable"))?.value : undefined}
+                              </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                               {jobDescOptions.map(opt => (
@@ -437,9 +446,11 @@ export default function EnterpriseRegistrationPage() {
 
                         <div className="space-y-1.5 pt-2">
                           <Label >Rôle *</Label>
-                          <Select onValueChange={(val: string | null) => { if (val) setValue("selectedRole", val); }}>
+                          <Select value={watch("selectedRole")} onValueChange={(val: string | null) => { if (val) setValue("selectedRole", val); }}>
                             <SelectTrigger className="bg-white h-11">
-                              <SelectValue placeholder="Sélectionner le rôle" />
+                              <SelectValue placeholder="Sélectionner le rôle">
+                                {watch("selectedRole") ? roles.find(opt => opt.key === watch("selectedRole"))?.value : undefined}
+                              </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                               {roles.map(opt => (
@@ -494,7 +505,7 @@ export default function EnterpriseRegistrationPage() {
                       </div>
                       <Dialog open={isSiteDialogOpen} onOpenChange={setIsSiteDialogOpen}>
                         <DialogTrigger asChild>
-                          <Button type="button" className="h-11 px-6 bg-slate-800 hover:bg-slate-900 text-white rounded-lg gap-2">
+                          <Button type="button" className="h-11 px-6 bg-corp-blue-500 hover:bg-corp-blue-600 text-white shadow-md shadow-corp-blue-500/20 rounded-lg gap-2 transition-all">
                             <Plus size={18} /> Ajouter
                           </Button>
                         </DialogTrigger>
@@ -541,7 +552,7 @@ export default function EnterpriseRegistrationPage() {
                           </div>
                           <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => setIsSiteDialogOpen(false)}>Annuler</Button>
-                            <Button type="button" onClick={handleAddSite} className="bg-slate-800 hover:bg-slate-900 text-white gap-2"><Plus size={16}/> Ajouter le site</Button>
+                            <Button type="button" onClick={handleAddSite} className="bg-corp-blue-500 hover:bg-corp-blue-600 text-white shadow-md shadow-corp-blue-500/20 gap-2 transition-all"><Plus size={16}/> Ajouter le site</Button>
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
@@ -604,6 +615,31 @@ export default function EnterpriseRegistrationPage() {
                         <div className="flex flex-col items-center justify-center py-10 px-4 bg-slate-50 rounded-xl border border-dashed border-slate-300">
                           <MapPin size={40} className="text-slate-300 mb-3" />
                           <p className="text-slate-500 font-medium text-center">Aucun site enregistré.<br/>Veuillez en ajouter au minimum un.</p>
+                        </div>
+                      )}
+                      {sites.length > 1 && (
+                        <div className="p-4 bg-corp-blue-50/50 rounded-xl border border-corp-blue-100/50 space-y-2 mt-6">
+                          <Label className="text-corp-blue-900 font-semibold flex items-center gap-2">
+                            <Store size={16} /> Site d'affectation pour l'Administrateur *
+                          </Label>
+                          <Select 
+                            value={watch('defaultSiteIndex')?.toString() || ''} 
+                            onValueChange={(val: string | null) => { if (val) setValue('defaultSiteIndex', parseInt(val)); }}
+                          >
+                            <SelectTrigger className="bg-white h-11 border-corp-blue-200 focus:ring-corp-blue-500/20">
+                              <SelectValue placeholder="Sélectionnez le site de l'administrateur">
+                                {watch('defaultSiteIndex') !== undefined ? `${sites[watch('defaultSiteIndex')!]?.address} (${sites[watch('defaultSiteIndex')!]?.gov})` : undefined}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {sites.map((site, idx) => (
+                                <SelectItem key={idx} value={idx.toString()}>
+                                  {site.address} ({site.gov})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {errors.defaultSiteIndex && <p className="text-red-500 text-sm font-medium mt-1">{errors.defaultSiteIndex.message}</p>}
                         </div>
                       )}
                     </div>

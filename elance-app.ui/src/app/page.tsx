@@ -3,6 +3,8 @@ import { PublicNavbar } from "@/components/shared/public-navbar";
 import { ModulesSection } from "@/components/shared/modules-section";
 import { ChantierSection } from "@/components/shared/chantier-section";
 import { WhySection } from "@/components/shared/why-section";
+import { TestimonialSection } from "@/components/shared/testimonial-section";
+import { FAQSection } from "@/components/shared/faq-section";
 import { CTASection } from "@/components/shared/cta-section";
 import { PublicFooter } from "@/components/shared/public-footer";
 
@@ -14,6 +16,8 @@ export default function Home() {
       <ModulesSection />
       <ChantierSection />
       <WhySection />
+      <TestimonialSection />
+      <FAQSection />
       <CTASection />
       <PublicFooter />
     </main>

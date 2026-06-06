@@ -374,12 +374,12 @@ export function CustomerSingleBatchConversionModal({
           className="relative w-full max-w-4xl bg-white rounded-xl shadow-2xl overflow-hidden border border-sand-100 z-10 flex flex-col max-h-[90vh]"
         >
           {/* Header styling matching the primary Forest design guidelines */}
-          <div className="px-6 py-5 bg-corp-blue-950 text-white flex items-center justify-between">
+          <div className="px-6 py-5 bg-white border-b border-sand-100 flex items-center justify-between">
             <div className="space-y-0.5">
-              <span className="text-[10px] font-bold tracking-widest uppercase text-sand-400">
+              <span className="text-[10px] font-bold tracking-widest uppercase text-corp-blue-600">
                 Facturation pour un Client
               </span>
-              <h2 className="text-xl text-sand-100">
+              <h2 className="text-xl text-corp-blue-950 font-bold">
                 Générer Facture Client (Regroupement)
               </h2>
             </div>
@@ -387,7 +387,7 @@ export function CustomerSingleBatchConversionModal({
               onClick={onClose}
               variant="ghost"
               size="icon"
-              className="text-sand-300 hover:bg-corp-blue-900 hover:text-white "
+              className="text-sand-400 hover:bg-sand-100 hover:text-corp-blue-950 "
             >
               <X className="w-5 h-5" />
             </Button>

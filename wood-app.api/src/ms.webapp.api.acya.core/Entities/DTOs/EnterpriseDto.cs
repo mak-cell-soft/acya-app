@@ -102,6 +102,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? email { get; set; }
     public string? password { get; set; }
     public string? role { get; set; }
+    public int? defaultSiteIndex { get; set; }
 
     public AppUserEnterpriseDto() {}
 

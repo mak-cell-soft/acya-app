@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Mail, Shield, CheckCircle, RefreshCw } from 'lucide-react';
+import { ArrowRight, Mail, Shield, CheckCircle, RefreshCw, Phone } from 'lucide-react';
 
 export function PublicFooter() {
   const currentYear = new Date().getFullYear();
@@ -86,24 +86,24 @@ export function PublicFooter() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 pb-16 border-b border-slate-100">
           <div className="space-y-6 text-left">
             <Link href="/" className="flex items-center gap-3 group w-max">
-              <svg className="w-8.5 h-8.5 transition-transform duration-700 group-hover:rotate-[360deg]" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="40" height="40" rx="10" fill="url(#foot_logo_bg)" className="opacity-10" />
-                <path d="M20 3L35 11.5V28.5L20 37L5 28.5V11.5L20 3" stroke="url(#foot_logo_stroke)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M20 9L31 17.25L27 20.25L20 15L13 20.25L9 17.25L20 9Z" fill="url(#foot_logo_stroke)"/>
-                <rect x="17.5" y="18" width="5" height="11" rx="1.5" fill="url(#foot_logo_stroke)" />
-                <path d="M12 25H28" stroke="url(#foot_logo_stroke)" strokeWidth="1.5" strokeLinecap="round"/>
-                <path d="M14 29H26" stroke="#06B6D4" strokeWidth="2" strokeLinecap="round"/>
+              <svg className="w-9 h-9 md:w-10 md:h-10 transition-transform duration-700 group-hover:scale-105" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <defs>
-                  <linearGradient id="foot_logo_bg" x1="0" y1="0" x2="40" y2="40">
-                    <stop offset="0%" stopColor="#2563EB"/>
-                    <stop offset="100%" stopColor="#06B6D4"/>
+                  <linearGradient id="logo_grad_1" x1="0" y1="0" x2="40" y2="40">
+                    <stop offset="0%" stopColor="#60A5FA"/>
+                    <stop offset="100%" stopColor="#3B82F6"/>
                   </linearGradient>
-                  <linearGradient id="foot_logo_stroke" x1="0" y1="0" x2="40" y2="40">
+                  <linearGradient id="logo_grad_2" x1="0" y1="0" x2="40" y2="40">
                     <stop offset="0%" stopColor="#3B82F6"/>
-                    <stop offset="60%" stopColor="#2563EB"/>
-                    <stop offset="100%" stopColor="#06B6D4"/>
+                    <stop offset="100%" stopColor="#2563EB"/>
+                  </linearGradient>
+                  <linearGradient id="logo_grad_3" x1="0" y1="0" x2="40" y2="40">
+                    <stop offset="0%" stopColor="#2563EB"/>
+                    <stop offset="100%" stopColor="#1D4ED8"/>
                   </linearGradient>
                 </defs>
+                <path d="M 20 3 L 27.79 7.5 L 27.79 16.5 L 20 21 L 12.21 16.5 L 12.21 7.5 Z" fill="url(#logo_grad_1)" />
+                <path d="M 11.34 18 L 19.13 22.5 L 19.13 31.5 L 11.34 36 L 3.55 31.5 L 3.55 22.5 Z" fill="url(#logo_grad_2)" />
+                <path d="M 28.66 18 L 36.45 22.5 L 36.45 31.5 L 28.66 36 L 20.87 31.5 L 20.87 22.5 Z" fill="url(#logo_grad_3)" />
               </svg>
               <span className="text-2xl font-bold text-slate-800 tracking-tight">Élancé</span>
             </Link>
@@ -179,11 +179,24 @@ export function PublicFooter() {
               ACYA Consulting
             </h4>
             <div className="flex flex-col gap-4">
-              {['À propos', 'Nos références', 'Demander une démo', 'Contact'].map(item => (
-                <Link key={item} href="#" className="text-[0.92rem] text-slate-500 hover:text-corp-blue-600 hover:translate-x-1 transition-all duration-300 w-max font-semibold">
-                  {item}
+              {[
+                { name: 'À propos', href: '#' },
+                { name: 'Nos références', href: '#' },
+                { name: 'Demander une démo', href: '#' },
+                { name: 'Contact', href: '/contact' }
+              ].map(item => (
+                <Link key={item.name} href={item.href} className="text-[0.92rem] text-slate-500 hover:text-corp-blue-600 hover:translate-x-1 transition-all duration-300 w-max font-semibold">
+                  {item.name}
                 </Link>
               ))}
+            </div>
+            <div className="flex flex-col gap-2 mt-6 pt-4 border-t border-slate-100">
+              <a href="mailto:medamine.klabi@gmail.com" className="text-[0.85rem] text-slate-500 hover:text-corp-blue-600 transition-colors font-semibold flex items-center gap-2">
+                <Mail className="w-4 h-4 shrink-0" /> <span className="truncate">medamine.klabi@gmail.com</span>
+              </a>
+              <a href="tel:+21699218866" className="text-[0.85rem] text-slate-500 hover:text-corp-blue-600 transition-colors font-semibold flex items-center gap-2">
+                <Phone className="w-4 h-4 shrink-0" /> +216 99 218 866
+              </a>
             </div>
           </div>
         </div>
@@ -194,8 +207,8 @@ export function PublicFooter() {
             © {currentYear} ACYA Consulting. Tous droits réservés.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8">
-            <Link href="#" className="text-[0.72rem] text-slate-400 hover:text-corp-blue-600 transition-colors font-semibold uppercase tracking-widest">Confidentialité</Link>
-            <Link href="#" className="text-[0.72rem] text-slate-400 hover:text-corp-blue-600 transition-colors font-semibold uppercase tracking-widest">Mentions Légales</Link>
+            <Link href="/privacy" className="text-[0.72rem] text-slate-400 hover:text-corp-blue-600 transition-colors font-semibold uppercase tracking-widest">Confidentialité</Link>
+            <Link href="/mentions-legales" className="text-[0.72rem] text-slate-400 hover:text-corp-blue-600 transition-colors font-semibold uppercase tracking-widest">Mentions Légales</Link>
             <span className="text-[0.7rem] font-bold uppercase tracking-widest bg-gradient-to-r from-corp-blue-600 to-corp-cyan bg-clip-text text-transparent border border-corp-blue-500/20 px-3.5 py-1.5 rounded-xl bg-white shadow-sm">
               AChieve Your Ambition
             </span>
