@@ -173,7 +173,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   <span className="text-[1.65rem] font-extrabold text-slate-900 tracking-tight leading-none mt-0.5 truncate w-full">Élancé</span>
                   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-corp-blue-100/50 border border-corp-blue-200/60 group-hover:bg-corp-blue-200/50 transition-colors shadow-sm whitespace-nowrap">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)] animate-pulse shrink-0" />
-                    <span className="text-[0.6rem] font-extrabold text-corp-blue-800 uppercase tracking-[0.15em] leading-none">SOCOFEB</span>
+                    <span className="text-[0.6rem] font-extrabold text-corp-blue-800 uppercase tracking-[0.15em] leading-none">{user?.enterpriseName || 'SOCOFEB'}</span>
                   </div>
                 </div>
               )}

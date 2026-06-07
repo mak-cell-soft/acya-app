@@ -8,6 +8,7 @@ interface User {
   fullname: string;
   role?: string;
   enterpriseId?: string;
+  enterpriseName?: string;
   defaultSite?: string;
   defaultSiteId?: string;
   permissions?: AppPermissionsMap | null;
