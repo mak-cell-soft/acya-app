@@ -171,7 +171,7 @@ export function DocumentDetailDrawer({
                 <Button
                   onClick={handlePrint}
                   variant="ghost"
-                  className="text-sand-100 hover:bg-corp-blue-900 hover:text-white"
+                  className="text-sand-100 hover:bg-corp-blue-900 hover:text-white rounded-full"
                 >
                   <Printer className="w-4 h-4 mr-2" /> Imprimer
                 </Button>

@@ -388,7 +388,7 @@ export function CustomerBatchConversionModal({
           animate={{ opacity: 0.5 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-black/40 backdrop-blur-xs"
+          className="absolute rounded-full inset-0 bg-black/40 backdrop-blur-xs"
         />
 
         {/* Modal panel */}
@@ -412,7 +412,7 @@ export function CustomerBatchConversionModal({
               onClick={onClose}
               variant="ghost"
               size="icon"
-              className="text-sand-400 hover:bg-sand-100 hover:text-corp-blue-950 "
+              className="text-sand-400 hover:bg-sand-100 hover:text-corp-blue-950  rounded-full"
             >
               <X className="w-5 h-5" />
             </Button>
@@ -461,7 +461,7 @@ export function CustomerBatchConversionModal({
                         setCustomerSearchQuery('');
                         setIsCustomerDropdownOpen(false);
                       }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-sand-400 hover:text-red-500 transition-colors"
+                      className="absolute rounded-full right-3 top-1/2 -translate-y-1/2 p-1 text-sand-400 hover:text-red-500 transition-colors"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -474,7 +474,7 @@ export function CustomerBatchConversionModal({
                       className="fixed inset-0 z-10"
                       onClick={() => setIsCustomerDropdownOpen(false)}
                     />
-                    <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto z-20 rounded-xl border border-sand-200 bg-white shadow-lg p-1.5 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="absolute rounded-full left-0 right-0 mt-1 max-h-60 overflow-y-auto z-20 rounded-xl border border-sand-200 bg-white shadow-lg p-1.5 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
                       {filteredCustomers.map((cust) => {
                         const fullName = cust.name || `${cust.firstname || ''} ${cust.lastname || ''}`.trim() || 'Client sans nom';
                         const isSelected = selectedCustomerId === cust.id.toString();
@@ -618,7 +618,7 @@ export function CustomerBatchConversionModal({
                     Remise (%)
                   </label>
                   <div className="relative font-sans">
-                    <TrendingDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400 pointer-events-none" />
+                    <TrendingDown className="absolute rounded-full left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400 pointer-events-none" />
                     <Input
                       type="number"
                       min="0"

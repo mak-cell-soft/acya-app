@@ -197,7 +197,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 hover:scale-105 transition-all text-foreground"
+            className="absolute rounded-full right-6 top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 hover:scale-105 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -398,7 +398,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
                           <button
                             type="button"
                             onClick={() => setHideOld(!hideOld)}
-                            className="absolute right-3 top-3.5 h-4 w-4 text-slate-400 hover:text-corp-blue-600 cursor-pointer"
+                            className="absolute rounded-full right-3 top-3.5 h-4 w-4 text-slate-400 hover:text-corp-blue-600 cursor-pointer"
                           >
                             {hideOld ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
@@ -416,7 +416,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
                           Nouveau mot de passe
                         </Label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
+                          <Lock className="absolute rounded-full left-3 top-3.5 h-4 w-4 text-slate-400" />
                           <Input
                             id="newPassword"
                             type={hideNew ? "password" : "text"}
@@ -428,7 +428,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
                           <button
                             type="button"
                             onClick={() => setHideNew(!hideNew)}
-                            className="absolute right-3 top-3.5 h-4 w-4 text-slate-400 hover:text-corp-blue-600 cursor-pointer"
+                            className="absolute rounded-full right-3 top-3.5 h-4 w-4 text-slate-400 hover:text-corp-blue-600 cursor-pointer"
                           >
                             {hideNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
@@ -446,7 +446,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
                           Confirmer le nouveau mot de passe
                         </Label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
+                          <Lock className="absolute rounded-full left-3 top-3.5 h-4 w-4 text-slate-400" />
                           <Input
                             id="confirmPassword"
                             type={hideConfirm ? "password" : "text"}
@@ -458,7 +458,7 @@ export function ProfileDialog({ isOpen, onClose }: ProfileDialogProps) {
                           <button
                             type="button"
                             onClick={() => setHideConfirm(!hideConfirm)}
-                            className="absolute right-3 top-3.5 h-4 w-4 text-slate-400 hover:text-corp-blue-600 cursor-pointer"
+                            className="absolute rounded-full right-3 top-3.5 h-4 w-4 text-slate-400 hover:text-corp-blue-600 cursor-pointer"
                           >
                             {hideConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>

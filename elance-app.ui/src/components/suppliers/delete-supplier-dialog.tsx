@@ -77,7 +77,7 @@ export function DeleteSupplierDialog({
         
         <button 
           onClick={onClose}
-          className="absolute right-6 top-6 w-8 h-8 bg-sand-100 flex items-center justify-center hover:bg-sand-200 transition-all text-sand-400"
+          className="absolute rounded-full right-6 top-6 w-8 h-8 bg-sand-100 flex items-center justify-center hover:bg-sand-200 transition-all text-sand-400"
         >
           <X className="w-4 h-4" />
         </button>

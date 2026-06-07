@@ -20,12 +20,12 @@ interface CustomJwtPayload {
 export const authService = {
   login: async (credentials: any) => {
     const response = await api.post('/Account/login', credentials);
-    const { isSuccess, token } = response.data;
+    const { isSuccess, token, enterpriseName } = response.data;
     
     if (isSuccess && token) {
       const userDetails = authService.getUserDetail(token);
       if (userDetails) {
-        useAuthStore.getState().login(userDetails, token);
+        useAuthStore.getState().login({ ...userDetails, enterpriseName }, token);
       }
     }
     return response.data;

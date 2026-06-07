@@ -476,7 +476,7 @@ export default function VehiclesPage() {
                                             Véhicule d'Entreprise
                                           </div>
                                           <p className="text-[0.7rem] text-sand-500 leading-relaxed">
-                                            Ce véhicule est enregistré sous l'actif de l'entreprise principale SOCOFEB.
+                                            Ce véhicule est enregistré sous l'actif de l'entreprise principale SOCOBOIS.
                                           </p>
                                         </div>
                                       </div>
@@ -506,7 +506,7 @@ export default function VehiclesPage() {
                                               <div className="space-y-0.5">
                                                 <p className={`text-[0.5rem] font-medium ${currentCardStyle.textMuted} uppercase tracking-wider leading-none`}>Entreprise</p>
                                                 <p className="text-[0.7rem] font-bold tracking-wide uppercase truncate max-w-[120px]">
-                                                  {item.fuelcardenterprise || 'SOCOFEB'}
+                                                  {item.fuelcardenterprise || 'SOCOBOIS'}
                                                 </p>
                                               </div>
                                               <div className="space-y-0.5 text-right">

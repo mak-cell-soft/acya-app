@@ -201,7 +201,7 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center text-sand-400 hover:text-corp-blue-950 hover:bg-corp-blue-100 transition-colors"
+              className="w-8 h-8 flex items-center justify-center text-sand-400 hover:text-corp-blue-950 hover:bg-corp-blue-100 transition-colors rounded-full"
             >
               <X className="w-4 h-4" />
             </button>

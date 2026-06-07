@@ -35,6 +35,7 @@ import { paymentService } from '@/services/components/payment.service';
 import { bankService } from '@/services/configuration/bank.service';
 import { exchangeRateService } from '@/services/components/exchange-rate.service';
 import { toast } from 'sonner';
+import { DEVISES } from '@/lib/constants/settings';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -352,7 +353,7 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
               onClick={onClose}
               variant="ghost"
               size="icon"
-              className="w-8 h-8 bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700"
+              className="w-8 h-8 bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 rounded-full"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -530,12 +531,14 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
                     <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Devise*</label>
                     <Select value={currency} onValueChange={(val) => handleCurrencyChange(val || 'TND')}>
                       <SelectTrigger className="bg-white border-slate-200 rounded-xl h-11 text-xs font-semibold focus:ring-sky-500">
-                        <SelectValue placeholder="Devise" />
+                        <SelectValue placeholder="Devise">
+                          {currency ? DEVISES.find(d => d.key === currency)?.value : undefined}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-slate-100">
-                        <SelectItem value="TND" className="text-xs font-semibold">TND - Dinar Tunisien</SelectItem>
-                        <SelectItem value="EUR" className="text-xs font-semibold">EUR - Euro</SelectItem>
-                        <SelectItem value="USD" className="text-xs font-semibold">USD - Dollar US</SelectItem>
+                        {DEVISES.map(d => (
+                          <SelectItem key={d.key} value={d.key} className="text-xs font-semibold">{d.value}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

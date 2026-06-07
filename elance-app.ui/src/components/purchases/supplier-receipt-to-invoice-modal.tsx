@@ -191,7 +191,7 @@ export function SupplierReceiptToInvoiceModal({
               onClick={onClose}
               variant="ghost"
               size="icon"
-              className="text-amber-200 hover:bg-amber-800 hover:text-white w-8 h-8"
+              className="text-amber-200 hover:bg-amber-800 hover:text-white w-8 h-8 rounded-full"
             >
               <X className="w-5 h-5" />
             </Button>

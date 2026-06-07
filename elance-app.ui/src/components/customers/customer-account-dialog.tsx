@@ -86,7 +86,7 @@ export function CustomerAccountDialog({
         dialog restricted to md width even on desktop viewports.
       */}
       <DialogContent showCloseButton={false} className="w-full max-w-full sm:max-w-xl md:max-w-5xl lg:max-w-7xl h-[90vh] p-0 overflow-hidden border-slate-200 shadow-2xl rounded-2xl bg-white flex flex-col">
-        <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative flex-shrink-0">
+        <DialogHeader className="border-b border-slate-100 p-6 relative flex-shrink-0">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-200 text-emerald-600">
@@ -102,7 +102,7 @@ export function CustomerAccountDialog({
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3 pr-12">
               <div className="flex items-center gap-2 bg-slate-50/50 p-1.5 rounded-2xl border border-slate-200">
                 <DatePicker 
                   date={startDate} 
@@ -118,7 +118,7 @@ export function CustomerAccountDialog({
               </div>
               <Button 
                 variant="outline" 
-                className="h-11 bg-slate-50 border-slate-200 text-foreground hover:bg-slate-100"
+                className="h-11 bg-slate-50 border-slate-200 text-foreground hover:bg-slate-100 rounded-xl"
                 onClick={() => setIsPrintOpen(true)}
               >
                 <Printer className="w-4 h-4 mr-2" /> Imprimer
@@ -127,13 +127,13 @@ export function CustomerAccountDialog({
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-10 h-10 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
+            className="absolute right-6 top-6 w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-slate-600 hover:text-slate-900"
           >
             <X className="w-5 h-5" />
           </button>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden flex flex-col p-8 space-y-8 bg-slate-50/20">
+        <div className="flex-1 overflow-hidden flex flex-col p-6 space-y-6 bg-slate-50/20">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="p-6 rounded-[28px] bg-white border border-slate-200/50 shadow-sm space-y-3">

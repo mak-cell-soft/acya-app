@@ -136,7 +136,7 @@ export function ApprovalDecisionDialog({
               onClick={onClose}
               variant="ghost"
               size="icon"
-              className="text-slate-400 hover:bg-slate-800 hover:text-white w-8 h-8"
+              className="text-slate-400 hover:bg-slate-800 hover:text-white w-8 h-8 rounded-full"
             >
               <X className="w-5 h-5" />
             </Button>

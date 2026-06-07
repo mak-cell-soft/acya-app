@@ -1,0 +1,43 @@
+const fs = require('fs');
+const path = require('path');
+function walkSync(dir, filelist = []) {
+  const files = fs.readdirSync(dir);
+  for (const file of files) {
+    const dirFile = path.join(dir, file);
+    if (fs.statSync(dirFile).isDirectory()) {
+      walkSync(dirFile, filelist);
+    } else if (dirFile.endsWith('.tsx')) {
+      filelist.push(dirFile);
+    }
+  }
+  return filelist;
+}
+const files = walkSync('src/components');
+let modifiedFiles = 0;
+for (const file of files) {
+  let content = fs.readFileSync(file, 'utf8');
+  let original = content;
+
+  let buttonRegex = /<button[\s\S]*?onClick=\{onClose\}[\s\S]*?>/g;
+  content = content.replace(buttonRegex, (match) => {
+    if (match.includes('className="absolute') && !match.includes('rounded-full')) {
+      return match.replace(/className="absolute/g, 'className="absolute rounded-full');
+    }
+    return match;
+  });
+
+  let buttonRegex2 = /<button[\s\S]*?className="absolute[\s\S]*?onClick=\{onClose\}[\s\S]*?>/g;
+  content = content.replace(buttonRegex2, (match) => {
+    if (!match.includes('rounded-full')) {
+      return match.replace(/className="absolute/g, 'className="absolute rounded-full');
+    }
+    return match;
+  });
+
+  if (content !== original) {
+    fs.writeFileSync(file, content);
+    console.log('Modified: ' + file);
+    modifiedFiles++;
+  }
+}
+console.log('Total modified: ' + modifiedFiles);

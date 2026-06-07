@@ -26,9 +26,9 @@ export const GOV_TN = [
 ];
 
 export const DEVISES = [
-  { key: 1, value: 'TND' },
-  { key: 2, value: 'EUR' },
-  { key: 3, value: 'USD' },
+  { key: "TND", value: "Dinar Tunisien (TND)" },
+  { key: "EUR", value: "Euro (€)" },
+  { key: "USD", value: "Dollar ($)" }
 ];
 
 export const JOB_DESCRIPTION = [

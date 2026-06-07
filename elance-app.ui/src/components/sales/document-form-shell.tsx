@@ -51,6 +51,7 @@ import {
   Popover,
   PopoverTrigger,
   PopoverContent,
+  PopoverAnchor,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/use-auth-store';
@@ -65,6 +66,7 @@ import { pricingGridService } from '@/services/components/pricing-grid.service';
 import { stockService } from '@/services/components/stock.service';
 import { exchangeRateService } from '@/services/components/exchange-rate.service';
 import { DocumentTypes, DocStatus, BillingStatus, LineType, ListOfLength } from '@/types/document';
+import { DEVISES } from '@/lib/constants/settings';
 import { Article } from '@/types/article';
 import { Customer } from '@/types/customer';
 import { Transporter } from '@/types/settings';
@@ -1230,12 +1232,14 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                 <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Devise *</label>
                 <Select onValueChange={handleCurrencyChange} value={docCurrency}>
                   <SelectTrigger className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900">
-                    <SelectValue placeholder="TND" />
+                    <SelectValue placeholder="Sélectionner une devise">
+                      {docCurrency ? DEVISES.find(d => d.key === docCurrency)?.value : undefined}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-corp-blue-50 font-bold text-xs">
-                    <SelectItem value="TND" className="font-bold text-xs">TND - Dinar Tunisien</SelectItem>
-                    <SelectItem value="EUR" className="font-bold text-xs">EUR - Euro</SelectItem>
-                    <SelectItem value="USD" className="font-bold text-xs">USD - Dollar US</SelectItem>
+                    {DEVISES.map(d => (
+                      <SelectItem key={d.key} value={d.key} className="font-bold text-xs">{d.value}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1407,7 +1411,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                   <tr className="bg-sand-50/50 border-b border-corp-blue-50">
                     <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-12 text-center">N°</th>
                     <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-96">Article / Description</th>
-                    <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-24 text-right">Prix Unit HT</th>
+                    <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-32 text-right">Prix Unit HT</th>
                     <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-28 text-center">Quantité</th>
                     <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-24 text-center">Remise (%)</th>
                     <th className="p-4 font-bold text-sand-400 uppercase tracking-widest w-20 text-center">TVA</th>
@@ -1481,14 +1485,14 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                                 )}
                               </div>
                             ) : (
-                              <div className="space-y-1.5">
+                              <div className="space-y-1.5 relative">
                                 <Popover
                                   open={activeRowArticleDropdown === index}
                                   onOpenChange={(open) => {
                                     if (!open) setActiveRowArticleDropdown(null);
                                   }}
                                 >
-                                  <PopoverTrigger asChild>
+                                  <PopoverAnchor asChild>
                                     <div className="relative">
                                       <Layers className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300 pointer-events-none" />
                                       <Input
@@ -1517,10 +1521,10 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                                         </button>
                                       )}
                                     </div>
-                                  </PopoverTrigger>
+                                  </PopoverAnchor>
                                   <PopoverContent
                                     align="start"
-                                    className="w-[var(--radix-popover-trigger-width)] max-h-60 overflow-y-auto z-50 rounded-xl border border-corp-blue-100 bg-white/95 backdrop-blur-md shadow-2xl p-1.5 space-y-0.5"
+                                    className="w-[var(--radix-popover-trigger-width)] min-w-[300px] max-h-60 overflow-y-auto z-50 rounded-xl border border-corp-blue-100 bg-white/95 backdrop-blur-md shadow-2xl p-1.5 space-y-0.5"
                                     onOpenAutoFocus={(e) => e.preventDefault()}
                                   >
                                     {row.filteredArticles.map(art => {
@@ -1637,12 +1641,12 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                           </td>
 
                           {/* Price Unit HT */}
-                          <td className="p-4 max-w-28">
+                          <td className="p-4 max-w-32">
                             <Input
                               type="number"
                               step="0.001"
                               min="0"
-                              className="h-10 rounded-xl text-right font-bold border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/40 text-corp-blue-900 w-24 ml-auto"
+                              className="h-10 rounded-xl text-right font-bold border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/40 text-corp-blue-900 w-32 ml-auto"
                               value={row.unit_price_ht || ''}
                               onChange={(e) => {
                                 const val = parseFloat(e.target.value) || 0;

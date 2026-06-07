@@ -39,15 +39,15 @@ export function TaxRegistrationDialog({
       const p = initialValue.split('/');
       if (p.length >= 4) {
         setParts({
-          part1: p[0] || "",
-          part2a: p[1] || "",
-          part2b: p[2] || "",
-          part3: p[3] || "000"
+          part1: p[0].trim() || "",
+          part2a: p[1].trim() || "",
+          part2b: p[2].trim() || "",
+          part3: p[3].trim() || "000"
         });
       } else {
         // Fallback for non-formatted values
         setParts({
-          part1: initialValue,
+          part1: initialValue.trim(),
           part2a: "A",
           part2b: "M",
           part3: "000"
@@ -69,15 +69,15 @@ export function TaxRegistrationDialog({
 
   const handleConfirm = () => {
     if (isValid()) {
-      onConfirm(`${parts.part1}/${parts.part2a}/${parts.part2b}/${parts.part3}`);
+      onConfirm(`${parts.part1} /${parts.part2a}/${parts.part2b}/ ${parts.part3}`);
       onClose();
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md rounded-2xl border-corp-blue-100 shadow-2xl p-0 overflow-hidden">
-        <DialogHeader className="border-b border-border pb-4 mb-4 p-8">
+      <DialogContent className="max-w-[95vw] sm:max-w-[500px] rounded-2xl border-corp-blue-100 shadow-2xl p-0 overflow-hidden">
+        <DialogHeader className="border-b border-border pb-4 mb-4 p-6 sm:p-8">
           <DialogTitle className="text-2xl font-bold tracking-tight flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-corp-blue-50 flex items-center justify-center border border-corp-blue-100">
               <AlertCircle className="w-5 h-5 text-emerald-600" />
@@ -89,13 +89,13 @@ export function TaxRegistrationDialog({
           </p>
         </DialogHeader>
 
-        <div className="p-8 space-y-8">
-          <div className="flex items-center justify-between gap-3">
+        <div className="p-6 sm:p-8 space-y-8">
+          <div className="flex flex-wrap sm:flex-nowrap items-center justify-center gap-2 sm:gap-3">
             {/* Part 1 */}
-            <div className="flex-1 space-y-2">
-              <Label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest">Identifiant</Label>
+            <div className="w-[120px] sm:w-[130px] space-y-2">
+              <Label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest text-center block">Identifiant</Label>
               <Input 
-                className="font-bold font-mono text-center text-lg "
+                className="font-bold font-mono text-center text-base sm:text-lg px-1 sm:px-2"
                 placeholder="1234567P"
                 maxLength={8}
                 value={parts.part1}
@@ -103,13 +103,13 @@ export function TaxRegistrationDialog({
               />
             </div>
 
-            <span className="text-2xl font-bold text-sand-300 pt-6">/</span>
+            <span className="text-xl sm:text-2xl font-bold text-sand-300 pt-6 hidden sm:block">/</span>
 
             {/* Part 2A */}
-            <div className="w-16 space-y-2">
+            <div className="w-[45px] sm:w-[50px] space-y-2">
               <Label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest text-center block">Cat.</Label>
               <Input 
-                className="font-bold font-mono text-center text-lg "
+                className="font-bold font-mono text-center text-base sm:text-lg px-1"
                 placeholder="A"
                 maxLength={1}
                 value={parts.part2a}
@@ -117,13 +117,13 @@ export function TaxRegistrationDialog({
               />
             </div>
 
-            <span className="text-2xl font-bold text-sand-300 pt-6">/</span>
+            <span className="text-xl sm:text-2xl font-bold text-sand-300 pt-6 hidden sm:block">/</span>
 
             {/* Part 2B */}
-            <div className="w-16 space-y-2">
+            <div className="w-[45px] sm:w-[50px] space-y-2">
               <Label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest text-center block">TVA</Label>
               <Input 
-                className="font-bold font-mono text-center text-lg "
+                className="font-bold font-mono text-center text-base sm:text-lg px-1"
                 placeholder="M"
                 maxLength={1}
                 value={parts.part2b}
@@ -131,13 +131,13 @@ export function TaxRegistrationDialog({
               />
             </div>
 
-            <span className="text-2xl font-bold text-sand-300 pt-6">/</span>
+            <span className="text-xl sm:text-2xl font-bold text-sand-300 pt-6 hidden sm:block">/</span>
 
             {/* Part 3 */}
-            <div className="w-20 space-y-2">
+            <div className="w-[60px] sm:w-[70px] space-y-2">
               <Label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest text-center block">Code</Label>
               <Input 
-                className="font-bold font-mono text-center text-lg "
+                className="font-bold font-mono text-center text-base sm:text-lg px-1"
                 placeholder="000"
                 maxLength={3}
                 value={parts.part3}

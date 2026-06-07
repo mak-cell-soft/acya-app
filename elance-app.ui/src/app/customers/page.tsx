@@ -142,16 +142,13 @@ export default function CustomersPage() {
             <p className="text-sand-400 font-medium mt-1">Gérez votre base client, les soldes et l'historique des ventes.</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="h-11 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50">
-              <Download className="w-4 h-4 mr-2" /> Exporter
-            </Button>
             {hasPermission('customers', 'canAdd') && (
               <Button 
                 onClick={() => setIsImportOpen(true)}
                 variant="outline" 
                 className="h-11 rounded-xl border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50"
               >
-                <Upload className="w-4 h-4 mr-2" /> Importer
+                <Upload className="w-4 h-4 mr-2" /> Import / Export
               </Button>
             )}
             {hasPermission('customers', 'canAdd') && (

@@ -67,7 +67,7 @@ export function EcheanceDetailsModal({
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+              className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors rounded-full"
             >
               <X className="w-4 h-4" />
             </button>

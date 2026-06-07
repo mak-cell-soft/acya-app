@@ -177,7 +177,7 @@ export function WithholdingTaxModal({
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg text-sand-400 hover:text-sand-750 hover:bg-sand-100/50"
+            className="w-8 h-8 rounded-lg text-sand-400 hover:text-sand-750 hover:bg-sand-100/50 rounded-full"
           >
             <X className="w-4 h-4" />
           </Button>

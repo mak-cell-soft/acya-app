@@ -16,18 +16,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
-import { 
-  Loader2, 
-  Truck, 
-  Settings2, 
-  Calendar, 
+import {
+  Loader2,
+  Truck,
+  Settings2,
+  Calendar,
   Droplets,
   CreditCard,
   Building,
@@ -49,19 +49,19 @@ const parseSerialNumber = (serial: string | null | undefined) => {
     return { part1: '', serie: 'TU' as const, part2: '' };
   }
   const clean = serial.trim().toUpperCase();
-  
+
   if (/[T][U]/.test(clean)) {
     const parts = clean.split(/TU/);
     const part1 = parts[0]?.trim() || '';
     const part2 = parts[1]?.trim() || '';
     return { part1, serie: 'TU' as const, part2 };
   }
-  
+
   if (/[R][S]/.test(clean)) {
     const part1 = clean.replace(/RS/, '').trim();
     return { part1, serie: 'RS' as const, part2: '' };
   }
-  
+
   return { part1: clean, serie: 'TU' as const, part2: '' };
 };
 
@@ -81,7 +81,7 @@ const vehicleSchema = z.object({
   technicalvisitdate: z.date().optional().nullable(),
   drainingdate: z.date().optional().nullable(),
   draining: z.string().default(''),
-  fuelcardenterprise: z.string().default('SOCOFEB'),
+  fuelcardenterprise: z.string().default('Entreprise'),
   fuelcardconductor: z.string().optional().nullable(),
   fuelcardmatricule: z.string().optional().nullable(),
   fuelcardamount: z.number().optional().nullable(),
@@ -143,7 +143,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
       technicalvisitdate: null,
       drainingdate: null,
       draining: '',
-      fuelcardenterprise: 'SOCOFEB',
+      fuelcardenterprise: 'SOCOBOIS',
       fuelcardconductor: '',
       fuelcardmatricule: '',
       fuelcardamount: null,
@@ -155,7 +155,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
   const watchPart1 = watch('serialnumber_part1') || '';
   const watchSerie = watch('serialnumber_serie') || 'TU';
   const watchPart2 = watch('serialnumber_part2') || '';
-  
+
   const watchDraining = watch('draining') || '';
   const watchInsurance = watch('insurancedate');
   const watchTechVisit = watch('technicalvisitdate');
@@ -200,7 +200,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
           technicalvisitdate: vehicle.technicalvisitdate ? new Date(vehicle.technicalvisitdate) : null,
           drainingdate: vehicle.drainingdate ? new Date(vehicle.drainingdate) : null,
           draining: vehicle.draining || '',
-          fuelcardenterprise: vehicle.fuelcardenterprise || 'SOCOFEB',
+          fuelcardenterprise: vehicle.fuelcardenterprise || 'SOCOBOIS',
           fuelcardconductor: vehicle.fuelcardconductor || '',
           fuelcardmatricule: vehicle.fuelcardmatricule || vehicle.serialnumber || '',
           fuelcardamount: vehicle.fuelcardamount || null,
@@ -220,7 +220,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
           technicalvisitdate: null,
           drainingdate: null,
           draining: '',
-          fuelcardenterprise: 'SOCOFEB',
+          fuelcardenterprise: 'SOCOBOIS',
           fuelcardconductor: '',
           fuelcardmatricule: '',
           fuelcardamount: null,
@@ -366,7 +366,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
               <div className="space-y-2 md:col-span-5">
                 <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider">Marque & Modèle</Label>
-                <Input 
+                <Input
                   {...register('brand')}
                   placeholder="Ex: Toyota Hilux"
                   className="h-11 bg-sand-50/50 border-corp-blue-50 focus:ring-1 font-semibold"
@@ -379,7 +379,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                 <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider block">
                   Immatriculation (Matricule Tunisien)
                 </Label>
-                
+
                 <div className="grid grid-cols-12 gap-2 items-center bg-sand-50/20 p-1.5 rounded-2xl border border-corp-blue-50 shadow-inner">
                   {/* Part 1 (Left Number) */}
                   <div className="col-span-4 relative">
@@ -459,7 +459,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
               <div className="space-y-2">
                 <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider">Kilométrage Actuel</Label>
                 <div className="relative">
-                  <Input 
+                  <Input
                     {...register('mileage')}
                     type="number"
                     placeholder="Ex: 150000"
@@ -489,8 +489,8 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                       </span>
                     )}
                   </div>
-                  <DatePicker 
-                    date={watchInsurance || undefined} 
+                  <DatePicker
+                    date={watchInsurance || undefined}
                     setDate={(date) => setValue('insurancedate', date || null)}
                     placeholder="Sélectionner la date d'échéance"
                   />
@@ -505,8 +505,8 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                       </span>
                     )}
                   </div>
-                  <DatePicker 
-                    date={watchTechVisit || undefined} 
+                  <DatePicker
+                    date={watchTechVisit || undefined}
                     setDate={(date) => setValue('technicalvisitdate', date || null)}
                     placeholder="Sélectionner la prochaine visite"
                   />
@@ -523,8 +523,8 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider">Date Dernière Vidange</Label>
-                  <DatePicker 
-                    date={watchDrainDate || undefined} 
+                  <DatePicker
+                    date={watchDrainDate || undefined}
                     setDate={(date) => setValue('drainingdate', date || null)}
                     placeholder="Date de la dernière vidange"
                   />
@@ -537,7 +537,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                   <div className="grid grid-cols-2 gap-2 bg-white p-3 rounded-xl border border-corp-blue-50 shadow-sm max-h-36 overflow-y-auto">
                     {DRAINING_OPTIONS.map((option) => (
                       <div key={option} className="flex items-center gap-2 hover:bg-sand-50/50 p-1.5 rounded-lg transition-all">
-                        <Checkbox 
+                        <Checkbox
                           id={`drain-${option}`}
                           checked={isOptionSelected(option)}
                           onCheckedChange={(checked) => toggleDrainingOption(option, !!checked)}
@@ -569,8 +569,8 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                     <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider flex items-center gap-1.5">
                       Type / Fournisseur
                     </Label>
-                    <Select 
-                      value={watchFuelType || ""} 
+                    <Select
+                      value={watchFuelType || ""}
                       onValueChange={(val) => setValue('fuelcardtype', val)}
                     >
                       <SelectTrigger className="h-11 border-corp-blue-50 font-semibold text-corp-blue-900 shadow-sm">
@@ -588,7 +588,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                     <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider flex items-center gap-1.5">
                       <Building className="w-3.5 h-3.5 text-sand-400" /> Entreprise
                     </Label>
-                    <Input 
+                    <Input
                       value={watchFuelEnterprise || ''}
                       readOnly
                       className="h-11 bg-sand-100 cursor-not-allowed border-corp-blue-50 text-sand-500 font-bold"
@@ -625,7 +625,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                     <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider flex items-center gap-1.5">
                       <CreditCard className="w-3.5 h-3.5 text-sand-400" /> Numéro de la Carte
                     </Label>
-                    <Input 
+                    <Input
                       {...register('fuelcardnumber')}
                       placeholder="Ex: 1407 083580"
                       className="h-11 border-corp-blue-50 focus:ring-1 font-semibold text-corp-blue-900 shadow-sm"
@@ -638,7 +638,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                     <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider flex items-center gap-1.5">
                       <Hash className="w-3.5 h-3.5 text-sand-400" /> Matricule de la Carte
                     </Label>
-                    <Input 
+                    <Input
                       value={computedSerial || '---'}
                       readOnly
                       placeholder="Identique au matricule"
@@ -650,7 +650,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                     <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider flex items-center gap-1.5">
                       <Coins className="w-3.5 h-3.5 text-sand-400" /> Montant / Solde (TND)
                     </Label>
-                    <Input 
+                    <Input
                       {...register('fuelcardamount', { valueAsNumber: true })}
                       type="number"
                       placeholder="Ex: 500"
@@ -731,15 +731,15 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
 
           {/* Dialog Action Buttons */}
           <div className="flex gap-3 pt-6 border-t border-corp-blue-50 shrink-0">
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={onClose}
               className="flex-1 h-12 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50"
             >
               Annuler
             </Button>
-            <Button 
+            <Button
               disabled={loading}
               className="flex-[2] h-12 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20"
             >

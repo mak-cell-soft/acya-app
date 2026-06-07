@@ -359,16 +359,13 @@ export default function ProvidersPage() {
             <p className="text-sand-400 font-medium mt-1">Gérez vos sources d&apos;approvisionnement et vos dettes fournisseurs.</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="h-12 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 px-6">
-              <Download className="w-4 h-4 mr-2" /> Exporter
-            </Button>
             {hasPermission('providers', 'canAdd') && (
               <Button 
                 onClick={() => setIsImportOpen(true)}
                 variant="outline" 
                 className="h-12 rounded-xl border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 px-6"
               >
-                <Upload className="w-4 h-4 mr-2" /> Importer
+                <Upload className="w-4 h-4 mr-2" /> Import / Export
               </Button>
             )}
             {hasPermission('providers', 'canAdd') && (

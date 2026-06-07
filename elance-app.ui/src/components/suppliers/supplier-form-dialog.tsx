@@ -190,7 +190,7 @@ export function SupplierFormDialog({
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-4 top-4 sm:right-6 sm:top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
+            className="absolute rounded-full right-4 top-4 sm:right-6 sm:top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>

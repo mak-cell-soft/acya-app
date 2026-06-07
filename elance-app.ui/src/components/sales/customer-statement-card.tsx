@@ -172,12 +172,7 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
               </div>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
-              <Button 
-                onClick={() => refetch()}
-                className="bg-corp-blue-600 hover:bg-corp-blue-700 text-slate-900 font-bold h-11 px-6 rounded-lg flex-1 sm:flex-none shadow-md shadow-corp-blue-900/10"
-              >
-                Actualiser
-              </Button>
+              {/* Actualiser button removed as date changes automatically trigger refetch */}
               <Button
                 variant="outline"
                 size="icon"
@@ -345,7 +340,7 @@ export function CustomerStatementCard({ customer, isOpen, onClose }: CustomerSta
         <div className="p-6 border-t border-slate-200 flex justify-end bg-slate-100/30">
           <Button 
             onClick={onClose}
-            className="bg-corp-blue-900 hover:bg-corp-blue-950 text-slate-900 font-bold h-11 px-8 shadow-md shadow-corp-blue-900/10"
+            className="bg-corp-blue-100 hover:bg-corp-blue-200 text-corp-blue-900 font-bold h-11 px-8 shadow-sm"
           >
             Fermer
           </Button>

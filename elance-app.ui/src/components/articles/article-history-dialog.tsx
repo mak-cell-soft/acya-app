@@ -148,7 +148,7 @@ export function ArticleHistoryDialog({ isOpen, onClose, article }: ArticleHistor
           </div>
           <button 
             onClick={onClose}
-            className="absolute right-6 top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
+            className="absolute rounded-full right-6 top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
           >
             <X className="w-4 h-4" />
           </button>

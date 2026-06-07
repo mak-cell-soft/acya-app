@@ -11,8 +11,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEnterprise, useUpdateEnterprise } from '@/hooks/use-enterprise';
 import { DEVISES, JOB_DESCRIPTION } from '@/lib/constants/settings';
-import { Building2, UserCircle, Save, Loader2 } from 'lucide-react';
+import { Building2, UserCircle, Save, Loader2, BadgeInfo } from 'lucide-react';
 import { SitesSection } from './sites-section';
+import { TaxRegistrationDialog } from '@/components/shared/tax-registration-dialog';
 import { motion } from 'framer-motion';
 
 const enterpriseSchema = z.object({
@@ -37,6 +38,7 @@ type EnterpriseFormValues = z.infer<typeof enterpriseSchema>;
 export function EnterpriseTab() {
   const { data: enterprise, isLoading } = useEnterprise();
   const updateEnterprise = useUpdateEnterprise();
+  const [isTaxModalOpen, setIsTaxModalOpen] = React.useState(false);
 
   const {
     register,
@@ -169,21 +171,38 @@ export function EnterpriseTab() {
                     onValueChange={(val) => setValue('devise', val || '', { shouldDirty: true })}
                   >
                     <SelectTrigger className="h-12 rounded-xl bg-sand-50 border-corp-blue-100">
-                      <SelectValue placeholder="Choisir une devise" />
+                      <SelectValue placeholder="Choisir une devise">
+                        {watch('devise') ? DEVISES.find(d => d.key === watch('devise'))?.value : undefined}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {DEVISES.map((d) => (
-                        <SelectItem key={d.key} value={d.value}>{d.value}</SelectItem>
+                        <SelectItem key={d.key} value={d.key}>{d.value}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2.5 md:col-span-2">
                   <Label className="text-sm font-bold text-corp-blue-900">Matricule Fiscal</Label>
-                  <Input 
-                    {...register('matriculeFiscal')} 
-                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
-                  />
+                  <div className="relative group">
+                    <Input 
+                      {...register('matriculeFiscal')} 
+                      className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-mono font-medium cursor-pointer pr-12" 
+                      placeholder="Cliquez pour saisir le MF"
+                      readOnly
+                      onClick={() => setIsTaxModalOpen(true)}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 rounded-lg text-corp-blue-600 hover:bg-corp-blue-50"
+                      onClick={() => setIsTaxModalOpen(true)}
+                    >
+                      <BadgeInfo className="w-5 h-5" />
+                    </Button>
+                  </div>
+                  {errors.matriculeFiscal && <p className="text-xs text-red-500 font-medium">{errors.matriculeFiscal.message}</p>}
                 </div>
               </div>
             </CardContent>
@@ -283,6 +302,13 @@ export function EnterpriseTab() {
 
       {/* Sites Section */}
       <SitesSection enterpriseId={enterprise?.id || 1} />
+
+      <TaxRegistrationDialog 
+        isOpen={isTaxModalOpen}
+        onClose={() => setIsTaxModalOpen(false)}
+        onConfirm={(val) => setValue('matriculeFiscal', val, { shouldValidate: true, shouldDirty: true })}
+        initialValue={watch('matriculeFiscal')}
+      />
     </div>
   );
 }

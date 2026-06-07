@@ -314,7 +314,7 @@ export function WoodLengthsDialog({
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="border-corp-blue-100 hover:bg-corp-blue-50 font-bold" onClick={onClose}>
+            <Button variant="outline" className="border-corp-blue-100 hover:bg-corp-blue-50 font-bold rounded-full" onClick={onClose}>
               <X className="w-4 h-4 mr-2" /> Annuler
             </Button>
             <Button

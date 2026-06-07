@@ -14,10 +14,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Building2, Mail, Phone, MapPin, User, Briefcase, Plus, Trash2, ShieldCheck, Store, ArrowLeft, ArrowRight, Eye, EyeOff, FileText, CheckCircle2, Factory, Loader2 } from 'lucide-react';
+import { Building2, Mail, Phone, MapPin, User, Briefcase, Plus, Trash2, ShieldCheck, Store, ArrowLeft, ArrowRight, Eye, EyeOff, FileText, CheckCircle2, Factory, Loader2, BadgeInfo } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { TaxRegistrationDialog } from '@/components/shared/tax-registration-dialog';
 
 const siteSchema = z.object({
   address: z.string().min(1, "L'adresse est requise"),
@@ -66,11 +67,7 @@ const registrationSchema = z.object({
 
 type RegistrationFormValues = z.infer<typeof registrationSchema>;
 
-const devisesOptions = [
-  { key: 'TND', value: 'Dinar Tunisien (TND)' },
-  { key: 'EUR', value: 'Euro (€)' },
-  { key: 'USD', value: 'Dollar ($)' }
-];
+import { DEVISES } from '@/lib/constants/settings';
 
 const jobDescOptions = [
   { key: 'GERANT', value: 'Gérant' },
@@ -102,9 +99,11 @@ export default function EnterpriseRegistrationPage() {
   const [newSiteGov, setNewSiteGov] = useState('');
   const [newSiteIsForSale, setNewSiteIsForSale] = useState(false);
   const [isSiteDialogOpen, setIsSiteDialogOpen] = useState(false);
+  const [isTaxModalOpen, setIsTaxModalOpen] = useState(false);
 
   const { register, handleSubmit, control, formState: { errors }, setValue, watch } = useForm<RegistrationFormValues>({
     resolver: zodResolver(registrationSchema),
+    mode: 'onChange',
     defaultValues: {
       sites: [],
       isWoodSelling: false
@@ -301,7 +300,24 @@ export default function EnterpriseRegistrationPage() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
                         <div className="space-y-1.5">
                           <Label className=" flex items-center gap-2"><FileText size={14}/> Matricule Fiscal *</Label>
-                          <Input {...register("matriculeFiscal")} placeholder="Ex: 1234567/A/B/C/000" className="h-11 bg-slate-50/50" />
+                          <div className="relative group">
+                            <Input 
+                              {...register("matriculeFiscal")} 
+                              placeholder="Cliquez pour saisir le MF" 
+                              className="h-11 bg-slate-50/50 font-mono cursor-pointer pr-12" 
+                              readOnly
+                              onClick={() => setIsTaxModalOpen(true)}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg text-corp-blue-600 hover:bg-corp-blue-50"
+                              onClick={() => setIsTaxModalOpen(true)}
+                            >
+                              <BadgeInfo className="w-4 h-4" />
+                            </Button>
+                          </div>
                           {errors.matriculeFiscal && <p className="text-red-500 text-xs font-medium mt-1">{errors.matriculeFiscal.message}</p>}
                         </div>
                         <div className="space-y-1.5">
@@ -309,11 +325,11 @@ export default function EnterpriseRegistrationPage() {
                           <Select value={watch("devise")} onValueChange={(val: string | null) => { if (val) setValue("devise", val); }}>
                             <SelectTrigger className="h-11 bg-slate-50/50">
                               <SelectValue placeholder="Sélectionner une devise">
-                                {watch("devise") ? devisesOptions.find(opt => opt.key === watch("devise"))?.value : undefined}
+                                {watch("devise") ? DEVISES.find(opt => opt.key === watch("devise"))?.value : undefined}
                               </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                              {devisesOptions.map(opt => (
+                              {DEVISES.map(opt => (
                                 <SelectItem key={opt.key} value={opt.key}>{opt.value}</SelectItem>
                               ))}
                             </SelectContent>
@@ -679,6 +695,13 @@ export default function EnterpriseRegistrationPage() {
           </form>
         </Card>
       </motion.div>
+
+      <TaxRegistrationDialog 
+        isOpen={isTaxModalOpen}
+        onClose={() => setIsTaxModalOpen(false)}
+        onConfirm={(val) => setValue('matriculeFiscal', val, { shouldValidate: true })}
+        initialValue={watch('matriculeFiscal')}
+      />
     </div>
   );
 }

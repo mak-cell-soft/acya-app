@@ -47,6 +47,7 @@ import { documentService } from '@/services/components/document.service';
 import { merchandiseService } from '@/services/components/merchandise.service';
 import { exchangeRateService } from '@/services/components/exchange-rate.service';
 import { DocumentTypes, DocStatus, BillingStatus, LineType, ListOfLength } from '@/types/document';
+import { DEVISES } from '@/lib/constants/settings';
 import { Article } from '@/types/article';
 import { Supplier } from '@/types/customer';
 import { Transporter } from '@/types/settings';
@@ -114,7 +115,6 @@ function NewSupplierReceiptPageContent() {
   const { data: allArticles = [], isLoading: isLoadingArticles } = useArticles();
   const { data: allSites = [] } = useSites();
   const { data: allTvas = [] } = useAppVariables('Tva');
-  const { data: appvariablesRS = [] } = useAppVariables('RS'); // For withholding taxes
 
   // Active Storage Site Selection based on logged-in user default site ID
   const [selectedSite, setSelectedSite] = useState<any | null>(null);
@@ -142,13 +142,6 @@ function NewSupplierReceiptPageContent() {
   const [docDate, setDocDate] = useState<string>(new Date().toISOString().substring(0, 10));
   const [docCurrency, setDocCurrency] = useState<string>('TND');
   const [exchangeRate, setExchangeRate] = useState<number>(1.0);
-  const [selectedRS, setSelectedRS] = useState<any | null>(null); // Retenue à la Source
-
-  // Selected Retenue à la Source label for select box display
-  const selectedRSLabel = useMemo(() => {
-    if (!selectedRS) return 'Aucune retenue (0%)';
-    return `${selectedRS.name} (${selectedRS.value}%)`;
-  }, [selectedRS]);
 
   // 3. New Article Row State (For adding rows dynamically)
   const [newRowArticle, setNewRowArticle] = useState<Article | null>(null);
@@ -654,18 +647,16 @@ function NewSupplierReceiptPageContent() {
     const listTva = rows.reduce((acc, row) => acc + row.sellcostprice_taxValue, 0);
     const listTtc = rows.reduce((acc, row) => acc + row.totalWithTax, 0);
 
-    const rsValue = selectedRS ? (listTtc * (parseFloat(selectedRS.value || '0') / 100)) : 0;
-    const netPayable = listTtc - rsValue;
+    const netPayable = listTtc;
 
     return {
       netHT: parseFloat(listHTNet.toFixed(3)),
       discount: parseFloat(listDiscount.toFixed(3)),
       tva: parseFloat(listTva.toFixed(3)),
       ttc: parseFloat(listTtc.toFixed(3)),
-      rs: parseFloat(rsValue.toFixed(3)),
       payable: parseFloat(netPayable.toFixed(3))
     };
-  }, [rows, selectedRS]);
+  }, [rows]);
 
   // 13. Form Submission Validations
   const validateForm = () => {
@@ -766,7 +757,7 @@ function NewSupplierReceiptPageContent() {
         total_tva_doc: totals.tva,
         total_net_ttc: totals.ttc,
         total_net_payable: totals.payable,
-        withholdingtax: !!selectedRS,
+        withholdingtax: false,
         counterpart: selectedSupplier,
         sales_site: selectedSite,
         creationdate: new Date(docDate),
@@ -782,20 +773,6 @@ function NewSupplierReceiptPageContent() {
         currency: docCurrency,
         exchangeRate: exchangeRate
       };
-
-      // Add withholding tax (RS) holdingtax DTO if selected
-      if (selectedRS) {
-        documentPayload.holdingtax = {
-          id: 0,
-          description: selectedRS.name,
-          taxpercentage: parseFloat(selectedRS.value || '0'),
-          taxvalue: totals.rs,
-          newamountdocvalue: totals.payable,
-          issigned: false,
-          isdeleted: false,
-          updatedbyid: parseInt(user?.id || '0')
-        };
-      }
 
       console.log('Sending Document DTO to backend:', documentPayload);
 
@@ -1069,12 +1046,14 @@ function NewSupplierReceiptPageContent() {
                 <label className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest block font-mono">Devise *</label>
                 <Select onValueChange={(val) => handleCurrencyChange(val || 'TND')} value={docCurrency}>
                   <SelectTrigger className="h-11 rounded-xl border-slate-200 focus:ring-amber-900 bg-slate-50/50 text-xs font-bold text-slate-900">
-                    <SelectValue placeholder="TND" />
+                    <SelectValue placeholder="Devise">
+                      {docCurrency ? DEVISES.find(d => d.key === docCurrency)?.value : undefined}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-slate-200 font-bold text-xs">
-                    <SelectItem value="TND" className="font-bold text-xs">TND - Dinar Tunisien</SelectItem>
-                    <SelectItem value="EUR" className="font-bold text-xs">EUR - Euro</SelectItem>
-                    <SelectItem value="USD" className="font-bold text-xs">USD - Dollar US</SelectItem>
+                    {DEVISES.map(d => (
+                      <SelectItem key={d.key} value={d.key} className="font-bold text-xs">{d.value}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1112,58 +1091,19 @@ function NewSupplierReceiptPageContent() {
                 <span>TOTAL REMISES</span>
                 <span className="text-rose-400 font-medium">- {totals.discount.toFixed(3)} {docCurrency}</span>
               </div>
-              <div className="h-px bg-slate-800 my-1" />
-              <div className="flex justify-between items-center text-amber-50">
+              <div className="h-px bg-corp-blue-200 my-1" />
+              <div className="flex justify-between items-center text-corp-blue-800">
                 <span>TOTAL NET HT</span>
-                <span className="text-sm text-amber-400">{totals.netHT.toFixed(3)} {docCurrency}</span>
+                <span className="text-sm font-extrabold text-corp-blue-900">{totals.netHT.toFixed(3)} {docCurrency}</span>
               </div>
               <div className="flex justify-between items-center text-slate-600">
                 <span>TOTAL TVA</span>
                 <span className="text-sm">{totals.tva.toFixed(3)} {docCurrency}</span>
               </div>
-              <div className="h-px bg-slate-800 my-1" />
-              <div className="flex justify-between items-center text-white">
+              <div className="h-px bg-corp-blue-200 my-1" />
+              <div className="flex justify-between items-center text-corp-blue-950 font-extrabold">
                 <span>NET TTC</span>
-                <span className="text-base text-white">{totals.ttc.toFixed(3)} {docCurrency}</span>
-              </div>
-
-              {/* Optional RS holding taxes */}
-              <div className="space-y-2 pt-2 border-t border-corp-blue-100 animate-in fade-in duration-300">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-mono">Retenue à la Source (RS)</label>
-                <Select
-                  onValueChange={(val) => {
-                    if (val === 'none') {
-                      setSelectedRS(null);
-                    } else {
-                      const rs = appvariablesRS.find(r => r.id.toString() === val);
-                      setSelectedRS(rs || null);
-                    }
-                  }}
-                  value={selectedRS?.id?.toString() || 'none'}
-                >
-                  <SelectTrigger className="h-9 rounded-lg border-slate-700 bg-white/80 text-corp-blue-900 text-xs font-bold focus:ring-amber-900 w-full">
-                    <SelectValue placeholder="Aucune retenue">
-                      {selectedRSLabel}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-200 font-bold text-xs">
-                    <SelectItem value="none" label="Aucune retenue (0%)" className="font-bold text-xs text-rose-500">Aucune retenue (0%)</SelectItem>
-                    {appvariablesRS.map((rs) => {
-                      const label = `${rs.name} (${rs.value}%)`;
-                      return (
-                        <SelectItem key={rs.id} value={rs.id.toString()} label={label} className="font-bold text-xs">
-                          {label}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-                {selectedRS && (
-                  <div className="flex justify-between items-center text-rose-400 text-[11px] pt-1.5 animate-in slide-in-from-top-1">
-                    <span>Retenue appliquée ({selectedRS.value}%)</span>
-                    <span>- {totals.rs.toFixed(3)} {docCurrency}</span>
-                  </div>
-                )}
+                <span className="text-base text-corp-blue-950">{totals.ttc.toFixed(3)} {docCurrency}</span>
               </div>
 
               <div className="h-px bg-slate-800 my-1" />
