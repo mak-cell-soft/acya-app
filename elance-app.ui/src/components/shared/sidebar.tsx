@@ -257,7 +257,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           <item.icon className={cn("w-5 h-5 shrink-0", isActive ? "text-white" : "group-hover:text-corp-blue-600 transition-colors")} />
                           {!isCollapsed && <span className="whitespace-nowrap overflow-hidden">{item.name}</span>}
                         </div>
-                        {isActive && !isCollapsed && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)] shrink-0" />}
+                        {isActive && !isCollapsed && <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)] shrink-0" />}
                       </Link>
                     );
                   })}

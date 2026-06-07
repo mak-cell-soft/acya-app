@@ -393,7 +393,7 @@ export function DocumentDetailDrawer({
                               )}
                             </td>
                             <td className="px-4 py-4 text-center font-semibold text-sand-600 font-mono">
-                              {row.article?.tva?.value || 19}%
+                              {String(row.article?.tva?.value || 19).replace('%', '').trim()}%
                             </td>
                             <td className="px-6 py-4 text-right font-bold text-sand-900 font-mono">
                               {formatMoney(row.cost_ttc, doc.currency)}

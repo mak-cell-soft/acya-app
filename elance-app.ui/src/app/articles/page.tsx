@@ -185,9 +185,6 @@ export default function ArticlesPage() {
             <p className="text-sand-400 font-medium mt-1">Gérez votre catalogue de bois, panneaux et accessoires.</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="h-11 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 px-6">
-              <Download className="w-4 h-4 mr-2" /> Exporter
-            </Button>
             {hasPermission('articles', 'canAdd') && (
               <Button 
                 onClick={() => setIsImportOpen(true)}

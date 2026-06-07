@@ -202,7 +202,7 @@ export function DataImportDialog({
         className="w-full max-w-full sm:max-w-xl md:max-w-2xl p-0 overflow-hidden border-corp-blue-100 shadow-2xl rounded-none sm:rounded-2xl bg-white font-sans"
       >
         {/* PREMIUM FOREST GREEN HEADER BLOCK */}
-        <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
+        <DialogHeader className="border-b border-corp-blue-50 px-8 pt-8 pb-5 relative bg-gradient-to-b from-corp-blue-50/30 to-white">
           <div className="flex items-center gap-5">
             <div className="w-14 h-14 rounded-2xl bg-corp-blue-50 flex items-center justify-center border border-corp-blue-100 text-emerald-600 font-bold text-xl shadow-inner">
               <CloudUpload className="w-6 h-6" />
@@ -224,7 +224,7 @@ export function DataImportDialog({
           </button>
         </DialogHeader>
 
-        <div className="p-8">
+        <div className="p-8 pt-6">
           <AnimatePresence mode="wait">
             
             {/* PHASE 1: UPLOAD FORM */}
