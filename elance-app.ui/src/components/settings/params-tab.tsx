@@ -8,9 +8,11 @@ import { CategoryAccordion } from './category-accordion';
 import { BankTable } from './bank-table';
 import { TransporterTable } from './transporter-table';
 import { useAppVariables } from '@/hooks/use-app-variables';
+import { useEnterprise } from '@/hooks/use-enterprise';
 import { Percent, Ruler, Tags, Truck, Landmark, ShieldCheck } from 'lucide-react';
 
 export function ParamsTab() {
+  const { data: enterprise } = useEnterprise();
   const { data: tva } = useAppVariables('Tva');
   const { data: rs } = useAppVariables('RS');
   const { data: taxes } = useAppVariables('Taxe');
@@ -30,9 +32,11 @@ export function ParamsTab() {
           <TabsTrigger value="taxes" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-corp-blue-900 data-[state=active]:shadow-sm font-bold gap-2">
             <Percent className="w-4 h-4" /> Taxes & TVA
           </TabsTrigger>
-          <TabsTrigger value="dimensions" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-corp-blue-900 data-[state=active]:shadow-sm font-bold gap-2">
-            <Ruler className="w-4 h-4" /> Dimensions
-          </TabsTrigger>
+          {enterprise?.issalingwood !== false && (
+            <TabsTrigger value="dimensions" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-corp-blue-900 data-[state=active]:shadow-sm font-bold gap-2">
+              <Ruler className="w-4 h-4" /> Dimensions
+            </TabsTrigger>
+          )}
           <TabsTrigger value="categories" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-corp-blue-900 data-[state=active]:shadow-sm font-bold gap-2">
             <Tags className="w-4 h-4" /> Catégories
           </TabsTrigger>
@@ -70,18 +74,20 @@ export function ParamsTab() {
           </div>
         </TabsContent>
 
-        <TabsContent value="dimensions" className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <div className="grid lg:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <h4 className="text-corp-blue-900 font-bold">Épaisseurs & Largeurs (mm)</h4>
-              <DimensionTable nature="Dimension" data={dimensions} />
+        {enterprise?.issalingwood !== false && (
+          <TabsContent value="dimensions" className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="grid lg:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <h4 className="text-corp-blue-900 font-bold">Épaisseurs & Largeurs (mm)</h4>
+                <DimensionTable nature="Dimension" data={dimensions} />
+              </div>
+              <div className="space-y-4">
+                <h4 className="text-corp-blue-900 font-bold">Longueurs (cm)</h4>
+                <DimensionTable nature="Length" data={lengths || []} />
+              </div>
             </div>
-            <div className="space-y-4">
-              <h4 className="text-corp-blue-900 font-bold">Longueurs (cm)</h4>
-              <DimensionTable nature="Length" data={lengths || []} />
-            </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         <TabsContent value="categories" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
           <CategoryAccordion />
