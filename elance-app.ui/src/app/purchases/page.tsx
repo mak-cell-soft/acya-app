@@ -1016,6 +1016,17 @@ export default function PurchasesPage() {
                                         <FileText className="w-4 h-4 text-slate-500" /> Afficher Détails
                                       </DropdownMenuItem>
 
+                                      {/* Edit action — only for receipts */}
+                                      {activeTab === 'receipt' && !item.isinvoiced && hasPermission('purchases', 'canUpdate') && (
+                                        <DropdownMenuItem
+                                          onClick={() => router.push(`/purchases/receipt/${item.id}/edit`)}
+                                          className="gap-2 font-bold text-slate-800 cursor-pointer"
+                                        >
+                                          <Edit className="w-4 h-4 text-slate-500" /> Modifier BR
+                                        </DropdownMenuItem>
+                                      )}
+
+
                                       <DropdownMenuItem
                                         onClick={() => handleDownloadPdf(item)}
                                         className="gap-2 font-bold text-slate-800 cursor-pointer"
