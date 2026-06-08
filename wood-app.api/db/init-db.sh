@@ -19,29 +19,18 @@ fi
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c \
   "CREATE TABLE IF NOT EXISTS \"__EFMigrationsHistory\" (\"MigrationId\" varchar(150) NOT NULL PRIMARY KEY, \"ProductVersion\" varchar(32) NOT NULL);"
 
-# Run all version scripts in numerical order (v0.00, v0.01, ... v0.10)
-# Normalize dir names to lowercase for sort so V0.09 runs with v0.09 order
-BASE="/docker-entrypoint-initdb.d/wood"
-for version_dir in $(ls -d "$BASE"/*/ 2>/dev/null | while read d; do
-  v=$(basename "$d" | tr 'A-Z' 'a-z')
-  echo "$v $d"
-done | sort -V | cut -d' ' -f2-); do
-  if [ -d "$version_dir" ]; then
-    echo "Processing version: $(basename "$version_dir")"
-    # v0.10 seed data references idappuser=1 -> tbl_person(id). Ensure system user exists.
-    case "$(basename "$version_dir" | tr 'A-Z' 'a-z')" in
-      v0.10)
-        psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c \
-          "INSERT INTO tbl_person (id, fullname, isdeleted, isappuser) VALUES (1, 'System', false, true) ON CONFLICT (id) DO NOTHING; SELECT setval(pg_get_serial_sequence('tbl_person', 'id'), (SELECT COALESCE(MAX(id), 1) FROM tbl_person));" 2>/dev/null || true
-        ;;
-    esac
-    for sql_file in "$version_dir"/*.sql; do
-      if [ -f "$sql_file" ]; then
-        echo "Executing: $(basename "$sql_file")"
-        psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -f "$sql_file"
-      fi
-    done
-  fi
-done
+# Run the master EF Core migration script
+MASTER_SCRIPT="/docker-entrypoint-initdb.d/FullDb_Migration/full_migration.sql"
+if [ -f "$MASTER_SCRIPT" ]; then
+  echo "Executing master migration script: full_migration.sql"
+  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -f "$MASTER_SCRIPT"
+else
+  echo "Warning: Master migration script not found at $MASTER_SCRIPT"
+fi
+
+# Ensure system user exists (referenced by some app logic)
+echo "Seeding System user..."
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c \
+  "INSERT INTO tbl_person (id, fullname, isdeleted, isappuser) VALUES (1, 'System', false, true) ON CONFLICT (id) DO NOTHING; SELECT setval(pg_get_serial_sequence('tbl_person', 'id'), (SELECT COALESCE(MAX(id), 1) FROM tbl_person));" 2>/dev/null || true
 
 echo "Database initialization completed successfully!"

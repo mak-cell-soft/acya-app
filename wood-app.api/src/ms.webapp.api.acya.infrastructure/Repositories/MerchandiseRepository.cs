@@ -106,7 +106,10 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
           })
           .ToList();
 
-      var articleIds = dtoMerchandiseReferences.Select(x => x.ArticleId).ToList();
+      var articleIds = dtoMerchandiseReferences
+          .Where(x => x.ArticleId.HasValue)
+          .Select(x => x.ArticleId!.Value)
+          .ToList();
 
       var matchedMerchandises = await context.Merchandises
           .Include(m => m.Articles)
