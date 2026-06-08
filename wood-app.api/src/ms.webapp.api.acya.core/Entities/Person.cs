@@ -59,7 +59,14 @@ namespace ms.webapp.api.acya.core.Entities
       BirthDate = dto.birthdate;
       Cin = dto.cin;
       IdCnss = dto.idcnss;
-      Role = Enum.TryParse(dto.role.ToString(), out Roles parsedRole) ? parsedRole : Roles.Seller;
+      if (Enum.TryParse(dto.role.ToString(), out Roles parsedRole) && Enum.IsDefined(typeof(Roles), parsedRole))
+      {
+        Role = parsedRole;
+      }
+      else
+      {
+        Role = Roles.Seller;
+      }
       Address = dto.address;
       BirthTown = dto.birthtown;
       BankName= dto.bankname;

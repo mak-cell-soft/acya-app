@@ -113,6 +113,16 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
      */
     public AppUserDto MoveToAppUserDto()
     {
+      int parsedRoleValue = 20; // Default to Admin
+      if (Enum.TryParse<ms.webapp.api.acya.common.Roles>(this.role, true, out var parsedEnumRole))
+      {
+        parsedRoleValue = (int)parsedEnumRole;
+      }
+      else if (int.TryParse(this.role, out var parsedIntRole))
+      {
+        parsedRoleValue = parsedIntRole;
+      }
+
       return new AppUserDto
       {
         email = this.email,
@@ -123,8 +133,9 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         {
           lastname = this.name?.ToUpper() ?? string.Empty,
           firstname = this.surname,
-          role = int.TryParse(this.role, out var parsedRole) ? parsedRole : 0,
-          isappuser= true
+          role = parsedRoleValue,
+          isappuser = true,
+          guid = Guid.NewGuid().ToString()
         }
       };
     }
