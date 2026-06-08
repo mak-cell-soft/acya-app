@@ -108,7 +108,7 @@ export default function TeamPage() {
   const filteredPersons = useMemo(() => {
     if (!persons) return [];
     return persons.filter((p) => {
-      const fullname = `${p.firstname} ${p.lastname}`.toLowerCase();
+      const fullname = `${p.firstname || ''} ${p.lastname || ''}`.toLowerCase();
       const roleName = ROLE_LABELS[p.role]?.toLowerCase() || '';
       const matchText = searchTerm.toLowerCase();
       
@@ -127,7 +127,7 @@ export default function TeamPage() {
       const loginMatch = u.login.toLowerCase().includes(searchTerm.toLowerCase());
       const emailMatch = u.email.toLowerCase().includes(searchTerm.toLowerCase());
       const personMatch = u.person
-        ? `${u.person.firstname} ${u.person.lastname}`.toLowerCase().includes(searchTerm.toLowerCase())
+        ? `${u.person.firstname || ''} ${u.person.lastname || ''}`.toLowerCase().includes(searchTerm.toLowerCase())
         : false;
 
       return loginMatch || emailMatch || personMatch;
@@ -307,7 +307,7 @@ export default function TeamPage() {
                               <td className="p-5 pl-8">
                                 <div className="flex items-center gap-3">
                                   <div className="w-10 h-10 rounded-full bg-corp-blue-100/70 text-corp-blue-700 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
-                                    {item.firstname[0]}{item.lastname[0]}
+                                    {item.firstname?.[0]}{item.lastname?.[0]}
                                   </div>
                                   <div>
                                     <div className="font-bold text-corp-blue-900 text-sm flex items-center gap-2">
@@ -523,7 +523,7 @@ export default function TeamPage() {
                                 {item.person ? (
                                   <div className="flex items-center gap-2">
                                     <div className="w-6 h-6 rounded-full bg-corp-blue-50 text-corp-blue-700 flex items-center justify-center font-bold text-[0.65rem] uppercase">
-                                      {item.person.firstname[0]}{item.person.lastname[0]}
+                                      {item.person.firstname?.[0]}{item.person.lastname?.[0]}
                                     </div>
                                     <span className="font-semibold text-sm text-corp-blue-900">
                                       {item.person.firstname} {item.person.lastname}

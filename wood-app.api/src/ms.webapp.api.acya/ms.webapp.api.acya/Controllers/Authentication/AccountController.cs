@@ -145,11 +145,27 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
         else
         {
           user.Persons = new Person(registerDto.person);
+          user.Persons.IsAppUser = true;
         }
       }
       else if (registerDto.person != null)
       {
         user.Persons = new Person(registerDto.person);
+        user.Persons.IsAppUser = true;
+      }
+      else
+      {
+        user.Persons = new Person
+        {
+          Guid = Guid.NewGuid(),
+          Firstname = registerDto.login,
+          Lastname = "",
+          FullName = registerDto.login,
+          Role = Roles.User,
+          IsAppUser = true,
+          CreationDate = DateTime.Now,
+          UpdateDate = DateTime.Now
+        };
       }
 
       try
