@@ -1,4 +1,4 @@
-﻿CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
     "MigrationId" character varying(150) NOT NULL,
     "ProductVersion" character varying(32) NOT NULL,
     CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
@@ -400,12 +400,12 @@ CREATE TABLE tbl_merchandise (
     CONSTRAINT "FK_tbl_merchandise_tbl_article_articleid" FOREIGN KEY (articleid) REFERENCES tbl_article (id) ON DELETE RESTRICT
 );
 
-CREATE TABLE "tbl_document_merchandise" (
+CREATE TABLE "DocumentMerchandise" (
     "DocumentsId" integer NOT NULL,
     "MerchandisesId" integer NOT NULL,
-    CONSTRAINT "PK_tbl_document_merchandise" PRIMARY KEY ("DocumentsId", "MerchandisesId"),
-    CONSTRAINT "FK_tbl_document_merchandise_tbl_document_DocumentsId" FOREIGN KEY ("DocumentsId") REFERENCES tbl_document (id) ON DELETE CASCADE,
-    CONSTRAINT "FK_tbl_document_merchandise_tbl_merchandise_MerchandisesId" FOREIGN KEY ("MerchandisesId") REFERENCES tbl_merchandise (id) ON DELETE CASCADE
+    CONSTRAINT "PK_DocumentMerchandise" PRIMARY KEY ("DocumentsId", "MerchandisesId"),
+    CONSTRAINT "FK_DocumentMerchandise_tbl_document_DocumentsId" FOREIGN KEY ("DocumentsId") REFERENCES tbl_document (id) ON DELETE CASCADE,
+    CONSTRAINT "FK_DocumentMerchandise_tbl_merchandise_MerchandisesId" FOREIGN KEY ("MerchandisesId") REFERENCES tbl_merchandise (id) ON DELETE CASCADE
 );
 
 CREATE TABLE tbl_document_merchandise (
@@ -464,17 +464,17 @@ CREATE TABLE tbl_list_of_lengths (
     CONSTRAINT "FK_tbl_list_of_lengths_tbl_quantity_mouvements_quantitymouveme~" FOREIGN KEY (quantitymouvementid) REFERENCES tbl_quantity_mouvements (id) ON DELETE CASCADE
 );
 
-CREATE INDEX "IX_tbl_document_merchandise_MerchandisesId" ON "tbl_document_merchandise" ("MerchandisesId");
+CREATE INDEX "IX_DocumentMerchandise_MerchandisesId" ON "DocumentMerchandise" ("MerchandisesId");
 
 CREATE INDEX "IX_tbl_holding_tax_appusersid" ON tbl_holding_tax ("AppUsersId");
 
 CREATE INDEX "IX_tbl_account_ledger_counterpartid" ON tbl_account_ledger (counterpartid);
 
-CREATE UNIQUE INDEX "IX_tbl_app_user_enterpriseid" ON tbl_app_user (enterpriseid);
+CREATE INDEX "IX_tbl_app_user_enterpriseid" ON tbl_app_user (enterpriseid);
 
 CREATE INDEX "IX_tbl_app_user_idperson" ON tbl_app_user (idperson);
 
-CREATE UNIQUE INDEX "IX_tbl_app_user_idsalessite" ON tbl_app_user (idsalessite);
+CREATE INDEX "IX_tbl_app_user_idsalessite" ON tbl_app_user (idsalessite);
 
 CREATE INDEX "IX_tbl_article_idappuser" ON tbl_article (idappuser);
 
@@ -647,9 +647,9 @@ START TRANSACTION;
 
 ALTER TABLE tbl_holding_tax DROP CONSTRAINT fk_tbl_holding_tax_tbl_app_user;
 
-ALTER TABLE tbl_holding_tax DROP CONSTRAINT tbl_holding_tax_pkey;
+ALTER TABLE tbl_holding_tax DROP CONSTRAINT tbl_holding_tax_pkey CASCADE;
 
-ALTER TABLE tbl_holding_tax RENAME TO tbl_holding_tax;
+-- ALTER TABLE tbl_holding_tax RENAME TO tbl_holding_tax;
 
 ALTER TABLE tbl_holding_tax RENAME COLUMN "isSigned" TO issigned;
 
@@ -673,7 +673,7 @@ ALTER TABLE tbl_holding_tax RENAME COLUMN "AppUsersId" TO appusersid;
 
 ALTER TABLE tbl_holding_tax RENAME COLUMN "Id" TO id;
 
-ALTER INDEX "IX_tbl_holding_tax_appusersid" RENAME TO "IX_tbl_holding_tax_appusersid";
+-- ALTER INDEX "IX_tbl_holding_tax_appusersid" RENAME TO "IX_tbl_holding_tax_appusersid";
 
 ALTER TABLE tbl_document_merchandise ALTER COLUMN "QuantityDelivered" SET DEFAULT 0.0;
 
@@ -684,6 +684,8 @@ ALTER TABLE tbl_holding_tax ADD reference text NULL;
 ALTER TABLE tbl_holding_tax ADD CONSTRAINT tbl_holding_tax_pkey PRIMARY KEY (id);
 
 ALTER TABLE tbl_holding_tax ADD CONSTRAINT fk_tbl_holding_tax_tbl_app_user FOREIGN KEY (appusersid) REFERENCES tbl_app_user (id) ON DELETE RESTRICT;
+
+ALTER TABLE tbl_document ADD CONSTRAINT fk_tbl_document_tbl_holding_tax FOREIGN KEY (holdingtaxid) REFERENCES tbl_holding_tax (id) ON DELETE SET NULL;
 
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20260415131429_FixHoldingTaxMappingFinal', '7.0.20');
@@ -831,15 +833,15 @@ CREATE TABLE document_approvals (
     CONSTRAINT "FK_document_approvals_tbl_document_DocumentId" FOREIGN KEY ("document_id") REFERENCES tbl_document (id) ON DELETE CASCADE
 );
 
-CREATE UNIQUE INDEX "IX_approval_configs_EnterpriseId" ON approval_configs ("EnterpriseId");
+CREATE UNIQUE INDEX "IX_approval_configs_EnterpriseId" ON approval_configs ("enterprise_id");
 
-CREATE INDEX "IX_document_approvals_DecidedByUserId" ON document_approvals ("DecidedByUserId");
+CREATE INDEX "IX_document_approvals_DecidedByUserId" ON document_approvals ("decided_by_user_id");
 
 CREATE INDEX "IX_document_approvals_Decision" ON document_approvals ("Decision");
 
-CREATE INDEX "IX_document_approvals_DocumentId" ON document_approvals ("DocumentId");
+CREATE INDEX "IX_document_approvals_DocumentId" ON document_approvals ("document_id");
 
-CREATE INDEX "IX_document_approvals_SubmittedByUserId" ON document_approvals ("SubmittedByUserId");
+CREATE INDEX "IX_document_approvals_SubmittedByUserId" ON document_approvals ("submitted_by_user_id");
 
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20260430173740_AddApprovalWorkflow', '7.0.20');
@@ -925,49 +927,6 @@ INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20260505064255_AddHRFieldsToPerson', '7.0.20');
 
 COMMIT;
-
-START TRANSACTION;
-
-ALTER TABLE tbl_employee_payslips ALTER COLUMN netsalary TYPE numeric(18,3);
-
-ALTER TABLE tbl_employee_payslips ALTER COLUMN deductions TYPE numeric(18,3);
-
-ALTER TABLE tbl_employee_payslips ALTER COLUMN bonuses TYPE numeric(18,3);
-
-ALTER TABLE tbl_employee_payslips ALTER COLUMN basesalary TYPE numeric(18,3);
-
-ALTER TABLE tbl_employee_payslips ADD brutsalary numeric(18,3) NOT NULL DEFAULT 0.0;
-
-ALTER TABLE tbl_employee_payslips ADD cnssamount numeric(18,3) NOT NULL DEFAULT 0.0;
-
-ALTER TABLE tbl_employee_payslips ADD irppamount numeric(18,3) NOT NULL DEFAULT 0.0;
-
-INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-VALUES ('20260505064358_UpdatePayslipFields', '7.0.20');
-
-COMMIT;
-
-START TRANSACTION;
-
-ALTER TABLE tbl_employee_payslips ADD cssamount numeric(18,3) NOT NULL DEFAULT 0.0;
-
-INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-VALUES ('20260505064421_AddCssAmountToPayslip', '7.0.20');
-
-COMMIT;
-
-START TRANSACTION;
-
-ALTER TABLE tbl_app_user ADD "PasswordResetToken" text NULL;
-
-ALTER TABLE tbl_app_user ADD "PasswordResetTokenExpiry" timestamp without time zone NULL;
-
-INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-VALUES ('20260510132144_AddPasswordResetTokenToAppUser', '7.0.20');
-
-COMMIT;
-
-
 
 -- ==========================================
 -- APPENDED CUSTOM NON-EF MIGRATIONS
@@ -1063,7 +1022,7 @@ ALTER TABLE tbl_enterprise ADD COLUMN documentnumberingconfig text;
 ALTER TABLE tbl_stock ADD COLUMN minimumstock numeric(19,4) DEFAULT 0;
 
 -- Add reference column to tbl_holding_tax table
-ALTER TABLE tbl_holding_tax ADD COLUMN reference text;
+ALTER TABLE tbl_holding_tax ADD COLUMN IF NOT EXISTS reference text;
 
 -- Add total_credit_notes column to tbl_document table with default value of 0
 ALTER TABLE tbl_document ADD COLUMN total_credit_notes numeric(19,4) DEFAULT 0;
@@ -1255,5 +1214,48 @@ CREATE TABLE IF NOT EXISTS tbl_pending_notification (
     errormessage text
 );
 CREATE INDEX IF NOT EXISTS ix_tbl_pending_notification_targetgroup_status ON tbl_pending_notification USING btree (targetgroup, status);
+
+
+START TRANSACTION;
+
+ALTER TABLE tbl_employee_payslips ALTER COLUMN netsalary TYPE numeric(18,3);
+
+ALTER TABLE tbl_employee_payslips ALTER COLUMN deductions TYPE numeric(18,3);
+
+ALTER TABLE tbl_employee_payslips ALTER COLUMN bonuses TYPE numeric(18,3);
+
+ALTER TABLE tbl_employee_payslips ALTER COLUMN basesalary TYPE numeric(18,3);
+
+ALTER TABLE tbl_employee_payslips ADD brutsalary numeric(18,3) NOT NULL DEFAULT 0.0;
+
+ALTER TABLE tbl_employee_payslips ADD cnssamount numeric(18,3) NOT NULL DEFAULT 0.0;
+
+ALTER TABLE tbl_employee_payslips ADD irppamount numeric(18,3) NOT NULL DEFAULT 0.0;
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20260505064358_UpdatePayslipFields', '7.0.20');
+
+COMMIT;
+
+START TRANSACTION;
+
+ALTER TABLE tbl_employee_payslips ADD cssamount numeric(18,3) NOT NULL DEFAULT 0.0;
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20260505064421_AddCssAmountToPayslip', '7.0.20');
+
+COMMIT;
+
+START TRANSACTION;
+
+ALTER TABLE tbl_app_user ADD "PasswordResetToken" text NULL;
+
+ALTER TABLE tbl_app_user ADD "PasswordResetTokenExpiry" timestamp without time zone NULL;
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20260510132144_AddPasswordResetTokenToAppUser', '7.0.20');
+
+COMMIT;
+
 
 
