@@ -199,19 +199,19 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
       if (user == null) return Ok(new UserAuthDto
       {
         isSuccess = false,
-        message = "Email non valide",
+        message = "Email ou mot de passe non valide",
       });
 
       using var hmac = new HMACSHA512(user.PasswordSalt!);
       var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.password!));
 
-      for (int i = 0; i < computedHash.Length; i++)
+      if (!CryptographicOperations.FixedTimeEquals(computedHash, user.PasswordHash!))
       {
-        if (computedHash[i] != user.PasswordHash![i]) return Ok(new UserAuthDto
+        return Ok(new UserAuthDto
         {
           fullname = user.Persons!.FullName,
           isSuccess = false,
-          message = "Mot de passe non valide"
+          message = "Email ou mot de passe non valide"
         });
       }
 
@@ -236,14 +236,15 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
       var user = await _context.AppUsers.FirstOrDefaultAsync(u => u.Email == dto.Email);
       if (user == null) return Ok(new { message = "Si cet email existe, un code a été généré." });
 
-      user.PasswordResetToken = Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper();
+      var tokenBytes = new byte[4];
+      RandomNumberGenerator.Fill(tokenBytes);
+      user.PasswordResetToken = Convert.ToHexString(tokenBytes).ToUpper();
       user.PasswordResetTokenExpiry = DateTime.UtcNow.AddMinutes(15);
 
       await _context.SaveChangesAsync();
 
       return Ok(new
       {
-        token = user.PasswordResetToken,
         expiresAt = user.PasswordResetTokenExpiry,
         message = "Code de réinitialisation généré avec succès."
       });
