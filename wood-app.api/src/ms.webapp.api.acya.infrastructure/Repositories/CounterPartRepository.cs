@@ -49,14 +49,17 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
           return new List<CounterPartDto>();
       }
 
-      int enumIntValue = (int)enumValue;
-
       var allCP = await context.CounterParts
           .Include(cp => cp.Transporter)
           .ThenInclude(tr => tr!.Vehicle)
           .Where(cp => cp.IsDeleted != true)
-          .Where(cp => (int)cp.Type == enumIntValue)
+          .Where(cp => cp.Type == enumValue)
           .ToListAsync();
+
+      if (!allCP.Any())
+      {
+          return new List<CounterPartDto>();
+      }
 
       // WHY: Bulk-calculate current balances from the AccountLedger table to avoid N+1 query overhead.
       var counterpartIds = allCP.Select(cp => cp.Id).ToList();
@@ -102,6 +105,11 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       var allCP = await context.CounterParts
           .Where(cp => cp.IsDeleted == false)
           .ToListAsync();
+
+      if (!allCP.Any())
+      {
+          return new List<CounterPartDto>();
+      }
 
       // WHY: Bulk-calculate current balances from the AccountLedger table to avoid N+1 query overhead.
       var counterpartIds = allCP.Select(cp => cp.Id).ToList();
