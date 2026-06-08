@@ -8,282 +8,292 @@ import {
   MapPin,
   Calendar,
   Users,
-  Package,
-  TrendingUp,
-  Clock,
-  MoreVertical,
-  ChevronRight,
-  Building2,
   HardHat,
   LayoutGrid,
-  List,
-  AlertCircle,
-  Edit
+  Store,
+  TrendingUp,
+  Edit,
+  Share,
+  Info,
+  BarChart2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+
+import { GeneralTab } from './tabs/GeneralTab';
+import { EquipeTab } from './tabs/EquipeTab';
+import { ProductionTab } from './tabs/ProductionTab';
+import { MateriauxTab } from './tabs/MateriauxTab';
+import { MagasinTab } from './tabs/MagasinTab';
+import { SuiviTab } from './tabs/SuiviTab';
+import { StatsTab } from './tabs/StatsTab';
 
 const SITES = [
   {
     id: 1,
     name: 'Résidence El Mansour',
     location: 'Ennasr II, Tunis',
-    client: 'Sarl Immobilier Plus',
-    progress: 75,
-    status: 'In Progress',
-    startDate: '2026-01-10',
-    team: 12,
-    budget: 145000,
-    spent: 98000,
-    deliveries: 15
+    createdAt: '2026-01-10T10:00:00Z',
+    flag: 'green',
+    progressPercent: 75,
+    employees: Array(12).fill({}),
+    architect: { firstName: 'M. Ben Ammar' }
   },
   {
     id: 2,
     name: 'Villa Contemporaine',
     location: 'Gammarth',
-    client: 'Privé - M. Ben Ammar',
-    progress: 30,
-    status: 'In Progress',
-    startDate: '2026-03-20',
-    team: 6,
-    budget: 85000,
-    spent: 32000,
-    deliveries: 4
+    createdAt: '2026-03-20T10:00:00Z',
+    flag: 'orange',
+    progressPercent: 30,
+    employees: Array(6).fill({}),
+    architect: { firstName: 'S. Trabelsi' }
   },
   {
     id: 3,
     name: 'Rénovation Bureaux',
     location: 'Lac 1',
-    client: 'Global Tech TN',
-    progress: 100,
-    status: 'Completed',
-    startDate: '2025-11-05',
-    team: 4,
-    budget: 45000,
-    spent: 43500,
-    deliveries: 8
+    createdAt: '2025-11-05T10:00:00Z',
+    flag: 'green',
+    progressPercent: 100,
+    employees: Array(4).fill({}),
+    architect: { firstName: 'A. Kallel' }
   },
   {
     id: 4,
     name: 'Hôtel Le Sultan',
     location: 'Hammamet',
-    client: 'Groupe Touristique',
-    progress: 15,
-    status: 'Delayed',
-    startDate: '2026-04-15',
-    team: 25,
-    budget: 450000,
-    spent: 120000,
-    deliveries: 22
+    createdAt: '2026-04-15T10:00:00Z',
+    flag: 'red',
+    progressPercent: 15,
+    employees: Array(25).fill({}),
+    architect: null
   },
+];
+
+const TABS = [
+  { id: 0, label: 'Général', icon: Info },
+  { id: 1, label: 'Équipe', icon: Users },
+  { id: 2, label: 'Production', icon: HardHat },
+  { id: 3, label: 'Matériaux', icon: LayoutGrid },
+  { id: 4, label: 'Magasin', icon: Store },
+  { id: 5, label: 'Suivi', icon: TrendingUp },
+  { id: 6, label: 'Statistiques', icon: BarChart2 },
 ];
 
 export default function ChantiersPage() {
   const [selectedId, setSelectedId] = useState(1);
+  const [activeTab, setActiveTab] = useState(0);
+  
   const selectedSite = SITES.find(s => s.id === selectedId) || SITES[0];
 
   return (
     <DashboardLayout>
-      <div className="h-full flex flex-col space-y-8 animate-in fade-in duration-700">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-corp-blue-900 tracking-tight">Gestion des Chantiers</h1>
-            <p className="text-sand-400 font-medium mt-1">Suivi opérationnel, livraison de bois et avancement des projets.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button className="h-11 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20">
-              <Plus className="w-4 h-4 mr-2" /> Nouveau Chantier
+      <div className="flex h-[calc(100vh-120px)] bg-[#f8f9fa] -m-8 font-['Outfit',sans-serif] overflow-hidden">
+        
+        {/* Sidebar */}
+        <aside className="w-full md:w-[320px] bg-white border-r border-black/5 shadow-[4px_0_15px_rgba(0,0,0,0.02)] z-10 flex flex-col shrink-0">
+          <div className="p-6 border-b border-black/5">
+            <h2 className="m-0 text-[1.25rem] font-bold text-[#1a1a1a] tracking-tight">Mes Chantiers</h2>
+            <Button className="w-full mt-4 rounded-[10px] font-semibold bg-[#eff6ff] text-[#2563eb] hover:bg-[#dbeafe]">
+              <Plus className="w-4 h-4 mr-2" />
+              Nouveau Chantier
             </Button>
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Master List */}
-          <div className="lg:col-span-4 space-y-4">
-            <div className="relative mb-6">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400" />
-              <Input
-                placeholder="Rechercher un chantier..."
-                className="pl-10 h-12 rounded-2xl border-corp-blue-100 bg-white shadow-sm focus:ring-corp-blue-600"
-              />
-            </div>
-
-            <div className="space-y-3">
-              {SITES.map((site) => (
-                <motion.div
-                  key={site.id}
-                  whileHover={{ x: 4 }}
-                  onClick={() => setSelectedId(site.id)}
+          
+          <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2 custom-scrollbar">
+            {SITES.map((site) => (
+              <div
+                key={site.id}
+                onClick={() => setSelectedId(site.id)}
+                className={cn(
+                  "flex items-center p-4 rounded-xl cursor-pointer relative overflow-hidden transition-all duration-300 border border-transparent bg-white hover:bg-[#fdfdfd] hover:translate-x-1 hover:shadow-[0_4px_20px_rgba(0,0,0,0.03)]",
+                  selectedId === site.id && "bg-white border-[#2563eb] shadow-[0_8px_25px_rgba(37,99,235,0.1)]"
+                )}
+              >
+                {/* Status Indicator */}
+                <div 
                   className={cn(
-                    "p-4 rounded-2xl border transition-all duration-300 cursor-pointer group",
-                    selectedId === site.id
-                      ? "bg-corp-blue-900 border-corp-blue-900 text-white shadow-xl shadow-corp-blue-900/10"
-                      : "bg-white border-corp-blue-50 hover:border-corp-blue-200"
-                  )}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="font-bold text-sm line-clamp-1">{site.name}</div>
-                    <Badge className={cn(
-                      "text-[0.6rem] font-bold px-2 py-0.5 rounded-full",
-                      selectedId === site.id
-                        ? "bg-white/20 text-white border-transparent"
-                        : site.status === 'Completed' ? "bg-emerald-50 text-emerald-600" :
-                          site.status === 'Delayed' ? "bg-rose-50 text-rose-600" : "bg-blue-50 text-blue-600"
-                    )}>
-                      {site.status}
-                    </Badge>
+                    "absolute left-0 w-1 h-[60%] rounded-r-[4px]",
+                    site.flag === 'green' ? "bg-[#639922]" : 
+                    site.flag === 'orange' ? "bg-[#2563eb]" : "bg-[#e24b4a]"
+                  )} 
+                />
+                
+                {/* Site Info */}
+                <div className="flex-1 ml-3">
+                  <div className="font-semibold text-[#1a1a1a] text-[0.95rem] mb-1">{site.name}</div>
+                  <div className="text-[0.8rem] text-[#888780] flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5" />
+                    {site.location}
                   </div>
-                  <div className={cn(
-                    "flex items-center gap-2 text-[0.7rem] font-medium mb-3",
-                    selectedId === site.id ? "text-white/60" : "text-sand-400"
-                  )}>
-                    <MapPin className="w-3 h-3" /> {site.location}
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-[0.6rem] font-bold mb-1">
-                      <span>Progression</span>
-                      <span>{site.progress}%</span>
+                </div>
+                
+                {/* Progress Circle */}
+                <div className={cn(
+                  "w-[42px] h-[42px] rounded-full border-2 flex items-center justify-center text-xs font-bold transition-colors",
+                  selectedId === site.id 
+                    ? "border-[#2563eb] text-[#2563eb]" 
+                    : "border-[#f0f0f0] text-[#333]"
+                )}>
+                  {site.progressPercent}%
+                </div>
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        {/* Detail Content */}
+        <main className="flex-1 bg-[#fbfbfb] overflow-y-auto relative custom-scrollbar">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={selectedId}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+              className="p-8 max-w-[1200px] mx-auto"
+            >
+              {/* Page Header */}
+              <header className="mb-10">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-8 gap-5">
+                  <div>
+                    <h1 className="text-[2.5rem] font-extrabold text-[#1a1a1a] m-0 mb-2 tracking-tight">
+                      {selectedSite.name}
+                    </h1>
+                    <div className="flex items-center gap-3 text-[#888780] text-sm">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" /> {selectedSite.location}
+                      </span>
+                      <span>•</span>
+                      <span>
+                        Créé le {new Date(selectedSite.createdAt).toLocaleDateString('fr-FR', {
+                          day: 'numeric', month: 'short', year: 'numeric'
+                        })}
+                      </span>
                     </div>
-                    <div className={cn(
-                      "h-1.5 w-full rounded-full overflow-hidden",
-                      selectedId === site.id ? "bg-white/10" : "bg-sand-100"
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <Button className="rounded-[10px] px-5 font-semibold bg-[#eff6ff] text-[#2563eb] hover:bg-[#dbeafe]">
+                      <Edit className="w-4 h-4 mr-2" /> Modifier
+                    </Button>
+                    <Button className="rounded-[10px] px-5 font-semibold bg-[#eff6ff] text-[#2563eb] hover:bg-[#dbeafe]">
+                      <Share className="w-4 h-4 mr-2" /> Exporter
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Status Bar */}
+                <div className="flex flex-wrap md:flex-nowrap items-center bg-white rounded-2xl py-5 px-8 shadow-[0_4px_30px_rgba(0,0,0,0.03)] border border-black/5 gap-6 md:gap-10">
+                  <div className="flex flex-col gap-1 min-w-[120px]">
+                    <span className="text-[0.7rem] uppercase tracking-wider text-[#888780] font-bold">Drapeau</span>
+                    <div className="font-semibold text-[#1a1a1a] flex items-center gap-2">
+                      <div className={cn(
+                        "w-2.5 h-2.5 rounded-full",
+                        selectedSite.flag === 'green' ? "bg-[#639922]" : 
+                        selectedSite.flag === 'orange' ? "bg-[#f59e0b]" : "bg-[#e24b4a]"
+                      )} />
+                      {selectedSite.flag === 'green' ? 'Sain' : selectedSite.flag === 'orange' ? 'Attention' : 'Critique'}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1 min-w-[120px]">
+                    <span className="text-[0.7rem] uppercase tracking-wider text-[#888780] font-bold">Statut</span>
+                    <span className={cn(
+                      "font-semibold text-[0.85rem] px-2.5 py-0.5 rounded-md w-fit",
+                      selectedSite.progressPercent < 100 
+                        ? "bg-[#e1f5ee] text-[#1d9e75]" 
+                        : "bg-[#f0fdf4] text-[#166534] border border-[#bbf7d0]"
                     )}>
-                      <motion.div
+                      {selectedSite.progressPercent < 100 ? 'En cours' : 'Terminé'}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-1 min-w-[120px]">
+                    <span className="text-[0.7rem] uppercase tracking-wider text-[#888780] font-bold">Équipe</span>
+                    <span className="font-semibold text-[#1a1a1a]">{selectedSite.employees.length} employés</span>
+                  </div>
+
+                  <div className="flex flex-col gap-1 min-w-[120px]">
+                    <span className="text-[0.7rem] uppercase tracking-wider text-[#888780] font-bold">Architecte</span>
+                    <span className="font-semibold text-[#1a1a1a]">{selectedSite.architect?.firstName || 'Non assigné'}</span>
+                  </div>
+
+                  <div className="flex flex-col gap-1 flex-1 w-full mt-2 md:mt-0 order-10 md:order-none">
+                    <span className="text-[0.7rem] uppercase tracking-wider text-[#888780] font-bold">Avancement ({selectedSite.progressPercent}%)</span>
+                    <div className="w-full bg-[#f0f0f0] h-2 rounded-full mt-1 overflow-hidden">
+                      <motion.div 
+                        className="h-full bg-[#1a1a1a] rounded-full"
                         initial={{ width: 0 }}
-                        animate={{ width: `${site.progress}%` }}
-                        className={cn(
-                          "h-full rounded-full",
-                          selectedId === site.id ? "bg-white" : "bg-corp-blue-600"
-                        )}
+                        animate={{ width: `${selectedSite.progressPercent}%` }}
+                        transition={{ duration: 0.8, delay: 0.2 } as any}
                       />
                     </div>
                   </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
+                </div>
+              </header>
 
-          {/* Detail View */}
-          <div className="lg:col-span-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={selectedId}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4 }}
-              >
-                <Card className="border-corp-blue-100 shadow-xl shadow-corp-blue-900/5 rounded-2xl overflow-hidden bg-white">
-                  <div className="pt-8 pb-8 px-8">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                      <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-corp-blue-50 rounded-[18px] border border-corp-blue-100 flex items-center justify-center text-corp-blue-600 shrink-0 shadow-sm">
-                          <Building2 className="w-8 h-8" />
-                        </div>
-                        <div>
-                          <h2 className="text-2xl font-bold text-corp-blue-900">{selectedSite.name}</h2>
-                          <div className="flex items-center gap-4 mt-2">
-                            <div className="flex items-center gap-2 text-sm text-sand-400 font-medium">
-                              <Users className="w-4 h-4" /> {selectedSite.client}
-                            </div>
-                            <div className="w-1 h-1 bg-sand-200 rounded-full" />
-                            <div className="flex items-center gap-2 text-sm text-sand-400 font-medium">
-                              <Calendar className="w-4 h-4" /> Début: {new Date(selectedSite.startDate).toLocaleDateString('fr-TN')}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" className="border-corp-blue-100 text-corp-blue-600">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="outline" size="icon" className="border-corp-blue-100 text-corp-blue-600">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
+              {/* Tabs Nav */}
+              <nav className="flex gap-4 md:gap-8 border-b border-black/5 mb-8 overflow-x-auto pb-0.5 custom-scrollbar">
+                {TABS.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={cn(
+                        "py-3 px-1 text-[0.85rem] md:text-[0.95rem] font-semibold flex items-center gap-2 relative transition-all whitespace-nowrap",
+                        isActive ? "text-[#2563eb]" : "text-[#888780] hover:text-[#1a1a1a]"
+                      )}
+                    >
+                      <Icon className="w-5 h-5" />
+                      {tab.label}
+                      {isActive && (
+                        <motion.div 
+                          layoutId="activeTab"
+                          className="absolute bottom-[-1px] left-0 w-full h-[3px] bg-[#2563eb] rounded-t-sm" 
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                      <div className="bg-sand-50/50 p-5 rounded-2xl border border-corp-blue-50">
-                        <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                          <HardHat className="w-3 h-3" /> Effectif Terrain
-                        </div>
-                        <div className="text-xl font-bold text-corp-blue-900">{selectedSite.team} Ouvriers</div>
-                        <p className="text-[0.65rem] text-emerald-600 font-bold mt-1">Équipe active aujourd'hui</p>
-                      </div>
-                      <div className="bg-sand-50/50 p-5 rounded-2xl border border-corp-blue-50">
-                        <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                          <Package className="w-3 h-3" /> Livraisons Bois
-                        </div>
-                        <div className="text-xl font-bold text-corp-blue-900">{selectedSite.deliveries} Bons</div>
-                        <p className="text-[0.65rem] text-corp-blue-600 font-bold mt-1">Total livraisons BL</p>
-                      </div>
-                      <div className="bg-sand-50/50 p-5 rounded-2xl border border-corp-blue-50">
-                        <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                          <TrendingUp className="w-3 h-3" /> Consommation Budget
-                        </div>
-                        <div className="text-xl font-bold text-corp-blue-900">
-                          {Math.round((selectedSite.spent / selectedSite.budget) * 100)}%
-                        </div>
-                        <p className="text-[0.65rem] text-timber-600 font-bold mt-1">{selectedSite.spent.toLocaleString()} / {selectedSite.budget.toLocaleString()} TND</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between border-b border-corp-blue-50 pb-4">
-                        <h3 className="font-bold text-corp-blue-900">Dernières Livraisons</h3>
-                        <Button variant="link" className="text-corp-blue-600 font-bold text-xs h-auto p-0">Voir tout <ChevronRight className="w-3 h-3 ml-1" /></Button>
-                      </div>
-
-                      <div className="space-y-3">
-                        {[
-                          { ref: 'BL-2405-012', date: 'Hier, 14:20', items: 'Sapin du Nord (12 M³)', status: 'Recu' },
-                          { ref: 'BL-2405-008', date: '10 Mai, 09:15', items: 'Poutrelles H20 (45 pcs)', status: 'Recu' },
-                          { ref: 'BL-2404-098', date: '28 Avril, 16:45', items: 'Chêne Rouge (4 M³)', status: 'Recu' },
-                        ].map((delivery, i) => (
-                          <div key={i} className="flex items-center justify-between p-4 bg-white border border-corp-blue-50 rounded-2xl hover:border-corp-blue-200 transition-all">
-                            <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 rounded-xl bg-corp-blue-50 flex items-center justify-center text-corp-blue-600">
-                                <Package className="w-5 h-5" />
-                              </div>
-                              <div>
-                                <div className="text-sm font-bold text-corp-blue-900">{delivery.ref}</div>
-                                <div className="text-[0.65rem] text-sand-400 font-medium">{delivery.items}</div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-[0.7rem] font-bold text-sand-600">{delivery.date}</div>
-                              <Badge className="bg-emerald-50 text-emerald-600 border-none text-[0.6rem] font-bold mt-1">REÇU</Badge>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {selectedSite.status === 'Delayed' && (
-                      <div className="mt-8 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-start gap-4">
-                        <AlertCircle className="w-5 h-5 text-rose-600 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-bold text-rose-900">Retard identifié</p>
-                          <p className="text-xs text-rose-700 mt-1 font-medium">Ce chantier présente un retard de 12 jours sur le planning initial de gros œuvre.</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </div>
+              {/* Tab Content Placeholder */}
+              <div className="bg-white rounded-2xl p-8 border border-black/5 shadow-sm min-h-[400px]">
+                {activeTab === 0 && <GeneralTab site={selectedSite} />}
+                {activeTab === 1 && <EquipeTab site={selectedSite} />}
+                {activeTab === 2 && <ProductionTab site={selectedSite} />}
+                {activeTab === 3 && <MateriauxTab site={selectedSite} />}
+                {activeTab === 4 && <MagasinTab site={selectedSite} />}
+                {activeTab === 5 && <SuiviTab site={selectedSite} />}
+                {activeTab === 6 && <StatsTab site={selectedSite} />}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </main>
+        
+        <style dangerouslySetInnerHTML={{ __html: `
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.2);
+          }
+        `}} />
       </div>
     </DashboardLayout>
   );
 }
-
-
-
