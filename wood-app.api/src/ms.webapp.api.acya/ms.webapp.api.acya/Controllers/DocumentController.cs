@@ -1329,8 +1329,16 @@ namespace ms.webapp.api.acya.api.Controllers
             return BadRequest("Cannot edit an invoiced document.");
           }
 
+          bool impactsStock = doc.Type != DocumentTypes.supplierOrder 
+              && doc.Type != DocumentTypes.customerQuote
+              && doc.Type != DocumentTypes.customerOrder
+              && doc.Isservice != true;
+
           // Revert old stock impact before replacing merchandises
-          await _repository.revertStockByMerchandises(doc, appUser);
+          if (impactsStock)
+          {
+            await _repository.revertStockByMerchandises(doc, appUser);
+          }
 
           // Update basic fields
           doc.SupplierReference = dto.supplierReference;
@@ -1341,6 +1349,15 @@ namespace ms.webapp.api.acya.api.Controllers
           doc.TotalCostNetTTCDoc = Math.Round(dto.total_net_ttc, 3, MidpointRounding.AwayFromZero);
           doc.TotalCostDiscountDoc = Math.Round(dto.total_discount_doc, 3, MidpointRounding.AwayFromZero);
           doc.TotalCostTvaDoc = Math.Round(dto.total_tva_doc, 3, MidpointRounding.AwayFromZero);
+
+          // Handle SalesSite update (crucial for stock transfer on update)
+          if (dto.sales_site?.id > 0 && doc.SalesSiteId != dto.sales_site.id)
+          {
+            doc.SalesSite = await _context.SalesSites.FindAsync(dto.sales_site.id);
+            doc.SalesSiteId = dto.sales_site.id;
+            if (doc.SalesSite != null)
+              _context.Entry(doc.SalesSite).State = EntityState.Unchanged;
+          }
 
           // Process Merchandises
           // Remove existing DocumentMerchandises (they will be re-added from the DTO)
@@ -1470,7 +1487,10 @@ namespace ms.webapp.api.acya.api.Controllers
 
           // Update Stock and Length IDs
           await _repository.updateListOfIdsListOfLengths(doc);
-          await _repository.updateStockByMerchandises(doc);
+          if (impactsStock)
+          {
+            await _repository.updateStockByMerchandises(doc);
+          }
           #endregion
           
           /**
