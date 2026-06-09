@@ -198,9 +198,16 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
             throw new InvalidOperationException("Insufficient stock - operation would result in negative quantity");
           }
 
-          existingStock.UpdateDate = DateTime.UtcNow;
-          existingStock.Type = transaction.Type;
-          existingStock.SalesSiteId = transaction.SalesSites!.Id;
+          if (existingStock.Quantity == 0)
+          {
+            context.Stocks.Remove(existingStock);
+          }
+          else
+          {
+            existingStock.UpdateDate = DateTime.UtcNow;
+            existingStock.Type = transaction.Type;
+            existingStock.SalesSiteId = transaction.SalesSites!.Id;
+          }
           await context.SaveChangesAsync();
           return; // Success
         }
