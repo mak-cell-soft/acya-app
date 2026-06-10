@@ -11,11 +11,11 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Workflow
             builder.ToTable("document_approvals");
 
             builder.HasKey(x => x.Id);
-            builder.Property(x => x.Id).HasColumnName("id");
+            builder.Property(x => x.Id).HasColumnName("Id");
             builder.Property(x => x.DocumentId).HasColumnName("document_id");
             builder.Property(x => x.SubmittedByUserId).HasColumnName("submitted_by_user_id");
             builder.Property(x => x.DecidedByUserId).HasColumnName("decided_by_user_id");
-            builder.Property(x => x.Decision).HasColumnName("decision").HasConversion<int>();
+            builder.Property(x => x.Decision).HasColumnName("Decision").HasConversion<int>();
             builder.Property(x => x.RejectionReason).HasColumnName("rejection_reason");
             builder.Property(x => x.SubmittedAt).HasColumnName("submitted_at");
             builder.Property(x => x.DecidedAt).HasColumnName("decided_at");
