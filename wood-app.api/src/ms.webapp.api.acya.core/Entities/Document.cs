@@ -67,7 +67,7 @@ namespace ms.webapp.api.acya.core.Entities
 
     public ICollection<DocumentMerchandise> DocumentMerchandises { get; set; } = new HashSet<DocumentMerchandise>();
 
-    public int CounterPartId { get; set; }
+    public int? CounterPartId { get; set; }
     public CounterPart? CounterPart { get; set; }
     public bool IsDeleted { get; set; }
 

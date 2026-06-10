@@ -265,7 +265,7 @@ namespace ms.webapp.api.acya.api.Controllers
                             DocNumber = d.DocNumber ?? string.Empty,
                             Type = d.Type.ToString() ?? string.Empty,
                             CreationDate = d.CreationDate ?? DateTime.MinValue,
-                            CounterPartId = d.CounterPartId,
+                            CounterPartId = d.CounterPartId ?? 0,
                             CounterPartName = d.CounterPart != null 
                                 ? (d.CounterPart.FirstName + " " + d.CounterPart.LastName).Trim() 
                                 : "INCONNU",

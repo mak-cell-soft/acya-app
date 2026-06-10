@@ -259,7 +259,7 @@ CREATE TABLE tbl_document (
     holdingtaxid integer NULL,
     taxeid integer NULL,
     updatedbyid integer NULL,
-    counterpartid integer NOT NULL,
+    counterpartid integer NULL,
     isdeleted boolean NOT NULL DEFAULT FALSE,
     salessiteid integer NOT NULL,
     docstatus integer NOT NULL,

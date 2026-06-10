@@ -803,7 +803,7 @@ namespace ms.webapp.api.acya.api.Controllers
           {
               bool isSupplier = doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt || doc.Type == DocumentTypes.supplierInvoiceReturn;
               await _accountService.AddLedgerEntryAsync(
-                  doc.CounterPartId, 
+                  doc.CounterPartId ?? 0, 
                   doc.Type.ToString()!, 
                   (decimal)doc.TotalCostNetTTCDoc, 
                   doc.Id, 
@@ -832,9 +832,9 @@ namespace ms.webapp.api.acya.api.Controllers
           {
               string lastTxType = doc.Type.ToString()!;
               if (doc.CounterPart?.Type == CounterPartType.Customer)
-                  await _balanceService.UpdateCustomerBalanceAsync(doc.CounterPartId, lastTxType, DateTime.UtcNow);
+                  await _balanceService.UpdateCustomerBalanceAsync(doc.CounterPartId ?? 0, lastTxType, DateTime.UtcNow);
               else
-                  await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId, lastTxType, DateTime.UtcNow);
+                  await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId ?? 0, lastTxType, DateTime.UtcNow);
           }
 
           // §5.15 — Auto-submit si BC dépasse le seuil d'approbation configuré
@@ -912,9 +912,9 @@ namespace ms.webapp.api.acya.api.Controllers
         {
             string lastTxType = doc.Type.ToString()!;
             if (doc.CounterPart?.Type == CounterPartType.Customer)
-                await _balanceService.UpdateCustomerBalanceAsync(doc.CounterPartId, lastTxType, DateTime.UtcNow);
+                await _balanceService.UpdateCustomerBalanceAsync(doc.CounterPartId ?? 0, lastTxType, DateTime.UtcNow);
             else
-                await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId, lastTxType, DateTime.UtcNow);
+                await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId ?? 0, lastTxType, DateTime.UtcNow);
         }
 
         return Ok();
@@ -1140,9 +1140,9 @@ namespace ms.webapp.api.acya.api.Controllers
         if (invoice.CounterPartId > 0)
         {
           if (invoice.CounterPart?.Type == CounterPartType.Customer)
-            await _balanceService.UpdateCustomerBalanceAsync(invoice.CounterPartId, "mouvement", DateTime.UtcNow);
+            await _balanceService.UpdateCustomerBalanceAsync(invoice.CounterPartId ?? 0, "mouvement", DateTime.UtcNow);
           else
-            await _balanceService.UpdateSupplierBalanceAsync(invoice.CounterPartId, "mouvement", DateTime.UtcNow);
+            await _balanceService.UpdateSupplierBalanceAsync(invoice.CounterPartId ?? 0, "mouvement", DateTime.UtcNow);
         }
 
         // Return the created invoice with a 201 Created status
@@ -1477,7 +1477,7 @@ namespace ms.webapp.api.acya.api.Controllers
               await _accountService.DeleteLedgerEntryAsync(doc.Id, docTypeStr);
                bool isSupplier = doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt || doc.Type == DocumentTypes.supplierInvoiceReturn;
                await _accountService.AddLedgerEntryAsync(
-                   doc.CounterPartId, 
+                   doc.CounterPartId ?? 0, 
                    docTypeStr, 
                    (decimal)doc.TotalCostNetTTCDoc, 
                    doc.Id, 
@@ -1505,9 +1505,9 @@ namespace ms.webapp.api.acya.api.Controllers
           {
               string lastTxType = doc.Type.ToString()!;
               if (doc.CounterPart?.Type == CounterPartType.Customer)
-                  await _balanceService.UpdateCustomerBalanceAsync(doc.CounterPartId, lastTxType, DateTime.UtcNow);
+                  await _balanceService.UpdateCustomerBalanceAsync(doc.CounterPartId ?? 0, lastTxType, DateTime.UtcNow);
               else
-                  await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId, lastTxType, DateTime.UtcNow);
+                  await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId ?? 0, lastTxType, DateTime.UtcNow);
           }
 
           return Ok(new { message = "Document updated successfully" });
@@ -1860,7 +1860,7 @@ namespace ms.webapp.api.acya.api.Controllers
               var history = new PurchasePriceHistory
               {
                   ArticleId = articleId,
-                  CounterPartId = doc.CounterPartId,
+                  CounterPartId = doc.CounterPartId ?? 0,
                   PriceValue = dm.UnitPriceHT,
                   TransactionDate = doc.CreationDate ?? DateTime.UtcNow,
                   DocumentId = doc.Id,
@@ -1885,7 +1885,7 @@ namespace ms.webapp.api.acya.api.Controllers
               var history = new SalesPriceHistory
               {
                   ArticleId = articleId,
-                  CounterPartId = doc.CounterPartId,
+                  CounterPartId = doc.CounterPartId ?? 0,
                   PriceValue = dm.UnitPriceHT,
                   TransactionDate = doc.CreationDate ?? DateTime.UtcNow,
                   DocumentId = doc.Id,

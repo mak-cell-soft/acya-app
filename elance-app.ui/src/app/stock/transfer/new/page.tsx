@@ -159,12 +159,15 @@ function NewStockTransferContent() {
       if (originSite) {
         // Retrieve stock details for chosen article using site ID
         const siteStocks = await stockService.getBySite({ id: originSite.id });
-        // NOTE: Standard C# StockQuantityDto properties are flat mapping: articleId and stockQuantity
-        const matchingStock = siteStocks.find((s: any) => s.articleId === article.id);
+        // NOTE: Backend StockQuantityDto uses PascalCase by default (.NET serialization).
+        // We handle both casings here to be safe against serializer configuration changes.
+        const matchingStock = siteStocks.find((s: any) =>
+          (s.ArticleId ?? s.articleId) === article.id
+        );
         if (matchingStock) {
-          availableQty = matchingStock.stockQuantity || 0;
-          allowNegativeStock = matchingStock.allowNegativeStock || false;
-          merchandiseId = matchingStock.merchandiseId || 0;
+          availableQty = matchingStock.StockQuantity ?? matchingStock.stockQuantity ?? 0;
+          allowNegativeStock = matchingStock.AllowNegativeStock ?? matchingStock.allowNegativeStock ?? false;
+          merchandiseId = matchingStock.MerchandiseId ?? matchingStock.merchandiseId ?? 0;
         }
       }
     } catch (err) {
@@ -249,9 +252,12 @@ function NewStockTransferContent() {
       const originSite = allSites.find(s => s.id.toString() === originSiteId);
       if (originSite) {
         const siteStocks = await stockService.getBySite({ id: originSite.id });
-        const matchingStock = siteStocks.find((s: any) => s.articleId === row.selectedArticle?.id);
+        // NOTE: Handle both PascalCase (.NET default) and camelCase serialization.
+        const matchingStock = siteStocks.find((s: any) =>
+          (s.ArticleId ?? s.articleId) === row.selectedArticle?.id
+        );
         if (matchingStock) {
-          merchandiseId = matchingStock.merchandiseId;
+          merchandiseId = matchingStock.MerchandiseId ?? matchingStock.merchandiseId ?? 0;
         }
       }
     } catch (e) {

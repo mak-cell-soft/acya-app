@@ -90,7 +90,7 @@ namespace ms.webapp.api.acya.api.Controllers
             bool isSupplier = document.Type == DocumentTypes.supplierInvoice || document.Type == DocumentTypes.supplierReceipt || document.Type == DocumentTypes.supplierInvoiceReturn;
             string description = $"Retenue à la source ({document.HoldingTaxes.TaxPercentage}%) - document {document.DocNumber}";
             await _accountService.AddLedgerEntryAsync(
-                document.CounterPartId,
+                document.CounterPartId ?? 0,
                 "RS",
                 (decimal)document.HoldingTaxes.TaxValue,
                 document.HoldingTaxes.Id,
@@ -99,7 +99,7 @@ namespace ms.webapp.api.acya.api.Controllers
             );
 
             // Update persistent balance
-            var counterpart = await _context.CounterParts.FindAsync(document.CounterPartId);
+            var counterpart = await _context.CounterParts.FindAsync(document.CounterPartId ?? 0);
             if (counterpart != null)
             {
                 if (counterpart.Type == ms.webapp.api.acya.common.CounterPartType.Customer)
@@ -144,7 +144,7 @@ namespace ms.webapp.api.acya.api.Controllers
                 await _accountService.DeleteLedgerEntryAsync(oldHoldingTaxId.Value, "RS");
                 
                 // Update persistent balance
-                var counterpart = await _context.CounterParts.FindAsync(document.CounterPartId);
+                var counterpart = await _context.CounterParts.FindAsync(document.CounterPartId ?? 0);
                 if (counterpart != null)
                 {
                     if (counterpart.Type == ms.webapp.api.acya.common.CounterPartType.Customer)

@@ -68,7 +68,7 @@ namespace ms.webapp.api.acya.api.Services
                 .GroupBy(d => new { d.CounterPartId, d.CounterPartName })
                 .Select(g => new TopCounterPartDto
                 {
-                    Id = g.Key.CounterPartId,
+                    Id = g.Key.CounterPartId ?? 0,
                     Name = string.IsNullOrWhiteSpace(g.Key.CounterPartName) ? "Inconnu" : g.Key.CounterPartName,
                     TotalAmount = (decimal)g.Sum(d => d.TotalCostNetTTCDoc)
                 })

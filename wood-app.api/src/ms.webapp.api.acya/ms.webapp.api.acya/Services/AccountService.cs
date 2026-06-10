@@ -262,7 +262,7 @@ namespace ms.webapp.api.acya.api.Services
         }
         public async Task SyncLedgerForInvoiceAsync(Document invoice)
         {
-            if (invoice == null || invoice.CounterPartId <= 0) return;
+            if (invoice == null || (invoice.CounterPartId ?? 0) <= 0) return;
 
             bool isSupplier = invoice.Type == DocumentTypes.supplierInvoice || invoice.Type == DocumentTypes.supplierReceipt;
 
@@ -288,7 +288,7 @@ namespace ms.webapp.api.acya.api.Services
 
             // 3. Add a SINGLE ledger entry for the invoice itself
             await AddLedgerEntryAsync(
-                invoice.CounterPartId,
+                invoice.CounterPartId ?? 0,
                 invoice.Type.ToString()!,
                 (decimal)invoice.TotalCostNetTTCDoc * (decimal)(invoice.ExchangeRate),
                 invoice.Id,
@@ -324,7 +324,7 @@ namespace ms.webapp.api.acya.api.Services
                     
                     // Add document entry
                     await AddLedgerEntryAsync(
-                        doc.CounterPartId, 
+                        doc.CounterPartId ?? 0, 
                         doc.Type.ToString()!, 
                         Math.Round((decimal)doc.TotalCostNetTTCDoc * (decimal)(doc.ExchangeRate), 3, MidpointRounding.AwayFromZero), 
                         doc.Id, 
@@ -335,7 +335,7 @@ namespace ms.webapp.api.acya.api.Services
                     if (doc.WithHoldingTax && doc.HoldingTaxes != null)
                     {
                         await AddLedgerEntryAsync(
-                            doc.CounterPartId,
+                            doc.CounterPartId ?? 0,
                             "RS",
                             Math.Round((decimal)doc.HoldingTaxes.TaxValue * (decimal)(doc.ExchangeRate), 3, MidpointRounding.AwayFromZero),
                             doc.HoldingTaxes.Id,
