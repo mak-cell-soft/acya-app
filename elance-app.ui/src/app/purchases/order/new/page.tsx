@@ -842,7 +842,9 @@ function NewSupplierOrderPageContent() {
                   value={docStatus.toString()}
                 >
                   <SelectTrigger className="h-11 rounded-xl border-slate-200 focus:ring-amber-900 bg-slate-50/50 text-xs font-bold text-slate-900">
-                    <SelectValue />
+                    <SelectValue placeholder="Sélectionner le statut...">
+                      {getStatusLabel(docStatus)}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-slate-200 font-bold text-xs">
                     <SelectItem value={DocStatus.Pending.toString()} className="font-bold text-xs">En attente</SelectItem>
@@ -858,7 +860,9 @@ function NewSupplierOrderPageContent() {
                 <label className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest block font-mono">Devise *</label>
                 <Select onValueChange={(val) => handleCurrencyChange(val || 'TND')} value={docCurrency}>
                   <SelectTrigger className="h-11 rounded-xl border-slate-200 focus:ring-amber-900 bg-slate-50/50 text-xs font-bold text-slate-900">
-                    <SelectValue placeholder="TND" />
+                    <SelectValue placeholder="TND">
+                      {docCurrency === 'TND' ? 'TND - Dinar Tunisien' : docCurrency === 'EUR' ? 'EUR - Euro' : 'USD - Dollar US'}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-slate-200 font-bold text-xs">
                     <SelectItem value="TND" className="font-bold text-xs">TND - Dinar Tunisien</SelectItem>
@@ -906,11 +910,11 @@ function NewSupplierOrderPageContent() {
             <CardContent className="p-6 space-y-4 font-mono text-xs font-bold">
               
               {selectedSupplier && (
-                <div className="bg-slate-800/50 border border-slate-700/50 p-3.5 rounded-xl text-slate-600 font-medium mb-2 space-y-1">
-                  <span className="text-[0.65rem] uppercase text-slate-400 font-bold block">Fournisseur sélectionné :</span>
-                  <div className="text-xs text-white font-bold">{selectedSupplier.name}</div>
-                  <div className="text-[10px] text-slate-400">{selectedSupplier.address || 'Aucune adresse renseignée'}</div>
-                  <div className="text-[10px] text-slate-400">Tél : {selectedSupplier.phonenumberone || 'Pas de numéro'}</div>
+                <div className="bg-amber-50/50 border border-amber-200/50 p-3.5 rounded-xl text-amber-900 font-medium mb-2 space-y-1">
+                  <span className="text-[0.65rem] uppercase text-amber-600 font-bold block">Fournisseur sélectionné :</span>
+                  <div className="text-xs text-amber-950 font-bold">{selectedSupplier.name}</div>
+                  <div className="text-[10px] text-amber-700">{selectedSupplier.address || 'Aucune adresse renseignée'}</div>
+                  <div className="text-[10px] text-amber-700">Tél : {selectedSupplier.phonenumberone || 'Pas de numéro'}</div>
                 </div>
               )}
 
@@ -922,10 +926,10 @@ function NewSupplierOrderPageContent() {
                 <span>TOTAL TVA</span>
                 <span className="text-sm">{totals.tva.toFixed(3)} {docCurrency}</span>
               </div>
-              <div className="h-px bg-slate-800 my-1" />
-              <div className="flex justify-between items-center text-white">
+              <div className="h-px bg-corp-blue-200 my-1" />
+              <div className="flex justify-between items-center text-corp-blue-950">
                 <span>NET TTC TOTAL</span>
-                <span className="text-base text-white">{totals.ttc.toFixed(3)} {docCurrency}</span>
+                <span className="text-base font-black">{totals.ttc.toFixed(3)} {docCurrency}</span>
               </div>
 
               {/* Base currency TND display if multi-currency active */}

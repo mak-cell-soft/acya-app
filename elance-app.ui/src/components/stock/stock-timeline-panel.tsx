@@ -232,7 +232,7 @@ export function StockTimelinePanel() {
       )}
 
       {/* Dynamic parameters Filter card */}
-      <Card className="bg-stone-50/50 dark:bg-stone-900/40 border-stone-200/60 dark:border-stone-800/60 rounded-2xl shadow-sm relative z-50">
+      <Card className="bg-stone-50/50 dark:bg-stone-900/40 border-stone-200/60 dark:border-stone-800/60 rounded-2xl shadow-sm relative z-50 overflow-visible">
         <CardHeader className="border-b border-stone-200/45 dark:border-stone-800/45 pb-4">
           <CardTitle className="text-xs font-bold text-stone-900 dark:text-stone-50 uppercase tracking-widest flex items-center gap-2">
             <History className="h-4 w-4 text-amber-500" /> Options de Traçabilité

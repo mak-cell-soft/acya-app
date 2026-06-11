@@ -26,7 +26,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { DatePicker } from '@/components/ui/date-picker';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { TablePagination } from '@/components/shared/table-pagination';
 import {
   Dialog,
@@ -101,9 +102,7 @@ export function DashboardContent() {
   const isAdmin = user?.role === 'Admin';
   
   // ── STATE MANAGEMENT ──
-  // selectedDate filters the dashboard payments list
-  const [selectedDate, setSelectedDate] = React.useState<Date>(new Date());
-  // timelineDate filters the movements in the horizontal caisse track
+  // timelineDate filters both the movements in the horizontal caisse track and the dashboard payments list
   const [timelineDate, setTimelineDate] = React.useState<Date>(new Date());
   // Caisse action state: ENTREE or SORTIE movement dialog
   const [movementModalType, setMovementModalType] = React.useState<'ENTREE' | 'SORTIE' | null>(null);
@@ -128,9 +127,9 @@ export function DashboardContent() {
   const { data: movements = [], isLoading: isMovementsLoading } = useCaisseMovements(siteId, 100, timelineDate);
   const { data: approLimit } = useCaisseApproLimit(siteId);
 
-  // Payments filtering based on selected date and user permissions
+  // Payments filtering based on timeline date and user permissions
   const { data: payments = [], isLoading: isPaymentsLoading } = useDashboardPayments(
-    selectedDate, 
+    timelineDate, 
     user?.id ? Number(user.id) : undefined, 
     'customer'
   );
@@ -485,6 +484,39 @@ export function DashboardContent() {
         </div>
       </header>
 
+      {/* ── SHORTCUTS CONTAINER ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        {[
+          { title: 'Clients', icon: Users, path: '/customers', color: 'text-blue-600 bg-blue-50 border-blue-100/50' },
+          { title: 'Fournisseurs', icon: Truck, path: '/suppliers', color: 'text-amber-600 bg-amber-50 border-amber-100/50' },
+          { title: 'Ventes', icon: ShoppingCart, path: '/sales', color: 'text-emerald-600 bg-emerald-50 border-emerald-100/50' },
+          { title: 'Comptabilité', icon: FileText, path: '/accounting', color: 'text-purple-600 bg-purple-50 border-purple-100/50' },
+          { title: 'Paramètres', icon: Settings, path: '/settings', disabled: !isAdmin, color: 'text-sand-400 bg-sand-50 border-sand-100/50' }
+        ].map((item, i) => (
+          <motion.div
+            key={item.title}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 + 0.1, duration: 0.4 }}
+          >
+            <Card 
+              onClick={() => !item.disabled && router.push(item.path)}
+              className={cn(
+                "border border-transparent bg-white shadow-none rounded-[16px] cursor-pointer group transition-all duration-300",
+                item.disabled ? "opacity-60 cursor-not-allowed" : "hover:border-corp-blue-600 hover:-translate-y-0.5 hover:shadow-md hover:shadow-corp-blue-900/5"
+              )}
+            >
+              <CardContent className="p-3 flex flex-row items-center justify-start text-left gap-3">
+                <div className={cn("w-10 h-10 shrink-0 rounded-xl flex items-center justify-center", item.color)}>
+                  <item.icon className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] lg:text-[11px] font-bold text-corp-blue-900 uppercase tracking-wider truncate">{item.title}</span>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
       {/* ── CAISSE SECTION (GLASSMORPHISM / EDITORIAL LUXURY) ── */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -548,13 +580,26 @@ export function DashboardContent() {
                     <ChevronLeft className="w-5 h-5" />
                   </Button>
 
-                  <div className={cn(
-                    "px-3 py-1.5 rounded-lg border text-xs font-bold flex items-center gap-1.5",
-                    isTimelineToday ? "bg-corp-blue-50 border-corp-blue-100 text-corp-blue-800" : "bg-white border-border text-sand-400"
-                  )}>
-                    <Calendar className="w-3.5 h-3.5" />
-                    {isTimelineToday ? "Aujourd'hui" : format(timelineDate, 'EEE dd MMM yyyy', { locale: fr })}
-                  </div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className={cn(
+                        "px-3 py-1.5 rounded-lg border text-xs font-bold flex items-center gap-1.5 hover:opacity-80 transition-opacity",
+                        isTimelineToday ? "bg-corp-blue-50 border-corp-blue-100 text-corp-blue-800" : "bg-white border-border text-sand-400"
+                      )}>
+                        <Calendar className="w-3.5 h-3.5" />
+                        {isTimelineToday ? "Aujourd'hui" : format(timelineDate, 'EEE dd MMM yyyy', { locale: fr })}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 rounded-2xl border-corp-blue-100 shadow-2xl" align="center">
+                      <CalendarComponent
+                        mode="single"
+                        selected={timelineDate}
+                        onSelect={(d) => d && setTimelineDate(d)}
+                        autoFocus
+                        locale={fr}
+                      />
+                    </PopoverContent>
+                  </Popover>
 
                   <Button 
                     variant="ghost" 
@@ -683,38 +728,6 @@ export function DashboardContent() {
         </Card>
       </motion.div>
 
-      {/* ── SHORTCUTS CONTAINER ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-        {[
-          { title: 'Clients', icon: Users, path: '/customers', color: 'text-blue-600 bg-blue-50 border-blue-100/50' },
-          { title: 'Fournisseurs', icon: Truck, path: '/suppliers', color: 'text-amber-600 bg-amber-50 border-amber-100/50' },
-          { title: 'Ventes', icon: ShoppingCart, path: '/sales', color: 'text-emerald-600 bg-emerald-50 border-emerald-100/50' },
-          { title: 'Comptabilité', icon: FileText, path: '/accounting', color: 'text-purple-600 bg-purple-50 border-purple-100/50' },
-          { title: 'Paramètres', icon: Settings, path: '/settings', disabled: !isAdmin, color: 'text-sand-400 bg-sand-50 border-sand-100/50' }
-        ].map((item, i) => (
-          <motion.div
-            key={item.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 + 0.2, duration: 0.5 }}
-          >
-            <Card 
-              onClick={() => !item.disabled && router.push(item.path)}
-              className={cn(
-                "border border-transparent bg-white shadow-none rounded-[20px] cursor-pointer group transition-all duration-300",
-                item.disabled ? "opacity-60 cursor-not-allowed" : "hover:border-corp-blue-600 hover:-translate-y-1 hover:shadow-lg hover:shadow-corp-blue-900/5"
-              )}
-            >
-              <CardContent className="p-5 flex flex-col items-center justify-center text-center gap-3">
-                <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", item.color)}>
-                  <item.icon className="w-6 h-6" />
-                </div>
-                <span className="text-xs font-bold text-corp-blue-900 uppercase tracking-widest">{item.title}</span>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
 
       {/* ── PAYMENTS SECTION ── */}
       <motion.div
@@ -732,10 +745,7 @@ export function DashboardContent() {
               </h2>
             </div>
             
-            {/* Filter Datepicker */}
-            <div className="w-56">
-              <DatePicker date={selectedDate} setDate={(d) => d && setSelectedDate(d)} />
-            </div>
+            {/* Filter Datepicker removed, now synchronized with the timeline date */}
           </div>
 
           {/* Totals Summary */}

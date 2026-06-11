@@ -20,6 +20,16 @@ import {
   PopoverTrigger,
   PopoverContent
 } from '@/components/ui/popover';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
 import { useAuthStore } from '@/store/use-auth-store';
 import { useSites } from '@/hooks/use-enterprise';
 import { useTransporters } from '@/hooks/use-transporters';
@@ -105,6 +115,7 @@ function NewStockTransferContent() {
   const [printTransfer, setPrintTransfer] = useState<StockTransferInfo | null>(null);
   const [printDetails, setPrintDetails] = useState<StockTransferDetails[] | null>(null);
   const [showPrintDialog, setShowPrintDialog] = useState<boolean>(false);
+  const [showConfirmSubmit, setShowConfirmSubmit] = useState<boolean>(false);
 
   // Set default origin site based on user defaultSiteId once sites are loaded
   useEffect(() => {
@@ -310,7 +321,7 @@ function NewStockTransferContent() {
   };
 
   // Main Submit Validation
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handlePreSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!originSiteId || isNaN(parseInt(originSiteId))) {
@@ -338,43 +349,43 @@ function NewStockTransferContent() {
       return;
     }
 
+    // Validate quantities and stock availability before submitting
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row.selectedArticle) {
+        toast.error(`Veuillez sélectionner un article pour la ligne ${i + 1}.`);
+        return;
+      }
+      if (row.quantity <= 0) {
+        toast.error(`Veuillez spécifier une quantité supérieure à 0 pour la ligne ${i + 1}.`);
+        return;
+      }
+
+      // Origin stock validation unless negative stock is explicitly allowed
+      if (row.quantity > row.stock_quantity && !row.allownegativstock) {
+        toast.error(`Quantité demandée (${row.quantity}) supérieure au stock disponible (${row.stock_quantity}) pour la ligne ${i + 1}.`);
+        return;
+      }
+
+      // Validate merchandiseId presence to avoid backend validation error (id == 0)
+      if (!row.merchandiseId || row.merchandiseId === 0) {
+        toast.error(`L'article ${row.selectedArticle.reference} n'a pas de stock initial dans ce dépôt (merchandiseId introuvable).`);
+        return;
+      }
+
+      if (row.isWoodArticle && row.listLengths.length === 0) {
+        toast.error(`Veuillez spécifier les longueurs pour l'article Bois à la ligne ${i + 1}.`);
+        return;
+      }
+    }
+
+    setShowConfirmSubmit(true);
+  };
+
+  const executeSubmit = async () => {
+    setShowConfirmSubmit(false);
     try {
       setLoading(true);
-
-      // Validate quantities and stock availability before submitting
-      for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
-        if (!row.selectedArticle) {
-          toast.error(`Veuillez sélectionner un article pour la ligne ${i + 1}.`);
-          setLoading(false);
-          return;
-        }
-        if (row.quantity <= 0) {
-          toast.error(`Veuillez spécifier une quantité supérieure à 0 pour la ligne ${i + 1}.`);
-          setLoading(false);
-          return;
-        }
-
-        // Origin stock validation unless negative stock is explicitly allowed
-        if (row.quantity > row.stock_quantity && !row.allownegativstock) {
-          toast.error(`Quantité demandée (${row.quantity}) supérieure au stock disponible (${row.stock_quantity}) pour la ligne ${i + 1}.`);
-          setLoading(false);
-          return;
-        }
-
-        // Validate merchandiseId presence to avoid backend validation error (id == 0)
-        if (!row.merchandiseId || row.merchandiseId === 0) {
-          toast.error(`L'article ${row.selectedArticle.reference} n'a pas de stock initial dans ce dépôt (merchandiseId introuvable).`);
-          setLoading(false);
-          return;
-        }
-
-        if (row.isWoodArticle && row.listLengths.length === 0) {
-          toast.error(`Veuillez spécifier les longueurs pour l'article Bois à la ligne ${i + 1}.`);
-          setLoading(false);
-          return;
-        }
-      }
 
       // Build C# StockTransferDto payload
       const merchandisesItems = rows.map((row) => {
@@ -507,7 +518,7 @@ function NewStockTransferContent() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <form onSubmit={handlePreSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         {/* Logistics and Destination Config card */}
         <div className="lg:col-span-4 space-y-6">
@@ -657,7 +668,7 @@ function NewStockTransferContent() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-11 bg-stone-900 hover:bg-stone-800 dark:bg-stone-50 dark:hover:bg-stone-200 dark:text-stone-900 text-white font-semibold text-xs uppercase tracking-wider gap-2 shadow-sm transition-all"
+              className="w-full h-11 bg-sky-500 hover:bg-sky-600 dark:bg-sky-500 dark:hover:bg-sky-600 text-white font-semibold text-xs uppercase tracking-wider gap-2 shadow-sm transition-all"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
               Enregistrer le Transfert
@@ -855,6 +866,39 @@ function NewStockTransferContent() {
           onSave={handleSaveLengths}
         />
       )}
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmSubmit} onOpenChange={setShowConfirmSubmit}>
+        <AlertDialogContent className="rounded-[24px] border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950 max-w-md p-8">
+          <div className="flex flex-col items-center text-center space-y-4">
+            <div className="w-16 h-16 bg-sky-50 dark:bg-sky-900/20 text-sky-500 rounded-full flex items-center justify-center mb-2">
+              <Check className="h-8 w-8 stroke-[2.5]" />
+            </div>
+            
+            <AlertDialogTitle className="text-2xl font-bold text-stone-900 dark:text-stone-50">
+              Confirmer le Transfert
+            </AlertDialogTitle>
+            
+            <AlertDialogDescription className="text-stone-500 dark:text-stone-400 text-[13px] leading-relaxed px-4">
+              Vous êtes sur le point d'enregistrer ce bon de transfert. Les stocks du dépôt origine seront décrémentés et le dépôt de destination recevra ces marchandises.
+              <br/><br/>
+              Confirmez-vous cette opération logistique ?
+            </AlertDialogDescription>
+          </div>
+
+          <div className="mt-8 flex flex-col sm:flex-row justify-center gap-3 w-full">
+            <AlertDialogCancel className="h-12 flex-1 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-900 m-0">
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={executeSubmit}
+              className="h-12 flex-1 rounded-xl bg-sky-500 hover:bg-sky-600 dark:bg-sky-500 dark:hover:bg-sky-600 text-white text-[11px] font-bold uppercase tracking-wider m-0"
+            >
+              Confirmer et Valider
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Print Option Dialog */}
       <PrintVariantDialog
