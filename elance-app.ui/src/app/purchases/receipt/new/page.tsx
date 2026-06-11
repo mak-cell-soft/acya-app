@@ -44,6 +44,7 @@ import { useArticles } from '@/hooks/use-articles';
 import { useSites } from '@/hooks/use-enterprise';
 import { useAppVariables } from '@/hooks/use-app-variables';
 import { documentService } from '@/services/components/document.service';
+import { articleService } from '@/services/components/article.service';
 import { merchandiseService } from '@/services/components/merchandise.service';
 import { exchangeRateService } from '@/services/components/exchange-rate.service';
 import { DocumentTypes, DocStatus, BillingStatus, LineType, ListOfLength } from '@/types/document';
@@ -177,6 +178,24 @@ function NewSupplierReceiptPageContent() {
   }, [selectedTransporter]);
 
   const [newRowIsLoadingRef, setNewRowIsLoadingRef] = useState(false);
+  const [isLoadingLastPrice, setIsLoadingLastPrice] = useState(false);
+
+  useEffect(() => {
+    if (newRowArticle) {
+      setIsLoadingLastPrice(true);
+      articleService.getLastPurchasePrice(newRowArticle.id)
+        .then((price: number) => {
+          const lastPrice = price > 0 ? price : (newRowArticle.lastpurchaseprice_ttc || 0);
+          setNewRowUnitPrice(parseFloat(Number(lastPrice).toFixed(3)));
+        })
+        .catch(() => {
+          setNewRowUnitPrice(parseFloat(Number(newRowArticle.lastpurchaseprice_ttc || 0).toFixed(3)));
+        })
+        .finally(() => setIsLoadingLastPrice(false));
+    } else {
+      setNewRowUnitPrice(0);
+    }
+  }, [newRowArticle]);
 
   // Loaded articles filtering
   const filteredArticlesList = useMemo(() => {
@@ -1208,7 +1227,6 @@ function NewSupplierReceiptPageContent() {
                             setNewRowArticle(art);
                             setNewRowArticleSearch(`${art.reference} - ${art.description || ''}`);
                             setIsArticleDropdownOpen(false);
-                            setNewRowUnitPrice(art.sellprice_ht || 0);
                             setNewRowDescription(art.description || '');
                             setNewRowQuantity(0);
                             setNewRowDiscount(0);
@@ -1506,9 +1524,7 @@ function NewSupplierReceiptPageContent() {
                                 <div>
                                   <span className="font-bold text-slate-900 block">{row.selectedArticle?.reference}</span>
                                   <span className="text-slate-500 text-[11px] block">{row.selectedArticle?.description}</span>
-                                  {row.description && (
-                                    <span className="text-slate-400 text-[10px] italic">Note: {row.description}</span>
-                                  )}
+
                                 </div>
                               )}
                             </td>

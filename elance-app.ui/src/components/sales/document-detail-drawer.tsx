@@ -300,12 +300,20 @@ export function DocumentDetailDrawer({
                             })}
                           </span>
                         </div>
+                        {doc.supplierReference && (
+                          <div className="flex justify-between">
+                            <span className="text-sand-400">Réf. Fournisseur:</span>
+                            <span className="font-mono font-bold text-sand-800">
+                              {doc.supplierReference}
+                            </span>
+                          </div>
+                        )}
                         {doc.sales_site && (
                           <div className="flex justify-between">
-                            <span className="text-sand-400">Dépôt / Site:</span>
-                            <span className="font-medium text-sand-700 flex items-center gap-1">
-                              <Building className="w-3.5 h-3.5 text-sand-400" />
-                              {doc.sales_site.gov}
+                            <span className="text-sand-400 shrink-0 mr-4">Dépôt / Site:</span>
+                            <span className="font-medium text-sand-700 flex items-center justify-end text-right gap-1 line-clamp-2">
+                              <Building className="w-3.5 h-3.5 text-sand-400 shrink-0" />
+                              {doc.sales_site.gov} {doc.sales_site.address ? `- ${doc.sales_site.address}` : ''}
                             </span>
                           </div>
                         )}

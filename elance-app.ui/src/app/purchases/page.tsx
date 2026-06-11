@@ -117,7 +117,7 @@ export default function PurchasesPage() {
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>('all');
 
   // Active Tab: Commandes, Réceptions, Factures, Avoirs
-  const [activeTab, setActiveTab] = useState<string>('invoice');
+  const [activeTab, setActiveTab] = useState<string>('receipt');
 
   // Selected Receipts (BRs) for Batch Invoicing
   const [selectedReceiptIds, setSelectedReceiptIds] = useState<number[]>([]);
@@ -743,7 +743,9 @@ export default function PurchasesPage() {
 
                       <th className="p-4">N° Document</th>
 
-                      {activeTab === 'invoice' && <th className="p-4">Réf. Fournisseur</th>}
+                      {(activeTab === 'invoice' || activeTab === 'receipt') && (
+                        <th className="p-4">{activeTab === 'invoice' ? 'Réf. Fournisseur' : 'Réf. BL Fournisseur'}</th>
+                      )}
 
                       <th className="p-4">Date</th>
                       <th className="p-4">Fournisseur</th>
@@ -762,7 +764,7 @@ export default function PurchasesPage() {
                     {isLoading ? (
                       <tr>
                         <td
-                          colSpan={activeTab === 'invoice' ? 11 : activeTab === 'receipt' ? 9 : activeTab === 'order' ? 8 : 7}
+                          colSpan={activeTab === 'invoice' ? 11 : activeTab === 'receipt' ? 10 : activeTab === 'order' ? 8 : 7}
                           className="py-24 text-center text-slate-400 italic"
                         >
                           Chargement des documents d&apos;achat en cours...
@@ -828,7 +830,7 @@ export default function PurchasesPage() {
                                 </span>
                               </td>
 
-                              {activeTab === 'invoice' && (
+                              {(activeTab === 'invoice' || activeTab === 'receipt') && (
                                 <td className="p-4">
                                   <span className="font-mono font-medium text-slate-500">
                                     {item.supplierReference || '--'}
