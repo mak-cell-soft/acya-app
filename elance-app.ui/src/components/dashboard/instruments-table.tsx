@@ -32,6 +32,7 @@ import { usePaymentInstruments, useCreateBordereau, useDisburseInstruments, useD
 import { useBanks } from '@/hooks/use-banks';
 import { useAuthStore } from '@/store/use-auth-store';
 import { paymentService } from '@/services/components/payment.service';
+import { useAppVariables } from '@/hooks/use-app-variables';
 
 export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
   const [tab, setTab] = React.useState<'pending' | 'versed'>('pending');
@@ -53,6 +54,8 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
   const [selectedBankId, setSelectedBankId] = React.useState<string>('');
   const [notes, setNotes] = React.useState('');
   const [nextReference, setNextReference] = React.useState<string | null>(null);
+  const [selectedTva, setSelectedTva] = React.useState<number>(19);
+  const { data: tvas = [] } = useAppVariables('Tva');
 
   const handleTabChange = (val: 'pending' | 'versed') => {
     setTab(val);
@@ -136,6 +139,29 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
       .filter(i => selectedIds.includes(i.id))
       .reduce((sum, i) => sum + i.amount, 0);
   }, [instruments, selectedIds]);
+
+  const selectedBank = React.useMemo(() => {
+    return banks.find((b: any) => b.id.toString() === selectedBankId);
+  }, [banks, selectedBankId]);
+
+  const bankFeeHT = React.useMemo(() => {
+    if (!selectedBank || selectedIds.length === 0) return 0;
+    const selectedInstruments = instruments.filter(i => selectedIds.includes(i.id));
+    
+    return selectedInstruments.reduce((totalFee, inst) => {
+      let fee = 0;
+      switch (inst.type?.toUpperCase()) {
+        case 'CHEQUE': fee = selectedBank.chequeDepositFeeHT || 0; break;
+        case 'TRAITE': fee = selectedBank.traiteDepositFeeHT || 0; break;
+        case 'VIREMENT': fee = selectedBank.wireTransferFeeHT || 0; break;
+        default: fee = selectedBank.miscFeeHT || 0; break;
+      }
+      return totalFee + fee;
+    }, 0);
+  }, [selectedBank, instruments, selectedIds]);
+
+  const bankFeeTTC = bankFeeHT * (1 + selectedTva / 100);
+  const netAmount = selectedTotal - bankFeeTTC;
 
   return (
     <Card className="border-corp-blue-100/50 bg-white shadow-none rounded-xl overflow-hidden">
@@ -335,7 +361,7 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
               {side === 'Supplier' ? 'Décaisser les Paiements' : 'Créer un Bordereau'}
             </DialogTitle>
             <DialogDescription className="text-sand-400 font-medium">
-              {side === 'Supplier' ? 'Décaissement de ' : 'Remise en banque de '}{selectedIds.length} instrument(s) pour un total de <strong className="text-corp-blue-700">{selectedTotal.toFixed(3)} TND</strong>.
+              {side === 'Supplier' ? 'Décaissement de ' : 'Remise en banque de '}{selectedIds.length} instrument(s) pour un montant brut de <strong className="text-corp-blue-700">{selectedTotal.toFixed(3)} TND</strong>.
             </DialogDescription>
             {nextReference && side !== 'Supplier' && (
               <div className="mt-3 bg-corp-blue-50/50 border border-corp-blue-100 rounded-lg p-3 flex items-center justify-between">
@@ -353,19 +379,29 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
               <Select value={selectedBankId} onValueChange={(val: string | null) => setSelectedBankId(val as string)}>
                 <SelectTrigger className="h-12 rounded-xl border-corp-blue-100 focus:ring-corp-blue-600/20 focus:border-corp-blue-600">
                   <SelectValue placeholder="Sélectionnez une banque">
-                    {selectedBankId 
-                      ? `${banks.find(b => b.id.toString() === selectedBankId)?.designation || ''} - ${banks.find(b => b.id.toString() === selectedBankId)?.rib || ''}` 
-                      : "Sélectionnez une banque"}
+                    <span className="block truncate max-w-[calc(100vw-8rem)] sm:max-w-[380px]">
+                      {selectedBankId 
+                        ? `${banks.find((b: any) => b.id.toString() === selectedBankId)?.reference || ''} - ${banks.find((b: any) => b.id.toString() === selectedBankId)?.rib || ''}` 
+                        : "Sélectionnez une banque"}
+                    </span>
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-corp-blue-100">
-                  {banks.map((b) => (
-                    <SelectItem key={b.id} value={b.id.toString()} className="font-medium rounded-lg">
-                      {b.designation} - {b.rib}
+                  {banks.map((b: any) => (
+                    <SelectItem key={b.id} value={b.id.toString()} className="font-medium rounded-lg py-2">
+                      <div className="flex flex-col text-left">
+                        <span>{b.reference} - {b.rib}</span>
+                        <span className="text-xs text-slate-500 font-normal mt-0.5">{b.designation}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {selectedBankId && (
+                <p className="text-sm text-slate-500 mt-1 ml-1">
+                  {banks.find((b: any) => b.id.toString() === selectedBankId)?.designation}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -379,9 +415,53 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
                 className="h-12 rounded-xl border-corp-blue-100 focus:ring-corp-blue-600/20 focus:border-corp-blue-600 placeholder:text-sand-300"
               />
             </div>
+
+            {selectedBankId && (
+              <div className="bg-slate-50/80 rounded-xl p-4 border border-slate-100 mt-6 space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500 font-medium">Montant Brut:</span>
+                    <span className="font-mono font-semibold text-slate-700">{selectedTotal.toFixed(3)} TND</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500 font-medium">Frais Bancaires (HT):</span>
+                    <span className="font-mono font-semibold text-slate-700">{bankFeeHT.toFixed(3)} TND</span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500 font-medium">TVA appliquée:</span>
+                    <Select value={selectedTva?.toString() || ''} onValueChange={v => setSelectedTva(parseFloat(v || '0'))}>
+                      <SelectTrigger className="w-[100px] h-8 text-xs bg-white">
+                        <SelectValue placeholder="TVA" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {tvas.map((t: any) => (
+                          <SelectItem key={t.id} value={t.value} className="text-xs">
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex justify-between items-center text-sm pt-2 border-t border-slate-200/60">
+                    <span className="text-slate-500 font-medium">Frais Bancaires (TTC):</span>
+                    <span className="font-mono font-semibold text-rose-500">- {bankFeeTTC.toFixed(3)} TND</span>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
+                  <span className="font-bold text-slate-800 text-[15px]">
+                    {side === 'Supplier' ? 'Montant Net Décaissé:' : 'Montant Net de Remise:'}
+                  </span>
+                  <span className="font-mono font-black text-emerald-600 text-xl">{netAmount.toFixed(3)} TND</span>
+                </div>
+              </div>
+            )}
           </div>
 
-          <DialogFooter className="p-6 pt-0 bg-sand-50/30 flex justify-end gap-3 border-t border-corp-blue-50/50 mt-4">
+          <DialogFooter className="p-6 flex justify-center gap-3 mt-4 border-t border-corp-blue-50/50 bg-sand-50/30 rounded-b-xl">
             <Button 
               variant="outline" 
               onClick={() => { setIsBordereauModalOpen(false); setNextReference(null); }}

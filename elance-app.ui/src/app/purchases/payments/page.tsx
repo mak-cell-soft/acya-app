@@ -18,7 +18,8 @@ import {
   Landmark,
   Ban,
   ArrowRight,
-  Plus
+  Plus,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSuppliers } from '@/hooks/use-suppliers';
@@ -42,6 +43,30 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { useBanks } from '@/hooks/use-banks';
+import { useDisburseInstruments } from '@/hooks/use-payment-instruments';
+import { useAuthStore } from '@/store/use-auth-store';
+import { useAppVariables } from '@/hooks/use-app-variables';
 
 import {
   AreaChart,
@@ -56,7 +81,7 @@ import {
 function SupplierPaymentsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   // Supplier Selection State
   const initialSupplierId = searchParams.get('supplierId') ? parseInt(searchParams.get('supplierId')!) : null;
   const [selectedSupplierId, setSelectedSupplierId] = useState<number | null>(initialSupplierId);
@@ -68,19 +93,31 @@ function SupplierPaymentsPageContent() {
   // Modals States
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentModalData, setPaymentModalData] = useState<any /* eslint-disable-line @typescript-eslint/no-explicit-any */>(null);
-  
+
   const [isEcheanceModalOpen, setIsEcheanceModalOpen] = useState(false);
   const [selectedEcheanceData, setSelectedEcheanceData] = useState<any /* eslint-disable-line @typescript-eslint/no-explicit-any */>(null);
+
+  const [traiteToConfirm, setTraiteToConfirm] = useState<any /* eslint-disable-line @typescript-eslint/no-explicit-any */>(null);
+
+  const [isDisburseModalOpen, setIsDisburseModalOpen] = useState(false);
+  const [traiteToDisburse, setTraiteToDisburse] = useState<any /* eslint-disable-line @typescript-eslint/no-explicit-any */>(null);
+  const [selectedBankId, setSelectedBankId] = useState<string>('');
+  const [disburseNotes, setDisburseNotes] = useState('');
+  const [selectedTva, setSelectedTva] = useState<number>(19);
 
   // Queries
   const { data: suppliers = [], isLoading: loadingSuppliers } = useSuppliers();
   const { data: enterprise } = useEnterprise();
-  
+
   const { data: rawInvoices = [], isLoading: loadingInvoices, refetch: refetchInvoices } = useSupplierInvoices(selectedSupplierId);
   const { data: traites = [], isLoading: loadingTraites, refetch: refetchTraites } = useSupplierTraites(selectedSupplierId);
   const { data: echeances = [], isLoading: loadingEcheances, refetch: refetchEcheances } = useEcheances(projectionDays);
 
   const markTraiteAsPaidMutation = useMarkTraiteAsPaid();
+  const disburseInstrumentsMutation = useDisburseInstruments();
+  const { data: banks = [] } = useBanks();
+  const { data: tvas = [] } = useAppVariables('Tva');
+  const { user } = useAuthStore();
 
   // Sync state with query parameters
   useEffect(() => {
@@ -98,7 +135,7 @@ function SupplierPaymentsPageContent() {
 
   const selectedName = selectedSupplier
     ? selectedSupplier.name || (selectedSupplier as any).Name || `${selectedSupplier.firstname || (selectedSupplier as any).firstName || ''} ${selectedSupplier.lastname || (selectedSupplier as any).lastName || ''}`.trim() || `Fournisseur ${selectedSupplier.id}`
-    : selectedSupplierId 
+    : selectedSupplierId
       ? `Fournisseur ${selectedSupplierId}`
       : undefined;
 
@@ -125,7 +162,7 @@ function SupplierPaymentsPageContent() {
 
     const remaining = rawInvoices.reduce((acc: number, curr: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => acc + (curr.remaining_balance || 0), 0);
     const totalCreditNotes = rawInvoices.reduce((acc: number, curr: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => acc + (curr.total_credit_notes || 0), 0);
-    
+
     const pendingTraites = traites
       .filter((t) => !t.instrument?.isPaidAtBank)
       .reduce((acc: number, curr: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => acc + (curr.amount || 0), 0);
@@ -166,23 +203,65 @@ function SupplierPaymentsPageContent() {
   }, [echeances]);
 
   // Trigger confirmation dialog for bank settlement
-  const handleMarkAsPaid = async (traite: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+  const handleMarkAsPaid = (traite: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
     if (!traite.instrument) return;
+    setTraiteToConfirm(traite);
+  };
 
-    const confirmed = window.confirm(
-      `Confirmer que l'effet N° ${traite.instrument.instrumentNumber} est bien payé en banque ?`
-    );
-    if (!confirmed) return;
+  const confirmMarkAsPaid = async () => {
+    if (!traiteToConfirm) return;
+
+    const isVersed = traiteToConfirm.instrument?.bankSettlementStatus === 'VERSED';
+    const currentTraite = traiteToConfirm;
+
+    setTraiteToConfirm(null);
+
+    if (!isVersed) {
+      toast.warning("Vous devez remettre l'instrument en banque en premier.", {
+        description: "L'instrument n'a pas encore le statut Remis en banque."
+      });
+      return;
+    }
+
+    setTraiteToDisburse(currentTraite);
+    setIsDisburseModalOpen(true);
+  };
+
+  const selectedBank = useMemo(() => {
+    return banks.find((b: any) => b.id.toString() === selectedBankId);
+  }, [banks, selectedBankId]);
+
+  const bankFeeHT = useMemo(() => {
+    if (!selectedBank || !traiteToDisburse) return 0;
+    switch (traiteToDisburse.paymentMethod) {
+      case 'CHEQUE': return selectedBank.chequeDepositFeeHT || 0;
+      case 'TRAITE': return selectedBank.traiteDepositFeeHT || 0;
+      case 'VIREMENT': return selectedBank.wireTransferFeeHT || 0;
+      default: return selectedBank.miscFeeHT || 0;
+    }
+  }, [selectedBank, traiteToDisburse]);
+
+  const bankFeeTTC = bankFeeHT * (1 + selectedTva / 100);
+  const netAmount = (traiteToDisburse?.amount || 0) - bankFeeTTC;
+
+  const handleDisburse = async () => {
+    if (!selectedBankId || !traiteToDisburse?.instrument) return;
 
     try {
-      await markTraiteAsPaidMutation.mutateAsync({
-        instrumentId: traite.instrument.id,
-        paidAtBankDate: new Date(),
-        notes: 'Confirmé via tableau de bord des paiements React'
+      await disburseInstrumentsMutation.mutateAsync({
+        bankId: parseInt(selectedBankId, 10),
+        instrumentIds: [traiteToDisburse.instrument.id],
+        disburseDate: new Date().toISOString(),
+        notes: disburseNotes || undefined,
+        salesSiteId: user?.defaultSiteId ? Number(user.defaultSiteId) : undefined,
       });
       refetchTraites();
       refetchInvoices();
       refetchEcheances();
+      setIsDisburseModalOpen(false);
+      setTraiteToDisburse(null);
+      setDisburseNotes('');
+      setSelectedBankId('');
     } catch (e) {
       console.error(e);
     }
@@ -311,11 +390,10 @@ function SupplierPaymentsPageContent() {
                 <button
                   key={days}
                   onClick={() => setProjectionDays(days)}
-                  className={`text-[10px] font-black uppercase tracking-wider px-3.5 py-1.5 rounded-lg transition-all ${
-                    projectionDays === days
+                  className={`text-[10px] font-black uppercase tracking-wider px-3.5 py-1.5 rounded-lg transition-all ${projectionDays === days
                       ? 'bg-white text-slate-850 shadow-xs'
                       : 'text-slate-500 hover:text-slate-700'
-                  }`}
+                    }`}
                 >
                   {days} jours
                 </button>
@@ -335,7 +413,7 @@ function SupplierPaymentsPageContent() {
                     className="cursor-pointer"
                     onClick={(props: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
                       let data = props?.activePayload?.[0]?.payload?.originalData;
-                      
+
                       if (!data && typeof props?.activeTooltipIndex === 'number') {
                         const index = props.activeTooltipIndex;
                         if (chartData[index]?.originalData) {
@@ -401,8 +479,8 @@ function SupplierPaymentsPageContent() {
                       strokeWidth={2}
                       fillOpacity={1}
                       fill="url(#colorAmount)"
-                      activeDot={{ 
-                        r: 8, 
+                      activeDot={{
+                        r: 8,
                         fill: '#f59e0b',
                         cursor: 'pointer',
                         onClick: (e: any, payload: any) => {
@@ -502,7 +580,7 @@ function SupplierPaymentsPageContent() {
                 </div>
                 <div>
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
-                    Payé en Banque
+                    Décaissé
                   </span>
                   <div className="flex items-baseline gap-1 mt-1">
                     <span className="text-lg font-black font-mono text-emerald-800 tracking-tight">
@@ -642,17 +720,15 @@ function SupplierPaymentsPageContent() {
                             return (
                               <tr
                                 key={traite.id ? `${traite.id}-${idx}` : idx}
-                                className={`hover:bg-slate-50/50 transition-colors group ${
-                                  isPast ? 'bg-rose-50/15' : ''
-                                }`}
+                                className={`hover:bg-slate-50/50 transition-colors group ${isPast ? 'bg-rose-50/15' : ''
+                                  }`}
                               >
                                 <td className="py-3.5 px-5">
                                   <span
-                                    className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-wider border ${
-                                      traite.paymentMethod === 'CHEQUE'
+                                    className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-wider border ${traite.paymentMethod === 'CHEQUE'
                                         ? 'bg-blue-50 text-blue-700 border-blue-100'
                                         : 'bg-amber-50 text-amber-700 border-amber-100'
-                                    }`}
+                                      }`}
                                   >
                                     {traite.paymentMethod}
                                   </span>
@@ -664,9 +740,8 @@ function SupplierPaymentsPageContent() {
                                   </div>
                                 </td>
                                 <td
-                                  className={`py-3.5 px-4 text-xs font-bold font-mono ${
-                                    isPast ? 'text-rose-600' : 'text-slate-550'
-                                  }`}
+                                  className={`py-3.5 px-4 text-xs font-bold font-mono ${isPast ? 'text-rose-600' : 'text-slate-550'
+                                    }`}
                                 >
                                   {traite.instrument?.dueDate
                                     ? new Date(traite.instrument.dueDate).toLocaleDateString('fr-FR')
@@ -684,7 +759,7 @@ function SupplierPaymentsPageContent() {
                                   <div className="flex items-center justify-center gap-1.5">
                                     {traite.instrument?.isPaidAtBank ? (
                                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-md px-2 py-0.5">
-                                        <CheckCircle2 className="w-3 h-3" /> Payé
+                                        <CheckCircle2 className="w-3 h-3" /> Décaissé
                                       </span>
                                     ) : (
                                       <>
@@ -770,6 +845,166 @@ function SupplierPaymentsPageContent() {
           }}
         />
       )}
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={!!traiteToConfirm} onOpenChange={(open) => !open && setTraiteToConfirm(null)}>
+        <AlertDialogContent className="rounded-3xl border-slate-100 shadow-2xl overflow-hidden p-0 max-w-sm sm:max-w-[400px]">
+          <div className="bg-gradient-to-b from-emerald-50/50 to-white px-8 pt-10 pb-8 text-center space-y-5">
+            <div className="mx-auto w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-emerald-100 shadow-sm shadow-emerald-100/50">
+              <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+            </div>
+            <div>
+              <AlertDialogTitle className="text-[17px] font-black tracking-tight text-slate-800 mb-2">Confirmation de paiement</AlertDialogTitle>
+              <AlertDialogDescription className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[280px] mx-auto">
+                Confirmez-vous le paiement en banque de l&apos;effet <span className="font-mono text-slate-700 font-bold bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-150">N° {traiteToConfirm?.instrument?.instrumentNumber}</span> ?
+              </AlertDialogDescription>
+            </div>
+          </div>
+          <div className="bg-slate-50/80 px-4 py-4 sm:px-6 sm:py-5 flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3 border-t border-slate-100/60">
+            <AlertDialogCancel className="h-10 sm:h-11 rounded-xl px-4 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 bg-white w-full sm:w-auto sm:flex-1 hover:bg-slate-50 transition-colors m-0">
+              Annuler
+            </AlertDialogCancel>
+            <Button
+              onClick={confirmMarkAsPaid}
+              disabled={markTraiteAsPaidMutation.isPending}
+              className="h-10 sm:h-11 rounded-xl px-4 text-xs font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-sm shadow-emerald-500/20 w-full sm:w-auto sm:flex-1 transition-colors flex items-center justify-center gap-2 m-0"
+            >
+              {markTraiteAsPaidMutation.isPending ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white/80" />
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  Confirmer
+                </>
+              )}
+            </Button>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Disburse Dialog */}
+      <Dialog open={isDisburseModalOpen} onOpenChange={setIsDisburseModalOpen}>
+        <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-0 overflow-hidden border-corp-blue-100 rounded-xl">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="text-2xl font-bold text-corp-blue-900">
+              Décaisser les Paiements
+            </DialogTitle>
+            <DialogDescription className="text-slate-500 font-medium">
+              Décaissement de 1 instrument(s) pour un montant brut de <strong className="text-corp-blue-700">{traiteToDisburse?.amount?.toFixed(3) || '0.000'} TND</strong>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-6 space-y-5">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700">
+                Compte Bancaire Cible
+              </Label>
+              <Select value={selectedBankId} onValueChange={(val: string | null) => setSelectedBankId(val as string)}>
+                <SelectTrigger className="h-12 w-full min-w-0 overflow-hidden rounded-xl border-corp-blue-100 focus:ring-corp-blue-600/20 focus:border-corp-blue-600">
+                  <SelectValue placeholder="Sélectionnez une banque">
+                    <span className="block truncate max-w-[calc(100vw-8rem)] sm:max-w-[380px]">
+                      {selectedBankId
+                        ? `${banks.find((b: any) => b.id.toString() === selectedBankId)?.reference || ''} - ${banks.find((b: any) => b.id.toString() === selectedBankId)?.rib || ''}`
+                        : "Sélectionnez une banque"}
+                    </span>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-corp-blue-100">
+                  {banks.map((b: any) => (
+                    <SelectItem key={b.id} value={b.id.toString()} className="font-medium rounded-lg py-2">
+                      <div className="flex flex-col text-left">
+                        <span>{b.reference} - {b.rib}</span>
+                        <span className="text-xs text-slate-500 font-normal mt-0.5">{b.designation}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedBankId && (
+                <p className="text-sm text-slate-500 mt-1 ml-1">
+                  {banks.find((b: any) => b.id.toString() === selectedBankId)?.designation}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700">
+                Notes / Référence Externe
+              </Label>
+              <Input
+                value={disburseNotes}
+                onChange={e => setDisburseNotes(e.target.value)}
+                placeholder="Ex: Bordereau apporté par Jean"
+                className="h-12 rounded-xl border-corp-blue-100 focus:ring-corp-blue-600/20 focus:border-corp-blue-600 placeholder:text-slate-400"
+              />
+            </div>
+
+            {selectedBankId && (
+              <div className="bg-slate-50/80 rounded-xl p-4 border border-slate-100 mt-6 space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500 font-medium">Montant Brut:</span>
+                    <span className="font-mono font-semibold text-slate-700">{(traiteToDisburse?.amount || 0).toFixed(3)} TND</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500 font-medium">Frais Bancaires (HT):</span>
+                    <span className="font-mono font-semibold text-slate-700">{bankFeeHT.toFixed(3)} TND</span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500 font-medium">TVA appliquée:</span>
+                    <Select value={selectedTva?.toString() || ''} onValueChange={v => setSelectedTva(parseFloat(v || '0'))}>
+                      <SelectTrigger className="w-[100px] h-8 text-xs bg-white">
+                        <SelectValue placeholder="TVA" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {tvas.map((t: any) => (
+                          <SelectItem key={t.id} value={t.value} className="text-xs">
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex justify-between items-center text-sm pt-2 border-t border-slate-200/60">
+                    <span className="text-slate-500 font-medium">Frais Bancaires (TTC):</span>
+                    <span className="font-mono font-semibold text-rose-500">- {bankFeeTTC.toFixed(3)} TND</span>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
+                  <span className="font-bold text-slate-800 text-[15px]">Montant Net Décaissé:</span>
+                  <span className="font-mono font-black text-emerald-600 text-xl">{netAmount.toFixed(3)} TND</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="p-6 flex justify-center gap-3 mt-4 border-t border-slate-100 bg-slate-50/50 rounded-b-xl">
+            <Button
+              variant="outline"
+              onClick={() => { setIsDisburseModalOpen(false); setTraiteToDisburse(null); }}
+              className="h-11 px-6 rounded-xl font-bold border-corp-blue-100 text-corp-blue-600 hover:bg-corp-blue-50"
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={handleDisburse}
+              disabled={!selectedBankId || disburseInstrumentsMutation.isPending}
+              className="h-11 px-6 font-bold bg-corp-blue-600 hover:bg-corp-blue-700 text-white shadow-lg shadow-corp-blue-600/20 gap-2 disabled:opacity-50 transition-all duration-300"
+            >
+              {disburseInstrumentsMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="w-4 h-4" />
+              )}
+              Valider le décaissement
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
