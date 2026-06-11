@@ -46,6 +46,7 @@ import { CustomerAccountDialog } from '@/components/customers/customer-account-d
 import { DeleteCustomerDialog } from '@/components/customers/delete-customer-dialog';
 import { CustomerRecouvrementDialog } from '@/components/customers/customer-recouvrement-dialog';
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
 export default function CustomersPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -131,6 +132,41 @@ export default function CustomersPage() {
   const openDelete = (customer: Customer) => {
     setSelectedCustomer(customer);
     setIsDeleteOpen(true);
+  };
+
+  const handleExport = () => {
+    if (!customers || customers.length === 0) return;
+
+    const exportData = customers.map(c => ({
+      'Raison Sociale': c.name || '',
+      'Prénom': c.firstname || '',
+      'Nom': c.lastname || '',
+      'Email': c.email || '',
+      'Matricule Fiscal': c.taxregistrationnumber || '',
+      'CIN': c.identitycardnumber || '',
+      'Adresse': c.address || '',
+      'Gouvernorat': c.gouvernorate || '',
+      'Tél 1': c.phonenumberone || '',
+      'Tél 2': c.phonenumbertwo || '',
+      'Fonction': c.jobtitle || '',
+      'Notes': c.notes || ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Clients');
+    
+    const maxWidths = exportData.reduce((acc: any, row) => {
+      Object.keys(row).forEach(key => {
+        const val = row[key as keyof typeof row]?.toString() || '';
+        acc[key] = Math.max(acc[key] || key.length, val.length);
+      });
+      return acc;
+    }, {});
+    
+    worksheet['!cols'] = Object.keys(maxWidths).map(key => ({ wch: maxWidths[key] + 2 }));
+
+    XLSX.writeFile(workbook, `clients_export_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   return (
@@ -459,6 +495,7 @@ export default function CustomersPage() {
           onClose={() => setIsImportOpen(false)}
           type="customer"
           onImportSuccess={() => queryClient.invalidateQueries({ queryKey: ['customers'] })}
+          onExportXlsx={handleExport}
         />
       </div>
     </DashboardLayout>

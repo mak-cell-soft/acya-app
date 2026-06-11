@@ -42,6 +42,7 @@ import { TablePagination } from '@/components/shared/table-pagination';
 import { useQueryClient } from '@tanstack/react-query';
 import { DataImportDialog } from '@/components/shared/data-import-dialog';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
+import * as XLSX from 'xlsx';
 
 export default function ArticlesPage() {
   // State for filtering
@@ -175,6 +176,44 @@ export default function ArticlesPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleExport = () => {
+    if (!articles || articles.length === 0) return;
+
+    const exportData = articles.map(article => ({
+      'Référence': article.reference || '',
+      'Désignation': article.description || '',
+      'Catégorie': article.category?.description || '',
+      'Sous-Catégorie': article.subcategory?.description || '',
+      'Est Bois (O/N)': article.iswood ? 'O' : 'N',
+      'Epaisseur': article.thickness?.name || '',
+      'Largeur': article.width?.name || '',
+      'Longueurs': article.lengths || '',
+      'Unité': article.unit || '',
+      'P.U HT': article.sellprice_ht || 0,
+      'TVA (%)': article.tva?.value || 0,
+      'P.U TTC (TND)': article.sellprice_ttc || 0,
+      'Marge Profit (%)': article.profitmarginpercentage || 0,
+      'Prix Achat TTC': article.lastpurchaseprice_ttc || 0,
+      'Seuil Alerte': article.minquantity || 0
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Articles');
+    
+    const maxWidths = exportData.reduce((acc: any, row) => {
+      Object.keys(row).forEach(key => {
+        const val = row[key as keyof typeof row]?.toString() || '';
+        acc[key] = Math.max(acc[key] || key.length, val.length);
+      });
+      return acc;
+    }, {});
+    
+    worksheet['!cols'] = Object.keys(maxWidths).map(key => ({ wch: maxWidths[key] + 2 }));
+
+    XLSX.writeFile(workbook, `articles_export_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-8 animate-in fade-in duration-700">
@@ -187,11 +226,11 @@ export default function ArticlesPage() {
           <div className="flex items-center gap-3">
             {hasPermission('articles', 'canAdd') && (
               <Button 
-                onClick={() => setIsImportOpen(true)}
                 variant="outline" 
+                onClick={() => setIsImportOpen(true)}
                 className="h-11 rounded-xl border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 px-6"
               >
-                <Upload className="w-4 h-4 mr-2" /> Importer
+                <Layers className="w-4 h-4 mr-2" /> Import / Export
               </Button>
             )}
             {hasPermission('articles', 'canAdd') && (
@@ -501,6 +540,7 @@ export default function ArticlesPage() {
         onClose={() => setIsImportOpen(false)}
         type="article"
         onImportSuccess={() => queryClient.invalidateQueries({ queryKey: ['articles'] })}
+        onExportXlsx={handleExport}
       />
     </DashboardLayout>
   );

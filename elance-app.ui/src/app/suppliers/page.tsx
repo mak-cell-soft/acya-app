@@ -38,6 +38,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import * as XLSX from 'xlsx';
 
 // Hooks & Types
 import { useSuppliers, useCreateSupplier, useUpdateSupplier, useDeleteSupplier } from '@/hooks/use-suppliers';
@@ -116,6 +117,41 @@ export default function ProvidersPage() {
       await deleteMutation.mutateAsync(selectedSupplier.id);
       setIsDeleteOpen(false);
     }
+  };
+
+  const handleExport = () => {
+    if (!suppliers || suppliers.length === 0) return;
+
+    const exportData = suppliers.map(s => ({
+      'Raison Sociale': s.name || '',
+      'Prénom': s.firstname || '',
+      'Nom': s.lastname || '',
+      'Email': s.email || '',
+      'Matricule Fiscal': s.taxregistrationnumber || '',
+      'CIN': s.identitycardnumber || '',
+      'Adresse': s.address || '',
+      'Gouvernorat': s.gouvernorate || '',
+      'Tél 1': s.phonenumberone || '',
+      'Tél 2': s.phonenumbertwo || '',
+      'Fonction': s.jobtitle || '',
+      'Notes': s.notes || ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fournisseurs');
+    
+    const maxWidths = exportData.reduce((acc: any, row) => {
+      Object.keys(row).forEach(key => {
+        const val = row[key as keyof typeof row]?.toString() || '';
+        acc[key] = Math.max(acc[key] || key.length, val.length);
+      });
+      return acc;
+    }, {});
+    
+    worksheet['!cols'] = Object.keys(maxWidths).map(key => ({ wch: maxWidths[key] + 2 }));
+
+    XLSX.writeFile(workbook, `fournisseurs_export_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   const getCategoryLabel = (id: string) => {
@@ -460,6 +496,7 @@ export default function ProvidersPage() {
           onClose={() => setIsImportOpen(false)}
           type="provider"
           onImportSuccess={() => queryClient.invalidateQueries({ queryKey: ['suppliers'] })}
+          onExportXlsx={handleExport}
         />
       </div>
     </DashboardLayout>

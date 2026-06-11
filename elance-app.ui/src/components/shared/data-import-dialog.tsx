@@ -33,6 +33,8 @@ interface DataImportDialogProps {
   onClose: () => void;
   type: 'customer' | 'provider' | 'article';
   onImportSuccess: () => void; // Hook for invalidating page-specific React Query cache on successful records creation
+  onExportXlsx?: () => void;
+  onExportCsv?: () => void;
 }
 
 /**
@@ -47,6 +49,8 @@ export function DataImportDialog({
   onClose,
   type,
   onImportSuccess,
+  onExportXlsx,
+  onExportCsv,
 }: DataImportDialogProps) {
   // CENTRALIZED STATE MANAGEMENT
   // NOTE: Phase state controls the visual layout of our dialog
@@ -115,10 +119,15 @@ export function DataImportDialog({
   };
 
   // ACTIONS
-  /**
-   * Triggers the corresponding Excel download from the Next.js public directory
-   */
-  const downloadTemplate = (format: 'xlsx' | 'csv') => {
+  const handleDownloadTemplate = (format: 'xlsx' | 'csv') => {
+    if (format === 'xlsx' && onExportXlsx) {
+      onExportXlsx();
+      return;
+    }
+    if (format === 'csv' && onExportCsv) {
+      onExportCsv();
+      return;
+    }
     toast.info('Préparation du modèle...');
     const fileName = `template_${type === 'provider' ? 'provider' : type}.${format}`;
     const url = `/assets/templates/${fileName}`;
@@ -224,7 +233,7 @@ export function DataImportDialog({
           </button>
         </DialogHeader>
 
-        <div className="p-8 pt-6">
+        <div className="px-8 pb-8 pt-5">
           <AnimatePresence mode="wait">
             
             {/* PHASE 1: UPLOAD FORM */}
@@ -244,9 +253,9 @@ export function DataImportDialog({
                       <Download className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-sm text-corp-blue-900">Modèles recommandés</h4>
+                      <h4 className="font-bold text-sm text-corp-blue-900">Exportation & Modèles</h4>
                       <p className="text-xs font-medium text-sand-400 mt-1">
-                        Utilisez notre structure pour vous assurer de la bonne cohérence des colonnes (Noms, Codes, TVA, etc.).
+                        Exportez vos données pour les modifier, ou téléchargez un modèle vide pour ajouter de nouvelles entrées.
                       </p>
                     </div>
                   </div>
@@ -254,19 +263,19 @@ export function DataImportDialog({
                   <div className="flex flex-wrap gap-3 pl-11">
                     <Button 
                       variant="outline" 
-                      onClick={() => downloadTemplate('xlsx')}
+                      onClick={() => handleDownloadTemplate('xlsx')}
                       className="rounded-xl h-10 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 text-xs px-4"
                     >
                       <FileSpreadsheet className="w-4 h-4 mr-2 text-emerald-600" />
-                      Modèle Excel (.xlsx)
+                      {onExportXlsx ? 'Exporter Excel (.xlsx)' : 'Modèle Excel (.xlsx)'}
                     </Button>
                     <Button 
                       variant="outline" 
-                      onClick={() => downloadTemplate('csv')}
+                      onClick={() => handleDownloadTemplate('csv')}
                       className="rounded-xl h-10 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 text-xs px-4"
                     >
                       <FileSpreadsheet className="w-4 h-4 mr-2 text-blue-500" />
-                      Modèle CSV (.csv)
+                      {onExportCsv ? 'Exporter CSV (.csv)' : 'Modèle CSV (.csv)'}
                     </Button>
                   </div>
                 </div>

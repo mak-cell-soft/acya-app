@@ -107,43 +107,61 @@ namespace ms.webapp.api.acya.Services
                         widthId = dimensions.FirstOrDefault(x => x.Name == item.Width)?.Id;
                     }
 
-                    var article = new Article
+                    var article = await _context.Articles.FirstOrDefaultAsync(x => x.Reference == item.Reference && !x.IsDeleted);
+                    bool isNew = false;
+                    
+                    if (article == null)
                     {
-                        Reference = item.Reference,
-                        Description = item.Description,
-                        IsWood = item.IsWood,
-                        ParentId = categoryId,
-                        FirstChildId = subCategoryId,
-                        TvaId = tva.Id,
-                        ThicknessId = thicknessId,
-                        WidthId = widthId,
-                        Unit = item.Unit,
-                        SellPriceHT = item.SellPriceHT,
-                        SellPriceTTC = item.SellPriceHT * (1 + item.TvaRate / 100.0),
-                        LastPurchasePriceTTC = item.LastPurchasePriceTTC,
-                        MinQuantity = item.MinQuantity,
-                        Lengths = item.Lengths,
-                        CreationDate = DateTime.UtcNow,
-                        UpdateDate = DateTime.UtcNow,
-                        UpdatedBy = userId,
-                        IsDeleted = false
-                    };
+                        article = new Article
+                        {
+                            Reference = item.Reference,
+                            CreationDate = DateTime.UtcNow,
+                            IsDeleted = false
+                        };
+                        _context.Articles.Add(article);
+                        isNew = true;
+                    }
 
-                    _context.Articles.Add(article);
+                    article.Description = item.Description;
+                    article.IsWood = item.IsWood;
+                    article.ParentId = categoryId;
+                    article.FirstChildId = subCategoryId;
+                    article.TvaId = tva.Id;
+                    article.ThicknessId = thicknessId;
+                    article.WidthId = widthId;
+                    article.Unit = item.Unit;
+                    article.SellPriceHT = item.SellPriceHT;
+                    article.SellPriceTTC = item.SellPriceHT * (1 + item.TvaRate / 100.0);
+                    article.LastPurchasePriceTTC = item.LastPurchasePriceTTC;
+                    article.MinQuantity = item.MinQuantity;
+                    article.Lengths = item.Lengths;
+                    article.ProfitMarginPercentage = item.ProfitMarginPercentage;
+                    article.UpdateDate = DateTime.UtcNow;
+                    article.UpdatedBy = userId;
+
                     await _context.SaveChangesAsync();
 
-                    var sellHistory = new SellPriceHistory
+                    if (article.SellPriceTTC > 0)
                     {
-                        ArticleId = article.Id,
-                        PriceValue = article.SellPriceTTC ?? 0,
-                        CreationDate = article.CreationDate,
-                        UpdateDate = article.UpdateDate,
-                        IsDeleted = false,
-                        UpdatedBy = userId
-                    };
-                    _context.SellPricesHistories.Add(sellHistory);
+                        var sellHistory = new SellPriceHistory
+                        {
+                            ArticleId = article.Id,
+                            PriceValue = article.SellPriceTTC ?? 0,
+                            CreationDate = isNew ? article.CreationDate : DateTime.UtcNow,
+                            UpdateDate = isNew ? article.UpdateDate : DateTime.UtcNow,
+                            IsDeleted = false,
+                            UpdatedBy = userId
+                        };
+                        _context.SellPricesHistories.Add(sellHistory);
 
-                    if (item.LastPurchasePriceTTC > 0)
+                        if (isNew)
+                        {
+                            await _context.SaveChangesAsync();
+                            article.SellHistoryId = sellHistory.Id;
+                        }
+                    }
+
+                    if (item.LastPurchasePriceTTC > 0 && isNew)
                     {
                         var purchaseHistory = new PurchasePriceHistory
                         {
@@ -157,8 +175,6 @@ namespace ms.webapp.api.acya.Services
                         _context.PurchasePriceHistories.Add(purchaseHistory);
                     }
 
-                    await _context.SaveChangesAsync();
-                    article.SellHistoryId = sellHistory.Id;
                     await _context.SaveChangesAsync();
 
                     report.SuccessCount++;
@@ -213,30 +229,48 @@ namespace ms.webapp.api.acya.Services
                 rowIndex++;
                 try
                 {
-                    var cp = new CounterPart
-                    {
-                        Guid = Guid.NewGuid(),
-                        Type = cpType,
-                        Name = item.Name,
-                        FirstName = item.FirstName,
-                        LastName = item.LastName,
-                        Email = item.Email,
-                        TaxRegistrationNumber = item.TaxRegistrationNumber,
-                        IdentityCardNumber = item.IdentityCardNumber,
-                        Address = item.Address,
-                        Gouvernorate = item.Gouvernorate,
-                        PhoneNumberOne = item.PhoneNumberOne,
-                        PhoneNumberTwo = item.PhoneNumberTwo,
-                        JobTitle = item.JobTitle,
-                        Notes = item.Notes,
-                        CreationDate = DateTime.UtcNow,
-                        UpdateDate = DateTime.UtcNow,
-                        UpdatedById = userId,
-                        IsActive = true,
-                        IsDeleted = false
-                    };
+                    CounterPart cp = null;
 
-                    _context.CounterParts.Add(cp);
+                    if (!string.IsNullOrEmpty(item.TaxRegistrationNumber))
+                        cp = await _context.CounterParts.FirstOrDefaultAsync(x => x.Type == cpType && x.IsDeleted != true && x.TaxRegistrationNumber == item.TaxRegistrationNumber);
+
+                    if (cp == null && !string.IsNullOrEmpty(item.IdentityCardNumber))
+                        cp = await _context.CounterParts.FirstOrDefaultAsync(x => x.Type == cpType && x.IsDeleted != true && x.IdentityCardNumber == item.IdentityCardNumber);
+
+                    if (cp == null && !string.IsNullOrEmpty(item.Name))
+                        cp = await _context.CounterParts.FirstOrDefaultAsync(x => x.Type == cpType && x.IsDeleted != true && x.Name == item.Name);
+
+                    if (cp == null && !string.IsNullOrEmpty(item.FirstName) && !string.IsNullOrEmpty(item.LastName))
+                        cp = await _context.CounterParts.FirstOrDefaultAsync(x => x.Type == cpType && x.IsDeleted != true && x.FirstName == item.FirstName && x.LastName == item.LastName);
+
+                    if (cp == null)
+                    {
+                        cp = new CounterPart
+                        {
+                            Guid = Guid.NewGuid(),
+                            Type = cpType,
+                            CreationDate = DateTime.UtcNow,
+                            IsActive = true,
+                            IsDeleted = false
+                        };
+                        _context.CounterParts.Add(cp);
+                    }
+
+                    cp.Name = item.Name;
+                    cp.FirstName = item.FirstName;
+                    cp.LastName = item.LastName;
+                    cp.Email = item.Email;
+                    cp.TaxRegistrationNumber = item.TaxRegistrationNumber;
+                    cp.IdentityCardNumber = item.IdentityCardNumber;
+                    cp.Address = item.Address;
+                    cp.Gouvernorate = item.Gouvernorate;
+                    cp.PhoneNumberOne = item.PhoneNumberOne;
+                    cp.PhoneNumberTwo = item.PhoneNumberTwo;
+                    cp.JobTitle = item.JobTitle;
+                    cp.Notes = item.Notes;
+                    cp.UpdateDate = DateTime.UtcNow;
+                    cp.UpdatedById = userId;
+
                     report.SuccessCount++;
                 }
                 catch (Exception ex)
@@ -264,15 +298,16 @@ namespace ms.webapp.api.acya.Services
                     Description = row.Cell(2).GetString(),
                     CategoryName = row.Cell(3).GetString(),
                     SubCategoryName = row.Cell(4).GetString(),
-                    IsWood = row.Cell(5).GetBoolean(),
+                    IsWood = row.Cell(5).GetString()?.ToUpper() == "O",
                     Thickness = row.Cell(6).GetString(),
                     Width = row.Cell(7).GetString(),
-                    Unit = row.Cell(8).GetString(),
-                    SellPriceHT = row.Cell(9).GetDouble(),
-                    LastPurchasePriceTTC = row.Cell(10).GetDouble(),
+                    Lengths = row.Cell(8).GetString(),
+                    Unit = row.Cell(9).GetString(),
+                    SellPriceHT = row.Cell(10).GetDouble(),
                     TvaRate = row.Cell(11).GetDouble(),
-                    MinQuantity = row.Cell(12).GetDouble(),
-                    Lengths = row.Cell(13).GetString()
+                    ProfitMarginPercentage = row.Cell(13).GetDouble(),
+                    LastPurchasePriceTTC = row.Cell(14).GetDouble(),
+                    MinQuantity = row.Cell(15).GetDouble()
                 });
             }
             return list;

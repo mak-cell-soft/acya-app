@@ -15,5 +15,6 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public double TvaRate { get; set; }
         public double MinQuantity { get; set; }
         public string? Lengths { get; set; }
+        public double ProfitMarginPercentage { get; set; }
     }
 }
