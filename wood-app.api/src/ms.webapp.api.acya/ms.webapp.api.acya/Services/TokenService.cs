@@ -98,11 +98,15 @@ namespace ms.webapp.api.acya.api.Services
         claims.Add(new Claim("EnterpriseId", user.EnterpriseId.ToString()!));
       }
 
-      // Add the SalesSite as a new claim if available
+      // Add the SalesSite as a new claim if available.
+      // WHY: We include IsForSale so the frontend can branch between
+      //      the Sales dashboard and the Depot dashboard without an
+      //      extra round-trip to GET /SalesSites on every page load.
       if(user.SalesSite != null)
       {
         claims.Add(new Claim("DefaultSite", user.SalesSite.Address!.ToString()!));
         claims.Add(new Claim("DefaultSiteId", user.SalesSite.Id.ToString()));
+        claims.Add(new Claim("DefaultSiteIsForSale", user.SalesSite.IsForSale.ToString().ToLower()));
       }
 
       // Add permissions claim

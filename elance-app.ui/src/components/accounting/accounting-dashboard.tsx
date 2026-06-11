@@ -26,8 +26,13 @@ import {
   Pencil,
   Trash2,
   CreditCard,
-  Printer
+  Printer,
+  Clock,
+  DollarSign,
+  Loader2
 } from 'lucide-react';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -39,6 +44,7 @@ import { DocumentTypes } from '@/types/document';
 import { useDocumentsByTypeFiltered } from '@/hooks/use-documents';
 import { TablePagination } from '@/components/shared/table-pagination';
 import { useAuthStore } from '@/store/use-auth-store';
+import { useDashboardPayments } from '@/hooks/use-dashboard-payments';
 // Removed treasury imports
 import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 
@@ -76,6 +82,8 @@ export default function AccountingDashboard() {
   const [achatsPageSize, setAchatsPageSize] = useState(10);
   const [ventesPage, setVentesPage] = useState(1);
   const [ventesPageSize, setVentesPageSize] = useState(10);
+  const [paymentsPage, setPaymentsPage] = useState(1);
+  const [paymentsPageSize, setPaymentsPageSize] = useState(5);
   
   // Print List States
   const [isPrintAchatsListModalOpen, setIsPrintAchatsListModalOpen] = useState(false);
@@ -139,6 +147,20 @@ export default function AccountingDashboard() {
     refetchAvoirs();
     refetchVentes();
   };
+
+  const [timelineDate] = useState<Date>(new Date());
+  const isTimelineToday = timelineDate.toDateString() === new Date().toDateString();
+
+  const { data: supplierPayments = [], isLoading: isPaymentsLoading } = useDashboardPayments(
+    timelineDate,
+    user?.id ? Number(user.id) : undefined,
+    'supplier'
+  );
+
+  const paginatedPayments = useMemo(() => {
+    const start = (paymentsPage - 1) * paymentsPageSize;
+    return supplierPayments.slice(start, start + paymentsPageSize);
+  }, [supplierPayments, paymentsPage, paymentsPageSize]);
 
 
 
@@ -520,6 +542,111 @@ export default function AccountingDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* ── SUPPLIER PAYMENTS TODAY ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <div className="space-y-6 pt-6">
+            <div className="flex items-center gap-3">
+              <CreditCard className="w-6 h-6 text-amber-500" />
+              <h2 className="text-xl font-bold text-slate-900">Règlements Fournisseurs</h2>
+              <span className="text-xs font-bold text-slate-400 ml-1">
+                — {isTimelineToday ? "Aujourd'hui" : format(timelineDate, 'dd MMM yyyy', { locale: fr })}
+              </span>
+            </div>
+
+            <Card className="border-amber-100 rounded-xl bg-white overflow-hidden shadow-none border">
+              <CardContent className="p-0">
+                {isPaymentsLoading ? (
+                  <div className="p-12 flex items-center justify-center text-amber-300">
+                    <Loader2 className="w-8 h-8 animate-spin mr-2" /> Chargement...
+                  </div>
+                ) : supplierPayments.length === 0 ? (
+                  <div className="p-16 text-center">
+                    <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mx-auto mb-3">
+                      <DollarSign className="w-6 h-6" />
+                    </div>
+                    <p className="text-sm font-bold text-slate-400">
+                      Aucun règlement fournisseur pour cette date.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader className="bg-amber-50/10 border-b border-amber-50/50">
+                        <TableRow className="text-slate-400 font-bold uppercase tracking-wider text-[10px] hover:bg-transparent">
+                          <TableHead className="font-bold">Heure</TableHead>
+                          <TableHead className="font-bold">Fournisseur</TableHead>
+                          <TableHead className="font-bold">Montant</TableHead>
+                          <TableHead className="font-bold">Mode</TableHead>
+                          <TableHead className="font-bold">Documents</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody className="divide-y divide-amber-50/20 text-xs">
+                        {paginatedPayments.map((p) => {
+                          const dateObj = new Date(p.createdAt || p.paymentDate);
+                          return (
+                            <TableRow key={p.paymentId} className="hover:bg-amber-50/20 transition-all">
+                              <TableCell>
+                                <span className="flex items-center gap-1.5 text-slate-400 font-medium">
+                                  <Clock className="w-3.5 h-3.5" />
+                                  {format(dateObj, 'HH:mm')}
+                                </span>
+                              </TableCell>
+                              <TableCell className="font-bold text-slate-800">
+                                {p.customerName || 'N/A'}
+                              </TableCell>
+                              <TableCell className="font-black text-slate-900 whitespace-nowrap">
+                                {p.amount.toFixed(3)}{' '}
+                                <span className="text-[0.65rem] font-bold text-slate-400">TND</span>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="secondary" className="rounded-lg text-xs font-bold px-2 py-0.5">
+                                  {p.paymentMethod}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex flex-wrap gap-2">
+                                  {p.invoiceNumber && (
+                                    <span className="inline-flex items-center gap-1 text-[0.65rem] font-black text-amber-800 bg-amber-50 border border-amber-100 rounded px-2 py-0.5">
+                                      <FileText className="w-3 h-3" />
+                                      {p.invoiceNumber}
+                                    </span>
+                                  )}
+                                  {!p.invoiceNumber && !p.deliveryNoteNumber && (
+                                    <span className="inline-flex items-center gap-1 text-[0.65rem] font-black text-slate-600 bg-slate-50 border border-slate-100 rounded px-2 py-0.5">
+                                      Avance
+                                    </span>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+
+                    <div className="border-t border-slate-100 px-6">
+                      <TablePagination
+                        currentPage={paymentsPage}
+                        totalItems={supplierPayments.length}
+                        pageSize={paymentsPageSize}
+                        onPageChange={setPaymentsPage}
+                        onPageSizeChange={(size) => {
+                          setPaymentsPageSize(size);
+                          setPaymentsPage(1);
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </motion.div>
       </section>
 
       {/* VENTES SECTION */}

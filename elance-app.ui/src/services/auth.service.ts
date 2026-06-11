@@ -14,6 +14,9 @@ interface CustomJwtPayload {
   EnterpriseId?: string;
   DefaultSite?: string;
   DefaultSiteId?: string;
+  // WHY: Added in v2 so the frontend can branch Sales vs Depot UI without
+  //      an extra API call — value is 'true' or 'false' as a string claim.
+  DefaultSiteIsForSale?: string;
   exp?: number;
 }
 
@@ -41,7 +44,10 @@ export const authService = {
         role: decodedToken.role || decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
         enterpriseId: decodedToken.EnterpriseId,
         defaultSite: decodedToken.DefaultSite,
-        defaultSiteId: decodedToken.DefaultSiteId
+        defaultSiteId: decodedToken.DefaultSiteId,
+        // Parse string claim ('true'/'false') into a boolean — default to true
+        // when claim is absent so existing sale-site users are unaffected.
+        defaultSiteIsForSale: decodedToken.DefaultSiteIsForSale !== 'false'
       };
     } catch (error) {
       console.error('Error decoding token:', error);
