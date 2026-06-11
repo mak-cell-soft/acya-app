@@ -184,7 +184,7 @@ namespace ms.webapp.api.acya.Services
                     report.Errors.Add(new ImportError { RowIndex = rowIndex, Message = $"Erreur : {ex.Message}" });
                 }
             }
-
+            report.ErrorCount = report.Errors.Count;
             return report;
         }
 

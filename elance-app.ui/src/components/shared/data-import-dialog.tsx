@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { importService, ImportReport } from '@/services/components/import.service';
 import { useAuthStore } from '@/store/use-auth-store';
+import * as XLSX from 'xlsx';
 import { 
   CloudUpload, 
   Download, 
@@ -115,7 +116,48 @@ export function DataImportDialog({
       toast.error('Le fichier est trop volumineux. La limite est de 10 Mo.');
       return;
     }
-    setSelectedFile(file);
+
+    // Valider les en-têtes du fichier pour s'assurer qu'il correspond au type attendu
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = e.target?.result;
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        
+        // Lire la première ligne (en-têtes)
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as string[][];
+        
+        if (jsonData.length > 0) {
+          const headers = jsonData[0] || [];
+          const headerString = headers.join(' ').toLowerCase();
+          
+          if (type === 'article') {
+            if (!headerString.includes('référence') && !headerString.includes('désignation')) {
+              toast.error('Fichier invalide : Il ne semble pas contenir des articles (colonnes Référence, Désignation introuvables).');
+              return;
+            }
+          } else {
+            // Customer ou Provider
+            if (!headerString.includes('nom') && !headerString.includes('prénom')) {
+              toast.error(`Fichier invalide : Il ne semble pas contenir des ${type === 'customer' ? 'clients' : 'fournisseurs'} (colonnes Nom, Prénom introuvables).`);
+              return;
+            }
+          }
+        }
+        
+        // Si la validation passe, on met à jour l'état
+        setSelectedFile(file);
+      } catch (err) {
+        console.error('Erreur lors de la validation du fichier:', err);
+        toast.error('Erreur lors de la lecture du fichier.');
+      }
+    };
+    reader.onerror = () => {
+      toast.error('Impossible de lire le fichier.');
+    };
+    reader.readAsArrayBuffer(file);
   };
 
   // ACTIONS

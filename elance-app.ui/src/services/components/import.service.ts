@@ -18,7 +18,10 @@ export const importService = {
     formData.append('file', file);
 
     const response = await api.post<ImportReport>('/Imports/articles', formData, {
-      params: { userId, enterpriseId }
+      params: { userId, enterpriseId },
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
     });
     return response.data;
   },
@@ -28,7 +31,10 @@ export const importService = {
     formData.append('file', file);
 
     const response = await api.post<ImportReport>('/Imports/counterparts', formData, {
-      params: { type, userId, enterpriseId }
+      params: { type, userId, enterpriseId },
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
     });
     return response.data;
   }
