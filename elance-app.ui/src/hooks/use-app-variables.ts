@@ -21,7 +21,13 @@ export function useCreateAppVariable() {
     },
     onError: (error: any) => {
       console.error('Error creating app variable:', error);
-      toast.error('Erreur lors de l\'ajout de la variable');
+      if (error?.response?.status === 409) {
+        toast.error('Cette variable existe déjà', {
+          description: 'Une variable avec ce même nom et type existe déjà dans le système.'
+        });
+      } else {
+        toast.error('Erreur lors de l\'ajout de la variable');
+      }
     },
   });
 }

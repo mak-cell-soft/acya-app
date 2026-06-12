@@ -64,10 +64,16 @@ namespace ms.webapp.api.acya.Services
 
             report.TotalRows = items.Count;
 
-            var categories = await _context.Parents.Where(x => x.Description != null).ToDictionaryAsync(x => x.Description!.ToLower(), x => x.Id);
-            var subCategories = await _context.FirstChildren.Where(x => x.Description != null).ToDictionaryAsync(x => x.Description!.ToLower(), x => x.Id);
-            var tvas = await _context.AppVariables.Where(x => x.Nature == "TVA").ToListAsync();
-            var dimensions = await _context.AppVariables.Where(x => x.Nature == "DIMENSION").ToListAsync();
+            string NormalizeString(string? s) => s?.Replace(" ", "")?.Replace("-", "")?.Replace("_", "")?.ToLower() ?? "";
+
+            var parentsList = await _context.Parents.Where(x => x.Description != null).ToListAsync();
+            var categories = parentsList.GroupBy(x => NormalizeString(x.Description)).ToDictionary(g => g.Key, g => g.First().Id);
+            
+            var childrenList = await _context.FirstChildren.Where(x => x.Description != null).ToListAsync();
+            var subCategories = childrenList.GroupBy(x => NormalizeString(x.Description)).ToDictionary(g => g.Key, g => g.First().Id);
+            
+            var tvas = await _context.AppVariables.Where(x => x.Nature != null && x.Nature.ToLower() == "tva").ToListAsync();
+            var dimensions = await _context.AppVariables.Where(x => x.Nature != null && x.Nature.ToLower() == "dimension").ToListAsync();
 
             int rowIndex = 1;
             foreach (var item in items)
@@ -75,22 +81,24 @@ namespace ms.webapp.api.acya.Services
                 rowIndex++;
                 try
                 {
-                    int categoryId = 0;
-                    int subCategoryId = 0;
-
-                    if (string.IsNullOrEmpty(item.CategoryName) || !categories.TryGetValue(item.CategoryName.ToLower(), out categoryId))
+                    var categoryKey = NormalizeString(item.CategoryName);
+                    if (string.IsNullOrEmpty(categoryKey) || !categories.TryGetValue(categoryKey, out int categoryId))
                     {
                         report.Errors.Add(new ImportError { RowIndex = rowIndex, Message = $"Catégorie inconnue : {item.CategoryName}" });
                         continue;
                     }
 
-                    if (string.IsNullOrEmpty(item.SubCategoryName) || !subCategories.TryGetValue(item.SubCategoryName.ToLower(), out subCategoryId))
+                    var subCategoryKey = NormalizeString(item.SubCategoryName);
+                    if (string.IsNullOrEmpty(subCategoryKey) || !subCategories.TryGetValue(subCategoryKey, out int subCategoryId))
                     {
                         report.Errors.Add(new ImportError { RowIndex = rowIndex, Message = $"Sous-catégorie inconnue : {item.SubCategoryName}" });
                         continue;
                     }
 
-                    var tva = tvas.FirstOrDefault(x => x.Value == item.TvaRate);
+                    // Fix percentage if stored as decimal (e.g., 0.19 instead of 19)
+                    var normalizedTva = item.TvaRate > 0 && item.TvaRate < 1 ? Math.Round(item.TvaRate * 100, 2) : item.TvaRate;
+
+                    var tva = tvas.FirstOrDefault(x => x.Value == normalizedTva);
                     if (tva == null)
                     {
                         report.Errors.Add(new ImportError { RowIndex = rowIndex, Message = $"Taux TVA '{item.TvaRate}' non configuré." });
@@ -133,7 +141,8 @@ namespace ms.webapp.api.acya.Services
                     article.WidthId = widthId;
                     article.Unit = item.Unit;
                     article.SellPriceHT = item.SellPriceHT;
-                    article.SellPriceTTC = item.SellPriceHT * (1 + item.TvaRate / 100.0);
+                    var normalizedArticleTva = item.TvaRate > 0 && item.TvaRate < 1 ? Math.Round(item.TvaRate * 100, 2) : item.TvaRate;
+                    article.SellPriceTTC = item.SellPriceHT * (1 + normalizedArticleTva / 100.0);
                     article.LastPurchasePriceTTC = item.LastPurchasePriceTTC;
                     article.MinQuantity = item.MinQuantity;
                     article.Lengths = item.Lengths;
@@ -289,6 +298,39 @@ namespace ms.webapp.api.acya.Services
             return report;
         }
 
+        private string GetSafeString(IXLCell cell)
+        {
+            if (cell == null || cell.IsEmpty()) return "";
+            return cell.GetString()?.Trim() ?? "";
+        }
+
+        private double GetSafeDouble(IXLCell cell)
+        {
+            if (cell == null || cell.IsEmpty()) return 0;
+
+            if (cell.TryGetValue<double>(out var dValue))
+            {
+                return dValue;
+            }
+
+            var strVal = cell.GetString()?.Trim() ?? "";
+            if (string.IsNullOrEmpty(strVal)) return 0;
+
+            if (strVal.EndsWith("%"))
+            {
+                strVal = strVal.Substring(0, strVal.Length - 1).Trim();
+            }
+
+            strVal = strVal.Replace(',', '.');
+
+            if (double.TryParse(strVal, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+            {
+                return parsed;
+            }
+
+            return 0;
+        }
+
         private List<ArticleImportDto> ParseArticlesExcel(Stream stream)
         {
             var list = new List<ArticleImportDto>();
@@ -309,11 +351,11 @@ namespace ms.webapp.api.acya.Services
                     Width = row.Cell(7).GetString(),
                     Lengths = row.Cell(8).GetString(),
                     Unit = row.Cell(9).GetString(),
-                    SellPriceHT = row.Cell(10).GetDouble(),
-                    TvaRate = row.Cell(11).GetDouble(),
-                    ProfitMarginPercentage = row.Cell(13).GetDouble(),
-                    LastPurchasePriceTTC = row.Cell(14).GetDouble(),
-                    MinQuantity = row.Cell(15).GetDouble()
+                    SellPriceHT = GetSafeDouble(row.Cell(10)),
+                    TvaRate = GetSafeDouble(row.Cell(11)),
+                    ProfitMarginPercentage = GetSafeDouble(row.Cell(13)),
+                    LastPurchasePriceTTC = GetSafeDouble(row.Cell(14)),
+                    MinQuantity = GetSafeDouble(row.Cell(15))
                 });
             }
             return list;
@@ -359,6 +401,190 @@ namespace ms.webapp.api.acya.Services
             using var reader = new StreamReader(stream);
             using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = true });
             return csv.GetRecords<CounterPartImportDto>().ToList();
+        }
+
+        public async Task<ImportReportDto> ImportSettingsAsync(Stream fileStream, string fileName)
+        {
+            var report = new ImportReportDto { TotalRows = 0, SuccessCount = 0, ErrorCount = 0, Errors = new List<ImportError>() };
+
+            if (!fileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+            {
+                report.Errors.Add(new ImportError { RowIndex = 0, Message = "Format de fichier non supporté. Utilisez .xlsx" });
+                report.ErrorCount = report.Errors.Count;
+                return report;
+            }
+
+            try
+            {
+                using var workbook = new XLWorkbook(fileStream);
+
+                // Import Taxes
+                if (workbook.TryGetWorksheet("Taxes", out var wsTaxes))
+                {
+                    var rows = wsTaxes.RowsUsed().Skip(1); // skip header
+                    foreach (var row in rows)
+                    {
+                        string nature = GetSafeString(row.Cell(1));
+                        string name = GetSafeString(row.Cell(2));
+                        double value = GetSafeDouble(row.Cell(3));
+
+                        if (string.IsNullOrEmpty(nature) || string.IsNullOrEmpty(name)) continue;
+
+                        var existing = await _context.AppVariables.FirstOrDefaultAsync(x => x.Nature == nature && x.Name == name);
+                        if (existing != null)
+                        {
+                            existing.Value = value;
+                            _context.AppVariables.Update(existing);
+                        }
+                        else
+                        {
+                            _context.AppVariables.Add(new AppVariable { Nature = nature, Name = name, Value = value, isActive = true, isDefault = false, isEditable = true, isDeleted = false });
+                        }
+                        report.SuccessCount++;
+                    }
+                }
+
+                // Import Dimensions
+                if (workbook.TryGetWorksheet("Dimensions", out var wsDimensions))
+                {
+                    var rows = wsDimensions.RowsUsed().Skip(1);
+                    foreach (var row in rows)
+                    {
+                        string nature = GetSafeString(row.Cell(1));
+                        string name = GetSafeString(row.Cell(2));
+                        double value = GetSafeDouble(row.Cell(3));
+
+                        if (string.IsNullOrEmpty(nature) || string.IsNullOrEmpty(name)) continue;
+
+                        var existing = await _context.AppVariables.FirstOrDefaultAsync(x => x.Nature == nature && x.Name == name);
+                        if (existing != null)
+                        {
+                            existing.Value = value;
+                            _context.AppVariables.Update(existing);
+                        }
+                        else
+                        {
+                            _context.AppVariables.Add(new AppVariable { Nature = nature, Name = name, Value = value, isActive = true, isDefault = false, isEditable = true, isDeleted = false });
+                        }
+                        report.SuccessCount++;
+                    }
+                }
+
+                // Import Categories
+                if (workbook.TryGetWorksheet("Catégories", out var wsCategories))
+                {
+                    var rows = wsCategories.RowsUsed().Skip(1);
+                    foreach (var row in rows)
+                    {
+                        string reference = GetSafeString(row.Cell(1));
+                        string description = GetSafeString(row.Cell(2));
+
+                        if (string.IsNullOrEmpty(description)) continue;
+
+                        var existing = await _context.Parents.FirstOrDefaultAsync(x => x.Description == description);
+                        if (existing != null)
+                        {
+                            existing.Reference = reference;
+                            _context.Parents.Update(existing);
+                        }
+                        else
+                        {
+                            _context.Parents.Add(new Parent { Reference = reference, Description = description });
+                        }
+                        report.SuccessCount++;
+                    }
+                }
+                
+                await _context.SaveChangesAsync(); // save parents to get their IDs for subcategories
+
+                // Import SubCategories
+                if (workbook.TryGetWorksheet("Sous-catégories", out var wsSubCategories))
+                {
+                    var parents = await _context.Parents.ToListAsync();
+                    var rows = wsSubCategories.RowsUsed().Skip(1);
+                    foreach (var row in rows)
+                    {
+                        string parentDescription = GetSafeString(row.Cell(1));
+                        string reference = GetSafeString(row.Cell(2));
+                        string description = GetSafeString(row.Cell(3));
+
+                        if (string.IsNullOrEmpty(description) || string.IsNullOrEmpty(parentDescription)) continue;
+
+                        var parent = parents.FirstOrDefault(p => p.Description == parentDescription);
+                        if (parent == null)
+                        {
+                            report.Errors.Add(new ImportError { RowIndex = row.RowNumber(), Message = $"Catégorie parente introuvable : {parentDescription}" });
+                            continue;
+                        }
+
+                        var existing = await _context.FirstChildren.FirstOrDefaultAsync(x => x.Description == description && x.IdParent == parent.Id);
+                        if (existing != null)
+                        {
+                            existing.Reference = reference;
+                            _context.FirstChildren.Update(existing);
+                        }
+                        else
+                        {
+                            _context.FirstChildren.Add(new FirstChild { Reference = reference, Description = description, IdParent = parent.Id });
+                        }
+                        report.SuccessCount++;
+                    }
+                }
+
+                // Import Transporters
+                if (workbook.TryGetWorksheet("Transporteurs", out var wsTransporters))
+                {
+                    var rows = wsTransporters.RowsUsed().Skip(1);
+                    foreach (var row in rows)
+                    {
+                        string firstName = GetSafeString(row.Cell(1));
+                        string lastName = GetSafeString(row.Cell(2));
+
+                        if (string.IsNullOrEmpty(firstName) && string.IsNullOrEmpty(lastName)) continue;
+
+                        var existing = await _context.Transporters.FirstOrDefaultAsync(x => x.FirstName == firstName && x.LastName == lastName);
+                        if (existing == null)
+                        {
+                            _context.Transporters.Add(new Transporter { FirstName = firstName, LastName = lastName, FullName = $"{firstName} {lastName}".Trim() });
+                        }
+                        report.SuccessCount++;
+                    }
+                }
+
+                // Import Banks
+                if (workbook.TryGetWorksheet("Banques", out var wsBanks))
+                {
+                    var rows = wsBanks.RowsUsed().Skip(1);
+                    foreach (var row in rows)
+                    {
+                        string designation = GetSafeString(row.Cell(1));
+                        string rib = GetSafeString(row.Cell(2));
+
+                        if (string.IsNullOrEmpty(designation)) continue;
+
+                        var existing = await _context.Banks.FirstOrDefaultAsync(x => x.Designation == designation);
+                        if (existing != null)
+                        {
+                            existing.Rib = rib;
+                            _context.Banks.Update(existing);
+                        }
+                        else
+                        {
+                            _context.Banks.Add(new Bank { Designation = designation, Rib = rib });
+                        }
+                        report.SuccessCount++;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                report.Errors.Add(new ImportError { RowIndex = 0, Message = $"Erreur lors de la lecture : {ex.Message}" });
+            }
+
+            report.ErrorCount = report.Errors.Count;
+            return report;
         }
     }
 }

@@ -11,6 +11,9 @@ import { useAppVariables } from '@/hooks/use-app-variables';
 import { useEnterprise } from '@/hooks/use-enterprise';
 import { Percent, Ruler, Tags, Truck, Landmark, ShieldCheck } from 'lucide-react';
 
+import { SettingsExportButton } from './settings-export-button';
+import { SettingsImportDialog } from './settings-import-dialog';
+
 export function ParamsTab() {
   const { data: enterprise } = useEnterprise();
   const { data: tva } = useAppVariables('Tva');
@@ -27,6 +30,10 @@ export function ParamsTab() {
 
   return (
     <div className="space-y-10">
+      <div className="flex justify-end gap-3 mb-4">
+        <SettingsImportDialog />
+        <SettingsExportButton />
+      </div>
       <Tabs defaultValue="taxes" className="w-full">
         <TabsList className="bg-sand-50/50 p-1 rounded-2xl border border-corp-blue-50 mb-8 h-auto flex-wrap justify-start">
           <TabsTrigger value="taxes" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-corp-blue-900 data-[state=active]:shadow-sm font-bold gap-2">

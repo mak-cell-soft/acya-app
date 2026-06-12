@@ -32,6 +32,7 @@ namespace ms.webapp.api.acya.Services
                 "sales" => await GetSalesReportData(startDate, endDate, salesSiteId),
                 "profitability" => await GetProfitabilityReportData(startDate, endDate, salesSiteId),
                 "stock" => await GetStockReportData(salesSiteId),
+                "settings" => await GetSettingsReportData(),
                 _ => throw new ArgumentException("Invalid report type")
             };
 
@@ -137,23 +138,92 @@ namespace ms.webapp.api.acya.Services
             }).OrderBy(r => r.Category).ToListAsync();
         }
 
+        private async Task<SettingsExportData> GetSettingsReportData()
+        {
+            var data = new SettingsExportData();
+            
+            var vars = await _context.AppVariables.ToListAsync();
+            data.Taxes = vars.Where(v => v.Nature != null && (v.Nature.ToLower() == "tva" || v.Nature.ToLower() == "taxe" || v.Nature.ToLower() == "rs"))
+                .Select(v => new AppVariableExportRow { Nature = v.Nature ?? "", Name = v.Name ?? "", Value = v.Value ?? 0 })
+                .OrderBy(v => v.Nature).ToList();
+
+            data.Dimensions = vars.Where(v => v.Nature != null && (v.Nature.ToLower() == "thickness" || v.Nature.ToLower() == "width" || v.Nature.ToLower() == "length" || v.Nature.ToLower() == "dimension"))
+                .Select(v => new AppVariableExportRow { Nature = v.Nature ?? "", Name = v.Name ?? "", Value = v.Value ?? 0 })
+                .OrderBy(v => v.Nature).ToList();
+
+            var parents = await _context.Parents.ToListAsync();
+            data.Categories = parents.Select(p => new CategoryExportRow { Reference = p.Reference ?? "", Description = p.Description ?? "" }).ToList();
+
+            var children = await _context.FirstChildren.Include(c => c.Parents).ToListAsync();
+            data.SubCategories = children.Select(c => new SubCategoryExportRow { 
+                Category = c.Parents?.Description ?? "", 
+                Reference = c.Reference ?? "", 
+                Description = c.Description ?? "" 
+            }).ToList();
+
+            var transporters = await _context.Transporters.ToListAsync();
+            data.Transporters = transporters.Select(t => new TransporterExportRow { FirstName = t.FirstName ?? "", LastName = t.LastName ?? "" }).ToList();
+
+            var banks = await _context.Banks.ToListAsync();
+            data.Banks = banks.Select(b => new BankExportRow { Designation = b.Designation ?? "", Rib = b.Rib ?? "" }).ToList();
+
+            return data;
+        }
+
         private byte[] GenerateExcel(object data)
         {
             using var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("Report");
             
             bool inserted = false;
-            if (data is List<SalesReportRow> sales) { worksheet.Cell(1, 1).InsertTable(sales); inserted = true; }
-            else if (data is List<ProfitabilityReportRow> profit) { worksheet.Cell(1, 1).InsertTable(profit); inserted = true; }
-            else if (data is List<StockReportRow> stock) { worksheet.Cell(1, 1).InsertTable(stock); inserted = true; }
-
-            if (inserted)
+            if (data is SettingsExportData settings)
             {
+                worksheet.Name = "Taxes";
+                if (settings.Taxes.Any()) worksheet.Cell(1, 1).InsertTable(settings.Taxes);
                 worksheet.Columns().AdjustToContents();
-                var headerRow = worksheet.Row(1);
-                headerRow.Style.Font.Bold = true;
-                headerRow.Style.Fill.BackgroundColor = XLColor.FromHtml("#3f51b5");
-                headerRow.Style.Font.FontColor = XLColor.White;
+
+                var wsDimensions = workbook.Worksheets.Add("Dimensions");
+                if (settings.Dimensions.Any()) wsDimensions.Cell(1, 1).InsertTable(settings.Dimensions);
+                wsDimensions.Columns().AdjustToContents();
+
+                var wsCategories = workbook.Worksheets.Add("Catégories");
+                if (settings.Categories.Any()) wsCategories.Cell(1, 1).InsertTable(settings.Categories);
+                wsCategories.Columns().AdjustToContents();
+
+                var wsSubCategories = workbook.Worksheets.Add("Sous-catégories");
+                if (settings.SubCategories.Any()) wsSubCategories.Cell(1, 1).InsertTable(settings.SubCategories);
+                wsSubCategories.Columns().AdjustToContents();
+
+                var wsTransporters = workbook.Worksheets.Add("Transporteurs");
+                if (settings.Transporters.Any()) wsTransporters.Cell(1, 1).InsertTable(settings.Transporters);
+                wsTransporters.Columns().AdjustToContents();
+
+                var wsBanks = workbook.Worksheets.Add("Banques");
+                if (settings.Banks.Any()) wsBanks.Cell(1, 1).InsertTable(settings.Banks);
+                wsBanks.Columns().AdjustToContents();
+                
+                foreach (var ws in workbook.Worksheets)
+                {
+                    var headerRow = ws.Row(1);
+                    headerRow.Style.Font.Bold = true;
+                    headerRow.Style.Fill.BackgroundColor = XLColor.FromHtml("#3f51b5");
+                    headerRow.Style.Font.FontColor = XLColor.White;
+                }
+            }
+            else
+            {
+                if (data is List<SalesReportRow> sales) { worksheet.Cell(1, 1).InsertTable(sales); inserted = true; }
+                else if (data is List<ProfitabilityReportRow> profit) { worksheet.Cell(1, 1).InsertTable(profit); inserted = true; }
+                else if (data is List<StockReportRow> stock) { worksheet.Cell(1, 1).InsertTable(stock); inserted = true; }
+
+                if (inserted)
+                {
+                    worksheet.Columns().AdjustToContents();
+                    var headerRow = worksheet.Row(1);
+                    headerRow.Style.Font.Bold = true;
+                    headerRow.Style.Fill.BackgroundColor = XLColor.FromHtml("#3f51b5");
+                    headerRow.Style.Font.FontColor = XLColor.White;
+                }
             }
 
             using var stream = new MemoryStream();

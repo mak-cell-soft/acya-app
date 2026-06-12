@@ -145,7 +145,9 @@ export function AppVariableFormDialog({ isOpen, onClose, nature }: AppVariableFo
                 onValueChange={(val) => setValue('nature', val!)}
               >
                 <SelectTrigger className="bg-sand-50 ">
-                  <SelectValue placeholder="Sélectionner le type" />
+                  <SelectValue placeholder="Sélectionner le type">
+                    {selectedNature === 'thickness' ? 'Épaisseur' : selectedNature === 'width' ? 'Largeur' : 'Sélectionner le type'}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-corp-blue-100">
                   <SelectItem value="thickness" className="rounded-lg">Épaisseur</SelectItem>
