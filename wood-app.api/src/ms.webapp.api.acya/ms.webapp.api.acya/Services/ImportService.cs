@@ -51,12 +51,14 @@ namespace ms.webapp.api.acya.Services
                 else
                 {
                     report.Errors.Add(new ImportError { RowIndex = 0, Message = "Format de fichier non supporté. Utilisez .xlsx ou .csv" });
+                    report.ErrorCount = report.Errors.Count;
                     return report;
                 }
             }
             catch (Exception ex)
             {
                 report.Errors.Add(new ImportError { RowIndex = 0, Message = $"Erreur lors de la lecture : {ex.Message}" });
+                report.ErrorCount = report.Errors.Count;
                 return report;
             }
 
@@ -207,12 +209,14 @@ namespace ms.webapp.api.acya.Services
                 else
                 {
                     report.Errors.Add(new ImportError { RowIndex = 0, Message = "Format non supporté." });
+                    report.ErrorCount = report.Errors.Count;
                     return report;
                 }
             }
             catch (Exception ex)
             {
                 report.Errors.Add(new ImportError { RowIndex = 0, Message = $"Erreur : {ex.Message}" });
+                report.ErrorCount = report.Errors.Count;
                 return report;
             }
 
@@ -220,6 +224,7 @@ namespace ms.webapp.api.acya.Services
             if (!Enum.TryParse<CounterPartType>(type, true, out var cpType))
             {
                 report.Errors.Add(new ImportError { RowIndex = 0, Message = $"Type de contrepartie '{type}' invalide." });
+                report.ErrorCount = report.Errors.Count;
                 return report;
             }
 
@@ -280,6 +285,7 @@ namespace ms.webapp.api.acya.Services
             }
 
             await _context.SaveChangesAsync();
+            report.ErrorCount = report.Errors.Count;
             return report;
         }
 

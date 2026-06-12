@@ -203,8 +203,8 @@ export function DataImportDialog({
           user.enterpriseId
         );
       } else {
-        // Mapping type to either 'CUSTOMER' or 'PROVIDER' uppercase string
-        const counterpartType = type === 'customer' ? 'CUSTOMER' : 'PROVIDER';
+        // Mapping type to either 'CUSTOMER' or 'SUPPLIER' uppercase string
+        const counterpartType = type === 'customer' ? 'CUSTOMER' : 'SUPPLIER';
         resultReport = await importService.importCounterParts(
           selectedFile,
           counterpartType,
