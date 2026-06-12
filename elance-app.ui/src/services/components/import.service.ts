@@ -37,5 +37,17 @@ export const importService = {
       }
     });
     return response.data;
+  },
+
+  importSettings: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.post<ImportReport>('/Imports/settings', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
   }
 };

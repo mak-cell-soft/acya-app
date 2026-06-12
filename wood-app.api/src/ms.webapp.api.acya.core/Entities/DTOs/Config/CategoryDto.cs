@@ -25,7 +25,7 @@ namespace ms.webapp.api.acya.core.Entities.Dtos.Config
     public CategoryDto(Parent entity)
     {
       id = entity.Id;
-      createdby = (int)entity.UpdatedBy!;
+      createdby = entity.UpdatedBy;
       reference = entity.Reference;
       description = entity.Description;
       updatedate = entity.UpdateDate;

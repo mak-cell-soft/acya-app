@@ -489,7 +489,13 @@ namespace ms.webapp.api.acya.Services
                         }
                         else
                         {
-                            _context.Parents.Add(new Parent { Reference = reference, Description = description });
+                            _context.Parents.Add(new Parent { 
+                                Reference = reference, 
+                                Description = description,
+                                CreationDate = DateTime.UtcNow,
+                                UpdateDate = DateTime.UtcNow,
+                                IsDeleted = false
+                            });
                         }
                         report.SuccessCount++;
                     }
@@ -525,7 +531,14 @@ namespace ms.webapp.api.acya.Services
                         }
                         else
                         {
-                            _context.FirstChildren.Add(new FirstChild { Reference = reference, Description = description, IdParent = parent.Id });
+                            _context.FirstChildren.Add(new FirstChild { 
+                                Reference = reference, 
+                                Description = description, 
+                                IdParent = parent.Id,
+                                CreationDate = DateTime.UtcNow,
+                                UpdateDate = DateTime.UtcNow,
+                                IsDeleted = false
+                            });
                         }
                         report.SuccessCount++;
                     }

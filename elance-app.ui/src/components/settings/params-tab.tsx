@@ -11,8 +11,11 @@ import { useAppVariables } from '@/hooks/use-app-variables';
 import { useEnterprise } from '@/hooks/use-enterprise';
 import { Percent, Ruler, Tags, Truck, Landmark, ShieldCheck } from 'lucide-react';
 
-import { SettingsExportButton } from './settings-export-button';
-import { SettingsImportDialog } from './settings-import-dialog';
+import { Upload } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { DataImportDialog } from '@/components/shared/data-import-dialog';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function ParamsTab() {
   const { data: enterprise } = useEnterprise();
@@ -23,6 +26,43 @@ export function ParamsTab() {
   const { data: widths } = useAppVariables('width');
   const { data: lengths } = useAppVariables('Length');
 
+  const [isImportOpen, setIsImportOpen] = React.useState(false);
+  const queryClient = useQueryClient();
+
+  const handleExport = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}Reports/settings/export`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de l\'exportation');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `parametres_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success('Export réussi', {
+        description: 'Le fichier Excel a été téléchargé avec succès.'
+      });
+    } catch (error) {
+      toast.error('Erreur', {
+        description: 'Une erreur est survenue lors de l\'exportation des paramètres.'
+      });
+    }
+  };
+
   const dimensions = React.useMemo(() => [
     ...(thicknesses?.map(t => ({ ...t, nature: 'thickness' })) || []),
     ...(widths?.map(w => ({ ...w, nature: 'width' })) || [])
@@ -31,8 +71,13 @@ export function ParamsTab() {
   return (
     <div className="space-y-10">
       <div className="flex justify-end gap-3 mb-4">
-        <SettingsImportDialog />
-        <SettingsExportButton />
+        <Button 
+          onClick={() => setIsImportOpen(true)}
+          variant="outline" 
+          className="gap-2 bg-white text-corp-blue-900 border-corp-blue-100 hover:bg-corp-blue-50/50 hover:border-corp-blue-200"
+        >
+          <Upload className="w-4 h-4" /> Import / Export
+        </Button>
       </div>
       <Tabs defaultValue="taxes" className="w-full">
         <TabsList className="bg-sand-50/50 p-1 rounded-2xl border border-corp-blue-50 mb-8 h-auto flex-wrap justify-start">
@@ -108,6 +153,14 @@ export function ParamsTab() {
           <BankTable />
         </TabsContent>
       </Tabs>
+
+      <DataImportDialog
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+        type="settings"
+        onImportSuccess={() => queryClient.invalidateQueries({ queryKey: ['app-variables'] })}
+        onExportXlsx={handleExport}
+      />
     </div>
   );
 }

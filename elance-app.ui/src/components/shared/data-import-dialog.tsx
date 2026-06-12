@@ -32,7 +32,7 @@ import { cn } from '@/lib/utils';
 interface DataImportDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  type: 'customer' | 'provider' | 'article';
+  type: 'customer' | 'provider' | 'article' | 'settings';
   onImportSuccess: () => void; // Hook for invalidating page-specific React Query cache on successful records creation
   onExportXlsx?: () => void;
   onExportCsv?: () => void;
@@ -71,6 +71,7 @@ export function DataImportDialog({
     customer: { plural: 'clients', singular: 'client' },
     provider: { plural: 'fournisseurs', singular: 'fournisseur' },
     article: { plural: 'articles', singular: 'article' },
+    settings: { plural: 'paramètres', singular: 'paramètre' },
   };
 
   const currentLabel = labelMap[type];
@@ -138,6 +139,8 @@ export function DataImportDialog({
               toast.error('Fichier invalide : Il ne semble pas contenir des articles (colonnes Référence, Désignation introuvables).');
               return;
             }
+          } else if (type === 'settings') {
+            // Pas de validation stricte d'en-têtes pour les paramètres car le format peut varier
           } else {
             // Customer ou Provider
             if (!headerString.includes('nom') && !headerString.includes('prénom')) {
@@ -171,7 +174,7 @@ export function DataImportDialog({
       return;
     }
     toast.info('Préparation du modèle...');
-    const fileName = `template_${type === 'provider' ? 'provider' : type}.${format}`;
+    const fileName = `template_${type === 'provider' ? 'provider' : type === 'settings' ? 'settings' : type}.${format}`;
     const url = `/assets/templates/${fileName}`;
     window.open(url, '_blank');
   };
@@ -196,7 +199,9 @@ export function DataImportDialog({
     try {
       let resultReport: ImportReport;
 
-      if (type === 'article') {
+      if (type === 'settings') {
+        resultReport = await importService.importSettings(selectedFile);
+      } else if (type === 'article') {
         resultReport = await importService.importArticles(
           selectedFile,
           user.id,
