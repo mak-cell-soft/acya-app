@@ -206,7 +206,7 @@ export function BankDepositDialog({
                   Site de provenance *
                 </Label>
                 <Select
-                  value={selectedSiteId}
+                  value={selectedSiteId || ''}
                   onValueChange={(val: string | null) => setValue('salesSiteId', val as string)}
                 >
                   <SelectTrigger className="h-11 bg-[#fafafa] focus:text-xs font-semibold">
@@ -232,7 +232,7 @@ export function BankDepositDialog({
                 Banque de destination *
               </Label>
               <Select
-                value={bankId || undefined}
+                value={bankId || ''}
                 onValueChange={(val: string | null) => setValue('bankId', val as string)}
                 disabled={isLoadingBanks}
               >

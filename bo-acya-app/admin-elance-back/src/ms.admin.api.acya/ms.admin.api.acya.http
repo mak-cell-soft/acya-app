@@ -1,0 +1,6 @@
+@ms.admin.api.acya_HostAddress = http://localhost:5124
+
+GET {{ms.admin.api.acya_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
