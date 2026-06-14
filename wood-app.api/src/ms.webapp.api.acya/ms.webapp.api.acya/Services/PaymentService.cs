@@ -173,11 +173,11 @@ namespace ms.webapp.api.acya.api.Services
                     var createdPayment = await _paymentRepository.Add(payment);
 
                     // Automate Caisse Movement for CASH/ESPECE
-                    if ((createDto.PaymentMethod?.ToUpper() == "CASH" || createDto.PaymentMethod?.ToUpper() == "ESPECE") && user?.IdSalesSite != null)
+                    if ((createDto.PaymentMethod?.ToUpper() == "CASH" || createDto.PaymentMethod?.ToUpper() == "ESPECE"))
                     {
                         var caisseMovement = new CaisseMovement
                         {
-                            SalesSiteId = user.IdSalesSite.Value,
+                            SalesSiteId = document.SalesSiteId,
                             MovementDate = DateTime.UtcNow,
                             Type = "ENTREE",
                             Reason = "ENCAISSEMENT",
@@ -616,9 +616,18 @@ namespace ms.webapp.api.acya.api.Services
                     // Automate Caisse Movement for CASH/ESPECE
                     if ((createDto.PaymentMethod?.ToUpper() == "CASH" || createDto.PaymentMethod?.ToUpper() == "ESPECE") && user?.IdSalesSite != null)
                     {
+                        int targetSalesSiteId = user.IdSalesSite.Value;
+                        if (createDto.DocumentId.HasValue) 
+                        {
+                            var targetDoc = await _documentRepository.Get(createDto.DocumentId.Value);
+                            if (targetDoc != null) {
+                                targetSalesSiteId = targetDoc.SalesSiteId;
+                            }
+                        }
+
                         var caisseMovement = new CaisseMovement
                         {
-                            SalesSiteId = user.IdSalesSite.Value,
+                            SalesSiteId = targetSalesSiteId,
                             MovementDate = DateTime.UtcNow,
                             Type = "ENTREE",
                             Reason = "RECOUVREMENT",

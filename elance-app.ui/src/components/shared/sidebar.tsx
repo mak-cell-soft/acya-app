@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import {
@@ -153,6 +153,25 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const router = useRouter();
   const { hasAnyPermission } = usePermissionGuard();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Restore state on mount
+  useEffect(() => {
+    const savedCollapsed = localStorage.getItem('sidebar-collapsed');
+    if (savedCollapsed) setIsCollapsed(savedCollapsed === 'true');
+
+    if (scrollRef.current) {
+      const savedScroll = sessionStorage.getItem('sidebar-scroll');
+      if (savedScroll) {
+        scrollRef.current.scrollTop = parseInt(savedScroll, 10);
+      }
+    }
+  }, []);
+
+  // Save collapsed state
+  useEffect(() => {
+    localStorage.setItem('sidebar-collapsed', isCollapsed.toString());
+  }, [isCollapsed]);
 
   const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin';
 
@@ -352,7 +371,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* ── NAV GROUPS ── */}
-        <div className={cn('flex-1 overflow-y-auto py-4 custom-scrollbar', isCollapsed ? 'px-3' : 'px-6')}>
+        <div 
+          ref={scrollRef}
+          onScroll={(e) => {
+            sessionStorage.setItem('sidebar-scroll', e.currentTarget.scrollTop.toString());
+          }}
+          className={cn('flex-1 overflow-y-auto py-4 custom-scrollbar', isCollapsed ? 'px-3' : 'px-6')}
+        >
           {navGroups.map((group) => {
             // Filter items based on permissions and admin-only guard
             const filteredItems = group.items.filter((item) => {
