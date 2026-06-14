@@ -19,6 +19,7 @@ import { fr } from 'date-fns/locale';
 import { caisseService } from '@/services/treasury/caisse.service';
 
 import { InstrumentsTable } from '@/components/dashboard/instruments-table';
+import { PaymentDeepSearchCard } from '@/components/dashboard/payment-deep-search-card';
 
 // UI components from shadcn library
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -983,6 +984,16 @@ export function DashboardContent() {
         </motion.div>
 
       </div>
+
+      {/* ── RECHERCHE APPROFONDIE DES REGLEMENTS ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.65, duration: 0.6 }}
+        className="mt-8"
+      >
+        <PaymentDeepSearchCard />
+      </motion.div>
 
       {/* ── DIALOG FOR CAISSE MOVEMENT (ENTREE / SORTIE) ── */}
       <Dialog 

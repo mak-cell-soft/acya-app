@@ -37,7 +37,17 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                 .Include(p => p.Customer)
                 .Include(p => p.AppUser)
                 .Include(p => p.PaymentInstrument)
-                .Where(p => !p.IsDeleted);
+                .Where(p => !p.IsDeleted)
+                .Where(p => 
+                    (p.DocumentId == null && p.Customer != null && p.Customer.Type != ms.webapp.api.acya.common.CounterPartType.Supplier) ||
+                    (p.DocumentId != null && p.Document != null && (
+                        p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.customerInvoice || 
+                        p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.customerDeliveryNote || 
+                        p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.customerOrder || 
+                        p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.customerQuote ||
+                        p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.customerInvoiceReturn
+                    ))
+                );
 
             if (searchDto.FromDate.HasValue)
                 query = query.Where(p => p.PaymentDate >= searchDto.FromDate.Value);
@@ -53,6 +63,25 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
             if (!string.IsNullOrEmpty(searchDto.PaymentMethod))
                 query = query.Where(p => p.PaymentMethod == searchDto.PaymentMethod);
+
+            if (!string.IsNullOrEmpty(searchDto.Search))
+            {
+                var searchTerm = searchDto.Search;
+                query = query.Where(p => 
+                    (p.Customer != null && p.Customer.FirstName != null && p.Customer.FirstName.Contains(searchTerm)) ||
+                    (p.Customer != null && p.Customer.LastName != null && p.Customer.LastName.Contains(searchTerm)) ||
+                    (p.Customer != null && p.Customer.Name != null && p.Customer.Name.Contains(searchTerm)) ||
+                    (p.Reference != null && p.Reference.Contains(searchTerm))
+                );
+            }
+
+            if (!string.IsNullOrEmpty(searchDto.Nature))
+            {
+                if (searchDto.Nature == "RECOUVREMENT")
+                    query = query.Where(p => p.DocumentId == null);
+                else if (searchDto.Nature == "PAIEMENT_DOC")
+                    query = query.Where(p => p.DocumentId != null);
+            }
 
             var totalCount = await query.CountAsync();
             var items = await query

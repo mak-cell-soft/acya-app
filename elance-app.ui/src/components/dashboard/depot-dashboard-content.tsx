@@ -11,6 +11,8 @@ import { DocumentTypes } from '@/types/document';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
+import { PaymentDeepSearchCard } from '@/components/dashboard/payment-deep-search-card';
+
 // UI components
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -677,6 +679,16 @@ export function DepotDashboardContent() {
             )}
           </CardContent>
         </Card>
+      </motion.div>
+
+      {/* ── RECHERCHE APPROFONDIE DES REGLEMENTS ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.65, duration: 0.6 }}
+        className="mt-8"
+      >
+        <PaymentDeepSearchCard />
       </motion.div>
 
     </div>

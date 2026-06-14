@@ -463,6 +463,7 @@ namespace ms.webapp.api.acya.api.Services
                 Notes = payment.Notes,
                 CreatedAt = payment.CreatedAt ?? DateTime.MinValue,
                 CreatedBy = payment.CreatedBy,
+                Nature = payment.DocumentId.HasValue ? "PAIEMENT_DOC" : "RECOUVREMENT",
                 Instrument = payment.PaymentInstrument != null ? new PaymentInstrumentDto
                 {
                     Id = payment.PaymentInstrument.Id,

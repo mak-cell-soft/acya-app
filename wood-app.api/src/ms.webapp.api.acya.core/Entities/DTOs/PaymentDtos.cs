@@ -46,6 +46,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public string? Notes { get; set; }
         public DateTime CreatedAt { get; set; }
         public string? CreatedBy { get; set; }
+        public string? Nature { get; set; }
         public PaymentInstrumentDto? Instrument { get; set; }
     }
 
@@ -119,6 +120,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public int? CustomerId { get; set; }
         public int? DocumentId { get; set; }
         public string? PaymentMethod { get; set; }
+        public string? Search { get; set; }
+        public string? Nature { get; set; }
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
     }
