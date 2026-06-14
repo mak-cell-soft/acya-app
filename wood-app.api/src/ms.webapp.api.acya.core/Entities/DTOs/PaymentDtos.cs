@@ -122,6 +122,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public string? PaymentMethod { get; set; }
         public string? Search { get; set; }
         public string? Nature { get; set; }
+        public string? CounterpartType { get; set; }
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
     }

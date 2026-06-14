@@ -29,6 +29,7 @@ export function PaymentDeepSearchCard() {
     search: search || undefined,
     nature: nature !== 'all' ? nature : undefined,
     paymentMethod: paymentMethod !== 'all' ? paymentMethod : undefined,
+    counterpartType: 'Customer',
     pageNumber,
     pageSize,
   });

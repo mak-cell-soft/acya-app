@@ -37,17 +37,36 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                 .Include(p => p.Customer)
                 .Include(p => p.AppUser)
                 .Include(p => p.PaymentInstrument)
-                .Where(p => !p.IsDeleted)
-                .Where(p => 
-                    (p.DocumentId == null && p.Customer != null && p.Customer.Type != ms.webapp.api.acya.common.CounterPartType.Supplier) ||
-                    (p.DocumentId != null && p.Document != null && (
-                        p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.customerInvoice || 
-                        p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.customerDeliveryNote || 
-                        p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.customerOrder || 
-                        p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.customerQuote ||
-                        p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.customerInvoiceReturn
-                    ))
-                );
+                .Where(p => !p.IsDeleted);
+
+            if (!string.IsNullOrEmpty(searchDto.CounterpartType))
+            {
+                if (searchDto.CounterpartType.Equals("Customer", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(p => 
+                        (p.DocumentId == null && p.Customer != null && p.Customer.Type != ms.webapp.api.acya.common.CounterPartType.Supplier) ||
+                        (p.DocumentId != null && p.Document != null && (
+                            p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.customerInvoice || 
+                            p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.customerDeliveryNote || 
+                            p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.customerOrder || 
+                            p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.customerQuote ||
+                            p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.customerInvoiceReturn
+                        ))
+                    );
+                }
+                else if (searchDto.CounterpartType.Equals("Supplier", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(p => 
+                        (p.DocumentId == null && p.Customer != null && p.Customer.Type != ms.webapp.api.acya.common.CounterPartType.Customer) ||
+                        (p.DocumentId != null && p.Document != null && (
+                            p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.supplierInvoice || 
+                            p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.supplierReceipt || 
+                            p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.supplierOrder || 
+                            p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.supplierInvoiceReturn
+                        ))
+                    );
+                }
+            }
 
             if (searchDto.FromDate.HasValue)
                 query = query.Where(p => p.PaymentDate >= searchDto.FromDate.Value);

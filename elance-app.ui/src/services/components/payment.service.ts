@@ -15,7 +15,7 @@ export const paymentService = {
     return response.data.items || response.data;
   },
 
-  deepSearch: async (params: { pageNumber?: number; pageSize?: number; fromDate?: string; toDate?: string; paymentMethod?: string; search?: string; nature?: string }): Promise<any> => {
+  deepSearch: async (params: { pageNumber?: number; pageSize?: number; fromDate?: string; toDate?: string; paymentMethod?: string; search?: string; nature?: string; counterpartType?: string }): Promise<any> => {
     const response = await api.post('/Payments/search', params);
     return response.data;
   },

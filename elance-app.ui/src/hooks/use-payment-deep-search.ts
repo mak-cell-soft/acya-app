@@ -9,6 +9,7 @@ export interface PaymentDeepSearchParams {
   paymentMethod?: string;
   search?: string;
   nature?: string; // "PAIEMENT_DOC" | "RECOUVREMENT" | ""
+  counterpartType?: string;
 }
 
 export function usePaymentDeepSearch(params: PaymentDeepSearchParams) {

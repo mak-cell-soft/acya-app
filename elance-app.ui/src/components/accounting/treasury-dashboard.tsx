@@ -505,10 +505,10 @@ export function TreasuryDashboard() {
                         <TableCell className="font-mono text-slate-500">{formatDate(tx.transactionDate)}</TableCell>
                         <TableCell className="font-semibold text-slate-800">{tx.description}</TableCell>
                         <TableCell className="text-right font-mono font-bold text-rose-600">
-                          {tx.debit > 0 ? formatCurrency(tx.debit) : '-'}
+                          {tx.credit > 0 ? formatCurrency(tx.credit) : '-'}
                         </TableCell>
                         <TableCell className="text-right font-mono font-bold text-emerald-600">
-                          {tx.credit > 0 ? formatCurrency(tx.credit) : '-'}
+                          {tx.debit > 0 ? formatCurrency(tx.debit) : '-'}
                         </TableCell>
                         <TableCell className="text-center">
                           <Badge variant={tx.isReconciled ? 'default' : 'secondary'} className={cn(
