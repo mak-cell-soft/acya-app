@@ -74,9 +74,11 @@ import { DocumentTypes, DocStatus, BillingStatus, Document } from '@/types/docum
 // Shared / Modular Components
 import { DocumentDetailDrawer } from '@/components/sales/document-detail-drawer';
 import { WithholdingTaxModal } from '@/components/sales/withholding-tax-modal';
+import { TejRsDialog } from '@/components/tej/tej-rs-dialog';
 import { SupplierReceiptToInvoiceModal } from '@/components/purchases/supplier-receipt-to-invoice-modal';
 import { SupplierCreditNoteModal } from '@/components/purchases/supplier-credit-note-modal';
 import { PrintVariantDialog } from '@/components/print/print-trigger-button';
+import { HoldingTaxListPanel } from '@/components/purchases/holding-tax-list-panel';
 
 // Month names list for period filters
 const MONTHS = [
@@ -129,6 +131,8 @@ export default function PurchasesPage() {
   const [isCreditNoteModalOpen, setIsCreditNoteModalOpen] = useState(false);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
   const [isPrintListModalOpen, setIsPrintListModalOpen] = useState(false);
+  // Controls visibility of the RS (Holding Tax) list side-panel
+  const [isRsPanelOpen, setIsRsPanelOpen] = useState(false);
 
   // Resolves total days count in selected month to validate daily filters
   const getDaysCountInMonth = (year: number, monthIdx: number) => {
@@ -351,12 +355,12 @@ export default function PurchasesPage() {
             <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
               Gestion des Achats
             </h1>
-            <p className="text-sm font-medium text-slate-500 max-w-2xl leading-relaxed">
-              Pilotez l’intégralité de la chaîne d’approvisionnement : commandes fournisseurs, réceptions de marchandises (BR), factures et avoirs financiers.
+            <p className="text-sm font-medium text-slate-500 max-w-md leading-relaxed">
+              Pilotez vos commandes, réceptions, factures et avoirs fournisseurs.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap lg:justify-end items-center gap-3 shrink-0">
             {/* Approbations link — only admin-level users should access approval workflows */}
             {hasPermission('purchases', 'canAdd') && (
               <Link href="/purchases/approvals" passHref>
@@ -376,6 +380,14 @@ export default function PurchasesPage() {
                 <Coins className="w-4 h-4" /> Règlements Fournisseurs
               </Button>
             </Link>
+            {/* Opens the RS list side-panel for the current accounting period */}
+            <Button
+              onClick={() => setIsRsPanelOpen(true)}
+              variant="outline"
+              className="h-11 border-indigo-200 text-indigo-700 font-bold hover:bg-indigo-50 gap-2 flex items-center transition-all duration-300"
+            >
+              <Landmark className="w-4 h-4" /> Retenues à la Source
+            </Button>
             <Button
               onClick={() => setIsPrintListModalOpen(true)}
               variant="outline"
@@ -1407,9 +1419,9 @@ export default function PurchasesPage() {
         onNavigateToRelated={(id) => setSelectedDocIdForDetail(id)}
       />
 
-      {/* RS Withholding Tax Modal Dialog */}
+      {/* RS Withholding Tax Modal Dialog (TEJ Integration) */}
       {docForRS && (
-        <WithholdingTaxModal
+        <TejRsDialog
           isOpen={docForRS !== null}
           document={docForRS}
           onClose={() => setDocForRS(null)}
@@ -1461,6 +1473,12 @@ export default function PurchasesPage() {
           activeTab === 'receipt' ? 'Bons de Réception' :
           activeTab === 'order' ? 'Commandes' : 'Avoirs'
         }
+      />
+
+      {/* RS (Holding Tax) list side-panel — filterable by month with dual search */}
+      <HoldingTaxListPanel
+        isOpen={isRsPanelOpen}
+        onClose={() => setIsRsPanelOpen(false)}
       />
     </DashboardLayout>
   );

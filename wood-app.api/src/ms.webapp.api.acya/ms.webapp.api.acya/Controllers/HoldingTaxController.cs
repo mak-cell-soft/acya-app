@@ -158,15 +158,26 @@ namespace ms.webapp.api.acya.api.Controllers
         }
 
         [HttpGet("all")]
-        public async Task<ActionResult> GetAll()
+        public async Task<ActionResult> GetAll([FromQuery] int? month, [FromQuery] int? year)
         {
-            var result = await _context.HoldingTaxes
+            var query = _context.HoldingTaxes
                 .Where(h => !h.IsDeleted)
-                // Filter to only include holding taxes associated with supplier documents
-                .Where(h => h.Documents.Any(d => d.Type == DocumentTypes.supplierOrder ||
-                                               d.Type == DocumentTypes.supplierReceipt ||
-                                               d.Type == DocumentTypes.supplierInvoice ||
-                                               d.Type == DocumentTypes.supplierInvoiceReturn))
+                // Only RS linked to supplier-type documents
+                .Where(h => h.Documents.Any(d =>
+                    d.Type == DocumentTypes.supplierOrder ||
+                    d.Type == DocumentTypes.supplierReceipt ||
+                    d.Type == DocumentTypes.supplierInvoice ||
+                    d.Type == DocumentTypes.supplierInvoiceReturn));
+
+            // Apply period filter when month and year are provided
+            if (month.HasValue && year.HasValue)
+            {
+                query = query.Where(h =>
+                    h.CreationDate.Month == month.Value &&
+                    h.CreationDate.Year  == year.Value);
+            }
+
+            var result = await query
                 .Include(h => h.Documents)
                     .ThenInclude(d => d.CounterPart)
                 .Select(h => new
@@ -179,8 +190,19 @@ namespace ms.webapp.api.acya.api.Controllers
                     h.isSigned,
                     h.CreationDate,
                     h.UpdateDate,
-                    DocNumber = h.Documents.OrderByDescending(d => d.UpdateDate).Select(d => d.DocNumber).FirstOrDefault(),
-                    CounterPartName = h.Documents.OrderByDescending(d => d.UpdateDate).Select(d => d.CounterPart != null ? d.CounterPart.Name : "").FirstOrDefault()
+                    // Pick the most recently updated document's metadata
+                    DocNumber = h.Documents
+                        .OrderByDescending(d => d.UpdateDate)
+                        .Select(d => d.DocNumber)
+                        .FirstOrDefault(),
+                    DocumentId = h.Documents
+                        .OrderByDescending(d => d.UpdateDate)
+                        .Select(d => (int?)d.Id)
+                        .FirstOrDefault(),
+                    CounterPartName = h.Documents
+                        .OrderByDescending(d => d.UpdateDate)
+                        .Select(d => d.CounterPart != null ? d.CounterPart.Name : "")
+                        .FirstOrDefault()
                 })
                 .OrderByDescending(h => h.UpdateDate)
                 .ToListAsync();

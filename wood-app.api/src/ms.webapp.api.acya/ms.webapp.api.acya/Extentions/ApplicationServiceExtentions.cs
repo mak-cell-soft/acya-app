@@ -10,6 +10,7 @@ using ms.webapp.api.acya.infrastructure.Repositories;
 using ms.webapp.api.acya.api.Interfaces;
 using ms.webapp.api.acya.infrastructure.Configurations.Audit;
 using ms.webapp.api.acya.Services;
+using ms.webapp.api.acya.api.Services.tej;
 
 namespace ms.webapp.api.acya.api.Extentions
 {
@@ -80,6 +81,25 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<IImportService, ImportService>();
       services.AddScoped<IReportService, ReportService>();
       services.AddHttpClient<IExchangeRateService, ExchangeRateService>();
+
+      // TEJ Integration Services
+      services.Configure<TejConfig>(config.GetSection("Tej"));
+      services.AddHttpClient<TejAuthService>(client => 
+      {
+          client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
+          client.DefaultRequestHeaders.Add("Accept", "application/json, text/plain, */*");
+      });
+      services.AddHttpClient<TejApiClient>(client => 
+      {
+          client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
+          client.DefaultRequestHeaders.Add("Accept", "application/json, text/plain, */*");
+      })
+      .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+      {
+          CookieContainer = new System.Net.CookieContainer(),
+          UseCookies = true
+      });
+      services.AddScoped<TejFacade>();
 
       services.AddDbContext<WoodAppContext>((sp, options) =>
       {
