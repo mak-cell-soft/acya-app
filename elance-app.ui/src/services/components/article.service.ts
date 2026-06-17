@@ -11,6 +11,11 @@ export const articleService = {
     return response.data;
   },
 
+  getById: async (id: number) => {
+    const response = await api.get(`/Article/${id}`);
+    return response.data;
+  },
+
   put: async (id: number, model: any) => {
     const response = await api.put(`/Article/${id}`, model);
     return response.data;

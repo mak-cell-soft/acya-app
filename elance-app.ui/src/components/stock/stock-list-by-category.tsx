@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { WoodStockDetailsDialog } from '@/components/stock/wood-stock-details-dialog';
 import {
   Dialog,
   DialogContent,
@@ -53,6 +54,7 @@ export function StockListByCategory() {
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const [minStockValue, setMinStockValue] = useState<number>(0);
   const [isUpdatingThreshold, setIsUpdatingThreshold] = useState(false);
+  const [detailsStock, setDetailsStock] = useState<Stock | null>(null);
 
   // Group stocks by Category on frontend
   const groupedCategories = useMemo(() => {
@@ -320,13 +322,24 @@ export function StockListByCategory() {
 
                             {/* Actions / Settings threshold */}
                             <td className="p-3.5 pr-5 text-center">
-                              <Button
-                                variant="ghost"
-                                onClick={() => handleOpenThreshold(stock)}
-                                className="h-7 w-7 p-0 rounded-lg hover:bg-stone-100 text-stone-450 dark:hover:bg-stone-800"
-                              >
-                                <Settings className="h-3.5 w-3.5" />
-                              </Button>
+                              <div className="flex items-center justify-center gap-1.5">
+                                {group.categoryId === 1 && (
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => setDetailsStock(stock)}
+                                    className="h-7 px-2 py-0 rounded-lg border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 dark:border-amber-900/40 dark:text-amber-400 dark:bg-amber-955 text-[10px] font-bold"
+                                  >
+                                    <TreeDeciduous className="h-3 w-3 mr-1" /> Détails
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  onClick={() => handleOpenThreshold(stock)}
+                                  className="h-7 w-7 p-0 rounded-lg hover:bg-stone-100 text-stone-450 dark:hover:bg-stone-800"
+                                >
+                                  <Settings className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
                             </td>
 
                           </tr>
@@ -386,6 +399,12 @@ export function StockListByCategory() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <WoodStockDetailsDialog 
+        isOpen={!!detailsStock} 
+        onClose={() => setDetailsStock(null)} 
+        stock={detailsStock} 
+      />
 
     </div>
   );

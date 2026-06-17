@@ -73,6 +73,8 @@ interface TransferRow {
   allownegativstock: boolean;
   isArticleDropdownOpen: boolean;
   merchandiseId: number; // Store merchandiseId for stock transfer validation
+  matchingStocks?: any[]; // Store matching stock items for package selection
+  selectedStock?: any; // The selected stock item
 }
 
 function NewStockTransferContent() {
@@ -148,6 +150,8 @@ function NewStockTransferContent() {
       allownegativstock: false,
       isArticleDropdownOpen: false,
       merchandiseId: 0,
+      matchingStocks: [],
+      selectedStock: null,
     };
     setRows([...rows, newRow]);
   };
@@ -165,20 +169,26 @@ function NewStockTransferContent() {
     let availableQty = 0;
     let allowNegativeStock = false;
     let merchandiseId = 0;
+    let matchingStocksForArticle: any[] = [];
+    
     try {
       const originSite = allSites.find(s => s.id.toString() === originSiteId);
       if (originSite) {
         // Retrieve stock details for chosen article using site ID
         const siteStocks = await stockService.getBySite({ id: originSite.id });
-        // NOTE: Backend StockQuantityDto uses PascalCase by default (.NET serialization).
-        // We handle both casings here to be safe against serializer configuration changes.
-        const matchingStock = siteStocks.find((s: any) =>
+        
+        matchingStocksForArticle = siteStocks.filter((s: any) =>
           (s.ArticleId ?? s.articleId) === article.id
         );
-        if (matchingStock) {
-          availableQty = matchingStock.StockQuantity ?? matchingStock.stockQuantity ?? 0;
-          allowNegativeStock = matchingStock.AllowNegativeStock ?? matchingStock.allowNegativeStock ?? false;
-          merchandiseId = matchingStock.MerchandiseId ?? matchingStock.merchandiseId ?? 0;
+        
+        // If not wood, or if there's only 1 matching stock, we can auto-select it
+        if (!isWood || matchingStocksForArticle.length === 1) {
+            const matchingStock = matchingStocksForArticle[0];
+            if (matchingStock) {
+              availableQty = matchingStock.StockQuantity ?? matchingStock.stockQuantity ?? 0;
+              allowNegativeStock = matchingStock.AllowNegativeStock ?? matchingStock.allowNegativeStock ?? false;
+              merchandiseId = matchingStock.MerchandiseId ?? matchingStock.merchandiseId ?? 0;
+            }
         }
       }
     } catch (err) {
@@ -195,12 +205,39 @@ function NewStockTransferContent() {
             isWoodArticle: isWood,
             allownegativstock: allowNegativeStock,
             stock_quantity: availableQty,
-            packagereference: isWood ? '' : 'Standart', // Wood requires package ref. Rule 7 says 'Standart' default if not wood.
+            packagereference: (!isWood || matchingStocksForArticle.length === 1) ? (matchingStocksForArticle[0]?.PackageReference ?? matchingStocksForArticle[0]?.packageReference ?? (isWood ? '' : 'Standart')) : '',
             quantity: 0,
             listLengths: [],
             isArticleDropdownOpen: false,
-            merchandiseId: merchandiseId
+            merchandiseId: merchandiseId,
+            matchingStocks: matchingStocksForArticle,
+            selectedStock: (!isWood || matchingStocksForArticle.length === 1) ? matchingStocksForArticle[0] : null
           };
+        }
+        return row;
+      })
+    );
+  };
+
+  const handleStockSelect = (rowId: string, merchandiseIdStr: string) => {
+    setRows(prevRows =>
+      prevRows.map(row => {
+        if (row.id === rowId) {
+          const selectedStock = row.matchingStocks?.find((s: any) => 
+            (s.MerchandiseId?.toString() ?? s.merchandiseId?.toString()) === merchandiseIdStr
+          );
+          if (selectedStock) {
+            return {
+              ...row,
+              selectedStock,
+              merchandiseId: selectedStock.MerchandiseId ?? selectedStock.merchandiseId ?? 0,
+              stock_quantity: selectedStock.StockQuantity ?? selectedStock.stockQuantity ?? 0,
+              allownegativstock: selectedStock.AllowNegativeStock ?? selectedStock.allowNegativeStock ?? false,
+              packagereference: selectedStock.PackageReference ?? selectedStock.packageReference ?? '',
+              quantity: 0, // Reset quantity when package changes
+              listLengths: [], // Reset lengths
+            };
+          }
         }
         return row;
       })
@@ -257,23 +294,7 @@ function NewStockTransferContent() {
   const openLengthsModal = async (row: TransferRow) => {
     if (!row.selectedArticle) return;
     
-    // Find active merchandiseId from origin stock details if available
-    let merchandiseId = 0;
-    try {
-      const originSite = allSites.find(s => s.id.toString() === originSiteId);
-      if (originSite) {
-        const siteStocks = await stockService.getBySite({ id: originSite.id });
-        // NOTE: Handle both PascalCase (.NET default) and camelCase serialization.
-        const matchingStock = siteStocks.find((s: any) =>
-          (s.ArticleId ?? s.articleId) === row.selectedArticle?.id
-        );
-        if (matchingStock) {
-          merchandiseId = matchingStock.MerchandiseId ?? matchingStock.merchandiseId ?? 0;
-        }
-      }
-    } catch (e) {
-      console.error('Error matching merchandise ID for lengths request:', e);
-    }
+    const merchandiseId = row.merchandiseId || 0;
 
     const woodParams = {
       merchandiseRef: row.selectedArticle.reference,
@@ -776,17 +797,50 @@ function NewStockTransferContent() {
 
                           {/* Package Reference Input */}
                           <td className="p-3.5">
-                            <Input
-                              value={row.packagereference}
-                              onChange={(e) => handlePackageChange(row.id, e.target.value)}
-                              placeholder={row.isWoodArticle ? "Colis requis *" : "Standard"}
-                              disabled={!row.selectedArticle}
-                              className={`bg-stone-50/50 dark:bg-stone-950/40 font-mono text-xs rounded-lg ${
-                                row.isWoodArticle && !row.packagereference 
-                                  ? 'border-amber-300 focus:border-amber-500 bg-amber-50/20' 
-                                  : 'border-stone-200 dark:border-stone-800'
-                              }`}
-                            />
+                            {row.isWoodArticle && row.matchingStocks && row.matchingStocks.length > 0 ? (
+                              <Select 
+                                value={row.merchandiseId ? row.merchandiseId.toString() : ''} 
+                                onValueChange={(val) => handleStockSelect(row.id, val || '')}
+                                disabled={!row.selectedArticle}
+                              >
+                                <SelectTrigger 
+                                  className={`bg-stone-50/50 dark:bg-stone-950/40 font-mono text-xs rounded-lg ${
+                                    !row.merchandiseId 
+                                      ? 'border-amber-300 focus:border-amber-500 bg-amber-50/20' 
+                                      : 'border-stone-200 dark:border-stone-800'
+                                  }`}
+                                >
+                                  <SelectValue placeholder="Choisir colis">
+                                    {row.selectedStock ? (row.selectedStock.Description ?? row.selectedStock.description ?? row.selectedStock.PackageReference ?? row.selectedStock.packageReference) : undefined}
+                                  </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent className="bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-800 rounded-xl">
+                                  {row.matchingStocks.map((stock: any) => {
+                                    const mId = stock.MerchandiseId ?? stock.merchandiseId;
+                                    const ref = stock.PackageReference ?? stock.packageReference;
+                                    const desc = stock.Description ?? stock.description;
+                                    const qty = stock.StockQuantity ?? stock.stockQuantity;
+                                    return (
+                                      <SelectItem key={mId} value={mId.toString()} className="text-xs font-medium">
+                                        {desc || ref} ({qty} {row.selectedArticle?.unit})
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <Input
+                                value={row.packagereference}
+                                onChange={(e) => handlePackageChange(row.id, e.target.value)}
+                                placeholder={row.isWoodArticle ? "Colis requis *" : "Standard"}
+                                disabled={!row.selectedArticle}
+                                className={`bg-stone-50/50 dark:bg-stone-950/40 font-mono text-xs rounded-lg ${
+                                  row.isWoodArticle && !row.packagereference 
+                                    ? 'border-amber-300 focus:border-amber-500 bg-amber-50/20' 
+                                    : 'border-stone-200 dark:border-stone-800'
+                                }`}
+                              />
+                            )}
                           </td>
 
                           {/* Available Stock Display */}
