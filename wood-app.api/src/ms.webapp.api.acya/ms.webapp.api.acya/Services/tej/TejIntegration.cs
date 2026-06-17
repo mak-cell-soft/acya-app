@@ -406,9 +406,9 @@ public class CertificatBuilder
         bool   pCharge = false)
     {
         // Calculate derived amounts (TEJ requires integer millimes)
-        var montantTVA      = providedMontantTVA ?? (long)Math.Round(montantHT * tauxTVA / 100, MidpointRounding.AwayFromZero);
+        var montantTVA      = providedMontantTVA ?? (long)Math.Truncate((decimal)montantHT * tauxTVA / 100m);
         var montantTTC      = providedMontantTTC ?? (montantHT + montantTVA);
-        var montantRS       = providedMontantRS ?? (long)Math.Round(montantTTC * tauxRS / 100, MidpointRounding.AwayFromZero);
+        var montantRS       = providedMontantRS ?? (long)Math.Truncate((decimal)montantTTC * tauxRS / 100m);
         var montantNetServi = montantTTC - montantRS;
 
         _cert.ListeOperations.Operations.Add(new Operation

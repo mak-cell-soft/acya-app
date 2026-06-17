@@ -51,7 +51,7 @@ export function TejRsDialog({
   const [tauxTVA, setTauxTVA] = useState<number>(initialTva);
   const [tauxRS, setTauxRS] = useState<number>(doc.holdingtax?.taxpercentage || 0);
   const [idTypeOperation, setIdTypeOperation] = useState<string>('RS7_000002');
-  const [reference, setReference] = useState<string>((doc.supplierReference || doc.holdingtax?.reference || '').substring(0, 15));
+  const [reference, setReference] = useState<string>((doc.supplierReference || (doc as any).supplierreference || doc.holdingtax?.reference || '').substring(0, 15));
   
   const [beneficiaryMf, setBeneficiaryMf] = useState(doc.counterpart?.taxregistrationnumber || '');
   const [beneficiaryEmail, setBeneficiaryEmail] = useState(doc.counterpart?.email || '');
@@ -66,12 +66,20 @@ export function TejRsDialog({
   const [syncing, setSyncing] = useState(false);
   const [tejError, setTejError] = useState<string | null>(null);
   const [tejReferenceId, setTejReferenceId] = useState<string>('');
+  const [rawTejResponse, setRawTejResponse] = useState<string>('');
+
+  // Handle specific TEJ input format for Montant HT
+  const handleMontantHTChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, '');
+    const num = parseInt(digits, 10) || 0;
+    setMontantHT(num / 1000);
+  };
 
   // Calculations in millimes (to match exactly TEJ backend)
   const htMillimes = Math.round(montantHT * 1000);
-  const tvaMillimes = Math.round((htMillimes * tauxTVA) / 100);
+  const tvaMillimes = Math.trunc((htMillimes * tauxTVA) / 100);
   const ttcMillimes = htMillimes + tvaMillimes;
-  const rsMillimes = Math.round((ttcMillimes * tauxRS) / 100);
+  const rsMillimes = Math.trunc((ttcMillimes * tauxRS) / 100);
   const netMillimes = ttcMillimes - rsMillimes;
 
   const displayTVA = tvaMillimes / 1000;
@@ -202,12 +210,17 @@ export function TejRsDialog({
 
       // Extract GUID from TEJ response
       if (result && result.result && result.result.rawResponse) {
+        setRawTejResponse(result.result.rawResponse);
         try {
           const parsed = JSON.parse(result.result.rawResponse);
           console.log('TEJ Raw Success Response:', parsed);
           
           // TEJ wraps the response in an "RS" array for declarations
-          if (parsed.RS && Array.isArray(parsed.RS) && parsed.RS.length > 0 && parsed.RS[0].id) {
+          if (parsed.keycloakId) {
+            guid = parsed.keycloakId;
+          } else if (parsed.RS && Array.isArray(parsed.RS) && parsed.RS.length > 0 && parsed.RS[0].keycloakId) {
+            guid = parsed.RS[0].keycloakId;
+          } else if (parsed.RS && Array.isArray(parsed.RS) && parsed.RS.length > 0 && parsed.RS[0].id) {
             guid = parsed.RS[0].id;
           } else if (parsed.id) {
             guid = parsed.id;
@@ -434,9 +447,9 @@ export function TejRsDialog({
                     <CardContent className="p-3 text-xs text-right">
                       <span className="text-slate-500 font-semibold block mb-1">Montant HT</span>
                       <Input
-                        type="number"
-                        value={montantHT}
-                        onChange={(e) => setMontantHT(Number(e.target.value))}
+                        type="text"
+                        value={montantHT.toFixed(3)}
+                        onChange={handleMontantHTChange}
                         className="h-8 text-right font-bold text-blue-700 text-sm mt-1 border-transparent hover:border-slate-200 focus:border-blue-500 transition-colors bg-transparent px-1"
                       />
                     </CardContent>
@@ -515,9 +528,8 @@ export function TejRsDialog({
                     </label>
                     <Input
                       value={idTypeOperation}
-                      onChange={(e) => setIdTypeOperation(e.target.value)}
-                      placeholder="Ex: RS7_000002"
-                      className="rounded-xl border-slate-200 text-xs font-semibold h-10"
+                      disabled
+                      className="h-8 text-xs mt-1 border-slate-200 bg-slate-50 cursor-not-allowed font-semibold"
                     />
                     <p className="text-[10px] text-slate-400">Code opération nomenclature TEJ (ex: RS7_000001, RS7_000002)</p>
                   </div>
@@ -651,6 +663,19 @@ export function TejRsDialog({
                   <p className="text-xs text-slate-500 font-bold uppercase">ID TEJ (GUID)</p>
                   <p className="font-mono text-xs font-bold text-blue-700 break-all">{tejReferenceId}</p>
                 </div>
+
+                {rawTejResponse && (
+                  <div className="w-full text-left mt-2">
+                    <details className="text-xs text-slate-500 border border-slate-200 rounded-lg overflow-hidden">
+                      <summary className="cursor-pointer font-bold bg-slate-50 px-3 py-2 hover:bg-slate-100">
+                        Voir la réponse technique (JSON TEJ)
+                      </summary>
+                      <pre className="bg-slate-900 text-green-400 p-3 overflow-x-auto text-[10px] whitespace-pre-wrap max-h-40 overflow-y-auto">
+                        {rawTejResponse}
+                      </pre>
+                    </details>
+                  </div>
+                )}
 
                 <Button 
                   onClick={() => { onSuccess(); onClose(); }}
