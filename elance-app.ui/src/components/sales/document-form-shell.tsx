@@ -1589,7 +1589,10 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                                       return (
                                         <div className="flex items-center gap-1.5 mt-1.5 text-[0.7rem] font-bold text-corp-blue-700 bg-corp-blue-50/70 border border-corp-blue-100/50 rounded-lg px-2.5 py-1.5 w-fit shadow-sm">
                                           <Layers className="w-3.5 h-3.5 text-corp-blue-600" />
-                                          <span>Réf: {stock.packageReference || 'Standard'}</span>
+                                          <span className="truncate max-w-[200px]">
+                                            Réf: {stock.packageReference || 'Standard'}
+                                            {stock.MerchandiseDescription ? ` • ${stock.MerchandiseDescription}` : ''}
+                                          </span>
                                           <span className="text-sand-400">|</span>
                                           <span className="text-corp-blue-600">Stock: {formatQuantity(parseFloat(stock.stockQuantity || 0), row.selectedArticle?.unit)}</span>
                                         </div>
@@ -1605,9 +1608,16 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                                             handleRowFieldChange(index, 'selectedStock', selected || null);
                                           }}
                                         >
-                                          <SelectTrigger className="h-8 rounded-lg border-corp-blue-50 focus:ring-corp-blue-600 bg-white text-[0.7rem] font-bold text-corp-blue-900 justify-start gap-2 shadow-sm">
+                                          <SelectTrigger className="h-8 rounded-lg border-corp-blue-50 focus:ring-corp-blue-600 bg-white text-[0.7rem] font-bold text-corp-blue-900 justify-start gap-2 shadow-sm truncate">
                                             <Layers className="w-3.5 h-3.5 text-corp-blue-600 shrink-0" />
-                                            <SelectValue placeholder="Sélectionner une référence..." />
+                                            <SelectValue placeholder="Sélectionner une référence...">
+                                              {row.selectedStock ? (
+                                                <span className="truncate">
+                                                  Réf: {row.selectedStock.packageReference || 'Standard'}
+                                                  {row.selectedStock.MerchandiseDescription ? ` • ${row.selectedStock.MerchandiseDescription}` : ''}
+                                                </span>
+                                              ) : undefined}
+                                            </SelectValue>
                                           </SelectTrigger>
                                           <SelectContent className="rounded-xl border-corp-blue-100 p-1">
                                             {matchingStocks.map((stock) => (

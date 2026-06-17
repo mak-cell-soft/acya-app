@@ -146,5 +146,28 @@ namespace ms.webapp.api.acya.common
       string cleanName = new string(counterPartName?.Where(c => char.IsLetterOrDigit(c)).ToArray() ?? Array.Empty<char>());
       return $"RS-{docNumber}-{cleanName}-{yearMonth}";
     }
+
+    public static string GenerateMerchandiseReference(string category, string thicknessWidth, string? lastRef)
+    {
+      string yyMM = DateTime.Now.ToString("yyMM");
+      int newIncrement = 1;
+
+      if (!string.IsNullOrEmpty(lastRef))
+      {
+        var parts = lastRef.Replace("\"", "").Trim().Split('-');
+        if (parts.Length > 0 && int.TryParse(parts.Last(), out int lastIncrement))
+        {
+          newIncrement = lastIncrement + 1;
+        }
+      }
+
+      var resultParts = new List<string>();
+      if (!string.IsNullOrEmpty(category)) resultParts.Add(category);
+      resultParts.Add(yyMM);
+      if (!string.IsNullOrEmpty(thicknessWidth)) resultParts.Add(thicknessWidth);
+      resultParts.Add(newIncrement.ToString());
+
+      return string.Join("-", resultParts);
+    }
   }
 }

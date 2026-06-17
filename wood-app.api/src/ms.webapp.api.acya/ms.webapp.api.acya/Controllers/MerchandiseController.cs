@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using ms.webapp.api.acya.api.Controllers;
 using ms.webapp.api.acya.core.Entities.DTOs;
 using ms.webapp.api.acya.infrastructure.Repositories;
+using ms.webapp.api.acya.common;
 
 namespace ms.webapp.api.acya.api.Controllers
 {
@@ -35,35 +36,26 @@ namespace ms.webapp.api.acya.api.Controllers
 
       if (_mArticle != null)
       {
-        if (_mArticle.IsWood) // Reference is like BR-38115-2502-1
+        if (_mArticle.IsWood) // Reference is like BR-2502-38115-1
         {
-          prefix = _mArticle.FirstChildren!.Reference + '-' + _mArticle.Thicknesses!.Name + _mArticle.Widths!.Name;
-          var lastRef = await _repository.GetLastReferenceByArticle(prefix);
-          if (!string.IsNullOrEmpty(lastRef))
-          {
-            // Extract the last part of the reference (the increment)
-            var parts = lastRef.Replace("\"", "").Trim().Split('-');
-            if (parts.Length > 0 && int.TryParse(parts.Last(), out int lastIncrement))
-            {
-              newIncrement = lastIncrement + 1;
-            }
-          }
-          reference = prefix + '-' + intermediate + '-' + newIncrement;
+          string category = _mArticle.FirstChildren?.Reference ?? "";
+          string thicknessWidth = $"{_mArticle.Thicknesses?.Name}{_mArticle.Widths?.Name}";
+          
+          string searchPrefix = Helpers.GenerateMerchandiseReference(category, thicknessWidth, null);
+          searchPrefix = searchPrefix.Substring(0, searchPrefix.LastIndexOf('-')); 
+          
+          var lastRef = await _repository.GetLastReferenceByArticle(searchPrefix);
+          reference = Helpers.GenerateMerchandiseReference(category, thicknessWidth, lastRef);
         }
         else // Example Reference is like STR-2502-1
         {
-          prefix = _mArticle.FirstChildren!.Reference;
-          var lastRef = await _repository.GetLastReferenceByArticle(prefix!);
-          if (!string.IsNullOrEmpty(lastRef))
-          {
-            // Extract the last part of the reference (the increment)
-            var parts = lastRef.Replace("\"", "").Trim().Split('-');
-            if (parts.Length > 0 && int.TryParse(parts.Last(), out int lastIncrement))
-            {
-              newIncrement = lastIncrement + 1;
-            }
-          }
-          reference = prefix + '-' + intermediate + '-' + newIncrement;
+          string category = _mArticle.FirstChildren?.Reference ?? "";
+          
+          string searchPrefix = Helpers.GenerateMerchandiseReference(category, "", null);
+          searchPrefix = searchPrefix.Substring(0, searchPrefix.LastIndexOf('-')); 
+          
+          var lastRef = await _repository.GetLastReferenceByArticle(searchPrefix);
+          reference = Helpers.GenerateMerchandiseReference(category, "", lastRef);
         }
 
         return reference;
