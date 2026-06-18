@@ -31,6 +31,8 @@ export interface Customer {
   openingbalance: number;
   currentbalance?: number;
   isTypeBoth: boolean;
+  transporterid?: number | null;
+  transporter?: any | null;
 }
 
 export interface PricingGrid {

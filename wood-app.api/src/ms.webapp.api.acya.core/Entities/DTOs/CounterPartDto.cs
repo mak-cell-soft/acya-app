@@ -65,6 +65,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public int? updatedbyid { get; set; }
     public AppUserDto? appuser { get; set; }
 
+    public int? transporterid { get; set; }
     public TransporterDto? transporter { get; set; }
 
     public CounterPartDto()
@@ -115,6 +116,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       {
         appuser = null;
       }
+
+      transporterid = entity.TransporterId;
 
       if (entity.Transporter != null)
       {

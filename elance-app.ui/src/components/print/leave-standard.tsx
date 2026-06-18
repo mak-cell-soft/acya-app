@@ -35,11 +35,11 @@ export function LeaveStandard({ employee, leave, enterprise }: LeaveStandardProp
       {/* Custom Stylesheet specifically for administrative letters */}
       <style>{`
         .letter-content {
-          margin-top: 15mm;
-          margin-bottom: 20mm;
+          margin-top: 10mm;
+          margin-bottom: 10mm;
           display: flex;
           flex-direction: column;
-          gap: 10mm;
+          gap: 8mm;
         }
         .body-paragraph {
           font-size: 10.5pt;
@@ -56,7 +56,7 @@ export function LeaveStandard({ employee, leave, enterprise }: LeaveStandardProp
           font-size: 11pt;
         }
         .hr-signature-section {
-          margin-top: 25mm;
+          margin-top: 15mm;
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 20mm;
@@ -134,7 +134,7 @@ export function LeaveStandard({ employee, leave, enterprise }: LeaveStandardProp
       </div>
 
       {/* Document Title Header */}
-      <div className="document-header" style={{ marginBottom: '8mm' }}>
+      <div className="document-header" style={{ marginBottom: '5mm' }}>
         <div className="document-title-section" style={{ width: '100%', padding: '6mm' }}>
           <h2 className="document-title" style={{ letterSpacing: '1px' }}>{templates.leave.title}</h2>
           <span style={{ fontSize: '12pt', fontWeight: 'bold', marginTop: '2mm', display: 'block' }}>{templates.leave.titleAr}</span>
@@ -142,7 +142,7 @@ export function LeaveStandard({ employee, leave, enterprise }: LeaveStandardProp
       </div>
 
       {/* Meta Dates Bar */}
-      <div className="document-details" style={{ marginBottom: '10mm' }}>
+      <div className="document-details" style={{ marginBottom: '5mm' }}>
         <div className="detail-item">
           <span className="detail-label">DATE DOCUMENT</span>
           <span className="detail-value">{new Date().toLocaleDateString('fr-FR')}</span>
@@ -183,7 +183,7 @@ export function LeaveStandard({ employee, leave, enterprise }: LeaveStandardProp
       </div>
 
       {/* Legal Footer */}
-      <div className="footer-legal" style={{ marginTop: '25mm' }}>
+      <div className="footer-legal" style={{ marginTop: '15mm' }}>
         <p className="legal-text">
           {enterprise.description ? `${enterprise.name} - ${enterprise.description}` : enterprise.name}
         </p>

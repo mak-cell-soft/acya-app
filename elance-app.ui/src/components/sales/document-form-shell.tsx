@@ -905,7 +905,10 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
         total_tva_doc: parseFloat(naturalTotals.tva.toFixed(3)),
         total_net_ttc: parseFloat(finalPayableTTC.toFixed(3)),
         withholdingtax: !!selectedRS,
-        counterpart: selectedCustomer,
+        counterpart: selectedCustomer ? {
+          ...selectedCustomer,
+          transporterid: selectedTransporter?.id || null
+        } : null,
         sales_site: activeUserSite,
         creationdate: new Date(docDate),
         updatedate: new Date(),
@@ -1075,9 +1078,31 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                               setCustomerSearchQuery(fullName);
                               setIsCustomerDropdownOpen(false);
                               // Auto-select linked transporter
-                              const defaultTransp = (cust as any).transporter;
+                              let defaultTransp = null;
+                              if (cust.transporterid) {
+                                defaultTransp = allTransporters.find(t => t.id === cust.transporterid);
+                              }
+                              if (!defaultTransp && (cust as any).transporter) {
+                                defaultTransp = (cust as any).transporter;
+                              }
+                              
                               if (defaultTransp) {
                                 setSelectedTransporter(defaultTransp);
+                                setTransporterSearchQuery(defaultTransp.fullname || '');
+                                
+                                // Sync to rows
+                                setRows(prevRows => 
+                                  prevRows.map(row => {
+                                    if (row.line_type === LineType.TransportFee) {
+                                      row.transporter_id = defaultTransp.id;
+                                      row.transporter_name = defaultTransp.fullname;
+                                    }
+                                    return row;
+                                  })
+                                );
+                              } else {
+                                setSelectedTransporter(null);
+                                setTransporterSearchQuery('');
                               }
                             }}
                           >

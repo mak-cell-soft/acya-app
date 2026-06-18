@@ -388,7 +388,7 @@ export function CustomerBatchConversionModal({
           animate={{ opacity: 0.5 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute rounded-full inset-0 bg-black/40 backdrop-blur-xs"
+          className="absolute inset-0 bg-black/40 backdrop-blur-xs"
         />
 
         {/* Modal panel */}
@@ -474,7 +474,7 @@ export function CustomerBatchConversionModal({
                       className="fixed inset-0 z-10"
                       onClick={() => setIsCustomerDropdownOpen(false)}
                     />
-                    <div className="absolute rounded-full left-0 right-0 mt-1 max-h-60 overflow-y-auto z-20 rounded-xl border border-sand-200 bg-white shadow-lg p-1.5 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto z-20 rounded-xl border border-sand-200 bg-white shadow-lg p-1.5 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
                       {filteredCustomers.map((cust) => {
                         const fullName = cust.name || `${cust.firstname || ''} ${cust.lastname || ''}`.trim() || 'Client sans nom';
                         const isSelected = selectedCustomerId === cust.id.toString();

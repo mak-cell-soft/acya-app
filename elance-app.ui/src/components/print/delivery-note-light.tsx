@@ -102,7 +102,7 @@ export function DeliveryNoteLight({ document, enterprise }: DeliveryNoteLightPro
               <td className="col-unit" style={{ textAlign: 'center' }}>{merch.article?.unit || 'PCS'}</td>
               <td className="col-qty">{utils.formatQuantity(merch.quantity, merch.article?.unit)}</td>
               <td className="col-price">{utils.formatNumber(merch.unit_price_ht)}</td>
-              <td className="col-tva" style={{ textAlign: 'center' }}>{merch.article?.tva?.value || 0}%</td>
+              <td className="col-tva" style={{ textAlign: 'center' }}>{String(merch.article?.tva?.value || 0).replace(/%/g, '').trim()}%</td>
               <td className="col-total">{utils.formatNumber(merch.cost_net_ht)}</td>
             </tr>
           ))}

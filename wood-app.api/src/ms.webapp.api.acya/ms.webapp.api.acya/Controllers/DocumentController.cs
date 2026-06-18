@@ -44,7 +44,7 @@ namespace ms.webapp.api.acya.api.Controllers
       var documents = await _context.Documents
           .AsNoTracking() // Performance: Disable change tracking for read-only query
           .AsSplitQuery() // Performance: Avoid cartesian product in complex joins
-          .Include(d => d.CounterPart)
+          .Include(d => d.CounterPart).ThenInclude(cp => cp!.Transporter).ThenInclude(t => t!.Vehicle)
           .Include(d => d.SalesSite)
           .Include(d => d.HoldingTaxes)
           .Include(d => d.Payments)
@@ -199,7 +199,7 @@ namespace ms.webapp.api.acya.api.Controllers
     {
       var documents = await _context.Documents
           .AsNoTracking()
-          .Include(d => d.CounterPart)
+          .Include(d => d.CounterPart).ThenInclude(cp => cp!.Transporter).ThenInclude(t => t!.Vehicle)
           .Include(d => d.Payments)
           .Include(d => d.HoldingTaxes)
           .Where(d => d.CounterPartId == id && !d.IsDeleted)
@@ -216,7 +216,7 @@ namespace ms.webapp.api.acya.api.Controllers
       var document = await _context.Documents
           .AsNoTracking()
           .AsSplitQuery()
-          .Include(d => d.CounterPart)
+          .Include(d => d.CounterPart).ThenInclude(cp => cp!.Transporter).ThenInclude(t => t!.Vehicle)
           .Include(d => d.SalesSite)
           .Include(d => d.HoldingTaxes)
           .Include(d => d.Payments)
@@ -248,7 +248,7 @@ namespace ms.webapp.api.acya.api.Controllers
       var documents = await _context.Documents
           .AsNoTracking() // Performance: Disable change tracking for read-only query
           .AsSplitQuery() // Performance: Avoid cartesian product in complex joins
-          .Include(d => d.CounterPart)
+          .Include(d => d.CounterPart).ThenInclude(cp => cp!.Transporter).ThenInclude(t => t!.Vehicle)
           .Include(d => d.SalesSite)
           .Include(d => d.HoldingTaxes)
           .Include(d => d.Taxes)
@@ -542,7 +542,17 @@ namespace ms.webapp.api.acya.api.Controllers
             doc.CounterPart = await _context.CounterParts.FindAsync(dto.counterpart.id);
             doc.CounterPartId = dto.counterpart.id;
             if (doc.CounterPart != null)
+            {
               _context.Entry(doc.CounterPart).State = EntityState.Unchanged;
+              
+              // Mettre à jour le transporteur du client s'il a été sélectionné/modifié 
+              // lors de la création du document, pour le précharger les prochaines fois.
+              if (doc.CounterPart.TransporterId != dto.counterpart.transporterid)
+              {
+                doc.CounterPart.TransporterId = dto.counterpart.transporterid;
+                _context.Entry(doc.CounterPart).Property(c => c.TransporterId).IsModified = true;
+              }
+            }
           }
 
           if (dto.sales_site?.id > 0)
@@ -1164,7 +1174,7 @@ namespace ms.webapp.api.acya.api.Controllers
       var d = await _context.Documents
           .AsNoTracking()
           .AsSplitQuery()
-          .Include(d => d.CounterPart)
+          .Include(d => d.CounterPart).ThenInclude(cp => cp!.Transporter).ThenInclude(t => t!.Vehicle)
           .Include(d => d.SalesSite)
           .Include(d => d.HoldingTaxes)
           .Include(d => d.Payments)
@@ -1259,6 +1269,10 @@ namespace ms.webapp.api.acya.api.Controllers
       var parentDocuments = await _context.DocumentDocumentRelationships
           .Include(p => p.ParentDocument)
               .ThenInclude(p => p!.CounterPart)
+                  .ThenInclude(cp => cp!.Transporter)
+                      .ThenInclude(t => t!.Vehicle)
+          .Include(p => p.ParentDocument)
+              .ThenInclude(p => p!.CounterPart)
                   .ThenInclude(cp => cp!.AppUsers)
                       .ThenInclude(u => u!.Persons)
           .Include(p => p.ParentDocument)
@@ -1310,7 +1324,7 @@ namespace ms.webapp.api.acya.api.Controllers
         try
         {
           var doc = await _context.Documents
-              .Include(d => d.CounterPart)
+              .Include(d => d.CounterPart).ThenInclude(cp => cp!.Transporter).ThenInclude(t => t!.Vehicle)
               .Include(d => d.SalesSite)
               .Include(d => d.DocumentMerchandises)
                   .ThenInclude(dm => dm.Merchandise)
@@ -1349,6 +1363,16 @@ namespace ms.webapp.api.acya.api.Controllers
           doc.TotalCostNetTTCDoc = Math.Round(dto.total_net_ttc, 3, MidpointRounding.AwayFromZero);
           doc.TotalCostDiscountDoc = Math.Round(dto.total_discount_doc, 3, MidpointRounding.AwayFromZero);
           doc.TotalCostTvaDoc = Math.Round(dto.total_tva_doc, 3, MidpointRounding.AwayFromZero);
+
+          // Handle CounterPart transporter update
+          if (dto.counterpart != null && doc.CounterPart != null)
+          {
+            if (doc.CounterPart.TransporterId != dto.counterpart.transporterid)
+            {
+              doc.CounterPart.TransporterId = dto.counterpart.transporterid;
+              _context.Entry(doc.CounterPart).Property(c => c.TransporterId).IsModified = true;
+            }
+          }
 
           // Handle SalesSite update (crucial for stock transfer on update)
           if (dto.sales_site?.id > 0 && doc.SalesSiteId != dto.sales_site.id)

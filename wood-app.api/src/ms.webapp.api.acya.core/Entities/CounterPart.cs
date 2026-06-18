@@ -148,6 +148,7 @@ namespace ms.webapp.api.acya.core.Entities
       IsActive = dto.isactive;
       IsDeleted = dto.isdeleted;
       UpdatedById = (int)dto.updatedbyid!;
+      TransporterId = dto.transporterid;
       if (dto.appuser != null)
       {
         AppUsers = new AppUser(dto.appuser);

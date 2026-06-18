@@ -46,11 +46,13 @@ export function formatQuantity(quantity: number | undefined, unit: string | unde
  * Extracts the transporter's vehicle registration plate number.
  */
 export function getVehicleInfo(document: Document | null | undefined): string {
-  const t = document?.transporter;
+  const t = document?.transporter || document?.counterpart?.transporter;
   if (!t) return '---';
   
   // Try various Matrical schemas from C# entity structure
   return (
+    (t as any).vehicle?.serialNumber ||
+    (t as any).vehicle?.serialnumber ||
     (t as any).vehiculematricule || 
     (t as any).car?.matricule || 
     (t as any).car?.serialnumber || 
@@ -62,7 +64,7 @@ export function getVehicleInfo(document: Document | null | undefined): string {
  * Extracts the transporter's full name.
  */
 export function getTransporterName(document: Document | null | undefined): string {
-  const t = document?.transporter;
+  const t = document?.transporter || document?.counterpart?.transporter;
   if (!t) return '---';
   
   const firstName = t.firstname || (t as any).transpSurname || '';

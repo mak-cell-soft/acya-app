@@ -612,7 +612,7 @@ export function getLightPrintStyles(): string {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-top: 2mm;
+      margin-top: 35mm;
     }
 
     .words-and-legal {
