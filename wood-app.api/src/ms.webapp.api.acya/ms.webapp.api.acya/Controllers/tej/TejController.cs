@@ -103,12 +103,15 @@ namespace ms.webapp.api.acya.api.Controllers.tej
 
                 var enterprise = await _context.Enterprises.FirstOrDefaultAsync();
 
+                if (enterprise == null || string.IsNullOrEmpty(enterprise.MatriculeFiscal))
+                    throw new Exception("Enterprise Matricule Fiscal not configured");
+
                 var req = new UploadDeclarationRequest
                 {
                     TempDirectory = "temp",
                     Declaration = new BuildDeclarationRequest
                     {
-                        DeclarantIdentifiant = enterprise!.MatriculeFiscal.Trim().Split(' ')[0],
+                        DeclarantIdentifiant = enterprise.MatriculeFiscal.Trim().Split(' ')[0],
                         Year = DateTime.UtcNow.Year,
                         Month = DateTime.UtcNow.Month,
                         Certificates = new List<TejCertificateInput>

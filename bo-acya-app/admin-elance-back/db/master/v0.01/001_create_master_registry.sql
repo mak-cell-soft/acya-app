@@ -1,6 +1,6 @@
 -- Crée le schema public et la table de registre des tenants dans acya-app-bo
 
-CREATE TABLE IF NOT EXISTS public.tbl_enterprise (
+CREATE TABLE IF NOT EXISTS bo_tbl_enterprise (
     "Id" BIGSERIAL PRIMARY KEY,
     "Slug" VARCHAR(100) UNIQUE NOT NULL,
     "Name" VARCHAR(255) NOT NULL,
@@ -17,11 +17,11 @@ CREATE TABLE IF NOT EXISTS public.tbl_enterprise (
 );
 
 CREATE UNIQUE INDEX idx_enterprise_slug_active
-    ON public.tbl_enterprise("Slug")
+    ON bo_tbl_enterprise("Slug")
     WHERE "IsActive" = TRUE;
 
 -- Table Super Admin Users
-CREATE TABLE IF NOT EXISTS public.tbl_super_admin_users (
+CREATE TABLE IF NOT EXISTS bo_tbl_super_admin_users (
     "Id" BIGSERIAL PRIMARY KEY,
     "Username" VARCHAR(100) UNIQUE NOT NULL,
     "PasswordHash" VARCHAR(255) NOT NULL,

@@ -810,7 +810,7 @@ namespace ms.webapp.api.acya.api.Services
             var deposits = await _context.BankDeposits
                 .Include(b => b.Bank)
                 .Include(b => b.PaymentInstrument)
-                    .ThenInclude(pi => pi.Payment)
+                    .ThenInclude(pi => pi!.Payment)
                         .ThenInclude(p => p!.Customer)
                 .Where(b => !b.IsDeleted && b.PaymentInstrument != null && b.PaymentInstrument.BankSettlementStatus == "PENDING" && b.Reference != null && b.Reference.StartsWith("BORD-"))
                 .ToListAsync();
@@ -870,8 +870,8 @@ namespace ms.webapp.api.acya.api.Services
         {
             var deposits = await _context.BankDeposits
                 .Include(b => b.PaymentInstrument)
-                    .ThenInclude(p => p.Payment)
-                        .ThenInclude(p => p.Customer)
+                    .ThenInclude(p => p!.Payment)
+                        .ThenInclude(p => p!.Customer)
                 .Include(b => b.Bank)
                 .Where(b => b.Reference == reference && !b.IsDeleted && b.PaymentInstrument != null && b.PaymentInstrument.BankSettlementStatus == "PENDING")
                 .ToListAsync();
@@ -937,8 +937,8 @@ namespace ms.webapp.api.acya.api.Services
         {
             var deposits = await _context.BankDeposits
                 .Include(b => b.PaymentInstrument)
-                .ThenInclude(p => p.Payment)
-                .ThenInclude(p => p.Customer)
+                .ThenInclude(p => p!.Payment)
+                .ThenInclude(p => p!.Customer)
                 .Include(b => b.Bank)
                 .Where(b => !b.IsDeleted 
                             && b.PaymentInstrument != null 
@@ -968,8 +968,8 @@ namespace ms.webapp.api.acya.api.Services
         {
             var deposit = await _context.BankDeposits
                 .Include(b => b.PaymentInstrument)
-                    .ThenInclude(p => p.Payment)
-                        .ThenInclude(p => p.Customer)
+                    .ThenInclude(p => p!.Payment)
+                        .ThenInclude(p => p!.Customer)
                 .Include(b => b.Bank)
                 .FirstOrDefaultAsync(b => !b.IsDeleted && b.PaymentInstrumentId == instrumentId);
 
@@ -1025,7 +1025,7 @@ namespace ms.webapp.api.acya.api.Services
         {
             var instruments = await _context.PaymentInstruments
                 .Include(pi => pi.Payment)
-                    .ThenInclude(p => p.Customer)
+                    .ThenInclude(p => p!.Customer)
                 .Where(pi => dto.InstrumentIds.Contains(pi.Id))
                 .ToListAsync();
 

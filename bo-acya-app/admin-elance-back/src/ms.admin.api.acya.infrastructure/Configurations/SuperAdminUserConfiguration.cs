@@ -8,7 +8,7 @@ namespace ms.admin.api.acya.infrastructure.Configurations
     {
         public void Configure(EntityTypeBuilder<SuperAdminUser> builder)
         {
-            builder.ToTable("tbl_super_admin_users", "public");
+            builder.ToTable("bo_tbl_super_admin_users");
 
             builder.HasKey(x => x.Id);
 

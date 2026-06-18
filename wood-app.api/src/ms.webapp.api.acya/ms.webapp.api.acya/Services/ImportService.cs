@@ -243,7 +243,7 @@ namespace ms.webapp.api.acya.Services
                 rowIndex++;
                 try
                 {
-                    CounterPart cp = null;
+                    CounterPart? cp = null;
 
                     if (!string.IsNullOrEmpty(item.TaxRegistrationNumber))
                         cp = await _context.CounterParts.FirstOrDefaultAsync(x => x.Type == cpType && x.IsDeleted != true && x.TaxRegistrationNumber == item.TaxRegistrationNumber);

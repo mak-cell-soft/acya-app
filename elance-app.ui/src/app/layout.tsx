@@ -30,7 +30,7 @@ export default function RootLayout({
           <div className="relative flex min-h-screen flex-col bg-background text-foreground">
             {children}
           </div>
-          <Toaster />
+          <Toaster position="top-right" />
         </Providers>
       </body>
     </html>

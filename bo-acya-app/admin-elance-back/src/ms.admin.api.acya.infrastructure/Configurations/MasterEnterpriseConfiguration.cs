@@ -8,7 +8,7 @@ namespace ms.admin.api.acya.infrastructure.Configurations
     {
         public void Configure(EntityTypeBuilder<MasterEnterprise> builder)
         {
-            builder.ToTable("tbl_enterprise", "public");
+            builder.ToTable("bo_tbl_enterprise");
 
             builder.HasKey(x => x.Id);
 

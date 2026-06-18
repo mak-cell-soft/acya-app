@@ -569,7 +569,9 @@ public class TejAuthService
 
         var res = await _http.PostAsync(_config.TokenEndpoint, body);
         res.EnsureSuccessStatusCode();
-        return StoreToken(await res.Content.ReadFromJsonAsync<TejTokenResponse>()!);
+        var tokenResponse = await res.Content.ReadFromJsonAsync<TejTokenResponse>();
+        if (tokenResponse == null) throw new Exception("Invalid token response");
+        return StoreToken(tokenResponse);
     }
 
     private async Task<string> RefreshAsync()
@@ -583,7 +585,9 @@ public class TejAuthService
 
         var res = await _http.PostAsync(_config.TokenEndpoint, body);
         res.EnsureSuccessStatusCode();
-        return StoreToken(await res.Content.ReadFromJsonAsync<TejTokenResponse>()!);
+        var tokenResponse = await res.Content.ReadFromJsonAsync<TejTokenResponse>();
+        if (tokenResponse == null) throw new Exception("Invalid token response");
+        return StoreToken(tokenResponse);
     }
 
     private string StoreToken(TejTokenResponse token)

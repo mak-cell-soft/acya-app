@@ -112,10 +112,10 @@ namespace ms.webapp.api.acya.api.Services
                 .GroupBy(a => new 
                 { 
                     a.CounterPartId, 
-                    Prefix = a.CounterPart.Prefix,
-                    Name = a.CounterPart.Name,
-                    FirstName = a.CounterPart.FirstName,
-                    LastName = a.CounterPart.LastName
+                    Prefix = a.CounterPart!.Prefix,
+                    Name = a.CounterPart!.Name,
+                    FirstName = a.CounterPart!.FirstName,
+                    LastName = a.CounterPart!.LastName
                 })
                 .Select(g => new
                 {

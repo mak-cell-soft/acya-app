@@ -396,7 +396,7 @@ export function CustomerBatchConversionModal({
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="relative w-full max-w-4xl bg-white rounded-xl shadow-2xl overflow-hidden border border-sand-100 z-10 flex flex-col max-h-[90vh]"
+          className="relative w-full max-w-6xl bg-white rounded-xl shadow-2xl overflow-hidden border border-sand-100 z-10 flex flex-col max-h-[90vh]"
         >
           {/* Header */}
           <div className="px-6 py-5 bg-white border-b border-sand-100 flex items-center justify-between">

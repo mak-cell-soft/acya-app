@@ -29,10 +29,8 @@ namespace ms.webapp.api.acya.api.Controllers
       string _y = DateTime.Now.ToString("yy");
       string _m = DateTime.Now.ToString("MM");
       var _mArticle = await _articleRepository.GetById(_id);
-      string? prefix = "";
       string? intermediate = _y + _m; // Concat 2 digit year and 2 digit month
       string? reference = "";
-      int newIncrement = 1;
 
       if (_mArticle != null)
       {
