@@ -101,9 +101,42 @@ namespace ms.webapp.api.acya.api.Extentions
       });
       services.AddScoped<TejFacade>();
 
+      // Multi-Tenancy Registration
+      var multiTenantEnabled = config.GetValue<bool>("MultiTenancy:Enabled");
+
+      // Scoped services for multi-tenant mapping
+      services.AddScoped<TenantContext>();
+      services.AddScoped<ITenantResolver, SubdomainTenantResolver>();
+
+      if (multiTenantEnabled)
+      {
+        services.AddDbContext<MasterDbContext>(options =>
+          options.UseNpgsql(config.GetConnectionString("MasterConnection")));
+      }
+
       services.AddDbContext<WoodAppContext>((sp, options) =>
       {
-        options.UseNpgsql(config.GetConnectionString("WoodAppContextConnection"));
+        var tenantCtx = sp.GetRequiredService<TenantContext>();
+
+        // Dynamically select target connection string
+        string connectionString;
+        if (multiTenantEnabled && tenantCtx.IsEnabled && !string.IsNullOrEmpty(tenantCtx.ConnectionString))
+        {
+          connectionString = tenantCtx.ConnectionString;
+        }
+        else
+        {
+          connectionString = config.GetConnectionString("WoodAppContextConnection")!;
+        }
+
+        options.UseNpgsql(connectionString);
+
+        // If multi-tenant is enabled, swap out the cache key factory
+        if (multiTenantEnabled)
+        {
+          options.ReplaceService<Microsoft.EntityFrameworkCore.Infrastructure.IModelCacheKeyFactory, TenantModelCacheKeyFactory>();
+        }
+
         // Externalized audit treatment
         var auditInterceptor = sp.GetRequiredService<AuditTrailInterceptor>();
         options.AddInterceptors(auditInterceptor);

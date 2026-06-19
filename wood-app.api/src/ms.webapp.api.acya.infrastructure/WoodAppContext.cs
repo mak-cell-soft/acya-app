@@ -10,12 +10,23 @@ namespace ms.webapp.api.acya.infrastructure
 {
   public class WoodAppContext : DbContext
   {
+    private readonly TenantContext? _tenantContext;
+
+    public string SchemaName => (_tenantContext != null && _tenantContext.IsEnabled) 
+      ? _tenantContext.SchemaName 
+      : "public";
+
     public WoodAppContext()
     {
     }
 
     public WoodAppContext(DbContextOptions<WoodAppContext> options) : base(options)
     {
+    }
+
+    public WoodAppContext(DbContextOptions<WoodAppContext> options, TenantContext tenantContext) : base(options)
+    {
+      _tenantContext = tenantContext;
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -81,6 +92,10 @@ namespace ms.webapp.api.acya.infrastructure
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       base.OnModelCreating(modelBuilder);
+
+      // Set the dynamic default schema for this request context
+      modelBuilder.HasDefaultSchema(SchemaName);
+
       modelBuilder.ApplyConfigurationsFromAssembly(System.Reflection.Assembly.GetExecutingAssembly());
     }
   }

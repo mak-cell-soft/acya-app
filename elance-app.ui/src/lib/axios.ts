@@ -14,6 +14,31 @@ const api = axios.create({
   timeout: 15000, // Slightly longer timeout
 });
 
+// Helper to extract the tenant slug from the current hostname or query parameters
+const getTenantSlug = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  
+  // 1. Resolve from subdomain
+  const host = window.location.hostname;
+  const parts = host.split('.');
+  if (parts.length >= 3 || (parts.length === 2 && host.endsWith('.localhost'))) {
+    const potentialSlug = parts[0].toLowerCase();
+    const reservedSubdomains = ['www', 'api', 'admin', 'app', 'dev', 'staging', 'mail'];
+    if (!reservedSubdomains.includes(potentialSlug)) {
+      return potentialSlug;
+    }
+  }
+
+  // 2. Fallback to query string parameter for local development / testing
+  const urlParams = new URLSearchParams(window.location.search);
+  const queryTenant = urlParams.get('tenant');
+  if (queryTenant) {
+    return queryTenant.toLowerCase();
+  }
+
+  return null;
+};
+
 // Request interceptor for API calls
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -21,6 +46,13 @@ api.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Automatically inject the resolved tenant slug header
+    const tenantSlug = getTenantSlug();
+    if (tenantSlug && config.headers) {
+      config.headers['X-Tenant-Slug'] = tenantSlug;
+    }
+
     return config;
   },
   (error) => {

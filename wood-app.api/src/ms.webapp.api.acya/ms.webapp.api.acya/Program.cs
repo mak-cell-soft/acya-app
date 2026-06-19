@@ -97,6 +97,11 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("SignalRCors");
 app.UseAuthentication();
+
+// Invoke TenantMiddleware immediately after Authentication (so JWT claims are populated)
+// but before Authorization (so database settings and constraints are set up).
+app.UseMiddleware<ms.webapp.api.acya.api.Middleware.TenantMiddleware>();
+
 app.UseAuthorization();
 app.MapControllers();
 // Add to app configuration (after app.UseRouting() and before app.UseEndpoints())
@@ -106,17 +111,76 @@ app.MapHub<NotificationHub>("/api/notificationHub");
 // Apply migrations on startup
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider;
+  var services = scope.ServiceProvider;
+  var configuration = services.GetRequiredService<IConfiguration>();
+  var isMultiTenant = configuration.GetValue<bool>("MultiTenancy:Enabled");
+
+  if (isMultiTenant)
+  {
+    // 1. Migrate Master database registry
     try
     {
-        var context = services.GetRequiredService<WoodAppContext>();
-        context.Database.Migrate();
+      var masterContext = services.GetRequiredService<MasterDbContext>();
+      masterContext.Database.Migrate();
     }
     catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while migrating the database.");
+      var logger = services.GetRequiredService<ILogger<Program>>();
+      logger.LogError(ex, "An error occurred while migrating the master database registry.");
     }
+
+    // 2. Resolve all active tenants and migrate their schemas
+    try
+    {
+      var masterContext = services.GetRequiredService<MasterDbContext>();
+      var tenants = masterContext.TenantRegistries.Where(t => t.IsActive).ToList();
+
+      foreach (var tenant in tenants)
+      {
+        var optionsBuilder = new DbContextOptionsBuilder<WoodAppContext>();
+        var connStr = (string.IsNullOrEmpty(tenant.ConnectionString)
+          ? configuration.GetConnectionString("WoodAppContextConnection")
+          : tenant.ConnectionString) ?? "";
+
+        optionsBuilder.UseNpgsql(connStr);
+
+        var auditInterceptor = services.GetRequiredService<ms.webapp.api.acya.infrastructure.Configurations.Audit.AuditTrailInterceptor>();
+        optionsBuilder.AddInterceptors(auditInterceptor);
+
+        var tempTenantContext = new TenantContext
+        {
+          IsEnabled = true,
+          Slug = tenant.Slug,
+          SchemaName = tenant.SchemaName,
+          ConnectionString = connStr
+        };
+
+        using (var tenantContext = new WoodAppContext(optionsBuilder.Options, tempTenantContext))
+        {
+          tenantContext.Database.Migrate();
+        }
+      }
+    }
+    catch (Exception ex)
+    {
+      var logger = services.GetRequiredService<ILogger<Program>>();
+      logger.LogError(ex, "An error occurred while migrating tenant schemas.");
+    }
+  }
+  else
+  {
+    // Single Tenant mode: migrate default schema
+    try
+    {
+      var context = services.GetRequiredService<WoodAppContext>();
+      context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+      var logger = services.GetRequiredService<ILogger<Program>>();
+      logger.LogError(ex, "An error occurred while migrating the database.");
+    }
+  }
 }
 
 app.Run();

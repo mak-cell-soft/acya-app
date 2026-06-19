@@ -7,6 +7,7 @@ using System.Text;
 using ms.webapp.api.acya.Interfaces;
 using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities;
+using ms.webapp.api.acya.infrastructure;
 //using ms.webapp.api.acya.core.Permissions;
 
 namespace ms.webapp.api.acya.api.Services
@@ -18,7 +19,8 @@ namespace ms.webapp.api.acya.api.Services
     private readonly IConfiguration _configuration;
 
     private readonly byte[] key;
-    public TokenService(IConfiguration config)
+    private readonly TenantContext _tenantContext;
+    public TokenService(IConfiguration config, TenantContext tenantContext)
     {
       string? s = config["TokenKey"];
       _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(s!));
@@ -27,6 +29,7 @@ namespace ms.webapp.api.acya.api.Services
       key = Encoding.ASCII.GetBytes(s2!);
 
       _configuration = config;
+      _tenantContext = tenantContext;
     }
 
     public string CreateTokenOld(AppUser appuser)
@@ -96,6 +99,12 @@ namespace ms.webapp.api.acya.api.Services
       if (user.EnterpriseId != null)
       {
         claims.Add(new Claim("EnterpriseId", user.EnterpriseId.ToString()!));
+      }
+
+      // Add the tenant_slug claim if multi-tenancy is active
+      if (_tenantContext != null && _tenantContext.IsEnabled)
+      {
+        claims.Add(new Claim("tenant_slug", _tenantContext.Slug));
       }
 
       // Add the SalesSite as a new claim if available.
