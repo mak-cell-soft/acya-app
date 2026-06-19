@@ -320,7 +320,7 @@ function NewSupplierReceiptPageContent() {
                 line_type: m.line_type || LineType.Merchandise,
                 description: m.description || '',
                 isWoodArticle: isWood,
-                packagereference: m.packagereference || (m.article?.categoryid === 1 ? '' : 'Standart'),
+                packagereference: m.packagereference || (m.article?.categoryid === 1 ? '' : 'Standard'),
                 isinvoicible: m.isinvoicible ?? true,
                 allownegativstock: m.allownegativstock ?? false,
                 tva_percentage: tvaValPercent
@@ -500,7 +500,7 @@ function NewSupplierReceiptPageContent() {
       line_type: LineType.Merchandise,
       description: newRowDescription,
       isWoodArticle: isWood,
-      packagereference: newRowPackageReference.trim() || (newRowArticle.categoryid === 1 ? '' : 'Standart'),
+      packagereference: newRowPackageReference.trim() || (newRowArticle.categoryid === 1 ? '' : 'Standard'),
       isinvoicible: newRowIsInvoiceable,
       allownegativstock: newRowAllowNegativeStock,
       tva_percentage: tvaValPercent
@@ -750,7 +750,7 @@ function NewSupplierReceiptPageContent() {
         } else {
           item.article = r.selectedArticle;
           item.lisoflengths = r.listLengths;
-          item.packagereference = r.packagereference.trim() || (r.selectedArticle?.categoryid === 1 ? '' : 'Standart');
+          item.packagereference = r.packagereference.trim() || (r.selectedArticle?.categoryid === 1 ? '' : 'Standard');
           item.isinvoicible = r.isinvoicible;
           item.allownegativstock = r.allownegativstock;
           item.ismergedwith = false;

@@ -1081,13 +1081,40 @@ namespace ms.webapp.api.acya.api.Controllers
        */
 
       // Fetch all child documents in a single query
-      var childDocuments = await _repository.GetAll(genDto.docChildrenIds!);
+      var childDocuments = await _context.Documents
+          .Include(d => d.DocumentMerchandises)
+          .Where(d => genDto.docChildrenIds!.Contains(d.Id))
+          .ToListAsync();
 
       // Update the IsInvoiced property for each child document
       foreach (var childDocument in childDocuments)
       {
         childDocument.IsInvoiced = true;
-        await _repository.Update(childDocument);
+        _context.Entry(childDocument).State = EntityState.Modified;
+
+        // Clone merchandises to the invoice for printing
+        foreach (var dm in childDocument.DocumentMerchandises)
+        {
+          var newDm = new DocumentMerchandise
+          {
+            Document = invoice,
+            MerchandiseId = dm.MerchandiseId,
+            Type = dm.Type,
+            TransporterId = dm.TransporterId,
+            Description = dm.Description,
+            Quantity = dm.Quantity,
+            UnitPriceHT = dm.UnitPriceHT,
+            CostHT = dm.CostHT,
+            CostDiscountValue = dm.CostDiscountValue,
+            CostNetHT = dm.CostNetHT,
+            CostTTC = dm.CostTTC,
+            DiscountPercentage = dm.DiscountPercentage,
+            TvaValue = dm.TvaValue,
+            CreationDate = DateTime.UtcNow,
+            UpdateDate = DateTime.UtcNow
+          };
+          _context.DocumentMerchandises.Add(newDm);
+        }
       }
 
       // Register relationships in DocumentDocumentRelationship
@@ -1926,5 +1953,6 @@ namespace ms.webapp.api.acya.api.Controllers
     #endregion
 
     #endregion
+
   }
 }

@@ -205,7 +205,7 @@ function NewStockTransferContent() {
             isWoodArticle: isWood,
             allownegativstock: allowNegativeStock,
             stock_quantity: availableQty,
-            packagereference: (!isWood || matchingStocksForArticle.length === 1) ? (matchingStocksForArticle[0]?.PackageReference ?? matchingStocksForArticle[0]?.packageReference ?? (isWood ? '' : 'Standart')) : '',
+            packagereference: (!isWood || matchingStocksForArticle.length === 1) ? (matchingStocksForArticle[0]?.PackageReference ?? matchingStocksForArticle[0]?.packageReference ?? (isWood ? '' : 'Standard')) : '',
             quantity: 0,
             listLengths: [],
             isArticleDropdownOpen: false,
@@ -423,7 +423,7 @@ function NewStockTransferContent() {
           cost_ttc: 0,
 
           id: row.merchandiseId || 0,
-          packagereference: row.packagereference?.trim() || 'Standart',
+          packagereference: row.packagereference?.trim() || 'Standard',
           description: row.selectedArticle?.description || `${row.selectedArticle?.reference} - Transfert inter-sites`,
           creationdate: new Date().toISOString(),
           updatedate: new Date().toISOString(),
