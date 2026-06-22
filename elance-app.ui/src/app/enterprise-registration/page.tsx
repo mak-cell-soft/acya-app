@@ -18,6 +18,7 @@ import { Building2, Mail, Phone, MapPin, User, Briefcase, Plus, Trash2, ShieldCh
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { getBaseApiUrl } from '@/lib/axios';
 import { TaxRegistrationDialog } from '@/components/shared/tax-registration-dialog';
 
 const siteSchema = z.object({
@@ -165,7 +166,7 @@ export default function EnterpriseRegistrationPage() {
         }
       };
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://acya.site/api/';
+      const apiUrl = getBaseApiUrl();
       const response = await fetch(`${apiUrl}Enterprise/register`, {
         method: 'POST',
         headers: {

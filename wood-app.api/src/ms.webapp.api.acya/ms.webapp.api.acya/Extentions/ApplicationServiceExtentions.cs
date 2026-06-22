@@ -122,14 +122,25 @@ namespace ms.webapp.api.acya.api.Extentions
         string connectionString;
         if (multiTenantEnabled && tenantCtx.IsEnabled && !string.IsNullOrEmpty(tenantCtx.ConnectionString))
         {
-          connectionString = tenantCtx.ConnectionString;
+          var connBuilder = new Npgsql.NpgsqlConnectionStringBuilder(tenantCtx.ConnectionString);
+          if (!string.IsNullOrEmpty(tenantCtx.SchemaName))
+          {
+            connBuilder.SearchPath = tenantCtx.SchemaName;
+          }
+          connectionString = connBuilder.ToString();
         }
         else
         {
           connectionString = config.GetConnectionString("WoodAppContextConnection")!;
         }
 
-        options.UseNpgsql(connectionString);
+        options.UseNpgsql(connectionString, npgsqlOptions =>
+        {
+          if (multiTenantEnabled && tenantCtx.IsEnabled && !string.IsNullOrEmpty(tenantCtx.SchemaName))
+          {
+            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", tenantCtx.SchemaName);
+          }
+        });
 
         // If multi-tenant is enabled, swap out the cache key factory
         if (multiTenantEnabled)

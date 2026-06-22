@@ -13,10 +13,12 @@ namespace ms.admin.api.acya.Controllers
     public class EnterpriseController : ControllerBase
     {
         private readonly IEnterpriseRepository _enterpriseRepository;
+        private readonly ITenantProvisioningService _provisioningService;
 
-        public EnterpriseController(IEnterpriseRepository enterpriseRepository)
+        public EnterpriseController(IEnterpriseRepository enterpriseRepository, ITenantProvisioningService provisioningService)
         {
             _enterpriseRepository = enterpriseRepository;
+            _provisioningService = provisioningService;
         }
 
         [HttpGet]
@@ -69,6 +71,22 @@ namespace ms.admin.api.acya.Controllers
             enterprise.Status = TenantStatus.Suspended;
 
             await _enterpriseRepository.UpdateAsync(enterprise);
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(long id)
+        {
+            var enterprise = await _enterpriseRepository.GetByIdAsync(id);
+            if (enterprise == null) return NotFound();
+
+            var deprovisionSuccess = await _provisioningService.DeprovisionTenantAsync(enterprise);
+            if (!deprovisionSuccess)
+            {
+                return StatusCode(500, "Deprovisioning database schema failed. Tenant registry entry was not removed.");
+            }
+
+            await _enterpriseRepository.DeleteAsync(enterprise);
             return NoContent();
         }
     }

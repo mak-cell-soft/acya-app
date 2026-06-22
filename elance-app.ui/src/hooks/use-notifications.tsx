@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import * as signalR from '@microsoft/signalr';
 import { useAuthStore } from '@/store/use-auth-store';
+import { getBaseApiUrl } from '@/lib/axios';
 import { notificationService, TransferNotification, AppNotification, NotificationType } from '@/services/components/notification.service';
 import { toast } from 'sonner';
 
@@ -137,7 +138,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       return;
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:44306/api/';
+    const apiUrl = getBaseApiUrl();
     const hubUrl = apiUrl.endsWith('/')
       ? `${apiUrl}notificationHub`
       : `${apiUrl}/notificationHub`;

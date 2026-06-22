@@ -98,9 +98,10 @@ app.UseRouting();
 app.UseCors("SignalRCors");
 app.UseAuthentication();
 
-// Invoke TenantMiddleware immediately after Authentication (so JWT claims are populated)
-// but before Authorization (so database settings and constraints are set up).
-app.UseMiddleware<ms.webapp.api.acya.api.Middleware.TenantMiddleware>();
+if (config.GetValue<bool>("MultiTenancy:Enabled"))
+{
+  app.UseMiddleware<ms.webapp.api.acya.api.Middleware.TenantMiddleware>();
+}
 
 app.UseAuthorization();
 app.MapControllers();
@@ -134,30 +135,27 @@ using (var scope = app.Services.CreateScope())
     {
       var masterContext = services.GetRequiredService<MasterDbContext>();
       var tenants = masterContext.TenantRegistries.Where(t => t.IsActive).ToList();
+      var logger = services.GetRequiredService<ILogger<Program>>();
+      logger.LogInformation("Resolved {Count} active tenants from Master Registry database.", tenants.Count);
 
       foreach (var tenant in tenants)
       {
-        var optionsBuilder = new DbContextOptionsBuilder<WoodAppContext>();
         var connStr = (string.IsNullOrEmpty(tenant.ConnectionString)
           ? configuration.GetConnectionString("WoodAppContextConnection")
           : tenant.ConnectionString) ?? "";
 
-        optionsBuilder.UseNpgsql(connStr);
+        logger.LogInformation("Migrating schema '{Schema}' for tenant '{Slug}' using connection string '{ConnStr}'...", tenant.SchemaName, tenant.Slug, connStr);
 
-        var auditInterceptor = services.GetRequiredService<ms.webapp.api.acya.infrastructure.Configurations.Audit.AuditTrailInterceptor>();
-        optionsBuilder.AddInterceptors(auditInterceptor);
-
-        var tempTenantContext = new TenantContext
+        using (var tenantScope = app.Services.CreateScope())
         {
-          IsEnabled = true,
-          Slug = tenant.Slug,
-          SchemaName = tenant.SchemaName,
-          ConnectionString = connStr
-        };
+          var tenantContext = tenantScope.ServiceProvider.GetRequiredService<TenantContext>();
+          tenantContext.IsEnabled = true;
+          tenantContext.Slug = tenant.Slug;
+          tenantContext.SchemaName = tenant.SchemaName;
+          tenantContext.ConnectionString = connStr;
 
-        using (var tenantContext = new WoodAppContext(optionsBuilder.Options, tempTenantContext))
-        {
-          tenantContext.Database.Migrate();
+          var tenantDbContext = tenantScope.ServiceProvider.GetRequiredService<WoodAppContext>();
+          tenantDbContext.Database.Migrate();
         }
       }
     }

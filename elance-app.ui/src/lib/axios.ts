@@ -5,8 +5,15 @@ import { toast } from 'sonner';
 /**
  * Custom axios instance for API calls
  */
+export const getBaseApiUrl = (): string => {
+  if (typeof window !== 'undefined') {
+    return `${window.location.protocol}//${window.location.host}/api/`;
+  }
+  return process.env.NEXT_PUBLIC_API_URL || 'https://acya.site/api/';
+};
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://acya.site/api/',
+  baseURL: getBaseApiUrl(),
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

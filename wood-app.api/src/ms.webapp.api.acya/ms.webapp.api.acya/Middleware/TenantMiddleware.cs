@@ -31,6 +31,7 @@ namespace ms.webapp.api.acya.api.Middleware
       // 1. Bypass tenant resolution for system/public endpoints
       if (path.StartsWith("/swagger") || 
           path.StartsWith("/api/health") || 
+          path.StartsWith("/api/apihealth") || 
           path.Contains("/hub/notification") || 
           path.StartsWith("/api/register") || 
           path.StartsWith("/api/tenant/register"))

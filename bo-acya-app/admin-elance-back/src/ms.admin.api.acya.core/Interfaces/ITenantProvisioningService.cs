@@ -5,6 +5,7 @@ namespace ms.admin.api.acya.core.Interfaces
 {
     public interface ITenantProvisioningService
     {
-        Task<bool> ProvisionTenantAsync(MasterEnterprise enterprise);
+        Task<bool> ProvisionTenantAsync(MasterEnterprise enterprise, string adminUsername, string adminEmail, string adminPassword);
+        Task<bool> DeprovisionTenantAsync(MasterEnterprise enterprise);
     }
 }

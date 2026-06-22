@@ -17,6 +17,8 @@ import { DataImportDialog } from '@/components/shared/data-import-dialog';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 
+import { getBaseApiUrl } from '@/lib/axios';
+
 export function ParamsTab() {
   const { data: enterprise } = useEnterprise();
   const { data: tva } = useAppVariables('Tva');
@@ -32,7 +34,7 @@ export function ParamsTab() {
   const handleExport = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}Reports/settings/export`, {
+      const response = await fetch(`${getBaseApiUrl()}Reports/settings/export`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`

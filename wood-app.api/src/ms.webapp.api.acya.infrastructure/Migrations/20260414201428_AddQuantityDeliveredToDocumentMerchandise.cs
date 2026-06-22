@@ -10,20 +10,25 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // §5.5 — Nettoyage : la colonne "QuantityDelivered" (PascalCase) a déjà été
-            // créée par une migration précédente (20260414133449 / 20260414144946).
-            // Une erreur d'une tentative précédente a introduit un doublon "quantitydelivered"
-            // (lowercase). On supprime le doublon pour garder uniquement la colonne originale.
+            // §5.5 — Nettoyage : la colonne "QuantityDelivered" (PascalCase) a été créée 
+            // par une migration précédente qui peut être manquante dans le schéma.
+            // On supprime d'abord le doublon en minuscules puis on ajoute "QuantityDelivered" s'il n'existe pas.
             migrationBuilder.Sql(@"
                 ALTER TABLE tbl_document_merchandise 
                 DROP COLUMN IF EXISTS quantitydelivered;
+
+                ALTER TABLE tbl_document_merchandise 
+                ADD COLUMN IF NOT EXISTS ""QuantityDelivered"" double precision NOT NULL DEFAULT 0.0;
             ");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Rien à faire : on ne peut pas annuler la suppression d un doublon
+            migrationBuilder.Sql(@"
+                ALTER TABLE tbl_document_merchandise 
+                DROP COLUMN IF EXISTS ""QuantityDelivered"";
+            ");
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -13,6 +13,10 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_HoldingTax_tbl_app_user_AppUsersId",
                 table: "HoldingTax");
+
+            migrationBuilder.DropForeignKey(
+                name: "fk_tbl_document_tbl_holding_tax",
+                table: "tbl_document");
 
             migrationBuilder.DropPrimaryKey(
                 name: "PK_HoldingTax",
@@ -112,6 +116,14 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                 column: "id");
 
             migrationBuilder.AddForeignKey(
+                name: "fk_tbl_document_tbl_holding_tax",
+                table: "tbl_document",
+                column: "holdingtaxid",
+                principalTable: "tbl_holding_tax",
+                principalColumn: "id",
+                onDelete: ReferentialAction.SetNull);
+
+            migrationBuilder.AddForeignKey(
                 name: "FK_tbl_holding_tax_tbl_app_user_appusersid",
                 table: "tbl_holding_tax",
                 column: "appusersid",
@@ -126,6 +138,10 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_tbl_holding_tax_tbl_app_user_appusersid",
                 table: "tbl_holding_tax");
+
+            migrationBuilder.DropForeignKey(
+                name: "fk_tbl_document_tbl_holding_tax",
+                table: "tbl_document");
 
             migrationBuilder.DropPrimaryKey(
                 name: "PK_tbl_holding_tax",
@@ -221,6 +237,14 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                 name: "PK_HoldingTax",
                 table: "HoldingTax",
                 column: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "fk_tbl_document_tbl_holding_tax",
+                table: "tbl_document",
+                column: "holdingtaxid",
+                principalTable: "HoldingTax",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.SetNull);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_HoldingTax_tbl_app_user_AppUsersId",
