@@ -279,7 +279,7 @@ export default function BillingPage() {
                 <div className="glass-panel p-6 rounded-xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div>
                     <h2 className="text-xl font-bold text-slate-100">{selectedEnt.name}</h2>
-                    <p className="text-xs text-muted-foreground mt-0.5">Active Package: <span className="text-primary font-mono font-bold uppercase">{selectedEnt.plan}</span> ({selectedEnt.isActive ? "Active" : "Suspended"})</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Active Package: <span className="text-primary font-mono font-bold uppercase">{selectedEnt.plan}</span> ({selectedEnt.isActive ? "Active" : "Deactivated"})</p>
                   </div>
                   
                   {/* Plan Price Presets */}

@@ -77,7 +77,7 @@ namespace ms.webapp.api.acya.api.Middleware
       {
         _logger.LogWarning("Multi-tenant request failed: tenant '{Slug}' is inactive (Status: {Status}).", tenant.Slug, tenant.Status);
         context.Response.StatusCode = StatusCodes.Status403Forbidden;
-        await context.Response.WriteAsJsonAsync(new { error = $"Tenant '{tenant.Slug}' is inactive.", status = tenant.Status });
+        await context.Response.WriteAsJsonAsync(new { error = "your company is disabled contact administrator", status = tenant.Status });
         return;
       }
 

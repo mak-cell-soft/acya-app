@@ -313,11 +313,12 @@ export default function EnterprisesPage() {
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border cursor-pointer hover:brightness-110 transition-all ${
                           ent.isActive 
                             ? 'bg-primary/10 text-primary border-primary/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]' 
-                            : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+                            : 'bg-destructive/10 text-destructive border-destructive/20'
                         }`}
+                        title={ent.isActive ? "Click to Deactivate" : "Click to Activate"}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full mr-2 ${ent.isActive ? 'bg-primary' : 'bg-yellow-500'}`}></span>
-                        {ent.isActive ? 'Active' : 'Suspended'}
+                        <span className={`w-1.5 h-1.5 rounded-full mr-2 ${ent.isActive ? 'bg-primary' : 'bg-destructive'}`}></span>
+                        {ent.isActive ? 'Active' : 'Deactivated'}
                       </button>
                     </td>
                     <td className="px-6 py-4 text-right space-x-3">

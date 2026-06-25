@@ -53,7 +53,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
           config.status === 'Suspended' || config.status === 'Expired';
 
         if (isSuspendedOrExpired) {
-          if (pathname !== '/suspended') {
+          if (pathname !== '/suspended' && pathname !== '/login') {
             router.push('/suspended');
           }
         } else {
@@ -61,8 +61,16 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
             router.push('/login');
           }
         }
-      } catch (error) {
-        console.error('Failed to load tenant configuration:', error);
+      } catch (error: any) {
+        const httpStatus = error?.response?.status;
+        if (httpStatus === 404) {
+          // Tenant has been deleted or was never registered — show dedicated page
+          if (pathname !== '/tenant-not-found') {
+            router.push('/tenant-not-found');
+          }
+        } else {
+          console.error('Failed to load tenant configuration:', error);
+        }
       } finally {
         setLoading(false);
       }
@@ -74,7 +82,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   // Prevent accessing other pages if suspended/expired
   useEffect(() => {
     const isSuspendedOrExpired = status === 'Suspended' || status === 'Expired';
-    if (isSuspendedOrExpired && pathname !== '/suspended') {
+    if (isSuspendedOrExpired && pathname !== '/suspended' && pathname !== '/login') {
       router.push('/suspended');
     }
   }, [status, pathname, router]);

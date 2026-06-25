@@ -92,7 +92,12 @@ api.interceptors.response.use(
     
     // Handle 403 Forbidden
     if (error.response?.status === 403) {
-      toast.error("Vous n'avez pas la permission d'effectuer cette action.");
+      const data = error.response.data as any;
+      if (data && (data.error === "your company is disabled contact administrator" || data.status === "Suspended")) {
+        toast.error("your company is disabled contact administrator");
+      } else {
+        toast.error("Vous n'avez pas la permission d'effectuer cette action.");
+      }
     }
 
     // Handle 500+ Server Errors

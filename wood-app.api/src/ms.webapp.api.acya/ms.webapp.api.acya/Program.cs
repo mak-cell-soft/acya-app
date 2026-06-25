@@ -9,6 +9,7 @@ using ms.webapp.api.acya.infrastructure.Repositories;
 using ms.webapp.api.acya.infrastructure;
 using Microsoft.EntityFrameworkCore;
 
+System.AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 

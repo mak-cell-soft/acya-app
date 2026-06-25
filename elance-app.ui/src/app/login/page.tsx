@@ -25,6 +25,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const logoUrl = useTenantStore((state: any) => state.logoUrl);
+  const tenantStatus = useTenantStore((state: any) => state.status);
+  const isTenantInactive = tenantStatus === 'Suspended' || tenantStatus === 'Expired';
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -137,6 +139,11 @@ export default function LoginPage() {
           </CardHeader>
           <form onSubmit={handleLogin}>
             <CardContent className="grid gap-6 px-8">
+              {isTenantInactive && (
+                <div className="p-4 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg text-sm font-semibold text-center animate-pulse">
+                  your company is disabled contact administrator
+                </div>
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="email" className="text-corp-blue-800 font-bold ml-1">Email Professionnel</Label>
                 <Input
@@ -146,7 +153,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
+                  disabled={isLoading || isTenantInactive}
                 />
               </div>
               <div className="grid gap-2">
@@ -160,7 +167,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pr-12"
-                    disabled={isLoading}
+                    disabled={isLoading || isTenantInactive}
                   />
                   <button
                     type="button"
@@ -243,7 +250,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 className="w-full h-14 bg-corp-blue-600 text-white text-lg font-bold shadow-lg shadow-corp-blue-600/20 hover:bg-corp-blue-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
-                disabled={isLoading}
+                disabled={isLoading || isTenantInactive}
               >
                 {isLoading ? (
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />

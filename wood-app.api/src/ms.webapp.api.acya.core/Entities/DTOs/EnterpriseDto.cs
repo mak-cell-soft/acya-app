@@ -45,6 +45,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
 
     public void UpdateFromEntity(Enterprise entity)
     {
+      if (entity == null) return;
       id = entity.Id;
       name = entity.Name;
       description = entity.Description;

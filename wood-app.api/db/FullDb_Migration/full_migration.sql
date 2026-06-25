@@ -106,6 +106,7 @@ CREATE TABLE tbl_vehicle (
     mileage text NULL,
     draining text NULL,
     drainingdate timestamp without time zone NULL,
+    isowned boolean NOT NULL DEFAULT false,
     CONSTRAINT "PK_tbl_vehicle" PRIMARY KEY (id)
 );
 

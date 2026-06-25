@@ -18,14 +18,19 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       return await context.Enterprises.FirstOrDefaultAsync(e => e.MatriculeFiscal!.ToLower() == _mf.ToLower());
     }
 
-    public async Task<EnterpriseDto> GetByIdAsync(int? _id)
+    public async Task<EnterpriseDto?> GetByIdAsync(int? _id)
     {
       var enterprise = await context.Enterprises
           .Include(e => e.Sites)
           .Where(e => e.Id! == _id)
           .SingleOrDefaultAsync();
 
-      var entDto = new EnterpriseDto(enterprise!);
+      if (enterprise == null)
+      {
+        return null;
+      }
+
+      var entDto = new EnterpriseDto(enterprise);
       return entDto;
     }
   

@@ -69,10 +69,20 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
             }
 
             if (searchDto.FromDate.HasValue)
-                query = query.Where(p => p.PaymentDate >= searchDto.FromDate.Value);
+            {
+                var fromDate = searchDto.FromDate.Value.Kind == DateTimeKind.Unspecified
+                    ? DateTime.SpecifyKind(searchDto.FromDate.Value, DateTimeKind.Utc)
+                    : searchDto.FromDate.Value.ToUniversalTime();
+                query = query.Where(p => p.PaymentDate >= fromDate);
+            }
 
             if (searchDto.ToDate.HasValue)
-                query = query.Where(p => p.PaymentDate <= searchDto.ToDate.Value);
+            {
+                var toDate = searchDto.ToDate.Value.Kind == DateTimeKind.Unspecified
+                    ? DateTime.SpecifyKind(searchDto.ToDate.Value, DateTimeKind.Utc)
+                    : searchDto.ToDate.Value.ToUniversalTime();
+                query = query.Where(p => p.PaymentDate <= toDate);
+            }
 
             if (searchDto.CustomerId.HasValue)
                 query = query.Where(p => p.CustomerId == searchDto.CustomerId.Value);

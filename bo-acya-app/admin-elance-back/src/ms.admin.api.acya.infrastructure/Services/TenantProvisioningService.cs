@@ -71,6 +71,28 @@ namespace ms.admin.api.acya.infrastructure.Services
                     byte[] passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(adminPassword));
                     byte[] passwordSalt = hmac.Key;
 
+                    // Seeding enterprise table inside the schema search path (ID = 1)
+                    long enterpriseId = 1;
+                    using (var cmd = new NpgsqlCommand($@"
+                        SET search_path TO {enterprise.SchemaName};
+                        INSERT INTO tbl_enterprise (id, name, enterpriseguid, email, phone, issalingwood, logourl, faviconurl, primarycolor, customdomain, language, currency, auditretentionmonths, documentnumberingconfig)
+                        VALUES (1, @name, @guid, @email, @phone, true, @logourl, @faviconurl, @primarycolor, @customdomain, @language, @currency, 12, @documentnumberingconfig)
+                        RETURNING id;", conn))
+                    {
+                        cmd.Parameters.AddWithValue("name", enterprise.Name);
+                        cmd.Parameters.AddWithValue("guid", Guid.NewGuid());
+                        cmd.Parameters.AddWithValue("email", (object?)enterprise.Email ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("phone", (object?)enterprise.Phone ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("logourl", (object?)enterprise.LogoUrl ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("faviconurl", (object?)enterprise.FaviconUrl ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("primarycolor", (object?)enterprise.PrimaryColor ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("customdomain", (object?)enterprise.CustomDomain ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("language", (object?)enterprise.Language ?? "fr");
+                        cmd.Parameters.AddWithValue("currency", (object?)enterprise.Currency ?? "TND");
+                        cmd.Parameters.AddWithValue("documentnumberingconfig", @"{""prefixes"":{""1"":""CF"",""2"":""BR"",""3"":""FF"",""4"":""CC"",""5"":""BL"",""6"":""FACT"",""7"":""TR"",""8"":""AVF"",""9"":""AV"",""10"":""INV"",""11"":""DEV""},""yearFormat"":2,""incrementLength"":3}");
+                        enterpriseId = Convert.ToInt64(await cmd.ExecuteScalarAsync());
+                    }
+
                     // Insert Person
                     long personId;
                     using (var cmd = new NpgsqlCommand($@"
@@ -87,8 +109,8 @@ namespace ms.admin.api.acya.infrastructure.Services
                     long userId;
                     using (var cmd = new NpgsqlCommand($@"
                         SET search_path TO {enterprise.SchemaName};
-                        INSERT INTO tbl_app_user (login, email, isactive, passwordhash, passwordsalt, idperson)
-                        VALUES (@login, @email, true, @passwordhash, @passwordsalt, @idperson)
+                        INSERT INTO tbl_app_user (login, email, isactive, passwordhash, passwordsalt, idperson, enterpriseid)
+                        VALUES (@login, @email, true, @passwordhash, @passwordsalt, @idperson, @enterpriseid)
                         RETURNING id;", conn))
                     {
                         cmd.Parameters.AddWithValue("login", adminUsername.ToLower());
@@ -96,6 +118,7 @@ namespace ms.admin.api.acya.infrastructure.Services
                         cmd.Parameters.AddWithValue("passwordhash", passwordHash);
                         cmd.Parameters.AddWithValue("passwordsalt", passwordSalt);
                         cmd.Parameters.AddWithValue("idperson", personId);
+                        cmd.Parameters.AddWithValue("enterpriseid", enterpriseId);
                         userId = Convert.ToInt64(await cmd.ExecuteScalarAsync());
                     }
 
@@ -155,6 +178,42 @@ namespace ms.admin.api.acya.infrastructure.Services
                 }
 
                 _logger.LogInformation("Tenant {Slug} schema dropped successfully.", enterprise.Slug);
+
+                // 2. Clean up welcome email file on disk
+                try
+                {
+                    var emailPath = Path.Combine("/app", "welcome-emails", $"{enterprise.Slug}.html");
+                    if (File.Exists(emailPath))
+                    {
+                        File.Delete(emailPath);
+                        _logger.LogInformation("Deleted welcome email for tenant {Slug}", enterprise.Slug);
+                    }
+                }
+                catch (Exception fileEx)
+                {
+                    _logger.LogWarning(fileEx, "Failed to delete welcome email for tenant {Slug}", enterprise.Slug);
+                }
+
+                // 3. Clean up backup files on disk
+                try
+                {
+                    var backupsDir = "/app/backups";
+                    if (Directory.Exists(backupsDir))
+                    {
+                        var searchPattern = $"backup_{enterprise.Slug}_*.dump";
+                        var backupFiles = Directory.GetFiles(backupsDir, searchPattern);
+                        foreach (var file in backupFiles)
+                        {
+                            File.Delete(file);
+                            _logger.LogInformation("Deleted backup file {FileName} for tenant {Slug}", Path.GetFileName(file), enterprise.Slug);
+                        }
+                    }
+                }
+                catch (Exception backupEx)
+                {
+                    _logger.LogWarning(backupEx, "Failed to clean up backup files for tenant {Slug}", enterprise.Slug);
+                }
+
                 return true;
             }
             catch (Exception ex)
