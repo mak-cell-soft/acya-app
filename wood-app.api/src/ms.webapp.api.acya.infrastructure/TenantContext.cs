@@ -16,5 +16,11 @@ namespace ms.webapp.api.acya.infrastructure
 
     // Resolved connection string (if tenant has a dedicated DB, otherwise default)
     public string ConnectionString { get; set; } = string.Empty;
+
+    // Tenant subscription plan tier (e.g. "Trial", "Starter", "Pro", "Enterprise")
+    public string Plan { get; set; } = string.Empty;
+
+    // Tenant lifecycle status (e.g. "Active", "Suspended", "Expired")
+    public string Status { get; set; } = string.Empty;
   }
 }

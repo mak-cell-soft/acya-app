@@ -15,6 +15,7 @@ RUN dotnet publish src/ms.admin.api.acya/ms.admin.api.acya.csproj -c Release -o 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
+RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
 COPY --from=build /out .
 EXPOSE 80
 ENTRYPOINT ["dotnet", "ms.admin.api.acya.dll"]

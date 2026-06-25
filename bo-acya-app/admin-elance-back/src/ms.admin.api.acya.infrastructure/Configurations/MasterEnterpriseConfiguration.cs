@@ -47,6 +47,27 @@ namespace ms.admin.api.acya.infrastructure.Configurations
 
             builder.Property(x => x.CreatedAt)
                 .HasDefaultValueSql("NOW()");
+
+            builder.Property(x => x.LogoUrl)
+                .HasMaxLength(255);
+
+            builder.Property(x => x.FaviconUrl)
+                .HasMaxLength(255);
+
+            builder.Property(x => x.PrimaryColor)
+                .HasMaxLength(50);
+
+            builder.Property(x => x.CustomDomain)
+                .HasMaxLength(255);
+
+            builder.Property(x => x.Language)
+                .HasMaxLength(10);
+
+            builder.Property(x => x.Currency)
+                .HasMaxLength(10);
+
+            builder.Property(x => x.CustomDomainConfigured)
+                .HasDefaultValue(false);
         }
     }
 }

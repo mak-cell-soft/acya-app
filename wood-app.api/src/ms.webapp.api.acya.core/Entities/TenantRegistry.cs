@@ -32,6 +32,16 @@ namespace ms.webapp.api.acya.core.Entities
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     // Service plan tier
-    public string Plan { get; set; } = "standard";
+    public string Plan { get; set; } = "Trial";
+
+    public string Status { get; set; } = "Pending";
+
+    public string? LogoUrl { get; set; }
+    public string? FaviconUrl { get; set; }
+    public string? PrimaryColor { get; set; }
+    public string? CustomDomain { get; set; }
+    public string? Language { get; set; }
+    public string? Currency { get; set; }
+    public bool CustomDomainConfigured { get; set; }
   }
 }

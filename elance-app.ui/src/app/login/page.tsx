@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/store/use-auth-store';
+import { useTenantStore } from '@/store/use-tenant-store';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { Sparkles, Loader2, Eye, EyeOff } from 'lucide-react';
@@ -23,6 +24,28 @@ export default function LoginPage() {
   const [resetToken, setResetToken] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const logoUrl = useTenantStore((state: any) => state.logoUrl);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlToken = params.get('token');
+      if (urlToken) {
+        try {
+          const userDetails = authService.getUserDetail(urlToken);
+          if (userDetails) {
+            useAuthStore.getState().login(userDetails, urlToken);
+            toast.success("Connexion automatique réussie !");
+            router.push('/dashboard');
+          } else {
+            toast.error("Le jeton d'impersonnalisation est invalide.");
+          }
+        } catch (e) {
+          toast.error("Erreur lors de la connexion automatique.");
+        }
+      }
+    }
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,25 +101,29 @@ export default function LoginPage() {
       >
         <div className="flex flex-col items-center mb-10">
           <Link href="/" className="group transition-transform hover:scale-105">
-            <svg className="w-16 h-16 md:w-20 md:h-20 drop-shadow-xl transition-transform duration-700 group-hover:scale-105" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="logo_grad_1" x1="0" y1="0" x2="40" y2="40">
-                  <stop offset="0%" stopColor="#60A5FA"/>
-                  <stop offset="100%" stopColor="#3B82F6"/>
-                </linearGradient>
-                <linearGradient id="logo_grad_2" x1="0" y1="0" x2="40" y2="40">
-                  <stop offset="0%" stopColor="#3B82F6"/>
-                  <stop offset="100%" stopColor="#2563EB"/>
-                </linearGradient>
-                <linearGradient id="logo_grad_3" x1="0" y1="0" x2="40" y2="40">
-                  <stop offset="0%" stopColor="#2563EB"/>
-                  <stop offset="100%" stopColor="#1D4ED8"/>
-                </linearGradient>
-              </defs>
-              <path d="M 20 3 L 27.79 7.5 L 27.79 16.5 L 20 21 L 12.21 16.5 L 12.21 7.5 Z" fill="url(#logo_grad_1)" />
-              <path d="M 11.34 18 L 19.13 22.5 L 19.13 31.5 L 11.34 36 L 3.55 31.5 L 3.55 22.5 Z" fill="url(#logo_grad_2)" />
-              <path d="M 28.66 18 L 36.45 22.5 L 36.45 31.5 L 28.66 36 L 20.87 31.5 L 20.87 22.5 Z" fill="url(#logo_grad_3)" />
-            </svg>
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-xl" />
+            ) : (
+              <svg className="w-16 h-16 md:w-20 md:h-20 drop-shadow-xl transition-transform duration-700 group-hover:scale-105" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="logo_grad_1" x1="0" y1="0" x2="40" y2="40">
+                    <stop offset="0%" stopColor="#60A5FA"/>
+                    <stop offset="100%" stopColor="#3B82F6"/>
+                  </linearGradient>
+                  <linearGradient id="logo_grad_2" x1="0" y1="0" x2="40" y2="40">
+                    <stop offset="0%" stopColor="#3B82F6"/>
+                    <stop offset="100%" stopColor="#2563EB"/>
+                  </linearGradient>
+                  <linearGradient id="logo_grad_3" x1="0" y1="0" x2="40" y2="40">
+                    <stop offset="0%" stopColor="#2563EB"/>
+                    <stop offset="100%" stopColor="#1D4ED8"/>
+                  </linearGradient>
+                </defs>
+                <path d="M 20 3 L 27.79 7.5 L 27.79 16.5 L 20 21 L 12.21 16.5 L 12.21 7.5 Z" fill="url(#logo_grad_1)" />
+                <path d="M 11.34 18 L 19.13 22.5 L 19.13 31.5 L 11.34 36 L 3.55 31.5 L 3.55 22.5 Z" fill="url(#logo_grad_2)" />
+                <path d="M 28.66 18 L 36.45 22.5 L 36.45 31.5 L 28.66 36 L 20.87 31.5 L 20.87 22.5 Z" fill="url(#logo_grad_3)" />
+              </svg>
+            )}
           </Link>
           <h1 className="text-3xl font-bold text-corp-blue-900 mt-6 tracking-tight">Élancé</h1>
         </div>

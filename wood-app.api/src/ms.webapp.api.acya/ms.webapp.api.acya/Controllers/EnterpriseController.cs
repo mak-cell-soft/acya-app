@@ -6,6 +6,7 @@ using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.infrastructure.Repositories;
 using ms.webapp.api.acya.core.Entities.DTOs;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
 using ms.webapp.api.acya.infrastructure;
 
 namespace ms.webapp.api.acya.api.Controllers
@@ -15,12 +16,16 @@ namespace ms.webapp.api.acya.api.Controllers
     private readonly EnterpriseRepository _repository;
     private readonly AppUserRepository _userRepository;
     private readonly SalesSitesRepository _salesSitesRepository;
+    private readonly MasterDbContext _masterDb;
+    private readonly TenantContext _tenantContext;
 
-    public EnterpriseController(EnterpriseRepository repository, AppUserRepository userrepository, SalesSitesRepository salessitesrepository)
+    public EnterpriseController(EnterpriseRepository repository, AppUserRepository userrepository, SalesSitesRepository salessitesrepository, MasterDbContext masterDb, TenantContext tenantContext)
     {
       _repository = repository;
       _userRepository = userrepository;
       _salesSitesRepository = salessitesrepository;
+      _masterDb = masterDb;
+      _tenantContext = tenantContext;
     }
 
     [HttpPost("register")]
@@ -117,6 +122,35 @@ namespace ms.webapp.api.acya.api.Controllers
       return Ok(_dto);
     }
 
+    [HttpGet("config")]
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    public async Task<ActionResult> GetConfig()
+    {
+      if (!_tenantContext.IsEnabled)
+      {
+        return BadRequest(new { error = "No active tenant context." });
+      }
+
+      var tenant = await _masterDb.TenantRegistries
+        .FirstOrDefaultAsync(t => t.Slug == _tenantContext.Slug);
+
+      if (tenant == null)
+      {
+        return NotFound(new { error = "Tenant not found in registry." });
+      }
+
+      return Ok(new
+      {
+        name = tenant.Name,
+        logoUrl = tenant.LogoUrl,
+        faviconUrl = tenant.FaviconUrl,
+        primaryColor = tenant.PrimaryColor,
+        language = tenant.Language,
+        currency = tenant.Currency,
+        status = tenant.Status
+      });
+    }
+
     [HttpPut("{id}")]
     public async Task<ActionResult> Update(int id, EnterpriseDto dto)
     {
@@ -133,6 +167,24 @@ namespace ms.webapp.api.acya.api.Controllers
 
       existing.UpdateFromDto(dto);
       await _repository.Update(existing);
+
+      // Synchronize branding settings with central Master Registry
+      if (_tenantContext.IsEnabled)
+      {
+        var registry = await _masterDb.TenantRegistries
+          .FirstOrDefaultAsync(t => t.Slug == _tenantContext.Slug);
+
+        if (registry != null)
+        {
+          registry.LogoUrl = dto.logoUrl;
+          registry.FaviconUrl = dto.faviconUrl;
+          registry.PrimaryColor = dto.primaryColor;
+          registry.CustomDomain = dto.customDomain;
+          registry.Language = dto.language;
+          registry.Currency = dto.currency;
+          await _masterDb.SaveChangesAsync();
+        }
+      }
 
       return Ok(new { message = "Enterprise updated successfully" });
     }

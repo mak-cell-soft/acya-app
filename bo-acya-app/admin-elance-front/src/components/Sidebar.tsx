@@ -24,7 +24,31 @@ export default function Sidebar() {
           <div className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-colors"></div>
           Enterprises Registry
         </Link>
-        
+
+        <Link 
+          href="/billing" 
+          className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-secondary transition-colors group"
+        >
+          <div className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-colors"></div>
+          Billing & Invoices
+        </Link>
+
+        <Link 
+          href="/monitoring" 
+          className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-secondary transition-colors group"
+        >
+          <div className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-colors"></div>
+          Monitoring & Resource Stats
+        </Link>
+
+        <Link 
+          href="/audit-logs" 
+          className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-secondary transition-colors group"
+        >
+          <div className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-colors"></div>
+          Audit Logs
+        </Link>
+
         <div className="text-xs uppercase text-muted-foreground font-mono tracking-wider mb-4 mt-8">System</div>
         <Link 
           href="/settings" 

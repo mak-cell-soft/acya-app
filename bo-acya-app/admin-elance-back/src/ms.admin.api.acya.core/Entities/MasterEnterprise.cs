@@ -18,5 +18,12 @@ namespace ms.admin.api.acya.core.Entities
         public DateTime CreatedAt { get; set; }
         public DateTime? ActivatedAt { get; set; }
         public string? Notes { get; set; }
+        public string? LogoUrl { get; set; }
+        public string? FaviconUrl { get; set; }
+        public string? PrimaryColor { get; set; }
+        public string? CustomDomain { get; set; }
+        public string? Language { get; set; }
+        public string? Currency { get; set; }
+        public bool CustomDomainConfigured { get; set; }
     }
 }

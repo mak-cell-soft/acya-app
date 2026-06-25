@@ -19,10 +19,12 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
   {
     private readonly WoodAppContext _context;
     private readonly ITokenService _tokenService;
-    public AccountController(WoodAppContext context, ITokenService tokenService)
+    private readonly TenantContext _tenantContext;
+    public AccountController(WoodAppContext context, ITokenService tokenService, TenantContext tenantContext)
     {
       _context = context;
       _tokenService = tokenService;
+      _tenantContext = tenantContext;
     }
 
     [Authorize]
@@ -109,6 +111,28 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
     [HttpPost("register")]
     public async Task<ActionResult<UserAuthDto>> Register(AppUserDto registerDto)
     {
+      // Enforce subscription plan limits
+      if (_tenantContext.IsEnabled)
+      {
+        var currentUsersCount = await _context.AppUsers.CountAsync();
+        var maxUsers = _tenantContext.Plan.ToLowerInvariant() switch
+        {
+          "trial" => 5,
+          "starter" => 5,
+          "pro" => 25,
+          _ => int.MaxValue
+        };
+
+        if (currentUsersCount >= maxUsers)
+        {
+          return BadRequest(new UserAuthDto
+          {
+            isSuccess = false,
+            message = $"La limite d'utilisateurs pour votre abonnement ({_tenantContext.Plan} : {maxUsers} max) a été atteinte."
+          });
+        }
+      }
+
       if (await UserExists(registerDto.email!)) return BadRequest(new UserAuthDto
       {
         isSuccess = false,

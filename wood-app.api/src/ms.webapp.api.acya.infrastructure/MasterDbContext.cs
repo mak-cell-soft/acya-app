@@ -34,6 +34,14 @@ namespace ms.webapp.api.acya.infrastructure
         entity.Property(e => e.IsActive).HasColumnName("IsActive");
         entity.Property(e => e.Plan).HasColumnName("Plan");
         entity.Property(e => e.CreatedAt).HasColumnName("CreatedAt");
+        entity.Property(e => e.Status).HasColumnName("Status");
+        entity.Property(e => e.LogoUrl).HasColumnName("LogoUrl");
+        entity.Property(e => e.FaviconUrl).HasColumnName("FaviconUrl");
+        entity.Property(e => e.PrimaryColor).HasColumnName("PrimaryColor");
+        entity.Property(e => e.CustomDomain).HasColumnName("CustomDomain");
+        entity.Property(e => e.Language).HasColumnName("Language");
+        entity.Property(e => e.Currency).HasColumnName("Currency");
+        entity.Property(e => e.CustomDomainConfigured).HasColumnName("CustomDomainConfigured");
 
         entity.HasIndex(e => e.Slug).IsUnique();
         entity.HasIndex(e => e.SchemaName).IsUnique();

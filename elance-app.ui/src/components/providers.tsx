@@ -6,6 +6,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { NotificationProvider } from '@/hooks/use-notifications';
 import { GlobalTransferConfirmDialog } from '@/components/stock/global-transfer-confirm-dialog';
+import { TenantProvider } from '@/components/TenantProvider';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = React.useState(() => new QueryClient({
@@ -26,7 +27,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     >
       <QueryClientProvider client={queryClient}>
         <NotificationProvider>
-          {children}
+          <TenantProvider>
+            {children}
+          </TenantProvider>
           <GlobalTransferConfirmDialog />
         </NotificationProvider>
         <ReactQueryDevtools initialIsOpen={false} />

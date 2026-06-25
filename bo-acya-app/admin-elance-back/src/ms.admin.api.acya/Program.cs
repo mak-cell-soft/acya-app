@@ -48,6 +48,8 @@ builder.Services.AddAuthentication(options =>
 // Services
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<ITenantProvisioningService, TenantProvisioningService>();
+builder.Services.AddScoped<BackupService>();
+builder.Services.AddHostedService<SaaSLifecycleScheduler>();
 
 // Repositories
 builder.Services.AddScoped<IEnterpriseRepository, EnterpriseRepository>();

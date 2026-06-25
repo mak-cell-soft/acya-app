@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEnterprise, useUpdateEnterprise } from '@/hooks/use-enterprise';
 import { DEVISES, JOB_DESCRIPTION } from '@/lib/constants/settings';
-import { Building2, UserCircle, Save, Loader2, BadgeInfo } from 'lucide-react';
+import { Building2, UserCircle, Save, Loader2, BadgeInfo, Palette } from 'lucide-react';
 import { SitesSection } from './sites-section';
 import { TaxRegistrationDialog } from '@/components/shared/tax-registration-dialog';
 import { motion } from 'framer-motion';
@@ -31,6 +31,11 @@ const enterpriseSchema = z.object({
   siegeAddress: z.string().min(1, 'Adresse siège requise'),
   commercialregister: z.string().min(1, 'Registre de commerce requis'),
   capital: z.string().min(1, 'Capital requis'),
+  logoUrl: z.string().optional().nullable(),
+  faviconUrl: z.string().optional().nullable(),
+  primaryColor: z.string().optional().nullable(),
+  customDomain: z.string().optional().nullable(),
+  language: z.string().optional().nullable(),
 });
 
 type EnterpriseFormValues = z.infer<typeof enterpriseSchema>;
@@ -64,6 +69,11 @@ export function EnterpriseTab() {
       siegeAddress: '',
       commercialregister: '',
       capital: '',
+      logoUrl: '',
+      faviconUrl: '',
+      primaryColor: '',
+      customDomain: '',
+      language: '',
     },
   });
 
@@ -84,6 +94,11 @@ export function EnterpriseTab() {
         siegeAddress: enterprise.siegeAddress,
         commercialregister: enterprise.commercialregister,
         capital: enterprise.capital,
+        logoUrl: enterprise.logoUrl || '',
+        faviconUrl: enterprise.faviconUrl || '',
+        primaryColor: enterprise.primaryColor || '',
+        customDomain: enterprise.customDomain || '',
+        language: enterprise.language || '',
       });
     }
   }, [enterprise, reset]);
@@ -280,6 +295,99 @@ export function EnterpriseTab() {
                 </div>
               </div>
               
+              <div className="flex justify-end pt-4">
+                <Button 
+                  disabled={!isDirty || updateEnterprise.isPending}
+                  className="bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20 gap-2 h-12 px-8 transition-all duration-300"
+                >
+                  {updateEnterprise.isPending ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Save className="w-5 h-5" />
+                  )}
+                  Enregistrer les modifications
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <div className="h-px bg-corp-blue-50" />
+
+        {/* Branding & Customization Section */}
+        <section className="grid lg:grid-cols-3 gap-8">
+          <div className="space-y-2">
+            <h3 className="text-lg font-bold text-corp-blue-900 flex items-center gap-2.5">
+              <div className="p-1.5 rounded-lg bg-corp-blue-50 text-corp-blue-600">
+                <Palette className="w-5 h-5" />
+              </div>
+              Personnalisation & Marque
+            </h3>
+            <p className="text-[0.9rem] text-sand-400 font-medium leading-relaxed">
+              Configurez l'apparence visuelle et le domaine de votre portail client.
+            </p>
+          </div>
+          <Card className="lg:col-span-2 border-corp-blue-100 rounded-xl shadow-sm bg-white overflow-hidden">
+            <CardContent className="p-8 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2.5">
+                  <Label className="text-sm font-bold text-corp-blue-900">URL du Logo</Label>
+                  <Input 
+                    {...register('logoUrl')} 
+                    placeholder="https://mon-serveur.com/logo.png"
+                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
+                  />
+                </div>
+                <div className="space-y-2.5">
+                  <Label className="text-sm font-bold text-corp-blue-900">URL du Favicon</Label>
+                  <Input 
+                    {...register('faviconUrl')} 
+                    placeholder="https://mon-serveur.com/favicon.ico"
+                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
+                  />
+                </div>
+                <div className="space-y-2.5">
+                  <Label className="text-sm font-bold text-corp-blue-900">Couleur Primaire (Hex)</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      type="color"
+                      {...register('primaryColor')} 
+                      className="h-12 w-16 p-1 rounded-xl bg-sand-50 border-corp-blue-100 cursor-pointer" 
+                    />
+                    <Input 
+                      type="text"
+                      {...register('primaryColor')} 
+                      placeholder="#3B82F6"
+                      className="h-12 flex-1 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2.5">
+                  <Label className="text-sm font-bold text-corp-blue-900">Nom de Domaine Personnalisé</Label>
+                  <Input 
+                    {...register('customDomain')} 
+                    placeholder="erp.monentreprise.com"
+                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
+                  />
+                </div>
+                <div className="space-y-2.5">
+                  <Label className="text-sm font-bold text-corp-blue-900">Langue du Portail</Label>
+                  <Select 
+                    value={watch('language') || 'fr'} 
+                    onValueChange={(val) => setValue('language', val || 'fr', { shouldDirty: true })}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl bg-sand-50 border-corp-blue-100">
+                      <SelectValue placeholder="Choisir une langue" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="fr">Français (FR)</SelectItem>
+                      <SelectItem value="en">English (EN)</SelectItem>
+                      <SelectItem value="ar">العربية (AR)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               <div className="flex justify-end pt-4">
                 <Button 
                   disabled={!isDirty || updateEnterprise.isPending}

@@ -4,6 +4,10 @@ namespace ms.admin.api.acya.common.Enums
     {
         Pending = 0,
         Active = 1,
-        Suspended = 2
+        Trial = 2,
+        Suspended = 3,
+        Expired = 4,
+        Archived = 5,
+        Deleted = 6
     }
 }

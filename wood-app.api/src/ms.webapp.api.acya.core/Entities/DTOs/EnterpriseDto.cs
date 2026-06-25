@@ -25,6 +25,12 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public bool? issalingwood { get; set; }
     public int auditRetentionMonths { get; set; }
     public string? documentNumberingConfig { get; set; }
+    public string? logoUrl { get; set; }
+    public string? faviconUrl { get; set; }
+    public string? primaryColor { get; set; }
+    public string? customDomain { get; set; }
+    public string? language { get; set; }
+    public string? currency { get; set; }
     public SiteDto[]? sites { get; set; }
     public AppUserEnterpriseDto? user { get; set; }
 
@@ -58,6 +64,12 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       issalingwood = entity.IsSalingWood;
       auditRetentionMonths = entity.AuditRetentionMonths;
       documentNumberingConfig = entity.DocumentNumberingConfig;
+      logoUrl = entity.LogoUrl;
+      faviconUrl = entity.FaviconUrl;
+      primaryColor = entity.PrimaryColor;
+      customDomain = entity.CustomDomain;
+      language = entity.Language;
+      currency = entity.Currency;
       if (entity.Sites != null)
       {
         sites = entity.Sites.Select(site => new SiteDto(site)).ToArray();

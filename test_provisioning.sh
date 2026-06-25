@@ -18,8 +18,8 @@ LOGIN_RESP=$(curl -s -k -X POST https://admin.acya.site/api/admin/auth/login \
 TOKEN=$(echo $LOGIN_RESP | grep -o '"token":"[^"]*' | grep -o '[^"]*$')
 echo "Token obtained successfully."
 
-# 2. Register a new tenant
-echo "Registering new tenant '${SLUG}'..."
+# 2. Register a new tenant (Unified Flow - Register & Provision automatically)
+echo "Registering and provisioning new tenant '${SLUG}'..."
 REG_RESP=$(curl -s -k -X POST https://admin.acya.site/api/admin/enterprise \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
@@ -30,24 +30,15 @@ REG_RESP=$(curl -s -k -X POST https://admin.acya.site/api/admin/enterprise \
     \"phone\": \"+33600000000\",
     \"schemaName\": \"${SCHEMA}\",
     \"connectionString\": \"Host=postgres;Port=5432;Database=wood-app-db;Username=postgres;Password=wood_app_strong_db_password_270326;\",
-    \"plan\": \"Trial\"
+    \"plan\": \"Trial\",
+    \"adminUsername\": \"demoadmin\",
+    \"adminEmail\": \"admin@${SLUG}.acya.site\",
+    \"adminPassword\": \"Demopassword123!\"
   }")
 
 echo "Registration Response: $REG_RESP"
 TENANT_ID=$(echo $REG_RESP | grep -o -i '"id":[0-9]*' | head -n1 | cut -d: -f2)
 echo "Tenant registered. ID: $TENANT_ID"
-
-# 3. Provision the tenant database schema and seed user credentials
-echo "Provisioning database schema for tenant '${SLUG}'..."
-PROV_RESP=$(curl -s -k -X POST "https://admin.acya.site/api/admin/provisioning/provision/$TENANT_ID" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{
-    "adminUsername": "demoadmin",
-    "adminEmail": "admin@demo.acya.site",
-    "adminPassword": "Demopassword123!"
-  }')
-echo "Provisioning response: $PROV_RESP"
 
 # 4. Verify in PostgreSQL that the schema and admin user exist
 echo "Verifying schema '${SCHEMA}' and 'tbl_app_user' inside PostgreSQL..."

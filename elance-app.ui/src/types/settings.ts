@@ -35,6 +35,12 @@ export interface Enterprise {
   auditRetentionMonths: number;
   documentNumberingConfig?: string; // Stored as JSON string in DB
   sites?: Site[];
+  logoUrl?: string | null;
+  faviconUrl?: string | null;
+  primaryColor?: string | null;
+  customDomain?: string | null;
+  language?: string | null;
+  currency?: string | null;
 }
 
 export interface Bank {

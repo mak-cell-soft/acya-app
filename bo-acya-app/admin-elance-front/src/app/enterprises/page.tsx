@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Shield, Key, ToggleLeft, Trash2, CheckCircle2, Loader2, ExternalLink } from "lucide-react";
 
 interface Enterprise {
   id: number;
@@ -27,10 +28,10 @@ export default function EnterprisesPage() {
   
   // Modals state
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showProvisionModal, setShowProvisionModal] = useState(false);
-  const [selectedEnt, setSelectedEnt] = useState<Enterprise | null>(null);
+  const [provisioningLoading, setProvisioningLoading] = useState(false);
+  const [creationSuccessData, setCreationSuccessData] = useState<any | null>(null);
 
-  // Form states - Create
+  // Form states - Create & Provision Unified
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [email, setEmail] = useState("");
@@ -38,14 +39,21 @@ export default function EnterprisesPage() {
   const [plan, setPlan] = useState("Trial");
   const [notes, setNotes] = useState("");
   
-  // Form states - Provision
+  // Branding Customization (Optional)
+  const [logoUrl, setLogoUrl] = useState("");
+  const [faviconUrl, setFaviconUrl] = useState("");
+  const [primaryColor, setPrimaryColor] = useState("#3B82F6");
+  const [customDomain, setCustomDomain] = useState("");
+  const [language, setLanguage] = useState("fr");
+  const [currency, setCurrency] = useState("EUR");
+
+  // Admin Credentials
   const [adminUsername, setAdminUsername] = useState("admin");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
-  const [provisioningLoading, setProvisioningLoading] = useState(false);
 
   const getHeaders = () => {
-    const token = localStorage.getItem("token");
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
     return {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${token}`,
@@ -62,7 +70,9 @@ export default function EnterprisesPage() {
       });
 
       if (res.status === 401) {
-        localStorage.removeItem("token");
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem("token");
+        }
         router.push("/login");
         return;
       }
@@ -84,39 +94,54 @@ export default function EnterprisesPage() {
     fetchEnterprises();
   }, []);
 
-  const handleCreateEnterprise = async (e: React.FormEvent) => {
+  const handleCreateAndProvision = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setProvisioningLoading(true);
 
-    // Automatically set schema name and default connection string
-    const schemaName = `tenant_${slug.toLowerCase().trim().replace(/[^a-z0-9]/g, "_")}`;
-    const defaultConnectionString = "Host=postgres;Port=5432;Database=wood-app-db;Username=postgres;Password=wood_app_strong_db_password_270326;";
+    const payload = {
+      name,
+      slug: slug.toLowerCase().trim() || null,
+      email: email || null,
+      phone: phone || null,
+      plan,
+      notes: notes || null,
+      logoUrl: logoUrl || null,
+      faviconUrl: faviconUrl || null,
+      primaryColor: primaryColor || null,
+      customDomain: customDomain || null,
+      language,
+      currency,
+      adminUsername,
+      adminEmail: adminEmail || email || `admin@${slug || "tenant"}.acya.site`,
+      adminPassword: adminPassword || "AdminPass123!"
+    };
 
     try {
       const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api/";
       const res = await fetch(`${apiBase}admin/enterprise`, {
         method: "POST",
         headers: getHeaders(),
-        body: JSON.stringify({
-          name,
-          slug: slug.toLowerCase().trim(),
-          email: email || null,
-          phone: phone || null,
-          schemaName,
-          connectionString: defaultConnectionString,
-          plan,
-          notes: notes || null
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
         const txt = await res.text();
-        throw new Error(txt || "Failed to create registry entry");
+        throw new Error(txt || "Failed to create & provision tenant.");
       }
 
-      const created = await res.json();
-      setShowCreateModal(false);
+      const createdResponse = await res.json();
       
+      // Store credentials generated to display in a success state
+      setCreationSuccessData({
+        name: payload.name,
+        slug: createdResponse.slug || payload.slug,
+        adminUsername,
+        adminEmail: payload.adminEmail,
+        adminPassword: payload.adminPassword,
+        url: `https://${createdResponse.slug || payload.slug}.acya.site`
+      });
+
       // Clear forms
       setName("");
       setSlug("");
@@ -124,61 +149,19 @@ export default function EnterprisesPage() {
       setPhone("");
       setPlan("Trial");
       setNotes("");
-
-      // Open provision modal automatically for this new enterprise
-      setSelectedEnt(created);
+      setLogoUrl("");
+      setFaviconUrl("");
+      setPrimaryColor("#3B82F6");
+      setCustomDomain("");
+      setLanguage("fr");
+      setCurrency("EUR");
       setAdminUsername("admin");
-      setAdminEmail(created.email || `admin@${created.slug}.acya.site`);
+      setAdminEmail("");
       setAdminPassword("");
-      setShowProvisionModal(true);
 
       fetchEnterprises();
     } catch (err: any) {
-      setError(err.message || "Failed to create enterprise");
-    }
-  };
-
-  const handleProvisionTenant = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedEnt) return;
-
-    setError("");
-    setProvisioningLoading(true);
-
-    try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api/";
-      
-      // 1. Provision Db tables & seed admin user
-      const provRes = await fetch(`${apiBase}admin/provisioning/provision/${selectedEnt.id}`, {
-        method: "POST",
-        headers: getHeaders(),
-        body: JSON.stringify({
-          adminUsername,
-          adminEmail,
-          adminPassword
-        }),
-      });
-
-      if (!provRes.ok) {
-        const txt = await provRes.text();
-        throw new Error(txt || "Provisioning tables failed.");
-      }
-
-      // 2. Activate the tenant in Registry
-      const actRes = await fetch(`${apiBase}admin/enterprise/${selectedEnt.id}/activate`, {
-        method: "PUT",
-        headers: getHeaders(),
-      });
-
-      if (!actRes.ok) {
-        throw new Error("Tables provisioned but failed to set status to Active in registry.");
-      }
-
-      setShowProvisionModal(false);
-      setSelectedEnt(null);
-      fetchEnterprises();
-    } catch (err: any) {
-      setError(err.message || "Failed to provision tenant");
+      setError(err.message || "Failed to create & provision tenant.");
     } finally {
       setProvisioningLoading(false);
     }
@@ -229,16 +212,42 @@ export default function EnterprisesPage() {
     }
   };
 
+  const handleImpersonate = async (ent: Enterprise) => {
+    setError("");
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api/";
+      const res = await fetch(`${apiBase}admin/enterprise/${ent.id}/impersonate`, {
+        headers: getHeaders(),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to generate impersonation token.");
+      }
+
+      const data = await res.json();
+      const token = data.token;
+      
+      // Open client portal in a new window with token in search query
+      const targetUrl = `https://${ent.slug}.acya.site/login?token=${token}`;
+      window.open(targetUrl, '_blank');
+    } catch (err: any) {
+      setError(err.message || "Failed to impersonate tenant admin user.");
+    }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Enterprises Registry</h1>
-          <p className="text-muted-foreground mt-1">Manage tenant database schemas and domains.</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-white">Enterprises Registry</h1>
+          <p className="text-muted-foreground mt-1">Manage tenant database schemas and custom domains.</p>
         </div>
         <button 
-          onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2 bg-primary text-primary-foreground font-medium rounded-md hover:bg-primary/90 transition-colors shadow-[0_0_15px_rgba(16,185,129,0.3)] cursor-pointer"
+          onClick={() => {
+            setCreationSuccessData(null);
+            setShowCreateModal(true);
+          }}
+          className="px-4 py-2.5 bg-primary text-primary-foreground font-medium rounded-md hover:bg-primary/90 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-[1.02] cursor-pointer"
         >
           Register & Provision Tenant
         </button>
@@ -278,7 +287,7 @@ export default function EnterprisesPage() {
                 enterprises.map((ent) => (
                   <tr key={ent.id} className="hover:bg-secondary/20 transition-colors group">
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-sm">{ent.name}</div>
+                      <div className="font-semibold text-sm text-slate-100">{ent.name}</div>
                       <div className="text-xs text-muted-foreground font-mono mt-0.5">ID: {ent.id.toString().padStart(4, '0')}</div>
                     </td>
                     <td className="px-6 py-4">
@@ -286,15 +295,16 @@ export default function EnterprisesPage() {
                         href={`https://${ent.slug}.acya.site`} 
                         target="_blank" 
                         rel="noreferrer"
-                        className="font-mono text-sm text-primary hover:underline"
+                        className="font-mono text-sm text-primary hover:underline inline-flex items-center gap-1"
                       >
                         {ent.slug}.acya.site
+                        <ExternalLink className="w-3 h-3" />
                       </a>
                     </td>
                     <td className="px-6 py-4 font-mono text-sm text-muted-foreground">
                       {ent.schemaName}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-slate-200">
                       <span className="text-sm font-mono">{ent.plan}</span>
                     </td>
                     <td className="px-6 py-4">
@@ -307,28 +317,24 @@ export default function EnterprisesPage() {
                         }`}
                       >
                         <span className={`w-1.5 h-1.5 rounded-full mr-2 ${ent.isActive ? 'bg-primary' : 'bg-yellow-500'}`}></span>
-                        {ent.isActive ? 'Active' : 'Pending'}
+                        {ent.isActive ? 'Active' : 'Suspended'}
                       </button>
                     </td>
                     <td className="px-6 py-4 text-right space-x-3">
-                      {!ent.isActive && (
+                      {ent.isActive && (
                         <button 
-                          onClick={() => {
-                            setSelectedEnt(ent);
-                            setAdminUsername("admin");
-                            setAdminEmail(ent.email || `admin@${ent.slug}.acya.site`);
-                            setAdminPassword("");
-                            setShowProvisionModal(true);
-                          }}
-                          className="text-xs font-semibold text-primary hover:underline cursor-pointer"
+                          onClick={() => handleImpersonate(ent)}
+                          className="text-xs font-semibold text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
                         >
-                          Provision DB
+                          <Key className="w-3 h-3" />
+                          Impersonate
                         </button>
                       )}
                       <button 
                         onClick={() => handleDeleteTenant(ent.id, ent.name)}
-                        className="text-xs font-medium text-destructive hover:underline cursor-pointer"
+                        className="text-xs font-medium text-destructive hover:underline cursor-pointer inline-flex items-center gap-1"
                       >
+                        <Trash2 className="w-3 h-3" />
                         Delete
                       </button>
                     </td>
@@ -340,122 +346,19 @@ export default function EnterprisesPage() {
         </div>
       )}
 
-      {/* CREATE ENTERPRISE MODAL */}
+      {/* UNIFIED CREATE & PROVISION TENANT MODAL */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
-          <div className="w-full max-w-lg glass-panel p-8 rounded-2xl border border-border bg-card/90 space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold font-mono text-foreground">REGISTER NEW TENANT</h2>
-              <button 
-                onClick={() => setShowCreateModal(false)}
-                className="text-muted-foreground hover:text-foreground text-xl font-bold cursor-pointer"
-              >
-                &times;
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateEnterprise} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-mono uppercase text-muted-foreground">Enterprise Name</label>
-                <input
-                  type="text"
-                  required
-                  className="w-full px-4 py-2 bg-secondary/50 border border-border/50 rounded-lg text-sm focus:outline-none focus:border-primary text-foreground"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Wellness Medical"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-mono uppercase text-muted-foreground">Subdomain Slug</label>
-                <div className="flex items-center">
-                  <input
-                    type="text"
-                    required
-                    className="w-full px-4 py-2 bg-secondary/50 border border-border/50 rounded-l-lg text-sm focus:outline-none focus:border-primary text-foreground font-mono"
-                    value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
-                    placeholder="e.g. wellness-med"
-                  />
-                  <span className="px-3 py-2 bg-secondary border-t border-b border-r border-border/50 rounded-r-lg text-sm text-muted-foreground font-mono">
-                    .acya.site
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-mono uppercase text-muted-foreground">Contact Email</label>
-                  <input
-                    type="email"
-                    className="w-full px-4 py-2 bg-secondary/50 border border-border/50 rounded-lg text-sm focus:outline-none focus:border-primary text-foreground"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="e.g. contact@wellness.com"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-mono uppercase text-muted-foreground">Contact Phone</label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-2 bg-secondary/50 border border-border/50 rounded-lg text-sm focus:outline-none focus:border-primary text-foreground"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+33 6 12 34 56"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-mono uppercase text-muted-foreground">Plan Selection</label>
-                <select
-                  className="w-full px-4 py-2 bg-secondary/50 border border-border/50 rounded-lg text-sm focus:outline-none focus:border-primary text-foreground"
-                  value={plan}
-                  onChange={(e) => setPlan(e.target.value)}
-                >
-                  <option value="Trial">Trial (Default)</option>
-                  <option value="Basic">Basic</option>
-                  <option value="Premium">Premium</option>
-                  <option value="Enterprise">Enterprise</option>
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-mono uppercase text-muted-foreground">Internal Notes</label>
-                <textarea
-                  className="w-full px-4 py-2 bg-secondary/50 border border-border/50 rounded-lg text-sm focus:outline-none focus:border-primary text-foreground h-16 resize-none"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Billing terms, onboarding requirements..."
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-2.5 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors text-sm font-mono cursor-pointer"
-              >
-                REGISTER & OPEN PROVISIONING
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* PROVISION TENANT MODAL */}
-      {showProvisionModal && selectedEnt && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
-          <div className="w-full max-w-md glass-panel p-8 rounded-2xl border border-border bg-card/90 space-y-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-bold font-mono text-foreground">PROVISION DATABASE</h2>
-                <p className="text-xs text-muted-foreground font-mono mt-1">Tenant: {selectedEnt.name}</p>
-              </div>
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 p-8 rounded-2xl space-y-6 shadow-2xl my-8">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+              <h2 className="text-xl font-bold font-mono text-slate-100 flex items-center gap-2">
+                <Shield className="text-primary w-6 h-6" />
+                REGISTER & AUTOMATICALLY PROVISION TENANT
+              </h2>
               <button 
                 onClick={() => {
                   if (!provisioningLoading) {
-                    setShowProvisionModal(false);
-                    setSelectedEnt(null);
+                    setShowCreateModal(false);
                   }
                 }}
                 className="text-muted-foreground hover:text-foreground text-xl font-bold cursor-pointer"
@@ -465,64 +368,259 @@ export default function EnterprisesPage() {
               </button>
             </div>
 
-            <form onSubmit={handleProvisionTenant} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-mono uppercase text-muted-foreground">Admin Username</label>
-                <input
-                  type="text"
-                  required
-                  className="w-full px-4 py-2 bg-secondary/50 border border-border/50 rounded-lg text-sm focus:outline-none focus:border-primary text-foreground font-mono"
-                  value={adminUsername}
-                  onChange={(e) => setAdminUsername(e.target.value)}
+            {creationSuccessData ? (
+              <div className="space-y-6 text-center py-6 animate-in zoom-in duration-500">
+                <div className="flex justify-center">
+                  <CheckCircle2 className="w-16 h-16 text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-bold text-slate-100">Provisionnement Réussi !</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Le locataire <b>{creationSuccessData.name}</b> a été créé et sa base de données a été migrée avec succès.
+                  </p>
+                </div>
+                
+                <div className="p-5 bg-slate-950 border border-slate-800 rounded-xl text-left font-mono text-xs space-y-2.5 max-w-md mx-auto">
+                  <div><span className="text-muted-foreground">URL :</span> <a href={creationSuccessData.url} target="_blank" rel="noreferrer" className="text-primary hover:underline">{creationSuccessData.url}</a></div>
+                  <div><span className="text-muted-foreground">Identifiant Admin :</span> <span className="text-slate-200">{creationSuccessData.adminUsername}</span></div>
+                  <div><span className="text-muted-foreground">Email Admin :</span> <span className="text-slate-200">{creationSuccessData.adminEmail}</span></div>
+                  <div><span className="text-muted-foreground">Mot de passe :</span> <span className="text-slate-200">{creationSuccessData.adminPassword}</span></div>
+                </div>
+
+                <div className="pt-4 flex justify-center">
+                  <button 
+                    onClick={() => setShowCreateModal(false)}
+                    className="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors text-sm"
+                  >
+                    Fermer le Panel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleCreateAndProvision} className="space-y-6">
+                
+                {/* Section 1: Tenant Information */}
+                <div className="space-y-4">
+                  <h3 className="text-xs uppercase font-mono tracking-wider text-primary border-b border-slate-800/60 pb-1.5">1. Informations Locataire</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-mono uppercase text-muted-foreground">Enterprise Name</label>
+                      <input
+                        type="text"
+                        required
+                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g. wellness medical"
+                        disabled={provisioningLoading}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-mono uppercase text-muted-foreground">Subdomain Slug (Opt)</label>
+                      <input
+                        type="text"
+                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100 font-mono"
+                        value={slug}
+                        onChange={(e) => setSlug(e.target.value)}
+                        placeholder="e.g. wellness-med (leaves empty for auto)"
+                        disabled={provisioningLoading}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-mono uppercase text-muted-foreground">Email</label>
+                      <input
+                        type="email"
+                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="contact@wellness.com"
+                        disabled={provisioningLoading}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-mono uppercase text-muted-foreground">Phone</label>
+                      <input
+                        type="text"
+                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+33 6 12 34 56"
+                        disabled={provisioningLoading}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-mono uppercase text-muted-foreground">Plan Selection</label>
+                      <select
+                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
+                        value={plan}
+                        onChange={(e) => setPlan(e.target.value)}
+                        disabled={provisioningLoading}
+                      >
+                        <option value="Trial">Trial (30 Days)</option>
+                        <option value="Starter">Starter (5 Users)</option>
+                        <option value="Pro">Pro (25 Users)</option>
+                        <option value="Enterprise">Enterprise (Unlimited)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 2: Admin Credentials */}
+                <div className="space-y-4">
+                  <h3 className="text-xs uppercase font-mono tracking-wider text-primary border-b border-slate-800/60 pb-1.5">2. Identifiants Administrateur du Tenant</h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-mono uppercase text-muted-foreground">Admin Username</label>
+                      <input
+                        type="text"
+                        required
+                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100 font-mono"
+                        value={adminUsername}
+                        onChange={(e) => setAdminUsername(e.target.value)}
+                        disabled={provisioningLoading}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-mono uppercase text-muted-foreground">Admin Email</label>
+                      <input
+                        type="email"
+                        required
+                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
+                        value={adminEmail}
+                        onChange={(e) => setAdminEmail(e.target.value)}
+                        placeholder="admin@wellness.com"
+                        disabled={provisioningLoading}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-mono uppercase text-muted-foreground">Admin Password (Opt)</label>
+                      <input
+                        type="text"
+                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100 font-mono"
+                        value={adminPassword}
+                        onChange={(e) => setAdminPassword(e.target.value)}
+                        placeholder="Auto-generated if empty"
+                        disabled={provisioningLoading}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 3: Branding & Options (Optional) */}
+                <div className="space-y-4">
+                  <h3 className="text-xs uppercase font-mono tracking-wider text-primary border-b border-slate-800/60 pb-1.5">3. Personnalisation & Options (Optionnel)</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-mono uppercase text-muted-foreground">Logo URL</label>
+                      <input
+                        type="text"
+                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
+                        value={logoUrl}
+                        onChange={(e) => setLogoUrl(e.target.value)}
+                        placeholder="https://mon-serveur.com/logo.png"
+                        disabled={provisioningLoading}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-mono uppercase text-muted-foreground">Favicon URL</label>
+                      <input
+                        type="text"
+                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
+                        value={faviconUrl}
+                        onChange={(e) => setFaviconUrl(e.target.value)}
+                        placeholder="https://mon-serveur.com/favicon.ico"
+                        disabled={provisioningLoading}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-mono uppercase text-muted-foreground">Primary Color</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          className="h-9 w-10 p-0.5 rounded bg-slate-950 border border-slate-800 cursor-pointer"
+                          value={primaryColor}
+                          onChange={(e) => setPrimaryColor(e.target.value)}
+                          disabled={provisioningLoading}
+                        />
+                        <input
+                          type="text"
+                          className="w-full px-2 py-1 bg-slate-950 border border-slate-800 rounded text-xs focus:outline-none focus:border-primary text-slate-100 font-mono"
+                          value={primaryColor}
+                          onChange={(e) => setPrimaryColor(e.target.value)}
+                          disabled={provisioningLoading}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1 col-span-2">
+                      <label className="text-xs font-mono uppercase text-muted-foreground">Custom Domain</label>
+                      <input
+                        type="text"
+                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
+                        value={customDomain}
+                        onChange={(e) => setCustomDomain(e.target.value)}
+                        placeholder="erp.monentreprise.com"
+                        disabled={provisioningLoading}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-mono uppercase text-muted-foreground">Langue / Devise</label>
+                      <div className="flex gap-1">
+                        <select
+                          className="w-1/2 px-2 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-100"
+                          value={language}
+                          onChange={(e) => setLanguage(e.target.value)}
+                          disabled={provisioningLoading}
+                        >
+                          <option value="fr">FR</option>
+                          <option value="en">EN</option>
+                          <option value="ar">AR</option>
+                        </select>
+                        <input
+                          type="text"
+                          className="w-1/2 px-2 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-100 font-mono text-center"
+                          value={currency}
+                          onChange={(e) => setCurrency(e.target.value)}
+                          placeholder="EUR"
+                          disabled={provisioningLoading}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-mono uppercase text-muted-foreground">Internal Notes</label>
+                    <textarea
+                      className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100 h-14 resize-none"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Special client notes, contract terms etc."
+                      disabled={provisioningLoading}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
                   disabled={provisioningLoading}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-mono uppercase text-muted-foreground">Admin Email</label>
-                <input
-                  type="email"
-                  required
-                  className="w-full px-4 py-2 bg-secondary/50 border border-border/50 rounded-lg text-sm focus:outline-none focus:border-primary text-foreground"
-                  value={adminEmail}
-                  onChange={(e) => setAdminEmail(e.target.value)}
-                  disabled={provisioningLoading}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-mono uppercase text-muted-foreground">Admin Password</label>
-                <input
-                  type="password"
-                  required
-                  className="w-full px-4 py-2 bg-secondary/50 border border-border/50 rounded-lg text-sm focus:outline-none focus:border-primary text-foreground"
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  placeholder="Choose strong password"
-                  disabled={provisioningLoading}
-                />
-              </div>
-
-              <div className="p-3 bg-secondary/30 rounded-lg border border-border/50 space-y-1 text-xs text-muted-foreground font-mono">
-                <div>Schema: <span className="text-foreground">{selectedEnt.schemaName}</span></div>
-                <div>Domain: <span className="text-primary">{selectedEnt.slug}.acya.site</span></div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={provisioningLoading}
-                className="w-full py-2.5 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors text-sm font-mono cursor-pointer flex items-center justify-center gap-2"
-              >
-                {provisioningLoading ? (
-                  <>
-                    <span className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></span>
-                    PROVISIONING TABLES (3-10 SECS)...
-                  </>
-                ) : (
-                  "DUPLICATE TABLES & RUN MIGRATIONS"
-                )}
-              </button>
-            </form>
+                  className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors text-sm font-mono cursor-pointer flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:scale-[1.01] active:scale-[0.99] transition-all"
+                >
+                  {provisioningLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      NON-INTERACTIVE PROVISIONING IN PROGRESS (3-10 SECONDS)...
+                    </>
+                  ) : (
+                    "PROVISION REGISTRY ENTRY & SCHEMAS"
+                  )}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}

@@ -1250,5 +1250,19 @@ VALUES ('20260510132144_AddPasswordResetTokenToAppUser', '7.0.20');
 
 COMMIT;
 
+START TRANSACTION;
+
+ALTER TABLE tbl_enterprise ADD COLUMN IF NOT EXISTS logourl VARCHAR(255);
+ALTER TABLE tbl_enterprise ADD COLUMN IF NOT EXISTS faviconurl VARCHAR(255);
+ALTER TABLE tbl_enterprise ADD COLUMN IF NOT EXISTS primarycolor VARCHAR(50);
+ALTER TABLE tbl_enterprise ADD COLUMN IF NOT EXISTS customdomain VARCHAR(255);
+ALTER TABLE tbl_enterprise ADD COLUMN IF NOT EXISTS language VARCHAR(10);
+ALTER TABLE tbl_enterprise ADD COLUMN IF NOT EXISTS currency VARCHAR(10);
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20260625180000_AddTenantBrandingColumns', '7.0.20');
+
+COMMIT;
+
 
 

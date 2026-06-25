@@ -28,6 +28,12 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Organization
             entity.Property(e => e.IsSalingWood).HasColumnName("issalingwood");
             entity.Property(e => e.AuditRetentionMonths).HasColumnName("auditretentionmonths");
             entity.Property(e => e.DocumentNumberingConfig).HasColumnName("documentnumberingconfig");
+            entity.Property(e => e.LogoUrl).HasColumnName("logourl");
+            entity.Property(e => e.FaviconUrl).HasColumnName("faviconurl");
+            entity.Property(e => e.PrimaryColor).HasColumnName("primarycolor");
+            entity.Property(e => e.CustomDomain).HasColumnName("customdomain");
+            entity.Property(e => e.Language).HasColumnName("language");
+            entity.Property(e => e.Currency).HasColumnName("currency");
 
             // Configure one-to-many relationship with SalesSite
             entity.HasMany(e => e.Sites)

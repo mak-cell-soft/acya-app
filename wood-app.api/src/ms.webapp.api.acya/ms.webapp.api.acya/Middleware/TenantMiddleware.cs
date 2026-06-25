@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using ms.webapp.api.acya.api.Interfaces;
 using ms.webapp.api.acya.infrastructure;
+using ms.webapp.api.acya.core.Entities;
 
 namespace ms.webapp.api.acya.api.Middleware
 {
@@ -42,32 +43,41 @@ namespace ms.webapp.api.acya.api.Middleware
 
       // 2. Resolve the tenant slug
       var slug = resolver.ResolveTenantSlug(context);
+      TenantRegistry? tenant = null;
 
-      if (string.IsNullOrEmpty(slug))
+      if (!string.IsNullOrEmpty(slug))
       {
-        _logger.LogWarning("Multi-tenant request failed: no tenant slug found in request headers, subdomain, or query string for path '{Path}'", path);
-        context.Response.StatusCode = StatusCodes.Status400BadRequest;
-        await context.Response.WriteAsJsonAsync(new { error = "Tenant identification is required (subdomain, query param 'tenant', or X-Tenant-Slug header)." });
-        return;
+        tenant = await masterDb.TenantRegistries.FirstOrDefaultAsync(t => t.Slug == slug);
       }
 
-      // 3. Look up tenant in the Master Registry database
-      var tenant = await masterDb.TenantRegistries
-        .FirstOrDefaultAsync(t => t.Slug == slug);
+      // If not resolved by slug, try resolving by host header matching CustomDomain
+      if (tenant == null)
+      {
+        var host = context.Request.Host.Host;
+        if (!string.IsNullOrEmpty(host))
+        {
+          tenant = await masterDb.TenantRegistries.FirstOrDefaultAsync(t => t.CustomDomain == host);
+          if (tenant != null)
+          {
+            slug = tenant.Slug;
+          }
+        }
+      }
 
       if (tenant == null)
       {
-        _logger.LogWarning("Multi-tenant request failed: tenant '{Slug}' not registered in master database.", slug);
+        _logger.LogWarning("Multi-tenant request failed: tenant '{Slug}' not registered in master database.", slug ?? "unknown");
         context.Response.StatusCode = StatusCodes.Status404NotFound;
-        await context.Response.WriteAsJsonAsync(new { error = $"Tenant '{slug}' is not registered." });
+        await context.Response.WriteAsJsonAsync(new { error = $"Tenant '{slug ?? "unknown"}' is not registered." });
         return;
       }
 
-      if (!tenant.IsActive)
+      // Allow access to public configuration endpoint /api/enterprise/config even if inactive/suspended
+      if (!tenant.IsActive && path != "/api/enterprise/config")
       {
-        _logger.LogWarning("Multi-tenant request failed: tenant '{Slug}' is inactive.", slug);
+        _logger.LogWarning("Multi-tenant request failed: tenant '{Slug}' is inactive (Status: {Status}).", tenant.Slug, tenant.Status);
         context.Response.StatusCode = StatusCodes.Status403Forbidden;
-        await context.Response.WriteAsJsonAsync(new { error = $"Tenant '{slug}' is inactive." });
+        await context.Response.WriteAsJsonAsync(new { error = $"Tenant '{tenant.Slug}' is inactive.", status = tenant.Status });
         return;
       }
 
@@ -75,7 +85,7 @@ namespace ms.webapp.api.acya.api.Middleware
       if (context.User.Identity?.IsAuthenticated == true)
       {
         var jwtTenantSlug = context.User.FindFirst("tenant_slug")?.Value;
-        if (!string.IsNullOrEmpty(jwtTenantSlug) && !string.Equals(jwtTenantSlug, slug, StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(jwtTenantSlug, slug, StringComparison.OrdinalIgnoreCase))
         {
           _logger.LogWarning("Security Violation: Authenticated user with token for tenant '{JwtTenant}' attempted to access tenant '{RequestTenant}'", jwtTenantSlug, slug);
           context.Response.StatusCode = StatusCodes.Status403Forbidden;
@@ -89,6 +99,8 @@ namespace ms.webapp.api.acya.api.Middleware
       tenantContext.Slug = tenant.Slug;
       tenantContext.SchemaName = tenant.SchemaName;
       tenantContext.ConnectionString = tenant.ConnectionString;
+      tenantContext.Plan = tenant.Plan;
+      tenantContext.Status = tenant.Status;
 
       // Proceed with pipeline
       await _next(context);

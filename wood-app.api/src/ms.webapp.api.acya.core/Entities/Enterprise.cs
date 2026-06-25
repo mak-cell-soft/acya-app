@@ -23,6 +23,12 @@ namespace ms.webapp.api.acya.core.Entities
     public bool? IsSalingWood { get; set; }
     public int AuditRetentionMonths { get; set; } = 12; // Default to 12 months
     public string? DocumentNumberingConfig { get; set; }
+    public string? LogoUrl { get; set; }
+    public string? FaviconUrl { get; set; }
+    public string? PrimaryColor { get; set; }
+    public string? CustomDomain { get; set; }
+    public string? Language { get; set; }
+    public string? Currency { get; set; }
 
     public HashSet<SalesSite>? Sites { get; set; } = new HashSet<SalesSite>();
 
@@ -68,6 +74,12 @@ namespace ms.webapp.api.acya.core.Entities
       IsSalingWood = dto.issalingwood;
       AuditRetentionMonths = dto.auditRetentionMonths;
       DocumentNumberingConfig = dto.documentNumberingConfig;
+      LogoUrl = dto.logoUrl;
+      FaviconUrl = dto.faviconUrl;
+      PrimaryColor = dto.primaryColor;
+      CustomDomain = dto.customDomain;
+      Language = dto.language;
+      Currency = dto.currency;
 
       if (dto.sites != null)
       {
