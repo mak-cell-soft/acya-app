@@ -129,19 +129,13 @@ export function PublicNavbar() {
           </div>
 
           <div className="hidden md:flex items-center gap-4 ml-10">
-            <Link 
-              href="/login" 
-              className="text-[0.88rem] font-bold text-slate-600 hover:text-corp-blue-600 transition-colors px-4 py-2.5 rounded-lg hover:bg-slate-100/50"
-            >
-              Se connecter
-            </Link>
             <Button asChild className="h-10 px-6 rounded-lg text-white font-bold transition-all duration-300 relative overflow-hidden group shadow-md hover:shadow-lg active:scale-95 hover:scale-[1.03] bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700">
               <Link href="/enterprise-registration" className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-300 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
                 </span>
-                Demander une démo
+                Inscription
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" style={{ transform: 'skewX(-20deg)' }} />
               </Link>
             </Button>
@@ -204,11 +198,8 @@ export function PublicNavbar() {
 
                 <div className="mt-auto space-y-4">
                   <div className="h-px bg-slate-100 mb-8" />
-                  <Button asChild variant="outline" className="w-full h-14 text-lg border-slate-200 text-slate-800 hover:bg-slate-50 font-bold">
-                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Se connecter</Link>
-                  </Button>
                   <Button asChild className="w-full h-14 text-lg bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white font-bold shadow-md shadow-corp-blue-900/10">
-                    <Link href="/enterprise-registration" onClick={() => setIsMobileMenuOpen(false)}>Demander une démo</Link>
+                    <Link href="/enterprise-registration" onClick={() => setIsMobileMenuOpen(false)}>Inscription</Link>
                   </Button>
                 </div>
               </div>

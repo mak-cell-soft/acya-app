@@ -99,6 +99,99 @@ namespace ms.webapp.api.acya.api.Controllers
       return Ok(new { entId = newEnterprise.Id, message = "Enterprise added successfully" });
     }
 
+    [HttpPost("request-registration")]
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    public async Task<ActionResult> RequestRegistration(EnterpriseDto dto)
+    {
+      if (dto == null)
+      {
+        return BadRequest("Enterprise data must be provided.");
+      }
+
+      if (string.IsNullOrWhiteSpace(dto.name))
+      {
+        return BadRequest("Le nom de l'entreprise est requis.");
+      }
+
+      if (string.IsNullOrWhiteSpace(dto.matriculeFiscal))
+      {
+        return BadRequest("Le matricule fiscal est requis.");
+      }
+
+      // Check if enterprise with the same matricule fiscal already exists in master db
+      var existingMF = await _masterDb.TenantRegistries.FirstOrDefaultAsync(t => t.Notes != null && t.Notes.Contains(dto.matriculeFiscal));
+      if (existingMF != null)
+      {
+        return BadRequest("Une demande d'inscription avec ce matricule fiscal existe déjà.");
+      }
+
+      // Auto-generate candidate slug
+      string candidateSlug = Slugify(dto.name);
+      
+      // Reserve technical subdomains
+      var reservedSlugs = new[] { "admin", "api", "www", "preprod", "mail", "app", "dev", "staging" };
+      if (reservedSlugs.Contains(candidateSlug))
+      {
+        candidateSlug = $"{candidateSlug}-co";
+      }
+
+      var attempts = 0;
+      var uniqueSlug = candidateSlug;
+      while (await _masterDb.TenantRegistries.AnyAsync(e => e.Slug == uniqueSlug))
+      {
+        attempts++;
+        uniqueSlug = $"{candidateSlug}-{attempts}";
+      }
+      string finalSlug = uniqueSlug;
+
+      // Map to TenantRegistry object
+      var pendingTenant = new TenantRegistry
+      {
+        Name = dto.name,
+        Slug = finalSlug,
+        Email = dto.email,
+        Phone = dto.phone,
+        SchemaName = $"tenant_{finalSlug.Replace("-", "_")}",
+        ConnectionString = "Host=postgres;Port=5432;Database=wood-app-db;Username=postgres;Password=wood_app_strong_db_password_270326;",
+        IsActive = false,
+        Plan = "Trial",
+        Status = "Pending",
+        CreatedAt = DateTime.UtcNow,
+        LogoUrl = dto.logoUrl,
+        FaviconUrl = dto.faviconUrl,
+        PrimaryColor = dto.primaryColor ?? "#3B82F6",
+        Language = dto.language ?? "fr",
+        Currency = dto.currency ?? "EUR",
+        Notes = System.Text.Json.JsonSerializer.Serialize(dto)
+      };
+
+      await _masterDb.TenantRegistries.AddAsync(pendingTenant);
+      await _masterDb.SaveChangesAsync();
+
+      return Ok(new { message = "Demande d'inscription reçue avec succès", slug = finalSlug });
+    }
+
+    private string Slugify(string name)
+    {
+      if (string.IsNullOrWhiteSpace(name)) return "tenant";
+      
+      var s = name.ToLowerInvariant();
+      var sb = new System.Text.StringBuilder();
+      foreach (char c in s)
+      {
+        if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'))
+        {
+          sb.Append(c);
+        }
+        else if (c == ' ' || c == '-' || c == '_')
+        {
+          sb.Append('-');
+        }
+      }
+      var slug = sb.ToString().Replace("--", "-").Trim('-');
+      return string.IsNullOrEmpty(slug) ? "tenant" : slug;
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<EnterpriseDto>> Get(int id)
     {

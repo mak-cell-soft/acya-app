@@ -14,6 +14,25 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const hasTenantQuery = searchParams ? searchParams.has('tenant') : false;
+    const isMainDomain = (hostname === 'acya.site' || hostname === 'www.acya.site' || hostname === 'localhost' || hostname === '127.0.0.1') && !hasTenantQuery;
+
+    if (isMainDomain) {
+      setBranding({
+        name: 'Élancé',
+        logoUrl: null,
+        faviconUrl: null,
+        primaryColor: null,
+        language: 'fr',
+        currency: 'EUR',
+        status: 'Active',
+      });
+      setLoading(false);
+      return;
+    }
+
     async function fetchConfig() {
       try {
         const response = await api.get('/Enterprise/config');

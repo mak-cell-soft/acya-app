@@ -35,7 +35,9 @@ namespace ms.webapp.api.acya.api.Middleware
           path.StartsWith("/api/apihealth") || 
           path.Contains("/hub/notification") || 
           path.StartsWith("/api/register") || 
-          path.StartsWith("/api/tenant/register"))
+          path.StartsWith("/api/tenant/register") ||
+          path.Contains("/api/enterprise/register") ||
+          path.Contains("/api/enterprise/request-registration"))
       {
         await _next(context);
         return;

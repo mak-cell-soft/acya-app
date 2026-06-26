@@ -36,6 +36,8 @@ namespace ms.webapp.api.acya.core.Entities
 
     public string Status { get; set; } = "Pending";
 
+    public string? Notes { get; set; }
+    
     public string? LogoUrl { get; set; }
     public string? FaviconUrl { get; set; }
     public string? PrimaryColor { get; set; }

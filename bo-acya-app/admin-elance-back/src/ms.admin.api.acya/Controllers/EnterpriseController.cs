@@ -13,6 +13,7 @@ namespace ms.admin.api.acya.Controllers
 {
     public class CreateTenantRequest
     {
+        public long? ExistingId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Slug { get; set; }
         public string? Email { get; set; }
@@ -51,6 +52,15 @@ namespace ms.admin.api.acya.Controllers
         public async Task<IActionResult> GetAll()
         {
             var enterprises = await _enterpriseRepository.GetAllAsync();
+            return Ok(enterprises);
+        }
+
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPending()
+        {
+            var enterprises = await _context.Enterprises
+                .Where(e => e.Status == TenantStatus.Pending)
+                .ToListAsync();
             return Ok(enterprises);
         }
 
@@ -99,29 +109,58 @@ namespace ms.admin.api.acya.Controllers
             var schemaName = $"tenant_{slug.Replace("-", "_")}";
             var defaultConnectionString = "Host=postgres;Port=5432;Database=wood-app-db;Username=postgres;Password=wood_app_strong_db_password_270326;";
 
-            // 3. Create Tenant in Central registry in Pending state
-            var enterprise = new MasterEnterprise
+            MasterEnterprise created;
+            if (request.ExistingId.HasValue)
             {
-                Name = request.Name,
-                Slug = slug,
-                Email = request.Email,
-                Phone = request.Phone,
-                SchemaName = schemaName,
-                ConnectionString = defaultConnectionString,
-                IsActive = false,
-                Plan = request.Plan,
-                Status = TenantStatus.Pending,
-                CreatedAt = DateTime.UtcNow,
-                Notes = request.Notes,
-                LogoUrl = request.LogoUrl,
-                FaviconUrl = request.FaviconUrl,
-                PrimaryColor = request.PrimaryColor,
-                CustomDomain = request.CustomDomain,
-                Language = request.Language ?? "fr",
-                Currency = request.Currency ?? "TND"
-            };
+                var existing = await _enterpriseRepository.GetByIdAsync(request.ExistingId.Value);
+                if (existing == null)
+                {
+                    return NotFound("Existing pending enterprise request not found.");
+                }
+                existing.Name = request.Name;
+                existing.Slug = slug;
+                existing.Email = request.Email;
+                existing.Phone = request.Phone;
+                existing.SchemaName = schemaName;
+                existing.Plan = request.Plan;
+                existing.Notes = request.Notes;
+                existing.LogoUrl = request.LogoUrl;
+                existing.FaviconUrl = request.FaviconUrl;
+                existing.PrimaryColor = request.PrimaryColor;
+                existing.CustomDomain = request.CustomDomain;
+                existing.Language = request.Language ?? "fr";
+                existing.Currency = request.Currency ?? "TND";
+                existing.Status = TenantStatus.Pending;
 
-            var created = await _enterpriseRepository.AddAsync(enterprise);
+                await _enterpriseRepository.UpdateAsync(existing);
+                created = existing;
+            }
+            else
+            {
+                // 3. Create Tenant in Central registry in Pending state
+                var enterprise = new MasterEnterprise
+                {
+                    Name = request.Name,
+                    Slug = slug,
+                    Email = request.Email,
+                    Phone = request.Phone,
+                    SchemaName = schemaName,
+                    ConnectionString = defaultConnectionString,
+                    IsActive = false,
+                    Plan = request.Plan,
+                    Status = TenantStatus.Pending,
+                    CreatedAt = DateTime.UtcNow,
+                    Notes = request.Notes,
+                    LogoUrl = request.LogoUrl,
+                    FaviconUrl = request.FaviconUrl,
+                    PrimaryColor = request.PrimaryColor,
+                    CustomDomain = request.CustomDomain,
+                    Language = request.Language ?? "fr",
+                    Currency = request.Currency ?? "TND"
+                };
+
+                created = await _enterpriseRepository.AddAsync(enterprise);
+            }
 
             // 4. Automatic non-interactive database provisioning
             var adminUsername = string.IsNullOrWhiteSpace(request.AdminUsername) ? "admin" : request.AdminUsername;
@@ -137,9 +176,19 @@ namespace ms.admin.api.acya.Controllers
 
             if (!provisionSuccess)
             {
-                // Rollback central registry entry
-                await _enterpriseRepository.DeleteAsync(created);
-                return StatusCode(500, "Database provisioning failed. Registry rollback initiated.");
+                if (request.ExistingId.HasValue)
+                {
+                    created.IsActive = false;
+                    created.Status = TenantStatus.Pending;
+                    await _enterpriseRepository.UpdateAsync(created);
+                    return StatusCode(500, "Database provisioning failed. Registry reset to Pending.");
+                }
+                else
+                {
+                    // Rollback central registry entry
+                    await _enterpriseRepository.DeleteAsync(created);
+                    return StatusCode(500, "Database provisioning failed. Registry rollback initiated.");
+                }
             }
 
             // 5. Activate Registry details

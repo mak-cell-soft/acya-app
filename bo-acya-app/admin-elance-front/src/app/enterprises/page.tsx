@@ -18,6 +18,12 @@ interface Enterprise {
   createdAt: string;
   activatedAt: string | null;
   notes: string | null;
+  logoUrl?: string | null;
+  faviconUrl?: string | null;
+  primaryColor?: string | null;
+  customDomain?: string | null;
+  language?: string | null;
+  currency?: string | null;
 }
 
 export default function EnterprisesPage() {
@@ -30,6 +36,8 @@ export default function EnterprisesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [provisioningLoading, setProvisioningLoading] = useState(false);
   const [creationSuccessData, setCreationSuccessData] = useState<any | null>(null);
+  const [existingId, setExistingId] = useState<number | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Pending' | 'Deactivated'>('All');
 
   // Form states - Create & Provision Unified
   const [name, setName] = useState("");
@@ -100,6 +108,7 @@ export default function EnterprisesPage() {
     setProvisioningLoading(true);
 
     const payload = {
+      existingId,
       name,
       slug: slug.toLowerCase().trim() || null,
       email: email || null,
@@ -143,6 +152,7 @@ export default function EnterprisesPage() {
       });
 
       // Clear forms
+      setExistingId(null);
       setName("");
       setSlug("");
       setEmail("");
@@ -235,6 +245,49 @@ export default function EnterprisesPage() {
     }
   };
 
+  const handleOpenProvisionPending = (ent: Enterprise) => {
+    setCreationSuccessData(null);
+    setExistingId(ent.id);
+    setName(ent.name);
+    setSlug(ent.slug);
+    setEmail(ent.email || "");
+    setPhone(ent.phone || "");
+    setPlan(ent.plan || "Trial");
+    setNotes(ent.notes || "");
+    setLogoUrl(ent.logoUrl || "");
+    setFaviconUrl(ent.faviconUrl || "");
+    setPrimaryColor(ent.primaryColor || "#3B82F6");
+    setCustomDomain(ent.customDomain || "");
+    setLanguage(ent.language || "fr");
+    setCurrency(ent.currency || "EUR");
+
+    // Pre-fill Admin credentials from notes JSON
+    if (ent.notes) {
+      try {
+        const payload = JSON.parse(ent.notes);
+        if (payload.user) {
+          setAdminUsername(payload.user.name || "admin");
+          setAdminEmail(payload.user.email || payload.email || "");
+          setAdminPassword(payload.user.password || "");
+        } else {
+          setAdminUsername("admin");
+          setAdminEmail(ent.email || "");
+          setAdminPassword("");
+        }
+      } catch (e) {
+        setAdminUsername("admin");
+        setAdminEmail(ent.email || "");
+        setAdminPassword("");
+      }
+    } else {
+      setAdminUsername("admin");
+      setAdminEmail(ent.email || "");
+      setAdminPassword("");
+    }
+
+    setShowCreateModal(true);
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-end justify-between">
@@ -264,86 +317,142 @@ export default function EnterprisesPage() {
           FETCHING ENTERPRISE REGISTRY DATA...
         </div>
       ) : (
-        <div className="glass-panel rounded-xl overflow-hidden bg-card/25 border border-border/50">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-border/50 bg-secondary/30">
-                <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider">Enterprise Name</th>
-                <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider">URL / Slug</th>
-                <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider">DB Schema</th>
-                <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider">Plan</th>
-                <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/50">
-              {enterprises.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground font-mono">
-                    NO ENTERPRISES REGISTERED
-                  </td>
+        <div className="space-y-4">
+          <div className="flex gap-2 border-b border-border/20 pb-1">
+            {(['All', 'Active', 'Pending', 'Deactivated'] as const).map((filter) => {
+              const count = enterprises.filter(ent => {
+                if (filter === 'All') return true;
+                if (filter === 'Pending') return ent.status === 'Pending';
+                if (filter === 'Active') return ent.isActive && ent.status !== 'Pending';
+                if (filter === 'Deactivated') return !ent.isActive && ent.status !== 'Pending';
+              }).length;
+
+              return (
+                <button
+                  key={filter}
+                  onClick={() => setStatusFilter(filter)}
+                  className={`px-4 py-2 text-xs font-mono font-medium rounded-t-lg border-t border-x transition-all cursor-pointer ${
+                    statusFilter === filter
+                      ? 'bg-secondary/40 border-border text-white'
+                      : 'bg-transparent border-transparent text-muted-foreground hover:text-white'
+                  }`}
+                >
+                  {filter.toUpperCase()} ({count})
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="glass-panel rounded-xl overflow-hidden bg-card/25 border border-border/50">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-border/50 bg-secondary/30">
+                  <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider">Enterprise Name</th>
+                  <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider">URL / Slug</th>
+                  <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider">DB Schema</th>
+                  <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider">Plan</th>
+                  <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider text-right">Actions</th>
                 </tr>
-              ) : (
-                enterprises.map((ent) => (
-                  <tr key={ent.id} className="hover:bg-secondary/20 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-sm text-slate-100">{ent.name}</div>
-                      <div className="text-xs text-muted-foreground font-mono mt-0.5">ID: {ent.id.toString().padStart(4, '0')}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <a 
-                        href={`https://${ent.slug}.acya.site`} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="font-mono text-sm text-primary hover:underline inline-flex items-center gap-1"
-                      >
-                        {ent.slug}.acya.site
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </td>
-                    <td className="px-6 py-4 font-mono text-sm text-muted-foreground">
-                      {ent.schemaName}
-                    </td>
-                    <td className="px-6 py-4 text-slate-200">
-                      <span className="text-sm font-mono">{ent.plan}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => handleToggleStatus(ent)}
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border cursor-pointer hover:brightness-110 transition-all ${
-                          ent.isActive 
-                            ? 'bg-primary/10 text-primary border-primary/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]' 
-                            : 'bg-destructive/10 text-destructive border-destructive/20'
-                        }`}
-                        title={ent.isActive ? "Click to Deactivate" : "Click to Activate"}
-                      >
-                        <span className={`w-1.5 h-1.5 rounded-full mr-2 ${ent.isActive ? 'bg-primary' : 'bg-destructive'}`}></span>
-                        {ent.isActive ? 'Active' : 'Deactivated'}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 text-right space-x-3">
-                      {ent.isActive && (
-                        <button 
-                          onClick={() => handleImpersonate(ent)}
-                          className="text-xs font-semibold text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
-                        >
-                          <Key className="w-3 h-3" />
-                          Impersonate
-                        </button>
-                      )}
-                      <button 
-                        onClick={() => handleDeleteTenant(ent.id, ent.name)}
-                        className="text-xs font-medium text-destructive hover:underline cursor-pointer inline-flex items-center gap-1"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        Delete
-                      </button>
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {enterprises.filter(ent => {
+                  if (statusFilter === 'All') return true;
+                  if (statusFilter === 'Pending') return ent.status === 'Pending';
+                  if (statusFilter === 'Active') return ent.isActive && ent.status !== 'Pending';
+                  if (statusFilter === 'Deactivated') return !ent.isActive && ent.status !== 'Pending';
+                  return true;
+                }).length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground font-mono">
+                      NO ENTERPRISES FOUND IN THIS CATEGORY
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  enterprises.filter(ent => {
+                    if (statusFilter === 'All') return true;
+                    if (statusFilter === 'Pending') return ent.status === 'Pending';
+                    if (statusFilter === 'Active') return ent.isActive && ent.status !== 'Pending';
+                    if (statusFilter === 'Deactivated') return !ent.isActive && ent.status !== 'Pending';
+                    return true;
+                  }).map((ent) => (
+                    <tr key={ent.id} className="hover:bg-secondary/20 transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-sm text-slate-100">{ent.name}</div>
+                        <div className="text-xs text-muted-foreground font-mono mt-0.5">ID: {ent.id.toString().padStart(4, '0')}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <a 
+                          href={`https://${ent.slug}.acya.site`} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="font-mono text-sm text-primary hover:underline inline-flex items-center gap-1"
+                        >
+                          {ent.slug}.acya.site
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </td>
+                      <td className="px-6 py-4 font-mono text-sm text-muted-foreground">
+                        {ent.schemaName}
+                      </td>
+                      <td className="px-6 py-4 text-slate-200">
+                        <span className="text-sm font-mono">{ent.plan}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {ent.status === 'Pending' ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border bg-amber-500/10 text-amber-500 border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)]">
+                            <span className="w-1.5 h-1.5 rounded-full mr-2 bg-amber-500 animate-pulse"></span>
+                            Pending
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleToggleStatus(ent)}
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border cursor-pointer hover:brightness-110 transition-all ${
+                              ent.isActive 
+                                ? 'bg-primary/10 text-primary border-primary/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]' 
+                                : 'bg-destructive/10 text-destructive border-destructive/20'
+                            }`}
+                            title={ent.isActive ? "Click to Deactivate" : "Click to Activate"}
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full mr-2 ${ent.isActive ? 'bg-primary' : 'bg-destructive'}`}></span>
+                            {ent.isActive ? 'Active' : 'Deactivated'}
+                          </button>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right space-x-3">
+                        {ent.status === 'Pending' ? (
+                          <button 
+                            onClick={() => handleOpenProvisionPending(ent)}
+                            className="text-xs font-semibold text-amber-500 hover:underline cursor-pointer inline-flex items-center gap-1.5"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Confirm & Provision
+                          </button>
+                        ) : (
+                          ent.isActive && (
+                            <button 
+                              onClick={() => handleImpersonate(ent)}
+                              className="text-xs font-semibold text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
+                            >
+                              <Key className="w-3 h-3" />
+                              Impersonate
+                            </button>
+                          )
+                        )}
+                        <button 
+                          onClick={() => handleDeleteTenant(ent.id, ent.name)}
+                          className="text-xs font-medium text-destructive hover:underline cursor-pointer inline-flex items-center gap-1"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -354,7 +463,7 @@ export default function EnterprisesPage() {
             <div className="flex justify-between items-center border-b border-slate-800 pb-4">
               <h2 className="text-xl font-bold font-mono text-slate-100 flex items-center gap-2">
                 <Shield className="text-primary w-6 h-6" />
-                REGISTER & AUTOMATICALLY PROVISION TENANT
+                {existingId ? "CONFIRM & PROVISION PENDING REGISTRATION" : "REGISTER & AUTOMATICALLY PROVISION TENANT"}
               </h2>
               <button 
                 onClick={() => {

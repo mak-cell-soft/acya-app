@@ -94,6 +94,8 @@ export default function EnterpriseRegistrationPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('entreprise');
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [registeredSlug, setRegisteredSlug] = useState('');
 
   // New site form state
   const [newSiteAddress, setNewSiteAddress] = useState('');
@@ -107,7 +109,9 @@ export default function EnterpriseRegistrationPage() {
     mode: 'onChange',
     defaultValues: {
       sites: [],
-      isWoodSelling: false
+      isWoodSelling: false,
+      selectedRole: "20",
+      devise: "TND"
     }
   });
 
@@ -167,7 +171,7 @@ export default function EnterpriseRegistrationPage() {
       };
 
       const apiUrl = getBaseApiUrl();
-      const response = await fetch(`${apiUrl}Enterprise/register`, {
+      const response = await fetch(`${apiUrl}Enterprise/request-registration`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -180,10 +184,10 @@ export default function EnterpriseRegistrationPage() {
         throw new Error(errorData || 'Erreur lors de l\'enregistrement');
       }
 
-      toast.success("Entreprise enregistrée avec succès !");
-      setTimeout(() => {
-        router.push('/login');
-      }, 1500);
+      const result = await response.json();
+      toast.success("Demande d'enregistrement reçue !");
+      setRegisteredSlug(result.slug || '');
+      setIsSuccess(true);
     } catch (error: any) {
       console.error(error);
       toast.error(error.message || "Erreur lors de l'enregistrement.");
@@ -193,6 +197,60 @@ export default function EnterpriseRegistrationPage() {
   };
 
   const isWoodSelling = watch("isWoodSelling");
+
+  if (isSuccess) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-corp-blue-50 via-[#EBF1FA] to-[#F8FAFF] px-4 py-12 relative overflow-hidden font-sans">
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(var(--color-corp-blue-200)_1px,transparent_1px)] [background-size:24px_24px] opacity-30" />
+        
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-xl"
+        >
+          <Card className="border-slate-200/80 shadow-[0_20px_50px_-20px_rgba(37,99,235,0.15)] bg-white/90 backdrop-blur-md rounded-2xl overflow-hidden">
+            <CardHeader className="text-center pt-10 pb-4">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
+                <CheckCircle2 className="h-10 w-10 animate-bounce" />
+              </div>
+              <CardTitle className="text-2xl font-bold tracking-tight text-slate-900">Demande d'inscription reçue !</CardTitle>
+              <CardDescription className="text-slate-500 mt-2 text-base">
+                Votre espace de travail est en cours de préparation.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-8 py-6 space-y-6 text-center">
+              <p className="text-slate-600 text-sm leading-relaxed">
+                Merci de votre inscription à <strong>Élancé ERP</strong>. Notre équipe examine actuellement votre demande.
+                Vous recevrez vos informations de connexion par email dès que votre instance sera provisionnée.
+              </p>
+              
+              <div className="p-5 bg-corp-blue-50/50 border border-corp-blue-100 rounded-xl space-y-3 text-left">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-slate-500 font-medium">Sous-domaine réservé :</span>
+                  <span className="font-bold text-corp-blue-700 font-mono">{registeredSlug}.acya.site</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-slate-500 font-medium">Statut de la demande :</span>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                    En attente de validation
+                  </span>
+                </div>
+              </div>
+              
+              <p className="text-xs text-slate-400">
+                Une question ? Contactez notre support commercial à <a href="mailto:support@acya.site" className="text-corp-blue-600 hover:underline">support@acya.site</a>
+              </p>
+            </CardContent>
+            <CardFooter className="bg-slate-50 border-t border-slate-100 px-8 py-6 flex justify-center">
+              <Button asChild className="h-12 px-8 font-bold bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all">
+                <Link href="/">Retourner à l'accueil</Link>
+              </Button>
+            </CardFooter>
+          </Card>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-corp-blue-50 via-[#EBF1FA] to-[#F8FAFF] px-4 py-12 relative overflow-hidden font-sans">
@@ -234,7 +292,21 @@ export default function EnterpriseRegistrationPage() {
         </div>
 
         <Card className="border-corp-blue-100 shadow-[0_20px_60px_rgba(11,59,36,0.08)] bg-card/80 backdrop-blur-md rounded-2xl overflow-hidden">
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit(onSubmit, (errs) => {
+            console.warn("Validation errors:", errs);
+            toast.error("Veuillez corriger les erreurs de validation.");
+            const errorKeys = Object.keys(errs);
+            if (errorKeys.length > 0) {
+              const firstErrorKey = errorKeys[0];
+              if (['name', 'email', 'phone', 'matriculeFiscal', 'devise', 'siegeAddress'].includes(firstErrorKey)) {
+                setActiveTab('entreprise');
+              } else if (['surnameResponsable', 'nameResponsable', 'positionResponsable', 'appUsername', 'appUserSurname', 'emailAppUser', 'passwordAppUser', 'confirmPasswordAppUser', 'selectedRole'].includes(firstErrorKey)) {
+                setActiveTab('admin');
+              } else if (['sites', 'defaultSiteIndex'].includes(firstErrorKey)) {
+                setActiveTab('sites');
+              }
+            }
+          })}>
             <CardContent className="space-y-10 px-6 sm:px-10 pt-10 pb-8">
               
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
