@@ -17,5 +17,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
 COPY --from=build /out .
+COPY db/ /app/db/
 EXPOSE 80
 ENTRYPOINT ["dotnet", "ms.admin.api.acya.dll"]

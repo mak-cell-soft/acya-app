@@ -26,6 +26,7 @@ namespace ms.admin.api.acya.Controllers
         public string? CustomDomain { get; set; }
         public string? Language { get; set; }
         public string? Currency { get; set; }
+        public bool IsSalingWood { get; set; }
 
         public string AdminUsername { get; set; } = "admin";
         public string AdminEmail { get; set; } = string.Empty;
@@ -95,7 +96,7 @@ namespace ms.admin.api.acya.Controllers
             // 2. Slug availability verification
             var attempts = 0;
             var uniqueSlug = slug;
-            while (await _context.Enterprises.AnyAsync(e => e.Slug == uniqueSlug))
+            while (await _context.Enterprises.AnyAsync(e => e.Slug == uniqueSlug && (!request.ExistingId.HasValue || e.Id != request.ExistingId.Value)))
             {
                 if (!string.IsNullOrWhiteSpace(request.Slug))
                 {
@@ -130,6 +131,7 @@ namespace ms.admin.api.acya.Controllers
                 existing.CustomDomain = request.CustomDomain;
                 existing.Language = request.Language ?? "fr";
                 existing.Currency = request.Currency ?? "TND";
+                existing.IsSalingWood = request.IsSalingWood;
                 existing.Status = TenantStatus.Pending;
 
                 await _enterpriseRepository.UpdateAsync(existing);
@@ -156,7 +158,8 @@ namespace ms.admin.api.acya.Controllers
                     PrimaryColor = request.PrimaryColor,
                     CustomDomain = request.CustomDomain,
                     Language = request.Language ?? "fr",
-                    Currency = request.Currency ?? "TND"
+                    Currency = request.Currency ?? "TND",
+                    IsSalingWood = request.IsSalingWood
                 };
 
                 created = await _enterpriseRepository.AddAsync(enterprise);

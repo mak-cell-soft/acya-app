@@ -76,13 +76,14 @@ namespace ms.admin.api.acya.infrastructure.Services
                     using (var cmd = new NpgsqlCommand($@"
                         SET search_path TO {enterprise.SchemaName};
                         INSERT INTO tbl_enterprise (id, name, enterpriseguid, email, phone, issalingwood, logourl, faviconurl, primarycolor, customdomain, language, currency, auditretentionmonths, documentnumberingconfig)
-                        VALUES (1, @name, @guid, @email, @phone, true, @logourl, @faviconurl, @primarycolor, @customdomain, @language, @currency, 12, @documentnumberingconfig)
+                        VALUES (1, @name, @guid, @email, @phone, @issalingwood, @logourl, @faviconurl, @primarycolor, @customdomain, @language, @currency, 12, @documentnumberingconfig)
                         RETURNING id;", conn))
                     {
                         cmd.Parameters.AddWithValue("name", enterprise.Name);
                         cmd.Parameters.AddWithValue("guid", Guid.NewGuid());
                         cmd.Parameters.AddWithValue("email", (object?)enterprise.Email ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("phone", (object?)enterprise.Phone ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("issalingwood", enterprise.IsSalingWood);
                         cmd.Parameters.AddWithValue("logourl", (object?)enterprise.LogoUrl ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("faviconurl", (object?)enterprise.FaviconUrl ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("primarycolor", (object?)enterprise.PrimaryColor ?? DBNull.Value);
@@ -144,6 +145,45 @@ namespace ms.admin.api.acya.infrastructure.Services
                           ""Configuration"": {""CanRead"": true, ""CanAdd"": true, ""CanUpdate"": true, ""CanDelete"": true}
                         }");
                         await cmd.ExecuteNonQueryAsync();
+                    }
+
+                    // 4. Seed wood template if required
+                    if (enterprise.IsSalingWood)
+                    {
+                        var woodSeedPath = _config["WoodSeedScriptPath"] ?? "/app/db/wood/v0.10/seed_natural_wood.sql.template";
+                        if (!File.Exists(woodSeedPath))
+                        {
+                            var currentDir = AppDomain.CurrentDomain.BaseDirectory;
+                            while (currentDir != null && !Directory.Exists(Path.Combine(currentDir, "db")))
+                            {
+                                currentDir = Directory.GetParent(currentDir)?.FullName;
+                            }
+                            if (currentDir != null)
+                            {
+                                var path1 = Path.Combine(currentDir, "db", "wood", "v0.10", "seed_natural_wood.sql.template");
+                                var path2 = Path.Combine(currentDir, "db", "seed_natural_wood.sql.template");
+                                woodSeedPath = File.Exists(path1) ? path1 : path2;
+                            }
+                        }
+
+                        if (File.Exists(woodSeedPath))
+                        {
+                            _logger.LogInformation("Executing natural wood seed script for tenant {Slug}...", enterprise.Slug);
+                            var sql = await File.ReadAllTextAsync(woodSeedPath);
+                            sql = sql.Replace("{{APP_USER_ID}}", userId.ToString());
+
+                            using (var cmd = new NpgsqlCommand($@"
+                                SET search_path TO {enterprise.SchemaName};
+                                {sql}", conn))
+                            {
+                                await cmd.ExecuteNonQueryAsync();
+                            }
+                            _logger.LogInformation("Natural wood seed script executed successfully for tenant {Slug}.", enterprise.Slug);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Natural wood seed script file not found at path: {Path}. Wood seeding skipped.", woodSeedPath);
+                        }
                     }
                 }
 

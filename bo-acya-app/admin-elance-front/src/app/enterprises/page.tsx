@@ -46,6 +46,7 @@ export default function EnterprisesPage() {
   const [phone, setPhone] = useState("");
   const [plan, setPlan] = useState("Trial");
   const [notes, setNotes] = useState("");
+  const [isSalingWood, setIsSalingWood] = useState(false);
   
   // Branding Customization (Optional)
   const [logoUrl, setLogoUrl] = useState("");
@@ -121,6 +122,7 @@ export default function EnterprisesPage() {
       customDomain: customDomain || null,
       language,
       currency,
+      isSalingWood,
       adminUsername,
       adminEmail: adminEmail || email || `admin@${slug || "tenant"}.acya.site`,
       adminPassword: adminPassword || "AdminPass123!"
@@ -159,6 +161,7 @@ export default function EnterprisesPage() {
       setPhone("");
       setPlan("Trial");
       setNotes("");
+      setIsSalingWood(false);
       setLogoUrl("");
       setFaviconUrl("");
       setPrimaryColor("#3B82F6");
@@ -265,6 +268,14 @@ export default function EnterprisesPage() {
     if (ent.notes) {
       try {
         const payload = JSON.parse(ent.notes);
+        if (payload.issalingwood !== undefined) {
+          setIsSalingWood(payload.issalingwood);
+        } else if (payload.isSalingWood !== undefined) {
+          setIsSalingWood(payload.isSalingWood);
+        } else {
+          setIsSalingWood(false);
+        }
+
         if (payload.user) {
           setAdminUsername(payload.user.name || "admin");
           setAdminEmail(payload.user.email || payload.email || "");
@@ -275,11 +286,13 @@ export default function EnterprisesPage() {
           setAdminPassword("");
         }
       } catch (e) {
+        setIsSalingWood(false);
         setAdminUsername("admin");
         setAdminEmail(ent.email || "");
         setAdminPassword("");
       }
     } else {
+      setIsSalingWood(false);
       setAdminUsername("admin");
       setAdminEmail(ent.email || "");
       setAdminPassword("");
@@ -701,6 +714,20 @@ export default function EnterprisesPage() {
                         />
                       </div>
                     </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 py-1">
+                    <input
+                      type="checkbox"
+                      id="isSalingWood"
+                      className="w-4 h-4 bg-slate-950 border border-slate-800 rounded text-primary focus:ring-primary focus:ring-opacity-50 cursor-pointer"
+                      checked={isSalingWood}
+                      onChange={(e) => setIsSalingWood(e.target.checked)}
+                      disabled={provisioningLoading}
+                    />
+                    <label htmlFor="isSalingWood" className="text-sm font-medium text-slate-200 cursor-pointer select-none">
+                      Activer le traitement spécial bois (Seed Natural Wood tables)
+                    </label>
                   </div>
 
                   <div className="space-y-1">

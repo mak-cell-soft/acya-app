@@ -31,7 +31,8 @@ namespace ms.admin.api.acya.infrastructure
                     ""CustomDomain"" VARCHAR(255),
                     ""Language"" VARCHAR(10),
                     ""Currency"" VARCHAR(10),
-                    ""CustomDomainConfigured"" BOOLEAN DEFAULT FALSE
+                    ""CustomDomainConfigured"" BOOLEAN DEFAULT FALSE,
+                    ""IsSalingWood"" BOOLEAN DEFAULT FALSE
                 );
             ");
 
@@ -47,6 +48,7 @@ namespace ms.admin.api.acya.infrastructure
                 ALTER TABLE public.bo_tbl_enterprise ADD COLUMN IF NOT EXISTS ""Language"" VARCHAR(10);
                 ALTER TABLE public.bo_tbl_enterprise ADD COLUMN IF NOT EXISTS ""Currency"" VARCHAR(10);
                 ALTER TABLE public.bo_tbl_enterprise ADD COLUMN IF NOT EXISTS ""CustomDomainConfigured"" BOOLEAN DEFAULT FALSE;
+                ALTER TABLE public.bo_tbl_enterprise ADD COLUMN IF NOT EXISTS ""IsSalingWood"" BOOLEAN DEFAULT FALSE;
             ");
 
             // Create SaaS lifecycle tables
