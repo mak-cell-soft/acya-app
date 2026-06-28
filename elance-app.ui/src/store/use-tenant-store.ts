@@ -5,6 +5,7 @@ interface TenantBranding {
   logoUrl: string | null;
   faviconUrl: string | null;
   primaryColor: string | null;
+  secondaryColor: string | null;
   language: string | null;
   currency: string | null;
   status: string | null;
@@ -19,6 +20,7 @@ export const useTenantStore = create<TenantState>((set) => ({
   logoUrl: null,
   faviconUrl: null,
   primaryColor: null,
+  secondaryColor: null,
   language: null,
   currency: null,
   status: null,

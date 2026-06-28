@@ -25,6 +25,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         logoUrl: null,
         faviconUrl: null,
         primaryColor: null,
+        secondaryColor: null,
         language: 'fr',
         currency: 'EUR',
         status: 'Active',
@@ -43,6 +44,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
           logoUrl: config.logoUrl,
           faviconUrl: config.faviconUrl,
           primaryColor: config.primaryColor,
+          secondaryColor: config.secondaryColor,
           language: config.language,
           currency: config.currency,
           status: config.status,
@@ -65,6 +67,12 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
           document.documentElement.style.setProperty('--corp-blue-600', config.primaryColor);
           // Generically set other variants if needed
           document.documentElement.style.setProperty('--color-corp-blue-600', config.primaryColor);
+        }
+
+        // 3. Inject secondary color style variables
+        if (config.secondaryColor) {
+          document.documentElement.style.setProperty('--secondary', config.secondaryColor);
+          document.documentElement.style.setProperty('--sidebar-bg', config.secondaryColor);
         }
 
         // 3. Handle suspension / expiration routing

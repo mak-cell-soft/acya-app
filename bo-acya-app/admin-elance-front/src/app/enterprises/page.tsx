@@ -21,6 +21,7 @@ interface Enterprise {
   logoUrl?: string | null;
   faviconUrl?: string | null;
   primaryColor?: string | null;
+  secondaryColor?: string | null;
   customDomain?: string | null;
   language?: string | null;
   currency?: string | null;
@@ -56,6 +57,7 @@ export default function EnterprisesPage() {
   const [logoUrl, setLogoUrl] = useState("");
   const [faviconUrl, setFaviconUrl] = useState("");
   const [primaryColor, setPrimaryColor] = useState("#3B82F6");
+  const [secondaryColor, setSecondaryColor] = useState("#EBF1FA");
   const [customDomain, setCustomDomain] = useState("");
   const [language, setLanguage] = useState("fr");
   const [currency, setCurrency] = useState("EUR");
@@ -122,6 +124,7 @@ export default function EnterprisesPage() {
       logoUrl: logoUrl || null,
       faviconUrl: faviconUrl || null,
       primaryColor: primaryColor || null,
+      secondaryColor: secondaryColor || null,
       customDomain: customDomain || null,
       language,
       currency,
@@ -185,6 +188,7 @@ export default function EnterprisesPage() {
         setLogoUrl("");
         setFaviconUrl("");
         setPrimaryColor("#3B82F6");
+        setSecondaryColor("#EBF1FA");
         setCustomDomain("");
         setLanguage("fr");
         setCurrency("EUR");
@@ -214,6 +218,7 @@ export default function EnterprisesPage() {
     setLogoUrl(ent.logoUrl || "");
     setFaviconUrl(ent.faviconUrl || "");
     setPrimaryColor(ent.primaryColor || "#3B82F6");
+    setSecondaryColor(ent.secondaryColor || "#EBF1FA");
     setCustomDomain(ent.customDomain || "");
     setLanguage(ent.language || "fr");
     setCurrency(ent.currency || "EUR");
@@ -303,6 +308,7 @@ export default function EnterprisesPage() {
     setLogoUrl(ent.logoUrl || "");
     setFaviconUrl(ent.faviconUrl || "");
     setPrimaryColor(ent.primaryColor || "#3B82F6");
+    setSecondaryColor(ent.secondaryColor || "#EBF1FA");
     setCustomDomain(ent.customDomain || "");
     setLanguage(ent.language || "fr");
     setCurrency(ent.currency || "EUR");
@@ -765,7 +771,26 @@ export default function EnterprisesPage() {
                         />
                       </div>
                     </div>
-                    <div className="space-y-1 col-span-2">
+                    <div className="space-y-1">
+                      <label className="text-xs font-mono uppercase text-muted-foreground">Secondary Color</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          className="h-9 w-10 p-0.5 rounded bg-slate-950 border border-slate-800 cursor-pointer"
+                          value={secondaryColor}
+                          onChange={(e) => setSecondaryColor(e.target.value)}
+                          disabled={provisioningLoading}
+                        />
+                        <input
+                          type="text"
+                          className="w-full px-2 py-1 bg-slate-950 border border-slate-800 rounded text-xs focus:outline-none focus:border-primary text-slate-100 font-mono"
+                          value={secondaryColor}
+                          onChange={(e) => setSecondaryColor(e.target.value)}
+                          disabled={provisioningLoading}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1 col-span-1">
                       <label className="text-xs font-mono uppercase text-muted-foreground">Custom Domain</label>
                       <input
                         type="text"

@@ -41,6 +41,7 @@ import { useRouter } from 'next/navigation';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { PermissionModuleKey } from '@/types/permissions';
 import { SupportDialog } from './support-dialog';
+import { useTenantStore } from '@/store/use-tenant-store';
 
 type NavItem = {
   name: string;
@@ -156,6 +157,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { logoUrl, primaryColor, secondaryColor } = useTenantStore();
 
   // Restore state on mount
   useEffect(() => {
@@ -210,16 +212,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         onClick={onClose}
       />
 
-      {/* Sidebar panel — amber-tinted for depot, blue for sale site */}
+      {/* Sidebar panel — custom background color, or fallback to amber-tinted/blue gradient */}
       <div
+        style={secondaryColor ? { backgroundColor: secondaryColor, backgroundImage: 'none' } : undefined}
         className={cn(
           'fixed inset-y-0 left-0 z-50 flex flex-col h-full text-slate-800 border-r font-sans transition-all duration-300 ease-in-out lg:relative lg:translate-x-0 shadow-[4px_0_24px_rgba(0,0,0,0.04)]',
           isOpen ? 'translate-x-0' : '-translate-x-full',
           isCollapsed ? 'w-[90px]' : 'w-72',
-          // WHY: Visual distinction — amber gradient for depot, blue for sale
-          isDepot
+          // WHY: Visual distinction — amber gradient for depot, blue for sale (if no custom secondaryColor)
+          !secondaryColor && (isDepot
             ? 'bg-gradient-to-br from-amber-50 via-[#FFFBF0] to-[#FFFEF9] border-amber-100/80'
-            : 'bg-gradient-to-br from-corp-blue-50 via-[#EBF1FA] to-[#F8FAFF] border-corp-blue-100/80'
+            : 'bg-gradient-to-br from-corp-blue-50 via-[#EBF1FA] to-[#F8FAFF] border-corp-blue-100/80')
         )}
       >
         {/* Collapse toggle button */}
@@ -253,52 +256,61 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               )}
             >
               {/* Logo hexagon cluster */}
+              {/* Logo hexagon cluster / Custom Logo */}
               <div className="relative group-hover:scale-110 transition-transform duration-500 shrink-0">
-                <svg
-                  className="w-10 h-10 md:w-11 md:h-11 transition-transform duration-700 group-hover:scale-105"
-                  viewBox="0 0 40 40"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <defs>
-                    {/* WHY: Depot uses amber/orange gradients to clearly signal the
-                             different site mode at a glance. Sale site keeps corp-blue. */}
-                    {isDepot ? (
-                      <>
-                        <linearGradient id="logo_grad_1" x1="0" y1="0" x2="40" y2="40">
-                          <stop offset="0%" stopColor="#FCD34D" />
-                          <stop offset="100%" stopColor="#F59E0B" />
-                        </linearGradient>
-                        <linearGradient id="logo_grad_2" x1="0" y1="0" x2="40" y2="40">
-                          <stop offset="0%" stopColor="#F59E0B" />
-                          <stop offset="100%" stopColor="#D97706" />
-                        </linearGradient>
-                        <linearGradient id="logo_grad_3" x1="0" y1="0" x2="40" y2="40">
-                          <stop offset="0%" stopColor="#D97706" />
-                          <stop offset="100%" stopColor="#B45309" />
-                        </linearGradient>
-                      </>
-                    ) : (
-                      <>
-                        <linearGradient id="logo_grad_1" x1="0" y1="0" x2="40" y2="40">
-                          <stop offset="0%" stopColor="#60A5FA" />
-                          <stop offset="100%" stopColor="#3B82F6" />
-                        </linearGradient>
-                        <linearGradient id="logo_grad_2" x1="0" y1="0" x2="40" y2="40">
-                          <stop offset="0%" stopColor="#3B82F6" />
-                          <stop offset="100%" stopColor="#2563EB" />
-                        </linearGradient>
-                        <linearGradient id="logo_grad_3" x1="0" y1="0" x2="40" y2="40">
-                          <stop offset="0%" stopColor="#2563EB" />
-                          <stop offset="100%" stopColor="#1D4ED8" />
-                        </linearGradient>
-                      </>
-                    )}
-                  </defs>
-                  <path d="M 20 3 L 27.79 7.5 L 27.79 16.5 L 20 21 L 12.21 16.5 L 12.21 7.5 Z" fill="url(#logo_grad_1)" />
-                  <path d="M 11.34 18 L 19.13 22.5 L 19.13 31.5 L 11.34 36 L 3.55 31.5 L 3.55 22.5 Z" fill="url(#logo_grad_2)" />
-                  <path d="M 28.66 18 L 36.45 22.5 L 36.45 31.5 L 28.66 36 L 20.87 31.5 L 20.87 22.5 Z" fill="url(#logo_grad_3)" />
-                </svg>
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt={user?.enterpriseName || "Logo"}
+                    className="w-10 h-10 md:w-11 md:h-11 object-contain rounded-lg shadow-sm"
+                  />
+                ) : (
+                  <svg
+                    className="w-10 h-10 md:w-11 md:h-11 transition-transform duration-700 group-hover:scale-105"
+                    viewBox="0 0 40 40"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <defs>
+                      {/* WHY: Depot uses amber/orange gradients to clearly signal the
+                               different site mode at a glance. Sale site keeps corp-blue. */}
+                      {isDepot ? (
+                        <>
+                          <linearGradient id="logo_grad_1" x1="0" y1="0" x2="40" y2="40">
+                            <stop offset="0%" stopColor="#FCD34D" />
+                            <stop offset="100%" stopColor="#F59E0B" />
+                          </linearGradient>
+                          <linearGradient id="logo_grad_2" x1="0" y1="0" x2="40" y2="40">
+                            <stop offset="0%" stopColor="#F59E0B" />
+                            <stop offset="100%" stopColor="#D97706" />
+                          </linearGradient>
+                          <linearGradient id="logo_grad_3" x1="0" y1="0" x2="40" y2="40">
+                            <stop offset="0%" stopColor="#D97706" />
+                            <stop offset="100%" stopColor="#B45309" />
+                          </linearGradient>
+                        </>
+                      ) : (
+                        <>
+                          <linearGradient id="logo_grad_1" x1="0" y1="0" x2="40" y2="40">
+                            <stop offset="0%" stopColor="#60A5FA" />
+                            <stop offset="100%" stopColor="#3B82F6" />
+                          </linearGradient>
+                          <linearGradient id="logo_grad_2" x1="0" y1="0" x2="40" y2="40">
+                            <stop offset="0%" stopColor="#3B82F6" />
+                            <stop offset="100%" stopColor="#2563EB" />
+                          </linearGradient>
+                          <linearGradient id="logo_grad_3" x1="0" y1="0" x2="40" y2="40">
+                            <stop offset="0%" stopColor="#2563EB" />
+                            <stop offset="100%" stopColor="#1D4ED8" />
+                          </linearGradient>
+                        </>
+                      )}
+                    </defs>
+                    <path d="M 20 3 L 27.79 7.5 L 27.79 16.5 L 20 21 L 12.21 16.5 L 12.21 7.5 Z" fill="url(#logo_grad_1)" />
+                    <path d="M 11.34 18 L 19.13 22.5 L 19.13 31.5 L 11.34 36 L 3.55 31.5 L 3.55 22.5 Z" fill="url(#logo_grad_2)" />
+                    <path d="M 28.66 18 L 36.45 22.5 L 36.45 31.5 L 28.66 36 L 20.87 31.5 L 20.87 22.5 Z" fill="url(#logo_grad_3)" />
+                  </svg>
+                )}
               </div>
 
               {!isCollapsed && (
@@ -431,10 +443,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           }
                         }}
                         title={isCollapsed ? item.name : undefined}
+                        style={isActive && primaryColor ? { backgroundColor: primaryColor, boxShadow: `0 4px 6px -1px ${primaryColor}33, 0 2px 4px -1px ${primaryColor}22` } : undefined}
                         className={cn(
                           'flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all group',
                           isActive
-                            ? isDepot
+                            ? primaryColor
+                              ? 'text-white'
+                              : isDepot
                               ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
                               : 'bg-corp-blue-600 text-white shadow-md shadow-corp-blue-600/20'
                             : isDepot
@@ -450,8 +465,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                               isActive
                                 ? 'text-white'
                                 : isDepot
-                                ? 'group-hover:text-amber-600 transition-colors'
-                                : 'group-hover:text-corp-blue-600 transition-colors'
+                                ? (primaryColor ? 'group-hover:text-[var(--primary)] transition-colors' : 'group-hover:text-amber-600 transition-colors')
+                                : (primaryColor ? 'group-hover:text-[var(--primary)] transition-colors' : 'group-hover:text-corp-blue-600 transition-colors')
                             )}
                           />
                           {!isCollapsed && (
@@ -462,7 +477,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           <div
                             className={cn(
                               'w-1.5 h-1.5 rounded-full shrink-0',
-                              isDepot
+                              primaryColor
+                                ? 'bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.8)]'
+                                : isDepot
                                 ? 'bg-amber-200 shadow-[0_0_10px_rgba(251,191,36,0.8)]'
                                 : 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]'
                             )}

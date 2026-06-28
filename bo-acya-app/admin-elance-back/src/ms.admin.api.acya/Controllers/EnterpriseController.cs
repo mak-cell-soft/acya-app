@@ -23,6 +23,7 @@ namespace ms.admin.api.acya.Controllers
         public string? LogoUrl { get; set; }
         public string? FaviconUrl { get; set; }
         public string? PrimaryColor { get; set; }
+        public string? SecondaryColor { get; set; }
         public string? CustomDomain { get; set; }
         public string? Language { get; set; }
         public string? Currency { get; set; }
@@ -45,6 +46,7 @@ namespace ms.admin.api.acya.Controllers
         public string? LogoUrl { get; set; }
         public string? FaviconUrl { get; set; }
         public string? PrimaryColor { get; set; }
+        public string? SecondaryColor { get; set; }
         public string? CustomDomain { get; set; }
         public string? Language { get; set; }
         public string? Currency { get; set; }
@@ -147,6 +149,7 @@ namespace ms.admin.api.acya.Controllers
                 existing.LogoUrl = request.LogoUrl;
                 existing.FaviconUrl = request.FaviconUrl;
                 existing.PrimaryColor = request.PrimaryColor;
+                existing.SecondaryColor = request.SecondaryColor;
                 existing.CustomDomain = request.CustomDomain;
                 existing.Language = request.Language ?? "fr";
                 existing.Currency = request.Currency ?? "TND";
@@ -176,6 +179,7 @@ namespace ms.admin.api.acya.Controllers
                     LogoUrl = request.LogoUrl,
                     FaviconUrl = request.FaviconUrl,
                     PrimaryColor = request.PrimaryColor,
+                    SecondaryColor = request.SecondaryColor,
                     CustomDomain = request.CustomDomain,
                     Language = request.Language ?? "fr",
                     Currency = request.Currency ?? "TND",
@@ -312,6 +316,7 @@ namespace ms.admin.api.acya.Controllers
             enterprise.LogoUrl = request.LogoUrl;
             enterprise.FaviconUrl = request.FaviconUrl;
             enterprise.PrimaryColor = request.PrimaryColor;
+            enterprise.SecondaryColor = request.SecondaryColor;
             enterprise.CustomDomain = request.CustomDomain;
             enterprise.Language = request.Language ?? "fr";
             enterprise.Currency = request.Currency ?? "TND";

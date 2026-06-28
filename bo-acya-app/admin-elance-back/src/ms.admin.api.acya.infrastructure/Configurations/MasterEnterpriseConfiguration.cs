@@ -57,6 +57,9 @@ namespace ms.admin.api.acya.infrastructure.Configurations
             builder.Property(x => x.PrimaryColor)
                 .HasMaxLength(50);
 
+            builder.Property(x => x.SecondaryColor)
+                .HasMaxLength(50);
+
             builder.Property(x => x.CustomDomain)
                 .HasMaxLength(255);
 

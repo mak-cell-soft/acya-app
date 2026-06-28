@@ -38,6 +38,7 @@ export interface Enterprise {
   logoUrl?: string | null;
   faviconUrl?: string | null;
   primaryColor?: string | null;
+  secondaryColor?: string | null;
   customDomain?: string | null;
   language?: string | null;
   currency?: string | null;

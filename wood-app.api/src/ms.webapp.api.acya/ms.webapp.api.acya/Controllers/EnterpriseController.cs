@@ -160,6 +160,7 @@ namespace ms.webapp.api.acya.api.Controllers
         LogoUrl = dto.logoUrl,
         FaviconUrl = dto.faviconUrl,
         PrimaryColor = dto.primaryColor ?? "#3B82F6",
+        SecondaryColor = dto.secondaryColor,
         Language = dto.language ?? "fr",
         Currency = dto.currency ?? "EUR",
         Notes = System.Text.Json.JsonSerializer.Serialize(dto)
@@ -238,6 +239,7 @@ namespace ms.webapp.api.acya.api.Controllers
         logoUrl = tenant.LogoUrl,
         faviconUrl = tenant.FaviconUrl,
         primaryColor = tenant.PrimaryColor,
+        secondaryColor = tenant.SecondaryColor,
         language = tenant.Language,
         currency = tenant.Currency,
         status = tenant.Status
@@ -272,6 +274,7 @@ namespace ms.webapp.api.acya.api.Controllers
           registry.LogoUrl = dto.logoUrl;
           registry.FaviconUrl = dto.faviconUrl;
           registry.PrimaryColor = dto.primaryColor;
+          registry.SecondaryColor = dto.secondaryColor;
           registry.CustomDomain = dto.customDomain;
           registry.Language = dto.language;
           registry.Currency = dto.currency;

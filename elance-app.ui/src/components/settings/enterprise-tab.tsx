@@ -34,6 +34,7 @@ const enterpriseSchema = z.object({
   logoUrl: z.string().optional().nullable(),
   faviconUrl: z.string().optional().nullable(),
   primaryColor: z.string().optional().nullable(),
+  secondaryColor: z.string().optional().nullable(),
   customDomain: z.string().optional().nullable(),
   language: z.string().optional().nullable(),
 });
@@ -72,6 +73,7 @@ export function EnterpriseTab() {
       logoUrl: '',
       faviconUrl: '',
       primaryColor: '',
+      secondaryColor: '',
       customDomain: '',
       language: '',
     },
@@ -97,6 +99,7 @@ export function EnterpriseTab() {
         logoUrl: enterprise.logoUrl || '',
         faviconUrl: enterprise.faviconUrl || '',
         primaryColor: enterprise.primaryColor || '',
+        secondaryColor: enterprise.secondaryColor || '',
         customDomain: enterprise.customDomain || '',
         language: enterprise.language || '',
       });
@@ -358,6 +361,22 @@ export function EnterpriseTab() {
                       type="text"
                       {...register('primaryColor')} 
                       placeholder="#3B82F6"
+                      className="h-12 flex-1 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2.5">
+                  <Label className="text-sm font-bold text-corp-blue-900">Couleur Secondaire (Hex)</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      type="color"
+                      {...register('secondaryColor')} 
+                      className="h-12 w-16 p-1 rounded-xl bg-sand-50 border-corp-blue-100 cursor-pointer" 
+                    />
+                    <Input 
+                      type="text"
+                      {...register('secondaryColor')} 
+                      placeholder="#EBF1FA"
                       className="h-12 flex-1 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
                     />
                   </div>

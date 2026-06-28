@@ -29,6 +29,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? logoUrl { get; set; }
     public string? faviconUrl { get; set; }
     public string? primaryColor { get; set; }
+    public string? secondaryColor { get; set; }
     public string? customDomain { get; set; }
     public string? language { get; set; }
     public string? currency { get; set; }
@@ -70,6 +71,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       logoUrl = entity.LogoUrl;
       faviconUrl = entity.FaviconUrl;
       primaryColor = entity.PrimaryColor;
+      secondaryColor = entity.SecondaryColor;
       customDomain = entity.CustomDomain;
       language = entity.Language;
       currency = entity.Currency;

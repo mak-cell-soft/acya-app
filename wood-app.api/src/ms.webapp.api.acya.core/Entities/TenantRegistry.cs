@@ -41,6 +41,7 @@ namespace ms.webapp.api.acya.core.Entities
     public string? LogoUrl { get; set; }
     public string? FaviconUrl { get; set; }
     public string? PrimaryColor { get; set; }
+    public string? SecondaryColor { get; set; }
     public string? CustomDomain { get; set; }
     public string? Language { get; set; }
     public string? Currency { get; set; }
