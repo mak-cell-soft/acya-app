@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, Key, ToggleLeft, Trash2, CheckCircle2, Loader2, ExternalLink } from "lucide-react";
+import { Shield, Key, ToggleLeft, Trash2, CheckCircle2, Loader2, ExternalLink, Edit } from "lucide-react";
 
 interface Enterprise {
   id: number;
@@ -39,6 +39,7 @@ export default function EnterprisesPage() {
   const [provisioningLoading, setProvisioningLoading] = useState(false);
   const [creationSuccessData, setCreationSuccessData] = useState<any | null>(null);
   const [existingId, setExistingId] = useState<number | null>(null);
+  const [isEditingActive, setIsEditingActive] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Pending' | 'Deactivated'>('All');
 
   // Form states - Create & Provision Unified
@@ -112,7 +113,6 @@ export default function EnterprisesPage() {
     setProvisioningLoading(true);
 
     const payload = {
-      existingId,
       name,
       slug: slug.toLowerCase().trim() || null,
       email: email || null,
@@ -134,55 +134,92 @@ export default function EnterprisesPage() {
 
     try {
       const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api/";
-      const res = await fetch(`${apiBase}admin/enterprise`, {
-        method: "POST",
-        headers: getHeaders(),
-        body: JSON.stringify(payload),
-      });
+      let res;
+      if (isEditingActive && existingId) {
+        res = await fetch(`${apiBase}admin/enterprise/${existingId}`, {
+          method: "PUT",
+          headers: getHeaders(),
+          body: JSON.stringify(payload),
+        });
+      } else {
+        res = await fetch(`${apiBase}admin/enterprise`, {
+          method: "POST",
+          headers: getHeaders(),
+          body: JSON.stringify({ ...payload, existingId }),
+        });
+      }
 
       if (!res.ok) {
         const txt = await res.text();
-        throw new Error(txt || "Failed to create & provision tenant.");
+        throw new Error(txt || "Failed to save enterprise settings.");
       }
 
-      const createdResponse = await res.json();
-      
-      // Store credentials generated to display in a success state
-      setCreationSuccessData({
-        name: payload.name,
-        slug: createdResponse.slug || payload.slug,
-        adminUsername,
-        adminEmail: payload.adminEmail,
-        adminPassword: payload.adminPassword,
-        url: `https://${createdResponse.slug || payload.slug}.acya.site`
-      });
+      if (isEditingActive) {
+        setShowCreateModal(false);
+        setExistingId(null);
+        setIsEditingActive(false);
+        fetchEnterprises();
+      } else {
+        const createdResponse = await res.json();
+        
+        // Store credentials generated to display in a success state
+        setCreationSuccessData({
+          name: payload.name,
+          slug: createdResponse.slug || payload.slug,
+          adminUsername,
+          adminEmail: payload.adminEmail,
+          adminPassword: payload.adminPassword,
+          url: `https://${createdResponse.slug || payload.slug}.acya.site`
+        });
 
-      // Clear forms
-      setExistingId(null);
-      setName("");
-      setSlug("");
-      setEmail("");
-      setPhone("");
-      setPlan("Trial");
-      setNotes("");
-      setIsSalingWood(false);
-      setIsManagingConstructions(false);
-      setLogoUrl("");
-      setFaviconUrl("");
-      setPrimaryColor("#3B82F6");
-      setCustomDomain("");
-      setLanguage("fr");
-      setCurrency("EUR");
-      setAdminUsername("admin");
-      setAdminEmail("");
-      setAdminPassword("");
+        // Clear forms
+        setExistingId(null);
+        setName("");
+        setSlug("");
+        setEmail("");
+        setPhone("");
+        setPlan("Trial");
+        setNotes("");
+        setIsSalingWood(false);
+        setIsManagingConstructions(false);
+        setLogoUrl("");
+        setFaviconUrl("");
+        setPrimaryColor("#3B82F6");
+        setCustomDomain("");
+        setLanguage("fr");
+        setCurrency("EUR");
+        setAdminUsername("admin");
+        setAdminEmail("");
+        setAdminPassword("");
 
-      fetchEnterprises();
+        fetchEnterprises();
+      }
     } catch (err: any) {
-      setError(err.message || "Failed to create & provision tenant.");
+      setError(err.message || "Operation failed.");
     } finally {
       setProvisioningLoading(false);
     }
+  };
+
+  const handleOpenEditActive = (ent: Enterprise) => {
+    setCreationSuccessData(null);
+    setExistingId(ent.id);
+    setIsEditingActive(true);
+    setName(ent.name);
+    setSlug(ent.slug);
+    setEmail(ent.email || "");
+    setPhone(ent.phone || "");
+    setPlan(ent.plan || "Trial");
+    setNotes(ent.notes || "");
+    setLogoUrl(ent.logoUrl || "");
+    setFaviconUrl(ent.faviconUrl || "");
+    setPrimaryColor(ent.primaryColor || "#3B82F6");
+    setCustomDomain(ent.customDomain || "");
+    setLanguage(ent.language || "fr");
+    setCurrency(ent.currency || "EUR");
+    setIsSalingWood(ent.isSalingWood || false);
+    setIsManagingConstructions(ent.isManagingConstructions || false);
+    setShowCreateModal(true);
   };
 
   const handleDeleteTenant = async (id: number, name: string) => {
@@ -256,6 +293,7 @@ export default function EnterprisesPage() {
   const handleOpenProvisionPending = (ent: Enterprise) => {
     setCreationSuccessData(null);
     setExistingId(ent.id);
+    setIsEditingActive(false);
     setName(ent.name);
     setSlug(ent.slug);
     setEmail(ent.email || "");
@@ -324,6 +362,25 @@ export default function EnterprisesPage() {
         <button 
           onClick={() => {
             setCreationSuccessData(null);
+            setExistingId(null);
+            setIsEditingActive(false);
+            setName("");
+            setSlug("");
+            setEmail("");
+            setPhone("");
+            setPlan("Trial");
+            setNotes("");
+            setIsSalingWood(false);
+            setIsManagingConstructions(false);
+            setLogoUrl("");
+            setFaviconUrl("");
+            setPrimaryColor("#3B82F6");
+            setCustomDomain("");
+            setLanguage("fr");
+            setCurrency("EUR");
+            setAdminUsername("admin");
+            setAdminEmail("");
+            setAdminPassword("");
             setShowCreateModal(true);
           }}
           className="px-4 py-2.5 bg-primary text-primary-foreground font-medium rounded-md hover:bg-primary/90 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-[1.02] cursor-pointer"
@@ -455,15 +512,24 @@ export default function EnterprisesPage() {
                             Confirm & Provision
                           </button>
                         ) : (
-                          ent.isActive && (
+                          <>
+                            {ent.isActive && (
+                              <button 
+                                onClick={() => handleImpersonate(ent)}
+                                className="text-xs font-semibold text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
+                              >
+                                <Key className="w-3 h-3" />
+                                Impersonate
+                              </button>
+                            )}
                             <button 
-                              onClick={() => handleImpersonate(ent)}
-                              className="text-xs font-semibold text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
+                              onClick={() => handleOpenEditActive(ent)}
+                              className="text-xs font-semibold text-cyan-400 hover:underline cursor-pointer inline-flex items-center gap-1"
                             >
-                              <Key className="w-3 h-3" />
-                              Impersonate
+                              <Edit className="w-3 h-3" />
+                              Edit settings
                             </button>
-                          )
+                          </>
                         )}
                         <button 
                           onClick={() => handleDeleteTenant(ent.id, ent.name)}
@@ -489,7 +555,11 @@ export default function EnterprisesPage() {
             <div className="flex justify-between items-center border-b border-slate-800 pb-4">
               <h2 className="text-xl font-bold font-mono text-slate-100 flex items-center gap-2">
                 <Shield className="text-primary w-6 h-6" />
-                {existingId ? "CONFIRM & PROVISION PENDING REGISTRATION" : "REGISTER & AUTOMATICALLY PROVISION TENANT"}
+                {isEditingActive 
+                  ? "EDIT ENTERPRISE CONFIGURATION" 
+                  : existingId 
+                    ? "CONFIRM & PROVISION PENDING REGISTRATION" 
+                    : "REGISTER & AUTOMATICALLY PROVISION TENANT"}
               </h2>
               <button 
                 onClick={() => {
@@ -605,45 +675,47 @@ export default function EnterprisesPage() {
                 </div>
 
                 {/* Section 2: Admin Credentials */}
-                <div className="space-y-4">
-                  <h3 className="text-xs uppercase font-mono tracking-wider text-primary border-b border-slate-800/60 pb-1.5">2. Identifiants Administrateur du Tenant</h3>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono uppercase text-muted-foreground">Admin Username</label>
-                      <input
-                        type="text"
-                        required
-                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100 font-mono"
-                        value={adminUsername}
-                        onChange={(e) => setAdminUsername(e.target.value)}
-                        disabled={provisioningLoading}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono uppercase text-muted-foreground">Admin Email</label>
-                      <input
-                        type="email"
-                        required
-                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
-                        value={adminEmail}
-                        onChange={(e) => setAdminEmail(e.target.value)}
-                        placeholder="admin@wellness.com"
-                        disabled={provisioningLoading}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono uppercase text-muted-foreground">Admin Password (Opt)</label>
-                      <input
-                        type="text"
-                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100 font-mono"
-                        value={adminPassword}
-                        onChange={(e) => setAdminPassword(e.target.value)}
-                        placeholder="Auto-generated if empty"
-                        disabled={provisioningLoading}
-                      />
+                {!isEditingActive && (
+                  <div className="space-y-4">
+                    <h3 className="text-xs uppercase font-mono tracking-wider text-primary border-b border-slate-800/60 pb-1.5">2. Identifiants Administrateur du Tenant</h3>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-xs font-mono uppercase text-muted-foreground">Admin Username</label>
+                        <input
+                          type="text"
+                          required
+                          className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100 font-mono"
+                          value={adminUsername}
+                          onChange={(e) => setAdminUsername(e.target.value)}
+                          disabled={provisioningLoading}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-mono uppercase text-muted-foreground">Admin Email</label>
+                        <input
+                          type="email"
+                          required
+                          className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
+                          value={adminEmail}
+                          onChange={(e) => setAdminEmail(e.target.value)}
+                          placeholder="admin@wellness.com"
+                          disabled={provisioningLoading}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-mono uppercase text-muted-foreground">Admin Password (Opt)</label>
+                        <input
+                          type="text"
+                          className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100 font-mono"
+                          value={adminPassword}
+                          onChange={(e) => setAdminPassword(e.target.value)}
+                          placeholder="Auto-generated if empty"
+                          disabled={provisioningLoading}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Section 3: Branding & Options (Optional) */}
                 <div className="space-y-4">
@@ -777,10 +849,10 @@ export default function EnterprisesPage() {
                   {provisioningLoading ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      NON-INTERACTIVE PROVISIONING IN PROGRESS (3-10 SECONDS)...
+                      {isEditingActive ? "SAVING CHANGES..." : "NON-INTERACTIVE PROVISIONING IN PROGRESS (3-10 SECONDS)..."}
                     </>
                   ) : (
-                    "PROVISION REGISTRY ENTRY & SCHEMAS"
+                    isEditingActive ? "SAVE SETTINGS" : "PROVISION REGISTRY ENTRY & SCHEMAS"
                   )}
                 </button>
               </form>

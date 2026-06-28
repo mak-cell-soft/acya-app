@@ -108,6 +108,15 @@ export function ArticleFormDialog({
   const selectedPriceTTC = form.watch("sellprice_ttc");
   const selectedTvaId = form.watch("tvaid");
 
+  // Derive whether the selected category is a wood category by checking its description,
+  // NOT by hardcoded ID. This prevents false-positives on new tenants whose non-wood
+  // categories happen to get ID=1 in a freshly-created table.
+  const isWoodCategory = !!(
+    selectedCategoryId &&
+    categories?.find(c => c.id.toString() === selectedCategoryId)
+              ?.description?.toLowerCase().includes('bois')
+  );
+
   // Reset form when opening or changing editArticle
   useEffect(() => {
     if (isOpen) {
@@ -165,11 +174,12 @@ export function ArticleFormDialog({
   }, [selectedCategoryId, categories]);
 
   // Handle Category logic (Wood vs others)
+  // Uses isWoodCategory (description-based) instead of hardcoded ID=1
   useEffect(() => {
-    if (selectedCategoryId === "1") { // Category ID 1 is Wood in Angular code
+    if (isWoodCategory) {
       form.setValue("unit", "M3");
     }
-  }, [selectedCategoryId, form]);
+  }, [isWoodCategory, selectedCategoryId, form]);
 
   // Price Calculation
   const calculatedHT = useMemo(() => {
@@ -217,8 +227,8 @@ export function ArticleFormDialog({
       thicknessid: values.thicknessid ? parseInt(values.thicknessid) : null,
       widthid: values.widthid ? parseInt(values.widthid) : null,
       sellprice_ht: calculatedHT,
-      iswood: values.categoryid === "1",
-      lengths: values.categoryid === "1" ? `[${selectedLengths.join(', ')}]` : null,
+      iswood: isWoodCategory,
+      lengths: isWoodCategory ? `[${selectedLengths.join(', ')}]` : null,
       updatedby: 1, // Mock user ID
     };
     onSave(model);
@@ -384,7 +394,7 @@ export function ArticleFormDialog({
             </div>
 
             {/* Wood Properties Section (Conditional) */}
-            {selectedCategoryId === "1" && (
+            {isWoodCategory && (
               <div className="space-y-6 animate-in slide-in-from-top duration-500">
                 <div className="flex items-center gap-2 pb-2 border-b border-corp-blue-50">
                   <TreeDeciduous className="w-4 h-4 text-corp-blue-600" />

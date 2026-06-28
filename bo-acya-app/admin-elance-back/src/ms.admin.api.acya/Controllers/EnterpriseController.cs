@@ -34,6 +34,24 @@ namespace ms.admin.api.acya.Controllers
         public string AdminPassword { get; set; } = string.Empty;
     }
 
+    public class UpdateEnterpriseRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public string? Slug { get; set; }
+        public string? Email { get; set; }
+        public string? Phone { get; set; }
+        public TenantPlan Plan { get; set; } = TenantPlan.Trial;
+        public string? Notes { get; set; }
+        public string? LogoUrl { get; set; }
+        public string? FaviconUrl { get; set; }
+        public string? PrimaryColor { get; set; }
+        public string? CustomDomain { get; set; }
+        public string? Language { get; set; }
+        public string? Currency { get; set; }
+        public bool IsSalingWood { get; set; }
+        public bool IsManagingConstructions { get; set; }
+    }
+
     [ApiController]
     [Route("api/admin/[controller]")]
     [Authorize(Roles = "SUPER_ADMIN")]
@@ -257,6 +275,63 @@ namespace ms.admin.api.acya.Controllers
             await WriteWelcomeEmailAsync(created, adminUsername, adminEmail, adminPassword);
 
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(long id, [FromBody] UpdateEnterpriseRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Name))
+            {
+                return BadRequest("Enterprise Name is required.");
+            }
+
+            var enterprise = await _enterpriseRepository.GetByIdAsync(id);
+            if (enterprise == null) return NotFound();
+
+            if (!string.IsNullOrWhiteSpace(request.Slug))
+            {
+                string newSlug = Slugify(request.Slug);
+                var reservedSlugs = new[] { "admin", "api", "www", "preprod", "mail", "app", "dev", "staging" };
+                if (reservedSlugs.Contains(newSlug))
+                {
+                    return BadRequest("The requested slug is reserved.");
+                }
+
+                if (await _context.Enterprises.AnyAsync(e => e.Slug == newSlug && e.Id != id))
+                {
+                    return BadRequest($"The subdomain slug '{request.Slug}' is already taken.");
+                }
+                enterprise.Slug = newSlug;
+            }
+
+            enterprise.Name = request.Name;
+            enterprise.Email = request.Email;
+            enterprise.Phone = request.Phone;
+            enterprise.Plan = request.Plan;
+            enterprise.Notes = request.Notes;
+            enterprise.LogoUrl = request.LogoUrl;
+            enterprise.FaviconUrl = request.FaviconUrl;
+            enterprise.PrimaryColor = request.PrimaryColor;
+            enterprise.CustomDomain = request.CustomDomain;
+            enterprise.Language = request.Language ?? "fr";
+            enterprise.Currency = request.Currency ?? "TND";
+            enterprise.IsSalingWood = request.IsSalingWood;
+            enterprise.IsManagingConstructions = request.IsManagingConstructions;
+
+            await _enterpriseRepository.UpdateAsync(enterprise);
+
+            var auditLog = new MasterAuditLog
+            {
+                TenantId = enterprise.Id,
+                Action = "Tenant Settings Updated",
+                Details = $"Tenant '{enterprise.Name}' settings updated by Super Admin.",
+                PerformedBy = "Super Admin",
+                Timestamp = DateTime.UtcNow
+            };
+            await _context.MasterAuditLogs.AddAsync(auditLog);
+            await _context.SaveChangesAsync();
+
+            return Ok(enterprise);
         }
 
         [HttpPut("{id}/activate")]

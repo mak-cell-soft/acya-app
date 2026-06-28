@@ -72,7 +72,7 @@ const saleNavGroups: NavGroup[] = [
   {
     title: 'Gestion Bois',
     items: [
-      { name: 'Articles & M³', href: '/articles', icon: Package, module: 'articles' },
+      { name: 'Articles', href: '/articles', icon: Package, module: 'articles' },
       { name: 'Ventes', href: '/sales', icon: ShoppingBag, module: 'sales' },
       { name: 'Achats', href: '/purchases', icon: ShoppingCart, module: 'purchases' },
       { name: 'Stock & Dépôts', href: '/stock', icon: Warehouse, module: 'stock' },

@@ -1,316 +1,402 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Check, Sparkles, TrendingUp, Layers, ShieldCheck, Play, ArrowRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import {
+  ArrowRight, CheckCircle2, TrendingUp, Package, ShoppingCart,
+  Users, BarChart3, Truck, FileText, Zap, Shield, Globe, ChevronLeft, ChevronRight
+} from 'lucide-react';
 
-export function HeroSection() {
-  const [activeTab, setActiveTab] = useState<'interactive' | 'mockup'>('interactive');
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1,
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { type: 'spring' as const, stiffness: 100, damping: 15 }
-    }
-  };
-
-  const floatAnimation = {
-    animate: {
-      y: [0, -10, 0],
-      transition: {
-        duration: 5,
-        ease: 'easeInOut' as const,
-        repeat: Infinity
-      }
-    }
-  };
-
-  const floatAnimationDelayed = {
-    animate: {
-      y: [0, -12, 0],
-      transition: {
-        duration: 6,
-        ease: 'easeInOut' as const,
-        repeat: Infinity,
-        delay: 1
-      }
-    }
-  };
-
-  const orbitAnimation = {
-    animate: {
-      rotate: 360,
-      transition: {
-        duration: 25,
-        ease: 'linear' as const,
-        repeat: Infinity
-      }
-    }
-  };
-
+// ─── Animated bar chart ───────────────────────────────────────────────────────
+function BarChart({ data, color }: { data: number[]; color: string }) {
   return (
-    <section className="relative min-h-[95vh] flex items-center overflow-hidden bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 pt-32 pb-20">
-      {/* Premium Multi-layered Glow Mesh */}
-      <div className="absolute top-[-10%] right-[-5%] w-[45vw] h-[45vw] rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.08)_0%,transparent_65%)] pointer-events-none blur-[60px]" />
-      <div className="absolute bottom-[-15%] left-[-5%] w-[45vw] h-[45vw] rounded-full bg-[radial-gradient(circle,rgba(6,182,212,0.06)_0%,transparent_65%)] pointer-events-none blur-[60px]" />
-
-      {/* Decorative Interactive Grid in background */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-35 pointer-events-none" />
-
-      <div className="max-w-[1250px] mx-auto px-6 md:px-10 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center w-full relative z-10">
-
-        {/* Left Side: Advanced Copywriting & Conversion Triggers */}
+    <div className="flex items-end gap-0.5 h-14">
+      {data.map((h, i) => (
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="lg:col-span-6 space-y-8 text-center lg:text-left"
-        >
-
-
-          {/* Majestic Heading with Dual-Tone Gradients */}
-          <motion.h1 variants={itemVariants} className="text-[2.6rem] sm:text-[3.2rem] md:text-[3.8rem] lg:text-[4rem] leading-[1.1] text-slate-900 font-extrabold tracking-tight">
-            Propulsez la gestion de votre négoce et <span className="bg-gradient-to-r from-corp-blue-600 via-corp-blue-700 to-corp-cyan bg-clip-text text-transparent">vos chantiers</span>
-          </motion.h1>
-
-          <motion.p variants={itemVariants} className="text-[1.05rem] md:text-[1.12rem] leading-relaxed text-slate-600 max-w-[560px] mx-auto lg:mx-0 font-medium">
-            Élancé automatise vos flux de matières (M³), achats, ventes, facturation BTP et flotte logistique au sein du premier ERP conçu par ACYA Consulting.
-          </motion.p>
-
-          {/* Trust Value Propositions Grid */}
-          <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-[500px] mx-auto lg:mx-0 pt-2 text-left">
-            {[
-              { icon: <TrendingUp size={18} className="text-corp-blue-600" />, text: "ROI Chantiers accru de 28%" },
-              { icon: <Layers size={18} className="text-corp-cyan" />, text: "Métrique M³ automatisée" },
-              { icon: <ShieldCheck size={18} className="text-emerald-500" />, text: "Conforme BTP & Factur-X" },
-              { icon: <Sparkles size={18} className="text-amber-500" />, text: "Zéro double-saisie garantie" }
-            ].map((prop, idx) => (
-              <div key={idx} className="flex items-center gap-2.5 bg-white border border-slate-100 rounded-xl p-3 shadow-[0_4px_20px_rgba(0,0,0,0.015)] transition-all hover:border-corp-blue-100 hover:shadow-md hover:scale-[1.02]">
-                <div className="p-1.5 rounded-lg bg-slate-50">
-                  {prop.icon}
-                </div>
-                <span className="text-xs sm:text-sm font-bold text-slate-800">{prop.text}</span>
-              </div>
-            ))}
-          </motion.div>
-
-          {/* Action CTAs with Interactive Anchors */}
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 pt-4 justify-center lg:justify-start">
-            <Button asChild className="h-14 px-8 bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white font-bold text-[1rem] transition-all duration-300 shadow-lg shadow-corp-blue-900/15 hover:scale-[1.03] active:scale-[0.97] group">
-              <Link href="/enterprise-registration" className="flex items-center gap-2">
-                Essai Gratuit 14 Jours
-                <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-14 px-8 border-slate-200 bg-white text-slate-700 hover:border-corp-blue-600 hover:text-corp-blue-600 text-[1rem] font-bold transition-all duration-300 shadow-sm hover:scale-[1.02] active:scale-[0.98] group">
-              <Link href="#modules" className="flex items-center gap-2">
-                <Play size={16} className="fill-current text-slate-400 group-hover:text-corp-blue-600" />
-                Voir la Démo Vidéo
-              </Link>
-            </Button>
-          </motion.div>
-        </motion.div>
-
-        {/* Right Side: Spectacular Interactive SaaS Dashboard Mockup */}
-        <div className="lg:col-span-6 flex flex-col items-center w-full relative">
-
-          {/* Animated decorative ring behind dashboard */}
-          <motion.div
-            variants={orbitAnimation}
-            animate="animate"
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] border border-dashed border-corp-blue-200/40 rounded-full pointer-events-none hidden md:block"
-          />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-gradient-to-tr from-corp-blue-500/5 to-corp-cyan/5 blur-3xl rounded-full pointer-events-none" />
-
-          {/* Main Elevated Glassmorphic Dashboard Window */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 40 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3, type: 'spring', stiffness: 70 }}
-            className="w-full bg-white rounded-3xl border border-slate-200/80 shadow-[0_30px_100px_-20px_rgba(3,10,28,0.1)] overflow-hidden relative z-10"
-          >
-            {/* Window header representing high-fidelity software */}
-            <div className="bg-slate-50/80 border-b border-slate-200/80 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-2 self-start sm:self-auto">
-                <span className="w-3.5 h-3.5 rounded-full bg-rose-400" />
-                <span className="w-3.5 h-3.5 rounded-full bg-amber-400" />
-                <span className="w-3.5 h-3.5 rounded-full bg-emerald-400" />
-              </div>
-
-              {/* Premium Tab Switcher */}
-              <div className="bg-slate-100/90 p-1 rounded-xl flex items-center gap-1 border border-slate-200/60 shadow-inner">
-                <button
-                  onClick={() => setActiveTab('interactive')}
-                  className={cn(
-                    "px-3 py-1 rounded-lg text-[0.72rem] font-bold transition-all duration-300 cursor-pointer",
-                    activeTab === 'interactive'
-                      ? "bg-white text-corp-blue-600 shadow-sm"
-                      : "text-slate-500 hover:text-slate-800"
-                  )}
-                >
-                  Planification
-                </button>
-                <button
-                  onClick={() => setActiveTab('mockup')}
-                  className={cn(
-                    "px-3 py-1 rounded-lg text-[0.72rem] font-bold transition-all duration-300 cursor-pointer",
-                    activeTab === 'mockup'
-                      ? "bg-white text-corp-blue-600 shadow-sm"
-                      : "text-slate-500 hover:text-slate-800"
-                  )}
-                >
-                  Vue Globale
-                </button>
-              </div>
-
-              <div className="bg-white border border-slate-200/80 rounded-lg px-4.5 py-1 text-[0.72rem] text-slate-500 font-bold tracking-wide w-40 text-center shadow-inner flex items-center justify-center gap-1.5 self-end sm:self-auto">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                app.elance.acya.fr
-              </div>
-            </div>
-
-            {/* Dynamic Tab Body */}
-            <AnimatePresence mode="wait">
-              {activeTab === 'interactive' ? (
-                <motion.div
-                  key="interactive-tab"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                  className="p-6 md:p-8 space-y-6"
-                >
-                  {/* Top stats block */}
-                  <div className="grid grid-cols-3 gap-4">
-                    {[
-                      { label: "M³ Stockés", val: "1,840 m³", pct: "+12.4%", color: "text-corp-blue-600" },
-                      { label: "Ventes Bois", val: "94,200 €", pct: "+8.2%", color: "text-emerald-500" },
-                      { label: "Urgences BTP", val: "2 alertes", pct: "Stable", color: "text-rose-500" }
-                    ].map((st, i) => (
-                      <div key={i} className="bg-slate-50 border border-slate-100 rounded-xl p-3.5 text-left">
-                        <span className="text-[0.68rem] font-bold text-slate-400 uppercase tracking-wider block">{st.label}</span>
-                        <span className="text-sm sm:text-[1.15rem] font-extrabold text-slate-800 block mt-1 leading-none">{st.val}</span>
-                        <span className={cn("text-[0.65rem] font-extrabold block mt-1.5", st.color)}>{st.pct}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Chart Mock Row */}
-                  <div className="border border-slate-100 bg-slate-50/50 rounded-2xl p-5 text-left space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-800">Planification des Livraisons Chantiers</span>
-                      <span className="text-[0.7rem] font-extrabold text-corp-blue-600 bg-corp-blue-50 px-2.5 py-1 rounded-md">Temps Réel</span>
-                    </div>
-                    {/* Visual SVG Chart Bar lines */}
-                    <div className="h-28 flex items-end justify-between gap-3 pt-4">
-                      {[45, 65, 80, 55, 95, 70, 85, 110, 90, 105].map((val, i) => (
-                        <div key={i} className="flex-1 flex flex-col items-center group cursor-pointer">
-                          <motion.div
-                            initial={{ height: 0 }}
-                            animate={{ height: `${val}%` }}
-                            transition={{ delay: 0.1 + i * 0.04, duration: 0.8, ease: 'easeOut' }}
-                            className={cn(
-                              "w-full rounded-t-md transition-all duration-300 relative group-hover:brightness-105 shadow-sm",
-                              i === 7 ? "bg-corp-cyan" : "bg-corp-blue-600"
-                            )}
-                          >
-                            <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[0.62rem] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none leading-none">
-                              {val * 12}m³
-                            </div>
-                          </motion.div>
-                          <span className="text-[0.6rem] font-bold text-slate-400 mt-2 block">J-{10 - i}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Connected Active Trucks List */}
-                  <div className="bg-white border border-slate-150 rounded-2xl p-4 text-left space-y-3.5 shadow-sm">
-                    <span className="text-xs font-extrabold text-slate-800 block">Flotte de Livraison active (ACYA-Log)</span>
-                    <div className="flex items-center justify-between text-xs bg-slate-50 border border-slate-100 rounded-xl p-3">
-                      <div className="flex items-center gap-3">
-                        <span className="relative flex h-2.5 w-2.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                        </span>
-                        <span className="font-bold text-slate-800">Camion #04 (Pin & Sapin)</span>
-                      </div>
-                      <span className="font-bold text-slate-500">En transit (14.2 M³)</span>
-                      <span className="font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">98% Livré</span>
-                    </div>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="mockup-tab"
-                  initial={{ opacity: 0, scale: 0.97 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.97 }}
-                  transition={{ duration: 0.3 }}
-                  className="p-4 bg-slate-50/50 relative overflow-hidden group/img aspect-[4/3] flex items-center justify-center"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-tr from-corp-blue-500/5 to-transparent pointer-events-none z-10" />
-                  <img
-                    src="/elance_saas_metrics.png"
-                    alt="Élancé ERP Tableau de Bord"
-                    className="w-full h-full object-cover rounded-2xl border border-slate-200/60 shadow-md group-hover/img:scale-[1.015] transition-transform duration-700 ease-out"
-                  />
-
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-
-          {/* Floating Metric Badge 1: ROI */}
-          <motion.div
-            variants={floatAnimation}
-            animate="animate"
-            className="absolute top-[18%] left-[-8%] hidden md:flex items-center gap-3 bg-white border border-slate-150 rounded-2xl p-4.5 shadow-[0_15px_30px_-5px_rgba(0,0,0,0.06)] z-20 hover:scale-105 transition-transform cursor-default"
-          >
-            <div className="w-10 h-10 rounded-xl bg-corp-blue-50 flex items-center justify-center text-corp-blue-600">
-              <TrendingUp size={22} />
-            </div>
-            <div className="text-left leading-none">
-              <span className="text-[0.68rem] font-bold text-slate-400 uppercase tracking-wider block">ROI Client</span>
-              <span className="text-[1.2rem] font-black text-slate-900 mt-1 block">+28%</span>
-            </div>
-          </motion.div>
-
-          {/* Floating Metric Badge 2: Multi-Sector */}
-          <motion.div
-            variants={floatAnimationDelayed}
-            animate="animate"
-            className="absolute bottom-[12%] right-[-8%] hidden md:flex items-center gap-3 bg-white border border-slate-150 rounded-2xl p-4.5 shadow-[0_15px_30px_-5px_rgba(0,0,0,0.06)] z-20 hover:scale-105 transition-transform cursor-default"
-          >
-            <div className="w-10 h-10 rounded-xl bg-cyan-50 flex items-center justify-center text-corp-cyan">
-              <Layers size={22} />
-            </div>
-            <div className="text-left leading-none">
-              <span className="text-[0.68rem] font-bold text-slate-400 uppercase tracking-wider block">Volume Scié</span>
-              <span className="text-[1.12rem] font-black text-slate-900 mt-1 block">4,812 M³ / mois</span>
-            </div>
-          </motion.div>
-
-        </div>
-
-      </div>
-    </section>
+          key={i}
+          className={`flex-1 rounded-sm ${color} opacity-80`}
+          initial={{ height: 0 }}
+          animate={{ height: `${h}%` }}
+          transition={{ delay: 0.3 + i * 0.05, duration: 0.5, ease: 'easeOut' }}
+        />
+      ))}
+    </div>
   );
 }
 
+// ─── KPI stat card ────────────────────────────────────────────────────────────
+function StatCard({ label, value, change, color, delay }: {
+  label: string; value: string; change: string; color: string; delay: number
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.45 }}
+      className="bg-white/5 border border-white/10 rounded-xl p-3.5 text-left"
+    >
+      <div className="text-[9px] font-bold text-white/40 uppercase tracking-widest mb-1">{label}</div>
+      <div className="text-white font-bold text-[1.1rem] leading-none">{value}</div>
+      <div className={`text-[10px] font-bold mt-1.5 ${color}`}>{change}</div>
+    </motion.div>
+  );
+}
+
+// ─── Activity row ─────────────────────────────────────────────────────────────
+function ActivityItem({ icon: Icon, text, badge, badgeColor, delay }: {
+  icon: any; text: string; badge: string; badgeColor: string; delay: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -6 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay, duration: 0.35 }}
+      className="flex items-center gap-2.5 py-1.5 border-b border-white/5 last:border-0"
+    >
+      <div className="w-7 h-7 rounded-lg bg-white/8 flex items-center justify-center shrink-0">
+        <Icon className="w-3.5 h-3.5 text-white/50" />
+      </div>
+      <p className="text-[11px] text-white/60 flex-1 truncate">{text}</p>
+      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${badgeColor}`}>{badge}</span>
+    </motion.div>
+  );
+}
+
+// ─── Background slide configs ─────────────────────────────────────────────────
+const SLIDES = [
+  { bg: '#0D1F3C', accent: '#1E3A6E' },
+  { bg: '#0F2027', accent: '#203A43' },
+  { bg: '#1a1035', accent: '#2d1b69' },
+];
+
+// ─── Main Hero ────────────────────────────────────────────────────────────────
+export function HeroSection() {
+  const [slide, setSlide] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const t = setInterval(() => setSlide(s => (s + 1) % SLIDES.length), 6000);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <section
+      className="relative min-h-screen w-full overflow-hidden text-white transition-colors duration-1000"
+      style={{ backgroundColor: SLIDES[slide].bg }}
+    >
+      {/* ── Background mesh + glow ── */}
+      <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '26px 26px' }} />
+      <AnimatePresence>
+        <motion.div
+          key={slide}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.3 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.2 }}
+          className="absolute inset-0 blur-[200px] rounded-full scale-150"
+          style={{ backgroundColor: SLIDES[slide].accent }}
+        />
+      </AnimatePresence>
+      <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none" style={{ background: 'rgba(59,130,246,0.10)' }} />
+      <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full blur-3xl pointer-events-none" style={{ background: 'rgba(99,102,241,0.08)' }} />
+      <div className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-10" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.2), transparent)' }} />
+
+      {/* ── Main grid ── */}
+      <div className="relative z-20 flex min-h-screen items-center px-6 lg:px-16 xl:px-20 pt-24 pb-28">
+        <div className="mx-auto w-full max-w-7xl grid lg:grid-cols-2 gap-14 xl:gap-20 items-center">
+
+          {/* LEFT: Copy */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: mounted ? 1 : 0, x: mounted ? 0 : -30 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="space-y-8 text-left"
+          >
+            {/* Badge */}
+            <div className="inline-flex items-center gap-3 rounded-full border px-5 py-2 text-sm font-semibold backdrop-blur-md" style={{ borderColor: 'rgba(59,130,246,0.30)', background: 'rgba(59,130,246,0.10)', color: '#60A5FA' }}>
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: '#3B82F6' }} />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full" style={{ background: '#3B82F6' }} />
+              </span>
+              🇹🇳 ERP SaaS · Conçu en Tunisie · Déployé partout
+            </div>
+
+            {/* H1 */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05] text-white">
+              Pilotez votre entreprise{' '}
+              <span style={{ color: '#60A5FA' }}>intelligemment</span>,{' '}
+              en temps réel.
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-base sm:text-lg leading-relaxed max-w-xl font-medium" style={{ color: 'rgba(255,255,255,0.70)' }}>
+              Élancé centralise vos ventes, achats, stock, comptabilité, équipe et flotte logistique dans un seul espace de travail — puissant, rapide et conforme.
+            </p>
+
+            {/* Trust checks */}
+            <div className="flex flex-wrap gap-x-6 gap-y-3">
+              {['Gestion M³ & Chantiers BTP', 'Facturation & Comptabilité', 'Stock multi-dépôts', 'Zéro double-saisie'].map(item => (
+                <div key={item} className="flex items-center gap-2 text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.70)' }}>
+                  <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: '#3B82F6' }} />
+                  {item}
+                </div>
+              ))}
+            </div>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-2">
+              <Link
+                href="/enterprise-registration"
+                className="group inline-flex h-14 items-center justify-center gap-2 rounded-full px-8 text-base font-bold text-white transition-all hover:scale-105"
+                style={{ background: '#3B82F6', boxShadow: '0 20px 40px -8px rgba(59,130,246,0.35)' }}
+              >
+                Essai Gratuit 14 Jours
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+              <Link
+                href="#modules"
+                className="inline-flex h-14 items-center justify-center gap-2 rounded-full border px-8 text-base font-bold text-white backdrop-blur-sm transition-all hover:bg-white/10"
+                style={{ borderColor: 'rgba(255,255,255,0.20)', background: 'rgba(255,255,255,0.05)' }}
+              >
+                Voir les modules
+              </Link>
+            </div>
+
+            {/* Stats */}
+            <div className="flex flex-wrap gap-8 pt-2 border-t" style={{ borderColor: 'rgba(255,255,255,0.10)' }}>
+              {[
+                { val: '500+', label: 'Entreprises actives' },
+                { val: '99.9%', label: 'Disponibilité SLA' },
+                { val: '< 2s', label: 'Temps de réponse' },
+              ].map(({ val, label }) => (
+                <div key={label}>
+                  <div className="text-2xl font-black text-white">{val}</div>
+                  <div className="text-xs font-semibold mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>{label}</div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* RIGHT: Product Showcase */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: mounted ? 1 : 0, y: mounted ? 0 : 30 }}
+            transition={{ duration: 0.9, delay: 0.2, ease: 'easeOut' }}
+            className="hidden lg:block relative group"
+          >
+            {/* Glow */}
+            <div className="absolute -inset-8 rounded-full opacity-60 group-hover:opacity-90 transition-opacity duration-1000 blur-[80px]" style={{ background: 'rgba(59,130,246,0.15)' }} />
+
+            {/* Browser card */}
+            <div className="relative rounded-[2rem] overflow-hidden backdrop-blur-md transition-all duration-700 group-hover:scale-[1.01]" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', boxShadow: '0 60px 120px -20px rgba(0,0,0,0.6)' }}>
+
+              {/* Browser top bar */}
+              <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full" style={{ background: 'rgba(248,113,113,0.6)' }} />
+                  <div className="w-3 h-3 rounded-full" style={{ background: 'rgba(251,191,36,0.6)' }} />
+                  <div className="w-3 h-3 rounded-full" style={{ background: 'rgba(52,211,153,0.6)' }} />
+                </div>
+                <div className="flex-1 mx-4 rounded-full px-4 py-1.5 flex items-center gap-2" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.10)' }}>
+                  <Shield className="w-3 h-3 shrink-0" style={{ color: '#34D399' }} />
+                  <span className="text-[10px] font-bold" style={{ color: 'rgba(255,255,255,0.40)' }}>app.elance.acya.site</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[9px] font-black rounded-full px-2.5 py-1 uppercase tracking-widest" style={{ color: '#34D399', background: 'rgba(52,211,153,0.10)', border: '1px solid rgba(52,211,153,0.20)' }}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Live
+                </div>
+              </div>
+
+              {/* App body */}
+              <div className="flex h-[460px]">
+
+                {/* Sidebar */}
+                <div className="w-[185px] p-4 flex flex-col gap-1 shrink-0" style={{ borderRight: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.20)' }}>
+                  <div className="flex items-center gap-2 mb-4 px-1">
+                    <svg className="w-6 h-6 shrink-0" viewBox="0 0 40 40" fill="none">
+                      <defs>
+                        <linearGradient id="hg1" x1="0" y1="0" x2="40" y2="40">
+                          <stop offset="0%" stopColor="#93C5FD"/>
+                          <stop offset="100%" stopColor="#3B82F6"/>
+                        </linearGradient>
+                        <linearGradient id="hg2" x1="0" y1="0" x2="40" y2="40">
+                          <stop offset="0%" stopColor="#3B82F6"/>
+                          <stop offset="100%" stopColor="#2563EB"/>
+                        </linearGradient>
+                        <linearGradient id="hg3" x1="0" y1="0" x2="40" y2="40">
+                          <stop offset="0%" stopColor="#2563EB"/>
+                          <stop offset="100%" stopColor="#1D4ED8"/>
+                        </linearGradient>
+                      </defs>
+                      <path d="M 20 3 L 27.79 7.5 L 27.79 16.5 L 20 21 L 12.21 16.5 L 12.21 7.5 Z" fill="url(#hg1)" />
+                      <path d="M 11.34 18 L 19.13 22.5 L 19.13 31.5 L 11.34 36 L 3.55 31.5 L 3.55 22.5 Z" fill="url(#hg2)" />
+                      <path d="M 28.66 18 L 36.45 22.5 L 36.45 31.5 L 28.66 36 L 20.87 31.5 L 20.87 22.5 Z" fill="url(#hg3)" />
+                    </svg>
+                    <span className="text-white text-sm font-bold tracking-tight">Élancé</span>
+                  </div>
+                  {[
+                    { icon: BarChart3, label: 'Tableau de bord', active: true },
+                    { icon: ShoppingCart, label: 'Ventes', active: false },
+                    { icon: Package, label: 'Achats', active: false },
+                    { icon: Truck, label: 'Livraisons', active: false },
+                    { icon: FileText, label: 'Facturation', active: false },
+                    { icon: Users, label: 'Équipe', active: false },
+                    { icon: TrendingUp, label: 'Analytics', active: false },
+                  ].map(({ icon: Icon, label, active }) => (
+                    <div
+                      key={label}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                      style={active
+                        ? { background: 'rgba(59,130,246,0.20)', color: '#60A5FA', border: '1px solid rgba(59,130,246,0.20)' }
+                        : { color: 'rgba(255,255,255,0.40)' }
+                      }
+                    >
+                      <Icon className="w-3.5 h-3.5 shrink-0" />
+                      {label}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Main content */}
+                <div className="flex-1 p-5 overflow-hidden flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-sm font-black text-white tracking-tight">Tableau de bord</h2>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="relative flex h-1.5 w-1.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        </span>
+                        <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.35)' }}>Données en temps réel</span>
+                      </div>
+                    </div>
+                    <div className="text-[9px] font-bold px-2.5 py-1 rounded-lg" style={{ color: 'rgba(255,255,255,0.30)', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>Juin 2026</div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2.5">
+                    <StatCard label="Chiffre d'affaires" value="284K TND" change="↑ +18%" color="text-emerald-400" delay={0.4} />
+                    <StatCard label="Commandes" value="1 247" change="34 en cours" color="text-blue-400" delay={0.5} />
+                    <StatCard label="Stock" value="98 m³" change="13 alertes" color="text-amber-400" delay={0.6} />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2.5 flex-1 min-h-0">
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.7 }}
+                      className="rounded-xl p-3 flex flex-col gap-2"
+                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.50)' }}>Ventes 12 mois</span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ color: '#34D399', background: 'rgba(52,211,153,0.10)' }}>↑18.4%</span>
+                      </div>
+                      <BarChart data={[38, 52, 44, 65, 58, 75, 62, 82, 70, 88, 74, 95]} color="bg-blue-500" />
+                      <div className="flex justify-between mt-1">
+                        {['Jan', 'Mar', 'Juin'].map(m => (
+                          <span key={m} className="text-[8px] font-bold" style={{ color: 'rgba(255,255,255,0.25)' }}>{m}</span>
+                        ))}
+                      </div>
+                    </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.75 }}
+                      className="rounded-xl p-3 flex flex-col gap-0.5"
+                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                    >
+                      <span className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.50)' }}>Activité récente</span>
+                      <ActivityItem icon={ShoppingCart} text="Commande #2847 — SICOUB" badge="Vente" badgeColor="bg-blue-500/20 text-blue-400" delay={0.8} />
+                      <ActivityItem icon={Truck} text="BL #1204 — 24 m³ Chêne" badge="Achat" badgeColor="bg-amber-500/20 text-amber-400" delay={0.88} />
+                      <ActivityItem icon={FileText} text="Facture #5582 — 3 200 TND" badge="Finance" badgeColor="bg-emerald-500/20 text-emerald-400" delay={0.96} />
+                      <ActivityItem icon={Zap} text="Alerte stock — Seuil Min" badge="Stock" badgeColor="bg-rose-500/20 text-rose-400" delay={1.04} />
+                    </motion.div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute top-0 right-0 h-full w-px" style={{ background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.15), transparent)' }} />
+              <div className="absolute bottom-0 left-0 w-full h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent)' }} />
+            </div>
+
+            {/* Floating badges */}
+            <motion.div
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+              className="absolute -top-4 -left-10 flex items-center gap-2.5 rounded-2xl px-4 py-3 backdrop-blur-md shadow-xl z-30"
+              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
+            >
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'rgba(59,130,246,0.20)' }}>
+                <TrendingUp className="w-4 h-4" style={{ color: '#60A5FA' }} />
+              </div>
+              <div>
+                <div className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.40)' }}>ROI Client</div>
+                <div className="text-base font-black text-white">+28%</div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+              className="absolute -bottom-4 -right-10 flex items-center gap-2.5 rounded-2xl px-4 py-3 backdrop-blur-md shadow-xl z-30"
+              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
+            >
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'rgba(52,211,153,0.20)' }}>
+                <Globe className="w-4 h-4" style={{ color: '#34D399' }} />
+              </div>
+              <div>
+                <div className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.40)' }}>Multi-devises</div>
+                <div className="text-sm font-black text-white">TND · EUR · USD</div>
+              </div>
+            </motion.div>
+          </motion.div>
+
+        </div>
+      </div>
+
+      {/* ── Slide navigation ── */}
+      <div className="absolute bottom-20 right-8 z-30 flex items-center gap-3 lg:bottom-16">
+        <div className="flex gap-2 mr-2">
+          {SLIDES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setSlide(i)}
+              className="h-1.5 rounded-full transition-all duration-300 cursor-pointer"
+              style={{ width: i === slide ? '2rem' : '1rem', background: i === slide ? '#3B82F6' : 'rgba(255,255,255,0.20)' }}
+            />
+          ))}
+        </div>
+        <button
+          onClick={() => setSlide(s => (s - 1 + SLIDES.length) % SLIDES.length)}
+          className="flex h-10 w-12 items-center justify-center rounded-l-lg text-white/70 hover:bg-white/10 transition-colors cursor-pointer"
+          style={{ border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)' }}
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => setSlide(s => (s + 1) % SLIDES.length)}
+          className="flex h-10 w-12 items-center justify-center rounded-r-lg text-white transition-colors cursor-pointer"
+          style={{ background: '#3B82F6', boxShadow: '0 8px 20px rgba(59,130,246,0.25)' }}
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* ── Bottom compliance strip ── */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 hidden lg:flex items-center gap-8 px-8 py-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.30)', backdropFilter: 'blur(12px)' }}>
+        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest shrink-0" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          <Shield className="w-3.5 h-3.5" />
+          Certifié & Conforme
+        </div>
+        <div className="w-px h-6" style={{ background: 'rgba(255,255,255,0.10)' }} />
+        {['🔒 Données chiffrées AES-256', '🇹🇳 Hébergement souverain', '📊 Conformité fiscale TN', '⚡ Uptime 99.9% garanti'].map(item => (
+          <div key={item} className="text-[10px] font-semibold whitespace-nowrap" style={{ color: 'rgba(255,255,255,0.40)' }}>{item}</div>
+        ))}
+      </div>
+
+    </section>
+  );
+}
