@@ -24,6 +24,8 @@ interface Enterprise {
   customDomain?: string | null;
   language?: string | null;
   currency?: string | null;
+  isSalingWood?: boolean;
+  isManagingConstructions?: boolean;
 }
 
 export default function EnterprisesPage() {
@@ -47,6 +49,7 @@ export default function EnterprisesPage() {
   const [plan, setPlan] = useState("Trial");
   const [notes, setNotes] = useState("");
   const [isSalingWood, setIsSalingWood] = useState(false);
+  const [isManagingConstructions, setIsManagingConstructions] = useState(false);
   
   // Branding Customization (Optional)
   const [logoUrl, setLogoUrl] = useState("");
@@ -123,6 +126,7 @@ export default function EnterprisesPage() {
       language,
       currency,
       isSalingWood,
+      isManagingConstructions,
       adminUsername,
       adminEmail: adminEmail || email || `admin@${slug || "tenant"}.acya.site`,
       adminPassword: adminPassword || "AdminPass123!"
@@ -162,6 +166,7 @@ export default function EnterprisesPage() {
       setPlan("Trial");
       setNotes("");
       setIsSalingWood(false);
+      setIsManagingConstructions(false);
       setLogoUrl("");
       setFaviconUrl("");
       setPrimaryColor("#3B82F6");
@@ -274,6 +279,14 @@ export default function EnterprisesPage() {
           setIsSalingWood(payload.isSalingWood);
         } else {
           setIsSalingWood(false);
+        }
+
+        if (payload.ismanagingconstructions !== undefined) {
+          setIsManagingConstructions(payload.ismanagingconstructions);
+        } else if (payload.isManagingConstructions !== undefined) {
+          setIsManagingConstructions(payload.isManagingConstructions);
+        } else {
+          setIsManagingConstructions(false);
         }
 
         if (payload.user) {
@@ -727,6 +740,20 @@ export default function EnterprisesPage() {
                     />
                     <label htmlFor="isSalingWood" className="text-sm font-medium text-slate-200 cursor-pointer select-none">
                       Activer le traitement spécial bois (Seed Natural Wood tables)
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-3 py-1">
+                    <input
+                      type="checkbox"
+                      id="isManagingConstructions"
+                      className="w-4 h-4 bg-slate-950 border border-slate-800 rounded text-primary focus:ring-primary focus:ring-opacity-50 cursor-pointer"
+                      checked={isManagingConstructions}
+                      onChange={(e) => setIsManagingConstructions(e.target.checked)}
+                      disabled={provisioningLoading}
+                    />
+                    <label htmlFor="isManagingConstructions" className="text-sm font-medium text-slate-200 cursor-pointer select-none">
+                      Activer la gestion des chantiers (Module Chantiers)
                     </label>
                   </div>
 

@@ -44,6 +44,7 @@ CREATE TABLE tbl_enterprise (
     commercialregister text NULL,
     capital text NULL,
     issalingwood boolean NULL,
+    ismanagingconstructions boolean NULL,
     CONSTRAINT "PK_tbl_enterprise" PRIMARY KEY (id)
 );
 
@@ -1266,6 +1267,7 @@ ALTER TABLE tbl_enterprise ADD COLUMN IF NOT EXISTS primarycolor VARCHAR(50);
 ALTER TABLE tbl_enterprise ADD COLUMN IF NOT EXISTS customdomain VARCHAR(255);
 ALTER TABLE tbl_enterprise ADD COLUMN IF NOT EXISTS language VARCHAR(10);
 ALTER TABLE tbl_enterprise ADD COLUMN IF NOT EXISTS currency VARCHAR(10);
+ALTER TABLE tbl_enterprise ADD COLUMN IF NOT EXISTS ismanagingconstructions BOOLEAN DEFAULT FALSE;
 
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20260625180000_AddTenantBrandingColumns', '7.0.20');

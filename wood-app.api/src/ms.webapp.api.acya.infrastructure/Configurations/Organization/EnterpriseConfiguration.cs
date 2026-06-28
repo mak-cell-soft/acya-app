@@ -26,6 +26,7 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Organization
             entity.Property(e => e.SurnameResponsable).HasColumnName("surnameresponsable");
             entity.Property(e => e.PositionResponsable).HasColumnName("positionresponsable");
             entity.Property(e => e.IsSalingWood).HasColumnName("issalingwood");
+            entity.Property(e => e.IsManagingConstructions).HasColumnName("ismanagingconstructions");
             entity.Property(e => e.AuditRetentionMonths).HasColumnName("auditretentionmonths");
             entity.Property(e => e.DocumentNumberingConfig).HasColumnName("documentnumberingconfig");
             entity.Property(e => e.LogoUrl).HasColumnName("logourl");

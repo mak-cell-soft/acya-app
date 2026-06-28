@@ -182,7 +182,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const isDepot = user?.defaultSiteIsForSale === false;
 
   // Choose the correct nav group set based on site type
-  const navGroups = isDepot ? depotNavGroups : saleNavGroups;
+  const baseNavGroups = isDepot ? depotNavGroups : saleNavGroups;
+
+  // Filter out Chantiers if the enterprise doesn't manage constructions
+  const showChantiers = user?.isManagingConstructions === true;
+  const navGroups = baseNavGroups.map(group => ({
+    ...group,
+    items: group.items.filter(item => item.name !== 'Chantiers' || showChantiers)
+  }));
 
   const handleLogout = () => {
     logout();

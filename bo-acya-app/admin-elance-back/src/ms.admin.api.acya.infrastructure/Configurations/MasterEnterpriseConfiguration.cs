@@ -71,6 +71,9 @@ namespace ms.admin.api.acya.infrastructure.Configurations
 
             builder.Property(x => x.IsSalingWood)
                 .HasDefaultValue(false);
+
+            builder.Property(x => x.IsManagingConstructions)
+                .HasDefaultValue(false);
         }
     }
 }

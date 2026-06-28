@@ -75,8 +75,8 @@ namespace ms.admin.api.acya.infrastructure.Services
                     long enterpriseId = 1;
                     using (var cmd = new NpgsqlCommand($@"
                         SET search_path TO {enterprise.SchemaName};
-                        INSERT INTO tbl_enterprise (id, name, enterpriseguid, email, phone, issalingwood, logourl, faviconurl, primarycolor, customdomain, language, currency, auditretentionmonths, documentnumberingconfig)
-                        VALUES (1, @name, @guid, @email, @phone, @issalingwood, @logourl, @faviconurl, @primarycolor, @customdomain, @language, @currency, 12, @documentnumberingconfig)
+                        INSERT INTO tbl_enterprise (id, name, enterpriseguid, email, phone, issalingwood, ismanagingconstructions, logourl, faviconurl, primarycolor, customdomain, language, currency, auditretentionmonths, documentnumberingconfig)
+                        VALUES (1, @name, @guid, @email, @phone, @issalingwood, @ismanagingconstructions, @logourl, @faviconurl, @primarycolor, @customdomain, @language, @currency, 12, @documentnumberingconfig)
                         RETURNING id;", conn))
                     {
                         cmd.Parameters.AddWithValue("name", enterprise.Name);
@@ -84,6 +84,7 @@ namespace ms.admin.api.acya.infrastructure.Services
                         cmd.Parameters.AddWithValue("email", (object?)enterprise.Email ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("phone", (object?)enterprise.Phone ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("issalingwood", enterprise.IsSalingWood);
+                        cmd.Parameters.AddWithValue("ismanagingconstructions", enterprise.IsManagingConstructions);
                         cmd.Parameters.AddWithValue("logourl", (object?)enterprise.LogoUrl ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("faviconurl", (object?)enterprise.FaviconUrl ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("primarycolor", (object?)enterprise.PrimaryColor ?? DBNull.Value);

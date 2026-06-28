@@ -27,6 +27,7 @@ namespace ms.admin.api.acya.Controllers
         public string? Language { get; set; }
         public string? Currency { get; set; }
         public bool IsSalingWood { get; set; }
+        public bool IsManagingConstructions { get; set; }
 
         public string AdminUsername { get; set; } = "admin";
         public string AdminEmail { get; set; } = string.Empty;
@@ -132,6 +133,7 @@ namespace ms.admin.api.acya.Controllers
                 existing.Language = request.Language ?? "fr";
                 existing.Currency = request.Currency ?? "TND";
                 existing.IsSalingWood = request.IsSalingWood;
+                existing.IsManagingConstructions = request.IsManagingConstructions;
                 existing.Status = TenantStatus.Pending;
 
                 await _enterpriseRepository.UpdateAsync(existing);
@@ -159,7 +161,8 @@ namespace ms.admin.api.acya.Controllers
                     CustomDomain = request.CustomDomain,
                     Language = request.Language ?? "fr",
                     Currency = request.Currency ?? "TND",
-                    IsSalingWood = request.IsSalingWood
+                    IsSalingWood = request.IsSalingWood,
+                    IsManagingConstructions = request.IsManagingConstructions
                 };
 
                 created = await _enterpriseRepository.AddAsync(enterprise);

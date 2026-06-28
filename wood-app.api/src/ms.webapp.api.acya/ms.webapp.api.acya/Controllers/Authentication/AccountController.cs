@@ -197,6 +197,11 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
         _context.AppUsers.Add(user);
         await _context.SaveChangesAsync();
 
+        if (user.EnterpriseId.HasValue)
+        {
+          user.Enterprise = await _context.Enterprises.FindAsync(user.EnterpriseId.Value);
+        }
+
         return Ok(new UserAuthDto
         {
           fullname = user.Persons?.FullName ?? "",
@@ -240,6 +245,7 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
       }
 
       var ent = await _context.Enterprises.FindAsync(user.EnterpriseId);
+      user.Enterprise = ent;
       
       var userPerms = await _context.UserPermissions.FirstOrDefaultAsync(p => p.UserId == user.Id);
       

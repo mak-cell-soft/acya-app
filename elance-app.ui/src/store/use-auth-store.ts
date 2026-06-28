@@ -14,6 +14,7 @@ interface User {
   // WHY: true = Point de Vente, false = Dépôt / Entrepôt.
   // Sourced from the JWT claim 'DefaultSiteIsForSale' added in TokenService.
   defaultSiteIsForSale?: boolean;
+  isManagingConstructions?: boolean;
   permissions?: AppPermissionsMap | null;
 }
 

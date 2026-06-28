@@ -17,6 +17,7 @@ interface CustomJwtPayload {
   // WHY: Added in v2 so the frontend can branch Sales vs Depot UI without
   //      an extra API call — value is 'true' or 'false' as a string claim.
   DefaultSiteIsForSale?: string;
+  IsManagingConstructions?: string;
   exp?: number;
 }
 
@@ -47,7 +48,8 @@ export const authService = {
         defaultSiteId: decodedToken.DefaultSiteId,
         // Parse string claim ('true'/'false') into a boolean — default to true
         // when claim is absent so existing sale-site users are unaffected.
-        defaultSiteIsForSale: decodedToken.DefaultSiteIsForSale !== 'false'
+        defaultSiteIsForSale: decodedToken.DefaultSiteIsForSale !== 'false',
+        isManagingConstructions: decodedToken.IsManagingConstructions === 'true'
       };
     } catch (error) {
       console.error('Error decoding token:', error);

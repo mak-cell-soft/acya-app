@@ -26,5 +26,6 @@ namespace ms.admin.api.acya.core.Entities
         public string? Currency { get; set; }
         public bool CustomDomainConfigured { get; set; }
         public bool IsSalingWood { get; set; }
+        public bool IsManagingConstructions { get; set; }
     }
 }

@@ -1093,6 +1093,10 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("issalingwood");
 
+                    b.Property<bool?>("IsManagingConstructions")
+                        .HasColumnType("boolean")
+                        .HasColumnName("ismanagingconstructions");
+
                     b.Property<string>("MatriculeFiscal")
                         .HasColumnType("text")
                         .HasColumnName("matriculefiscal");

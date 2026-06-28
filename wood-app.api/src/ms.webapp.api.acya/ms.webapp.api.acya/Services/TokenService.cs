@@ -118,6 +118,15 @@ namespace ms.webapp.api.acya.api.Services
         claims.Add(new Claim("DefaultSiteIsForSale", user.SalesSite.IsForSale.ToString().ToLower()));
       }
 
+      if (user.Enterprise != null)
+      {
+        claims.Add(new Claim("IsManagingConstructions", (user.Enterprise.IsManagingConstructions ?? false).ToString().ToLower()));
+      }
+      else
+      {
+        claims.Add(new Claim("IsManagingConstructions", "false"));
+      }
+
       // Add permissions claim
       if (!string.IsNullOrEmpty(permissionsJson))
       {
