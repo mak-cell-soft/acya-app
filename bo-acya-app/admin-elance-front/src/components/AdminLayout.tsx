@@ -17,7 +17,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [pathname, isLoginPage, router]);
 
   if (isLoginPage) {
-    return <>{children}</>;
+    return <div className="w-screen h-screen flex items-center justify-center bg-background">{children}</div>;
   }
 
   const handleLogout = () => {
