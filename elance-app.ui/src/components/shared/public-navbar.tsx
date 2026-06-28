@@ -13,12 +13,21 @@ export function PublicNavbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isBannerVisible, setIsBannerVisible] = useState(true);
+  const [isMainDomain, setIsMainDomain] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
+
+    // Tenant detection
+    const hostname = window.location.hostname;
+    const searchParams = new URLSearchParams(window.location.search);
+    const hasTenantQuery = searchParams.has('tenant');
+    const main = (hostname === 'acya.site' || hostname === 'www.acya.site' || hostname === 'localhost' || hostname === '127.0.0.1') && !hasTenantQuery;
+    setIsMainDomain(main);
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -35,7 +44,7 @@ export function PublicNavbar() {
     { name: 'Modules', href: '#modules', isNew: true },
     { name: 'Chantiers', href: '#chantiers' },
     { name: 'Pourquoi Élancé', href: '#pourquoi' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'Contact', href: '/contact' },
   ];
 
   return (
@@ -130,12 +139,12 @@ export function PublicNavbar() {
 
           <div className="hidden md:flex items-center gap-4 ml-10">
             <Button asChild className="h-10 px-6 rounded-lg text-white font-bold transition-all duration-300 relative overflow-hidden group shadow-md hover:shadow-lg active:scale-95 hover:scale-[1.03] bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700">
-              <Link href="/enterprise-registration" className="flex items-center gap-2">
+              <Link href={isMainDomain ? "/enterprise-registration" : "/login"} className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-300 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
                 </span>
-                Inscription
+                {isMainDomain ? "Inscription" : "Connexion"}
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" style={{ transform: 'skewX(-20deg)' }} />
               </Link>
             </Button>
@@ -199,7 +208,9 @@ export function PublicNavbar() {
                 <div className="mt-auto space-y-4">
                   <div className="h-px bg-slate-100 mb-8" />
                   <Button asChild className="w-full h-14 text-lg bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white font-bold shadow-md shadow-corp-blue-900/10">
-                    <Link href="/enterprise-registration" onClick={() => setIsMobileMenuOpen(false)}>Inscription</Link>
+                    <Link href={isMainDomain ? "/enterprise-registration" : "/login"} onClick={() => setIsMobileMenuOpen(false)}>
+                      {isMainDomain ? "Inscription" : "Connexion"}
+                    </Link>
                   </Button>
                 </div>
               </div>

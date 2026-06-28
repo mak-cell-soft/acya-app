@@ -40,6 +40,7 @@ import { useAuthStore } from '@/store/use-auth-store';
 import { useRouter } from 'next/navigation';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { PermissionModuleKey } from '@/types/permissions';
+import { SupportDialog } from './support-dialog';
 
 type NavItem = {
   name: string;
@@ -153,6 +154,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const router = useRouter();
   const { hasAnyPermission } = usePermissionGuard();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Restore state on mount
@@ -413,7 +415,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       <Link
                         key={item.name}
                         href={item.href}
-                        onClick={onClose}
+                        onClick={(e) => {
+                          if (item.href === '/contact') {
+                            e.preventDefault();
+                            setIsSupportOpen(true);
+                          } else {
+                            onClose();
+                          }
+                        }}
                         title={isCollapsed ? item.name : undefined}
                         className={cn(
                           'flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all group',
@@ -507,6 +516,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </button>
         </div>
       </div>
+      <SupportDialog isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />
     </>
   );
 }

@@ -45,7 +45,7 @@ export function ChantierSection() {
           </p>
           <div className="pt-4">
             <Button asChild variant="outline" className="h-14 px-8 border-white/15 bg-white/5 text-white hover:bg-white/10 hover:border-corp-cyan/50 hover:text-corp-cyan transition-all duration-300 text-[0.95rem] font-bold shadow-lg shadow-black/10 group cursor-pointer">
-              <Link href="/register" className="flex items-center gap-2">
+              <Link href="/enterprise-registration" className="flex items-center gap-2">
                 Découvrir le module chantier
                 <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </Link>

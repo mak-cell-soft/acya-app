@@ -113,7 +113,7 @@ export function HeroSection() {
           {/* Action CTAs with Interactive Anchors */}
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 pt-4 justify-center lg:justify-start">
             <Button asChild className="h-14 px-8 bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white font-bold text-[1rem] transition-all duration-300 shadow-lg shadow-corp-blue-900/15 hover:scale-[1.03] active:scale-[0.97] group">
-              <Link href="/register" className="flex items-center gap-2">
+              <Link href="/enterprise-registration" className="flex items-center gap-2">
                 Essai Gratuit 14 Jours
                 <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
               </Link>
