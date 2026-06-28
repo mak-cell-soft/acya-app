@@ -285,6 +285,11 @@ namespace ms.webapp.api.acya.Services
                     cp.UpdateDate = DateTime.UtcNow;
                     cp.UpdatedById = userId;
 
+                    // Ensure numeric fields are initialized to 0 to prevent UI crashes
+                    cp.OpeningBalance ??= 0;
+                    cp.MaximumDiscount ??= 0;
+                    cp.MaximumSalesBar ??= 0;
+
                     report.SuccessCount++;
                 }
                 catch (Exception ex)

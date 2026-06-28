@@ -73,7 +73,7 @@ export default function ProvidersPage() {
   const deleteMutation = useDeleteSupplier();
 
   const filteredSuppliers = suppliers.filter(s => 
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (s.name?.toLowerCase() || `${s.firstname} ${s.lastname}`.toLowerCase()).includes(searchTerm.toLowerCase()) ||
     s.taxregistrationnumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -200,10 +200,10 @@ export default function ProvidersPage() {
           <td className="p-6">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-corp-blue-100 flex items-center justify-center text-corp-blue-600 font-black text-sm shadow-sm border border-corp-blue-200/50">
-                {item.name.substring(0, 2).toUpperCase()}
+                {(item.name || `${item.firstname} ${item.lastname}`).substring(0, 2).toUpperCase()}
               </div>
               <div>
-                <div className="font-black text-corp-blue-900 tracking-tight">{item.prefix} {item.name}</div>
+                <div className="font-black text-corp-blue-900 tracking-tight">{item.prefix} {item.name || `${item.firstname} ${item.lastname}`}</div>
                 <div className="text-[0.75rem] text-sand-400 font-bold uppercase tracking-tighter flex items-center gap-2 mt-0.5">
                   <Phone className="w-3 h-3 text-sand-300" /> {item.phonenumberone}
                 </div>
@@ -223,9 +223,9 @@ export default function ProvidersPage() {
           <td className="p-6 text-right">
             <div className={cn(
               "font-mono font-black text-base",
-              (item.currentbalance ?? item.openingbalance) < 0 ? "text-rose-600" : "text-emerald-600"
+              (item.currentbalance ?? item.openingbalance ?? 0) < 0 ? "text-rose-600" : "text-emerald-600"
             )}>
-              {(item.currentbalance ?? item.openingbalance).toLocaleString('fr-TN', { minimumFractionDigits: 3 })}
+              {(item.currentbalance ?? item.openingbalance ?? 0).toLocaleString('fr-TN', { minimumFractionDigits: 3 })}
             </div>
           </td>
           <td className="p-6 text-center">

@@ -52,12 +52,12 @@ export function SupplierDetailsDialog({
         <DialogHeader className="border-b border-border pb-4 mb-4 p-8 relative">
           <div className="flex items-center gap-6">
             <div className="w-16 h-16 rounded-2xl bg-corp-blue-50 flex items-center justify-center border border-corp-blue-100 text-emerald-600 font-bold text-2xl">
-              {supplier.name.substring(0, 2).toUpperCase()}
+              {(supplier.name || `${supplier.firstname} ${supplier.lastname}`).substring(0, 2).toUpperCase()}
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-3">
                 <DialogTitle className="text-3xl font-bold tracking-tight">
-                  {supplier.prefix} {supplier.name}
+                  {supplier.prefix} {supplier.name || `${supplier.firstname} ${supplier.lastname}`}
                 </DialogTitle>
                 <Badge variant="outline" className="border-corp-blue-100 text-emerald-600 bg-corp-blue-50/50 rounded-lg">
                   {supplier.isactive ? "Actif" : "Inactif"}
@@ -195,14 +195,14 @@ export function SupplierDetailsDialog({
                     <div className="space-y-1">
                       <h4 className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest">Situation Financière</h4>
                       <div className="text-3xl font-black text-corp-blue-900">
-                        {Math.abs(supplier.openingbalance).toLocaleString('fr-TN', { minimumFractionDigits: 3 })} <span className="text-sm font-bold">TND</span>
+                        {Math.abs(supplier.openingbalance ?? 0).toLocaleString('fr-TN', { minimumFractionDigits: 3 })} <span className="text-sm font-bold">TND</span>
                       </div>
                       <div className={cn(
                         "flex items-center gap-1.5 text-xs font-bold",
-                        supplier.openingbalance < 0 ? "text-rose-600" : "text-emerald-600"
+                        (supplier.openingbalance ?? 0) < 0 ? "text-rose-600" : "text-emerald-600"
                       )}>
-                        {supplier.openingbalance < 0 ? <TrendingDown className="w-3 h-3" /> : <ArrowUpRight className="w-3 h-3" />}
-                        {supplier.openingbalance < 0 ? "Dette Fournisseur" : "Crédit/Avoir"}
+                        {(supplier.openingbalance ?? 0) < 0 ? <TrendingDown className="w-3 h-3" /> : <ArrowUpRight className="w-3 h-3" />}
+                        {(supplier.openingbalance ?? 0) < 0 ? "Dette Fournisseur" : "Crédit/Avoir"}
                       </div>
                     </div>
 

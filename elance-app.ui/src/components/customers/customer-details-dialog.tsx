@@ -318,14 +318,14 @@ export function CustomerDetailsDialog({
                       <div>
                         <div className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest mb-1">Solde Actuel</div>
                         <div className="text-4xl font-bold text-corp-blue-900 tracking-tight">
-                          {customer.openingbalance.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}
+                          {(customer.openingbalance ?? 0).toLocaleString('fr-TN', { minimumFractionDigits: 3 })}
                         </div>
                         <div className="text-[0.6rem] font-bold text-sand-300 uppercase mt-1">TND</div>
                       </div>
                       <div className="w-full space-y-3 pt-6 border-t border-corp-blue-100">
                         <div className="flex items-center justify-between">
                           <span className="text-[0.65rem] font-bold text-sand-400 uppercase">Remise Max.</span>
-                          <Badge className="bg-corp-blue-100 text-corp-blue-700 border-none font-bold">{customer.maximumdiscount}%</Badge>
+                          <Badge className="bg-corp-blue-100 text-corp-blue-700 border-none font-bold">{customer.maximumdiscount ?? 0}%</Badge>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-[0.65rem] font-bold text-sand-400 uppercase">Plafond</span>
