@@ -3,10 +3,11 @@
 import * as React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Plus, Trash2, Loader2, Store } from 'lucide-react';
+import { MapPin, Plus, Trash2, Loader2, Store, Pencil } from 'lucide-react';
 import { useSites, useDeleteSite } from '@/hooks/use-enterprise';
 import { Badge } from '@/components/ui/badge';
 import { SiteFormDialog } from './site-form-dialog';
+import { Site } from '@/types/settings';
 import {
   Table,
   TableBody,
@@ -31,6 +32,7 @@ export function SitesSection({ enterpriseId }: { enterpriseId: number }) {
   const { data: sites, isLoading } = useSites();
   const deleteSite = useDeleteSite();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [selectedSite, setSelectedSite] = React.useState<Site | null>(null);
 
   if (isLoading) {
     return (
@@ -61,7 +63,10 @@ export function SitesSection({ enterpriseId }: { enterpriseId: number }) {
               Liste des Sites ({sites?.length || 0})
             </h4>
             <Button 
-              onClick={() => setIsDialogOpen(true)}
+              onClick={() => {
+                setSelectedSite(null);
+                setIsDialogOpen(true);
+              }}
               className="rounded-xl bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold h-10 gap-2 shadow-md shadow-corp-blue-600/10"
             >
               <Plus className="w-4 h-4" /> Ajouter un site
@@ -100,32 +105,46 @@ export function SitesSection({ enterpriseId }: { enterpriseId: number }) {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <AlertDialog>
-                          <AlertDialogTrigger 
-                          render={
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          }
-                        />
-                          <AlertDialogContent className="rounded-xl border-corp-blue-100">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="text-corp-blue-900 font-bold">Supprimer ce site ?</AlertDialogTitle>
-                              <AlertDialogDescription className="text-sand-500 font-medium">
-                                Cette action est irréversible. Le site "{site.address}" sera définitivement retiré de votre configuration.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="rounded-xl border-corp-blue-100 font-bold">Annuler</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => deleteSite.mutate(site.id)}
-                                className="rounded-xl bg-red-600 text-white hover:bg-red-700 font-bold"
-                              >
-                                {deleteSite.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Supprimer'}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => {
+                              setSelectedSite(site);
+                              setIsDialogOpen(true);
+                            }}
+                            className="h-8 w-8 text-corp-blue-500 hover:text-corp-blue-700 hover:bg-corp-blue-50 rounded-lg"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger 
+                            render={
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            }
+                          />
+                            <AlertDialogContent className="rounded-xl border-corp-blue-100">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-corp-blue-900 font-bold">Supprimer ce site ?</AlertDialogTitle>
+                                <AlertDialogDescription className="text-sand-500 font-medium">
+                                  Cette action est irréversible. Le site "{site.address}" sera définitivement retiré de votre configuration.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="rounded-xl border-corp-blue-100 font-bold">Annuler</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => deleteSite.mutate(site.id)}
+                                  className="rounded-xl bg-red-600 text-white hover:bg-red-700 font-bold"
+                                >
+                                  {deleteSite.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Supprimer'}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -138,8 +157,12 @@ export function SitesSection({ enterpriseId }: { enterpriseId: number }) {
 
       <SiteFormDialog 
         isOpen={isDialogOpen} 
-        onClose={() => setIsDialogOpen(false)} 
+        onClose={() => {
+          setIsDialogOpen(false);
+          setSelectedSite(null);
+        }} 
         enterpriseId={enterpriseId}
+        siteToEdit={selectedSite || undefined}
       />
     </section>
   );

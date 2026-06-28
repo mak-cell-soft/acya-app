@@ -16,7 +16,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { useCreateSite } from '@/hooks/use-enterprise';
+import { useCreateSite, useUpdateSite } from '@/hooks/use-enterprise';
+import { Site } from '@/types/settings';
 import { GOV_TN } from '@/lib/constants/settings';
 import { Loader2, Store, MapPin } from 'lucide-react';
 
@@ -33,10 +34,12 @@ interface SiteFormDialogProps {
   isOpen: boolean;
   onClose: () => void;
   enterpriseId: number;
+  siteToEdit?: Site;
 }
 
-export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialogProps) {
+export function SiteFormDialog({ isOpen, onClose, enterpriseId, siteToEdit }: SiteFormDialogProps) {
   const createSite = useCreateSite();
+  const updateSite = useUpdateSite();
 
   const {
     register,
@@ -57,24 +60,48 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
   // Reset form when dialog visibility changes
   React.useEffect(() => {
     if (isOpen) {
-      reset({
-        address: '',
-        codepost: '',
-        gov: '',
-        isForsale: false,
-      });
+      if (siteToEdit) {
+        reset({
+          address: siteToEdit.address || '',
+          codepost: siteToEdit.codepost || '',
+          gov: siteToEdit.gov || '',
+          isForsale: siteToEdit.isForsale || false,
+        });
+      } else {
+        reset({
+          address: '',
+          codepost: '',
+          gov: '',
+          isForsale: false,
+        });
+      }
     }
-  }, [isOpen, reset]);
+  }, [isOpen, siteToEdit, reset]);
 
   const onSubmit: SubmitHandler<SiteFormValues> = (data) => {
-    createSite.mutate({
-      ...data,
-      enterpriseid: enterpriseId,
-    }, {
-      onSuccess: () => {
-        onClose();
-      }
-    });
+    if (siteToEdit) {
+      updateSite.mutate({
+        id: siteToEdit.id,
+        data: {
+          ...data,
+          id: siteToEdit.id,
+          enterpriseid: enterpriseId,
+        }
+      }, {
+        onSuccess: () => {
+          onClose();
+        }
+      });
+    } else {
+      createSite.mutate({
+        ...data,
+        enterpriseid: enterpriseId,
+      }, {
+        onSuccess: () => {
+          onClose();
+        }
+      });
+    }
   };
 
   return (
@@ -86,10 +113,12 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
           </div>
           <DialogTitle className="text-2xl font-bold flex items-center gap-3">
             <MapPin className="w-6 h-6" />
-            Nouveau Site
+            {siteToEdit ? 'Modifier le Site' : 'Nouveau Site'}
           </DialogTitle>
           <DialogDescription className="text-corp-blue-100 text-sm font-medium mt-1">
-            Ajoutez un nouveau point de vente ou dépôt pour votre entreprise.
+            {siteToEdit 
+              ? 'Modifiez les détails du point de vente ou dépôt.' 
+              : 'Ajoutez un nouveau point de vente ou dépôt pour votre entreprise.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -167,10 +196,16 @@ export function SiteFormDialog({ isOpen, onClose, enterpriseId }: SiteFormDialog
               Annuler
             </Button>
             <Button 
-              disabled={createSite.isPending}
+              disabled={createSite.isPending || updateSite.isPending}
               className="flex-[2] h-12 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20"
             >
-              {createSite.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Créer le site'}
+              {createSite.isPending || updateSite.isPending ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : siteToEdit ? (
+                'Modifier le site'
+              ) : (
+                'Créer le site'
+              )}
             </Button>
           </div>
         </form>

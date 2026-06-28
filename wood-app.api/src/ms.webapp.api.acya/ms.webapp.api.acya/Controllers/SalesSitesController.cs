@@ -47,5 +47,49 @@ namespace ms.webapp.api.acya.api.Controllers
       var allDtos = await _repository.GetAllAsync();
       return Ok(allDtos);
     }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult> Put(int id, SiteDto dto)
+    {
+      var existingSite = await _repository.Get(id);
+      if (existingSite == null)
+      {
+        return NotFound();
+      }
+
+      // Ensure enterprise ID is preserved or validated
+      if (!dto.enterpriseid.HasValue || dto.enterpriseid == 0)
+      {
+        dto.enterpriseid = existingSite.EnterpriseId;
+      }
+
+      existingSite.UpdatFromDto(dto);
+
+      var updatedEntity = await _repository.Update(existingSite);
+      if (updatedEntity != null)
+      {
+        return Ok(new SiteDto(updatedEntity));
+      }
+      return BadRequest("Failed to update the sales site.");
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> Delete(int id)
+    {
+      var existingSite = await _repository.Get(id);
+      if (existingSite == null)
+      {
+        return NotFound();
+      }
+
+      existingSite.IsDeleted = true;
+
+      var updatedEntity = await _repository.Update(existingSite);
+      if (updatedEntity != null)
+      {
+        return Ok();
+      }
+      return BadRequest("Failed to delete the sales site.");
+    }
   }
 }

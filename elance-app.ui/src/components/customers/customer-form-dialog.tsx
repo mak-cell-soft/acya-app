@@ -114,7 +114,7 @@ export function CustomerFormDialog({
       taxregistrationnumber: "",
       patentecode: "",
       address: "",
-      gouvernorate: "23", // Tunis by default
+      gouvernorate: "",
       maximumdiscount: 0,
       maximumsalesbar: 0,
       notes: "",
@@ -174,7 +174,7 @@ export function CustomerFormDialog({
           taxregistrationnumber: "",
           patentecode: "",
           address: "",
-          gouvernorate: "23",
+          gouvernorate: "",
           maximumdiscount: 0,
           maximumsalesbar: 0,
           notes: "",
@@ -366,6 +366,7 @@ export function CustomerFormDialog({
                       name="jobtitle"
                       render={({ field }) => (
                         <FormItem>
+                          <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase">Activité</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value?.toString()}>
                             <FormControl>
                               <SelectTrigger >
@@ -458,7 +459,7 @@ export function CustomerFormDialog({
                         <Select onValueChange={field.onChange} value={field.value?.toString()}>
                           <FormControl>
                             <SelectTrigger >
-                              <SelectValue placeholder="Sélectionner" />
+                              <SelectValue placeholder="Sélectionner votre gouvernorat" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className="rounded-xl border-corp-blue-100 h-64">
