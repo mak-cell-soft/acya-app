@@ -503,14 +503,6 @@ export default function ArticlesPage() {
         </Card>
       </div>
 
-      {/* Floating Scroll Top */}
-      <button 
-        onClick={scrollToTop}
-        className="fixed bottom-8 right-8 w-12 h-12 bg-corp-blue-900 text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-all group z-50 border border-corp-blue-700"
-      >
-        <ArrowUpCircle className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
-      </button>
-
       {/* Dialogs */}
       <ArticleFormDialog 
         isOpen={isFormOpen}

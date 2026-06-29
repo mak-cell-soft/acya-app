@@ -71,7 +71,7 @@ const saleNavGroups: NavGroup[] = [
     ],
   },
   {
-    title: 'Gestion Bois',
+    title: 'Gestion Commerciale',
     items: [
       { name: 'Articles', href: '/articles', icon: Package, module: 'articles' },
       { name: 'Ventes', href: '/sales', icon: ShoppingBag, module: 'sales' },
@@ -392,7 +392,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* ── NAV GROUPS ── */}
-        <div 
+        <div
           ref={scrollRef}
           onScroll={(e) => {
             sessionStorage.setItem('sidebar-scroll', e.currentTarget.scrollTop.toString());
@@ -450,11 +450,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             ? primaryColor
                               ? 'text-white'
                               : isDepot
-                              ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
-                              : 'bg-corp-blue-600 text-white shadow-md shadow-corp-blue-600/20'
+                                ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
+                                : 'bg-corp-blue-600 text-white shadow-md shadow-corp-blue-600/20'
                             : isDepot
-                            ? 'hover:bg-amber-50 hover:text-amber-700 text-slate-500'
-                            : 'hover:bg-corp-blue-50 hover:text-corp-blue-700 text-slate-500',
+                              ? 'hover:bg-amber-50 hover:text-amber-700 text-slate-500'
+                              : 'hover:bg-corp-blue-50 hover:text-corp-blue-700 text-slate-500',
                           isCollapsed ? 'justify-center px-0' : 'justify-between'
                         )}
                       >
@@ -465,8 +465,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                               isActive
                                 ? 'text-white'
                                 : isDepot
-                                ? (primaryColor ? 'group-hover:text-[var(--primary)] transition-colors' : 'group-hover:text-amber-600 transition-colors')
-                                : (primaryColor ? 'group-hover:text-[var(--primary)] transition-colors' : 'group-hover:text-corp-blue-600 transition-colors')
+                                  ? (primaryColor ? 'group-hover:text-[var(--primary)] transition-colors' : 'group-hover:text-amber-600 transition-colors')
+                                  : (primaryColor ? 'group-hover:text-[var(--primary)] transition-colors' : 'group-hover:text-corp-blue-600 transition-colors')
                             )}
                           />
                           {!isCollapsed && (
@@ -480,8 +480,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                               primaryColor
                                 ? 'bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.8)]'
                                 : isDepot
-                                ? 'bg-amber-200 shadow-[0_0_10px_rgba(251,191,36,0.8)]'
-                                : 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]'
+                                  ? 'bg-amber-200 shadow-[0_0_10px_rgba(251,191,36,0.8)]'
+                                  : 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]'
                             )}
                           />
                         )}
