@@ -11,6 +11,8 @@ import { format } from 'date-fns';
 import { CalendarIcon, Loader2, DollarSign, FileText, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { paymentService } from '@/services/components/payment.service';
+import { BANKS_TN } from '@/constants/banks';
+
 
 const formatCurrency = (val: number) => val.toLocaleString('fr-TN', { minimumFractionDigits: 3 });
 
@@ -291,7 +293,18 @@ export function CustomerRecouvrementDialog({ open, onOpenChange, customerId }: C
                     </div>
                     <div className="space-y-2">
                       <Label>Banque</Label>
-                      <Input value={bank} onChange={(e) => setBank(e.target.value)} placeholder="BIAT, Attijari..." />
+                      <Select value={bank} onValueChange={(val) => setBank(val || '')}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Choisir la banque" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-corp-blue-100 max-h-60 overflow-y-auto">
+                          {BANKS_TN.map((b) => (
+                            <SelectItem key={b.key} value={b.value}>
+                              {b.value}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
                       <Label>Titulaire</Label>
