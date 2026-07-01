@@ -13,7 +13,7 @@ echo "Test parameters: Slug=${SLUG}, Schema=${SCHEMA}"
 echo "Logging in to Command Center..."
 LOGIN_RESP=$(curl -s -k -X POST https://admin.acya.site/api/admin/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"adminpassword"}')
+  -d '{"username":"admin","password":"Password123&"}')
 
 TOKEN=$(echo $LOGIN_RESP | grep -o '"token":"[^"]*' | grep -o '[^"]*$')
 echo "Token obtained successfully."
