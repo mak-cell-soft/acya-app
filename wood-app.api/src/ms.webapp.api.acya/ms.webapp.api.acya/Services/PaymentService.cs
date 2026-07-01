@@ -76,9 +76,9 @@ namespace ms.webapp.api.acya.api.Services
             return payments.Select(MapToDto);
         }
 
-        public async Task<IEnumerable<SupplierEcheanceDto>> GetEcheancesAsync(DateTime fromDate, DateTime toDate)
+        public async Task<IEnumerable<SupplierEcheanceDto>> GetEcheancesAsync(DateTime fromDate, DateTime toDate, string? side = "purchase")
         {
-            return await _paymentRepository.GetEcheancesAsync(fromDate, toDate);
+            return await _paymentRepository.GetEcheancesAsync(fromDate, toDate, side);
         }
 
         public async Task<bool> MarkTraiteAsPaidAsync(int instrumentId, MarkTraitePaidDto markPaidDto)

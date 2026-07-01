@@ -200,13 +200,13 @@ namespace ms.webapp.api.acya.api.Controllers
         }
 
         [HttpGet("echeances")]
-        public async Task<ActionResult<IEnumerable<SupplierEcheanceDto>>> GetEcheances([FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)
+        public async Task<ActionResult<IEnumerable<SupplierEcheanceDto>>> GetEcheances([FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate, [FromQuery] string? side = "purchase")
         {
             try
             {
                 var start = fromDate ?? DateTime.Today;
                 var end = toDate ?? DateTime.Today.AddDays(120);
-                var result = await _paymentService.GetEcheancesAsync(start, end);
+                var result = await _paymentService.GetEcheancesAsync(start, end, side);
                 return Ok(result);
             }
             catch (Exception ex)

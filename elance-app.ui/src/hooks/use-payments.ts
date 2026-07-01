@@ -38,12 +38,27 @@ export function useSupplierTraites(supplierId: number | null) {
  */
 export function useEcheances(projectionDays: number) {
   return useQuery<SupplierEcheanceDto[]>({
-    queryKey: ['echeances', projectionDays],
+    queryKey: ['echeances', 'purchase', projectionDays],
     queryFn: () => {
       const fromDate = new Date();
       const toDate = new Date();
       toDate.setDate(toDate.getDate() + projectionDays);
-      return paymentService.getEcheances(fromDate, toDate);
+      return paymentService.getEcheances(fromDate, toDate, 'purchase');
+    },
+  });
+}
+
+/**
+ * Hook to retrieve sales/payments echeances (due-date payment projections) within N days.
+ */
+export function useSalesEcheances(projectionDays: number) {
+  return useQuery<SupplierEcheanceDto[]>({
+    queryKey: ['echeances', 'sale', projectionDays],
+    queryFn: () => {
+      const fromDate = new Date();
+      const toDate = new Date();
+      toDate.setDate(toDate.getDate() + projectionDays);
+      return paymentService.getEcheances(fromDate, toDate, 'sale');
     },
   });
 }

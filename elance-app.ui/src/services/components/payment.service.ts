@@ -62,7 +62,7 @@ export const paymentService = {
     return response.data;
   },
 
-  getEcheances: async (fromDate: Date, toDate: Date) => {
+  getEcheances: async (fromDate: Date, toDate: Date, side: 'purchase' | 'sale' = 'purchase') => {
     const format = (d: Date) => {
       const year = d.getFullYear();
       const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -71,7 +71,7 @@ export const paymentService = {
     };
 
     const response = await api.get('/Payments/echeances', {
-      params: { fromDate: format(fromDate), toDate: format(toDate) }
+      params: { fromDate: format(fromDate), toDate: format(toDate), side }
     });
     return response.data;
   },

@@ -157,15 +157,27 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<SupplierEcheanceDto>> GetEcheancesAsync(DateTime fromDate, DateTime toDate)
+        public async Task<IEnumerable<SupplierEcheanceDto>> GetEcheancesAsync(DateTime fromDate, DateTime toDate, string? side = "purchase")
         {
-            var traites = await context.PaymentInstruments
+            var query = context.PaymentInstruments
                 .Include(pi => pi.Payment)
                     .ThenInclude(p => p!.Customer)
                 .Include(pi => pi.Payment)
                     .ThenInclude(p => p!.Document)
-                .Where(pi => pi.DueDate >= fromDate && pi.DueDate <= toDate)
-                .ToListAsync();
+                .Where(pi => pi.DueDate >= fromDate && pi.DueDate <= toDate);
+
+            if (side == "purchase")
+            {
+                query = query.Where(pi => pi.Payment != null && pi.Payment.Customer != null &&
+                    (pi.Payment.Customer.Type == CounterPartType.Supplier || pi.Payment.Customer.Type == CounterPartType.Both));
+            }
+            else if (side == "sale")
+            {
+                query = query.Where(pi => pi.Payment != null && pi.Payment.Customer != null &&
+                    (pi.Payment.Customer.Type == CounterPartType.Customer || pi.Payment.Customer.Type == CounterPartType.Both));
+            }
+
+            var traites = await query.ToListAsync();
 
             return traites
                 .GroupBy(pi => pi.DueDate!.Value.Date)

@@ -9,7 +9,7 @@ namespace ms.webapp.api.acya.api.Interfaces
         Task<IEnumerable<PaymentDto>> GetByCustomerIdAsync(int customerId);
         Task<IEnumerable<PaymentDto>> GetBySupplierIdAsync(int supplierId);
         Task<IEnumerable<PaymentDto>> GetTraitesBySupplierIdAsync(int supplierId);
-        Task<IEnumerable<SupplierEcheanceDto>> GetEcheancesAsync(DateTime fromDate, DateTime toDate);
+        Task<IEnumerable<SupplierEcheanceDto>> GetEcheancesAsync(DateTime fromDate, DateTime toDate, string? side = "purchase");
         Task<bool> MarkTraiteAsPaidAsync(int instrumentId, MarkTraitePaidDto markPaidDto);
         Task<IEnumerable<PaymentDto>> GetByDocumentIdAsync(int documentId);
         

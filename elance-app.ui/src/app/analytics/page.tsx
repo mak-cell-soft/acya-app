@@ -48,6 +48,7 @@ import { useSupplierPurchasePaymentChart } from '@/hooks/use-supplier-chart';
 import { useDocumentsByTypeFiltered } from '@/hooks/use-documents';
 import { DocumentTypes } from '@/types/document';
 import { useStockDashboardStats } from '@/hooks/use-stock';
+import { useEcheances, useSalesEcheances } from '@/hooks/use-payments';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ActivityLogSection } from '@/components/analytics/activity-log-section';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
@@ -89,6 +90,53 @@ export default function AnalyticsPage() {
   const [selectedStockSubCatId, setSelectedStockSubCatId] = useState<number | undefined>(undefined);
   
   const { data: stockStats } = useStockDashboardStats(stockSiteId);
+
+  // Future treasury coverage projection hooks & logic
+  const [projectionDays, setProjectionDays] = useState<60 | 90 | 120>(90);
+  const { data: purchaseEcheances = [], isLoading: loadingPurchases } = useEcheances(projectionDays);
+  const { data: salesEcheances = [], isLoading: loadingSales } = useSalesEcheances(projectionDays);
+
+  const futureTotals = React.useMemo(() => {
+    const purchasesTotal = purchaseEcheances.reduce((acc: number, curr: any) => acc + (curr.totalAmount || 0), 0);
+    const salesTotal = salesEcheances.reduce((acc: number, curr: any) => acc + (curr.totalAmount || 0), 0);
+    return {
+      purchases: purchasesTotal,
+      sales: salesTotal,
+      net: salesTotal - purchasesTotal
+    };
+  }, [purchaseEcheances, salesEcheances]);
+
+  const combinedEcheancesData = React.useMemo(() => {
+    const dataMap: Record<string, { dateLabel: string; dateObj: Date; purchases: number; sales: number }> = {};
+
+    purchaseEcheances.forEach((item: any) => {
+      const d = new Date(item.dueDate);
+      const key = d.toDateString();
+      const label = d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+      if (!dataMap[key]) {
+        dataMap[key] = { dateLabel: label, dateObj: d, purchases: 0, sales: 0 };
+      }
+      dataMap[key].purchases += Number(item.totalAmount || 0);
+    });
+
+    salesEcheances.forEach((item: any) => {
+      const d = new Date(item.dueDate);
+      const key = d.toDateString();
+      const label = d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+      if (!dataMap[key]) {
+        dataMap[key] = { dateLabel: label, dateObj: d, purchases: 0, sales: 0 };
+      }
+      dataMap[key].sales += Number(item.totalAmount || 0);
+    });
+
+    return Object.values(dataMap)
+      .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime())
+      .map((item) => ({
+        name: item.dateLabel,
+        purchases: item.purchases,
+        sales: item.sales,
+      }));
+  }, [purchaseEcheances, salesEcheances]);
 
   const { data: customers = [] } = useCustomers();
   const { data: suppliers = [] } = useSuppliers();
@@ -815,6 +863,171 @@ export default function AnalyticsPage() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-12">
+          {/* Future Treasury Coverage Projection Chart */}
+          <Card className="lg:col-span-12 border-corp-blue-100 rounded-2xl shadow-xl shadow-corp-blue-900/2 bg-white overflow-hidden">
+            <CardHeader className="p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <CardTitle className="text-2xl text-corp-blue-900 flex items-center gap-2">
+                  <TrendingUp className="w-6 h-6 text-corp-blue-600 animate-pulse" />
+                  Couverture de Trésorerie Future (Projection à Échéance)
+                </CardTitle>
+                <CardDescription className="text-sand-400 font-medium">
+                  Visualisation de la couverture des achats futurs (décaissements) par les règlements clients attendus (encaissements).
+                </CardDescription>
+              </div>
+              <div className="flex bg-sand-100/50 p-1 rounded-xl self-end sm:self-auto">
+                {([60, 90, 120] as const).map((days) => (
+                  <button
+                    key={days}
+                    onClick={() => setProjectionDays(days)}
+                    className={cn(
+                      "px-4 py-1.5 rounded-lg text-sm font-bold transition-all",
+                      projectionDays === days
+                        ? "bg-white text-corp-blue-900 shadow-sm"
+                        : "text-sand-500 hover:text-corp-blue-700"
+                    )}
+                  >
+                    {days} jours
+                  </button>
+                ))}
+              </div>
+            </CardHeader>
+            <CardContent className="p-8 pt-0 space-y-6">
+              {/* KPIs indicators */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-emerald-50/40 border border-emerald-100/60 rounded-2xl p-5 shadow-sm flex items-center gap-4 group hover:border-emerald-500/30 transition-all duration-300">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
+                    <ArrowUpRight className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
+                      Encaissements Prévus (Ventes)
+                    </span>
+                    <div className="flex items-baseline gap-1 mt-1">
+                      <span className="text-xl font-black font-mono text-emerald-800 tracking-tight">
+                        {formatCurrency(futureTotals.sales)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-amber-50/40 border border-amber-200/60 rounded-2xl p-5 shadow-sm flex items-center gap-4 group hover:border-amber-500/30 transition-all duration-300">
+                  <div className="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20">
+                    <ArrowDownRight className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
+                      Décaissements Prévus (Achats)
+                    </span>
+                    <div className="flex items-baseline gap-1 mt-1">
+                      <span className="text-xl font-black font-mono text-amber-800 tracking-tight">
+                        {formatCurrency(futureTotals.purchases)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={cn(
+                  "border rounded-2xl p-5 shadow-sm flex items-center gap-4 transition-all duration-300",
+                  futureTotals.net >= 0 
+                    ? "bg-teal-50/30 border-teal-100/60 hover:border-teal-500/30" 
+                    : "bg-rose-50/30 border-rose-100/60 hover:border-rose-500/30"
+                )}>
+                  <div className={cn(
+                    "w-12 h-12 rounded-xl text-white flex items-center justify-center shadow-md",
+                    futureTotals.net >= 0 
+                      ? "bg-teal-500 shadow-teal-500/20" 
+                      : "bg-rose-500 shadow-rose-500/20"
+                  )}>
+                    {futureTotals.net >= 0 ? <TrendingUp className="w-6 h-6" /> : <TrendingDown className="w-6 h-6" />}
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
+                      Solde Net Prévisionnel
+                    </span>
+                    <div className="flex items-baseline gap-1 mt-1">
+                      <span className={cn(
+                        "text-xl font-black font-mono tracking-tight",
+                        futureTotals.net >= 0 ? "text-teal-800" : "text-rose-800"
+                      )}>
+                        {formatCurrency(futureTotals.net)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Area Chart Container */}
+              <div className="h-[400px] w-full relative min-h-0">
+                {loadingPurchases || loadingSales ? (
+                  <div className="h-full w-full bg-corp-blue-50/30 animate-pulse rounded-2xl flex items-center justify-center">
+                    <span className="text-corp-blue-300 font-medium">Chargement des projections...</span>
+                  </div>
+                ) : combinedEcheancesData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                    <AreaChart data={combinedEcheancesData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorSalesProj" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="colorPurchProj" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.5} />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 11, fontWeight: 500}} dy={15} />
+                      <YAxis 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{fill: '#64748B', fontSize: 11, fontWeight: 500}}
+                        tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} 
+                        dx={-10}
+                      />
+                      <Tooltip 
+                        content={({ active, payload, label }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
+                                <p className="font-bold text-corp-blue-950 mb-3 border-b border-corp-blue-50 pb-2">Échéance du {label}</p>
+                                <div className="space-y-3">
+                                  {payload.map((entry: any, index: number) => (
+                                    <div key={index} className="flex flex-col gap-1">
+                                      <div className="flex items-center gap-2">
+                                        <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: entry.name === 'sales' ? '#10B981' : '#F59E0B' }} />
+                                        <span className="text-xs text-sand-500 font-medium">{entry.name === 'sales' ? 'Encaissements Clients' : 'Décaissements Achats'}</span>
+                                      </div>
+                                      <span className="font-black text-corp-blue-900 font-mono text-sm pl-4">{formatCurrency(Number(entry.value || 0))}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Legend 
+                        verticalAlign="top" 
+                        align="right" 
+                        iconType="circle" 
+                        wrapperStyle={{ paddingBottom: '20px' }}
+                        formatter={(value) => <span className="text-corp-blue-900 font-medium ml-1">{value === 'sales' ? 'Encaissements Clients' : 'Décaissements Achats'}</span>}
+                      />
+                      <Area type="monotone" dataKey="sales" name="sales" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorSalesProj)" />
+                      <Area type="monotone" dataKey="purchases" name="purchases" stroke="#F59E0B" strokeWidth={3} fillOpacity={1} fill="url(#colorPurchProj)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center bg-sand-50/50 border border-dashed border-sand-200 rounded-2xl text-sand-400 text-sm">
+                    Aucune projection d'échéance disponible.
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Supplier Purchases vs Payments Chart */}
           <Card className="lg:col-span-12 border-corp-blue-100 rounded-2xl shadow-xl shadow-corp-blue-900/2 bg-white overflow-hidden">
             <CardHeader className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
