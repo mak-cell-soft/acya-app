@@ -12,7 +12,8 @@ import {
   Trash2,
   CreditCard,
   History,
-  FileSearch
+  FileSearch,
+  Printer
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,8 +29,9 @@ import { BankFormDialog } from '@/components/settings/bank-form-dialog';
 import { PendingBordereauxSection } from '@/components/analytics/pending-bordereaux';
 import { PendingTraitesSection } from '@/components/accounting/pending-traites';
 import { InstrumentsTable } from '@/components/dashboard/instruments-table';
-import { useBankStatement } from '@/hooks/use-bank-transactions';
+import { useBankStatement, useBankDeposits } from '@/hooks/use-bank-transactions';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 
 const MONTHS = [
   'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
@@ -49,6 +51,7 @@ export function TreasuryDashboard() {
 
   // State to control deposit dialog
   const [isDepositDialogOpen, setIsDepositDialogOpen] = useState(false);
+  const [isPrintStatementOpen, setIsPrintStatementOpen] = useState(false);
 
   // Bank Management dialog state — null means "add new", object means "editing existing"
   const [isBankFormOpen, setIsBankFormOpen] = useState(false);
@@ -76,6 +79,21 @@ export function TreasuryDashboard() {
     statementYear,
     statementMonth
   );
+
+  const { data: bankDeposits = [], isLoading: isLoadingDeposits, refetch: refetchDeposits } = useBankDeposits(
+    statementBankId
+  );
+
+  const cashDepositsEspeces = useMemo(() => {
+    if (!bankDeposits) return [];
+    return bankDeposits.filter((d: any) => {
+      const typeUpper = d.depositType?.toUpperCase();
+      if (typeUpper !== 'ESPECE' && typeUpper !== 'CASH') return false;
+      if (!d.depositDate) return false;
+      const date = new Date(d.depositDate);
+      return date.getFullYear() === statementYear && (date.getMonth() + 1) === statementMonth;
+    });
+  }, [bankDeposits, statementYear, statementMonth]);
 
   const handleBankFormClose = () => {
     setIsBankFormOpen(false);
@@ -108,7 +126,10 @@ export function TreasuryDashboard() {
       refetchBanks();
       refetchMainCaisse();
       refetchSites();
-      if (statementBankId) refetchStatement();
+      if (statementBankId) {
+        refetchStatement();
+        refetchDeposits();
+      }
     }
   };
 
@@ -458,6 +479,16 @@ export function TreasuryDashboard() {
                     })}
                   </SelectContent>
                 </Select>
+
+                <Button
+                  onClick={() => setIsPrintStatementOpen(true)}
+                  variant="outline"
+                  className="h-9 px-3 gap-2 border-slate-200 font-bold text-xs"
+                  disabled={!bankStatement || isLoadingStatement}
+                >
+                  <Printer className="w-4 h-4 text-slate-650" />
+                  Imprimer
+                </Button>
               </div>
             </div>
 
@@ -500,10 +531,47 @@ export function TreasuryDashboard() {
                       </TableRow>
                     )}
 
+                    {/* Cash Deposits Rows */}
+                    {cashDepositsEspeces.length > 0 && (
+                      <>
+                        <TableRow className="bg-amber-100/10 hover:bg-amber-100/10">
+                          <TableCell colSpan={5} className="font-bold text-amber-800 text-[9px] uppercase tracking-wider py-1.5 px-4 border-y border-amber-200/30">
+                            Versements Espèces (Caisse → Banque)
+                          </TableCell>
+                        </TableRow>
+                        {cashDepositsEspeces.map((deposit: any) => (
+                          <TableRow key={`cash-${deposit.id}`} className="bg-amber-50/10 hover:bg-amber-50/20 transition-colors">
+                            <TableCell className="font-mono text-slate-500">
+                              {formatDate(deposit.depositDate)}
+                            </TableCell>
+                            <TableCell className="font-semibold text-slate-850">
+                              Versement Espèces {deposit.salesSiteName ? `(${deposit.salesSiteName})` : ''}
+                              {deposit.reference ? ` — Réf: ${deposit.reference}` : ''}
+                            </TableCell>
+                            <TableCell className="text-right font-mono">-</TableCell>
+                            <TableCell className="text-right font-mono font-bold text-emerald-600">
+                              {formatCurrency(deposit.amountHT)}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Badge className="bg-amber-500 hover:bg-amber-500 text-white font-bold text-[9px] uppercase tracking-wider px-1.5">
+                                Espèces
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow className="bg-slate-50/30 hover:bg-slate-50/30">
+                          <TableCell colSpan={5} className="font-bold text-slate-650 text-[9px] uppercase tracking-wider py-1.5 px-4 border-y border-slate-200/50">
+                            Mouvements Bancaires
+                          </TableCell>
+                        </TableRow>
+                      </>
+                    )}
+
+                    {/* Bank Transactions Rows */}
                     {bankStatement?.transactions.map((tx: any) => (
                       <TableRow key={tx.id} className="hover:bg-slate-50/60 transition-colors">
                         <TableCell className="font-mono text-slate-500">{formatDate(tx.transactionDate)}</TableCell>
-                        <TableCell className="font-semibold text-slate-800">{tx.description}</TableCell>
+                        <TableCell className="font-semibold text-slate-800">{tx.description} {tx.reference ? ` — Réf: ${tx.reference}` : ''}</TableCell>
                         <TableCell className="text-right font-mono font-bold text-rose-600">
                           {tx.credit > 0 ? formatCurrency(tx.credit) : '-'}
                         </TableCell>
@@ -522,7 +590,7 @@ export function TreasuryDashboard() {
                     ))}
 
                     {/* Empty State */}
-                    {bankStatement?.transactions.length === 0 && (
+                    {bankStatement?.transactions.length === 0 && cashDepositsEspeces.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={5} className="text-center py-6 text-slate-400 italic">
                           Aucune transaction enregistrée pour ce mois.
@@ -532,7 +600,9 @@ export function TreasuryDashboard() {
 
                     {/* Solde Final Row */}
                     {bankStatement && (() => {
+                      const totalCash = cashDepositsEspeces.reduce((acc: number, d: any) => acc + d.amountHT, 0);
                       const finalBalance = bankStatement.initialBalance 
+                        + totalCash
                         + bankStatement.transactions.reduce((acc: number, t: any) => acc + t.debit, 0)
                         - bankStatement.transactions.reduce((acc: number, t: any) => acc + t.credit, 0);
 
@@ -755,6 +825,20 @@ export function TreasuryDashboard() {
         onClose={handleBankFormClose}
         bank={selectedBank}
       />
+
+      {/* Print reconciliation statement dialog */}
+      {isPrintStatementOpen && (
+        <PrintVariantDialog
+          isOpen={isPrintStatementOpen}
+          onClose={() => setIsPrintStatementOpen(false)}
+          docType="bank-statement"
+          bankStatement={bankStatement}
+          cashDeposits={cashDepositsEspeces}
+          bank={banksList.find((b: any) => b.id === statementBankId) ?? null}
+          statementMonth={statementMonth}
+          statementYear={statementYear}
+        />
+      )}
     </div>
   );
 }

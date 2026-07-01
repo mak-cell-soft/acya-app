@@ -66,3 +66,14 @@ export const useDeleteBankTransaction = () => {
     },
   });
 };
+
+import { bankDepositService } from '@/services/treasury/bank-deposit.service';
+
+export const useBankDeposits = (bankId: number | null) => {
+  return useQuery({
+    queryKey: ['bank-deposits', bankId],
+    queryFn: () => bankDepositService.getBankDeposits(bankId!),
+    enabled: !!bankId,
+  });
+};
+

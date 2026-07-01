@@ -51,7 +51,17 @@ export function useSupplierPurchasePaymentChart(year: number, month?: number | '
           const cId = pay.customerId || pay.customerid || pay.CustomerId || pay.counterpartId || pay.counterpartid;
           if (cId !== s.id) return false;
           
-          const dateStr = pay.paymentDate || pay.paymentdate || pay.PaymentDate;
+          const docId = pay.documentId || pay.documentid || pay.DocumentId;
+          let dateStr = pay.paymentDate || pay.paymentdate || pay.PaymentDate;
+          
+          if (docId) {
+            // Attribute the payment to the month/year of the linked invoice
+            const linkedInvoice = (invoices || []).find((inv: any) => inv.id === docId);
+            if (linkedInvoice) {
+              dateStr = linkedInvoice.creationdate || linkedInvoice.creationDate || linkedInvoice.CreationDate;
+            }
+          }
+          
           if (!dateStr) return false;
           
           const date = new Date(dateStr);

@@ -72,7 +72,7 @@ const vehicleSchema = z.object({
     .min(1, 'La première partie est obligatoire')
     .regex(/^\d+$/, 'Doit être numérique'),
   serialnumber_serie: z.enum(['TU', 'RS']),
-  serialnumber_part2: z.string().optional().nullable().refine(val => !val || /^\d+$/.test(val), {
+  serialnumber_part2: z.string().optional().nullable().refine((val: string | null | undefined) => !val || /^\d+$/.test(val), {
     message: 'Doit être numérique',
   }),
   mileage: z.string().optional().nullable(),
@@ -118,7 +118,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
   // Filter conductors (role === 40). Fall back to all if none exist.
   const conductors = React.useMemo(() => {
     if (!persons) return [];
-    const filtered = persons.filter(p => p.role === 40);
+    const filtered = persons.filter((p: any) => p.role === 40);
     return filtered.length > 0 ? filtered : persons;
   }, [persons]);
 
@@ -254,7 +254,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
   const techVisitStatus = getDateStatusMessage(watchTechVisit);
 
   const toggleDrainingOption = (option: string, checked: boolean) => {
-    const currentOptions = watchDraining ? watchDraining.split(',').map(o => o.trim()).filter(Boolean) : [];
+    const currentOptions = watchDraining ? watchDraining.split(',').map((o: string) => o.trim()).filter(Boolean) : [];
     let updatedOptions = [...currentOptions];
 
     if (checked) {
@@ -262,14 +262,14 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
         updatedOptions.push(option);
       }
     } else {
-      updatedOptions = updatedOptions.filter(o => o !== option);
+      updatedOptions = updatedOptions.filter((o: string) => o !== option);
     }
 
     setValue('draining', updatedOptions.join(', '));
   };
 
   const isOptionSelected = (option: string) => {
-    const currentOptions = watchDraining ? watchDraining.split(',').map(o => o.trim()).filter(Boolean) : [];
+    const currentOptions = watchDraining ? watchDraining.split(',').map((o: string) => o.trim()).filter(Boolean) : [];
     return currentOptions.includes(option);
   };
 
@@ -355,7 +355,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 scrollbar-thin scrollbar-thumb-corp-blue-100">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 scrollbar-thin scrollbar-thumb-corp-blue-100">
           {/* Section 1: Informations Générales */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 border-b border-corp-blue-50 pb-2">
@@ -364,23 +364,24 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-              <div className="space-y-2 md:col-span-5">
+              {/* Marque & Modèle */}
+              <div className="space-y-2 md:col-span-4">
                 <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider">Marque & Modèle</Label>
                 <Input
                   {...register('brand')}
                   placeholder="Ex: Toyota Hilux"
-                  className="h-11 bg-sand-50/50 border-corp-blue-50 focus:ring-1 font-semibold"
+                  className="h-11 bg-sand-50/50 border-corp-blue-50 focus:ring-1 font-semibold text-corp-blue-900 shadow-sm"
                 />
                 {errors.brand && <p className="text-xs text-red-500 font-semibold mt-1">{errors.brand.message}</p>}
               </div>
 
               {/* Tunisian Unified License Plate Input Row */}
-              <div className="space-y-2 md:col-span-7">
+              <div className="space-y-2 md:col-span-5">
                 <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider block">
                   Immatriculation (Matricule Tunisien)
                 </Label>
 
-                <div className="grid grid-cols-12 gap-2 items-center bg-sand-50/20 p-1.5 rounded-2xl border border-corp-blue-50 shadow-inner">
+                <div className="grid grid-cols-12 gap-2 items-center bg-sand-50/20 p-1.5 rounded-xl border border-corp-blue-50 shadow-inner">
                   {/* Part 1 (Left Number) */}
                   <div className="col-span-4 relative">
                     <Input
@@ -389,7 +390,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                       placeholder={watchSerie === 'TU' ? "1234" : "123456"}
                       maxLength={watchSerie === 'TU' ? 4 : 6}
                       className={cn(
-                        "h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 font-black text-center text-lg bg-white shadow-sm",
+                        "h-11 rounded-lg border-corp-blue-50 focus:ring-corp-blue-600 font-black text-center text-lg bg-white shadow-sm",
                         errors.serialnumber_part1 && "border-red-300 focus:border-red-500 focus:ring-red-500"
                       )}
                     />
@@ -406,7 +407,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                         }
                       }}
                     >
-                      <SelectTrigger className="h-11 border-corp-blue-50 font-black text-center text-lg shadow-sm justify-center gap-1.5">
+                      <SelectTrigger className="h-11 border-corp-blue-50 font-black text-center text-lg shadow-sm justify-center gap-1.5 bg-white">
                         <SelectValue placeholder="Série" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-corp-blue-100">
@@ -425,12 +426,12 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                         placeholder="123"
                         maxLength={3}
                         className={cn(
-                          "h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 font-black text-center text-lg bg-white shadow-sm",
+                          "h-11 rounded-lg border-corp-blue-50 focus:ring-corp-blue-600 font-black text-center text-lg bg-white shadow-sm",
                           errors.serialnumber_part2 && "border-red-300 focus:border-red-500 focus:ring-red-500"
                         )}
                       />
                     ) : (
-                      <div className="h-11 rounded-xl bg-sand-100 border border-sand-200 text-sand-400 flex items-center justify-center text-xs font-bold select-none cursor-not-allowed">
+                      <div className="h-11 rounded-lg bg-sand-100 border border-sand-200 text-sand-400 flex items-center justify-center text-xs font-bold select-none cursor-not-allowed">
                         N/A (RS uniquement)
                       </div>
                     )}
@@ -453,17 +454,16 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                   </div>
                 )}
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+              {/* Kilométrage Actuel */}
+              <div className="space-y-2 md:col-span-3">
                 <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider">Kilométrage Actuel</Label>
                 <div className="relative">
                   <Input
                     {...register('mileage')}
                     type="number"
                     placeholder="Ex: 150000"
-                    className="h-11 bg-sand-50/50 border-corp-blue-50 pr-12 focus:ring-1 font-semibold"
+                    className="h-11 bg-sand-50/50 border-corp-blue-50 pr-12 focus:ring-1 font-semibold text-corp-blue-900 shadow-sm"
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-sand-400">km</span>
                 </div>
@@ -472,8 +472,8 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
           </div>
 
           {/* Section 2: Administrations & Maintenance */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-4 p-5 rounded-2xl bg-sand-50/30 border border-corp-blue-50/50">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4 p-5 rounded-xl bg-sand-50/30 border border-corp-blue-50/50">
               <div className="flex items-center gap-2 border-b border-corp-blue-50 pb-2">
                 <span className="p-1.5 bg-corp-blue-50 rounded-lg text-corp-blue-600"><Calendar className="w-4 h-4" /></span>
                 <h3 className="text-sm font-bold text-corp-blue-900 uppercase tracking-wider">Échéances Administratives</h3>
@@ -514,7 +514,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
               </div>
             </div>
 
-            <div className="space-y-4 p-5 rounded-2xl bg-sand-50/30 border border-corp-blue-50/50">
+            <div className="space-y-4 p-5 rounded-xl bg-sand-50/30 border border-corp-blue-50/50">
               <div className="flex items-center gap-2 border-b border-corp-blue-50 pb-2">
                 <span className="p-1.5 bg-corp-blue-50 rounded-lg text-corp-blue-600"><Droplets className="w-4 h-4" /></span>
                 <h3 className="text-sm font-bold text-corp-blue-900 uppercase tracking-wider">Maintenance (Vidange)</h3>
@@ -561,19 +561,17 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
               <h3 className="text-sm font-bold text-corp-blue-900 uppercase tracking-wider">Carte Carburant</h3>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-sand-50/20 p-6 rounded-xl border border-corp-blue-50/40 shadow-inner">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start bg-sand-50/20 p-6 rounded-xl border border-corp-blue-50/40 shadow-inner">
               {/* Form Input Fields */}
               <div className="lg:col-span-7 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider flex items-center gap-1.5">
-                      Type / Fournisseur
-                    </Label>
+                    <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider">Type / Fournisseur</Label>
                     <Select
                       value={watchFuelType || ""}
                       onValueChange={(val) => setValue('fuelcardtype', val)}
                     >
-                      <SelectTrigger className="h-11 border-corp-blue-50 font-semibold text-corp-blue-900 shadow-sm">
+                      <SelectTrigger className="h-11 border-corp-blue-50 bg-white font-semibold text-corp-blue-900 shadow-sm">
                         <SelectValue placeholder="Choisir la carte" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-corp-blue-100">
@@ -591,13 +589,13 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                     <Input
                       value={watchFuelEnterprise || ''}
                       readOnly
-                      className="h-11 bg-sand-100 cursor-not-allowed border-corp-blue-50 text-sand-500 font-bold"
+                      className="h-11 bg-sand-100 cursor-not-allowed border-corp-blue-50 text-sand-500 font-bold shadow-sm"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-12 gap-4">
-                  <div className="col-span-7 space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                  <div className="sm:col-span-7 space-y-2">
                     <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider flex items-center gap-1.5">
                       <User className="w-3.5 h-3.5 text-sand-400" /> Conducteur du Véhicule (Chauffeur)
                     </Label>
@@ -605,7 +603,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                       value={watchFuelConductor || ""}
                       onValueChange={(val) => setValue('fuelcardconductor', val)}
                     >
-                      <SelectTrigger className="h-11 border-corp-blue-50 font-semibold text-corp-blue-900 shadow-sm">
+                      <SelectTrigger className="h-11 border-corp-blue-50 bg-white font-semibold text-corp-blue-900 shadow-sm">
                         <SelectValue placeholder="Sélectionner un conducteur" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-corp-blue-100">
@@ -621,19 +619,19 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                     </Select>
                   </div>
 
-                  <div className="col-span-5 space-y-2">
+                  <div className="sm:col-span-5 space-y-2">
                     <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider flex items-center gap-1.5">
                       <CreditCard className="w-3.5 h-3.5 text-sand-400" /> Numéro de la Carte
                     </Label>
                     <Input
                       {...register('fuelcardnumber')}
                       placeholder="Ex: 1407 083580"
-                      className="h-11 border-corp-blue-50 focus:ring-1 font-semibold text-corp-blue-900 shadow-sm"
+                      className="h-11 border-corp-blue-50 bg-white focus:ring-1 font-semibold text-corp-blue-900 shadow-sm"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-xs font-bold text-sand-500 uppercase tracking-wider flex items-center gap-1.5">
                       <Hash className="w-3.5 h-3.5 text-sand-400" /> Matricule de la Carte
@@ -642,7 +640,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                       value={computedSerial || '---'}
                       readOnly
                       placeholder="Identique au matricule"
-                      className="h-11 bg-sand-100 cursor-not-allowed border-corp-blue-50 text-sand-500 font-mono font-bold"
+                      className="h-11 bg-sand-100 cursor-not-allowed border-corp-blue-50 text-sand-500 font-mono font-bold shadow-sm"
                     />
                   </div>
 
@@ -654,19 +652,19 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                       {...register('fuelcardamount', { valueAsNumber: true })}
                       type="number"
                       placeholder="Ex: 500"
-                      className="h-11 border-corp-blue-50 focus:ring-1 font-semibold text-corp-blue-900 shadow-sm"
+                      className="h-11 border-corp-blue-50 bg-white focus:ring-1 font-semibold text-corp-blue-900 shadow-sm"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Visual Credit Card Preview */}
-              <div className="lg:col-span-5 flex justify-center">
-                <div className={`w-80 h-48 ${currentCardStyle.bg} text-white rounded-2xl p-6 shadow-2xl relative overflow-hidden border ${currentCardStyle.border} flex flex-col justify-between transition-all duration-500`}>
+              <div className="lg:col-span-5 flex justify-center w-full">
+                <div className={cn("w-full max-w-sm sm:w-80 h-48 text-white rounded-2xl p-6 shadow-2xl relative overflow-hidden border flex flex-col justify-between transition-all duration-500", currentCardStyle.bg, currentCardStyle.border)}>
                   {/* Brand Top Area */}
                   <div className="flex justify-between items-start">
                     {/* Chip */}
-                    <div className={`w-10 h-8 bg-gradient-to-r ${currentCardStyle.chip} rounded-lg flex flex-col justify-around p-1 shadow-inner`}>
+                    <div className={cn("w-10 h-8 bg-gradient-to-r rounded-lg flex flex-col justify-around p-1 shadow-inner", currentCardStyle.chip)}>
                       <div className="w-full h-[1px] bg-amber-800/20"></div>
                       <div className="w-full h-[1px] bg-amber-800/20"></div>
                       <div className="w-full h-[1px] bg-amber-800/20"></div>
@@ -685,13 +683,13 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
                   {/* Card Details */}
                   <div className="flex justify-between items-end relative z-10 mt-4">
                     <div className="space-y-1">
-                      <p className={`text-[0.65rem] font-medium ${currentCardStyle.textMuted} uppercase tracking-widest leading-none`}>Entreprise</p>
+                      <p className={cn("text-[0.65rem] font-medium uppercase tracking-widest leading-none", currentCardStyle.textMuted)}>Entreprise</p>
                       <p className="text-xs font-bold tracking-wide uppercase truncate max-w-[150px]">
                         {watchFuelEnterprise}
                       </p>
                     </div>
                     <div className="space-y-1 text-right">
-                      <p className={`text-[0.65rem] font-medium ${currentCardStyle.textMuted} uppercase tracking-widest leading-none`}>N° Carte</p>
+                      <p className={cn("text-[0.65rem] font-medium uppercase tracking-widest leading-none", currentCardStyle.textMuted)}>N° Carte</p>
                       <p className="text-xs font-mono font-bold tracking-wider">
                         {watchFuelNumber || '•••• •••• •••• ••••'}
                       </p>
@@ -700,21 +698,21 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
 
                   <div className="flex justify-between items-end mt-auto pt-2">
                     <div className="space-y-0.5">
-                      <p className={`text-[0.55rem] font-medium ${currentCardStyle.textMuted} uppercase tracking-wider leading-none`}>Chauffeur</p>
+                      <p className={cn("text-[0.55rem] font-medium uppercase tracking-wider leading-none", currentCardStyle.textMuted)}>Chauffeur</p>
                       <p className="text-[0.7rem] font-bold uppercase tracking-wide truncate max-w-[140px]">
                         {watchFuelConductor || '---'}
                       </p>
                     </div>
 
                     <div className="space-y-0.5 text-right">
-                      <p className={`text-[0.55rem] font-medium ${currentCardStyle.textMuted} uppercase tracking-wider leading-none`}>Matricule</p>
+                      <p className={cn("text-[0.55rem] font-medium uppercase tracking-wider leading-none", currentCardStyle.textMuted)}>Matricule</p>
                       <p className="text-[0.7rem] font-mono font-bold tracking-wider truncate max-w-[90px]">
                         {computedSerial || 'VEH MATRICULE'}
                       </p>
                     </div>
 
                     <div className="space-y-0.5 text-right pl-2">
-                      <p className={`text-[0.55rem] font-medium ${currentCardStyle.textMuted} uppercase tracking-wider leading-none`}>Solde</p>
+                      <p className={cn("text-[0.55rem] font-medium uppercase tracking-wider leading-none", currentCardStyle.textMuted)}>Solde</p>
                       <p className="text-[0.75rem] font-bold text-amber-200">
                         {watchFuelAmount !== null && watchFuelAmount !== undefined ? `${watchFuelAmount.toLocaleString()} TND` : '--- TND'}
                       </p>
@@ -730,24 +728,23 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
           </div>
 
           {/* Dialog Action Buttons */}
-          <div className="flex gap-3 pt-6 border-t border-corp-blue-50 shrink-0">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-6 border-t border-corp-blue-50 shrink-0">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1 h-12 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50"
+              className="h-11 px-6 font-bold text-slate-500 hover:bg-slate-50 border-slate-200 rounded-xl"
             >
               Annuler
             </Button>
             <Button
               disabled={loading}
-              className="flex-[2] h-12 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20"
+              className="h-11 px-8 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20 rounded-xl"
             >
               {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                isEditMode ? 'Enregistrer les modifications' : 'Ajouter le véhicule'
-              )}
+                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+              ) : null}
+              {isEditMode ? 'Enregistrer les modifications' : 'Ajouter le véhicule'}
             </Button>
           </div>
         </form>

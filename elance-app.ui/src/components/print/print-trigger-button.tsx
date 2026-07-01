@@ -30,6 +30,8 @@ import { Leave, Payslip, Advance } from '@/types/hr';
 import { AccountStatementStandard } from './account-statement-standard';
 import { AccountStatement, Customer, Supplier } from '@/types/customer';
 import { DocumentListStandard } from './document-list-standard';
+import { BankStatementStandard } from './bank-statement-standard';
+import { BankStatementLight } from './bank-statement-light';
 
 interface PrintVariantDialogProps {
   isOpen: boolean;
@@ -49,7 +51,12 @@ interface PrintVariantDialogProps {
   documentsList?: Document[];
   listTitle?: string;
   listContext?: 'sales' | 'purchases';
-  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | 'document-list' | null | undefined;
+  bankStatement?: any;
+  cashDeposits?: any[];
+  bank?: any;
+  statementMonth?: number;
+  statementYear?: number;
+  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | 'document-list' | 'bank-statement' | null | undefined;
 }
 
 export function PrintVariantDialog({
@@ -70,6 +77,11 @@ export function PrintVariantDialog({
   documentsList,
   listTitle,
   listContext,
+  bankStatement,
+  cashDeposits,
+  bank,
+  statementMonth,
+  statementYear,
   docType,
 }: PrintVariantDialogProps) {
   // Retrieve the connected enterprise settings dynamically.
@@ -93,6 +105,7 @@ export function PrintVariantDialog({
     docType !== 'customer-statement' &&
     docType !== 'supplier-statement' &&
     docType !== 'document-list' &&
+    docType !== 'bank-statement' &&
     (!document || !docType)
   ) return null;
   if (docType === 'transfer' && !transfer) return null;
@@ -101,6 +114,7 @@ export function PrintVariantDialog({
   if (docType === 'payslip' && (!payslip || !employee)) return null;
   if ((docType === 'customer-statement' || docType === 'supplier-statement') && (!statement || !counterpart || !periodStart || !periodEnd || !statementType)) return null;
   if (docType === 'document-list' && (!documentsList || !listTitle || !listContext)) return null;
+  if (docType === 'bank-statement' && !bankStatement) return null;
 
   /**
    * Executes the print flow by generating markup, injecting it into a hidden iframe,
@@ -195,6 +209,30 @@ export function PrintVariantDialog({
             enterprise={enterprise}
           />
         );
+      } else if (docType === 'bank-statement' && bankStatement) {
+        printDocNumber = `RAPPROCHEMENT-${bank?.designation || 'BANQUE'}-${statementMonth}-${statementYear}`;
+        styleCss = variant === 'standard' ? getStandardPrintStyles() : getLightPrintStyles();
+        contentHtml = renderToStaticMarkup(
+          variant === 'standard' ? (
+            <BankStatementStandard
+              statement={bankStatement}
+              cashDeposits={cashDeposits || []}
+              bank={bank}
+              month={statementMonth || 1}
+              year={statementYear || new Date().getFullYear()}
+              enterprise={enterprise}
+            />
+          ) : (
+            <BankStatementLight
+              statement={bankStatement}
+              cashDeposits={cashDeposits || []}
+              bank={bank}
+              month={statementMonth || 1}
+              year={statementYear || new Date().getFullYear()}
+              enterprise={enterprise}
+            />
+          )
+        );
       }
 
       // 2. Create a temporary hidden iframe to isolate print styles from the main Next.js layout
@@ -274,6 +312,8 @@ export function PrintVariantDialog({
                 ? (transfer?.docSortie || 'Brouillon')
                 : docType === 'payslip'
                 ? `Bulletin ${payslip?.periodmonth}/${payslip?.periodyear}`
+                : docType === 'bank-statement'
+                ? `Rapprochement ${bank?.designation || ''}`
                 : (document?.docnumber || 'Brouillon')}
             </span>
           </DialogDescription>
