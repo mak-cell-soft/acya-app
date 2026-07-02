@@ -249,108 +249,116 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           )}
         >
           <AlertDialog>
-            <AlertDialogTrigger
+<AlertDialogTrigger
               className={cn(
                 'flex items-center group text-left outline-none w-full',
-                isCollapsed ? 'justify-center' : 'gap-4'
+                isCollapsed ? 'justify-center' : (logoUrl ? 'justify-center' : 'gap-4')
               )}
             >
-              {/* Logo hexagon cluster */}
-              {/* Logo hexagon cluster / Custom Logo */}
-              <div className="relative group-hover:scale-110 transition-transform duration-500 shrink-0">
-                {logoUrl ? (
+              {logoUrl ? (
+                <div className="relative group-hover:scale-105 transition-transform duration-500 w-full flex justify-center">
                   <img
                     src={logoUrl}
                     alt={user?.enterpriseName || "Logo"}
-                    className="w-10 h-10 md:w-11 md:h-11 object-contain rounded-lg shadow-sm"
-                  />
-                ) : (
-                  <svg
-                    className="w-10 h-10 md:w-11 md:h-11 transition-transform duration-700 group-hover:scale-105"
-                    viewBox="0 0 40 40"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <defs>
-                      {/* WHY: Depot uses amber/orange gradients to clearly signal the
-                               different site mode at a glance. Sale site keeps corp-blue. */}
-                      {isDepot ? (
-                        <>
-                          <linearGradient id="logo_grad_1" x1="0" y1="0" x2="40" y2="40">
-                            <stop offset="0%" stopColor="#FCD34D" />
-                            <stop offset="100%" stopColor="#F59E0B" />
-                          </linearGradient>
-                          <linearGradient id="logo_grad_2" x1="0" y1="0" x2="40" y2="40">
-                            <stop offset="0%" stopColor="#F59E0B" />
-                            <stop offset="100%" stopColor="#D97706" />
-                          </linearGradient>
-                          <linearGradient id="logo_grad_3" x1="0" y1="0" x2="40" y2="40">
-                            <stop offset="0%" stopColor="#D97706" />
-                            <stop offset="100%" stopColor="#B45309" />
-                          </linearGradient>
-                        </>
-                      ) : (
-                        <>
-                          <linearGradient id="logo_grad_1" x1="0" y1="0" x2="40" y2="40">
-                            <stop offset="0%" stopColor="#60A5FA" />
-                            <stop offset="100%" stopColor="#3B82F6" />
-                          </linearGradient>
-                          <linearGradient id="logo_grad_2" x1="0" y1="0" x2="40" y2="40">
-                            <stop offset="0%" stopColor="#3B82F6" />
-                            <stop offset="100%" stopColor="#2563EB" />
-                          </linearGradient>
-                          <linearGradient id="logo_grad_3" x1="0" y1="0" x2="40" y2="40">
-                            <stop offset="0%" stopColor="#2563EB" />
-                            <stop offset="100%" stopColor="#1D4ED8" />
-                          </linearGradient>
-                        </>
-                      )}
-                    </defs>
-                    <path d="M 20 3 L 27.79 7.5 L 27.79 16.5 L 20 21 L 12.21 16.5 L 12.21 7.5 Z" fill="url(#logo_grad_1)" />
-                    <path d="M 11.34 18 L 19.13 22.5 L 19.13 31.5 L 11.34 36 L 3.55 31.5 L 3.55 22.5 Z" fill="url(#logo_grad_2)" />
-                    <path d="M 28.66 18 L 36.45 22.5 L 36.45 31.5 L 28.66 36 L 20.87 31.5 L 20.87 22.5 Z" fill="url(#logo_grad_3)" />
-                  </svg>
-                )}
-              </div>
-
-              {!isCollapsed && (
-                <div className="flex flex-col items-start justify-center gap-1.5 overflow-hidden">
-                  <span className="text-[1.65rem] font-extrabold text-slate-900 tracking-tight leading-none mt-0.5 truncate w-full">
-                    Élancé
-                  </span>
-                  <div
                     className={cn(
-                      'flex items-center gap-1.5 px-2.5 py-1 rounded-md border transition-colors shadow-sm whitespace-nowrap',
-                      isDepot
-                        ? 'bg-amber-100/50 border-amber-200/60 group-hover:bg-amber-200/50'
-                        : 'bg-corp-blue-100/50 border-corp-blue-200/60 group-hover:bg-corp-blue-200/50'
+                      'object-contain rounded-lg transition-all duration-300',
+                      isCollapsed 
+                        ? 'w-10 h-10 md:w-11 md:h-11 shadow-sm' 
+                        : 'max-h-16 max-w-full shadow-sm'
                     )}
-                  >
-                    <span
-                      className={cn(
-                        'w-1.5 h-1.5 rounded-full shadow-[0_0_4px_rgba(16,185,129,0.5)] animate-pulse shrink-0',
-                        isDepot ? 'bg-amber-500' : 'bg-emerald-500'
-                      )}
-                    />
-                    <span
-                      className={cn(
-                        'text-[0.6rem] font-extrabold uppercase tracking-[0.15em] leading-none',
-                        isDepot ? 'text-amber-800' : 'text-corp-blue-800'
-                      )}
+                  />
+                </div>
+              ) : (
+                <>
+                  {/* Logo hexagon cluster */}
+                  <div className="relative group-hover:scale-110 transition-transform duration-500 shrink-0">
+                    <svg
+                      className="w-10 h-10 md:w-11 md:h-11 transition-transform duration-700 group-hover:scale-105"
+                      viewBox="0 0 40 40"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
                     >
-                      {user?.enterpriseName || 'Entreprise'}
-                    </span>
+                      <defs>
+                        {/* WHY: Depot uses amber/orange gradients to clearly signal the
+                                 different site mode at a glance. Sale site keeps corp-blue. */}
+                        {isDepot ? (
+                          <>
+                            <linearGradient id="logo_grad_1" x1="0" y1="0" x2="40" y2="40">
+                              <stop offset="0%" stopColor="#FCD34D" />
+                              <stop offset="100%" stopColor="#F59E0B" />
+                            </linearGradient>
+                            <linearGradient id="logo_grad_2" x1="0" y1="0" x2="40" y2="40">
+                              <stop offset="0%" stopColor="#F59E0B" />
+                              <stop offset="100%" stopColor="#D97706" />
+                            </linearGradient>
+                            <linearGradient id="logo_grad_3" x1="0" y1="0" x2="40" y2="40">
+                              <stop offset="0%" stopColor="#D97706" />
+                              <stop offset="100%" stopColor="#B45309" />
+                            </linearGradient>
+                          </>
+                        ) : (
+                          <>
+                            <linearGradient id="logo_grad_1" x1="0" y1="0" x2="40" y2="40">
+                              <stop offset="0%" stopColor="#60A5FA" />
+                              <stop offset="100%" stopColor="#3B82F6" />
+                            </linearGradient>
+                            <linearGradient id="logo_grad_2" x1="0" y1="0" x2="40" y2="40">
+                              <stop offset="0%" stopColor="#3B82F6" />
+                              <stop offset="100%" stopColor="#2563EB" />
+                            </linearGradient>
+                            <linearGradient id="logo_grad_3" x1="0" y1="0" x2="40" y2="40">
+                              <stop offset="0%" stopColor="#2563EB" />
+                              <stop offset="100%" stopColor="#1D4ED8" />
+                            </linearGradient>
+                          </>
+                        )}
+                      </defs>
+                      <path d="M 20 3 L 27.79 7.5 L 27.79 16.5 L 20 21 L 12.21 16.5 L 12.21 7.5 Z" fill="url(#logo_grad_1)" />
+                      <path d="M 11.34 18 L 19.13 22.5 L 19.13 31.5 L 11.34 36 L 3.55 31.5 L 3.55 22.5 Z" fill="url(#logo_grad_2)" />
+                      <path d="M 28.66 18 L 36.45 22.5 L 36.45 31.5 L 28.66 36 L 20.87 31.5 L 20.87 22.5 Z" fill="url(#logo_grad_3)" />
+                    </svg>
                   </div>
 
-                  {/* WHY: Explicit "DÉPÔT" badge so the user always knows which
-                           mode they're in — especially useful on multi-site setups. */}
-                  {isDepot && (
-                    <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500 text-white text-[0.55rem] font-black uppercase tracking-widest shadow-sm">
-                      <Warehouse className="w-2.5 h-2.5" />
-                      Dépôt
+                  {!isCollapsed && (
+                    <div className="flex flex-col items-start justify-center gap-1.5 overflow-hidden">
+                      <span className="text-[1.65rem] font-extrabold text-slate-900 tracking-tight leading-none mt-0.5 truncate w-full">
+                        Élancé
+                      </span>
+                      <div
+                        className={cn(
+                          'flex items-center gap-1.5 px-2.5 py-1 rounded-md border transition-colors shadow-sm whitespace-nowrap',
+                          isDepot
+                            ? 'bg-amber-100/50 border-amber-200/60 group-hover:bg-amber-200/50'
+                            : 'bg-corp-blue-100/50 border-corp-blue-200/60 group-hover:bg-corp-blue-200/50'
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            'w-1.5 h-1.5 rounded-full shadow-[0_0_4px_rgba(16,185,129,0.5)] animate-pulse shrink-0',
+                            isDepot ? 'bg-amber-500' : 'bg-emerald-500'
+                          )}
+                        />
+                        <span
+                          className={cn(
+                            'text-[0.6rem] font-extrabold uppercase tracking-[0.15em] leading-none',
+                            isDepot ? 'text-amber-800' : 'text-corp-blue-800'
+                          )}
+                        >
+                          {user?.enterpriseName || 'Entreprise'}
+                        </span>
+                      </div>
+
+                      {/* WHY: Explicit "DÉPÔT" badge so the user always knows which
+                               mode they're in — especially useful on multi-site setups. */}
+                      {isDepot && (
+                        <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500 text-white text-[0.55rem] font-black uppercase tracking-widest shadow-sm">
+                          <Warehouse className="w-2.5 h-2.5" />
+                          Dépôt
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
+                </>
               )}
             </AlertDialogTrigger>
 
