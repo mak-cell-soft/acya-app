@@ -3,16 +3,19 @@ import { Person, ROLE_LABELS } from '@/types/team';
 import { Advance } from '@/types/hr';
 import { Enterprise } from '@/types/settings';
 import templates from '@/locales/hr-print-templates.json';
-import ar from '@/locales/print-ar.json';
+import defaultAr from '@/locales/print-ar.json';
+import { PrintLocale } from '@/hooks/use-print-locale';
 import { numberToFrenchWords } from '@/lib/number-to-words';
 
 interface AdvanceStandardProps {
   employee: Person;
   advance: Advance;
   enterprise: Enterprise;
+  printLocale?: PrintLocale;
 }
 
-export function AdvanceStandard({ employee, advance, enterprise }: AdvanceStandardProps) {
+export function AdvanceStandard({ employee, advance, enterprise, printLocale }: AdvanceStandardProps) {
+  const ar = printLocale || defaultAr;
   // Token formatting helper to dynamically populate template paragraphs
   const formatText = (template: string) => {
     if (!template) return '';
@@ -131,7 +134,7 @@ export function AdvanceStandard({ employee, advance, enterprise }: AdvanceStanda
         <div className="arabic-info">
           <p className="arabic-text">{ar.companyArabicName}</p>
           <p className="arabic-text">
-            {enterprise.capital ? `شركة خفية الإسم رأس مالها ${enterprise.capital}` : ar.companyArabicCapital}
+            {ar.companyArabicCapital}
           </p>
           <p className="arabic-details">{ar.companyArabicAddress}</p>
         </div>

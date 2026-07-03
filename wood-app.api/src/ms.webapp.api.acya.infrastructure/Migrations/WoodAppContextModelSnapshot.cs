@@ -171,6 +171,10 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                         .HasColumnType("numeric(19,4)")
                         .HasColumnName("value");
 
+                    b.Property<string>("ValueText")
+                        .HasColumnType("text")
+                        .HasColumnName("valuetext");
+
                     b.Property<bool?>("isActive")
                         .HasColumnType("boolean")
                         .HasColumnName("isactive");

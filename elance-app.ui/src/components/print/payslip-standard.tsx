@@ -3,13 +3,15 @@ import { Person, ROLE_LABELS } from '@/types/team';
 import { Payslip } from '@/types/hr';
 import { Enterprise } from '@/types/settings';
 import templates from '@/locales/hr-print-templates.json';
-import ar from '@/locales/print-ar.json';
+import defaultAr from '@/locales/print-ar.json';
+import { PrintLocale } from '@/hooks/use-print-locale';
 import { numberToFrenchWords } from '@/lib/number-to-words';
 
 interface PayslipStandardProps {
   employee: Person;
   payslip: Payslip;
   enterprise: Enterprise;
+  printLocale?: PrintLocale;
 }
 
 const MONTHS_FR = [
@@ -17,7 +19,8 @@ const MONTHS_FR = [
   'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
 ];
 
-export function PayslipStandard({ employee, payslip, enterprise }: PayslipStandardProps) {
+export function PayslipStandard({ employee, payslip, enterprise, printLocale }: PayslipStandardProps) {
+  const ar = printLocale || defaultAr;
   const monthName = MONTHS_FR[(payslip.periodmonth || 1) - 1];
   const netWords = numberToFrenchWords(payslip.netsalary);
   
@@ -148,7 +151,7 @@ export function PayslipStandard({ employee, payslip, enterprise }: PayslipStanda
         <div className="arabic-info">
           <p className="arabic-text">{ar.companyArabicName}</p>
           <p className="arabic-text">
-            {enterprise.capital ? `شركة خفية الإسم رأس مالها ${enterprise.capital}` : ar.companyArabicCapital}
+            {ar.companyArabicCapital}
           </p>
           <p className="arabic-details">{ar.companyArabicAddress}</p>
         </div>

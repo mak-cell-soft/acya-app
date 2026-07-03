@@ -2,21 +2,25 @@ import React from 'react';
 import { Document } from '@/types/document';
 import { Enterprise } from '@/types/settings';
 import * as utils from './print-utils';
-import ar from '@/locales/print-ar.json';
+import defaultAr from '@/locales/print-ar.json';
+import { PrintLocale } from '@/hooks/use-print-locale';
 
 interface DocumentListStandardProps {
   documentsList: Document[];
   listTitle: string;
   listContext: 'sales' | 'purchases';
   enterprise: Enterprise;
+  printLocale?: PrintLocale;
 }
 
 export function DocumentListStandard({
   documentsList,
   listTitle,
   listContext,
-  enterprise
+  enterprise,
+  printLocale
 }: DocumentListStandardProps) {
+  const ar = printLocale || defaultAr;
   // Aggregate totals
   const totalHT = documentsList.reduce((sum, doc) => sum + (doc.total_ht_net_doc || 0), 0);
   const totalTTC = documentsList.reduce((sum, doc) => sum + (doc.total_net_ttc || 0), 0);
@@ -69,7 +73,7 @@ export function DocumentListStandard({
         <div className="arabic-info">
           <p className="arabic-text">{ar.companyArabicName}</p>
           <p className="arabic-text">
-            {enterprise.capital ? `شركة خفية الإسم رأس مالها ${enterprise.capital}` : ar.companyArabicCapital}
+            {ar.companyArabicCapital}
           </p>
           <p className="arabic-details">{ar.companyArabicAddress}</p>
         </div>

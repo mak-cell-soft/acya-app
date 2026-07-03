@@ -71,7 +71,87 @@ namespace ms.webapp.api.acya.api.Controllers.AppConfiguration
       return NotFound();
     }
 
+    [HttpGet("impression")]
+    public async Task<ActionResult> GetImpression()
+    {
+      var impressionVar = await _repository.GetImpressionAsync();
+      if (impressionVar == null || string.IsNullOrEmpty(impressionVar.ValueText))
+      {
+        return Content(DefaultPrintLocaleJson, "application/json");
+      }
+      return Content(impressionVar.ValueText, "application/json");
+    }
 
+    [HttpPut("impression")]
+    public async Task<ActionResult> PutImpression([FromBody] System.Text.Json.JsonElement body)
+    {
+      var rawJson = body.GetRawText();
+      var impressionVar = await _repository.GetImpressionAsync();
+      if (impressionVar == null)
+      {
+        impressionVar = new AppVariable
+        {
+          Nature = "Impression",
+          Name = "print-locale",
+          ValueText = rawJson,
+          isActive = true,
+          isDefault = false,
+          isEditable = true,
+          isDeleted = false
+        };
+        await _repository.Add(impressionVar);
+      }
+      else
+      {
+        impressionVar.ValueText = rawJson;
+        await _repository.Update(impressionVar);
+      }
+      return Ok(new { success = true });
+    }
+
+    private const string DefaultPrintLocaleJson = @"{
+  ""originalLabel"": {
+    ""bl"": ""ORIGINAL CLIENT"",
+    ""invoice"": ""FACTURE ORIGINAL""
+  },
+  ""originalLabelTransfer"": ""TRANSFERT STOCK"",
+  ""companyArabicName"": ""الشركة التجارية للحديد و الخشب"",
+  ""companyArabicCapital"": ""شركة خفية الإسم رأس مالها 20.000 د.ت"",
+  ""companyArabicAddress"": ""مقرها الاجتماعي: طريق رواد كلم 4 اريانة"",
+  ""labels"": {
+    ""client"": ""Client :"",
+    ""address"": ""Adresse :"",
+    ""tvaCode"": ""Code TVA :"",
+    ""date"": ""DATE"",
+    ""docNumberBL"": ""N° BL"",
+    ""docNumberInvoice"": ""N° BL/FAC"",
+    ""accountNumber"": ""N° COMPTE"",
+    ""designations"": ""DESIGNATIONS"",
+    ""unit"": ""UN"",
+    ""qty"": ""QTE"",
+    ""unitPriceHT"": ""P.U.H.T"",
+    ""tva"": ""TVA"",
+    ""discount"": ""RM"",
+    ""amountHT"": ""MONTANT HT"",
+    ""taxe"": ""Taxe"",
+    ""base"": ""Base"",
+    ""percent"": ""%"",
+    ""value"": ""Valeur"",
+    ""arreteLaSomme"": ""ARRETE LA PRESENTE A LA SOMME DE :"",
+    ""totalHT"": ""TOTAL H.T.V.A"",
+    ""totalTVA"": ""TOTAL TVA"",
+    ""totalTTC"": ""TOTAL TTC"",
+    ""stampTax"": ""TIMBRE FISCAL"",
+    ""withholdingTax"": ""RETENUE SOURCE"",
+    ""netPayable"": ""NET A PAYER"",
+    ""signClient"": ""SIGN. CLIENT"",
+    ""truckNumber"": ""N° CAMION"",
+    ""driverName"": ""NOM CHAUFFEUR"",
+    ""cin"": ""C.I.N :"",
+    ""controlBL"": ""CONTROL BL"",
+    ""controlExit"": ""CONTROL SORTIE""
+  }
+}";
   }
 }
  

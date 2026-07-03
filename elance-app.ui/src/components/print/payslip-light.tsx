@@ -3,13 +3,15 @@ import { Person, ROLE_LABELS } from '@/types/team';
 import { Payslip } from '@/types/hr';
 import { Enterprise } from '@/types/settings';
 import templates from '@/locales/hr-print-templates.json';
-import ar from '@/locales/print-ar.json';
+import defaultAr from '@/locales/print-ar.json';
+import { PrintLocale } from '@/hooks/use-print-locale';
 import { numberToFrenchWords } from '@/lib/number-to-words';
 
 interface PayslipLightProps {
   employee: Person;
   payslip: Payslip;
   enterprise: Enterprise;
+  printLocale?: PrintLocale;
 }
 
 const MONTHS_FR = [
@@ -17,7 +19,8 @@ const MONTHS_FR = [
   'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
 ];
 
-export function PayslipLight({ employee, payslip, enterprise }: PayslipLightProps) {
+export function PayslipLight({ employee, payslip, enterprise, printLocale }: PayslipLightProps) {
+  const ar = printLocale || defaultAr;
   const monthName = MONTHS_FR[(payslip.periodmonth || 1) - 1];
   const netWords = numberToFrenchWords(payslip.netsalary);
   

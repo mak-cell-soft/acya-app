@@ -2,15 +2,18 @@ import React from 'react';
 import { Document } from '@/types/document';
 import { Enterprise } from '@/types/settings';
 import { numberToFrenchWords } from '@/lib/number-to-words';
-import ar from '@/locales/print-ar.json';
+import defaultAr from '@/locales/print-ar.json';
+import { PrintLocale } from '@/hooks/use-print-locale';
 import * as utils from './print-utils';
 
 interface DeliveryNoteLightProps {
   document: Document;
   enterprise: Enterprise;
+  printLocale?: PrintLocale;
 }
 
-export function DeliveryNoteLight({ document, enterprise }: DeliveryNoteLightProps) {
+export function DeliveryNoteLight({ document, enterprise, printLocale }: DeliveryNoteLightProps) {
+  const ar = printLocale || defaultAr;
   const amountInWords = numberToFrenchWords(document?.total_net_ttc || 0);
 
   return (

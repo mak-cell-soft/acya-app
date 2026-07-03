@@ -1,16 +1,19 @@
 import React from 'react';
 import { StockTransferInfo, StockTransferDetails } from '@/types/stock';
 import { Enterprise } from '@/types/settings';
-import ar from '@/locales/print-ar.json';
+import defaultAr from '@/locales/print-ar.json';
+import { PrintLocale } from '@/hooks/use-print-locale';
 import * as utils from './print-utils';
 
 interface StockTransferStandardProps {
   transfer: StockTransferInfo;
   details: StockTransferDetails[];
   enterprise: Enterprise;
+  printLocale?: PrintLocale;
 }
 
-export function StockTransferStandard({ transfer, details, enterprise }: StockTransferStandardProps) {
+export function StockTransferStandard({ transfer, details, enterprise, printLocale }: StockTransferStandardProps) {
+  const ar = printLocale || defaultAr;
   // Pad the items table with empty rows to match the A4 print height standard.
   const rowCount = details?.length || 0;
   const paddingCount = Math.max(0, 15 - rowCount);
@@ -71,7 +74,7 @@ export function StockTransferStandard({ transfer, details, enterprise }: StockTr
         <div className="arabic-info">
           <p className="arabic-text">{ar.companyArabicName}</p>
           <p className="arabic-text">
-            {enterprise.capital ? `شركة خفية الإسم رأس مالها ${enterprise.capital}` : ar.companyArabicCapital}
+            {ar.companyArabicCapital}
           </p>
           <p className="arabic-details">{ar.companyArabicAddress}</p>
           <h3 className="original-label">{ar.originalLabelTransfer}</h3>

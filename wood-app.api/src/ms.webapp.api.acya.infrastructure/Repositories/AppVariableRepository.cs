@@ -33,5 +33,11 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       return await context.AppVariables
           .FirstOrDefaultAsync(av => av.Nature == nature && av.Name!.StartsWith(prefix) && av.isDeleted == false);
     }
+
+    public async Task<AppVariable?> GetImpressionAsync()
+    {
+      return await context.AppVariables
+          .FirstOrDefaultAsync(av => av.Nature == "Impression" && av.isDeleted == false);
+    }
   }
 }

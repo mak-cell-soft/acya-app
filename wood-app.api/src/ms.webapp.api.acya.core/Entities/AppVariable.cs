@@ -9,6 +9,7 @@ namespace ms.webapp.api.acya.core.Entities
     public string? Nature { get; set; }
     public string? Name { get; set; }
     public double? Value { get; set; }
+    public string? ValueText { get; set; }
     public bool? isActive { get; set; }
     public bool? isDefault { get; set; }
     public bool? isEditable { get; set; }
@@ -23,10 +24,11 @@ namespace ms.webapp.api.acya.core.Entities
 
     public void UpdateFromDto(AppVariableDto dto)
     {
-      Id = (int)dto.id!;
+      Id = dto.id ?? 0;
       Nature = dto.nature;
       Name = dto.name!;
       Value = dto.GetFormattedValue();
+      ValueText = dto.valuetext;
       isActive = dto.isactive;
       isDefault = dto.isdefault;
       isEditable = dto.iseditable;

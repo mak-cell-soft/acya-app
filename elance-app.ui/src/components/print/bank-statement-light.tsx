@@ -1,7 +1,8 @@
 import React from 'react';
 import { Enterprise } from '@/types/settings';
 import { BankStatementResponse } from '@/hooks/use-bank-transactions';
-import ar from '@/locales/print-ar.json';
+import defaultAr from '@/locales/print-ar.json';
+import { PrintLocale } from '@/hooks/use-print-locale';
 import * as utils from './print-utils';
 
 interface CashDeposit {
@@ -22,6 +23,7 @@ interface BankStatementLightProps {
   month: number;
   year: number;
   enterprise: Enterprise;
+  printLocale?: PrintLocale;
 }
 
 const MONTHS_FR = [
@@ -36,7 +38,9 @@ export function BankStatementLight({
   month,
   year,
   enterprise,
+  printLocale,
 }: BankStatementLightProps) {
+  const ar = printLocale || defaultAr;
   const monthName = MONTHS_FR[month - 1];
 
   // Calculate totals

@@ -7,6 +7,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Config
     public string? nature { get; set; }
     public string? name { get; set; }
     public string? value { get; set; }
+    public string? valuetext { get; set; }
     public bool? isactive { get; set; }
     public bool? isdefault { get; set; }
     public bool? iseditable { get; set; }
@@ -28,6 +29,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Config
       nature = entity.Nature;
       name = entity.Name; 
       value = entity.GetFormattedValue();
+      valuetext = entity.ValueText;
       isactive = entity.isActive;
       isdefault = entity.isDefault;
       iseditable = entity.isEditable;

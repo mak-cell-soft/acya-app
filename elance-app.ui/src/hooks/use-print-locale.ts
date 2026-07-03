@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { appVariableService } from '@/services/configuration/app-variable.service';
 import { toast } from 'sonner';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -52,21 +53,14 @@ export interface PrintLocale {
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
-/** Read the current print-ar.json via the Next.js API route (filesystem read). */
+/** Read the current print locale via backend. */
 async function fetchPrintLocale(): Promise<PrintLocale> {
-  const res = await fetch('/api/print-locale');
-  if (!res.ok) throw new Error('Impossible de charger la configuration d\'impression.');
-  return res.json();
+  return await appVariableService.getImpression();
 }
 
-/** Write the updated print-ar.json via the Next.js API route (filesystem write). */
+/** Write the updated print locale via backend. */
 async function savePrintLocale(data: PrintLocale): Promise<void> {
-  const res = await fetch('/api/print-locale', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error('Impossible d\'enregistrer la configuration d\'impression.');
+  await appVariableService.saveImpression(data);
 }
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────

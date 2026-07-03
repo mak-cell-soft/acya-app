@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useEnterprise } from '@/hooks/use-enterprise';
+import { usePrintLocale } from '@/hooks/use-print-locale';
 import { Document } from '@/types/document';
 import { StockTransferInfo, StockTransferDetails } from '@/types/stock';
 import { getStandardPrintStyles, getLightPrintStyles } from './print-styles';
@@ -84,9 +85,8 @@ export function PrintVariantDialog({
   statementYear,
   docType,
 }: PrintVariantDialogProps) {
-  // Retrieve the connected enterprise settings dynamically.
-  // This satisfies the critical requirement: "No it should be the name of the connected enterprise".
   const { data: enterprise, isLoading } = useEnterprise();
+  const { data: printLocale } = usePrintLocale();
   const [printing, setPrinting] = useState(false);
 
   // Auto-trigger print for single-variant HR documents (leave, advance) and statements as soon as enterprise settings load
@@ -135,9 +135,9 @@ export function PrintVariantDialog({
         styleCss = variant === 'standard' ? getStandardPrintStyles() : getLightPrintStyles();
         contentHtml = renderToStaticMarkup(
           variant === 'standard' ? (
-            <DeliveryNoteStandard document={document} enterprise={enterprise} />
+            <DeliveryNoteStandard document={document} enterprise={enterprise} printLocale={printLocale} />
           ) : (
-            <DeliveryNoteLight document={document} enterprise={enterprise} />
+            <DeliveryNoteLight document={document} enterprise={enterprise} printLocale={printLocale} />
           )
         );
       } else if (docType === 'invoice' && document) {
@@ -145,9 +145,9 @@ export function PrintVariantDialog({
         styleCss = variant === 'standard' ? getStandardPrintStyles() : getLightPrintStyles();
         contentHtml = renderToStaticMarkup(
           variant === 'standard' ? (
-            <InvoiceStandard document={document} enterprise={enterprise} />
+            <InvoiceStandard document={document} enterprise={enterprise} printLocale={printLocale} />
           ) : (
-            <InvoiceLight document={document} enterprise={enterprise} />
+            <InvoiceLight document={document} enterprise={enterprise} printLocale={printLocale} />
           )
         );
       } else if (docType === 'transfer' && transfer) {
@@ -155,31 +155,31 @@ export function PrintVariantDialog({
         styleCss = variant === 'standard' ? getStandardPrintStyles() : getLightPrintStyles();
         contentHtml = renderToStaticMarkup(
           variant === 'standard' ? (
-            <StockTransferStandard transfer={transfer} details={transferDetails || []} enterprise={enterprise} />
+            <StockTransferStandard transfer={transfer} details={transferDetails || []} enterprise={enterprise} printLocale={printLocale} />
           ) : (
-            <StockTransferLight transfer={transfer} details={transferDetails || []} enterprise={enterprise} />
+            <StockTransferLight transfer={transfer} details={transferDetails || []} enterprise={enterprise} printLocale={printLocale} />
           )
         );
       } else if (docType === 'leave' && leave && employee) {
         printDocNumber = `CONGE-${employee.lastname}-${leave.id}`;
         styleCss = getStandardPrintStyles();
         contentHtml = renderToStaticMarkup(
-          <LeaveStandard employee={employee} leave={leave} enterprise={enterprise} />
+          <LeaveStandard employee={employee} leave={leave} enterprise={enterprise} printLocale={printLocale} />
         );
       } else if (docType === 'advance' && advance && employee) {
         printDocNumber = `AVANCE-${employee.lastname}-${advance.id}`;
         styleCss = getStandardPrintStyles();
         contentHtml = renderToStaticMarkup(
-          <AdvanceStandard employee={employee} advance={advance} enterprise={enterprise} />
+          <AdvanceStandard employee={employee} advance={advance} enterprise={enterprise} printLocale={printLocale} />
         );
       } else if (docType === 'payslip' && payslip && employee) {
         printDocNumber = `BULLETIN-${employee.lastname}-${payslip.periodmonth}-${payslip.periodyear}`;
         styleCss = variant === 'standard' ? getStandardPrintStyles() : getLightPrintStyles();
         contentHtml = renderToStaticMarkup(
           variant === 'standard' ? (
-            <PayslipStandard employee={employee} payslip={payslip} enterprise={enterprise} />
+            <PayslipStandard employee={employee} payslip={payslip} enterprise={enterprise} printLocale={printLocale} />
           ) : (
-            <PayslipLight employee={employee} payslip={payslip} enterprise={enterprise} />
+            <PayslipLight employee={employee} payslip={payslip} enterprise={enterprise} printLocale={printLocale} />
           )
         );
       } else if ((docType === 'customer-statement' || docType === 'supplier-statement') && statement && counterpart && periodStart && periodEnd && statementType) {
@@ -196,6 +196,7 @@ export function PrintVariantDialog({
             periodStart={periodStart}
             periodEnd={periodEnd}
             statementType={statementType}
+            printLocale={printLocale}
           />
         );
       } else if (docType === 'document-list' && documentsList && listTitle && listContext) {
@@ -207,6 +208,7 @@ export function PrintVariantDialog({
             listTitle={listTitle}
             listContext={listContext}
             enterprise={enterprise}
+            printLocale={printLocale}
           />
         );
       } else if (docType === 'bank-statement' && bankStatement) {
@@ -221,6 +223,7 @@ export function PrintVariantDialog({
               month={statementMonth || 1}
               year={statementYear || new Date().getFullYear()}
               enterprise={enterprise}
+              printLocale={printLocale}
             />
           ) : (
             <BankStatementLight
@@ -230,6 +233,7 @@ export function PrintVariantDialog({
               month={statementMonth || 1}
               year={statementYear || new Date().getFullYear()}
               enterprise={enterprise}
+              printLocale={printLocale}
             />
           )
         );

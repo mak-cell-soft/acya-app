@@ -3,7 +3,8 @@ import { AccountStatement, Customer, Supplier } from '@/types/customer';
 import { Enterprise } from '@/types/settings';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import ar from '@/locales/print-ar.json';
+import defaultAr from '@/locales/print-ar.json';
+import { PrintLocale } from '@/hooks/use-print-locale';
 import * as utils from './print-utils';
 
 interface AccountStatementStandardProps {
@@ -13,6 +14,7 @@ interface AccountStatementStandardProps {
   periodStart: Date;
   periodEnd: Date;
   statementType: 'customer' | 'supplier';
+  printLocale?: PrintLocale;
 }
 
 export function AccountStatementStandard({
@@ -22,7 +24,9 @@ export function AccountStatementStandard({
   periodStart,
   periodEnd,
   statementType,
+  printLocale,
 }: AccountStatementStandardProps) {
+  const ar = printLocale || defaultAr;
   const getDocTypeLabel = (type: string) => {
     const types: Record<string, string> = {
       Invoice: 'Facture',
@@ -80,7 +84,7 @@ export function AccountStatementStandard({
         <div className="arabic-info">
           <p className="arabic-text">{ar.companyArabicName}</p>
           <p className="arabic-text">
-            {enterprise.capital ? `شركة خفية الإسم رأس مالها ${enterprise.capital}` : ar.companyArabicCapital}
+            {ar.companyArabicCapital}
           </p>
           <p className="arabic-details">{ar.companyArabicAddress}</p>
           <h3 className="original-label">{labelText}</h3>

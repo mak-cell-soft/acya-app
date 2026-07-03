@@ -141,22 +141,29 @@ using (var scope = app.Services.CreateScope())
 
       foreach (var tenant in tenants)
       {
-        var connStr = (string.IsNullOrEmpty(tenant.ConnectionString)
-          ? configuration.GetConnectionString("WoodAppContextConnection")
-          : tenant.ConnectionString) ?? "";
-
-        logger.LogInformation("Migrating schema '{Schema}' for tenant '{Slug}' using connection string '{ConnStr}'...", tenant.SchemaName, tenant.Slug, connStr);
-
-        using (var tenantScope = app.Services.CreateScope())
+        try
         {
-          var tenantContext = tenantScope.ServiceProvider.GetRequiredService<TenantContext>();
-          tenantContext.IsEnabled = true;
-          tenantContext.Slug = tenant.Slug;
-          tenantContext.SchemaName = tenant.SchemaName;
-          tenantContext.ConnectionString = connStr;
+          var connStr = (string.IsNullOrEmpty(tenant.ConnectionString)
+            ? configuration.GetConnectionString("WoodAppContextConnection")
+            : tenant.ConnectionString) ?? "";
 
-          var tenantDbContext = tenantScope.ServiceProvider.GetRequiredService<WoodAppContext>();
-          tenantDbContext.Database.Migrate();
+          logger.LogInformation("Migrating schema '{Schema}' for tenant '{Slug}' using connection string '{ConnStr}'...", tenant.SchemaName, tenant.Slug, connStr);
+
+          using (var tenantScope = app.Services.CreateScope())
+          {
+            var tenantContext = tenantScope.ServiceProvider.GetRequiredService<TenantContext>();
+            tenantContext.IsEnabled = true;
+            tenantContext.Slug = tenant.Slug;
+            tenantContext.SchemaName = tenant.SchemaName;
+            tenantContext.ConnectionString = connStr;
+
+            var tenantDbContext = tenantScope.ServiceProvider.GetRequiredService<WoodAppContext>();
+            tenantDbContext.Database.Migrate();
+          }
+        }
+        catch (Exception ex)
+        {
+          logger.LogError(ex, "An error occurred while migrating schema for tenant '{Slug}'.", tenant.Slug);
         }
       }
     }

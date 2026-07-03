@@ -2,15 +2,18 @@ import React from 'react';
 import { Document } from '@/types/document';
 import { Enterprise } from '@/types/settings';
 import { numberToFrenchWords } from '@/lib/number-to-words';
-import ar from '@/locales/print-ar.json';
+import defaultAr from '@/locales/print-ar.json';
+import { PrintLocale } from '@/hooks/use-print-locale';
 import * as utils from './print-utils';
 
 interface InvoiceLightProps {
   document: Document;
   enterprise: Enterprise;
+  printLocale?: PrintLocale;
 }
 
-export function InvoiceLight({ document, enterprise }: InvoiceLightProps) {
+export function InvoiceLight({ document, enterprise, printLocale }: InvoiceLightProps) {
+  const ar = printLocale || defaultAr;
   const finalPayable = document?.total_net_payable || document?.total_net_ttc || 0;
   const amountInWords = numberToFrenchWords(finalPayable);
 

@@ -19,5 +19,15 @@ export const appVariableService = {
   delete: async (id: number) => {
     const response = await api.delete(`/AppVariable/${id}`);
     return response.data;
+  },
+
+  getImpression: async () => {
+    const response = await api.get('/AppVariable/impression');
+    return response.data;
+  },
+
+  saveImpression: async (data: any) => {
+    const response = await api.put('/AppVariable/impression', data);
+    return response.data;
   }
 };

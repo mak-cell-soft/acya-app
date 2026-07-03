@@ -1,16 +1,19 @@
 import React from 'react';
 import { StockTransferInfo, StockTransferDetails } from '@/types/stock';
 import { Enterprise } from '@/types/settings';
-import ar from '@/locales/print-ar.json';
+import defaultAr from '@/locales/print-ar.json';
+import { PrintLocale } from '@/hooks/use-print-locale';
 import * as utils from './print-utils';
 
 interface StockTransferLightProps {
   transfer: StockTransferInfo;
   details: StockTransferDetails[];
   enterprise: Enterprise;
+  printLocale?: PrintLocale;
 }
 
-export function StockTransferLight({ transfer, details, enterprise }: StockTransferLightProps) {
+export function StockTransferLight({ transfer, details, enterprise, printLocale }: StockTransferLightProps) {
+  const ar = printLocale || defaultAr;
   // Resolve the confirmation code (PIN code) from either details items or transfer metadata
   const confirmationCode = details?.find(d => d.confirmationCode)?.confirmationCode || 
                            (transfer as any).confirmationCode || 

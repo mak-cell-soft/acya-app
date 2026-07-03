@@ -1,7 +1,8 @@
 import React from 'react';
 import { Enterprise } from '@/types/settings';
 import { BankStatementResponse, BankTransaction } from '@/hooks/use-bank-transactions';
-import ar from '@/locales/print-ar.json';
+import defaultAr from '@/locales/print-ar.json';
+import { PrintLocale } from '@/hooks/use-print-locale';
 import * as utils from './print-utils';
 
 interface CashDeposit {
@@ -22,6 +23,7 @@ interface BankStatementStandardProps {
   month: number;
   year: number;
   enterprise: Enterprise;
+  printLocale?: PrintLocale;
 }
 
 const MONTHS_FR = [
@@ -36,7 +38,9 @@ export function BankStatementStandard({
   month,
   year,
   enterprise,
+  printLocale,
 }: BankStatementStandardProps) {
+  const ar = printLocale || defaultAr;
   const monthName = MONTHS_FR[month - 1];
 
   // Calculate totals
@@ -86,7 +90,7 @@ export function BankStatementStandard({
         <div className="arabic-info">
           <p className="arabic-text">{ar.companyArabicName}</p>
           <p className="arabic-text">
-            {enterprise.capital ? `شركة خفية الإسم رأس مالها ${enterprise.capital}` : ar.companyArabicCapital}
+            {ar.companyArabicCapital}
           </p>
           <p className="arabic-details">{ar.companyArabicAddress}</p>
           <h3 className="original-label" style={{ fontSize: '12pt', marginTop: '5px' }}>كشف تقريب بنكي</h3>

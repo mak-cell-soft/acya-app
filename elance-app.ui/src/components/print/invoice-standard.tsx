@@ -2,15 +2,18 @@ import React from 'react';
 import { Document } from '@/types/document';
 import { Enterprise } from '@/types/settings';
 import { numberToFrenchWords } from '@/lib/number-to-words';
-import ar from '@/locales/print-ar.json';
+import defaultAr from '@/locales/print-ar.json';
+import { PrintLocale } from '@/hooks/use-print-locale';
 import * as utils from './print-utils';
 
 interface InvoiceStandardProps {
   document: Document;
   enterprise: Enterprise;
+  printLocale?: PrintLocale;
 }
 
-export function InvoiceStandard({ document, enterprise }: InvoiceStandardProps) {
+export function InvoiceStandard({ document, enterprise, printLocale }: InvoiceStandardProps) {
+  const ar = printLocale || defaultAr;
   // Invoices net payable can differ from total_net_ttc if withholding tax (RS) is applied.
   const finalPayable = document?.total_net_payable || document?.total_net_ttc || 0;
   const amountInWords = numberToFrenchWords(finalPayable);
@@ -59,7 +62,7 @@ export function InvoiceStandard({ document, enterprise }: InvoiceStandardProps) 
         <div className="arabic-info">
           <p className="arabic-text">{ar.companyArabicName}</p>
           <p className="arabic-text">
-            {enterprise.capital ? `شركة خفية الإسم رأس مالها ${enterprise.capital}` : ar.companyArabicCapital}
+            {ar.companyArabicCapital}
           </p>
           <p className="arabic-details">{ar.companyArabicAddress}</p>
           <h3 className="original-label">{ar.originalLabel.invoice}</h3>

@@ -3,15 +3,18 @@ import { Person } from '@/types/team';
 import { Leave } from '@/types/hr';
 import { Enterprise } from '@/types/settings';
 import templates from '@/locales/hr-print-templates.json';
-import ar from '@/locales/print-ar.json';
+import defaultAr from '@/locales/print-ar.json';
+import { PrintLocale } from '@/hooks/use-print-locale';
 
 interface LeaveStandardProps {
   employee: Person;
   leave: Leave;
   enterprise: Enterprise;
+  printLocale?: PrintLocale;
 }
 
-export function LeaveStandard({ employee, leave, enterprise }: LeaveStandardProps) {
+export function LeaveStandard({ employee, leave, enterprise, printLocale }: LeaveStandardProps) {
+  const ar = printLocale || defaultAr;
   // Token formatting helper to dynamically populate template paragraphs
   const formatText = (template: string) => {
     if (!template) return '';
@@ -127,7 +130,7 @@ export function LeaveStandard({ employee, leave, enterprise }: LeaveStandardProp
         <div className="arabic-info">
           <p className="arabic-text">{ar.companyArabicName}</p>
           <p className="arabic-text">
-            {enterprise.capital ? `شركة خفية الإسم رأس مالها ${enterprise.capital}` : ar.companyArabicCapital}
+            {ar.companyArabicCapital}
           </p>
           <p className="arabic-details">{ar.companyArabicAddress}</p>
         </div>
