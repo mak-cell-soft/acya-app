@@ -49,7 +49,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
         
         <div className="flex-1 overflow-y-auto p-8 z-10">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-[1600px] w-full mx-auto">
             {children}
           </div>
         </div>

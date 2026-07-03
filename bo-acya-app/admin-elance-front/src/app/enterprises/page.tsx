@@ -2,7 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, Key, ToggleLeft, Trash2, CheckCircle2, Loader2, ExternalLink, Edit } from "lucide-react";
+import { Shield, Key, ToggleLeft, Trash2, CheckCircle2, Loader2, ExternalLink, Edit, Users, Lock, ChevronLeft, ChevronRight } from "lucide-react";
+
+interface TenantAppUser {
+  id: number;
+  login: string | null;
+  email: string | null;
+  isActive: boolean;
+  fullName: string | null;
+  role: string | null;
+  phoneNumber: string | null;
+  createdAt: string | null;
+}
+
 
 interface Enterprise {
   id: number;
@@ -27,6 +39,7 @@ interface Enterprise {
   currency?: string | null;
   isSalingWood?: boolean;
   isManagingConstructions?: boolean;
+  planPrice?: number;
 }
 
 export default function EnterprisesPage() {
@@ -42,6 +55,23 @@ export default function EnterprisesPage() {
   const [existingId, setExistingId] = useState<number | null>(null);
   const [isEditingActive, setIsEditingActive] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Pending' | 'Deactivated'>('All');
+
+  // Users list slide-over panel state
+  const [selectedEnterprise, setSelectedEnterprise] = useState<Enterprise | null>(null);
+  const [showUsersPanel, setShowUsersPanel] = useState(false);
+  const [tenantUsers, setTenantUsers] = useState<TenantAppUser[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersError, setUsersError] = useState("");
+  const [usersPage, setUsersPage] = useState(1);
+  const [usersPageSize] = useState(5); // 5 users per page for compact layout
+  const [totalUsersCount, setTotalUsersCount] = useState(0);
+
+  // Password reset sub-modal state
+  const [resetUser, setResetUser] = useState<TenantAppUser | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [resetSubmitLoading, setResetSubmitLoading] = useState(false);
+  const [resetSuccessMsg, setResetSuccessMsg] = useState("");
+
 
   // Form states - Create & Provision Unified
   const [name, setName] = useState("");
@@ -60,7 +90,8 @@ export default function EnterprisesPage() {
   const [secondaryColor, setSecondaryColor] = useState("#EBF1FA");
   const [customDomain, setCustomDomain] = useState("");
   const [language, setLanguage] = useState("fr");
-  const [currency, setCurrency] = useState("EUR");
+  const [currency, setCurrency] = useState("TND");
+  const [planPrice, setPlanPrice] = useState<number>(0);
 
   // Admin Credentials
   const [adminUsername, setAdminUsername] = useState("admin");
@@ -120,6 +151,7 @@ export default function EnterprisesPage() {
       email: email || null,
       phone: phone || null,
       plan,
+      planPrice,
       notes: notes || null,
       logoUrl: logoUrl || null,
       faviconUrl: faviconUrl || null,
@@ -182,6 +214,7 @@ export default function EnterprisesPage() {
         setEmail("");
         setPhone("");
         setPlan("Trial");
+        setPlanPrice(0);
         setNotes("");
         setIsSalingWood(false);
         setIsManagingConstructions(false);
@@ -191,7 +224,7 @@ export default function EnterprisesPage() {
         setSecondaryColor("#EBF1FA");
         setCustomDomain("");
         setLanguage("fr");
-        setCurrency("EUR");
+        setCurrency("TND");
         setAdminUsername("admin");
         setAdminEmail("");
         setAdminPassword("");
@@ -214,6 +247,7 @@ export default function EnterprisesPage() {
     setEmail(ent.email || "");
     setPhone(ent.phone || "");
     setPlan(ent.plan || "Trial");
+    setPlanPrice(ent.planPrice || 0);
     setNotes(ent.notes || "");
     setLogoUrl(ent.logoUrl || "");
     setFaviconUrl(ent.faviconUrl || "");
@@ -221,7 +255,7 @@ export default function EnterprisesPage() {
     setSecondaryColor(ent.secondaryColor || "#EBF1FA");
     setCustomDomain(ent.customDomain || "");
     setLanguage(ent.language || "fr");
-    setCurrency(ent.currency || "EUR");
+    setCurrency(ent.currency || "TND");
     setIsSalingWood(ent.isSalingWood || false);
     setIsManagingConstructions(ent.isManagingConstructions || false);
     setShowCreateModal(true);
@@ -304,6 +338,7 @@ export default function EnterprisesPage() {
     setEmail(ent.email || "");
     setPhone(ent.phone || "");
     setPlan(ent.plan || "Trial");
+    setPlanPrice(ent.planPrice || 0);
     setNotes(ent.notes || "");
     setLogoUrl(ent.logoUrl || "");
     setFaviconUrl(ent.faviconUrl || "");
@@ -311,7 +346,7 @@ export default function EnterprisesPage() {
     setSecondaryColor(ent.secondaryColor || "#EBF1FA");
     setCustomDomain(ent.customDomain || "");
     setLanguage(ent.language || "fr");
-    setCurrency(ent.currency || "EUR");
+    setCurrency(ent.currency || "TND");
 
     // Pre-fill Admin credentials from notes JSON
     if (ent.notes) {
@@ -358,6 +393,91 @@ export default function EnterprisesPage() {
     setShowCreateModal(true);
   };
 
+  const handlePlanChange = (selectedPlan: string) => {
+    setPlan(selectedPlan);
+    if (selectedPlan === "Starter") {
+      setPlanPrice(90);
+    } else if (selectedPlan === "Pro") {
+      setPlanPrice(99);
+    } else if (selectedPlan === "Trial") {
+      setPlanPrice(0);
+    } else if (selectedPlan === "Enterprise") {
+      setPlanPrice(299);
+    }
+  };
+
+  const fetchTenantUsers = async (ent: Enterprise, pageNum: number) => {
+    setUsersLoading(true);
+    setUsersError("");
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api/";
+      const res = await fetch(`${apiBase}admin/enterprise/${ent.id}/users?page=${pageNum}&pageSize=${usersPageSize}`, {
+        headers: getHeaders(),
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt || "Failed to fetch tenant users.");
+      }
+
+      const data = await res.json();
+      setTenantUsers(data.users || []);
+      setTotalUsersCount(data.totalCount || 0);
+    } catch (err: any) {
+      setUsersError(err.message || "An error occurred fetching tenant users.");
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  const handleOpenUsers = (ent: Enterprise) => {
+    setSelectedEnterprise(ent);
+    setTenantUsers([]);
+    setTotalUsersCount(0);
+    setUsersPage(1);
+    setUsersError("");
+    setShowUsersPanel(true);
+    fetchTenantUsers(ent, 1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (!selectedEnterprise) return;
+    setUsersPage(newPage);
+    fetchTenantUsers(selectedEnterprise, newPage);
+  };
+
+  const handleInitiatePasswordReset = (user: TenantAppUser) => {
+    setResetUser(user);
+    setNewPassword("");
+    setResetSuccessMsg("");
+  };
+
+  const handlePasswordResetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEnterprise || !resetUser || !newPassword) return;
+    setResetSubmitLoading(true);
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api/";
+      const res = await fetch(`${apiBase}admin/enterprise/${selectedEnterprise.id}/users/${resetUser.id}/reset-password`, {
+        method: "PUT",
+        headers: getHeaders(),
+        body: JSON.stringify({ newPassword }),
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt || "Failed to reset password.");
+      }
+
+      setResetSuccessMsg("Password reset successfully!");
+    } catch (err: any) {
+      alert(err.message || "Reset failed.");
+    } finally {
+      setResetSubmitLoading(false);
+    }
+  };
+
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-end justify-between">
@@ -375,6 +495,7 @@ export default function EnterprisesPage() {
             setEmail("");
             setPhone("");
             setPlan("Trial");
+            setPlanPrice(0);
             setNotes("");
             setIsSalingWood(false);
             setIsManagingConstructions(false);
@@ -383,7 +504,7 @@ export default function EnterprisesPage() {
             setPrimaryColor("#3B82F6");
             setCustomDomain("");
             setLanguage("fr");
-            setCurrency("EUR");
+            setCurrency("TND");
             setAdminUsername("admin");
             setAdminEmail("");
             setAdminPassword("");
@@ -485,7 +606,10 @@ export default function EnterprisesPage() {
                         {ent.schemaName}
                       </td>
                       <td className="px-6 py-4 text-slate-200">
-                        <span className="text-sm font-mono">{ent.plan}</span>
+                        <div className="text-sm font-mono">{ent.plan}</div>
+                        <div className="text-xs text-muted-foreground font-mono mt-0.5">
+                          {ent.plan === "Trial" ? "Free" : `${ent.planPrice || 0} ${ent.currency || "TND"}/mo`}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         {ent.status === 'Pending' ? (
@@ -520,20 +644,29 @@ export default function EnterprisesPage() {
                         ) : (
                           <>
                             {ent.isActive && (
-                              <button 
-                                onClick={() => handleImpersonate(ent)}
-                                className="text-xs font-semibold text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
-                              >
-                                <Key className="w-3 h-3" />
-                                Impersonate
-                              </button>
+                              <>
+                                <button 
+                                  onClick={() => handleImpersonate(ent)}
+                                  className="text-xs font-semibold text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
+                                >
+                                  <Key className="w-3 h-3" />
+                                  Impersonate
+                                </button>
+                                <button 
+                                  onClick={() => handleOpenUsers(ent)}
+                                  className="text-xs font-semibold text-indigo-400 hover:underline cursor-pointer inline-flex items-center gap-1"
+                                >
+                                  <Users className="w-3.5 h-3.5" />
+                                  Users
+                                </button>
+                              </>
                             )}
                             <button 
                               onClick={() => handleOpenEditActive(ent)}
                               className="text-xs font-semibold text-cyan-400 hover:underline cursor-pointer inline-flex items-center gap-1"
                             >
                               <Edit className="w-3 h-3" />
-                              Edit settings
+                              Edit
                             </button>
                           </>
                         )}
@@ -542,7 +675,6 @@ export default function EnterprisesPage() {
                           className="text-xs font-medium text-destructive hover:underline cursor-pointer inline-flex items-center gap-1"
                         >
                           <Trash2 className="w-3 h-3" />
-                          Delete
                         </button>
                       </td>
                     </tr>
@@ -640,7 +772,7 @@ export default function EnterprisesPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-4 gap-4">
                     <div className="space-y-1">
                       <label className="text-xs font-mono uppercase text-muted-foreground">Email</label>
                       <input
@@ -668,7 +800,7 @@ export default function EnterprisesPage() {
                       <select
                         className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
                         value={plan}
-                        onChange={(e) => setPlan(e.target.value)}
+                        onChange={(e) => handlePlanChange(e.target.value)}
                         disabled={provisioningLoading}
                       >
                         <option value="Trial">Trial (30 Days)</option>
@@ -676,6 +808,18 @@ export default function EnterprisesPage() {
                         <option value="Pro">Pro (25 Users)</option>
                         <option value="Enterprise">Enterprise (Unlimited)</option>
                       </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-mono uppercase text-muted-foreground">Monthly Price ({currency})</label>
+                      <input
+                        type="number"
+                        min="0"
+                        required
+                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100 font-mono"
+                        value={planPrice}
+                        onChange={(e) => setPlanPrice(Number(e.target.value))}
+                        disabled={provisioningLoading}
+                      />
                     </div>
                   </div>
                 </div>
@@ -814,14 +958,16 @@ export default function EnterprisesPage() {
                           <option value="en">EN</option>
                           <option value="ar">AR</option>
                         </select>
-                        <input
-                          type="text"
-                          className="w-1/2 px-2 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-100 font-mono text-center"
+                        <select
+                          className="w-1/2 px-2 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-100 font-mono"
                           value={currency}
                           onChange={(e) => setCurrency(e.target.value)}
-                          placeholder="EUR"
                           disabled={provisioningLoading}
-                        />
+                        >
+                          <option value="TND">TND</option>
+                          <option value="EUR">EUR</option>
+                          <option value="USD">USD</option>
+                        </select>
                       </div>
                     </div>
                   </div>
@@ -885,6 +1031,214 @@ export default function EnterprisesPage() {
           </div>
         </div>
       )}
+
+      {/* CONNECTED TENANT USERS SLIDE-OVER DRAWER */}
+      {showUsersPanel && selectedEnterprise && (
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          {/* Drawer backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
+            onClick={() => setShowUsersPanel(false)}
+          />
+          
+          <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
+            <div className="w-screen max-w-2xl bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col">
+              {/* Header */}
+              <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-secondary/10">
+                <div>
+                  <h2 className="text-xl font-bold font-mono text-slate-100 flex items-center gap-2">
+                    <Users className="text-indigo-400 w-5 h-5" />
+                    {selectedEnterprise.name.toUpperCase()} - USER ACCOUNTS
+                  </h2>
+                  <p className="text-xs text-muted-foreground font-mono mt-1">Schema: {selectedEnterprise.schemaName}</p>
+                </div>
+                <button 
+                  onClick={() => setShowUsersPanel(false)}
+                  className="text-muted-foreground hover:text-foreground text-2xl font-semibold cursor-pointer"
+                >
+                  &times;
+                </button>
+              </div>
+
+              {/* Content Area */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {usersError && (
+                  <div className="p-4 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg font-mono text-sm">
+                    {usersError}
+                  </div>
+                )}
+
+                {usersLoading ? (
+                  <div className="p-12 text-center text-muted-foreground font-mono flex flex-col items-center justify-center gap-3">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    <span>FETCHING TENANT USER RECORDS...</span>
+                  </div>
+                ) : tenantUsers.length === 0 ? (
+                  <div className="text-center p-12 text-muted-foreground font-mono border border-dashed border-slate-800 rounded-xl">
+                    NO USER ACCOUNTS FOUND FOR THIS TENANT
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center text-xs font-mono text-muted-foreground">
+                      <span>SHOWING {tenantUsers.length} OF {totalUsersCount} REGISTERED USERS</span>
+                    </div>
+
+                    <div className="border border-slate-800 rounded-xl overflow-hidden bg-slate-950">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-800 bg-slate-900/50">
+                            <th className="px-4 py-3 text-xs font-mono text-muted-foreground font-medium uppercase">User Details</th>
+                            <th className="px-4 py-3 text-xs font-mono text-muted-foreground font-medium uppercase">Role</th>
+                            <th className="px-4 py-3 text-xs font-mono text-muted-foreground font-medium uppercase">Status</th>
+                            <th className="px-4 py-3 text-xs font-mono text-muted-foreground font-medium uppercase text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800/60">
+                          {tenantUsers.map((user) => (
+                            <tr key={user.id} className="hover:bg-slate-900/40 transition-colors text-sm">
+                              <td className="px-4 py-3">
+                                <div className="font-semibold text-slate-100">{user.fullName || "N/A"}</div>
+                                <div className="text-xs text-muted-foreground font-mono mt-0.5">Login: {user.login}</div>
+                                {user.email && <div className="text-xs text-muted-foreground/80 mt-0.5">{user.email}</div>}
+                                {user.phoneNumber && <div className="text-xs text-muted-foreground/60 mt-0.5">📞 {user.phoneNumber}</div>}
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className="font-mono text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                                  {user.role}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                                  user.isActive 
+                                    ? 'bg-primary/10 text-primary border-primary/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]' 
+                                    : 'bg-destructive/10 text-destructive border-destructive/20'
+                                }`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${user.isActive ? 'bg-primary' : 'bg-destructive'}`}></span>
+                                  {user.isActive ? 'Active' : 'Inactive'}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <button
+                                  onClick={() => handleInitiatePasswordReset(user)}
+                                  className="text-xs font-semibold text-amber-500 hover:text-amber-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Lock className="w-3 h-3" />
+                                  Reset Pass
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Pagination Controls */}
+                    <div className="flex justify-between items-center pt-2">
+                      <button
+                        onClick={() => handlePageChange(usersPage - 1)}
+                        disabled={usersPage <= 1}
+                        className="px-3 py-1.5 bg-slate-850 hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-slate-850 text-xs font-semibold font-mono text-slate-200 border border-slate-800 rounded transition-all cursor-pointer inline-flex items-center gap-1"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                        PREV
+                      </button>
+                      <span className="text-xs font-mono text-muted-foreground">
+                        PAGE {usersPage} OF {Math.ceil(totalUsersCount / usersPageSize) || 1}
+                      </span>
+                      <button
+                        onClick={() => handlePageChange(usersPage + 1)}
+                        disabled={usersPage * usersPageSize >= totalUsersCount}
+                        className="px-3 py-1.5 bg-slate-850 hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-slate-850 text-xs font-semibold font-mono text-slate-200 border border-slate-800 rounded transition-all cursor-pointer inline-flex items-center gap-1"
+                      >
+                        NEXT
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PASSWORD RESET MODAL */}
+      {resetUser && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 p-6 rounded-xl space-y-4 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <h3 className="text-md font-bold font-mono text-slate-100 flex items-center gap-2">
+                <Lock className="text-amber-500 w-4 h-4" />
+                RESET PASSWORD: {resetUser.login}
+              </h3>
+              <button 
+                onClick={() => {
+                  if (!resetSubmitLoading) {
+                    setResetUser(null);
+                    setNewPassword("");
+                    setResetSuccessMsg("");
+                  }
+                }}
+                className="text-muted-foreground hover:text-foreground text-xl font-bold cursor-pointer"
+                disabled={resetSubmitLoading}
+              >
+                &times;
+              </button>
+            </div>
+
+            {resetSuccessMsg ? (
+              <div className="space-y-4 py-4 text-center">
+                <div className="p-3 bg-primary/10 border border-primary/20 text-primary rounded-lg font-mono text-sm">
+                  {resetSuccessMsg}
+                </div>
+                <button
+                  onClick={() => {
+                    setResetUser(null);
+                    setNewPassword("");
+                    setResetSuccessMsg("");
+                  }}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-mono rounded"
+                >
+                  CLOSE
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handlePasswordResetSubmit} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-mono uppercase text-muted-foreground">New Password</label>
+                  <input
+                    type="text"
+                    required
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm font-mono text-slate-100"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter new password"
+                    disabled={resetSubmitLoading}
+                  />
+                </div>
+                <div className="flex gap-3 justify-end pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setResetUser(null)}
+                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-xs font-mono text-slate-300 rounded cursor-pointer"
+                    disabled={resetSubmitLoading}
+                  >
+                    CANCEL
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-xs font-mono text-white rounded cursor-pointer flex items-center gap-1 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
+                    disabled={resetSubmitLoading}
+                  >
+                    {resetSubmitLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "RESET NOW"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

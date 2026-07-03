@@ -33,6 +33,7 @@ namespace ms.admin.api.acya.Controllers
         public string AdminUsername { get; set; } = "admin";
         public string AdminEmail { get; set; } = string.Empty;
         public string AdminPassword { get; set; } = string.Empty;
+        public decimal? PlanPrice { get; set; }
     }
 
     public class UpdateEnterpriseRequest
@@ -52,7 +53,26 @@ namespace ms.admin.api.acya.Controllers
         public string? Currency { get; set; }
         public bool IsSalingWood { get; set; }
         public bool IsManagingConstructions { get; set; }
+        public decimal? PlanPrice { get; set; }
     }
+
+    public class TenantAppUserDto
+    {
+        public int Id { get; set; }
+        public string? Login { get; set; }
+        public string? Email { get; set; }
+        public bool IsActive { get; set; }
+        public string? FullName { get; set; }
+        public string? Role { get; set; }
+        public string? PhoneNumber { get; set; }
+        public DateTime? CreatedAt { get; set; }
+    }
+
+    public class ResetTenantUserPasswordRequest
+    {
+        public string NewPassword { get; set; } = string.Empty;
+    }
+
 
     [ApiController]
     [Route("api/admin/[controller]")]
@@ -62,12 +82,18 @@ namespace ms.admin.api.acya.Controllers
         private readonly IEnterpriseRepository _enterpriseRepository;
         private readonly ITenantProvisioningService _provisioningService;
         private readonly MasterDbContext _context;
+        private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
 
-        public EnterpriseController(IEnterpriseRepository enterpriseRepository, ITenantProvisioningService provisioningService, MasterDbContext context)
+        public EnterpriseController(
+            IEnterpriseRepository enterpriseRepository, 
+            ITenantProvisioningService provisioningService, 
+            MasterDbContext context,
+            Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             _enterpriseRepository = enterpriseRepository;
             _provisioningService = provisioningService;
             _context = context;
+            _configuration = configuration;
         }
 
         [HttpGet]
@@ -155,6 +181,13 @@ namespace ms.admin.api.acya.Controllers
                 existing.Currency = request.Currency ?? "TND";
                 existing.IsSalingWood = request.IsSalingWood;
                 existing.IsManagingConstructions = request.IsManagingConstructions;
+                existing.PlanPrice = request.PlanPrice ?? (request.Plan switch
+                {
+                    TenantPlan.Starter => 90.00m,
+                    TenantPlan.Pro => 99.00m,
+                    TenantPlan.Enterprise => 299.00m,
+                    _ => 0.00m
+                });
                 existing.Status = TenantStatus.Pending;
 
                 await _enterpriseRepository.UpdateAsync(existing);
@@ -162,6 +195,14 @@ namespace ms.admin.api.acya.Controllers
             }
             else
             {
+                decimal planPrice = request.PlanPrice ?? (request.Plan switch
+                {
+                    TenantPlan.Starter => 90.00m,
+                    TenantPlan.Pro => 99.00m,
+                    TenantPlan.Enterprise => 299.00m,
+                    _ => 0.00m
+                });
+
                 // 3. Create Tenant in Central registry in Pending state
                 var enterprise = new MasterEnterprise
                 {
@@ -184,7 +225,8 @@ namespace ms.admin.api.acya.Controllers
                     Language = request.Language ?? "fr",
                     Currency = request.Currency ?? "TND",
                     IsSalingWood = request.IsSalingWood,
-                    IsManagingConstructions = request.IsManagingConstructions
+                    IsManagingConstructions = request.IsManagingConstructions,
+                    PlanPrice = planPrice
                 };
 
                 created = await _enterpriseRepository.AddAsync(enterprise);
@@ -226,34 +268,26 @@ namespace ms.admin.api.acya.Controllers
             await _enterpriseRepository.UpdateAsync(created);
 
             // 6. Create Initial Subscription Record
-            decimal planPrice = request.Plan switch
-            {
-                TenantPlan.Starter => 29.00m,
-                TenantPlan.Pro => 99.00m,
-                TenantPlan.Enterprise => 299.00m,
-                _ => 0.00m
-            };
-
             var subscription = new TenantSubscription
             {
                 TenantId = created.Id,
-                Plan = request.Plan,
+                Plan = created.Plan,
                 Status = "Active",
                 StartDate = DateTime.UtcNow,
-                EndDate = DateTime.UtcNow.AddDays(request.Plan == TenantPlan.Trial ? 30 : 365),
-                Price = planPrice,
+                EndDate = DateTime.UtcNow.AddDays(created.Plan == TenantPlan.Trial ? 30 : 365),
+                Price = created.PlanPrice,
                 CreatedAt = DateTime.UtcNow
             };
             await _context.TenantSubscriptions.AddAsync(subscription);
 
             // 7. Generate Initial Invoice if paid plan
-            if (request.Plan != TenantPlan.Trial)
+            if (created.Plan != TenantPlan.Trial)
             {
                 var invoice = new TenantInvoice
                 {
                     TenantId = created.Id,
                     InvoiceNumber = $"INV-{DateTime.UtcNow:yyyyMMdd}-{created.Id}",
-                    Amount = planPrice,
+                    Amount = created.PlanPrice,
                     Currency = created.Currency ?? "TND",
                     Status = "Unpaid",
                     BillingDate = DateTime.UtcNow,
@@ -322,6 +356,13 @@ namespace ms.admin.api.acya.Controllers
             enterprise.Currency = request.Currency ?? "TND";
             enterprise.IsSalingWood = request.IsSalingWood;
             enterprise.IsManagingConstructions = request.IsManagingConstructions;
+            enterprise.PlanPrice = request.PlanPrice ?? (request.Plan switch
+            {
+                TenantPlan.Starter => 90.00m,
+                TenantPlan.Pro => 99.00m,
+                TenantPlan.Enterprise => 299.00m,
+                _ => 0.00m
+            });
 
             await _enterpriseRepository.UpdateAsync(enterprise);
 
@@ -404,7 +445,7 @@ namespace ms.admin.api.acya.Controllers
 
             try
             {
-                var connStr = _context.Database.GetDbConnection().ConnectionString;
+                var connStr = _configuration.GetConnectionString("MasterConnection");
                 using (var conn = new Npgsql.NpgsqlConnection(connStr))
                 {
                     await conn.OpenAsync();
@@ -488,6 +529,179 @@ namespace ms.admin.api.acya.Controllers
 
             return Ok(new { Token = impersonationToken });
         }
+
+        [HttpGet("{id}/users")]
+        public async Task<IActionResult> GetUsers(long id, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 100) pageSize = 10;
+
+            var enterprise = await _enterpriseRepository.GetByIdAsync(id);
+            if (enterprise == null) return NotFound("Enterprise not found.");
+
+            if (!enterprise.IsActive)
+            {
+                return BadRequest("Cannot fetch users for an inactive tenant.");
+            }
+
+            var users = new System.Collections.Generic.List<TenantAppUserDto>();
+            int totalCount = 0;
+
+            try
+            {
+                var connStr = _configuration.GetConnectionString("MasterConnection");
+                using (var conn = new Npgsql.NpgsqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+
+                    // 1. Get total count
+                    var countSql = $"SELECT COUNT(*) FROM {enterprise.SchemaName}.tbl_app_user";
+                    using (var countCmd = new Npgsql.NpgsqlCommand(countSql, conn))
+                    {
+                        totalCount = Convert.ToInt32(await countCmd.ExecuteScalarAsync());
+                    }
+
+                    // 2. Get paginated list of users
+                    var sql = $@"
+                        SELECT u.id, u.login, u.email, u.isactive, p.fullname, p.idrole, p.phonenumber, p.creationdate
+                        FROM {enterprise.SchemaName}.tbl_app_user u
+                        JOIN {enterprise.SchemaName}.tbl_person p ON u.idperson = p.id
+                        ORDER BY p.creationdate DESC
+                        LIMIT @Limit OFFSET @Offset;";
+
+                    using (var cmd = new Npgsql.NpgsqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Limit", pageSize);
+                        cmd.Parameters.AddWithValue("@Offset", (page - 1) * pageSize);
+
+                        using (var reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                int roleValue = reader.IsDBNull(5) ? 30 : reader.GetInt32(5);
+                                string roleName = roleValue switch
+                                {
+                                    10 => "SuperAdmin",
+                                    20 => "Admin",
+                                    30 => "User",
+                                    40 => "Conductor",
+                                    45 => "Driver",
+                                    50 => "Seller",
+                                    60 => "InvoiceAgent",
+                                    70 => "StoreManager",
+                                    _ => $"Role {roleValue}"
+                                };
+
+                                users.Add(new TenantAppUserDto
+                                {
+                                    Id = reader.GetInt32(0),
+                                    Login = reader.IsDBNull(1) ? null : reader.GetString(1),
+                                    Email = reader.IsDBNull(2) ? null : reader.GetString(2),
+                                    IsActive = reader.GetBoolean(3),
+                                    FullName = reader.IsDBNull(4) ? null : reader.GetString(4),
+                                    Role = roleName,
+                                    PhoneNumber = reader.IsDBNull(6) ? null : reader.GetString(6),
+                                    CreatedAt = reader.IsDBNull(7) ? null : (DateTime?)reader.GetDateTime(7)
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Failed to query tenant users: {ex.Message}");
+            }
+
+            return Ok(new { TotalCount = totalCount, Users = users });
+        }
+
+        [HttpPut("{id}/users/{userId}/reset-password")]
+        public async Task<IActionResult> ResetUserPassword(long id, int userId, [FromBody] ResetTenantUserPasswordRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.NewPassword))
+            {
+                return BadRequest("New password is required.");
+            }
+
+            var enterprise = await _enterpriseRepository.GetByIdAsync(id);
+            if (enterprise == null) return NotFound("Enterprise not found.");
+
+            if (!enterprise.IsActive)
+            {
+                return BadRequest("Cannot reset passwords for inactive tenants.");
+            }
+
+            string userLogin = string.Empty;
+            string userEmail = string.Empty;
+
+            try
+            {
+                var connStr = _configuration.GetConnectionString("MasterConnection");
+                using (var conn = new Npgsql.NpgsqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+
+                    // Verify user existence and get user info
+                    var verifySql = $"SELECT login, email FROM {enterprise.SchemaName}.tbl_app_user WHERE id = @UserId";
+                    using (var verifyCmd = new Npgsql.NpgsqlCommand(verifySql, conn))
+                    {
+                        verifyCmd.Parameters.AddWithValue("@UserId", userId);
+                        using (var reader = await verifyCmd.ExecuteReaderAsync())
+                        {
+                            if (await reader.ReadAsync())
+                            {
+                                userLogin = reader.IsDBNull(0) ? "" : reader.GetString(0);
+                                userEmail = reader.IsDBNull(1) ? "" : reader.GetString(1);
+                            }
+                            else
+                            {
+                                return NotFound($"User with ID {userId} not found in this tenant.");
+                            }
+                        }
+                    }
+
+                    // Compute hash and salt using HMACSHA512
+                    using var hmac = new System.Security.Cryptography.HMACSHA512();
+                    var passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(request.NewPassword));
+                    var passwordSalt = hmac.Key;
+
+                    // Update user password
+                    var updateSql = $@"
+                        UPDATE {enterprise.SchemaName}.tbl_app_user
+                        SET passwordhash = @PasswordHash, passwordsalt = @PasswordSalt
+                        WHERE id = @UserId;";
+
+                    using (var updateCmd = new Npgsql.NpgsqlCommand(updateSql, conn))
+                    {
+                        updateCmd.Parameters.AddWithValue("@UserId", userId);
+                        updateCmd.Parameters.AddWithValue("@PasswordHash", passwordHash);
+                        updateCmd.Parameters.AddWithValue("@PasswordSalt", passwordSalt);
+
+                        await updateCmd.ExecuteNonQueryAsync();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Failed to reset user password: {ex.Message}");
+            }
+
+            // Log Master Audit Log event
+            var auditLog = new MasterAuditLog
+            {
+                TenantId = enterprise.Id,
+                Action = "User Password Reset",
+                Details = $"Super Admin reset password for tenant user ID: {userId} (login: {userLogin}, email: {userEmail}).",
+                PerformedBy = "Super Admin",
+                Timestamp = DateTime.UtcNow
+            };
+            await _context.MasterAuditLogs.AddAsync(auditLog);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(long id)

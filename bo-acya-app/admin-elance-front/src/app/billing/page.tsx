@@ -10,6 +10,7 @@ interface Enterprise {
   plan: string;
   status: string;
   isActive: boolean;
+  currency?: string | null;
 }
 
 interface Subscription {
@@ -45,12 +46,12 @@ export default function BillingPage() {
 
   // Forms state
   const [newPlan, setNewPlan] = useState("Starter");
-  const [planPrice, setPlanPrice] = useState("29.00");
+  const [planPrice, setPlanPrice] = useState("90.00");
   const [durationDays, setDurationDays] = useState("30");
   const [planSubmitting, setPlanSubmitting] = useState(false);
 
   const [invoiceAmount, setInvoiceAmount] = useState("100.00");
-  const [invoiceCurrency, setInvoiceCurrency] = useState("EUR");
+  const [invoiceCurrency, setInvoiceCurrency] = useState("TND");
   const [invoiceDueDays, setInvoiceDueDays] = useState("30");
   const [invoiceSubmitting, setInvoiceSubmitting] = useState(false);
 
@@ -308,22 +309,22 @@ export default function BillingPage() {
                           onChange={(e) => {
                             setNewPlan(e.target.value);
                             // Set suggested price
-                            if (e.target.value === "Starter") setPlanPrice("29.00");
+                            if (e.target.value === "Starter") setPlanPrice("90.00");
                             else if (e.target.value === "Pro") setPlanPrice("99.00");
                             else if (e.target.value === "Enterprise") setPlanPrice("299.00");
                             else setPlanPrice("0.00");
                           }}
                         >
                           <option value="Trial">Trial (Free)</option>
-                          <option value="Starter">Starter (29€/mo)</option>
-                          <option value="Pro">Pro (99€/mo)</option>
-                          <option value="Enterprise">Enterprise (299€/mo)</option>
+                          <option value="Starter">Starter (90/mo)</option>
+                          <option value="Pro">Pro (99/mo)</option>
+                          <option value="Enterprise">Enterprise (Custom/mo)</option>
                         </select>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <label className="text-xs font-mono text-muted-foreground">Price (€)</label>
+                          <label className="text-xs font-mono text-muted-foreground">Price ({selectedEnt?.currency || "TND"})</label>
                           <input
                             type="text"
                             required
@@ -377,13 +378,15 @@ export default function BillingPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                           <label className="text-xs font-mono text-muted-foreground">Currency</label>
-                          <input
-                            type="text"
-                            required
-                            className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 font-mono"
+                          <select
+                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100"
                             value={invoiceCurrency}
                             onChange={(e) => setInvoiceCurrency(e.target.value)}
-                          />
+                          >
+                            <option value="TND">TND</option>
+                            <option value="EUR">EUR</option>
+                            <option value="USD">USD</option>
+                          </select>
                         </div>
                         <div className="space-y-1">
                           <label className="text-xs font-mono text-muted-foreground">Due Period (Days)</label>
@@ -432,7 +435,7 @@ export default function BillingPage() {
                                 <div className="text-[10px] text-muted-foreground mt-0.5">{new Date(s.startDate).toLocaleDateString()} - {new Date(s.endDate).toLocaleDateString()}</div>
                               </div>
                               <div className="text-right">
-                                <div className="font-semibold text-primary">{s.price.toFixed(2)} EUR</div>
+                                <div className="font-semibold text-primary">{s.price.toFixed(2)} {selectedEnt?.currency || "TND"}</div>
                                 <div className="text-[10px] text-muted-foreground mt-0.5">{s.status}</div>
                               </div>
                             </div>

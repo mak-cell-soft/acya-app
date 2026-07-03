@@ -28,5 +28,6 @@ namespace ms.admin.api.acya.core.Entities
         public bool CustomDomainConfigured { get; set; }
         public bool IsSalingWood { get; set; }
         public bool IsManagingConstructions { get; set; }
+        public decimal PlanPrice { get; set; }
     }
 }
