@@ -168,6 +168,17 @@ export function DocumentListStandard({
           )}
         </table>
       </div>
+
+      {/* Stamp / Signature Image - bottom right */}
+      {ar.stampImageBase64 && (
+        <div className="stamp-container">
+          <img
+            src={ar.stampImageBase64}
+            alt="Cachet et Signature"
+            className="stamp-image"
+          />
+        </div>
+      )}
     </div>
   );
 }

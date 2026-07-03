@@ -8,9 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Save, Loader2, Printer, Type, Building2, Tag, TableProperties,
-  Receipt, AlignLeft, Hash,
+  Receipt, AlignLeft, Hash, Image as ImageIcon, UploadCloud, Trash2,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -95,22 +96,48 @@ export function PrintTab() {
 
   // NOTE: Local state mirrors the JSON structure so each input has a controlled value.
   const [form, setForm] = React.useState<PrintLocale | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // NOTE: Sync local form state when the server data arrives.
   React.useEffect(() => {
     if (locale) setForm(structuredClone(locale));
   }, [locale]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 500 * 1024) {
+      toast.error("L'image est trop volumineuse. Taille maximale autorisée : 500 Ko.");
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      setForm((prev: PrintLocale | null) => prev ? { ...prev, stampImageBase64: base64 } : prev);
+      toast.success("Image du cachet chargée. Pensez à enregistrer vos modifications.");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setForm((prev: PrintLocale | null) => prev ? { ...prev, stampImageBase64: '' } : prev);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    toast.info("Image du cachet retirée.");
+  };
+
   // ─── Setters ────────────────────────────────────────────────────────────────
 
   const setTop = (key: keyof Omit<PrintLocale, 'originalLabel' | 'labels'>, value: string) =>
-    setForm((prev) => prev ? { ...prev, [key]: value } : prev);
+    setForm((prev: PrintLocale | null) => prev ? { ...prev, [key]: value } : prev);
 
   const setOriginalLabel = (key: keyof PrintLocale['originalLabel'], value: string) =>
-    setForm((prev) => prev ? { ...prev, originalLabel: { ...prev.originalLabel, [key]: value } } : prev);
+    setForm((prev: PrintLocale | null) => prev ? { ...prev, originalLabel: { ...prev.originalLabel, [key]: value } } : prev);
 
   const setLabel = (key: keyof PrintLocaleLabels, value: string) =>
-    setForm((prev) => prev ? { ...prev, labels: { ...prev.labels, [key]: value } } : prev);
+    setForm((prev: PrintLocale | null) => prev ? { ...prev, labels: { ...prev.labels, [key]: value } } : prev);
 
   // ─── Save ────────────────────────────────────────────────────────────────────
 
@@ -178,6 +205,59 @@ export function PrintTab() {
             rtl
             placeholder="العنوان الاجتماعي"
           />
+        </div>
+      </SectionCard>
+
+      <div className="h-px bg-corp-blue-50" />
+
+      {/* ── Section Cachet & Signature ───────────────────────────────── */}
+      <SectionCard
+        icon={<ImageIcon className="w-4 h-4" />}
+        title="Cachet & Signature"
+        subtitle="Cette image sera intégrée en bas à droite de tous vos documents au format A4 Laser (Standard)."
+      >
+        <div className="space-y-4">
+          <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-corp-blue-100 rounded-xl bg-sand-50/20 hover:bg-sand-50/40 transition-all">
+            {form.stampImageBase64 ? (
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative p-2 bg-white rounded-lg border border-corp-blue-100 shadow-sm max-w-[200px]">
+                  <img
+                    src={form.stampImageBase64}
+                    alt="Cachet et Signature"
+                    className="max-h-[120px] object-contain"
+                  />
+                </div>
+                <Button
+                  onClick={handleRemoveImage}
+                  variant="destructive"
+                  size="sm"
+                  className="rounded-lg gap-2 text-xs font-semibold h-8"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Supprimer l'image
+                </Button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center gap-3 cursor-pointer w-full py-4">
+                <UploadCloud className="w-10 h-10 text-corp-blue-400" />
+                <div className="text-center">
+                  <span className="text-sm font-bold text-corp-blue-600 hover:text-corp-blue-800 transition-colors">
+                    Télécharger un cachet
+                  </span>
+                  <p className="text-xs text-sand-400 font-medium mt-1">
+                    Formats acceptés : PNG, JPG, WEBP — Max 500 Ko
+                  </p>
+                </div>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+              </label>
+            )}
+          </div>
         </div>
       </SectionCard>
 

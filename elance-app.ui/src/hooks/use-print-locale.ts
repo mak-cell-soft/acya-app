@@ -48,6 +48,7 @@ export interface PrintLocale {
   companyArabicName: string;
   companyArabicCapital: string;
   companyArabicAddress: string;
+  stampImageBase64?: string;
   labels: PrintLocaleLabels;
 }
 

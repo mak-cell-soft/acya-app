@@ -118,6 +118,7 @@ namespace ms.webapp.api.acya.api.Controllers.AppConfiguration
   ""companyArabicName"": ""الشركة التجارية للحديد و الخشب"",
   ""companyArabicCapital"": ""شركة خفية الإسم رأس مالها 20.000 د.ت"",
   ""companyArabicAddress"": ""مقرها الاجتماعي: طريق رواد كلم 4 اريانة"",
+  ""stampImageBase64"": """",
   ""labels"": {
     ""client"": ""Client :"",
     ""address"": ""Adresse :"",

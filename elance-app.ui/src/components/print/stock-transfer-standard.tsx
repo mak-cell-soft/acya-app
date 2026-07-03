@@ -200,6 +200,17 @@ export function StockTransferStandard({ transfer, details, enterprise, printLoca
         </div>
       </div>
 
+      {/* Stamp / Signature Image - bottom right */}
+      {ar.stampImageBase64 && (
+        <div className="stamp-container">
+          <img
+            src={ar.stampImageBase64}
+            alt="Cachet et Signature"
+            className="stamp-image"
+          />
+        </div>
+      )}
+
       {/* Legal terms footer */}
       <div className="footer-legal">
         <p className="legal-text">

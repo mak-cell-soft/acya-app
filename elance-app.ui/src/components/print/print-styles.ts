@@ -429,6 +429,21 @@ export function getStandardPrintStyles(): string {
       color: #222;
     }
 
+    .stamp-container {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 4mm;
+      margin-bottom: 2mm;
+      page-break-inside: avoid;
+    }
+
+    .stamp-image {
+      max-width: 50mm;
+      max-height: 40mm;
+      object-fit: contain;
+      opacity: 0.9;
+    }
+
     @media print {
       @page {
         size: A4 portrait;

@@ -188,6 +188,17 @@ export function AccountStatementStandard({
         </table>
       </div>
 
+      {/* Stamp / Signature Image - bottom right */}
+      {ar.stampImageBase64 && (
+        <div className="stamp-container">
+          <img
+            src={ar.stampImageBase64}
+            alt="Cachet et Signature"
+            className="stamp-image"
+          />
+        </div>
+      )}
+
       {/* Footer Legal */}
       <div className="footer-legal mt-8">
         <p className="text-center font-bold mb-4">

@@ -333,6 +333,17 @@ export function PayslipStandard({ employee, payslip, enterprise, printLocale }: 
         </div>
       </div>
 
+      {/* Stamp / Signature Image - bottom right */}
+      {ar.stampImageBase64 && (
+        <div className="stamp-container">
+          <img
+            src={ar.stampImageBase64}
+            alt="Cachet et Signature"
+            className="stamp-image"
+          />
+        </div>
+      )}
+
       {/* Legal Footer */}
       <div className="footer-legal" style={{ marginTop: '20mm' }}>
         <p className="legal-text">
