@@ -44,9 +44,11 @@ import { cn } from '@/lib/utils';
 import { useAnalyticsKpis, useMonthlyRevenue, useTopSubCategories, useStockHealthBySubCategory } from '@/hooks/use-analytics-kpis';
 import { useCustomers } from '@/hooks/use-customers';
 import { useSuppliers } from '@/hooks/use-suppliers';
+import { useArticles } from '@/hooks/use-articles';
 import { useSupplierPurchasePaymentChart } from '@/hooks/use-supplier-chart';
 import { useDocumentsByTypeFiltered } from '@/hooks/use-documents';
 import { DocumentTypes } from '@/types/document';
+import { SubCategoryStockHealthDto, ArticleStockDto } from '@/types/analytics';
 import { useStockDashboardStats } from '@/hooks/use-stock';
 import { useEcheances, useSalesEcheances } from '@/hooks/use-payments';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -88,6 +90,21 @@ export default function AnalyticsPage() {
   const [stockSiteId, setStockSiteId] = useState<number | undefined>(undefined);
   const { data: stockHealth, isLoading: isLoadingStockHealth } = useStockHealthBySubCategory(stockSiteId);
   const [selectedStockSubCatId, setSelectedStockSubCatId] = useState<number | undefined>(undefined);
+  const { data: allArticles = [] } = useArticles();
+
+  const stockHealthWithMinQty = React.useMemo(() => {
+    if (!stockHealth) return [];
+    return stockHealth.map((subCat: SubCategoryStockHealthDto) => ({
+      ...subCat,
+      articleStocks: subCat.articleStocks.map((a: ArticleStockDto) => {
+        const article = allArticles.find((art: any) => art.id === a.articleId);
+        return {
+          ...a,
+          minimumStock: article ? article.minquantity : a.minimumStock
+        };
+      })
+    }));
+  }, [stockHealth, allArticles]);
   
   const { data: stockStats } = useStockDashboardStats(stockSiteId);
 
@@ -173,10 +190,10 @@ export default function AnalyticsPage() {
   }, [topSubCategories, selectedSalesSubCatId]);
 
   useEffect(() => {
-    if (stockHealth && stockHealth.length > 0 && !selectedStockSubCatId) {
-      setSelectedStockSubCatId(stockHealth[0].subCategoryId);
+    if (stockHealthWithMinQty && stockHealthWithMinQty.length > 0 && !selectedStockSubCatId) {
+      setSelectedStockSubCatId(stockHealthWithMinQty[0].subCategoryId);
     }
-  }, [stockHealth, selectedStockSubCatId]);
+  }, [stockHealthWithMinQty, selectedStockSubCatId]);
   const { data: supplierChartData, isLoading: isLoadingSupplierChart } = useSupplierPurchasePaymentChart(chartYear, chartMonth);
 
   useEffect(() => {
@@ -612,7 +629,7 @@ export default function AnalyticsPage() {
       );
     }
 
-    if (!stockHealth || stockHealth.length === 0) {
+    if (!stockHealthWithMinQty || stockHealthWithMinQty.length === 0) {
       return (
         <div className="h-[400px] w-full flex items-center justify-center bg-sand-50 rounded-2xl text-sand-400 text-sm">
           Aucune donnée de stock trouvée
@@ -620,7 +637,7 @@ export default function AnalyticsPage() {
       );
     }
 
-    const selectedData = stockHealth.find(s => s.subCategoryId === selectedStockSubCatId) || stockHealth[0];
+    const selectedData = stockHealthWithMinQty.find(s => s.subCategoryId === selectedStockSubCatId) || stockHealthWithMinQty[0];
     const articles = selectedData?.articleStocks || [];
 
     if (articles.length === 0) {
@@ -1336,13 +1353,13 @@ export default function AnalyticsPage() {
                 <CardDescription className="text-sand-400 font-medium">Comparaison du stock actuel avec le seuil d'alerte (stock minimum).</CardDescription>
               </div>
               <div className="flex items-center gap-3">
-                {stockHealth && stockHealth.length > 0 && (
+                {stockHealthWithMinQty && stockHealthWithMinQty.length > 0 && (
                   <select
                     value={selectedStockSubCatId || ""}
                     onChange={(e) => setSelectedStockSubCatId(Number(e.target.value))}
                     className="h-9 rounded-xl bg-sand-50/50 border-sand-200 px-3 text-sm font-bold text-corp-blue-900 outline-none cursor-pointer focus-visible:ring-corp-blue-500"
                   >
-                    {stockHealth.map(c => (
+                    {stockHealthWithMinQty.map(c => (
                       <option key={c.subCategoryId} value={c.subCategoryId}>{c.subCategoryName}</option>
                     ))}
                   </select>
