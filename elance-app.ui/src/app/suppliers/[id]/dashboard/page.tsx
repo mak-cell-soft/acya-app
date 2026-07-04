@@ -13,6 +13,7 @@ import { useSupplierPayments } from '@/hooks/use-supplier-payments';
 import { TablePagination } from '@/components/shared/table-pagination';
 import { DocumentTypes, DocTypes_FR, DocStatus, DocStatus_FR } from '@/types/document';
 import { cn } from '@/lib/utils';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { motion } from 'framer-motion';
 
 interface PageProps {
@@ -26,6 +27,7 @@ export default function SupplierDashboardPage({ params }: PageProps) {
   const { id } = React.use(params);
   const supplierId = parseInt(id, 10);
   const router = useRouter();
+  const { hasPermission } = usePermissionGuard();
 
   // Load dashboard data via react-query
   const { data, isLoading, error } = useSupplierDashboard(supplierId);
@@ -155,6 +157,11 @@ export default function SupplierDashboardPage({ params }: PageProps) {
     router.push('/suppliers');
   };
 
+  // Redirect to payments page with preselected supplier
+  const handleReglement = () => {
+    router.push(`/purchases/payments?supplierId=${supplierId}`);
+  };
+
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -234,23 +241,36 @@ export default function SupplierDashboardPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Account Balance Chip */}
-          <div className={cn(
-            "flex flex-col px-8 py-5 rounded-[24px] border transition-all shadow-sm w-full md:w-80 md:min-w-[300px]",
-            isDette 
-              ? "bg-rose-50/50 border-rose-100 text-rose-950" 
-              : "bg-emerald-50/50 border-emerald-100 text-emerald-950"
-          )}>
-            <span className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest leading-none">Solde en cours</span>
-            <span className={cn(
-              "text-2xl font-mono font-black tracking-tight mt-1",
-              isDette ? "text-rose-600" : "text-emerald-600"
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
+            {/* Account Balance Chip */}
+            <div className={cn(
+              "flex flex-col px-8 py-5 rounded-[24px] border transition-all shadow-sm w-full md:w-80 md:min-w-[300px]",
+              isDette 
+                ? "bg-rose-50/50 border-rose-100 text-rose-950" 
+                : "bg-emerald-50/50 border-emerald-100 text-emerald-950"
             )}>
-              {formatTnd(Math.abs(data.currentBalance))} <span className="text-xs font-bold text-sand-400">TND</span>
-            </span>
-            <small className="text-[0.7rem] font-bold text-sand-400 mt-1 uppercase tracking-tighter">
-              {isDette ? "Vous devez ce montant" : "Crédit en votre faveur"}
-            </small>
+              <span className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest leading-none">Solde en cours</span>
+              <span className={cn(
+                "text-2xl font-mono font-black tracking-tight mt-1",
+                isDette ? "text-rose-600" : "text-emerald-600"
+              )}>
+                {formatTnd(Math.abs(data.currentBalance))} <span className="text-xs font-bold text-sand-400">TND</span>
+              </span>
+              <small className="text-[0.7rem] font-bold text-sand-400 mt-1 uppercase tracking-tighter">
+                {isDette ? "Vous devez ce montant" : "Crédit en votre faveur"}
+              </small>
+            </div>
+
+            {/* Règlement Button */}
+            {hasPermission('purchases', 'canRead') && (
+              <Button
+                onClick={handleReglement}
+                className="h-16 px-6 rounded-[24px] bg-corp-blue-600 hover:bg-corp-blue-700 text-white font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2 border border-corp-blue-700 shrink-0"
+              >
+                <Banknote className="w-5 h-5" />
+                Règlement
+              </Button>
+            )}
           </div>
         </div>
 
