@@ -11,7 +11,6 @@ import { DocumentTypes } from '@/types/document';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-import { PaymentDeepSearchCard } from '@/components/dashboard/payment-deep-search-card';
 
 // UI components
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -71,16 +70,22 @@ const scaleIn = (delay = 0) => ({
 });
 
 // ── STOCK TRANSFER STATUS HELPERS ─────────────────────────────────────────────
-// WHY: The backend sends raw string statuses; we map them to French labels
+// WHY: The backend sends raw/numeric or string statuses; we map them to French labels
 //      and semantic colours here rather than inline to keep JSX readable.
-function transferStatusBadge(status: string) {
-  const map: Record<string, { label: string; className: string }> = {
+function transferStatusBadge(status: any) {
+  const map: Record<string | number, { label: string; className: string }> = {
     Pending:   { label: 'En attente',  className: 'bg-amber-50 text-amber-700 border-amber-200' },
     Confirmed: { label: 'Confirmé',    className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
     Rejected:  { label: 'Refusé',      className: 'bg-rose-50 text-rose-700 border-rose-200' },
     Completed: { label: 'Terminé',     className: 'bg-slate-50 text-slate-600 border-slate-200' },
+    
+    1:   { label: 'En attente',  className: 'bg-amber-50 text-amber-700 border-amber-200' },
+    2:   { label: 'Confirmé',    className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+    3:   { label: 'Refusé',      className: 'bg-rose-50 text-rose-700 border-rose-200' },
+    4:   { label: 'Annulé',      className: 'bg-slate-50 text-slate-600 border-slate-200' },
+    5:   { label: 'Livré',       className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
   };
-  const cfg = map[status] ?? { label: status, className: 'bg-slate-50 text-slate-500 border-slate-200' };
+  const cfg = map[status] ?? { label: String(status), className: 'bg-slate-50 text-slate-500 border-slate-200' };
   return (
     <Badge variant="outline" className={cn('text-[0.65rem] font-bold px-2 py-0.5 rounded-lg border', cfg.className)}>
       {cfg.label}
@@ -143,7 +148,7 @@ export function DepotDashboardContent() {
 
   // Pending transfers only (need attention)
   const pendingTransfers = React.useMemo(
-    () => transfers.filter((t: any) => t.status === 'Pending' || t.status === 0),
+    () => transfers.filter((t: any) => t.status === 'Pending' || t.status === 1 || t.status === 0),
     [transfers]
   );
 
@@ -370,7 +375,7 @@ export function DepotDashboardContent() {
         {[
           { title: 'Articles & M³', icon: Package,       path: '/articles',         color: 'text-amber-600 bg-amber-50 border-amber-100/50' },
           { title: 'Stock & Dépôts', icon: Warehouse,    path: '/stock',            color: 'text-slate-600 bg-slate-50 border-slate-100/50' },
-          { title: 'Transferts',     icon: ArrowLeftRight,path: '/stock/transfer',  color: 'text-blue-600 bg-blue-50 border-blue-100/50' },
+          { title: 'Transferts',     icon: ArrowLeftRight,path: '/stock?tab=transfers',  color: 'text-blue-600 bg-blue-50 border-blue-100/50' },
           { title: 'Achats',         icon: ShoppingCart,  path: '/purchases',       color: 'text-emerald-600 bg-emerald-50 border-emerald-100/50' },
           { title: 'Fournisseurs',   icon: Truck,         path: '/suppliers',       color: 'text-orange-600 bg-orange-50 border-orange-100/50' },
         ].map((item, i) => (
@@ -582,7 +587,7 @@ export function DepotDashboardContent() {
                           alert.stockQuantity === 0 ? 'text-rose-600' : 'text-orange-500'
                         )}
                       >
-                        Qté: {alert.stockQuantity} m³
+                        Qté: {alert.stockQuantity} {alert.unit || 'm³'}
                       </p>
                     </div>
                   </div>
@@ -615,7 +620,7 @@ export function DepotDashboardContent() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => router.push('/stock/transfer')}
+                  onClick={() => router.push('/stock?tab=transfers')}
                   className="h-9 rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50 font-bold text-xs gap-1"
                 >
                   Voir tout <ChevronRight className="w-4 h-4" />
@@ -658,14 +663,14 @@ export function DepotDashboardContent() {
                     {transfers.slice(0, 10).map((t: any, idx) => (
                       <tr key={idx} className="hover:bg-amber-50/20 transition-colors">
                         <td className="px-6 py-4 text-sm font-bold text-slate-800">
-                          {t.originDocNumber || t.originDoc || '—'}
+                          {t.docSortie || t.originDocNumber || t.originDoc || '—'}
                         </td>
                         <td className="px-6 py-4 text-sm font-bold text-slate-600">
-                          {t.receiptDocNumber || t.receiptDoc || '—'}
+                          {t.docReception || t.receiptDocNumber || t.receiptDoc || '—'}
                         </td>
                         <td className="px-6 py-4 text-xs text-slate-400 font-medium whitespace-nowrap">
-                          {t.createdAt || t.date
-                            ? format(new Date(t.createdAt || t.date), 'dd MMM yyyy', { locale: fr })
+                          {t.transferDate || t.createdAt || t.date
+                            ? format(new Date(t.transferDate || t.createdAt || t.date), 'dd MMM yyyy', { locale: fr })
                             : '—'}
                         </td>
                         <td className="px-6 py-4">
@@ -679,16 +684,6 @@ export function DepotDashboardContent() {
             )}
           </CardContent>
         </Card>
-      </motion.div>
-
-      {/* ── RECHERCHE APPROFONDIE DES REGLEMENTS ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.65, duration: 0.6 }}
-        className="mt-8"
-      >
-        <PaymentDeepSearchCard />
       </motion.div>
 
     </div>

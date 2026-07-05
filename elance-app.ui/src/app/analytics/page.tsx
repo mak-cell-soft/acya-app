@@ -36,11 +36,30 @@ import {
   Filter,
   Download,
   AlertCircle,
-  Search
+  Search,
+  SlidersHorizontal,
+  ArrowUpDown,
+  FileDown,
+  Check,
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription 
+} from '@/components/ui/dialog';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { useAnalyticsKpis, useMonthlyRevenue, useTopSubCategories, useStockHealthBySubCategory } from '@/hooks/use-analytics-kpis';
 import { useCustomers } from '@/hooks/use-customers';
 import { useSuppliers } from '@/hooks/use-suppliers';
@@ -81,6 +100,127 @@ export default function AnalyticsPage() {
     chartMonth === 'ALL' ? undefined : chartMonth,
     chartYear
   );
+
+  // ── ADVANCED RECEIVABLES ANALYSIS DIALOG STATES ──
+  const [showReceivablesDialog, setShowReceivablesDialog] = useState(false);
+  const [dialogSearch, setDialogSearch] = useState('');
+  const [dialogMinAmount, setDialogMinAmount] = useState<number | ''>('');
+  const [dialogMaxAmount, setDialogMaxAmount] = useState<number | ''>('');
+  const [dialogAgeFilter, setDialogAgeFilter] = useState<'all' | 'lt30' | 'bt30_90' | 'gt90'>('all');
+  const [dialogPayFilter, setDialogPayFilter] = useState<'all' | 'lt50' | 'bt50_80' | 'gt80'>('all');
+  const [dialogSort, setDialogSort] = useState<'outstanding_desc' | 'outstanding_asc' | 'age_desc' | 'pay_asc' | 'name_asc'>('outstanding_desc');
+
+  // Filtered & Sorted Receivables for Dialog
+  const dialogFilteredReceivables = React.useMemo(() => {
+    if (!kpis?.customerReceivables) return [];
+
+    let list = [...kpis.customerReceivables];
+
+    // 1. Filter by Name
+    if (dialogSearch.trim()) {
+      const s = dialogSearch.toLowerCase();
+      list = list.filter((c: any) => c.name.toLowerCase().includes(s));
+    }
+
+    // 2. Filter by Min Amount
+    if (typeof dialogMinAmount === 'number') {
+      list = list.filter((c: any) => c.outstanding >= dialogMinAmount);
+    }
+
+    // 3. Filter by Max Amount
+    if (typeof dialogMaxAmount === 'number') {
+      list = list.filter((c: any) => c.outstanding <= dialogMaxAmount);
+    }
+
+    // 4. Filter by Oldest Invoice Age (oldestInvoiceDays)
+    if (dialogAgeFilter === 'lt30') {
+      list = list.filter((c: any) => c.oldestInvoiceDays < 30);
+    } else if (dialogAgeFilter === 'bt30_90') {
+      list = list.filter((c: any) => c.oldestInvoiceDays >= 30 && c.oldestInvoiceDays <= 90);
+    } else if (dialogAgeFilter === 'gt90') {
+      list = list.filter((c: any) => c.oldestInvoiceDays > 90);
+    }
+
+    // 5. Filter by % Paid
+    if (dialogPayFilter !== 'all') {
+      list = list.filter((c: any) => {
+        const progress = c.totalInvoiced > 0 ? (c.totalPaid / c.totalInvoiced) * 100 : 0;
+        if (dialogPayFilter === 'lt50') return progress < 50;
+        if (dialogPayFilter === 'bt50_80') return progress >= 50 && progress <= 80;
+        if (dialogPayFilter === 'gt80') return progress > 80;
+        return true;
+      });
+    }
+
+    // 6. Sort
+    list.sort((a: any, b: any) => {
+      const aProgress = a.totalInvoiced > 0 ? (a.totalPaid / a.totalInvoiced) * 100 : 0;
+      const bProgress = b.totalInvoiced > 0 ? (b.totalPaid / b.totalInvoiced) * 100 : 0;
+
+      switch (dialogSort) {
+        case 'outstanding_desc':
+          return b.outstanding - a.outstanding;
+        case 'outstanding_asc':
+          return a.outstanding - b.outstanding;
+        case 'age_desc':
+          return b.oldestInvoiceDays - a.oldestInvoiceDays;
+        case 'pay_asc':
+          return aProgress - bProgress;
+        case 'name_asc':
+          return a.name.localeCompare(b.name);
+        default:
+          return 0;
+      }
+    });
+
+    return list;
+  }, [kpis?.customerReceivables, dialogSearch, dialogMinAmount, dialogMaxAmount, dialogAgeFilter, dialogPayFilter, dialogSort]);
+
+  // Derived KPI Stats for Dialog
+  const dialogSummaryStats = React.useMemo(() => {
+    const list = dialogFilteredReceivables;
+    const totalOutstanding = list.reduce((sum: number, c: any) => sum + (c.outstanding || 0), 0);
+    const criticalCount = list.filter((c: any) => c.oldestInvoiceDays > 90).length;
+    const avgAge = list.length > 0 
+      ? Math.round(list.reduce((sum: number, c: any) => sum + (c.oldestInvoiceDays || 0), 0) / list.length) 
+      : 0;
+
+    return {
+      totalOutstanding,
+      criticalCount,
+      avgAge,
+      totalCount: list.length
+    };
+  }, [dialogFilteredReceivables]);
+
+  // Export CSV Function
+  const exportToCSV = () => {
+    if (dialogFilteredReceivables.length === 0) return;
+
+    // Headers
+    const headers = ['Client', 'Total Facture (DT)', 'Total Paye (DT)', 'Solde Restant (DT)', '% Paye', 'Anciennete (jours)'];
+    const rows = dialogFilteredReceivables.map((c: any) => {
+      const progress = c.totalInvoiced > 0 ? (c.totalPaid / c.totalInvoiced) * 100 : 0;
+      return [
+        `"${c.name.replace(/"/g, '""')}"`,
+        c.totalInvoiced.toFixed(3),
+        c.totalPaid.toFixed(3),
+        c.outstanding.toFixed(3),
+        `${progress.toFixed(1)}%`,
+        c.oldestInvoiceDays
+      ];
+    });
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((row: string[]) => row.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `suivi_creances_clients_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   const { data: monthlyData, isLoading: isLoadingMonthly } = useMonthlyRevenue(6);
   
   const [topSalesMonths, setTopSalesMonths] = useState<number>(6);
@@ -1223,7 +1363,18 @@ export default function AnalyticsPage() {
           <CardHeader className="p-8 pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-2xl text-corp-blue-900">Suivi des Créances Clients</CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-2xl text-corp-blue-900">Suivi des Créances Clients</CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowReceivablesDialog(true)}
+                    className="w-8 h-8 rounded-lg text-rose-500 hover:bg-rose-50 border border-rose-100/50"
+                    title="Analyse approfondie et filtres"
+                  >
+                    <SlidersHorizontal className="w-4 h-4" />
+                  </Button>
+                </div>
                 <CardDescription className="text-sand-400 font-medium">Surveillance globale des factures impayées (Balance = Débit - Crédit)</CardDescription>
               </div>
               <div className="flex items-center gap-4">
@@ -1246,6 +1397,259 @@ export default function AnalyticsPage() {
             {renderReceivables()}
           </CardContent>
         </Card>
+
+        {/* ── ADVANCED RECEIVABLES ANALYSIS DIALOG ── */}
+        <Dialog open={showReceivablesDialog} onOpenChange={(open: boolean) => {
+          setShowReceivablesDialog(open);
+          if (!open) {
+            // Reset dialog states when closing
+            setDialogSearch('');
+            setDialogMinAmount('');
+            setDialogMaxAmount('');
+            setDialogAgeFilter('all');
+            setDialogPayFilter('all');
+            setDialogSort('outstanding_desc');
+          }
+        }}>
+          <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-5xl xl:max-w-6xl bg-white border border-corp-blue-100 rounded-3xl overflow-hidden shadow-2xl p-0 flex flex-col max-h-[90vh]">
+            <DialogHeader className="p-6 pb-4 border-b border-corp-blue-50/60 bg-gradient-to-r from-corp-blue-50/20 to-rose-50/10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <DialogTitle className="text-xl font-bold text-corp-blue-950 flex items-center gap-2">
+                    <span>Analyse Approfondie des Créances Clients</span>
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-sand-500">
+                    Filtrez par montant, date d'échéance et exportez les rapports complets.
+                  </DialogDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportToCSV}
+                  disabled={dialogFilteredReceivables.length === 0}
+                  className="rounded-xl border-emerald-200 text-emerald-600 hover:bg-emerald-50 font-bold text-xs gap-2 shrink-0 h-9"
+                >
+                  <FileDown className="w-4 h-4" />
+                  Exporter en CSV
+                </Button>
+              </div>
+            </DialogHeader>
+
+            {/* Dialog summary KPI Banner */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-slate-50/50 border-b border-slate-100">
+              <div className="bg-white p-4 rounded-2xl border border-corp-blue-50 shadow-sm flex flex-col gap-1">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Créances totales</span>
+                <span className="text-lg font-black text-rose-600 font-mono">
+                  {formatCurrency(dialogSummaryStats.totalOutstanding)}
+                </span>
+              </div>
+              <div className="bg-white p-4 rounded-2xl border border-corp-blue-50 shadow-sm flex flex-col gap-1">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Clients en retard (&gt;90j)</span>
+                <span className="text-lg font-black text-amber-600 font-mono">
+                  {dialogSummaryStats.criticalCount}
+                </span>
+              </div>
+              <div className="bg-white p-4 rounded-2xl border border-corp-blue-50 shadow-sm flex flex-col gap-1">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Ancienneté Moyenne</span>
+                <span className="text-lg font-black text-corp-blue-900 font-mono">
+                  {dialogSummaryStats.avgAge} <span className="text-xs font-normal text-slate-400">jours</span>
+                </span>
+              </div>
+              <div className="bg-white p-4 rounded-2xl border border-corp-blue-50 shadow-sm flex flex-col gap-1">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total filtré</span>
+                <span className="text-lg font-black text-emerald-600 font-mono">
+                  {dialogSummaryStats.totalCount} <span className="text-xs font-normal text-slate-400">clients</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Filtering and sorting controls */}
+            <div className="p-6 border-b border-slate-100 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Search input */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400" />
+                  <Input 
+                    placeholder="Rechercher un client..." 
+                    value={dialogSearch}
+                    onChange={(e) => setDialogSearch(e.target.value)}
+                    className="pl-9 bg-sand-50/50 border-sand-200 rounded-xl w-full text-sm"
+                  />
+                </div>
+
+                {/* Min amount input */}
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold uppercase">Min DT</span>
+                  <Input 
+                    type="number"
+                    placeholder="0.000" 
+                    value={dialogMinAmount === '' ? '' : dialogMinAmount}
+                    onChange={(e) => setDialogMinAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                    className="pl-16 bg-sand-50/50 border-sand-200 rounded-xl w-full text-sm font-mono"
+                  />
+                </div>
+
+                {/* Max amount input */}
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold uppercase">Max DT</span>
+                  <Input 
+                    type="number"
+                    placeholder="Filtre max..." 
+                    value={dialogMaxAmount === '' ? '' : dialogMaxAmount}
+                    onChange={(e) => setDialogMaxAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                    className="pl-16 bg-sand-50/50 border-sand-200 rounded-xl w-full text-sm font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+                {/* Age and pay filters */}
+                <div className="flex flex-wrap gap-4 items-center">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Ancienneté</span>
+                    <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200/50">
+                      {[
+                        { id: 'all', label: 'Tous' },
+                        { id: 'lt30', label: '< 30 j' },
+                        { id: 'bt30_90', label: '30-90 j' },
+                        { id: 'gt90', label: '> 90 j' }
+                      ].map((opt) => (
+                        <button
+                          key={opt.id}
+                          onClick={() => setDialogAgeFilter(opt.id as any)}
+                          className={cn(
+                            "px-3 py-1 text-[10px] font-bold rounded-lg uppercase tracking-wider transition-all",
+                            dialogAgeFilter === opt.id
+                              ? "bg-white text-corp-blue-900 shadow-sm"
+                              : "text-slate-500 hover:text-slate-800"
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Taux de règlement</span>
+                    <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200/50">
+                      {[
+                        { id: 'all', label: 'Tous' },
+                        { id: 'lt50', label: '< 50%' },
+                        { id: 'bt50_80', label: '50-80%' },
+                        { id: 'gt80', label: '> 80%' }
+                      ].map((opt) => (
+                        <button
+                          key={opt.id}
+                          onClick={() => setDialogPayFilter(opt.id as any)}
+                          className={cn(
+                            "px-3 py-1 text-[10px] font-bold rounded-lg uppercase tracking-wider transition-all",
+                            dialogPayFilter === opt.id
+                              ? "bg-white text-corp-blue-900 shadow-sm"
+                              : "text-slate-500 hover:text-slate-800"
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sort selector */}
+                <div className="flex flex-col gap-1 shrink-0 w-full sm:w-[220px]">
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Trier par</span>
+                  <Select value={dialogSort} onValueChange={(val) => setDialogSort(val as any)}>
+                    <SelectTrigger className="w-full bg-sand-50/50 border-sand-200 rounded-xl text-xs font-bold h-9">
+                      <SelectValue placeholder="Ordre d'affichage">
+                        {dialogSort === 'outstanding_desc' && "Solde restant (Décroissant)"}
+                        {dialogSort === 'outstanding_asc' && "Solde restant (Croissant)"}
+                        {dialogSort === 'age_desc' && "Ancienneté (Plus ancien)"}
+                        {dialogSort === 'pay_asc' && "Taux payé (Moins réglé)"}
+                        {dialogSort === 'name_asc' && "Nom du client (A-Z)"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-corp-blue-100 rounded-xl">
+                      <SelectItem value="outstanding_desc" className="text-xs font-medium cursor-pointer hover:bg-slate-50">Solde restant (Décroissant)</SelectItem>
+                      <SelectItem value="outstanding_asc" className="text-xs font-medium cursor-pointer hover:bg-slate-50">Solde restant (Croissant)</SelectItem>
+                      <SelectItem value="age_desc" className="text-xs font-medium cursor-pointer hover:bg-slate-50">Ancienneté (Plus ancien)</SelectItem>
+                      <SelectItem value="pay_asc" className="text-xs font-medium cursor-pointer hover:bg-slate-50">Taux payé (Moins réglé)</SelectItem>
+                      <SelectItem value="name_asc" className="text-xs font-medium cursor-pointer hover:bg-slate-50">Nom du client (A-Z)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Dialogue Table Area */}
+            <div className="flex-1 overflow-y-auto max-h-[50vh] custom-scrollbar">
+              {dialogFilteredReceivables.length === 0 ? (
+                <div className="p-12 text-center text-slate-400">
+                  <SlidersHorizontal className="w-8 h-8 mx-auto mb-3 text-slate-300" />
+                  <p className="text-sm font-bold">Aucun résultat ne correspond à vos filtres.</p>
+                </div>
+              ) : (
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-corp-blue-50/80 bg-corp-blue-50/10 sticky top-0 backdrop-blur z-10">
+                      <th className="px-6 py-3 text-[10px] font-bold text-corp-blue-800 uppercase tracking-wider">Client</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-corp-blue-800 uppercase tracking-wider text-right">Facturé</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-corp-blue-800 uppercase tracking-wider text-right">Payé</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-corp-blue-800 uppercase tracking-wider text-right">Solde Restant</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-corp-blue-800 uppercase tracking-wider text-center">Taux</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-corp-blue-800 uppercase tracking-wider text-center">Ancienneté</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {dialogFilteredReceivables.map((client: any) => {
+                      const progress = client.totalInvoiced > 0 ? (client.totalPaid / client.totalInvoiced) * 100 : 0;
+                      
+                      let ageColor = 'text-emerald-700 bg-emerald-50 border-emerald-100';
+                      let ageLabel = '< 30 j';
+                      if (client.oldestInvoiceDays >= 30 && client.oldestInvoiceDays <= 90) {
+                        ageColor = 'text-amber-700 bg-amber-50 border-amber-100';
+                        ageLabel = `${client.oldestInvoiceDays} j`;
+                      } else if (client.oldestInvoiceDays > 90) {
+                        ageColor = 'text-rose-700 bg-rose-50 border-rose-100';
+                        ageLabel = `> 90 j (${client.oldestInvoiceDays} j)`;
+                      }
+
+                      return (
+                        <tr key={client.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-6 py-4 text-xs font-bold text-corp-blue-950">
+                            {client.name}
+                          </td>
+                          <td className="px-6 py-4 text-xs font-mono font-medium text-slate-500 text-right">
+                            {formatCurrency(client.totalInvoiced)}
+                          </td>
+                          <td className="px-6 py-4 text-xs font-mono font-medium text-slate-500 text-right">
+                            {formatCurrency(client.totalPaid)}
+                          </td>
+                          <td className="px-6 py-4 text-xs font-mono font-bold text-rose-600 text-right">
+                            {formatCurrency(client.outstanding)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="text-[10px] font-bold text-slate-600">{progress.toFixed(0)}%</span>
+                              <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-emerald-500" style={{ width: `${Math.min(progress, 100)}%` }} />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <span className={cn("px-2 py-0.5 rounded-lg border text-[10px] font-bold inline-block", ageColor)}>
+                              {ageLabel}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Top Articles by SubCategory */}
         {/* Stock Health & Top SubCategories */}

@@ -598,6 +598,7 @@ namespace ms.webapp.api.acya.api.Services
                 MerchandiseId = s.MerchandiseId,
                 PackageReference = s.Merchandises.PackageReference,
                 ArticleReference = s.Merchandises.Articles!.Reference,
+                Unit = s.Merchandises.Articles.Unit,
                 StockQuantity = s.Quantity,
                 MinimumStock = s.MinimumStock,
                 SiteId = s.SalesSiteId
@@ -632,6 +633,7 @@ namespace ms.webapp.api.acya.api.Services
                 .Select(s => new StockQuantityDto
                 {
                     ArticleReference = s.Merchandises!.Articles!.Reference,
+                    Unit = s.Merchandises.Articles.Unit,
                     StockQuantity = s.Quantity,
                     MinimumStock = s.MinimumStock
                 }).ToListAsync();

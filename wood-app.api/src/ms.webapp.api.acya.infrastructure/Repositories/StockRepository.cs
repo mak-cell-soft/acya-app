@@ -340,8 +340,9 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                   join docreceipt in context.Documents on st.ReceiptDocumentId equals docreceipt.Id
                   join ssexit in context.SalesSites on docexit.SalesSiteId equals ssexit.Id
                   join ssreceipt in context.SalesSites on docreceipt.SalesSiteId equals ssreceipt.Id
-                  join tr in context.Transporters on st.TransporterId equals tr.Id
-                  join vehicle in context.Vehicles on tr.VehicleId equals vehicle.Id into vehicleGroup
+                  join tr in context.Transporters on st.TransporterId equals tr.Id into trGroup
+                  from tr in trGroup.DefaultIfEmpty()
+                  join vehicle in context.Vehicles on (tr != null ? tr.VehicleId : null) equals vehicle.Id into vehicleGroup
                   from vehicle in vehicleGroup.DefaultIfEmpty()
                   join merexit in context.DocumentMerchandises on docexit.Id equals merexit.DocumentId
                   where st.TransferDate > lastMonth
@@ -349,7 +350,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
       if (siteId.HasValue)
       {
-        query = query.Where(x => x.docexit.SalesSiteId == siteId.Value);
+        query = query.Where(x => x.docexit.SalesSiteId == siteId.Value || x.docreceipt.SalesSiteId == siteId.Value);
       }
 
       var selectQuery = query.Select(x => new StockTransferInfoDto
@@ -360,7 +361,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         Origine = x.ssexit.Address!,
         Destination = x.ssreceipt.Address!,
         TransferDate = x.st.TransferDate,
-        Transporter = x.tr.FirstName + " " + x.tr.LastName,
+        Transporter = x.tr != null ? x.tr.FirstName + " " + x.tr.LastName : string.Empty,
         VehicleSerialNumber = x.vehicle != null ? x.vehicle.SerialNumber : null,
         RefPaquet = x.merexit.Merchandise!.PackageReference!,
         Status = x.st.Status,
@@ -382,8 +383,9 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                          join receiptDoc in context.Documents on st.ReceiptDocumentId equals receiptDoc.Id
                          join exitSite in context.SalesSites on exitDoc.SalesSiteId equals exitSite.Id
                          join receiptSite in context.SalesSites on receiptDoc.SalesSiteId equals receiptSite.Id
-                         join transporter in context.Transporters on st.TransporterId equals transporter.Id
-                         join vehicle in context.Vehicles on transporter.VehicleId equals vehicle.Id into vehicleGroup
+                         join transporter in context.Transporters on st.TransporterId equals transporter.Id into transporterGroup
+                         from transporter in transporterGroup.DefaultIfEmpty()
+                         join vehicle in context.Vehicles on (transporter != null ? transporter.VehicleId : null) equals vehicle.Id into vehicleGroup
                          from vehicle in vehicleGroup.DefaultIfEmpty()
                          join exitMerch in context.DocumentMerchandises on exitDoc.Id equals exitMerch.DocumentId
                          join merchandise in context.Merchandises on exitMerch.MerchandiseId equals merchandise.Id
@@ -447,7 +449,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         Origine = r.ExitSite.Address,
         Destination = r.ReceiptSite.Address,
         TransferDate = r.St.TransferDate,
-        Transporter = r.Transporter.FullName,
+        Transporter = r.Transporter != null ? r.Transporter.FullName : null,
         VehicleSerialNumber = r.VehicleSerialNumber,
         RefPaquet = r.Merchandise.PackageReference,
         ArticleId = r.Article.Id,
@@ -503,8 +505,9 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                   join docreceipt in context.Documents on st.ReceiptDocumentId equals docreceipt.Id
                   join ssexit in context.SalesSites on docexit.SalesSiteId equals ssexit.Id
                   join ssreceipt in context.SalesSites on docreceipt.SalesSiteId equals ssreceipt.Id
-                  join tr in context.Transporters on st.TransporterId equals tr.Id
-                  join vehicle in context.Vehicles on tr.VehicleId equals vehicle.Id into vehicleGroup
+                  join tr in context.Transporters on st.TransporterId equals tr.Id into trGroup
+                  from tr in trGroup.DefaultIfEmpty()
+                  join vehicle in context.Vehicles on (tr != null ? tr.VehicleId : null) equals vehicle.Id into vehicleGroup
                   from vehicle in vehicleGroup.DefaultIfEmpty()
                   join merexit in context.DocumentMerchandises on docexit.Id equals merexit.DocumentId
                   select new
@@ -548,7 +551,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         Origine = x.OriginSite.Address!,
         Destination = x.DestinationSite.Address!,
         TransferDate = x.StockTransfer.TransferDate,
-        Transporter = x.Transporter.FirstName + " " + x.Transporter.LastName,
+        Transporter = x.Transporter != null ? x.Transporter.FirstName + " " + x.Transporter.LastName : string.Empty,
         VehicleSerialNumber = x.Vehicle != null ? x.Vehicle.SerialNumber : null,
         RefPaquet = x.Merchandise.Merchandise!.PackageReference!,
         Status = x.StockTransfer.Status,

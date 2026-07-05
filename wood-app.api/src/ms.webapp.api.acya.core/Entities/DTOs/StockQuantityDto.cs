@@ -20,6 +20,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
      * Propriétés nécessaires de l'Article
      */
     public string? ArticleReference { get; set; }
+    public string? Unit { get; set; }
     
     /**
      * Propriétés nécessaires du Stock

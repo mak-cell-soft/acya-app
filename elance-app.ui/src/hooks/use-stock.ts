@@ -12,6 +12,7 @@ export interface StockQuantity {
   isInvoicible: boolean;
   isMergedWith: boolean;
   merchandiseId: number;
+  unit?: string;
 }
 
 export interface StockWithLengthDetails {
