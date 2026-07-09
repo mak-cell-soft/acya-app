@@ -205,7 +205,7 @@ namespace ms.webapp.api.acya.api.Controllers
           }
         }
 
-        if (string.IsNullOrEmpty(siteId)) return BadRequest("User site context not found.");
+        if (string.IsNullOrEmpty(siteId)) return Ok(new List<PendingNotification>());
 
         var notifications = await _context.PendingNotifications
             .Where(n => n.Status != TransferStatus.Confirmed && 

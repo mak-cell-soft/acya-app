@@ -688,19 +688,26 @@ function NewInventoryContent() {
 
                           <td className="p-3.5 text-center">
                             {row.isWoodArticle && (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => openLengthsModal(row)}
-                                className={`h-11 px-3 rounded-lg gap-1.5 font-bold text-[10px] uppercase tracking-wider border-slate-200 shadow-sm transition-all ${
-                                  row.listLengths.length > 0 
-                                    ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' 
-                                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
-                                }`}
-                              >
-                                <TreeDeciduous className="h-3.5 w-3.5" />
-                                {row.listLengths.length > 0 ? `${row.listLengths.length} Long.` : 'Saisir'}
-                              </Button>
+                              <div className="flex flex-col items-center">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => openLengthsModal(row)}
+                                  className={`h-11 px-3 rounded-lg gap-1.5 font-bold text-[10px] uppercase tracking-wider border-slate-200 shadow-sm transition-all ${
+                                    row.listLengths.length > 0 
+                                      ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' 
+                                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                                  }`}
+                                >
+                                  <TreeDeciduous className="h-3.5 w-3.5" />
+                                  {row.listLengths.length > 0 ? `${row.listLengths.length} Long.` : 'Saisir'}
+                                </Button>
+                                {row.listLengths.length > 0 && (
+                                  <span className="text-[9px] text-amber-600 font-bold mt-1">
+                                    {row.listLengths.reduce((acc, l) => acc + (l.nbpieces || 0), 0)} pcs
+                                  </span>
+                                )}
+                              </div>
                             )}
                           </td>
 

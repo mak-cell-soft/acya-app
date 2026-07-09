@@ -23,6 +23,7 @@ CREATE TABLE tbl_appvariable (
     isdefault boolean NULL,
     iseditable boolean NULL,
     isdeleted boolean NULL,
+    valuetext text NULL,
     CONSTRAINT "PK_tbl_appvariable" PRIMARY KEY (id)
 );
 
@@ -1272,6 +1273,15 @@ ALTER TABLE tbl_enterprise ADD COLUMN IF NOT EXISTS ismanagingconstructions BOOL
 
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20260625180000_AddTenantBrandingColumns', '7.0.20');
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20260609121200_MakeDocumentCounterPartIdNullable', '7.0.20');
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20260628190700_AddIsManagingConstructions', '7.0.20');
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20260703095000_AddValueTextToAppVariable', '7.0.20');
 
 COMMIT;
 

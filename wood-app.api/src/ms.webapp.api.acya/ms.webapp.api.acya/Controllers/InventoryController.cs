@@ -8,6 +8,7 @@ using ms.webapp.api.acya.core.Entities.DTOs;
 using ms.webapp.api.acya.infrastructure;
 using ms.webapp.api.acya.infrastructure.Repositories;
 using ms.webapp.api.acya.core.Entities.Product;
+using ms.webapp.api.acya.core.Entities.DTOs.Config;
 using Document = ms.webapp.api.acya.core.Entities.Document;
 
 namespace ms.webapp.api.acya.api.Controllers
@@ -71,26 +72,41 @@ namespace ms.webapp.api.acya.api.Controllers
                 return BadRequest("Invalid inventory data.");
             }
 
-            // Generate Inventory Number: Inventory-yyyyMMdd-NNN
-            string datePart = DateTime.Now.ToString("yyyyMMdd");
-            string prefix = $"Inventory-{datePart}";
-            
-            var lastDoc = await _context.Documents
-                .Where(d => d.DocNumber!.StartsWith(prefix))
-                .OrderByDescending(d => d.DocNumber)
-                .FirstOrDefaultAsync();
+            // Generate Inventory Number using enterprise numbering config
+            var user = await _context.AppUsers
+                .Include(u => u.Enterprise)
+                .FirstOrDefaultAsync(u => u.Id == dto.updatedbyid);
 
-            int nextIncrement = 1;
-            if (lastDoc != null && lastDoc.DocNumber!.Length > prefix.Length + 1)
+            var numberingConfig = new DocumentNumberingConfigDto();
+            if (!string.IsNullOrEmpty(user?.Enterprise?.DocumentNumberingConfig))
             {
-                string numericPart = lastDoc.DocNumber.Substring(prefix.Length + 1);
-                if (int.TryParse(numericPart, out int lastIncrement))
+                try
                 {
-                    nextIncrement = lastIncrement + 1;
+                    var options = new System.Text.Json.JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString
+                    };
+                    numberingConfig = System.Text.Json.JsonSerializer.Deserialize<DocumentNumberingConfigDto>(user.Enterprise.DocumentNumberingConfig, options) ?? new DocumentNumberingConfigDto();
+                }
+                catch
+                {
+                    // Fallback to defaults on error
                 }
             }
 
-            string newDocNumber = $"{prefix}-{nextIncrement:D3}";
+            string prefix = Helpers.GetPrefixForDocumentType(DocumentTypes.inventory, numberingConfig.Prefixes);
+            if (string.IsNullOrEmpty(prefix))
+            {
+                prefix = "INV";
+            }
+
+            string newDocNumber;
+            lock (_documentRepository)
+            {
+                string? lastDocNumber = _documentRepository.GetLastDocNumberByPrefix(prefix);
+                newDocNumber = Helpers.GenerateNewDocNumber(prefix, lastDocNumber, numberingConfig.YearFormat, numberingConfig.IncrementLength);
+            }
 
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
@@ -247,6 +263,7 @@ namespace ms.webapp.api.acya.api.Controllers
                     }
 
                     doc.DocStatus = DocStatus.Validated;
+                    doc.StockTransactionType = TransactionType.Add;
                     doc.UpdateDate = DateTime.UtcNow;
 
                     await _context.SaveChangesAsync();

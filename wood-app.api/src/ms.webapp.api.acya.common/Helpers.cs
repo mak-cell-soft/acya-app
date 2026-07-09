@@ -36,6 +36,7 @@ namespace ms.webapp.api.acya.common
         DocumentTypes.stockTransfer => "TS", // Transfert Stock
         DocumentTypes.customerInvoiceReturn => "AV", // Avoir Client
         DocumentTypes.supplierInvoiceReturn => "AVF", // Avoir Fournisseur
+        DocumentTypes.inventory => "INV", // Inventaire
         _ => string.Empty
       };
     }
