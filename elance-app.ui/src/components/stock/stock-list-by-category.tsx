@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useStockAll } from '@/hooks/use-stock';
+import { useSites } from '@/hooks/use-enterprise';
 import { stockService } from '@/services/components/stock.service';
 import { Stock, StockCategoryGroup } from '@/types/stock';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Search, 
   Settings, 
@@ -30,7 +32,9 @@ import {
   ChevronDown,
   Loader2,
   TreeDeciduous,
-  FlameKindling
+  FlameKindling,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -49,6 +53,11 @@ export function StockListByCategory() {
 
   // Search input filtering
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSiteId, setSelectedSiteId] = useState<string>('all');
+  const [hideZeroStock, setHideZeroStock] = useState<boolean>(true);
+
+  // Fetch sales sites list for select dropdown
+  const { data: allSites = [] } = useSites();
   
   // Dialog thresholds state
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
@@ -62,16 +71,32 @@ export function StockListByCategory() {
     
     // Filter stocks first
     const q = searchQuery.toLowerCase().trim();
-    const filtered = allStocks.filter(s => {
-      if (!q) return true;
-      const ref = s.merchandise?.article?.reference?.toLowerCase() || '';
-      const desc = s.merchandise?.article?.description?.toLowerCase() || '';
-      const pack = s.merchandise?.packagereference?.toLowerCase() || '';
-      const site = s.site?.address?.toLowerCase() || s.site?.gov?.toLowerCase() || '';
-      return ref.includes(q) || desc.includes(q) || pack.includes(q) || site.includes(q);
+    const filtered = allStocks.filter((s: any) => {
+      // 1. Search Query filter
+      if (q) {
+        const ref = s.merchandise?.article?.reference?.toLowerCase() || '';
+        const desc = s.merchandise?.article?.description?.toLowerCase() || '';
+        const pack = s.merchandise?.packagereference?.toLowerCase() || '';
+        const site = s.site?.address?.toLowerCase() || s.site?.gov?.toLowerCase() || '';
+        if (!ref.includes(q) && !desc.includes(q) && !pack.includes(q) && !site.includes(q)) {
+          return false;
+        }
+      }
+
+      // 2. Sales Site filter
+      if (selectedSiteId !== 'all' && s.site?.id?.toString() !== selectedSiteId) {
+        return false;
+      }
+
+      // 3. Hide zero stock filter
+      if (hideZeroStock && s.quantity === 0) {
+        return false;
+      }
+
+      return true;
     });
 
-    filtered.forEach(stock => {
+    filtered.forEach((stock: any) => {
       const categoryName = stock.merchandise?.article?.category?.description || 'Non classé';
       const categoryId = stock.merchandise?.article?.categoryid || 0;
       if (!groups[categoryName]) {
@@ -101,7 +126,7 @@ export function StockListByCategory() {
         unitTotals
       };
     });
-  }, [allStocks, searchQuery]);
+  }, [allStocks, searchQuery, selectedSiteId, hideZeroStock]);
 
   // Handle setting thresholds
   const handleOpenThreshold = (stock: Stock) => {
@@ -148,20 +173,72 @@ export function StockListByCategory() {
     <div className="space-y-6">
       
       {/* Category header filters and sticky navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-200/40 dark:border-stone-800/40 pb-4">
-        <div className="relative w-full sm:max-w-xs">
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher par Réf., Colis, Dépôt..."
-            className="pl-9 h-10 bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-850 rounded-xl text-xs font-semibold"
-          />
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+      <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 border-b border-stone-200/40 dark:border-stone-800/40 pb-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:max-w-3xl">
+          {/* Search Bar */}
+          <div className="relative flex-1">
+            <Input
+              value={searchQuery}
+              onChange={(e: any) => setSearchQuery(e.target.value)}
+              placeholder="Rechercher par Réf., Colis, Dépôt..."
+              className="pl-9 h-10 bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-850 rounded-xl text-xs font-semibold"
+            />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+          </div>
+
+          {/* Dépôt Selection */}
+          <div className="w-full sm:w-[220px]">
+            <Select value={selectedSiteId} onValueChange={(val: string | null) => setSelectedSiteId(val || 'all')}>
+              <SelectTrigger className="h-10 text-xs bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-850 rounded-xl font-semibold focus:ring-amber-500/20">
+                <SelectValue placeholder="Filtrer par Dépôt">
+                  {selectedSiteId === 'all' 
+                    ? 'Tous les dépôts' 
+                    : (() => {
+                        const site = allSites.find((s: any) => s.id.toString() === selectedSiteId);
+                        return site ? `${site.gov} - ${site.address}` : 'Tous les dépôts';
+                      })()
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="text-xs font-semibold">Tous les dépôts</SelectItem>
+                {allSites.map((site: any) => (
+                  <SelectItem key={site.id} value={site.id.toString()} className="text-xs">
+                    {site.gov} - {site.address}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Hide Zero Stock Toggle */}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setHideZeroStock(!hideZeroStock)}
+            className={`h-10 px-4 rounded-xl gap-2 font-bold text-xs uppercase tracking-wider transition-all select-none border-stone-200 dark:border-stone-850 ${
+              hideZeroStock 
+                ? 'bg-amber-50 text-amber-850 border-amber-200 hover:bg-amber-100 hover:text-amber-900 dark:bg-amber-955 dark:text-amber-400 dark:border-amber-900/40 dark:hover:bg-amber-900/30' 
+                : 'bg-white dark:bg-stone-950 text-stone-500 hover:text-stone-900 dark:hover:text-stone-50'
+            }`}
+          >
+            {hideZeroStock ? (
+              <>
+                <EyeOff className="h-4 w-4 text-amber-500" />
+                <span>Stock nul masqué</span>
+              </>
+            ) : (
+              <>
+                <Eye className="h-4 w-4 text-stone-400" />
+                <span>Stock nul visible</span>
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Dynamic scroll-to navigation chips */}
         <div className="flex flex-wrap gap-1.5 max-w-full overflow-x-auto pb-1">
-          {groupedCategories.map((group) => (
+          {groupedCategories.map((group: StockCategoryGroup) => (
             <button
               key={group.categoryName}
               onClick={() => {
@@ -188,7 +265,7 @@ export function StockListByCategory() {
         </Card>
       ) : (
         <div className="space-y-10">
-          {groupedCategories.map((group) => (
+          {groupedCategories.map((group: StockCategoryGroup) => (
             <section
               key={group.categoryName}
               id={`cat-sec-${group.categoryId}`}
@@ -217,7 +294,7 @@ export function StockListByCategory() {
 
                 {/* Category volume & totals banner */}
                 <div className="flex flex-row gap-1.5">
-                  {group.unitTotals.map((t) => (
+                  {group.unitTotals.map((t: any) => (
                     <Badge
                       key={t.unit}
                       className="bg-stone-900 text-white dark:bg-stone-50 dark:text-stone-900 font-mono text-[10px] font-bold px-2 py-0.5"
@@ -375,7 +452,7 @@ export function StockListByCategory() {
                 id="min-stock-input"
                 type="number"
                 value={minStockValue}
-                onChange={(e) => setMinStockValue(parseFloat(e.target.value) || 0)}
+                onChange={(e: any) => setMinStockValue(parseFloat(e.target.value) || 0)}
                 className="h-11 bg-stone-50 dark:bg-stone-900 border-stone-200 dark:border-stone-800 font-mono font-bold text-xs"
               />
             </div>
