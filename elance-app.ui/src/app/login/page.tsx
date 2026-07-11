@@ -407,7 +407,7 @@ export default function LoginPage() {
             </div>
 
             {/* Forgot Password Panel */}
-            <AnimatePresence>
+            <AnimatePresence initial={false}>
               {showForgotPanel && (
                 <motion.div
                   key="forgot"
@@ -432,7 +432,7 @@ export default function LoginPage() {
                         type="button"
                         onClick={handleForgotPassword}
                         disabled={isForgotLoading}
-                        className="h-9 px-4 bg-[#3B82F6] text-white text-xs font-bold rounded-lg hover:bg-[#2563EB] transition-colors shrink-0 cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
+                        className="h-9 px-4 bg-[#3B82F6] text-white text-xs font-bold rounded-lg hover:bg-[#2563EB] transition-[transform,background-color] duration-200 ease-out active:scale-[0.96] shrink-0 cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
                       >
                         {isForgotLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Générer"}
                       </button>
@@ -450,7 +450,7 @@ export default function LoginPage() {
                         <p className="text-[10px] text-[#94A3B8] text-center">Valide pendant 15 minutes.</p>
                         <Link
                           href={`/forgot-password?token=${resetToken}`}
-                          className="flex items-center justify-center gap-1.5 w-full py-1.5 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#3B82F6] text-[10px] font-bold uppercase tracking-wider rounded transition-colors"
+                          className="flex items-center justify-center gap-1.5 w-full py-1.5 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#3B82F6] text-[10px] font-bold uppercase tracking-wider rounded transition-[transform,background-color] duration-200 ease-out active:scale-[0.96]"
                         >
                           Aller à la réinitialisation <ArrowRight className="w-3 h-3" />
                         </Link>
@@ -465,7 +465,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading || isTenantInactive}
-              className="w-full h-12 bg-[#0D1F3C] hover:bg-[#162B4D] text-white font-bold text-sm rounded-full shadow-lg shadow-[#0D1F3C]/20 hover:shadow-xl hover:shadow-[#0D1F3C]/25 hover:scale-[1.015] active:scale-[0.985] transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
+              className="w-full h-12 bg-[#0D1F3C] hover:bg-[#162B4D] text-white font-bold text-sm rounded-full shadow-lg shadow-[#0D1F3C]/20 hover:shadow-xl hover:shadow-[#0D1F3C]/25 hover:scale-[1.015] active:scale-[0.96] transition-[transform,background-color,color,box-shadow] duration-200 ease-out cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />

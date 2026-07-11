@@ -13,13 +13,13 @@
   --font-serif: var(--font-dm-sans), sans-serif;
   --font-heading: var(--font-dm-sans), sans-serif;
 
-  --shadow-sm: none;
-  --shadow: none;
-  --shadow-md: none;
-  --shadow-lg: none;
-  --shadow-xl: none;
-  --shadow-2xl: none;
-  --shadow-inner: none;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 12px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 12px 24px -2px rgba(0, 0, 0, 0.06), 0 4px 8px -2px rgba(0, 0, 0, 0.03);
+  --shadow-xl: 0 24px 36px -4px rgba(3, 10, 28, 0.06), 0 8px 16px -4px rgba(3, 10, 28, 0.03);
+  --shadow-2xl: 0 32px 64px -8px rgba(3, 10, 28, 0.08);
+  --shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.04);
 
 
   --color-timber-100: var(--timber-100);
@@ -183,6 +183,12 @@
   }
   html {
     @apply font-sans scroll-smooth;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
   }
 
 

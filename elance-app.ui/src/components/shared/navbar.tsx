@@ -245,7 +245,7 @@ function NavbarNotifications() {
             <button 
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="p-1 hover:bg-corp-blue-800/60 rounded-lg text-corp-blue-200 transition"
+              className="p-1 hover:bg-corp-blue-800/60 rounded-lg text-corp-blue-200 transition-[background-color,color] duration-200 ease-out relative before:absolute before:inset-[-8px] before:content-['']"
               title="Rafraîchir"
             >
               <RefreshCw className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")} />
@@ -253,7 +253,7 @@ function NavbarNotifications() {
             {systemNotifications.some(n => !n.isRead) && (
               <button 
                 onClick={handleMarkAllRead}
-                className="text-[10px] uppercase font-bold text-emerald-300 hover:text-white px-2 py-1 rounded hover:bg-corp-blue-800/40 transition"
+                className="text-[10px] uppercase font-bold text-emerald-300 hover:text-white px-2 py-1 rounded hover:bg-corp-blue-800/40 transition-[background-color,color] duration-200 ease-out relative before:absolute before:inset-[-4px] before:content-['']"
               >
                 Tout lire
               </button>

@@ -452,21 +452,32 @@ export function DashboardContent() {
       
       {/* ── HEADER & WELCOME ── */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-corp-blue-900">
+        <div className="space-y-1">
+          <motion.h1 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="text-3xl md:text-4xl font-bold tracking-tight text-corp-blue-900"
+          >
             Tableau de bord
-          </h1>
-          <p className="text-sand-400 mt-2 font-medium">
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.08, ease: "easeOut" }}
+            className="text-sand-400 mt-2 font-medium"
+          >
             Bienvenue, <span className="text-corp-blue-600 font-bold">{user?.fullname}</span>. Voici l'activité générale de votre caisse et de vos parcs.
-          </p>
-        </motion.div>
+          </motion.p>
+        </div>
         
         {/* Action shortcuts */}
-        <div className="flex items-center gap-3">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, delay: 0.16, ease: "easeOut" }}
+          className="flex items-center gap-3"
+        >
           <Button 
             size="lg" 
             variant="outline" 
@@ -482,7 +493,7 @@ export function DashboardContent() {
           >
             <Plus className="w-5 h-5" /> Nouvelle Vente
           </Button>
-        </div>
+        </motion.div>
       </header>
 
       {/* ── SHORTCUTS CONTAINER ── */}
@@ -503,8 +514,8 @@ export function DashboardContent() {
             <Card 
               onClick={() => !item.disabled && router.push(item.path)}
               className={cn(
-                "border border-transparent bg-white shadow-none rounded-[16px] cursor-pointer group transition-all duration-300",
-                item.disabled ? "opacity-60 cursor-not-allowed" : "hover:border-corp-blue-600 hover:-translate-y-0.5 hover:shadow-md hover:shadow-corp-blue-900/5"
+                "border border-transparent bg-white shadow-none rounded-[16px] cursor-pointer group transition-[border-color,transform,box-shadow,scale] duration-200 ease-out",
+                item.disabled ? "opacity-60 cursor-not-allowed" : "hover:border-corp-blue-600 hover:-translate-y-0.5 hover:shadow-md hover:shadow-corp-blue-900/5 active:scale-[0.96]"
               )}
             >
               <CardContent className="p-3 flex flex-row items-center justify-start text-left gap-3">
@@ -760,7 +771,7 @@ export function DashboardContent() {
                     </div>
                     <div>
                       <p className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-wider">{tot.method}</p>
-                      <h3 className="text-sm font-black text-corp-blue-950 mt-0.5">
+                      <h3 className="text-sm font-black text-corp-blue-950 mt-0.5 tabular-nums">
                         {tot.total.toFixed(3)} <span className="text-[0.65rem]">TND</span>
                       </h3>
                     </div>
@@ -813,7 +824,7 @@ export function DashboardContent() {
                             <td className="px-6 py-4 text-sm font-bold text-corp-blue-900">
                               {p.customerName || 'N/A'}
                             </td>
-                            <td className="px-6 py-4 text-sm font-black text-corp-blue-950 whitespace-nowrap">
+                            <td className="px-6 py-4 text-sm font-black text-corp-blue-950 whitespace-nowrap tabular-nums">
                               {p.amount.toFixed(3)} <span className="text-[0.65rem] font-bold text-sand-400">TND</span>
                             </td>
                             <td className="px-6 py-4">
@@ -890,7 +901,7 @@ export function DashboardContent() {
               <CardTitle className="text-lg text-corp-blue-900">Ventes (7j)</CardTitle>
               <CardDescription className="text-sand-400 font-medium flex items-center justify-between">
                 <span>Aujourd'hui</span>
-                <span className="font-bold text-corp-blue-600">{dailySales.toFixed(3)} TND</span>
+                <span className="font-bold text-corp-blue-600 tabular-nums">{dailySales.toFixed(3)} TND</span>
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 pt-0">
@@ -1018,12 +1029,12 @@ export function DashboardContent() {
           )}>
             <div>
               <p className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-wider">Solde Actuel</p>
-              <h4 className="text-lg font-black text-corp-blue-950 mt-0.5">{caisseBalance.toFixed(3)} TND</h4>
+              <h4 className="text-lg font-black text-corp-blue-950 mt-0.5 tabular-nums">{caisseBalance.toFixed(3)} TND</h4>
             </div>
             {movementModalType === 'ENTREE' && approLimit && (
               <div className="text-right">
                 <p className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-wider">Plafond rest.</p>
-                <h4 className="text-sm font-bold text-emerald-700 mt-0.5">{approLimit.remaining.toFixed(3)} TND</h4>
+                <h4 className="text-sm font-bold text-emerald-700 mt-0.5 tabular-nums">{approLimit.remaining.toFixed(3)} TND</h4>
               </div>
             )}
           </div>
@@ -1043,7 +1054,7 @@ export function DashboardContent() {
                 className="h-11 rounded-xl border-corp-blue-100 focus:ring-corp-blue-600"
               />
               {movementModalType === 'ENTREE' && approLimit && (
-                <p className="text-[0.7rem] text-sand-400 font-bold">
+                <p className="text-[0.7rem] text-sand-400 font-bold tabular-nums">
                   Limite quotidienne max: {approLimit.remaining.toFixed(3)} TND
                 </p>
               )}

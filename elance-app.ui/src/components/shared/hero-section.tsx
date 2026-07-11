@@ -88,7 +88,7 @@ export function HeroSection() {
     >
       {/* ── Background mesh + glow ── */}
       <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '26px 26px' }} />
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         <motion.div
           key={slide}
           initial={{ opacity: 0 }}

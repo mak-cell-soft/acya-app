@@ -229,7 +229,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className={cn(
-            'absolute -right-3 top-8 w-6 h-6 bg-white border rounded-full flex items-center justify-center shadow-sm z-50 hidden lg:flex cursor-pointer hover:bg-opacity-80 transition-colors',
+            'absolute -right-3 top-8 w-6 h-6 bg-white border rounded-full flex items-center justify-center shadow-sm z-50 hidden lg:flex cursor-pointer hover:bg-opacity-80 transition-[background-color,color,border-color,transform] duration-200 ease-out before:absolute before:inset-[-8px] before:content-[""]',
             isDepot
               ? 'border-amber-200 text-amber-600 hover:bg-amber-50'
               : 'border-corp-blue-200 text-corp-blue-600 hover:bg-corp-blue-50'
@@ -261,7 +261,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     src={logoUrl}
                     alt={user?.enterpriseName || "Logo"}
                     className={cn(
-                      'object-contain rounded-lg transition-all duration-300',
+                      'object-contain rounded-lg transition-[transform,opacity] duration-200 ease-out outline outline-1 outline-black/10 dark:outline-white/10',
                       isCollapsed 
                         ? 'w-10 h-10 md:w-11 md:h-11 shadow-sm' 
                         : 'max-h-16 max-w-full shadow-sm'
@@ -378,12 +378,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter className="mt-8 sm:space-x-4">
-                <AlertDialogCancel className="h-12 px-6 rounded-xl border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 text-[0.95rem] font-bold transition-all duration-300 shadow-sm hover:scale-[1.02] active:scale-[0.98]">
+                <AlertDialogCancel className="h-12 px-6 rounded-xl border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 text-[0.95rem] font-bold transition-[border-color,background-color,transform,box-shadow] duration-200 ease-out shadow-sm hover:scale-[1.02] active:scale-[0.96]">
                   Annuler
                 </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleLogout}
-                  className="h-12 px-6 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 text-white font-bold text-[0.95rem] transition-all duration-300 shadow-lg shadow-rose-500/20 hover:scale-[1.03] active:scale-[0.97] border-0"
+                  className="h-12 px-6 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 text-white font-bold text-[0.95rem] transition-[background-color,transform,box-shadow] duration-200 ease-out shadow-lg shadow-rose-500/20 hover:scale-[1.03] active:scale-[0.96] border-0"
                 >
                   Se déconnecter
                 </AlertDialogAction>
@@ -453,7 +453,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         title={isCollapsed ? item.name : undefined}
                         style={isActive && primaryColor ? { backgroundColor: primaryColor, boxShadow: `0 4px 6px -1px ${primaryColor}33, 0 2px 4px -1px ${primaryColor}22` } : undefined}
                         className={cn(
-                          'flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all group',
+                          'flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-[background-color,color,transform,box-shadow] duration-200 ease-out group',
                           isActive
                             ? primaryColor
                               ? 'text-white'
@@ -537,7 +537,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             onClick={handleLogout}
             title={isCollapsed ? 'Déconnexion' : undefined}
             className={cn(
-              'flex items-center py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-all w-full group',
+              'flex items-center py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-[background-color,color,transform,scale] duration-200 ease-out active:scale-[0.96] w-full group',
               isCollapsed ? 'justify-center' : 'gap-3 px-4'
             )}
           >
