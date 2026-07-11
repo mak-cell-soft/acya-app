@@ -72,6 +72,11 @@ export default function EnterprisesPage() {
   const [resetSubmitLoading, setResetSubmitLoading] = useState(false);
   const [resetSuccessMsg, setResetSuccessMsg] = useState("");
 
+  // Delete confirmation modal state
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null);
+  const [deleteSubmitLoading, setDeleteSubmitLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
 
   // Form states - Create & Provision Unified
   const [name, setName] = useState("");
@@ -261,16 +266,19 @@ export default function EnterprisesPage() {
     setShowCreateModal(true);
   };
 
-  const handleDeleteTenant = async (id: number, name: string) => {
-    const confirmDelete = window.confirm(
-      `WARNING: Are you absolutely sure you want to completely DELETE "${name}"?\n\nThis will drop all database tables, wipe all records, and delete the tenant from registry forever.`
-    );
-    if (!confirmDelete) return;
+  const handleOpenDelete = (ent: Enterprise) => {
+    setDeleteTarget({ id: ent.id, name: ent.name });
+    setDeleteError("");
+  };
 
+  const handleDeleteTenantSubmit = async () => {
+    if (!deleteTarget) return;
+    setDeleteSubmitLoading(true);
+    setDeleteError("");
     setError("");
     try {
       const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api/";
-      const res = await fetch(`${apiBase}admin/enterprise/${id}`, {
+      const res = await fetch(`${apiBase}admin/enterprise/${deleteTarget.id}`, {
         method: "DELETE",
         headers: getHeaders(),
       });
@@ -280,9 +288,12 @@ export default function EnterprisesPage() {
         throw new Error(txt || "Failed to delete tenant schema/registry");
       }
 
+      setDeleteTarget(null);
       fetchEnterprises();
     } catch (err: any) {
-      setError(err.message || "Deletion failed");
+      setDeleteError(err.message || "Deletion failed");
+    } finally {
+      setDeleteSubmitLoading(false);
     }
   };
 
@@ -671,8 +682,9 @@ export default function EnterprisesPage() {
                           </>
                         )}
                         <button 
-                          onClick={() => handleDeleteTenant(ent.id, ent.name)}
+                          onClick={() => handleOpenDelete(ent)}
                           className="text-xs font-medium text-destructive hover:underline cursor-pointer inline-flex items-center gap-1"
+                          title="Delete Tenant"
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
@@ -1197,7 +1209,7 @@ export default function EnterprisesPage() {
                     setNewPassword("");
                     setResetSuccessMsg("");
                   }}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-mono rounded"
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-white text-xs font-mono rounded"
                 >
                   CLOSE
                 </button>
@@ -1235,6 +1247,64 @@ export default function EnterprisesPage() {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 p-6 rounded-xl space-y-4 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <h3 className="text-md font-bold font-mono text-destructive flex items-center gap-2">
+                <Trash2 className="text-destructive w-4 h-4" />
+                DELETE TENANT: {deleteTarget.name}
+              </h3>
+              <button 
+                onClick={() => {
+                  if (!deleteSubmitLoading) {
+                    setDeleteTarget(null);
+                  }
+                }}
+                className="text-muted-foreground hover:text-foreground text-xl font-bold cursor-pointer"
+                disabled={deleteSubmitLoading}
+              >
+                &times;
+              </button>
+            </div>
+
+            {deleteError && (
+              <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg font-mono text-xs">
+                {deleteError}
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div className="p-3.5 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg text-xs leading-relaxed font-mono">
+                <span className="font-bold text-red-500">WARNING:</span> Are you absolutely sure you want to completely delete <span className="font-bold text-slate-100">"{deleteTarget.name}"</span>?
+                <br /><br />
+                This will drop all database tables, wipe all records, and delete the tenant from registry forever. This action is irreversible.
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-xs font-mono text-slate-300 rounded cursor-pointer"
+                disabled={deleteSubmitLoading}
+              >
+                CANCEL
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteTenantSubmit}
+                className="px-3 py-1.5 bg-destructive hover:bg-destructive/90 text-xs font-mono text-white rounded cursor-pointer flex items-center gap-1 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
+                disabled={deleteSubmitLoading}
+              >
+                {deleteSubmitLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "DELETE FOREVER"}
+              </button>
+            </div>
           </div>
         </div>
       )}
