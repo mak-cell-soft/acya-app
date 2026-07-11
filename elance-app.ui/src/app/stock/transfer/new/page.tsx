@@ -40,6 +40,7 @@ import { Transporter } from '@/types/settings';
 import { ListOfLength } from '@/types/document';
 import { toast } from 'sonner';
 import { WoodLengthsDialog } from '@/components/sales/wood-lengths-dialog';
+import { GlassSurfaceDialog } from '@/components/shared/glass-surface-dialog';
 import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 import { StockTransferInfo, StockTransferDetails } from '@/types/stock';
 import { 
@@ -55,7 +56,8 @@ import {
   FileText,
   Boxes,
   Loader2,
-  Printer
+  Printer,
+  LayoutGrid
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -70,6 +72,8 @@ interface TransferRow {
   listLengths: ListOfLength[];
   stock_quantity: number; // Available stock at origin depot
   isWoodArticle: boolean;
+  isGlassArticle?: boolean;
+  glassInputs?: { nbpieces: number; height: number; width: number };
   allownegativstock: boolean;
   isArticleDropdownOpen: boolean;
   merchandiseId: number; // Store merchandiseId for stock transfer validation
@@ -113,6 +117,11 @@ function NewStockTransferContent() {
   const [lengthsCurrent, setLengthsCurrent] = useState<ListOfLength[]>([]);
   const [lengthsStockDetails, setLengthsStockDetails] = useState<any[]>([]);
 
+  // Glass dialog state
+  const [glassDialogOpen, setGlassDialogOpen] = useState<boolean>(false);
+  const [glassArticle, setGlassArticle] = useState<Article | null>(null);
+  const [glassCurrentValue, setGlassCurrentValue] = useState<{ nbpieces: number; height: number; width: number }>({ nbpieces: 0, height: 0, width: 0 });
+
   // States for printing after successful registration
   const [printTransfer, setPrintTransfer] = useState<StockTransferInfo | null>(null);
   const [printDetails, setPrintDetails] = useState<StockTransferDetails[] | null>(null);
@@ -147,6 +156,7 @@ function NewStockTransferContent() {
       listLengths: [],
       stock_quantity: 0,
       isWoodArticle: false,
+      isGlassArticle: false,
       allownegativstock: false,
       isArticleDropdownOpen: false,
       merchandiseId: 0,
@@ -203,6 +213,8 @@ function NewStockTransferContent() {
             selectedArticle: article,
             articleSearchInput: article.reference,
             isWoodArticle: isWood,
+            isGlassArticle: article.unit?.toUpperCase() === 'M2',
+            glassInputs: { nbpieces: 1, height: 0, width: 0 },
             allownegativstock: allowNegativeStock,
             stock_quantity: availableQty,
             packagereference: (!isWood || matchingStocksForArticle.length === 1) ? (matchingStocksForArticle[0]?.PackageReference ?? matchingStocksForArticle[0]?.packageReference ?? (isWood ? '' : 'Standard')) : '',
@@ -333,6 +345,31 @@ function NewStockTransferContent() {
             ...row,
             listLengths: lengths,
             quantity: totalVolume
+          };
+        }
+        return row;
+      })
+    );
+    setActiveRowId(null);
+  };
+
+  const openGlassModal = (row: TransferRow) => {
+    if (!row.selectedArticle) return;
+    setActiveRowId(row.id);
+    setGlassArticle(row.selectedArticle);
+    setGlassCurrentValue(row.glassInputs || { nbpieces: 1, height: row.quantity || 0, width: 1 });
+    setGlassDialogOpen(true);
+  };
+
+  const handleSaveGlassSurface = (nbpieces: number, height: number, width: number, totalSurface: number) => {
+    if (!activeRowId) return;
+    setRows(prevRows =>
+      prevRows.map(row => {
+        if (row.id === activeRowId) {
+          return {
+            ...row,
+            glassInputs: { nbpieces, height, width },
+            quantity: totalSurface
           };
         }
         return row;
@@ -863,14 +900,24 @@ function NewStockTransferContent() {
                               value={row.quantity || ''}
                               onChange={(e) => handleQuantityChange(row.id, parseFloat(e.target.value) || 0)}
                               placeholder="0.00"
-                              disabled={!row.selectedArticle || row.isWoodArticle} // Wood volume locked, set via lengths modal!
+                              disabled={!row.selectedArticle || row.isWoodArticle || row.isGlassArticle} // Wood & glass locked, set via dialog!
                               className="bg-stone-50/50 dark:bg-stone-950/40 text-right font-mono font-bold text-xs border-stone-200 dark:border-stone-800 rounded-lg"
                             />
                           </td>
 
                           {/* Specification configuration (Wood only) */}
                           <td className="p-3.5 text-center">
-                            {row.isWoodArticle ? (
+                            {row.isGlassArticle ? (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => openGlassModal(row)}
+                                className="h-8 px-2 border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 dark:border-amber-900/40 dark:text-amber-400 dark:bg-amber-955 rounded-lg text-[10px] uppercase font-bold"
+                              >
+                                <LayoutGrid className="h-3.5 w-3.5 mr-1" />
+                                Surface
+                              </Button>
+                            ) : row.isWoodArticle ? (
                               <Button
                                 type="button"
                                 variant="outline"
@@ -918,6 +965,17 @@ function NewStockTransferContent() {
           availableStockDetails={lengthsStockDetails}
           isPurchase={rows.find(r => r.id === activeRowId)?.allownegativstock ?? false}
           onSave={handleSaveLengths}
+        />
+      )}
+
+      {/* Glass Surface Specification Dialog */}
+      {glassArticle && (
+        <GlassSurfaceDialog
+          isOpen={glassDialogOpen}
+          onClose={() => setGlassDialogOpen(false)}
+          article={glassArticle}
+          currentValue={glassCurrentValue}
+          onSave={handleSaveGlassSurface}
         />
       )}
 

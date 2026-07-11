@@ -95,7 +95,7 @@ export function ArticleFormDialog({
       subcategoryid: "",
       thicknessid: "",
       widthid: "",
-      unit: QuantityUnits.pcs.substring(0, 3),
+      unit: QuantityUnits.pcs.split(" - ")[0].toUpperCase(),
       sellprice_ttc: 0,
       tvaid: "",
       minquantity: 0,
@@ -547,17 +547,17 @@ export function ArticleFormDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Unité</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value} disabled={selectedCategoryId === "1"}>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={isWoodCategory}>
                         <FormControl>
                           <SelectTrigger className="font-bold">
                             <SelectValue placeholder="Unité">
-                              {field.value ? Object.values(QuantityUnits).find(u => u.substring(0, 3).toUpperCase() === field.value) : undefined}
+                              {field.value ? Object.values(QuantityUnits).find(u => u.split(" - ")[0].toUpperCase() === field.value) : undefined}
                             </SelectValue>
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl">
                           {Object.values(QuantityUnits).map((unit) => (
-                            <SelectItem key={unit} value={unit.substring(0, 3).toUpperCase()}>{unit}</SelectItem>
+                            <SelectItem key={unit} value={unit.split(" - ")[0].toUpperCase()}>{unit}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>

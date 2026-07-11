@@ -30,6 +30,7 @@ import { Article } from '@/types/article';
 import { ListOfLength, Document, DocumentTypes, DocStatus, BillingStatus } from '@/types/document';
 import { toast } from 'sonner';
 import { WoodLengthsDialog } from '@/components/sales/wood-lengths-dialog';
+import { GlassSurfaceDialog } from '@/components/shared/glass-surface-dialog';
 import { 
   ArrowLeft, 
   Trash2, 
@@ -39,7 +40,8 @@ import {
   Check, 
   Boxes,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  LayoutGrid
 } from 'lucide-react';
 
 interface StockItem {
@@ -58,6 +60,8 @@ interface InventoryRow {
   stock_quantity: number; // Available stock at origin depot
   availableStocks: StockItem[]; 
   isWoodArticle: boolean;
+  isGlassArticle?: boolean;
+  glassInputs?: { nbpieces: number; height: number; width: number };
   isArticleDropdownOpen: boolean;
   isGeneratingRef: boolean;
   isCustomPackage: boolean;
@@ -91,6 +95,10 @@ function NewInventoryContent() {
   const [lengthsArticle, setLengthsArticle] = useState<Article | null>(null);
   const [lengthsCurrent, setLengthsCurrent] = useState<ListOfLength[]>([]);
 
+  const [glassDialogOpen, setGlassDialogOpen] = useState<boolean>(false);
+  const [glassArticle, setGlassArticle] = useState<Article | null>(null);
+  const [glassCurrentValue, setGlassCurrentValue] = useState<{ nbpieces: number; height: number; width: number }>({ nbpieces: 0, height: 0, width: 0 });
+
   useEffect(() => {
     if (allSites.length > 0 && !siteId) {
       const defaultSiteId = user?.defaultSiteId;
@@ -122,6 +130,7 @@ function NewInventoryContent() {
       stock_quantity: 0,
       availableStocks: [],
       isWoodArticle: false,
+      isGlassArticle: false,
       isArticleDropdownOpen: false,
       isGeneratingRef: false,
       isCustomPackage: false,
@@ -159,6 +168,8 @@ function NewInventoryContent() {
             selectedArticle: article,
             articleSearchInput: article.reference,
             isWoodArticle: isWood,
+            isGlassArticle: article.unit?.toUpperCase() === 'M2',
+            glassInputs: { nbpieces: 1, height: 0, width: 0 },
             availableStocks,
             packagereference: isCustomPackage ? (isWood ? '' : 'Standard') : availableStocks[0]?.packageReference,
             stock_quantity: isCustomPackage ? 0 : availableStocks[0]?.stockQuantity || 0,
@@ -300,6 +311,31 @@ function NewInventoryContent() {
             ...row,
             listLengths: lengths,
             quantity: totalVolume
+          };
+        }
+        return row;
+      })
+    );
+    setActiveRowId(null);
+  };
+
+  const openGlassModal = (row: InventoryRow) => {
+    if (!row.selectedArticle) return;
+    setActiveRowId(row.id);
+    setGlassArticle(row.selectedArticle);
+    setGlassCurrentValue(row.glassInputs || { nbpieces: 1, height: row.quantity || 0, width: 1 });
+    setGlassDialogOpen(true);
+  };
+
+  const handleSaveGlassSurface = (nbpieces: number, height: number, width: number, totalSurface: number) => {
+    if (!activeRowId) return;
+    setRows(prevRows =>
+      prevRows.map(row => {
+        if (row.id === activeRowId) {
+          return {
+            ...row,
+            glassInputs: { nbpieces, height, width },
+            quantity: totalSurface
           };
         }
         return row;
@@ -681,7 +717,7 @@ function NewInventoryContent() {
                               value={row.quantity || ''}
                               onChange={(e) => handleQuantityChange(row.id, parseFloat(e.target.value) || 0)}
                               placeholder="0.00"
-                              disabled={!row.selectedArticle || row.isWoodArticle}
+                              disabled={!row.selectedArticle || row.isWoodArticle || row.isGlassArticle}
                               className="h-11 bg-slate-50/50 text-right font-mono font-bold text-xs border-slate-200 rounded-lg focus:bg-white focus:border-corp-blue-500 focus:ring-corp-blue-500/20"
                             />
                           </td>
@@ -707,6 +743,23 @@ function NewInventoryContent() {
                                     {row.listLengths.reduce((acc, l) => acc + (l.nbpieces || 0), 0)} pcs
                                   </span>
                                 )}
+                              </div>
+                            )}
+                            {row.isGlassArticle && (
+                              <div className="flex flex-col items-center">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => openGlassModal(row)}
+                                  className={`h-11 px-3 rounded-lg gap-1.5 font-bold text-[10px] uppercase tracking-wider border-slate-200 shadow-sm transition-all ${
+                                    row.quantity > 0 
+                                      ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' 
+                                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                                  }`}
+                                >
+                                  <LayoutGrid className="h-3.5 w-3.5" />
+                                  {row.quantity > 0 ? 'Détails' : 'Saisir'}
+                                </Button>
                               </div>
                             )}
                           </td>
@@ -742,6 +795,17 @@ function NewInventoryContent() {
           currentLengths={lengthsCurrent}
           availableStockDetails={[]}
           isPurchase={true} // Allows setting stock beyond current DB availability for inventory
+        />
+      )}
+
+      {/* Glass Surface Dialog */}
+      {glassArticle && glassDialogOpen && (
+        <GlassSurfaceDialog
+          isOpen={glassDialogOpen}
+          onClose={() => setGlassDialogOpen(false)}
+          onSave={handleSaveGlassSurface}
+          article={glassArticle}
+          currentValue={glassCurrentValue}
         />
       )}
     </div>

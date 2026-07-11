@@ -72,6 +72,7 @@ import { Customer } from '@/types/customer';
 import { Transporter } from '@/types/settings';
 import { toast } from 'sonner';
 import { WoodLengthsDialog } from '@/components/sales/wood-lengths-dialog';
+import { GlassSurfaceDialog } from '@/components/shared/glass-surface-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /**
@@ -93,6 +94,8 @@ interface MerchandRow {
   line_type: LineType;
   description: string;
   isWoodArticle: boolean;
+  isGlassArticle?: boolean;
+  glassInputs?: { nbpieces: number; height: number; width: number };
   isNegotiated: boolean;
   transporter_id?: number | null;
   transporter_name?: string;
@@ -211,6 +214,19 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
     article: null,
     currentLengths: [],
     availableStockDetails: []
+  });
+
+  // Glass surface dialog state
+  const [glassDialogState, setGlassDialogState] = useState<{
+    isOpen: boolean;
+    rowIndex: number | null;
+    article: Article | null;
+    currentValue: { nbpieces: number; height: number; width: number };
+  }>({
+    isOpen: false,
+    rowIndex: null,
+    article: null,
+    currentValue: { nbpieces: 0, height: 0, width: 0 }
   });
 
   // Article autocomplete dropdown index
@@ -526,6 +542,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
         if (doc.merchandises) {
           const mappedRows = doc.merchandises.map((m: any) => {
             const isWood = m.article ? !!m.article.iswood : false;
+            const isGlass = m.article ? m.article.unit?.toUpperCase() === 'M2' : false;
             const r: MerchandRow = {
               selectedArticle: m.article,
               selectedStock: null,
@@ -542,6 +559,8 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
               line_type: m.line_type || LineType.Merchandise,
               description: m.description || '',
               isWoodArticle: isWood,
+              isGlassArticle: isGlass,
+              glassInputs: { nbpieces: 1, height: m.quantity || 0, width: 1 },
               isNegotiated: false
             };
 
@@ -583,6 +602,8 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
       line_type: LineType.Merchandise,
       description: '',
       isWoodArticle: false,
+      isGlassArticle: false,
+      glassInputs: { nbpieces: 0, height: 0, width: 0 },
       isNegotiated: false
     };
     setRows([...rows, newRow]);
@@ -605,6 +626,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
       line_type: LineType.TransportFee,
       description: 'Frais de transport',
       isWoodArticle: false,
+      isGlassArticle: false,
       isNegotiated: false
     };
 
@@ -651,6 +673,8 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
         const article = value as Article | null;
         if (article) {
           row.isWoodArticle = article.iswood;
+          row.isGlassArticle = article.unit?.toUpperCase() === 'M2';
+          row.glassInputs = { nbpieces: 1, height: 0, width: 0 };
           row.unit_price_ht = article.sellprice_ht;
           row.description = article.description;
           row.articleSearchInput = `${article.reference} - ${article.description}`;
@@ -681,6 +705,8 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
           return prevRows.map((r, i) => i === index ? rowWithDiscount : r);
         } else {
           row.isWoodArticle = false;
+          row.isGlassArticle = false;
+          row.glassInputs = undefined;
           row.selectedStock = null;
           row.articleSearchInput = '';
           row.filteredArticles = allArticles;
@@ -804,6 +830,33 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
       const row = updated[index];
       row.listLengths = lengths;
       row.quantity = parseFloat(totalVolume.toFixed(3));
+      
+      const calculated = calculateRowCalculations(row);
+      return prevRows.map((r, i) => i === index ? calculated : r);
+    });
+  };
+
+  // Glass surface Dialog triggers
+  const openGlassSurface = (index: number) => {
+    const row = rows[index];
+    if (!row.selectedArticle) return;
+    setGlassDialogState({
+      isOpen: true,
+      rowIndex: index,
+      article: row.selectedArticle,
+      currentValue: row.glassInputs || { nbpieces: 1, height: row.quantity || 0, width: 1 }
+    });
+  };
+
+  const saveGlassSurface = (nbpieces: number, height: number, width: number, totalSurface: number) => {
+    const index = glassDialogState.rowIndex;
+    if (index === null) return;
+
+    setRows(prevRows => {
+      const updated = [...prevRows];
+      const row = updated[index];
+      row.glassInputs = { nbpieces, height, width };
+      row.quantity = parseFloat(totalSurface.toFixed(3));
       
       const calculated = calculateRowCalculations(row);
       return prevRows.map((r, i) => i === index ? calculated : r);
@@ -1693,7 +1746,22 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
 
                           {/* Quantity */}
                           <td className="p-4 text-center">
-                            {row.isWoodArticle ? (
+                            {row.isGlassArticle ? (
+                              <div className="flex items-center gap-1.5 justify-center">
+                                <div className="h-10 px-3 flex items-center justify-center font-bold text-corp-blue-900 bg-corp-blue-50 rounded-xl border border-corp-blue-100 min-w-20">
+                                  {row.quantity.toFixed(3)} M²
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-9 w-9 border-corp-blue-100 text-corp-blue-600 hover:bg-corp-blue-100 disabled:opacity-50 disabled:pointer-events-none"
+                                  onClick={() => openGlassSurface(index)}
+                                  disabled={isQuantityDisabled}
+                                >
+                                  <PlusCircle className="w-4 h-4 text-corp-blue-600" />
+                                </Button>
+                              </div>
+                            ) : row.isWoodArticle ? (
                               <div className="flex items-center gap-1.5 justify-center">
                                 <div className="h-10 px-3 flex items-center justify-center font-bold text-corp-blue-900 bg-corp-blue-50 rounded-xl border border-corp-blue-100 min-w-20">
                                   {row.quantity.toFixed(3)} M³
@@ -1918,6 +1986,17 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
           availableStockDetails={woodDialogState.availableStockDetails}
           isPurchase={docType === DocumentTypes.customerQuote || docType === DocumentTypes.customerOrder} // Purchase mode bypasses stock limits for quote & order
           onSave={saveWoodLengths}
+        />
+      )}
+
+      {/* Glass Surface Entry Modal Dialog */}
+      {glassDialogState.article && (
+        <GlassSurfaceDialog
+          isOpen={glassDialogState.isOpen}
+          onClose={() => setGlassDialogState(prev => ({ ...prev, isOpen: false }))}
+          article={glassDialogState.article}
+          currentValue={glassDialogState.currentValue}
+          onSave={saveGlassSurface}
         />
       )}
 

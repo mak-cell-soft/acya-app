@@ -21,7 +21,8 @@ import {
   Search,
   ShieldCheck,
   Barcode,
-  Coins
+  Coins,
+  LayoutGrid
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -54,6 +55,7 @@ import { Supplier } from '@/types/customer';
 import { Transporter } from '@/types/settings';
 import { toast } from 'sonner';
 import { WoodLengthsDialog } from '@/components/sales/wood-lengths-dialog';
+import { GlassSurfaceDialog } from '@/components/shared/glass-surface-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /**
@@ -75,6 +77,8 @@ interface MerchandRow {
   line_type: LineType;
   description: string;
   isWoodArticle: boolean;
+  isGlassArticle?: boolean;
+  glassInputs?: { nbpieces: number; height: number; width: number };
   packagereference: string;
   isinvoicible: boolean;
   allownegativstock: boolean;
@@ -154,6 +158,7 @@ function EditSupplierReceiptPageContent() {
     return allTvas.find(t => t.id === newRowArticle.tvaid) || null;
   }, [newRowArticle, allTvas]);
   const [newRowLengths, setNewRowLengths] = useState<ListOfLength[]>([]);
+  const [newRowGlassInputs, setNewRowGlassInputs] = useState<{ nbpieces: number; height: number; width: number }>({ nbpieces: 1, height: 0, width: 0 });
   const [editIndex, setEditIndex] = useState<number | null>(null);
 
   // 4. Transport Addition Selection State
@@ -228,6 +233,19 @@ function EditSupplierReceiptPageContent() {
     rowIndex: null,
     article: null,
     currentLengths: []
+  });
+
+  // Glass surface dialog state
+  const [glassDialogState, setGlassDialogState] = useState<{
+    isOpen: boolean;
+    rowIndex: number | null;
+    article: Article | null;
+    currentValue: { nbpieces: number; height: number; width: number };
+  }>({
+    isOpen: false,
+    rowIndex: null,
+    article: null,
+    currentValue: { nbpieces: 0, height: 0, width: 0 }
   });
 
   // 5. Load Existing Receipt for Editing
@@ -317,6 +335,8 @@ function EditSupplierReceiptPageContent() {
               line_type: m.line_type || LineType.Merchandise,
               description: m.description || '',
               isWoodArticle: isWood,
+              isGlassArticle: m.article ? m.article.unit?.toUpperCase() === 'M2' : false,
+              glassInputs: { nbpieces: 1, height: m.quantity || 0, width: 1 },
               packagereference: m.packagereference || (m.article?.categoryid === 1 ? '' : 'Standard'),
               isinvoicible: m.isinvoicible ?? true,
               allownegativstock: m.allownegativstock ?? false,
@@ -497,6 +517,8 @@ function EditSupplierReceiptPageContent() {
       line_type: LineType.Merchandise,
       description: newRowDescription,
       isWoodArticle: isWood,
+      isGlassArticle: newRowArticle.unit?.toUpperCase() === 'M2',
+      glassInputs: newRowGlassInputs,
       packagereference: newRowPackageReference.trim() || (newRowArticle.categoryid === 1 ? '' : 'Standard'),
       isinvoicible: newRowIsInvoiceable,
       allownegativstock: newRowAllowNegativeStock,
@@ -525,6 +547,7 @@ function EditSupplierReceiptPageContent() {
     setNewRowDiscount(0);
     setNewRowPackageReference('');
     setNewRowLengths([]);
+    setNewRowGlassInputs({ nbpieces: 1, height: 0, width: 0 });
   };
 
   const handleEditRow = (index: number) => {
@@ -544,6 +567,7 @@ function EditSupplierReceiptPageContent() {
     setNewRowIsInvoiceable(row.isinvoicible);
     setNewRowAllowNegativeStock(row.allownegativstock);
     setNewRowLengths(row.listLengths || []);
+    setNewRowGlassInputs(row.glassInputs || { nbpieces: 1, height: row.quantity || 0, width: 1 });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -653,6 +677,55 @@ function EditSupplierReceiptPageContent() {
         });
       });
       toast.success(`Volume mis à jour pour la ligne ${index + 1} : ${totalVolume.toFixed(3)} M³`);
+    }
+  };
+
+  // Glass surface dialog triggers
+  const handleOpenGlassSurface = (index: number | null) => {
+    if (index === null) {
+      if (!newRowArticle) {
+        toast.info("Sélectionnez d'abord un article.");
+        return;
+      }
+      setGlassDialogState({
+        isOpen: true,
+        rowIndex: null,
+        article: newRowArticle,
+        currentValue: newRowGlassInputs
+      });
+    } else {
+      const row = rows[index];
+      if (!row.selectedArticle) return;
+      setGlassDialogState({
+        isOpen: true,
+        rowIndex: index,
+        article: row.selectedArticle,
+        currentValue: row.glassInputs || { nbpieces: 1, height: row.quantity || 0, width: 1 }
+      });
+    }
+  };
+
+  const handleSaveGlassSurface = (nbpieces: number, height: number, width: number, totalSurface: number) => {
+    const index = glassDialogState.rowIndex;
+    if (index === null) {
+      setNewRowGlassInputs({ nbpieces, height, width });
+      setNewRowQuantity(parseFloat(totalSurface.toFixed(3)));
+      toast.success(`Surface de verre configurée : ${totalSurface.toFixed(3)} M²`);
+    } else {
+      setRows(prevRows => {
+        return prevRows.map((row, i) => {
+          if (i === index) {
+            const updated = {
+              ...row,
+              glassInputs: { nbpieces, height, width },
+              quantity: parseFloat(totalSurface.toFixed(3))
+            };
+            return calculateRowCalculations(updated);
+          }
+          return row;
+        });
+      });
+      toast.success(`Surface mise à jour pour la ligne ${index + 1} : ${totalSurface.toFixed(3)} M²`);
     }
   };
 
@@ -1244,8 +1317,17 @@ function EditSupplierReceiptPageContent() {
 
               {/* Quantity */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-mono">Quantité / Vol M³ *</label>
-                {newRowArticle?.iswood ? (
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-mono">Quantité / Vol M³ / Surf M² *</label>
+                {newRowArticle?.unit?.toUpperCase() === 'M2' ? (
+                  <Button
+                    type="button"
+                    onClick={() => handleOpenGlassSurface(null)}
+                    className="w-full h-10 bg-amber-50 hover:bg-amber-100/80 text-amber-900 border border-amber-900/15 rounded-xl font-bold gap-2 text-xs flex items-center justify-center transition-all"
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                    {newRowQuantity > 0 ? `${newRowQuantity.toFixed(3)} M²` : "Surface Verre"}
+                  </Button>
+                ) : newRowArticle?.iswood ? (
                   <Button
                     type="button"
                     onClick={() => handleOpenWoodLengths(null)}
@@ -1479,7 +1561,16 @@ function EditSupplierReceiptPageContent() {
                               )}
                             </td>
                             <td className="p-3">
-                              {row.isWoodArticle ? (
+                              {row.isGlassArticle ? (
+                                <Button
+                                  type="button"
+                                  onClick={() => handleOpenGlassSurface(idx)}
+                                  className="w-full h-8 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-900/10 rounded-lg font-bold gap-1 text-[11px] flex items-center justify-center transition-all font-mono"
+                                >
+                                  <LayoutGrid className="w-3.5 h-3.5 shrink-0" />
+                                  {row.quantity.toFixed(3)}
+                                </Button>
+                              ) : row.isWoodArticle ? (
                                 <Button
                                   type="button"
                                   onClick={() => handleOpenWoodLengths(idx)}
@@ -1560,6 +1651,17 @@ function EditSupplierReceiptPageContent() {
           availableStockDetails={[]}
           isPurchase={true}
           onSave={handleSaveWoodLengths}
+        />
+      )}
+
+      {/* Glass Surface Dialog component */}
+      {glassDialogState.isOpen && (
+        <GlassSurfaceDialog
+          isOpen={glassDialogState.isOpen}
+          onClose={() => setGlassDialogState(prev => ({ ...prev, isOpen: false }))}
+          article={glassDialogState.article!}
+          currentValue={glassDialogState.currentValue}
+          onSave={handleSaveGlassSurface}
         />
       )}
 
