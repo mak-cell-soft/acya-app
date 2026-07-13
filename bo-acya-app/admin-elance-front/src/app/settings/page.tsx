@@ -7,7 +7,9 @@ export default function SettingsPage() {
   const [apiEndpoint, setApiEndpoint] = useState("");
 
   useEffect(() => {
-    setApiEndpoint(process.env.NEXT_PUBLIC_API_URL || window.location.origin + "/api/");
+    const timer = setTimeout(() => {
+      setApiEndpoint(process.env.NEXT_PUBLIC_API_URL || window.location.origin + "/api/");
+    }, 0);
     
     const checkDb = async () => {
       try {
@@ -26,6 +28,7 @@ export default function SettingsPage() {
       }
     };
     checkDb();
+    return () => clearTimeout(timer);
   }, []);
 
   return (

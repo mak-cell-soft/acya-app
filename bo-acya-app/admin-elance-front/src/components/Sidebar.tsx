@@ -32,11 +32,14 @@ export default function Sidebar() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    const stored = localStorage.getItem("sidebar_collapsed");
-    if (stored === "true") {
-      setIsCollapsed(true);
-    }
+    const timer = setTimeout(() => {
+      setMounted(true);
+      const stored = localStorage.getItem("sidebar_collapsed");
+      if (stored === "true") {
+        setIsCollapsed(true);
+      }
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const toggleCollapse = () => {

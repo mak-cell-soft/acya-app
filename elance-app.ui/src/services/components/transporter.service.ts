@@ -1,7 +1,7 @@
 import api from '@/lib/axios';
 
 const transformPayload = (model: any) => {
-  let payload = { ...model };
+  const payload = { ...model };
   if (payload.fullname && (!payload.firstname || !payload.lastname)) {
     const parts = payload.fullname.trim().split(' ');
     payload.firstname = parts[0] || '.';

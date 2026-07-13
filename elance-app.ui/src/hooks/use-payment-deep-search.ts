@@ -16,7 +16,6 @@ export function usePaymentDeepSearch(params: PaymentDeepSearchParams) {
   return useQuery({
     queryKey: ['payments-deep-search', params],
     queryFn: () => paymentService.deepSearch(params),
-    // @ts-ignore
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   });
 }

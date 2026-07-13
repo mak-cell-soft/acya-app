@@ -12,7 +12,7 @@ export function usePermissionGuard() {
     if (permsRecord[module]) return permsRecord[module];
     const key = Object.keys(permsRecord).find(k => k.toLowerCase() === module.toLowerCase());
     return key ? permsRecord[key] : null;
-  }, [user?.permissions]);
+  }, [user]);
 
   // Helper to find action value case-insensitively
   const getActionValue = useCallback((perms: any, action: string) => {

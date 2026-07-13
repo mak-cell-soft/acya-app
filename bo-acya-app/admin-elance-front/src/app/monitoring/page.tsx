@@ -104,12 +104,19 @@ export default function MonitoringPage() {
   };
 
   useEffect(() => {
-    fetchEnterprises();
+    const timer = setTimeout(() => {
+      fetchEnterprises();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
     if (selectedEnt) {
-      fetchStatsAndJobs(selectedEnt.id);
+      const id = selectedEnt.id;
+      const timer = setTimeout(() => {
+        fetchStatsAndJobs(id);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [selectedEnt]);
 

@@ -291,10 +291,13 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     startHub();
 
     // Trigger initial data recovery
-    refreshAll();
-    fetchMissedNotifications();
+    const timer = setTimeout(() => {
+      refreshAll();
+      fetchMissedNotifications();
+    }, 0);
 
     return () => {
+      clearTimeout(timer);
       if (connection) {
         connection.stop();
         setIsConnected(false);
