@@ -763,3 +763,76 @@ export function getAccountStatementPrintStyles(): string {
   `;
 }
 
+
+/**
+ * Returns CSS optimised for printing a Tunisian Lettre de Change (Bill of Exchange).
+ * During printing, it produces a completely blank A4 landscape sheet where only the
+ * text values are printed, aligned with the custom offset calibration values.
+ */
+export function getTraitePrintStyles(offsetX: number = 0, offsetY: number = 0): string {
+  return `
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: #fff;
+      color: #000;
+    }
+
+    .traite-container {
+      width: 297mm;
+      height: 210mm;
+      margin: 0 auto;
+      background: #fff;
+      position: relative;
+    }
+
+    /* Screen replica style */
+    .mock-element {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .print-value {
+      position: absolute;
+      font-family: 'Courier New', monospace;
+      font-size: 10pt;
+      font-weight: 700;
+      color: #000;
+      white-space: pre-wrap;
+      line-height: 1.2;
+    }
+
+    @media print {
+      @page {
+        size: A4 landscape;
+        margin: 0;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        background: transparent !important;
+      }
+      .traite-container {
+        width: 297mm !important;
+        height: 210mm !important;
+        position: relative !important;
+        background: transparent !important;
+        transform: translate(${offsetX}mm, ${offsetY}mm) !important;
+        transform-origin: top left !important;
+      }
+      /* Hide all helper elements of the layout */
+      .mock-element {
+        display: none !important;
+      }
+      /* Only values print */
+      .print-value {
+        color: #000 !important;
+        visibility: visible !important;
+        display: block !important;
+      }
+    }
+  `;
+}
+

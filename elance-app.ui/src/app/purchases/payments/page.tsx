@@ -19,7 +19,8 @@ import {
   Ban,
   ArrowRight,
   Plus,
-  Loader2
+  Loader2,
+  Printer
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSuppliers } from '@/hooks/use-suppliers';
@@ -32,6 +33,7 @@ import {
 } from '@/hooks/use-payments';
 import { PaymentModal } from '@/components/sales/payment-modal';
 import { EcheanceDetailsModal } from '@/components/purchases/echeance-details-modal';
+import { TraitePrintDialog } from '@/components/purchases/traite-print-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -104,6 +106,10 @@ function SupplierPaymentsPageContent() {
   const [selectedBankId, setSelectedBankId] = useState<string>('');
   const [disburseNotes, setDisburseNotes] = useState('');
   const [selectedTva, setSelectedTva] = useState<number>(19);
+
+  // Print traite state
+  const [isPrintTraiteOpen, setIsPrintTraiteOpen] = useState(false);
+  const [traiteToPrint, setTraiteToPrint] = useState<any /* eslint-disable-line @typescript-eslint/no-explicit-any */>(null);
 
   // Queries
   const { data: suppliers = [], isLoading: loadingSuppliers } = useSuppliers();
@@ -201,6 +207,12 @@ function SupplierPaymentsPageContent() {
       };
     });
   }, [echeances]);
+
+  // Open print dialog for a traite
+  const handlePrintTraite = (traite: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+    setTraiteToPrint(traite);
+    setIsPrintTraiteOpen(true);
+  };
 
   // Trigger confirmation dialog for bank settlement
   const handleMarkAsPaid = (traite: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
@@ -757,6 +769,17 @@ function SupplierPaymentsPageContent() {
                                 </td>
                                 <td className="py-3.5 px-5">
                                   <div className="flex items-center justify-center gap-1.5">
+                                    {/* Print button — always visible */}
+                                    <Button
+                                      onClick={() => handlePrintTraite(traite)}
+                                      variant="ghost"
+                                      size="icon"
+                                      title="Imprimer la traite"
+                                      className="w-8 h-8 rounded-full text-slate-450 hover:bg-amber-50 hover:text-amber-600 transition-colors"
+                                    >
+                                      <Printer className="w-3.5 h-3.5" />
+                                    </Button>
+
                                     {traite.instrument?.isPaidAtBank ? (
                                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-md px-2 py-0.5">
                                         <CheckCircle2 className="w-3 h-3" /> Décaissé
@@ -843,6 +866,21 @@ function SupplierPaymentsPageContent() {
             setSelectedSupplierId(id);
             router.push(`/purchases/payments?supplierId=${id}`, { scroll: false });
           }}
+        />
+      )}
+
+      {/* Traite print dialog */}
+      {isPrintTraiteOpen && traiteToPrint && enterprise && (
+        <TraitePrintDialog
+          isOpen={isPrintTraiteOpen}
+          onClose={() => {
+            setIsPrintTraiteOpen(false);
+            setTraiteToPrint(null);
+          }}
+          traite={traiteToPrint}
+          supplier={selectedSupplier}
+          enterprise={enterprise}
+          banks={banks}
         />
       )}
 
