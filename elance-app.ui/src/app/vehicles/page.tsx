@@ -37,11 +37,15 @@ import { VehicleFormDialog } from './components/vehicle-form-dialog';
 import { DeleteVehicleDialog } from './components/delete-vehicle-dialog';
 import { toast } from 'sonner';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
+import { useEnterprise } from '@/hooks/use-enterprise';
 import { useRouter } from 'next/navigation';
 
 export default function VehiclesPage() {
   const { hasAnyPermission, hasPermission } = usePermissionGuard();
   const router = useRouter();
+
+  const { data: enterprise } = useEnterprise();
+  const enterpriseName = enterprise?.name || 'SOCOBOIS';
 
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -476,7 +480,7 @@ export default function VehiclesPage() {
                                             Véhicule d'Entreprise
                                           </div>
                                           <p className="text-[0.7rem] text-sand-500 leading-relaxed">
-                                            Ce véhicule est enregistré sous l'actif de l'entreprise principale SOCOBOIS.
+                                            Ce véhicule est enregistré sous l'actif de l'entreprise principale {enterpriseName}.
                                           </p>
                                         </div>
                                       </div>
@@ -506,7 +510,7 @@ export default function VehiclesPage() {
                                               <div className="space-y-0.5">
                                                 <p className={`text-[0.5rem] font-medium ${currentCardStyle.textMuted} uppercase tracking-wider leading-none`}>Entreprise</p>
                                                 <p className="text-[0.7rem] font-bold tracking-wide uppercase truncate max-w-[120px]">
-                                                  {item.fuelcardenterprise || 'SOCOBOIS'}
+                                                  {item.fuelcardenterprise || enterpriseName}
                                                 </p>
                                               </div>
                                               <div className="space-y-0.5 text-right">

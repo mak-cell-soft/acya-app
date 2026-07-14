@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import { Vehicle } from '@/types/vehicle';
 import { usePersons } from '@/hooks/use-team';
+import { useEnterprise } from '@/hooks/use-enterprise';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -114,6 +115,10 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
 
   // Fetch team members/collaborators for conductor select
   const { data: persons } = usePersons();
+
+  // Fetch connected enterprise information
+  const { data: enterprise } = useEnterprise();
+  const enterpriseName = enterprise?.name || 'SOCOBOIS';
 
   // Filter conductors (role === 40). Fall back to all if none exist.
   const conductors = React.useMemo(() => {
@@ -200,7 +205,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
           technicalvisitdate: vehicle.technicalvisitdate ? new Date(vehicle.technicalvisitdate) : null,
           drainingdate: vehicle.drainingdate ? new Date(vehicle.drainingdate) : null,
           draining: vehicle.draining || '',
-          fuelcardenterprise: vehicle.fuelcardenterprise || 'SOCOBOIS',
+          fuelcardenterprise: vehicle.fuelcardenterprise || enterpriseName,
           fuelcardconductor: vehicle.fuelcardconductor || '',
           fuelcardmatricule: vehicle.fuelcardmatricule || vehicle.serialnumber || '',
           fuelcardamount: vehicle.fuelcardamount || null,
@@ -220,7 +225,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
           technicalvisitdate: null,
           drainingdate: null,
           draining: '',
-          fuelcardenterprise: 'SOCOBOIS',
+          fuelcardenterprise: enterpriseName,
           fuelcardconductor: '',
           fuelcardmatricule: '',
           fuelcardamount: null,
@@ -229,7 +234,7 @@ export function VehicleFormDialog({ isOpen, onClose, vehicle, onSave }: VehicleF
         });
       }
     }
-  }, [isOpen, vehicle, reset]);
+  }, [isOpen, vehicle, reset, enterpriseName]);
 
   // Expiration / Warn Date Calculator inside the dialog for premium UX feedback
   const getDateStatusMessage = (dateVal: Date | null | undefined) => {

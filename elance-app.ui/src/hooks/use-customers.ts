@@ -21,7 +21,11 @@ export function useCreateCustomer() {
     },
     onError: (error: any) => {
       console.error('Error creating customer:', error);
-      toast.error('Erreur lors de l\'ajout du client');
+      if (error.response?.status === 409) {
+        toast.error('Un client avec ces mêmes informations (CIN / Matricule Fiscal) existe déjà');
+      } else {
+        toast.error('Erreur lors de l\'ajout du client');
+      }
     },
   });
 }
@@ -38,7 +42,11 @@ export function useUpdateCustomer() {
     },
     onError: (error: any) => {
       console.error('Error updating customer:', error);
-      toast.error('Erreur lors de la mise à jour du client');
+      if (error.response?.status === 409) {
+        toast.error('Un client avec ces mêmes informations (CIN / Matricule Fiscal) existe déjà');
+      } else {
+        toast.error('Erreur lors de la mise à jour du client');
+      }
     },
   });
 }

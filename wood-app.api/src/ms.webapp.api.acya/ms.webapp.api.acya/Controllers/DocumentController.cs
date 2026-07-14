@@ -297,7 +297,7 @@ namespace ms.webapp.api.acya.api.Controllers
                       .ThenInclude(cdm => cdm.QuantityMovements)
                           .ThenInclude(qm => qm!.ListOfLengths)
                               .ThenInclude(ll => ll.AppVarLength)
-          .Where(d => !d.IsDeleted && d.Type == _type.typeDoc)
+          .Where(d => d.Type == _type.typeDoc)
           .Where(d => d.CreationDate.HasValue
                    && (_type.day == 0 || d.CreationDate.Value.Day == _type.day)
                    && d.CreationDate.Value.Month == _type.month
@@ -883,6 +883,14 @@ namespace ms.webapp.api.acya.api.Controllers
     public async Task<ActionResult> DeleteSoft(int id)
     {
         var doc = await _context.Documents
+            .Include(d => d.CounterPart)
+            .Include(d => d.SalesSite)
+            .Include(d => d.DocumentMerchandises)
+                .ThenInclude(dm => dm.Merchandise)
+            .Include(d => d.ParentDocuments)
+                .ThenInclude(p => p.ParentDocument)
+            .Include(d => d.ChildDocuments)
+                .ThenInclude(c => c.ChildDocument)
             .FirstOrDefaultAsync(d => d.Id == id);
             
         if (doc == null)
@@ -890,44 +898,79 @@ namespace ms.webapp.api.acya.api.Controllers
             return NotFound();
         }
 
-        // 1. Handle Credit Note rollback (update parent balance)
-        if (doc.Type == DocumentTypes.supplierInvoiceReturn || doc.Type == DocumentTypes.customerInvoiceReturn)
+        // Block deletion if Delivery Note (BL) is already invoiced
+        if (doc.Type == DocumentTypes.customerDeliveryNote)
         {
-             var relationships = await _context.DocumentDocumentRelationships
-                 .Where(r => r.ChildDocumentId == id)
-                 .ToListAsync();
-                 
-             foreach(var rel in relationships)
-             {
-                 var parent = await _context.Documents.FindAsync(rel.ParentDocumentId);
-                 if (parent != null)
-                 {
-                     parent.TotalCreditNotes = (double)Math.Round((decimal)parent.TotalCreditNotes - (decimal)doc.TotalCostNetTTCDoc, 3, MidpointRounding.AwayFromZero);
-                     _context.Entry(parent).State = EntityState.Modified;
-                 }
-             }
+            bool isAlreadyInvoiced = doc.IsInvoiced ||
+                (doc.ParentDocuments != null && doc.ParentDocuments.Any(p => p.ParentDocument != null && p.ParentDocument.Type == DocumentTypes.customerInvoice && !p.ParentDocument.IsDeleted)) ||
+                (doc.ChildDocuments != null && doc.ChildDocuments.Any(c => c.ChildDocument != null && c.ChildDocument.Type == DocumentTypes.customerInvoice && !c.ChildDocument.IsDeleted));
+
+            if (isAlreadyInvoiced)
+            {
+                return BadRequest("Ce Bon de Livraison est déjà facturé et ne peut pas être supprimé.");
+            }
         }
 
-        // 2. Mark as deleted
-        doc.IsDeleted = true;
-        _context.Entry(doc).State = EntityState.Modified;
-        
-        // 3. Delete Ledger Entry
-        await _accountService.DeleteLedgerEntryAsync(doc.Id, doc.Type.ToString()!);
-
-        await _context.SaveChangesAsync();
-
-        // 4. Update persistent balance
-        if (doc.CounterPartId > 0)
+        using (var transaction = await _context.Database.BeginTransactionAsync())
         {
-            string lastTxType = doc.Type.ToString()!;
-            if (doc.CounterPart?.Type == CounterPartType.Customer)
-                await _balanceService.UpdateCustomerBalanceAsync(doc.CounterPartId ?? 0, lastTxType, DateTime.UtcNow);
-            else
-                await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId ?? 0, lastTxType, DateTime.UtcNow);
-        }
+            try
+            {
+                // 1. Handle Credit Note rollback (update parent balance)
+                if (doc.Type == DocumentTypes.supplierInvoiceReturn || doc.Type == DocumentTypes.customerInvoiceReturn)
+                {
+                     var relationships = await _context.DocumentDocumentRelationships
+                         .Where(r => r.ChildDocumentId == id)
+                         .ToListAsync();
+                         
+                     foreach(var rel in relationships)
+                     {
+                         var parent = await _context.Documents.FindAsync(rel.ParentDocumentId);
+                         if (parent != null)
+                         {
+                             parent.TotalCreditNotes = (double)Math.Round((decimal)parent.TotalCreditNotes - (decimal)doc.TotalCostNetTTCDoc, 3, MidpointRounding.AwayFromZero);
+                             _context.Entry(parent).State = EntityState.Modified;
+                         }
+                     }
+                }
 
-        return Ok();
+                // 2. Revert Stock (for all actual receipts/deliveries)
+                if (doc.Type != DocumentTypes.supplierOrder 
+                    && doc.Type != DocumentTypes.customerQuote
+                    && doc.Type != DocumentTypes.customerOrder
+                    && doc.Isservice != true)
+                {
+                    await _repository.revertStockByMerchandises(doc);
+                }
+
+                // 3. Mark as deleted and set status as Deleted
+                doc.IsDeleted = true;
+                doc.DocStatus = DocStatus.Deleted;
+                _context.Entry(doc).State = EntityState.Modified;
+                
+                // 4. Delete Ledger Entry
+                await _accountService.DeleteLedgerEntryAsync(doc.Id, doc.Type.ToString()!);
+
+                await _context.SaveChangesAsync();
+
+                // 5. Update persistent balance
+                if (doc.CounterPartId > 0)
+                {
+                    string lastTxType = doc.Type.ToString()!;
+                    if (doc.CounterPart?.Type == CounterPartType.Customer)
+                        await _balanceService.UpdateCustomerBalanceAsync(doc.CounterPartId ?? 0, lastTxType, DateTime.UtcNow);
+                    else
+                        await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId ?? 0, lastTxType, DateTime.UtcNow);
+                }
+
+                await transaction.CommitAsync();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, $"An error occurred during deletion: {ex.Message}");
+            }
+        }
     }
     #endregion
 

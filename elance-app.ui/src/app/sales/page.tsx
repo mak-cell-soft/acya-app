@@ -57,6 +57,7 @@ import { WithholdingTaxModal } from '@/components/sales/withholding-tax-modal';
 import { CustomerBatchConversionModal } from '@/components/sales/customer-batch-conversion-modal';
 import { CustomerSingleBatchConversionModal } from '@/components/sales/customer-single-batch-conversion-modal';
 import { BLToInvoiceModal } from '@/components/sales/bl-to-invoice-modal';
+import { DeleteConfirmationDialog } from '@/components/sales/delete-confirmation-dialog';
 import { CustomerRecouvrementDialog } from '@/components/customers/customer-recouvrement-dialog';
 import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 import { toast } from 'sonner';
@@ -126,6 +127,7 @@ export default function SalesPage() {
   // State to manage which document is being printed and its type
   const [printDoc, setPrintDoc] = useState<{ doc: Document; type: 'bl' | 'invoice' } | null>(null);
   const [isPrintListModalOpen, setIsPrintListModalOpen] = useState(false);
+  const [docToDelete, setDocToDelete] = useState<Document | null>(null);
   const queryClient = useQueryClient();
 
   // Map tabs to document types
@@ -173,15 +175,19 @@ export default function SalesPage() {
     });
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm('Voulez-vous vraiment supprimer ce document ?')) {
-      try {
-        await deleteDocMutation.mutateAsync(id);
-        toast.success('Document supprimé avec succès.');
-        refetch();
-      } catch (err) {
-        toast.error('Erreur lors de la suppression du document.');
-      }
+  const handleDelete = (doc: Document) => {
+    setDocToDelete(doc);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!docToDelete) return;
+    try {
+      await deleteDocMutation.mutateAsync(docToDelete.id);
+      refetch();
+    } catch (err) {
+      // Toast is already shown in mutation onError
+    } finally {
+      setDocToDelete(null);
     }
   };
 
@@ -215,9 +221,10 @@ export default function SalesPage() {
       return (b.docnumber || '').localeCompare(a.docnumber || '');
     });
 
-  // Dynamic calculations for dynamic KPI cards
-  const totalRawHtSum = filteredDocuments.reduce((acc, curr) => acc + (curr.total_ht_net_doc || 0), 0);
-  const totalTtcSum = filteredDocuments.reduce(
+  // Dynamic calculations for dynamic KPI cards (excluding soft deleted documents)
+  const activeDocuments = filteredDocuments.filter((doc) => !doc.isdeleted);
+  const totalRawHtSum = activeDocuments.reduce((acc, curr) => acc + (curr.total_ht_net_doc || 0), 0);
+  const totalTtcSum = activeDocuments.reduce(
     (acc, curr) => acc + (curr.total_net_ttc || 0),
     0
   );
@@ -360,7 +367,7 @@ export default function SalesPage() {
                 Total Documents Chargés
               </span>
               <div className="text-3xl font-mono font-bold text-corp-blue-950">
-                {filteredDocuments.length}
+                {activeDocuments.length}
               </div>
               <span className="text-xs text-sand-400 font-medium">Pour les critères actuels</span>
             </div>
@@ -537,13 +544,18 @@ export default function SalesPage() {
                           <React.Fragment key={item.id}>
                           <tr
                             className={cn(
-                              'group hover:bg-sand-50/40 transition-colors cursor-pointer',
+                              'group transition-colors cursor-pointer',
+                              item.isdeleted
+                                ? 'bg-red-50/10 text-sand-400 opacity-65 hover:bg-red-50/20'
+                                : 'hover:bg-sand-50/40',
                               expandedId === item.id && 'bg-sand-50/60'
                             )}
                             onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
                           >
                             <td className="px-6 py-4">
-                              <span className="font-bold text-corp-blue-950">{item.docnumber || 'Brouillon'}</span>
+                              <span className={cn("font-bold", item.isdeleted ? "text-sand-400 line-through" : "text-corp-blue-950")}>
+                                {item.docnumber || 'Brouillon'}
+                              </span>
                             </td>
                             <td className="px-4 py-4">
                               <span className="text-xs text-sand-500">
@@ -566,14 +578,20 @@ export default function SalesPage() {
                               </div>
                             </td>
                             <td className="px-6 py-4">
-                              <div className="font-bold text-corp-blue-950 flex items-center gap-2">
+                              <div className={cn("font-bold flex items-center gap-2", item.isdeleted ? "text-sand-400" : "text-corp-blue-950")}>
                                 <div className="w-7 h-7 rounded-lg bg-corp-blue-50 border border-corp-blue-100/50 flex items-center justify-center text-xs text-corp-blue-800">
-                                  {(item.counterpart?.name || item.counterpart?.firstname || 'C')?.substring(0, 1)}
+                                  {item.counterpart ? (item.counterpart.name || item.counterpart.firstname || 'C').substring(0, 1) : '?'}
                                 </div>
-                                {item.counterpart?.name || `${item.counterpart?.firstname || ''} ${item.counterpart?.lastname || ''}`.trim() || 'Client sans nom'}
+                                {item.counterpart ? (
+                                  <span className={item.isdeleted ? "line-through" : ""}>
+                                    {item.counterpart.name || `${item.counterpart.firstname || ''} ${item.counterpart.lastname || ''}`.trim() || 'Client sans nom'}
+                                  </span>
+                                ) : (
+                                  <span className="italic text-sand-450 font-normal">Non affecté</span>
+                                )}
                               </div>
                             </td>
-                            <td className="px-4 py-4 text-right font-mono text-sand-600">
+                            <td className={cn("px-4 py-4 text-right font-mono", item.isdeleted ? "text-sand-400 line-through" : "text-sand-600")}>
                               {(item.total_ht_net_doc || 0).toLocaleString('fr-FR', {
                                 minimumFractionDigits: 3
                               })}{' '}
@@ -582,7 +600,7 @@ export default function SalesPage() {
                             <td className="px-6 py-4 text-right">
                               {activeTab === 'invoice' && item.withholdingtax ? (
                                 <div className="flex flex-col items-end gap-0.5" onClick={(e) => e.stopPropagation()}>
-                                  <span className="font-mono font-bold text-corp-blue-900 text-sm">
+                                  <span className={cn("font-mono font-bold text-sm", item.isdeleted ? "text-sand-400 line-through" : "text-corp-blue-900")}>
                                     {((item.total_net_payable || item.total_net_ttc || 0)).toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT
                                   </span>
                                   <span className="font-mono text-[10px] text-sand-400 line-through">
@@ -593,7 +611,7 @@ export default function SalesPage() {
                                   </Badge>
                                 </div>
                               ) : (
-                                <span className="font-mono font-bold text-corp-blue-800">
+                                <span className={cn("font-mono font-bold", item.isdeleted ? "text-sand-400 line-through" : "text-corp-blue-800")}>
                                   {(item.total_net_ttc || 0).toLocaleString('fr-FR', { minimumFractionDigits: 3 })}{' '}
                                   DT
                                 </span>
@@ -604,14 +622,18 @@ export default function SalesPage() {
                                 <Badge
                                   className={cn(
                                     'rounded-full px-2.5 py-0.5 font-bold text-[9px] uppercase tracking-wider',
-                                    item.docstatus === DocStatus.Validated
+                                    item.isdeleted || item.docstatus === DocStatus.Deleted
+                                      ? 'bg-red-50 text-red-800 border border-red-200'
+                                      : item.docstatus === DocStatus.Validated
                                       ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                                       : item.docstatus === DocStatus.Created
                                       ? 'bg-blue-50 text-blue-800 border border-blue-200'
                                       : 'bg-teal-50 text-teal-800 border border-teal-200'
                                   )}
                                 >
-                                  {item.docstatus === DocStatus.Validated
+                                  {item.isdeleted || item.docstatus === DocStatus.Deleted
+                                    ? 'Supprimé'
+                                    : item.docstatus === DocStatus.Validated
                                     ? 'Validé'
                                     : item.docstatus === DocStatus.Created
                                     ? 'Créé'
@@ -712,168 +734,182 @@ export default function SalesPage() {
                             )}
                             <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                               <div className="flex items-center justify-end gap-2">
-                                {item.type === DocumentTypes.customerInvoice && (
+                                {item.isdeleted ? (
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => setDocForRS(item)}
-                                    className="h-8 w-8 text-amber-650 hover:text-amber-850 hover:bg-amber-50 rounded-lg"
-                                    title="Retenue à la source (RS)"
+                                    onClick={() => setSelectedDocIdForDetail(item.id)}
+                                    className="h-8 w-8 text-sand-400 hover:text-corp-blue-950 hover:bg-sand-100 rounded-lg"
+                                    title="Voir détails"
                                   >
-                                    <Landmark className="w-4 h-4" />
+                                    <FileText className="w-4 h-4" />
                                   </Button>
-                                )}
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => setSelectedDocIdForDetail(item.id)}
-                                  className="h-8 w-8 text-sand-400 hover:text-corp-blue-950 hover:bg-sand-100 rounded-lg"
-                                >
-                                  <FileText className="w-4 h-4" />
-                                </Button>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
+                                ) : (
+                                  <>
+                                    {item.type === DocumentTypes.customerInvoice && (
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setDocForRS(item)}
+                                        className="h-8 w-8 text-amber-650 hover:text-amber-850 hover:bg-amber-50 rounded-lg"
+                                        title="Retenue à la source (RS)"
+                                      >
+                                        <Landmark className="w-4 h-4" />
+                                      </Button>
+                                    )}
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8 text-sand-400 hover:bg-sand-100 rounded-lg"
-                                    >
-                                      <MoreHorizontal className="w-4 h-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="rounded-xl border-sand-100 w-44">
-                                    <DropdownMenuItem
                                       onClick={() => setSelectedDocIdForDetail(item.id)}
-                                      className="gap-2 font-semibold text-sand-800 cursor-pointer"
+                                      className="h-8 w-8 text-sand-400 hover:text-corp-blue-950 hover:bg-sand-100 rounded-lg"
                                     >
-                                      <FileText className="w-4 h-4" /> Voir détails
-                                    </DropdownMenuItem>
-
-                                    {/* Print options for BL and Invoices */}
-                                    {item.type === DocumentTypes.customerDeliveryNote && (
-                                      <DropdownMenuItem
-                                        onClick={() => setPrintDoc({ doc: item, type: 'bl' })}
-                                        className="gap-2 font-semibold text-sand-800 cursor-pointer"
-                                      >
-                                        <Printer className="w-4 h-4" /> Imprimer BL
-                                      </DropdownMenuItem>
-                                    )}
-
-                                    {item.type === DocumentTypes.customerInvoice && (
-                                      <DropdownMenuItem
-                                        onClick={() => setPrintDoc({ doc: item, type: 'invoice' })}
-                                        className="gap-2 font-semibold text-sand-800 cursor-pointer"
-                                      >
-                                        <Printer className="w-4 h-4" /> Imprimer Facture
-                                      </DropdownMenuItem>
-                                    )}
-
-                                    {/* Quote Conversion Options — require canAdd (creating a new document from conversion) */}
-                                    {hasPermission('sales', 'canAdd') && item.type === DocumentTypes.customerQuote && (
-                                      <>
-                                        <DropdownMenuItem
-                                          onClick={() => handleConvert(item, 'order')}
-                                          disabled={!isOwner}
-                                          className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed" : "text-corp-blue-850")}
+                                      <FileText className="w-4 h-4" />
+                                    </Button>
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-8 w-8 text-sand-400 hover:bg-sand-100 rounded-lg"
                                         >
-                                          <ArrowRight className="w-4 h-4" /> Convertir en Commande
-                                        </DropdownMenuItem>
+                                          <MoreHorizontal className="w-4 h-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end" className="rounded-xl border-sand-100 w-44">
                                         <DropdownMenuItem
-                                          onClick={() => handleConvert(item, 'bl')}
-                                          disabled={!isOwner}
-                                          className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed" : "text-corp-blue-850")}
+                                          onClick={() => setSelectedDocIdForDetail(item.id)}
+                                          className="gap-2 font-semibold text-sand-800 cursor-pointer"
                                         >
-                                          <ArrowRight className="w-4 h-4" /> Convertir en BL
+                                          <FileText className="w-4 h-4" /> Voir détails
                                         </DropdownMenuItem>
-                                      </>
-                                    )}
 
-                                    {/* Order Conversion Options — require canAdd */}
-                                    {hasPermission('sales', 'canAdd') && item.type === DocumentTypes.customerOrder && (
-                                      <DropdownMenuItem
-                                        onClick={() => handleConvert(item, 'bl')}
-                                        disabled={!isOwner}
-                                        className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed" : "text-corp-blue-850")}
-                                      >
-                                        <ArrowRight className="w-4 h-4" /> Convertir en BL
-                                      </DropdownMenuItem>
-                                    )}
-
-                                    {/* BL → Invoice Conversion — require canAdd */}
-                                    {hasPermission('sales', 'canAdd') && item.type === DocumentTypes.customerDeliveryNote && (
-                                      <DropdownMenuItem
-                                        onClick={() => handleConvert(item, 'invoice')}
-                                        className={cn(
-                                          "gap-2 font-semibold cursor-pointer",
-                                          isBlInvoiced || !isOwner ? "text-sand-450 cursor-not-allowed" : "text-corp-blue-850"
-                                        )}
-                                        disabled={isBlInvoiced || !isOwner}
-                                      >
-                                        {isBlInvoiced ? (
-                                          <>
-                                            <Lock className="w-4 h-4 text-sand-400" />
-                                            Déjà Facturé
-                                          </>
-                                        ) : !isOwner ? (
-                                          <>
-                                            <Lock className="w-4 h-4 text-sand-400" />
-                                            Non Autorisé
-                                          </>
-                                        ) : (
-                                          <>
-                                            <ArrowRight className="w-4 h-4 text-corp-blue-800" />
-                                            Convertir en Facture
-                                          </>
-                                        )}
-                                      </DropdownMenuItem>
-                                    )}
-
-                                    {/* Payments Actions */}
-                                    {(item.type === DocumentTypes.customerDeliveryNote ||
-                                      item.type === DocumentTypes.customerInvoice) && (
-                                      <>
-                                        <DropdownMenuItem
-                                          onClick={() =>
-                                            setDocForPayment({
-                                              documentId: item.id,
-                                              documentNumber: item.docnumber,
-                                              totalAmount: item.total_net_ttc || 0,
-                                              remainingAmount: item.remaining_balance,
-                                              totalCreditNotes: item.total_credit_notes || 0,
-                                              withholdingtax: item.withholdingtax,
-                                              holdingtax: item.holdingtax,
-                                              totalNetPayable: item.total_net_payable,
-                                              customerId: item.counterpart?.id,
-                                              customerName: item.counterpart?.name || `${item.counterpart?.firstname || ''} ${item.counterpart?.lastname || ''}`.trim() || 'Client sans nom'
-                                            })
-                                          }
-                                          className="gap-2 font-semibold text-amber-800 cursor-pointer hover:bg-amber-50"
-                                        >
-                                          <CreditCard className="w-4 h-4" /> Règlement
-                                        </DropdownMenuItem>
-                                        {item.counterpart?.id && (
+                                        {/* Print options for BL and Invoices */}
+                                        {item.type === DocumentTypes.customerDeliveryNote && (
                                           <DropdownMenuItem
-                                            onClick={() => setCustomerIdForRecouvrement(item.counterpart!.id)}
-                                            className="gap-2 font-semibold text-emerald-800 cursor-pointer hover:bg-emerald-50"
+                                            onClick={() => setPrintDoc({ doc: item, type: 'bl' })}
+                                            className="gap-2 font-semibold text-sand-800 cursor-pointer"
                                           >
-                                            <DollarSign className="w-4 h-4" /> Recouvrement
+                                            <Printer className="w-4 h-4" /> Imprimer BL
                                           </DropdownMenuItem>
                                         )}
-                                      </>
-                                    )}
 
-                                    {/* Delete action — only for users with canDelete on sales */}
-                                    {hasPermission('sales', 'canDelete') && (
-                                      <DropdownMenuItem
-                                        onClick={() => handleDelete(item.id)}
-                                        disabled={!isOwner}
-                                        className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed hover:bg-transparent" : "text-red-600 hover:text-red-700 hover:bg-red-50")}
-                                      >
-                                        <Trash2 className="w-4 h-4" /> Supprimer
-                                      </DropdownMenuItem>
-                                    )}
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
+                                        {item.type === DocumentTypes.customerInvoice && (
+                                          <DropdownMenuItem
+                                            onClick={() => setPrintDoc({ doc: item, type: 'invoice' })}
+                                            className="gap-2 font-semibold text-sand-800 cursor-pointer"
+                                          >
+                                            <Printer className="w-4 h-4" /> Imprimer Facture
+                                          </DropdownMenuItem>
+                                        )}
+
+                                        {/* Quote Conversion Options — require canAdd (creating a new document from conversion) */}
+                                        {hasPermission('sales', 'canAdd') && item.type === DocumentTypes.customerQuote && (
+                                          <>
+                                            <DropdownMenuItem
+                                              onClick={() => handleConvert(item, 'order')}
+                                              disabled={!isOwner}
+                                              className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed" : "text-corp-blue-850")}
+                                            >
+                                              <ArrowRight className="w-4 h-4" /> Convertir en Commande
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                              onClick={() => handleConvert(item, 'bl')}
+                                              disabled={!isOwner}
+                                              className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed" : "text-corp-blue-850")}
+                                            >
+                                              <ArrowRight className="w-4 h-4" /> Convertir en BL
+                                            </DropdownMenuItem>
+                                          </>
+                                        )}
+
+                                        {/* Order Conversion Options — require canAdd */}
+                                        {hasPermission('sales', 'canAdd') && item.type === DocumentTypes.customerOrder && (
+                                          <DropdownMenuItem
+                                            onClick={() => handleConvert(item, 'bl')}
+                                            disabled={!isOwner}
+                                            className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed" : "text-corp-blue-850")}
+                                          >
+                                            <ArrowRight className="w-4 h-4" /> Convertir en BL
+                                          </DropdownMenuItem>
+                                        )}
+
+                                        {/* BL → Invoice Conversion — require canAdd */}
+                                        {hasPermission('sales', 'canAdd') && item.type === DocumentTypes.customerDeliveryNote && (
+                                          <DropdownMenuItem
+                                            onClick={() => handleConvert(item, 'invoice')}
+                                            className={cn(
+                                              "gap-2 font-semibold cursor-pointer",
+                                              isBlInvoiced || !isOwner ? "text-sand-450 cursor-not-allowed" : "text-corp-blue-850"
+                                            )}
+                                            disabled={isBlInvoiced || !isOwner}
+                                          >
+                                            {isBlInvoiced ? (
+                                              <>
+                                                <Lock className="w-4 h-4 text-sand-400" />
+                                                Déjà Facturé
+                                              </>
+                                            ) : !isOwner ? (
+                                              <>
+                                                <Lock className="w-4 h-4 text-sand-400" />
+                                                Non Autorisé
+                                              </>
+                                            ) : (
+                                              <>
+                                                <ArrowRight className="w-4 h-4 text-corp-blue-800" />
+                                                Convertir en Facture
+                                              </>
+                                            )}
+                                          </DropdownMenuItem>
+                                        )}
+
+                                        {/* Payments Actions */}
+                                        {(item.type === DocumentTypes.customerDeliveryNote ||
+                                          item.type === DocumentTypes.customerInvoice) && (
+                                          <>
+                                            <DropdownMenuItem
+                                              onClick={() =>
+                                                setDocForPayment({
+                                                  documentId: item.id,
+                                                  documentNumber: item.docnumber,
+                                                  totalAmount: item.total_net_ttc || 0,
+                                                  remainingAmount: item.remaining_balance,
+                                                  totalCreditNotes: item.total_credit_notes || 0,
+                                                  withholdingtax: item.withholdingtax,
+                                                  holdingtax: item.holdingtax,
+                                                  totalNetPayable: item.total_net_payable,
+                                                  customerId: item.counterpart?.id,
+                                                  customerName: item.counterpart?.name || `${item.counterpart?.firstname || ''} ${item.counterpart?.lastname || ''}`.trim() || 'Client sans nom'
+                                                })
+                                              }
+                                              className="gap-2 font-semibold text-amber-800 cursor-pointer hover:bg-amber-50"
+                                            >
+                                              <CreditCard className="w-4 h-4" /> Règlement
+                                            </DropdownMenuItem>
+                                            {item.counterpart?.id && (
+                                              <DropdownMenuItem
+                                                onClick={() => setCustomerIdForRecouvrement(item.counterpart!.id)}
+                                                className="gap-2 font-semibold text-emerald-800 cursor-pointer hover:bg-emerald-50"
+                                              >
+                                                <DollarSign className="w-4 h-4" /> Recouvrement
+                                              </DropdownMenuItem>
+                                            )}
+                                          </>
+                                        )}
+
+                                        {/* Delete action — only for users with canDelete on sales */}
+                                        {hasPermission('sales', 'canDelete') && (
+                                          <DropdownMenuItem
+                                            onClick={() => handleDelete(item)}
+                                            disabled={!isOwner}
+                                            className={cn("gap-2 font-semibold cursor-pointer", !isOwner ? "text-sand-400 cursor-not-allowed hover:bg-transparent" : "text-red-600 hover:text-red-750 hover:bg-red-50")}
+                                          >
+                                            <Trash2 className="w-4 h-4" /> Supprimer
+                                          </DropdownMenuItem>
+                                        )}
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </>
+                                )}
                                 <ChevronDown
                                   className={cn(
                                     'w-4 h-4 text-sand-300 transition-transform duration-300',
@@ -1236,6 +1272,14 @@ export default function SalesPage() {
           setActiveTab('invoice');
           refetch();
         }}
+      />
+
+      <DeleteConfirmationDialog
+        isOpen={docToDelete !== null}
+        onClose={() => setDocToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        documentNumber={docToDelete?.docnumber || ''}
+        isDeleting={deleteDocMutation.isPending}
       />
     </DashboardLayout>
   );

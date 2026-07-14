@@ -21,7 +21,11 @@ export function useCreateSupplier() {
     },
     onError: (error: any) => {
       console.error('Error creating supplier:', error);
-      toast.error('Erreur lors de l\'ajout du fournisseur');
+      if (error.response?.status === 409) {
+        toast.error('Un fournisseur avec ces mêmes informations (CIN / Matricule Fiscal) existe déjà');
+      } else {
+        toast.error('Erreur lors de l\'ajout du fournisseur');
+      }
     },
   });
 }
@@ -38,7 +42,11 @@ export function useUpdateSupplier() {
     },
     onError: (error: any) => {
       console.error('Error updating supplier:', error);
-      toast.error('Erreur lors de la mise à jour du fournisseur');
+      if (error.response?.status === 409) {
+        toast.error('Un fournisseur avec ces mêmes informations (CIN / Matricule Fiscal) existe déjà');
+      } else {
+        toast.error('Erreur lors de la mise à jour du fournisseur');
+      }
     },
   });
 }
