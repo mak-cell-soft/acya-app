@@ -265,10 +265,15 @@ export default function SupplierDashboardPage({ params }: PageProps) {
             {hasPermission('purchases', 'canRead') && (
               <Button
                 onClick={handleReglement}
-                className="h-16 px-6 rounded-[24px] bg-corp-blue-600 hover:bg-corp-blue-700 text-white font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2 border border-corp-blue-700 shrink-0"
+                className="h-16 pl-4 pr-6 rounded-[24px] bg-corp-blue-600 hover:bg-corp-blue-700 text-white font-bold text-sm shadow-md shadow-corp-blue-900/10 hover:shadow-lg hover:shadow-corp-blue-900/15 transition-transform duration-200 active:scale-[0.96] flex items-center gap-3 border border-corp-blue-700 shrink-0 select-none group"
               >
-                <Banknote className="w-5 h-5" />
-                Règlement
+                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <Banknote className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex flex-col text-left leading-none">
+                  <span className="text-sm font-bold text-white">Nouveau Règlement</span>
+                  <span className="text-[10px] text-corp-blue-100/80 font-semibold mt-1">Enregistrer un paiement</span>
+                </div>
               </Button>
             )}
           </div>
