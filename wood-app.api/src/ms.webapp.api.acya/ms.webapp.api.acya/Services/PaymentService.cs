@@ -438,13 +438,13 @@ namespace ms.webapp.api.acya.api.Services
         }
 
 
-        public async Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int userId, string? documentSide = null, bool monthOnly = false)
+        public async Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int userId, string? documentSide = null, bool monthOnly = false, bool allSites = false)
         {
             var user = await _appUserRepository.Get(userId);
             if (user == null || !user.IdSalesSite.HasValue)
                 return new List<DashboardPaymentDto>();
 
-            return await _paymentRepository.GetDashboardPaymentsAsync(date, user.IdSalesSite.Value, documentSide, monthOnly);
+            return await _paymentRepository.GetDashboardPaymentsAsync(date, allSites ? 0 : user.IdSalesSite.Value, documentSide, monthOnly);
         }
 
         private PaymentDto MapToDto(Payment payment)

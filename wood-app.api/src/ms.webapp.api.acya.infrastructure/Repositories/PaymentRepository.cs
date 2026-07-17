@@ -328,8 +328,11 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                                          p.PaymentDate.Value.Day == day);
             }
 
-            query = query.Where(p => (p.Document != null && p.Document.SalesSiteId == salesSiteId) ||
-                                     (p.Document == null && p.AppUser != null && p.AppUser.IdSalesSite == salesSiteId));
+            if (salesSiteId > 0)
+            {
+                query = query.Where(p => (p.Document != null && p.Document.SalesSiteId == salesSiteId) ||
+                                         (p.Document == null && p.AppUser != null && p.AppUser.IdSalesSite == salesSiteId));
+            }
 
             if (documentSide == "customer")
             {

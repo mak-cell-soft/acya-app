@@ -156,7 +156,8 @@ export default function AccountingDashboard() {
     selectedMonthDate,
     user?.id ? Number(user.id) : undefined,
     'supplier',
-    true // monthOnly
+    true, // monthOnly
+    true // allSites
   );
 
   const paginatedPayments = useMemo(() => {

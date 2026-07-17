@@ -35,14 +35,14 @@ export const paymentService = {
     return response.data;
   },
 
-  getDashboardPayments: async (date: Date, appUserId?: number, documentSide?: string, monthOnly?: boolean) => {
+  getDashboardPayments: async (date: Date, appUserId?: number, documentSide?: string, monthOnly?: boolean, allSites?: boolean) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const dateStr = `${year}-${month}-${day}`;
 
     const response = await api.get('/Payments/dashboard', {
-      params: { date: dateStr, appuserid: appUserId, documentSide, monthOnly }
+      params: { date: dateStr, appuserid: appUserId, documentSide, monthOnly, allSites }
     });
     return response.data;
   },
