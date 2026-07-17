@@ -199,10 +199,10 @@ function NewSupplierInvoicePageContent() {
       articleService.getLastPurchasePrice(newRowArticle.id)
         .then((price: number) => {
           const lastPrice = price > 0 ? price : (newRowArticle.lastpurchaseprice_ttc || 0);
-          setNewRowUnitPrice(parseFloat(Number(lastPrice).toFixed(3)));
+          setNewRowUnitPrice(Number(lastPrice));
         })
         .catch(() => {
-          setNewRowUnitPrice(parseFloat(Number(newRowArticle.lastpurchaseprice_ttc || 0).toFixed(3)));
+          setNewRowUnitPrice(Number(newRowArticle.lastpurchaseprice_ttc || 0));
         })
         .finally(() => setIsLoadingLastPrice(false));
     } else {

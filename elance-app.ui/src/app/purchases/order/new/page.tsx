@@ -275,13 +275,13 @@ function NewSupplierOrderPageContent() {
         .then((price: number) => {
           // If fallback price is 0, use standard lastpurchaseprice_ttc configured in article card
           const lastPrice = price > 0 ? price : (newRowArticle.lastpurchaseprice_ttc || 0);
-          const formattedPrice = parseFloat(Number(lastPrice).toFixed(3));
+          const rawPrice = Number(lastPrice);
           
-          setNewRowLastPurchasePrice(formattedPrice);
-          setNewRowUnitPrice(formattedPrice);
+          setNewRowLastPurchasePrice(rawPrice);
+          setNewRowUnitPrice(rawPrice);
         })
         .catch(() => {
-          const fallbackPrice = parseFloat(Number(newRowArticle.lastpurchaseprice_ttc || 0).toFixed(3));
+          const fallbackPrice = Number(newRowArticle.lastpurchaseprice_ttc || 0);
           setNewRowLastPurchasePrice(fallbackPrice);
           setNewRowUnitPrice(fallbackPrice);
         })
