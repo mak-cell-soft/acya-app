@@ -233,7 +233,7 @@ namespace ms.webapp.api.acya.api.Controllers
         }
 
         [HttpGet("dashboard")]
-        public async Task<ActionResult<IEnumerable<DashboardPaymentDto>>> GetDashboardPayments([FromQuery] string date, [FromQuery] int? appuserid, [FromQuery] string? documentSide)
+        public async Task<ActionResult<IEnumerable<DashboardPaymentDto>>> GetDashboardPayments([FromQuery] string date, [FromQuery] int? appuserid, [FromQuery] string? documentSide, [FromQuery] bool? monthOnly = false)
         {
             try
             {
@@ -246,7 +246,7 @@ namespace ms.webapp.api.acya.api.Controllers
                 var userId = appuserid ?? GetCurrentUserId();
                 if (userId == 0) return Unauthorized("Invalid User ID");
 
-                var payments = await _paymentService.GetDashboardPaymentsAsync(parsedDate, userId, documentSide);
+                var payments = await _paymentService.GetDashboardPaymentsAsync(parsedDate, userId, documentSide, monthOnly ?? false);
                 return Ok(payments);
             }
             catch (Exception ex)

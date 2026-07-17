@@ -148,13 +148,15 @@ export default function AccountingDashboard() {
     refetchVentes();
   };
 
-  const [timelineDate] = useState<Date>(new Date());
-  const isTimelineToday = timelineDate.toDateString() === new Date().toDateString();
+  const selectedMonthDate = useMemo(() => {
+    return new Date(selectedYear, selectedMonth, 1);
+  }, [selectedMonth, selectedYear]);
 
   const { data: supplierPayments = [], isLoading: isPaymentsLoading } = useDashboardPayments(
-    timelineDate,
+    selectedMonthDate,
     user?.id ? Number(user.id) : undefined,
-    'supplier'
+    'supplier',
+    true // monthOnly
   );
 
   const paginatedPayments = useMemo(() => {
@@ -554,7 +556,7 @@ export default function AccountingDashboard() {
               <CreditCard className="w-6 h-6 text-amber-500" />
               <h2 className="text-xl font-bold text-slate-900">Règlements Fournisseurs</h2>
               <span className="text-xs font-bold text-slate-400 ml-1">
-                — {isTimelineToday ? "Aujourd'hui" : format(timelineDate, 'dd MMM yyyy', { locale: fr })}
+                — {format(selectedMonthDate, 'MMMM yyyy', { locale: fr })}
               </span>
             </div>
 
@@ -570,7 +572,7 @@ export default function AccountingDashboard() {
                       <DollarSign className="w-6 h-6" />
                     </div>
                     <p className="text-sm font-bold text-slate-400">
-                      Aucun règlement fournisseur pour cette date.
+                      Aucun règlement fournisseur pour ce mois.
                     </p>
                   </div>
                 ) : (
@@ -578,7 +580,7 @@ export default function AccountingDashboard() {
                     <Table>
                       <TableHeader className="bg-amber-50/10 border-b border-amber-50/50">
                         <TableRow className="text-slate-400 font-bold uppercase tracking-wider text-[10px] hover:bg-transparent">
-                          <TableHead className="font-bold">Heure</TableHead>
+                          <TableHead className="font-bold">Date</TableHead>
                           <TableHead className="font-bold">Fournisseur</TableHead>
                           <TableHead className="font-bold">Montant</TableHead>
                           <TableHead className="font-bold">Mode</TableHead>
@@ -592,8 +594,8 @@ export default function AccountingDashboard() {
                             <TableRow key={p.paymentId} className="hover:bg-amber-50/20 transition-all">
                               <TableCell>
                                 <span className="flex items-center gap-1.5 text-slate-400 font-medium">
-                                  <Clock className="w-3.5 h-3.5" />
-                                  {format(dateObj, 'HH:mm')}
+                                  <Calendar className="w-3.5 h-3.5" />
+                                  {format(dateObj, 'dd/MM/yyyy')}
                                 </span>
                               </TableCell>
                               <TableCell className="font-bold text-slate-800">
