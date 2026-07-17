@@ -189,9 +189,9 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
   const [selectedTax, setSelectedTax] = useState<any | null>(null);
   const [selectedRS, setSelectedRS] = useState<any | null>(null);
 
-  // Set default stamp tax for Invoices once loaded
+  // Set default stamp tax for Invoices & Orders once loaded
   useEffect(() => {
-    if (docType === DocumentTypes.customerInvoice && appvariablesTaxes.length > 0) {
+    if ((docType === DocumentTypes.customerInvoice || docType === DocumentTypes.customerOrder) && appvariablesTaxes.length > 0) {
       const defaultTax = appvariablesTaxes.find(t => t.isdefault === true) || appvariablesTaxes[0];
       setSelectedTax(defaultTax);
     }
@@ -456,7 +456,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
     let baseTTC = naturalTotals.ttc;
 
     // Add Stamp tax (Timbre fiscal) if selected
-    if (docType === DocumentTypes.customerInvoice && selectedTax) {
+    if ((docType === DocumentTypes.customerInvoice || docType === DocumentTypes.customerOrder) && selectedTax) {
       baseTTC += parseFloat(selectedTax.value || '0');
     }
 
@@ -491,7 +491,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
     }
 
     let baseTTC = naturalTotals.ttc;
-    if (docType === DocumentTypes.customerInvoice && selectedTax) {
+    if ((docType === DocumentTypes.customerInvoice || docType === DocumentTypes.customerOrder) && selectedTax) {
       baseTTC += parseFloat(selectedTax.value || '0');
     }
 
@@ -503,7 +503,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
   useEffect(() => {
     if (!manualNetTTC) {
       let baseTTC = naturalTotals.ttc;
-      if (docType === DocumentTypes.customerInvoice && selectedTax) {
+      if ((docType === DocumentTypes.customerInvoice || docType === DocumentTypes.customerOrder) && selectedTax) {
         baseTTC += parseFloat(selectedTax.value || '0');
       }
       setManualNetTTC(baseTTC.toFixed(3));
@@ -682,22 +682,29 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
           
           // Match matching stocks in our cached state for active site
           const matches = siteStocks.filter(s => s.articleId === article.id);
-          row.selectedStock = matches.length === 1 ? matches[0] : null;
+          row.selectedStock = matches.length >= 1 ? matches[0] : null;
 
-          // Reset quantity if stock not available
-          if (matches.length === 0) {
-            row.quantity = 0;
-            row.listLengths = [];
-          } else if (matches.length === 1) {
-            const stockQty = parseFloat(matches[0].stockQuantity || 0);
-            const allowNeg = matches[0].allowNegativeStock;
-            if (!allowNeg && stockQty <= 0) {
+          if (docType !== DocumentTypes.customerQuote && docType !== DocumentTypes.customerOrder) {
+            // Reset quantity if stock not available
+            if (matches.length === 0) {
+              row.quantity = 0;
+              row.listLengths = [];
+            } else if (matches.length === 1) {
+              const stockQty = parseFloat(matches[0].stockQuantity || 0);
+              const allowNeg = matches[0].allowNegativeStock;
+              if (!allowNeg && stockQty <= 0) {
+                row.quantity = 0;
+                row.listLengths = [];
+              }
+            } else {
               row.quantity = 0;
               row.listLengths = [];
             }
           } else {
-            row.quantity = 0;
-            row.listLengths = [];
+            // For Quote & Order, we do not reset quantity based on stock availability
+            if (row.quantity === 0) {
+              row.quantity = 1;
+            }
           }
 
           // Apply pre-negotiated discount rates if present
@@ -720,16 +727,18 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
 
       if (field === 'selectedStock') {
         const stock = value as any;
-        if (stock) {
-          const stockQty = parseFloat(stock.stockQuantity || 0);
-          const allowNeg = stock.allowNegativeStock;
-          if (!allowNeg && stockQty <= 0) {
+        if (docType !== DocumentTypes.customerQuote && docType !== DocumentTypes.customerOrder) {
+          if (stock) {
+            const stockQty = parseFloat(stock.stockQuantity || 0);
+            const allowNeg = stock.allowNegativeStock;
+            if (!allowNeg && stockQty <= 0) {
+              row.quantity = 0;
+              row.listLengths = [];
+            }
+          } else {
             row.quantity = 0;
             row.listLengths = [];
           }
-        } else {
-          row.quantity = 0;
-          row.listLengths = [];
         }
 
         // Apply pre-negotiated discount rates if present when stock changes
@@ -994,8 +1003,8 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
         documentPayload.total_net_payable = finalPayableTTC;
       }
 
-      // Factor in stamp tax (Taxe) if selected on Invoices
-      if (docType === DocumentTypes.customerInvoice && selectedTax) {
+      // Factor in stamp tax (Taxe) if selected on Invoices & Orders
+      if ((docType === DocumentTypes.customerInvoice || docType === DocumentTypes.customerOrder) && selectedTax) {
         documentPayload.taxe = selectedTax;
       }
 
@@ -1019,7 +1028,13 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
 
     } catch (err: any) {
       console.error('Error submitting document:', err);
-      if (err.response?.status === 409) {
+      if (err.response?.status === 422 && err.response?.data?.code === 'DAILY_CEILING_EXCEEDED') {
+        const data = err.response.data;
+        toast.error('Plafond journalier de facturation dépassé', {
+          description: data.message || `L'opération est annulée car elle dépasse le plafond journalier.`,
+          duration: 7000
+        });
+      } else if (err.response?.status === 409) {
         toast.error('Un document avec la même référence existe déjà.');
       } else {
         toast.error(`La création du document a échoué. Veuillez vérifier l'état du stock.`);
@@ -1340,7 +1355,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
               </div>
 
               {/* Invoice Specific: Stamp Tax Select */}
-              {docType === DocumentTypes.customerInvoice && (
+              {(docType === DocumentTypes.customerInvoice || docType === DocumentTypes.customerOrder) && (
                 <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
                   <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Timbre Fiscal *</label>
                   <Select 
@@ -1463,6 +1478,12 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
             <div>
               <CardTitle className="text-lg font-bold text-corp-blue-900">Lignes du Document</CardTitle>
               <CardDescription className="text-xs text-sand-400 mt-0.5 font-medium">Saisissez les articles et frais logistiques constituant le document.</CardDescription>
+              {(docType === DocumentTypes.customerQuote || docType === DocumentTypes.customerOrder) && (
+                <div className="mt-2 text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200/60 rounded-xl px-3 py-2 flex items-center gap-2 w-fit animate-in fade-in duration-300">
+                  <Info className="w-4 h-4 shrink-0 text-amber-600" />
+                  <span>Le stock n'est pas inclus dans ce document (saisie libre des quantités sans vérification).</span>
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-3">
               {(docType === DocumentTypes.customerDeliveryNote || docType === DocumentTypes.customerInvoice) && (
@@ -1510,16 +1531,18 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                       const isFee = row.line_type === LineType.TransportFee;
                       const matchingStocks = row.selectedArticle ? siteStocks.filter(s => s.articleId === row.selectedArticle!.id) : [];
                       let isQuantityDisabled = false;
-                      if (!isFee && row.selectedArticle) {
-                        if (matchingStocks.length === 0) {
-                          isQuantityDisabled = true;
-                        } else if (matchingStocks.length > 1 && !row.selectedStock) {
-                          isQuantityDisabled = true;
-                        } else if (row.selectedStock) {
-                          const stockQty = parseFloat(row.selectedStock.stockQuantity || 0);
-                          const allowNeg = row.selectedStock.allowNegativeStock;
-                          if (!allowNeg && stockQty <= 0) {
+                      if (docType !== DocumentTypes.customerQuote && docType !== DocumentTypes.customerOrder) {
+                        if (!isFee && row.selectedArticle) {
+                          if (matchingStocks.length === 0) {
                             isQuantityDisabled = true;
+                          } else if (matchingStocks.length > 1 && !row.selectedStock) {
+                            isQuantityDisabled = true;
+                          } else if (row.selectedStock) {
+                            const stockQty = parseFloat(row.selectedStock.stockQuantity || 0);
+                            const allowNeg = row.selectedStock.allowNegativeStock;
+                            if (!allowNeg && stockQty <= 0) {
+                              isQuantityDisabled = true;
+                            }
                           }
                         }
                       }
@@ -1893,8 +1916,8 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                 <span className="font-bold text-corp-blue-900">{naturalTotals.tva.toLocaleString('fr-TN', { minimumFractionDigits: 3 })} TND</span>
               </div>
 
-              {/* Display Stamp Tax details on Invoices */}
-              {docType === DocumentTypes.customerInvoice && selectedTax && (
+              {/* Display Stamp Tax details on Invoices & Orders */}
+              {(docType === DocumentTypes.customerInvoice || docType === DocumentTypes.customerOrder) && selectedTax && (
                 <div className="flex items-center justify-between text-xs border-b border-corp-blue-50/50 pb-2.5 font-medium animate-in slide-in-from-top-1">
                   <span className="text-sand-400 font-bold">Timbre Fiscal (Frais Administratif)</span>
                   <span className="font-bold text-corp-blue-900">+{parseFloat(selectedTax.value).toLocaleString('fr-TN', { minimumFractionDigits: 3 })} TND</span>

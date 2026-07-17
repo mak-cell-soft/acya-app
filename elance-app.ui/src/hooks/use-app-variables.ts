@@ -10,6 +10,23 @@ export function useAppVariables(nature: string) {
   });
 }
 
+export function useUpsertDailyCeiling() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ date, amount }: { date: string; amount: string }) =>
+      appVariableService.upsertDailyCeiling(date, amount),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['app-variables', 'DailyInvoiceCeiling'] });
+      toast.success('Plafond journalier enregistré avec succès');
+    },
+    onError: (error: any) => {
+      console.error('Error saving daily ceiling:', error);
+      toast.error('Erreur lors de l\'enregistrement du plafond journalier');
+    },
+  });
+}
+
 export function useCreateAppVariable() {
   const queryClient = useQueryClient();
 

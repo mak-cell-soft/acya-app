@@ -9,10 +9,14 @@ import { ParamsTab } from '@/components/settings/params-tab';
 import { NumberingTab } from '@/components/settings/numbering-tab';
 import { AuditTab } from '@/components/settings/audit-tab';
 import { PrintTab } from '@/components/settings/print-tab';
-import { Building2, Settings2, Hash, ShieldCheck, Cog, Printer } from 'lucide-react';
+import { DailyCeilingTab } from '@/components/settings/daily-ceiling-tab';
+import { Building2, Settings2, Hash, ShieldCheck, Cog, Printer, TrendingUp } from 'lucide-react';
+import { useAuthStore } from '@/store/use-auth-store';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = React.useState('enterprise');
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin';
 
   return (
     <DashboardLayout>
@@ -86,6 +90,14 @@ export default function SettingsPage() {
               >
                 <Printer className="w-5 h-5" /> Impression
               </TabsTrigger>
+              {isAdmin && (
+                <TabsTrigger 
+                  value="ceiling" 
+                  className="rounded-[18px] px-8 py-3.5 data-[state=active]:bg-corp-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-corp-blue-600/20 font-bold gap-3 transition-all duration-300"
+                >
+                  <TrendingUp className="w-5 h-5" /> Plafond Journalier
+                </TabsTrigger>
+              )}
             </TabsList>
           </div>
 
@@ -118,6 +130,12 @@ export default function SettingsPage() {
                 <TabsContent value="print" className="m-0 focus-visible:outline-none">
                   <PrintTab />
                 </TabsContent>
+
+                {isAdmin && (
+                  <TabsContent value="ceiling" className="m-0 focus-visible:outline-none">
+                    <DailyCeilingTab />
+                  </TabsContent>
+                )}
               </motion.div>
             </AnimatePresence>
           </div>

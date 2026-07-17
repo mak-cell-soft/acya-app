@@ -435,6 +435,22 @@ namespace ms.webapp.api.acya.api.Controllers
         return BadRequest("Invalid document data.");
       }
 
+      if (dto.type == DocumentTypes.customerInvoice)
+      {
+        var (exceeds, currentTotal, ceiling, msg) = await CheckDailyCeilingAsync(dto.total_net_ttc, dto.creationdate);
+        if (exceeds)
+        {
+          return StatusCode(422, new {
+            code = "DAILY_CEILING_EXCEEDED",
+            ceiling = ceiling,
+            currentTotal = currentTotal,
+            newInvoiceAmount = dto.total_net_ttc,
+            projectedTotal = currentTotal + dto.total_net_ttc,
+            message = msg
+          });
+        }
+      }
+
       // If it's NOT a service document, it MUST have merchandises
       if (!dto.isservice && (dto.merchandises == null || !dto.merchandises.Any()))
       {
@@ -996,6 +1012,19 @@ namespace ms.webapp.api.acya.api.Controllers
         return BadRequest("Invalid document data.");
       }
 
+      var (exceeds, currentTotal, ceiling, msg) = await CheckDailyCeilingAsync(genDto.invoiceDoc.total_net_ttc, genDto.invoiceDoc.creationdate);
+      if (exceeds)
+      {
+        return StatusCode(422, new {
+          code = "DAILY_CEILING_EXCEEDED",
+          ceiling = ceiling,
+          currentTotal = currentTotal,
+          newInvoiceAmount = genDto.invoiceDoc.total_net_ttc,
+          projectedTotal = currentTotal + genDto.invoiceDoc.total_net_ttc,
+          message = msg
+        });
+      }
+
       // Test the existence of doc with same supplier reference
       if (!string.IsNullOrEmpty(genDto.invoiceDoc.supplierReference))
       {
@@ -1381,6 +1410,22 @@ namespace ms.webapp.api.acya.api.Controllers
       if (dto == null || id != dto.id)
       {
         return BadRequest("Invalid document data.");
+      }
+
+      if (dto.type == DocumentTypes.customerInvoice)
+      {
+        var (exceeds, currentTotal, ceiling, msg) = await CheckDailyCeilingAsync(dto.total_net_ttc, dto.creationdate, id);
+        if (exceeds)
+        {
+          return StatusCode(422, new {
+            code = "DAILY_CEILING_EXCEEDED",
+            ceiling = ceiling,
+            currentTotal = currentTotal,
+            newInvoiceAmount = dto.total_net_ttc,
+            projectedTotal = currentTotal + dto.total_net_ttc,
+            message = msg
+          });
+        }
       }
 
       var appUser = await _context.AppUsers.FindAsync(dto.updatedbyid);
@@ -1994,6 +2039,45 @@ namespace ms.webapp.api.acya.api.Controllers
       await _context.SaveChangesAsync();
     }
     #endregion
+
+    private async Task<(bool exceedsLimit, double currentTotal, double ceiling, string message)> CheckDailyCeilingAsync(double newInvoiceAmount, DateTime? invoiceDate, int? excludeDocId = null)
+    {
+      var dateToCheck = invoiceDate ?? DateTime.UtcNow;
+      string dateString = dateToCheck.ToString("yyyy-MM-dd");
+
+      var ceilingVar = await _context.AppVariables
+          .FirstOrDefaultAsync(av => av.Nature == "DailyInvoiceCeiling" && av.Name == dateString && av.isActive == true && av.isDeleted == false);
+
+      if (ceilingVar == null || ceilingVar.Value == null || ceilingVar.Value.Value <= 0)
+      {
+        return (false, 0, 0, string.Empty);
+      }
+
+      double ceilingValue = ceilingVar.Value.Value;
+
+      var day = dateToCheck.Day;
+      var month = dateToCheck.Month;
+      var year = dateToCheck.Year;
+
+      double currentTotal = await _context.Documents
+          .Where(d => d.Type == DocumentTypes.customerInvoice 
+                   && d.IsDeleted == false
+                   && (!excludeDocId.HasValue || d.Id != excludeDocId.Value)
+                   && d.CreationDate.HasValue
+                   && d.CreationDate.Value.Day == day
+                   && d.CreationDate.Value.Month == month
+                   && d.CreationDate.Value.Year == year)
+          .SumAsync(d => d.TotalCostNetTTCDoc);
+
+      double projectedTotal = currentTotal + newInvoiceAmount;
+      if (projectedTotal > ceilingValue)
+      {
+        string msg = $"Le plafond journalier de {ceilingValue:F3} DT serait dépassé. Total actuel: {currentTotal:F3} DT. Nouveau document: {newInvoiceAmount:F3} DT.";
+        return (true, currentTotal, ceilingValue, msg);
+      }
+
+      return (false, currentTotal, ceilingValue, string.Empty);
+    }
 
     #endregion
 

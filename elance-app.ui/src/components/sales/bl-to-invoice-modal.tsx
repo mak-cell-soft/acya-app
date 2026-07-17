@@ -142,11 +142,19 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
       onClose();
     } catch (err: any) {
       console.error('Conversion error:', err);
-      const msg =
-        err.response?.data?.message ||
-        err.response?.data ||
-        'Erreur lors de la conversion.';
-      toast.error(typeof msg === 'string' ? msg : 'Erreur lors de la conversion.');
+      if (err.response?.status === 422 && err.response?.data?.code === 'DAILY_CEILING_EXCEEDED') {
+        const data = err.response.data;
+        toast.error('Plafond journalier de facturation dépassé', {
+          description: data.message || `L'opération est annulée car elle dépasse le plafond journalier.`,
+          duration: 7000
+        });
+      } else {
+        const msg =
+          err.response?.data?.message ||
+          err.response?.data ||
+          'Erreur lors de la conversion.';
+        toast.error(typeof msg === 'string' ? msg : 'Erreur lors de la conversion.');
+      }
     } finally {
       setIsConverting(false);
     }

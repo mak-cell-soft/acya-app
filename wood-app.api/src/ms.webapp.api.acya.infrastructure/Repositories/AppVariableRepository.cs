@@ -18,6 +18,11 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       return await context.AppVariables.FirstOrDefaultAsync(u => u.Name! == _name && u.Value.Equals(_value));
     }
 
+    public async Task<AppVariable?> GetByNatureAndNameAsync(string nature, string name)
+    {
+      return await context.AppVariables.FirstOrDefaultAsync(av => av.Nature == nature && av.Name == name && av.isDeleted == false);
+    }
+
     public async Task<IEnumerable<AppVariable?>> GetAllAsync(string _nature)
     {
       var res = await context.AppVariables

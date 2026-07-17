@@ -281,7 +281,15 @@ export function CustomerBatchConversionModal({
       onClose();
     } catch (err: any) {
       console.error('Failed to create batch invoice:', err);
-      toast.error(err.response?.data?.message || 'Erreur lors de la génération de la facture.');
+      if (err.response?.status === 422 && err.response?.data?.code === 'DAILY_CEILING_EXCEEDED') {
+        const data = err.response.data;
+        toast.error('Plafond journalier de facturation dépassé', {
+          description: data.message || `L'opération est annulée car elle dépasse le plafond journalier.`,
+          duration: 7000
+        });
+      } else {
+        toast.error(err.response?.data?.message || 'Erreur lors de la génération de la facture.');
+      }
     } finally {
       setSubmitting(false);
     }

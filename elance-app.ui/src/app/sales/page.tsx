@@ -50,6 +50,7 @@ import {
   useDocumentsByTypeFiltered,
   useDeleteDocument
 } from '@/hooks/use-documents';
+import { useAppVariables } from '@/hooks/use-app-variables';
 import { DocumentTypes, DocStatus, BillingStatus, Document } from '@/types/document';
 import { DocumentDetailDrawer } from '@/components/sales/document-detail-drawer';
 import { PaymentModal } from '@/components/sales/payment-modal';
@@ -155,6 +156,13 @@ export default function SalesPage() {
     year: selectedYear,
     day: (activeTab === 'bl' || activeTab === 'invoice') ? selectedDay : undefined
   });
+
+  const { data: ceilings = [] } = useAppVariables('DailyInvoiceCeiling');
+
+  const selectedDateStr = `${selectedYear}-${String(selectedMonthIdx + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
+  const currentDayCeiling = (ceilings || []).find(
+    (c) => c.name === selectedDateStr && c.isactive && !c.isdeleted
+  );
 
   const deleteDocMutation = useDeleteDocument();
 
@@ -381,13 +389,43 @@ export default function SalesPage() {
               <span className="text-xs text-sand-400 font-medium">Excluant taxes additionnelles</span>
             </div>
             <div className="space-y-1 border-l border-sand-100 pl-6">
-              <span className="text-[10px] font-bold text-sand-400 uppercase tracking-wider block">
-                Montant global TTC
-              </span>
-              <div className="text-2xl font-mono font-bold text-amber-800">
+              <div className="flex justify-between items-center gap-2">
+                <span className="text-[10px] font-bold text-sand-400 uppercase tracking-wider block">
+                  Montant global TTC
+                </span>
+                {activeTab === 'invoice' && currentDayCeiling && (
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-corp-blue-50 text-corp-blue-700 border border-corp-blue-100/50">
+                    Plafond: {parseFloat(currentDayCeiling.value).toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT
+                  </span>
+                )}
+              </div>
+              <div className="text-2xl font-mono font-bold text-amber-800 tabular-nums">
                 {totalTtcSum.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT
               </div>
-              <span className="text-xs text-sand-400 font-medium">Toutes taxes comprises</span>
+              {activeTab === 'invoice' && currentDayCeiling ? (
+                <div className="space-y-1.5 mt-1.5">
+                  <div className="w-full h-1.5 bg-sand-100 rounded-full overflow-hidden">
+                    <div
+                      className={cn(
+                        "h-full rounded-full transition-all duration-500",
+                        (totalTtcSum / parseFloat(currentDayCeiling.value)) >= 1.0
+                          ? "bg-red-500 animate-pulse"
+                          : (totalTtcSum / parseFloat(currentDayCeiling.value)) >= 0.8
+                          ? "bg-amber-500"
+                          : "bg-emerald-500"
+                      )}
+                      style={{
+                        width: `${Math.min((totalTtcSum / parseFloat(currentDayCeiling.value)) * 100, 100)}%`,
+                      }}
+                    />
+                  </div>
+                  <span className="text-[10px] text-sand-400 font-bold block tabular-nums">
+                    {Math.round((totalTtcSum / parseFloat(currentDayCeiling.value)) * 100)}% du plafond utilisé
+                  </span>
+                </div>
+              ) : (
+                <span className="text-xs text-sand-400 font-medium">Toutes taxes comprises</span>
+              )}
             </div>
           </Card>
         </div>

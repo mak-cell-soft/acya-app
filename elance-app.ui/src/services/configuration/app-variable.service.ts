@@ -6,6 +6,16 @@ export const appVariableService = {
     return response.data;
   },
 
+  upsertDailyCeiling: async (date: string, amount: string) => {
+    const response = await api.post('/AppVariable/daily-ceiling', {
+      name: date,
+      value: amount,
+      nature: 'DailyInvoiceCeiling',
+      isactive: true
+    });
+    return response.data;
+  },
+
   put: async (id: number, model: any) => {
     const response = await api.put(`/AppVariable/${id}`, model);
     return response.data;

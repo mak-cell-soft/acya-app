@@ -37,11 +37,11 @@ namespace ms.webapp.api.acya.api.Services
             var startOfMonth = new DateTime(targetYear, targetMonth, 1);
             var endOfMonth = startOfMonth.AddMonths(1);
 
-            // 1. Sales Analytics (Customer Invoices & Delivery Notes)
+            // 1. Sales Analytics (Customer Invoices only)
             // Using AsNoTracking for read-only performance
             var salesDocs = await _context.Documents
                 .AsNoTracking()
-                .Where(d => !d.IsDeleted && (d.Type == DocumentTypes.customerInvoice || d.Type == DocumentTypes.customerDeliveryNote))
+                .Where(d => !d.IsDeleted && d.Type == DocumentTypes.customerInvoice)
                 .Where(d => d.CreationDate >= startOfMonth && d.CreationDate < endOfMonth)
                 .Select(d => new { 
                     d.CreationDate, 
@@ -165,7 +165,7 @@ namespace ms.webapp.api.acya.api.Services
 
             var salesDocs = await _context.Documents
                 .AsNoTracking()
-                .Where(d => !d.IsDeleted && (d.Type == DocumentTypes.customerInvoice || d.Type == DocumentTypes.customerDeliveryNote))
+                .Where(d => !d.IsDeleted && d.Type == DocumentTypes.customerInvoice)
                 .Where(d => d.CreationDate >= startDate)
                 .Select(d => new { d.CreationDate, d.TotalCostNetTTCDoc })
                 .ToListAsync();
@@ -200,7 +200,7 @@ namespace ms.webapp.api.acya.api.Services
             var rawData = await _context.DocumentMerchandises
                 .AsNoTracking()
                 .Where(dm => dm.Document != null && !dm.Document.IsDeleted &&
-                             (dm.Document.Type == DocumentTypes.customerInvoice || dm.Document.Type == DocumentTypes.customerDeliveryNote) &&
+                             dm.Document.Type == DocumentTypes.customerInvoice &&
                              dm.Document.CreationDate >= startDate &&
                              dm.Merchandise != null && dm.Merchandise.Articles != null && dm.Merchandise.Articles.FirstChildren != null)
                 .Select(dm => new

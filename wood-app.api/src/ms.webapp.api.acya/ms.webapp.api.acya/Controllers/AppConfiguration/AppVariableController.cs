@@ -71,6 +71,40 @@ namespace ms.webapp.api.acya.api.Controllers.AppConfiguration
       return NotFound();
     }
 
+    [HttpPost("daily-ceiling")]
+    public async Task<ActionResult<AppVariableDto>> UpsertDailyCeiling(AppVariableDto dto)
+    {
+      if (string.IsNullOrEmpty(dto.name) || string.IsNullOrEmpty(dto.value))
+      {
+        return BadRequest("Date (name) and Amount (value) are required.");
+      }
+
+      var existing = await _repository.GetByNatureAndNameAsync("DailyInvoiceCeiling", dto.name);
+      if (existing != null)
+      {
+        existing.Value = dto.GetFormattedValue();
+        existing.isActive = dto.isactive ?? true;
+        existing.isDeleted = false;
+        var updated = await _repository.Update(existing);
+        return Ok(new AppVariableDto(updated!));
+      }
+      else
+      {
+        var _appvar = new AppVariable
+        {
+          Nature = "DailyInvoiceCeiling",
+          Name = dto.name,
+          Value = dto.GetFormattedValue(),
+          isActive = dto.isactive ?? true,
+          isDefault = false,
+          isEditable = true,
+          isDeleted = false
+        };
+        var added = await _repository.Add(_appvar);
+        return Ok(new AppVariableDto(added));
+      }
+    }
+
     [HttpGet("impression")]
     public async Task<ActionResult> GetImpression()
     {
