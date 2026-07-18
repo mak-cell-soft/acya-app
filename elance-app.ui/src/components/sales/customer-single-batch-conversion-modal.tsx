@@ -125,10 +125,10 @@ export function CustomerSingleBatchConversionModal({
         .then((data: Document[]) => {
           const filtered = (data || []).filter((doc: Document) => {
             if (!doc.creationdate) return false;
-            // WHY: creationdate is typed as string | Date — new Date() accepts both, normalizing before split.
-            const docDateStr = new Date(doc.creationdate).toISOString().split('T')[0];
+            const d = new Date(doc.creationdate);
+            const docDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
             const isSameCustomer = doc.counterpart?.id?.toString() === selectedCustomerId;
-            const notInvoiced = doc.billingstatus === BillingStatus.NotBilled && !doc.isinvoiced;
+            const notInvoiced = !doc.isinvoiced;
             const withinRange = docDateStr >= startDate && docDateStr <= endDate;
             return isSameCustomer && notInvoiced && withinRange && !doc.isdeleted;
           });

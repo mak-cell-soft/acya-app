@@ -1044,7 +1044,12 @@ namespace ms.webapp.api.acya.api.Controllers
       {
           try 
           {
-              numberingConfig = System.Text.Json.JsonSerializer.Deserialize<DocumentNumberingConfigDto>(user.Enterprise.DocumentNumberingConfig) ?? new DocumentNumberingConfigDto();
+              var options = new System.Text.Json.JsonSerializerOptions
+              {
+                  PropertyNameCaseInsensitive = true,
+                  NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString
+              };
+              numberingConfig = System.Text.Json.JsonSerializer.Deserialize<DocumentNumberingConfigDto>(user.Enterprise.DocumentNumberingConfig, options) ?? new DocumentNumberingConfigDto();
           }
           catch 
           {
@@ -1162,6 +1167,7 @@ namespace ms.webapp.api.acya.api.Controllers
       foreach (var childDocument in childDocuments)
       {
         childDocument.IsInvoiced = true;
+        childDocument.BillingStatus = BillingStatus.Billed;
         _context.Entry(childDocument).State = EntityState.Modified;
 
         // Clone merchandises to the invoice for printing

@@ -122,12 +122,10 @@ export function CustomerBatchConversionModal({
           // We display BLs in any status (Created or Validated) having BillingStatus.NotBilled
           const filtered = (data || []).filter((doc: Document) => {
             if (!doc.creationdate) return false;
-            // WHY: creationdate is typed as string | Date — new Date() accepts both, so we normalize
-            // before extracting the date portion, satisfying TypeScript without a type assertion.
-            const docDateStr = new Date(doc.creationdate).toISOString().split('T')[0];
+            const d = new Date(doc.creationdate);
+            const docDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
             return (
               docDateStr === selectedDate &&
-              doc.billingstatus === BillingStatus.NotBilled &&
               !doc.isinvoiced &&
               !doc.isdeleted
             );
