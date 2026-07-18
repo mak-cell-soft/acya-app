@@ -9,6 +9,7 @@ using ms.webapp.api.acya.infrastructure.Repositories;
 
 namespace ms.webapp.api.acya.api.Controllers.Authentication
 {
+  [Authorize]
   public class AppUserController : BaseApiController
   {
     private readonly AppUserRepository _repository;
@@ -23,21 +24,31 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
     }
 
     [HttpGet("id")]
-    public async Task<ActionResult<AppUserDto>> GetById(int id)
+    public async Task<ActionResult> GetById(int id)
     {
       var user = await _repository.GetById(id);
+      if (user == null) return NotFound();
+
+      if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+      {
+        return Ok(new AppUserPublicDto(user));
+      }
       return Ok(user);
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<AppUserDto>>> GetAll()
+    public async Task<ActionResult> GetAll()
     {
       var all = await _repository.GetAllAsync();
+      if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+      {
+        return Ok(all.Select(user => new AppUserPublicDto(user)));
+      }
       return Ok(all);
     }
 
     [HttpGet("detail")]
-    public async Task<ActionResult<AppUserDto>> GetUserDetails(int _id)
+    public async Task<ActionResult> GetUserDetails(int _id)
     {
       var user = await _repository.GetById(_id);
       if (user is null)
@@ -47,6 +58,10 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
           isSuccess = false,
           message = "User not found"
         });
+      }
+      if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+      {
+        return Ok(new AppUserPublicDto(user));
       }
       return Ok(user);
     }
@@ -126,14 +141,6 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
       existingUser.IsActive = dto.isactive;
       existingUser.IdSalesSite = dto.defaultsite;
 
-      // Only rehash the password if a new one was provided
-      if (!string.IsNullOrEmpty(dto.password))
-      {
-        using var hmac = new System.Security.Cryptography.HMACSHA512();
-        existingUser.PasswordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(dto.password));
-        existingUser.PasswordSalt = hmac.Key;
-      }
-
       // --- Update nested Person fields if provided ---
       if (dto.person != null && existingUser.Persons != null)
       {
@@ -183,7 +190,27 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
 
       // Return the updated projection
       var updatedDto = new AppUserDto(existingUser);
+      if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+      {
+        return Ok(new AppUserPublicDto(updatedDto));
+      }
       return Ok(updatedDto);
+    }
+
+    [Authorize(Roles = "Admin,SuperAdmin")]
+    [HttpPut("{id}/set-password")]
+    public async Task<ActionResult> SetPassword(int id, SetPasswordDto dto)
+    {
+      var existingUser = await _context.AppUsers.FindAsync(id);
+      if (existingUser == null)
+        return NotFound(new { message = $"AppUser with id {id} not found." });
+
+      using var hmac = new System.Security.Cryptography.HMACSHA512();
+      existingUser.PasswordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(dto.NewPassword));
+      existingUser.PasswordSalt = hmac.Key;
+
+      await _context.SaveChangesAsync();
+      return Ok(new { message = "Password set successfully." });
     }
 
 

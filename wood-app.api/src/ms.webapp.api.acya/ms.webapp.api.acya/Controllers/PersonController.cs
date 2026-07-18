@@ -34,26 +34,34 @@ namespace ms.webapp.api.acya.api.Controllers
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<PersonDto>> Get(int id)
+    public async Task<ActionResult> Get(int id)
     {
       var pers = await _repository.Get(id);
       if (pers == null)
       {
         return NotFound();
       }
-      var persDto = new PersonDto(pers);
-      return Ok(persDto);
+      if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+      {
+        return Ok(new PersonDto(pers));
+      }
+      return Ok(new PersonSafeDto(pers));
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<PersonDto>>> GetAll()
+    public async Task<ActionResult> GetAll()
     {
       var allpersons = await _repository.GetAllAsync();
-      return Ok(allpersons);
+      if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+      {
+        return Ok(allpersons);
+      }
+      var safePersons = allpersons.Select(pers => new PersonSafeDto(pers));
+      return Ok(safePersons);
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<PersonDto?>> Put(int id, PersonDto dto)
+    public async Task<ActionResult> Put(int id, PersonDto dto)
     {
       // Fetch the existing entity by id
       var existingPerson = await _repository.Get(id);
@@ -62,7 +70,7 @@ namespace ms.webapp.api.acya.api.Controllers
         return NotFound();
       }
 
-      // Check if there's another article with the same reference but a different ID
+      // Check if there's another Person with the same CIN but a different ID
       var personWithSameCIN = await _repository.GetByCIN(dto.cin!);
       if (personWithSameCIN != null && personWithSameCIN.Id != id)
       {
@@ -77,8 +85,11 @@ namespace ms.webapp.api.acya.api.Controllers
       var updatedEntity = await _repository.Update(existingPerson);
       if (updatedEntity != null)
       {
-        var updatedDto = new PersonDto(updatedEntity);
-        return Ok(updatedDto);
+        if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+        {
+          return Ok(new PersonDto(updatedEntity));
+        }
+        return Ok(new PersonSafeDto(updatedEntity));
       }
       return NoContent();
     }

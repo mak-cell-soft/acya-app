@@ -10,9 +10,11 @@ namespace brandpulse.api.Controllers.Authentication
   public class ApiHealthController : BaseApiController
   {
     private readonly WoodAppContext _context;
-    public ApiHealthController(WoodAppContext context)
+    private readonly IConfiguration _config;
+    public ApiHealthController(WoodAppContext context, IConfiguration config)
     {
       _context = context;
+      _config = config;
     }
 
     [HttpGet("HealthCheck")]

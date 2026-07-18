@@ -43,6 +43,13 @@ services:
       - JWTSettings__ValidAudience=${JWT_AUDIENCE:-http://localhost:4200}
       - JWTSettings__ValidIssuer=${JWT_ISSUER:-http://localhost:8080/api/}
       - AllowedOrigins=${ALLOWED_ORIGINS:-http://localhost:4200;https://localhost:4200}
+      - SmtpSettings__Server=${SMTP_SERVER:-smtp.gmail.com}
+      - SmtpSettings__Port=${SMTP_PORT:-587}
+      - SmtpSettings__SenderName=${SMTP_SENDER_NAME:-ACYA Notification}
+      - SmtpSettings__SenderEmail=${SMTP_SENDER_EMAIL:-your-email@gmail.com}
+      - SmtpSettings__Username=${SMTP_USERNAME:-your-email@gmail.com}
+      - SmtpSettings__Password=${SMTP_PASSWORD:-your-app-password}
+      - SmtpSettings__EnableSsl=${SMTP_ENABLE_SSL:-true}
     ports:
       - "${API_HTTP_PORT:-8080}:80"
       - "${API_HTTPS_PORT:-8443}:443"

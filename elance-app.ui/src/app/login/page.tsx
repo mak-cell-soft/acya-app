@@ -71,7 +71,7 @@ export default function LoginPage() {
   const [showForgotPanel, setShowForgotPanel] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [isForgotLoading, setIsForgotLoading] = useState(false);
-  const [resetToken, setResetToken] = useState<string | null>(null);
+  const [isForgotEmailSent, setIsForgotEmailSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
@@ -83,20 +83,9 @@ export default function LoginPage() {
     setMounted(true);
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      const urlToken = params.get('token');
-      if (urlToken) {
-        try {
-          const userDetails = authService.getUserDetail(urlToken);
-          if (userDetails) {
-            useAuthStore.getState().login(userDetails, urlToken);
-            toast.success("Connexion automatique réussie !");
-            router.push('/dashboard');
-          } else {
-            toast.error("Le jeton d'impersonnalisation est invalide.");
-          }
-        } catch (e) {
-          toast.error("Erreur lors de la connexion automatique.");
-        }
+      const token = params.get('token');
+      if (token) {
+        router.push(`/forgot-password?token=${token}`);
       }
     }
   }, [router]);
@@ -127,11 +116,11 @@ export default function LoginPage() {
     }
     setIsForgotLoading(true);
     try {
-      const res = await authService.forgotPassword(forgotEmail);
-      setResetToken(res.token);
-      toast.success(res.message || "Code généré avec succès");
+      await authService.forgotPassword(forgotEmail);
+      setIsForgotEmailSent(true);
+      toast.success("Lien de réinitialisation envoyé !");
     } catch (error) {
-      toast.error("Une erreur est survenue lors de la génération du code.");
+      toast.error("Une erreur est survenue lors de la génération du lien.");
     } finally {
       setIsForgotLoading(false);
     }
@@ -418,43 +407,42 @@ export default function LoginPage() {
                   className="overflow-hidden"
                 >
                   <div className="p-4 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl space-y-3">
-                    <p className="text-xs text-[#475569] leading-relaxed">
-                      Saisissez votre email pour recevoir un code de réinitialisation.
-                    </p>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="votre@email.com"
-                        value={forgotEmail}
-                        onChange={(e) => setForgotEmail(e.target.value)}
-                        className="h-9 text-sm bg-white border-[#BFDBFE] rounded-lg focus:border-[#3B82F6]"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleForgotPassword}
-                        disabled={isForgotLoading}
-                        className="h-9 px-4 bg-[#3B82F6] text-white text-xs font-bold rounded-lg hover:bg-[#2563EB] transition-[transform,background-color] duration-200 ease-out active:scale-[0.96] shrink-0 cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
-                      >
-                        {isForgotLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Générer"}
-                      </button>
-                    </div>
-                    {resetToken && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.97 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="p-3 bg-white rounded-lg border border-[#BFDBFE] space-y-2"
-                      >
-                        <div className="text-[10px] uppercase tracking-wider text-[#3B82F6] font-bold">Votre code :</div>
-                        <div className="text-base font-mono font-bold text-center tracking-[0.2em] text-[#0D1F3C] py-1.5 bg-[#F8FAFF] rounded">
-                          {resetToken}
-                        </div>
-                        <p className="text-[10px] text-[#94A3B8] text-center">Valide pendant 15 minutes.</p>
-                        <Link
-                          href={`/forgot-password?token=${resetToken}`}
-                          className="flex items-center justify-center gap-1.5 w-full py-1.5 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#3B82F6] text-[10px] font-bold uppercase tracking-wider rounded transition-[transform,background-color] duration-200 ease-out active:scale-[0.96]"
+                    {isForgotEmailSent ? (
+                      <div className="text-center py-2 space-y-2">
+                        <p className="text-xs font-bold text-[#1D9E75]">Lien de réinitialisation envoyé !</p>
+                        <p className="text-[11px] text-[#64748B]">
+                          Vérifiez vos e-mails (y compris les spams) pour cliquer sur le lien de réinitialisation.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setIsForgotEmailSent(false)}
+                          className="text-[10px] text-[#3B82F6] hover:underline font-bold"
                         >
-                          Aller à la réinitialisation <ArrowRight className="w-3 h-3" />
-                        </Link>
-                      </motion.div>
+                          Renvoyer un autre lien
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-xs text-[#475569] leading-relaxed">
+                          Saisissez votre email pour recevoir un lien de réinitialisation.
+                        </p>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="votre@email.com"
+                            value={forgotEmail}
+                            onChange={(e) => setForgotEmail(e.target.value)}
+                            className="h-9 text-sm bg-white border-[#BFDBFE] rounded-lg focus:border-[#3B82F6]"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleForgotPassword}
+                            disabled={isForgotLoading}
+                            className="h-9 px-4 bg-[#3B82F6] text-white text-xs font-bold rounded-lg hover:bg-[#2563EB] transition-[transform,background-color] duration-200 ease-out active:scale-[0.96] shrink-0 cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
+                          >
+                            {isForgotLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Envoyer"}
+                          </button>
+                        </div>
+                      </>
                     )}
                   </div>
                 </motion.div>

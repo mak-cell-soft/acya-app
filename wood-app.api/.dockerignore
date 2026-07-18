@@ -74,3 +74,9 @@ Thumbs.db
 docker-compose.override.yml
 .dockerignore
 Dockerfile
+
+# Database data directories
+postgres-data/
+postgres-data-new_2026_04_22/
+preprod-postgres-data/
+

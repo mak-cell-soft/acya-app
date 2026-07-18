@@ -10,6 +10,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Authentication
     public bool isactive { get; set; }
     public int? defaultsite { get; set; }
     public int? identerprise { get; set; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public string? password { get; set; }
     public PersonDto? person { get; set; }
 

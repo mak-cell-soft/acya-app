@@ -209,7 +209,11 @@ export function CustomerBatchConversionModal({
   const computedDiscount = netHtSum * (discountPercent / 100);
   const finalNetHtSum = Math.max(0, netHtSum - computedDiscount);
   const finalDiscountSum = discountSum + computedDiscount;
-  const finalBaseTtcSum = Math.max(0, baseTtcSum - computedDiscount);
+
+  // Recalculate TVA and base TTC after applying manual discount percentage
+  const computedTaxDiscount = taxSum * (discountPercent / 100);
+  const finalTaxSum = Math.max(0, taxSum - computedTaxDiscount);
+  const finalBaseTtcSum = finalNetHtSum + finalTaxSum;
 
   const activeStamp = stampTaxes.find((t) => t.id === parseInt(stampTaxId));
   const stampAmount = activeStamp ? parseFloat(activeStamp.value || '0') : 0;
@@ -263,7 +267,7 @@ export function CustomerBatchConversionModal({
         updatedbyid: 1,
         total_ht_net_doc: parseFloat(finalNetHtSum.toFixed(3)),
         total_discount_doc: parseFloat(finalDiscountSum.toFixed(3)),
-        total_tva_doc: parseFloat(taxSum.toFixed(3)),
+        total_tva_doc: parseFloat(finalTaxSum.toFixed(3)),
         total_net_ttc: parseFloat((finalBaseTtcSum + stampAmount).toFixed(3)),
         total_net_payable: parseFloat(finalNetPayable.toFixed(3)),
       };
@@ -690,7 +694,7 @@ export function CustomerBatchConversionModal({
                   )}
                   <div className="flex justify-between">
                     <span>TVA Cumulative:</span>
-                    <span>{taxSum.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT</span>
+                    <span>{finalTaxSum.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT</span>
                   </div>
                   {stampAmount > 0 && (
                     <div className="flex justify-between text-sand-700">

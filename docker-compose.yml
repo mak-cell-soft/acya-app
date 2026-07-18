@@ -50,6 +50,13 @@ services:
       - JWTSettings__ValidAudience=https://acya.site
       - JWTSettings__ValidIssuer=https://acya.site/api/
       - AllowedOrigins=https://acya.site;https://www.acya.site;https://migration.acya.site
+      - SmtpSettings__Server=smtp.gmail.com
+      - SmtpSettings__Port=587
+      - SmtpSettings__SenderName=ACYA Notification
+      - SmtpSettings__SenderEmail=your-email@gmail.com
+      - SmtpSettings__Username=your-email@gmail.com
+      - SmtpSettings__Password=your-app-password
+      - SmtpSettings__EnableSsl=true
     ports:
       - "8080:80"
     depends_on:

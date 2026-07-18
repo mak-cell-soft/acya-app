@@ -27,7 +27,7 @@ namespace ms.webapp.api.acya.api.Extentions
           ValidateIssuerSigningKey = true,
           ValidAudience = JWTSetting["ValidAudience"],
           ValidIssuer = JWTSetting["ValidIssuer"],
-          IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JWTSetting.GetSection("securityKey").Value!)),
+          IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWTSettings:securityKey"] ?? config["TokenKey"]!)),
         };
       });
 

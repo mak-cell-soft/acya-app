@@ -32,7 +32,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           </TenantProvider>
           <GlobalTransferConfirmDialog />
         </NotificationProvider>
-        <ReactQueryDevtools initialIsOpen={false} />
+        <ReactQueryDevtools initialIsOpen={true} />
       </QueryClientProvider>
     </NextThemesProvider>
   );

@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using ms.webapp.api.acya.core.Entities.Dtos;
 using ms.webapp.api.acya.core.Entities.DTOs.Authentication;
 
@@ -117,6 +118,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? name { get; set; }
     public string? surname { get; set; }
     public string? email { get; set; }
+    [Required]
+    [MinLength(8, ErrorMessage = "Password must be at least 8 characters.")]
     public string? password { get; set; }
     public string? role { get; set; }
     public int? defaultSiteIndex { get; set; }
