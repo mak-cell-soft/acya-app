@@ -249,7 +249,7 @@ export default function AnalyticsPage() {
   const { data: stockStats } = useStockDashboardStats(stockSiteId);
 
   // Future treasury coverage projection hooks & logic
-  const [projectionDays, setProjectionDays] = useState<60 | 90 | 120>(90);
+  const [projectionDays, setProjectionDays] = useState<60 | 90 | 120 | 150>(90);
   const { data: purchaseEcheances = [], isLoading: loadingPurchases } = useEcheances(projectionDays);
   const { data: salesEcheances = [], isLoading: loadingSales } = useSalesEcheances(projectionDays);
 
@@ -1033,7 +1033,7 @@ export default function AnalyticsPage() {
                 </CardDescription>
               </div>
               <div className="flex bg-sand-100/50 p-1 rounded-xl self-end sm:self-auto">
-                {([60, 90, 120] as const).map((days) => (
+                {([60, 90, 120, 150] as const).map((days) => (
                   <button
                     key={days}
                     onClick={() => setProjectionDays(days)}

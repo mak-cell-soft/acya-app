@@ -92,7 +92,7 @@ function SupplierPaymentsPageContent() {
 
   // Filter States
   const [showSettledInvoices, setShowSettledInvoices] = useState(false);
-  const [projectionDays, setProjectionDays] = useState<60 | 90 | 120>(120);
+  const [projectionDays, setProjectionDays] = useState<60 | 90 | 120 | 150>(120);
 
   // Modals States
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -413,7 +413,7 @@ function SupplierPaymentsPageContent() {
             </div>
 
             <div className="flex bg-slate-100 p-0.5 rounded-xl self-end sm:self-auto">
-              {([60, 90, 120] as const).map((days) => (
+              {([60, 90, 120, 150] as const).map((days) => (
                 <button
                   key={days}
                   onClick={() => setProjectionDays(days)}
