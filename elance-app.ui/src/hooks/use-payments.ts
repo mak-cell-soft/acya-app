@@ -126,3 +126,24 @@ export function useUpdatePayment() {
     },
   });
 }
+
+/**
+ * Hook to retrieve all supplier payments (both Traites and Cheques) across all suppliers.
+ */
+export function useAllSupplierTraites() {
+  return useQuery<Payment[]>({
+    queryKey: ['all-supplier-traites'],
+    queryFn: async () => {
+      const data = await paymentService.deepSearch({
+        counterpartType: 'Supplier',
+        pageSize: 100000,
+        pageNumber: 1
+      });
+      // deepSearch returns { items: Payment[], totalCount: number }
+      const items = (data as any)?.items || [];
+      // Filter client-side to only keep CHEQUE and TRAITE methods which have instrument details
+      return items.filter((p: Payment) => p.paymentMethod === 'TRAITE' || p.paymentMethod === 'CHEQUE');
+    }
+  });
+}
+

@@ -20,7 +20,8 @@ import {
   ArrowRight,
   Plus,
   Loader2,
-  Printer
+  Printer,
+  FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSuppliers } from '@/hooks/use-suppliers';
@@ -34,6 +35,7 @@ import {
 import { PaymentModal } from '@/components/sales/payment-modal';
 import { EcheanceDetailsModal } from '@/components/purchases/echeance-details-modal';
 import { TraitePrintDialog } from '@/components/purchases/traite-print-dialog';
+import { AllTraitesDialog } from '@/components/purchases/all-traites-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -110,6 +112,9 @@ function SupplierPaymentsPageContent() {
   // Print traite state
   const [isPrintTraiteOpen, setIsPrintTraiteOpen] = useState(false);
   const [traiteToPrint, setTraiteToPrint] = useState<any /* eslint-disable-line @typescript-eslint/no-explicit-any */>(null);
+
+  // Global traites report dialog state
+  const [isAllTraitesOpen, setIsAllTraitesOpen] = useState(false);
 
   // Queries
   const { data: suppliers = [], isLoading: loadingSuppliers } = useSuppliers();
@@ -356,33 +361,43 @@ function SupplierPaymentsPageContent() {
           </div>
         </div>
 
-        {/* Supplier Selector */}
-        <div className="w-full md:w-80">
-          <Select
-            value={selectedSupplierId?.toString() || ''}
-            onValueChange={handleSupplierSelect}
+        {/* Supplier Selector and Global Report Button */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <Button
+            onClick={() => setIsAllTraitesOpen(true)}
+            className="bg-amber-500 hover:bg-amber-600 text-white rounded-xl h-11 text-xs font-bold gap-2 shadow-sm w-full sm:w-auto px-4 transition-all duration-200"
           >
-            <SelectTrigger className="bg-white/80 border-corp-blue-100 text-corp-blue-900 rounded-xl h-11 text-xs font-semibold focus:ring-corp-blue-500 shadow-sm backdrop-blur-md">
-              <Building2 className="w-4 h-4 text-corp-blue-400 mr-2" />
-              <SelectValue placeholder="Sélectionner un fournisseur...">
-                {selectedName}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent className="bg-white border border-corp-blue-100 rounded-xl shadow-lg">
-              {suppliers.map((sup: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
-                const name = sup.name || sup.Name || `${sup.firstname || sup.firstName || ''} ${sup.lastname || sup.lastName || ''}`.trim() || `Fournisseur ${sup.id}`;
-                return (
-                  <SelectItem
-                    key={sup.id}
-                    value={sup.id.toString()}
-                    className="text-xs font-semibold text-slate-700 focus:bg-slate-50 focus:text-slate-900 cursor-pointer"
-                  >
-                    {name}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+            <FileText className="w-4 h-4" />
+            Rapport des Traites
+          </Button>
+
+          <div className="w-full md:w-80">
+            <Select
+              value={selectedSupplierId?.toString() || ''}
+              onValueChange={handleSupplierSelect}
+            >
+              <SelectTrigger className="bg-white/80 border-corp-blue-100 text-corp-blue-900 rounded-xl h-11 text-xs font-semibold focus:ring-corp-blue-500 shadow-sm backdrop-blur-md w-full">
+                <Building2 className="w-4 h-4 text-corp-blue-400 mr-2" />
+                <SelectValue placeholder="Sélectionner un fournisseur...">
+                  {selectedName}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-white border border-corp-blue-100 rounded-xl shadow-lg">
+                {suppliers.map((sup: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+                  const name = sup.name || sup.Name || `${sup.firstname || sup.firstName || ''} ${sup.lastname || sup.lastName || ''}`.trim() || `Fournisseur ${sup.id}`;
+                  return (
+                    <SelectItem
+                      key={sup.id}
+                      value={sup.id.toString()}
+                      className="text-xs font-semibold text-slate-700 focus:bg-slate-50 focus:text-slate-900 cursor-pointer"
+                    >
+                      {name}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -1043,6 +1058,13 @@ function SupplierPaymentsPageContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {isAllTraitesOpen && (
+        <AllTraitesDialog
+          isOpen={isAllTraitesOpen}
+          onClose={() => setIsAllTraitesOpen(false)}
+        />
+      )}
     </div>
   );
 }
