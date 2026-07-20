@@ -95,7 +95,8 @@ namespace ms.webapp.api.acya.api.Controllers
                 (decimal)document.HoldingTaxes.TaxValue,
                 document.HoldingTaxes.Id,
                 description,
-                isSupplier
+                isSupplier,
+                document.CreationDate
             );
 
             // Update persistent balance

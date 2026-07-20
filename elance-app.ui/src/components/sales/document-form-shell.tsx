@@ -952,6 +952,25 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
         docType === DocumentTypes.customerInvoice
       ) ? 2 : 3;
 
+      // --- Direct Discount Recalculation ---
+      // When the user enters a manual TTC (Net à payer) in the UI, we must recalculate Net HT and TVA.
+      // Business rule: per-line discounts and manual TTC overrides are mutually exclusive.
+      let finalNetHT = parseFloat(naturalTotals.netHT.toFixed(3));
+      let finalTvaDoc = parseFloat(naturalTotals.tva.toFixed(3));
+
+      if (extraDiscount !== 0 && naturalTotals.netHT > 0) {
+        const blendedTvaRate = naturalTotals.tva / naturalTotals.netHT;
+        const stampAmount = (
+          (docType === DocumentTypes.customerInvoice || docType === DocumentTypes.customerOrder) &&
+          selectedTax
+        ) ? parseFloat(selectedTax.value || '0') : 0;
+
+        const netHtAdj = (finalPayableTTC - stampAmount) / (1 + blendedTvaRate);
+
+        finalNetHT = parseFloat(netHtAdj.toFixed(3));
+        finalTvaDoc = parseFloat((finalPayableTTC - stampAmount - finalNetHT).toFixed(3));
+      }
+
       // Construct C# Document DTO payload
       const documentPayload: any = {
         id: 0,
@@ -962,9 +981,9 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
         supplierReference: customerReference || '',
         isinvoiced: false,
         merchandises: merchandisesPayload,
-        total_ht_net_doc: parseFloat(naturalTotals.netHT.toFixed(3)),
+        total_ht_net_doc: finalNetHT,
         total_discount_doc: parseFloat(finalDiscountValue.toFixed(3)),
-        total_tva_doc: parseFloat(naturalTotals.tva.toFixed(3)),
+        total_tva_doc: finalTvaDoc,
         total_net_ttc: parseFloat(finalPayableTTC.toFixed(3)),
         withholdingtax: !!selectedRS,
         counterpart: selectedCustomer ? {

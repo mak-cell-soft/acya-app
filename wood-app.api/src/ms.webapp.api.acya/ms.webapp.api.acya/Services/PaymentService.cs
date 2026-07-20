@@ -208,7 +208,8 @@ namespace ms.webapp.api.acya.api.Services
                         paymentAmount, 
                         createdPayment.Id, 
                         $"Paiement ({createDto.PaymentMethod}) - document {document.DocNumber}",
-                        isSupplier);
+                        isSupplier,
+                        createdPayment.PaymentDate);
 
                     // Sync Account Ledger for converted delivery notes if applicable
                     await _accountService.SyncLedgerForInvoiceAsync(document);
@@ -320,7 +321,8 @@ namespace ms.webapp.api.acya.api.Services
                         updateDto.Amount ?? 0, 
                         payment.Id, 
                         $"Paiement ({payment.PaymentMethod}) - document {(document?.DocNumber ?? "Général")}",
-                        isSupplier);
+                        isSupplier,
+                        payment.PaymentDate);
 
                     await transaction.CommitAsync();
 
@@ -650,7 +652,8 @@ namespace ms.webapp.api.acya.api.Services
                         paymentAmount, 
                         createdPayment.Id, 
                         $"Recouvrement ({createDto.PaymentMethod})",
-                        false);
+                        false,
+                        createdPayment.PaymentDate);
 
                     // If a specific document was selected, update its billing status
                     if (createDto.DocumentId.HasValue)

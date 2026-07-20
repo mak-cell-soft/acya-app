@@ -17,6 +17,7 @@ export function InvoiceStandard({ document, enterprise, printLocale }: InvoiceSt
   // Invoices net payable can differ from total_net_ttc if withholding tax (RS) is applied.
   const finalPayable = document?.total_net_payable || document?.total_net_ttc || 0;
   const amountInWords = numberToFrenchWords(finalPayable);
+  const stampAmount = document?.taxe ? parseFloat(document.taxe.value || '0') : 0;
   const tvaBreakdown = utils.getTvaBreakdown(document);
 
   const rowCount = document?.merchandises?.length || 0;
@@ -147,7 +148,7 @@ export function InvoiceStandard({ document, enterprise, printLocale }: InvoiceSt
                 <td className="col-qty">{utils.formatQuantity(merch.quantity, merch.article?.unit)}</td>
                 <td className="col-price">{utils.formatNumber(merch.unit_price_ht)}</td>
                 <td className="col-tva">{merch.article?.tva?.value || 0}</td>
-                <td className="col-rm">{utils.formatNumber(merch.discount_percentage)}</td>
+                <td className="col-rm">{merch.discount_percentage ? `${merch.discount_percentage}%` : '—'}</td>
                 <td className="col-total">{utils.formatNumber(merch.cost_net_ht)}</td>
               </tr>
             ))}
@@ -203,9 +204,18 @@ export function InvoiceStandard({ document, enterprise, printLocale }: InvoiceSt
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td colSpan={4}>&nbsp;</td>
-                </tr>
+                {stampAmount > 0 ? (
+                  <tr>
+                    <td>{ar.labels.stampTax || 'Timbre'}</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>{utils.formatNumber(stampAmount)}</td>
+                  </tr>
+                ) : (
+                  <tr>
+                    <td colSpan={4}>&nbsp;</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -229,10 +239,10 @@ export function InvoiceStandard({ document, enterprise, printLocale }: InvoiceSt
           </div>
 
           {/* Stamp Tax (Timbre Fiscal) if applicable */}
-          {document?.taxe && document.taxe.taxvalue > 0 && (
+          {stampAmount > 0 && (
             <div className="total-row">
               <span className="total-label">{ar.labels.stampTax}</span>
-              <span className="total-value">+{utils.formatNumber(document.taxe.taxvalue)}</span>
+              <span className="total-value">+{utils.formatNumber(stampAmount)}</span>
             </div>
           )}
 

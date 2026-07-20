@@ -47,6 +47,7 @@ namespace ms.webapp.api.acya.api.Controllers
           .Include(d => d.CounterPart).ThenInclude(cp => cp!.Transporter).ThenInclude(t => t!.Vehicle)
           .Include(d => d.SalesSite)
           .Include(d => d.HoldingTaxes)
+          .Include(d => d.Taxes)
           .Include(d => d.Payments)
           .Include(d => d.AppUsers)
               .ThenInclude(u => u!.Persons)
@@ -202,6 +203,7 @@ namespace ms.webapp.api.acya.api.Controllers
           .Include(d => d.CounterPart).ThenInclude(cp => cp!.Transporter).ThenInclude(t => t!.Vehicle)
           .Include(d => d.Payments)
           .Include(d => d.HoldingTaxes)
+          .Include(d => d.Taxes)
           .Where(d => d.CounterPartId == id && !d.IsDeleted)
           .OrderByDescending(d => d.DocNumber)
           .ToListAsync();
@@ -536,7 +538,7 @@ namespace ms.webapp.api.acya.api.Controllers
             StockTransactionType = dto.stocktransactiontype,
             Description = dto.description,
             SupplierReference = dto.supplierReference,
-            CreationDate = DateTime.UtcNow,
+            CreationDate = dto.creationdate ?? DateTime.UtcNow,
             UpdateDate = DateTime.UtcNow,
             UpdatedById = dto.updatedbyid,
             DocStatus = dto.docstatus,
@@ -736,7 +738,7 @@ namespace ms.webapp.api.acya.api.Controllers
                 CostNetHT = merchDto.cost_net_ht,
                 CostTTC = merchDto.cost_ttc,
                 DiscountPercentage = merchDto.discount_percentage,
-                CreationDate = DateTime.UtcNow,
+                CreationDate = merchDto.creationdate ?? doc.CreationDate ?? DateTime.UtcNow,
                 UpdateDate = DateTime.UtcNow
               };
 
@@ -773,7 +775,7 @@ namespace ms.webapp.api.acya.api.Controllers
                 {
                   Quantity = merchDto.quantity,
                   LengthIds = string.Join(",", merchDto.lisoflengths.Select(l => l.length?.id)),
-                  CreationDate = DateTime.UtcNow,
+                  CreationDate = merchDto.creationdate ?? doc.CreationDate ?? DateTime.UtcNow,
                   UpdateDate = DateTime.UtcNow,
                   DocumentMerchandise = docMerchandise // Set the navigation property
                 };
@@ -834,7 +836,8 @@ namespace ms.webapp.api.acya.api.Controllers
                   (decimal)doc.TotalCostNetTTCDoc, 
                   doc.Id, 
                   $"Movement - document {doc.DocNumber}",
-                  isSupplier);
+                  isSupplier,
+                  doc.CreationDate);
           }
           #endregion
 
@@ -1188,7 +1191,7 @@ namespace ms.webapp.api.acya.api.Controllers
             CostTTC = dm.CostTTC,
             DiscountPercentage = dm.DiscountPercentage,
             TvaValue = dm.TvaValue,
-            CreationDate = DateTime.UtcNow,
+            CreationDate = invoice.CreationDate,
             UpdateDate = DateTime.UtcNow
           };
           _context.DocumentMerchandises.Add(newDm);
@@ -1282,6 +1285,7 @@ namespace ms.webapp.api.acya.api.Controllers
           .Include(d => d.CounterPart).ThenInclude(cp => cp!.Transporter).ThenInclude(t => t!.Vehicle)
           .Include(d => d.SalesSite)
           .Include(d => d.HoldingTaxes)
+          .Include(d => d.Taxes)
           .Include(d => d.Payments)
           .Include(d => d.AppUsers)
               .ThenInclude(u => u!.Persons)
@@ -1552,7 +1556,7 @@ namespace ms.webapp.api.acya.api.Controllers
                 CostNetHT = merchDto.cost_net_ht,
                 CostTTC = merchDto.cost_ttc,
                 DiscountPercentage = merchDto.discount_percentage,
-                CreationDate = DateTime.UtcNow,
+                CreationDate = merchDto.creationdate ?? doc.CreationDate ?? DateTime.UtcNow,
                 UpdateDate = DateTime.UtcNow
               };
 
@@ -1570,7 +1574,7 @@ namespace ms.webapp.api.acya.api.Controllers
                 {
                   Quantity = merchDto.quantity,
                   LengthIds = string.Join(",", merchDto.lisoflengths.Select(l => l.length?.id)),
-                  CreationDate = DateTime.UtcNow,
+                  CreationDate = merchDto.creationdate ?? doc.CreationDate ?? DateTime.UtcNow,
                   UpdateDate = DateTime.UtcNow,
                   DocumentMerchandise = docMerchandise
                 };
@@ -1620,14 +1624,15 @@ namespace ms.webapp.api.acya.api.Controllers
           {
               string docTypeStr = doc.Type.ToString()!;
               await _accountService.DeleteLedgerEntryAsync(doc.Id, docTypeStr);
-               bool isSupplier = doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt || doc.Type == DocumentTypes.supplierInvoiceReturn;
-               await _accountService.AddLedgerEntryAsync(
-                   doc.CounterPartId ?? 0, 
-                   docTypeStr, 
-                   (decimal)doc.TotalCostNetTTCDoc, 
-                   doc.Id, 
-                   $"Updated movement for document {doc.DocNumber}",
-                   isSupplier);
+              bool isSupplier = doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt || doc.Type == DocumentTypes.supplierInvoiceReturn;
+              await _accountService.AddLedgerEntryAsync(
+                  doc.CounterPartId ?? 0, 
+                  docTypeStr, 
+                  (decimal)doc.TotalCostNetTTCDoc, 
+                  doc.Id, 
+                  $"Updated movement for document {doc.DocNumber}",
+                  isSupplier,
+                  doc.CreationDate);
           }
 
           // Update Stock and Length IDs

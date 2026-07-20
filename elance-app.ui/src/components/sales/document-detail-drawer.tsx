@@ -71,6 +71,8 @@ export function DocumentDetailDrawer({
     })} ${symbol}`;
   };
 
+  const stampAmount = doc?.taxe ? parseFloat(doc.taxe.value || '0') : 0;
+
   const formatQuantity = (qty: number, unit?: string | null) => {
     const isM3 = unit?.toUpperCase().includes('M3') || unit?.toUpperCase().includes('MÈTRE 3') || unit?.toUpperCase().includes('METRE 3');
     if (isM3) {
@@ -453,12 +455,13 @@ export function DocumentDetailDrawer({
                       </div>
  
                       {/* Invoice Specific Taxes */}
+                      {/* Invoice Specific Taxes */}
                       {doc.type === DocumentTypes.customerInvoice && (
                         <>
-                          {doc.taxe && doc.taxe.taxvalue > 0 && (
+                          {stampAmount > 0 && (
                             <div className="flex justify-between text-sand-700">
                               <span>Timbre Fiscal:</span>
-                              <span>+{formatMoney(doc.taxe.taxvalue, doc.currency)}</span>
+                              <span>+{formatMoney(stampAmount, doc.currency)}</span>
                             </div>
                           )}
                           {doc.holdingtax && doc.holdingtax.taxvalue > 0 && (

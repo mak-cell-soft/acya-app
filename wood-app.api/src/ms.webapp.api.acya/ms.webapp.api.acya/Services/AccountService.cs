@@ -19,7 +19,7 @@ namespace ms.webapp.api.acya.api.Services
             _context = context;
         }
 
-        public async Task AddLedgerEntryAsync(int counterpartId, string type, decimal amount, int? relatedId, string? description = null, bool? isSupplierSide = null)
+        public async Task AddLedgerEntryAsync(int counterpartId, string type, decimal amount, int? relatedId, string? description = null, bool? isSupplierSide = null, DateTime? transactionDate = null)
         {
             var counterpart = await _context.CounterParts.FindAsync(counterpartId);
             if (counterpart == null) throw new ArgumentException("Counterpart not found");
@@ -36,7 +36,7 @@ namespace ms.webapp.api.acya.api.Services
                 Type = type,
                 RelatedId = relatedId,
                 Description = description,
-                TransactionDate = DateTime.UtcNow
+                TransactionDate = transactionDate ?? DateTime.UtcNow
             };
 
             // Determine if we should treat this as a Customer or Supplier transaction
@@ -293,7 +293,8 @@ namespace ms.webapp.api.acya.api.Services
                 (decimal)invoice.TotalCostNetTTCDoc * (decimal)(invoice.ExchangeRate),
                 invoice.Id,
                 description,
-                isSupplier);
+                isSupplier,
+                invoice.CreationDate);
         }
         public async Task ResyncAllLedgerAsync()
         {
@@ -329,7 +330,8 @@ namespace ms.webapp.api.acya.api.Services
                         Math.Round((decimal)doc.TotalCostNetTTCDoc * (decimal)(doc.ExchangeRate), 3, MidpointRounding.AwayFromZero), 
                         doc.Id, 
                         $"Mouvement - document {doc.DocNumber}",
-                        isSupplier);
+                        isSupplier,
+                        doc.CreationDate);
 
                     // Add Holding Tax entry if exists
                     if (doc.WithHoldingTax && doc.HoldingTaxes != null)
@@ -340,7 +342,8 @@ namespace ms.webapp.api.acya.api.Services
                             Math.Round((decimal)doc.HoldingTaxes.TaxValue * (decimal)(doc.ExchangeRate), 3, MidpointRounding.AwayFromZero),
                             doc.HoldingTaxes.Id,
                             $"Retenue à la source ({doc.HoldingTaxes.TaxPercentage}%) - document {doc.DocNumber}",
-                            isSupplier
+                            isSupplier,
+                            doc.CreationDate
                         );
                     }
                 }
@@ -374,7 +377,8 @@ namespace ms.webapp.api.acya.api.Services
                     Math.Round((decimal)(payment.Amount ?? 0) * payment.ExchangeRate, 3, MidpointRounding.AwayFromZero),
                     payment.Id,
                     $"Paiement ({payment.PaymentMethod}) - document {payment.Document?.DocNumber ?? payment.Reference}",
-                    isSupplier);
+                    isSupplier,
+                    payment.PaymentDate);
             }
 
             // Note: Balances should be updated by the caller (e.g. controller) calling BalanceService.RefreshAllBalancesAsync()

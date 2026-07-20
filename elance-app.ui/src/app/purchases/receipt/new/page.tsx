@@ -809,7 +809,7 @@ function NewSupplierReceiptPageContent() {
           cost_ttc: r.totalWithTax,
           line_type: r.line_type,
           description: r.description || '',
-          creationdate: new Date(),
+          creationdate: new Date(docDate),
           updatedate: new Date(),
           updatedbyid: parseInt(user?.id || '0'),
           documentid: 0,

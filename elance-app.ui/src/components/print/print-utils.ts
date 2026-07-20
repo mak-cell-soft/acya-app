@@ -103,6 +103,26 @@ export function getTvaBreakdown(document: Document | null | undefined): Array<{ 
     breakdown[tvaRateStr].value += tvaValue;
   });
 
+  const sumBase = Object.values(breakdown).reduce((sum, item) => sum + item.base, 0);
+  const sumValue = Object.values(breakdown).reduce((sum, item) => sum + item.value, 0);
+  const docNetHT = document.total_ht_net_doc || 0;
+  const docTVA = document.total_tva_doc || 0;
+
+  if (docNetHT > 0 && sumBase > 0 && Math.abs(sumBase - docNetHT) > 0.001) {
+    const ratioHT = docNetHT / sumBase;
+    const ratioTVA = sumValue > 0 ? (docTVA / sumValue) : 0;
+
+    Object.keys(breakdown).forEach((rate) => {
+      breakdown[rate].base = parseFloat((breakdown[rate].base * ratioHT).toFixed(3));
+      if (ratioTVA > 0) {
+        breakdown[rate].value = parseFloat((breakdown[rate].value * ratioTVA).toFixed(3));
+      } else {
+        const rateVal = parseFloat(rate) / 100;
+        breakdown[rate].value = parseFloat((breakdown[rate].base * rateVal).toFixed(3));
+      }
+    });
+  }
+
   return Object.keys(breakdown).map((rate) => {
     return {
       base: breakdown[rate].base,

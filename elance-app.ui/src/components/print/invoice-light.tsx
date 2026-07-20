@@ -16,6 +16,7 @@ export function InvoiceLight({ document, enterprise, printLocale }: InvoiceLight
   const ar = printLocale || defaultAr;
   const finalPayable = document?.total_net_payable || document?.total_net_ttc || 0;
   const amountInWords = numberToFrenchWords(finalPayable);
+  const stampAmount = document?.taxe ? parseFloat(document.taxe.value || '0') : 0;
 
   return (
     <div className="print-container">
@@ -131,10 +132,10 @@ export function InvoiceLight({ document, enterprise, printLocale }: InvoiceLight
             <span>{utils.formatNumber(document?.total_tva_doc)}</span>
           </div>
           
-          {document?.taxe && document.taxe.taxvalue > 0 && (
+          {stampAmount > 0 && (
             <div className="total-row">
               <span>{ar.labels.stampTax}:</span>
-              <span>+{utils.formatNumber(document.taxe.taxvalue)}</span>
+              <span>+{utils.formatNumber(stampAmount)}</span>
             </div>
           )}
 
