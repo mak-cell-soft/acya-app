@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { deepSearchService, PurchasedMerchandise, MerchandiseBuyer, UnpaidDocument } from '@/services/components/deep-search.service';
+import { deepSearchService, PurchasedMerchandise, MerchandiseBuyer, UnpaidDocument, DiscountReportLine } from '@/services/components/deep-search.service';
 
 export function useCustomerPurchases(customerId: number, month?: number, year?: number, enabled: boolean = true) {
   return useQuery<PurchasedMerchandise[]>({
@@ -21,5 +21,13 @@ export function useUnpaidDocuments(customerId?: number, month?: number, year?: n
   return useQuery<UnpaidDocument[]>({
     queryKey: ['unpaid-documents', customerId, month, year, search],
     queryFn: () => deepSearchService.getUnpaidDocuments(customerId, month, year, search),
+  });
+}
+
+export function useDiscountReport(dateFrom?: string, dateTo?: string, customerId?: number, enabled: boolean = true) {
+  return useQuery<DiscountReportLine[]>({
+    queryKey: ['discount-report', dateFrom, dateTo, customerId],
+    queryFn: () => deepSearchService.getDiscountReport(dateFrom, dateTo, customerId),
+    enabled: enabled,
   });
 }

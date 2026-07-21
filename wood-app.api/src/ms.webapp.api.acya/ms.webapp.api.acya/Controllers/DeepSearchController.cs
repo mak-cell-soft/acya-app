@@ -287,5 +287,139 @@ namespace ms.webapp.api.acya.api.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("discount-report")]
+        public async Task<ActionResult<IEnumerable<DiscountReportLineDto>>> GetDiscountReport(
+            [FromQuery] string? dateFrom,
+            [FromQuery] string? dateTo,
+            [FromQuery] int? customerId)
+        {
+            try
+            {
+                // Query DocumentMerchandises that are not deleted and are of type Merchandise
+                var query = _context.DocumentMerchandises
+                    .Include(dm => dm.Document)
+                        .ThenInclude(d => d!.CounterPart)
+                    .Include(dm => dm.Document)
+                        .ThenInclude(d => d!.ParentDocuments)
+                            .ThenInclude(r => r.ParentDocument)
+                    .Include(dm => dm.Merchandise)
+                        .ThenInclude(m => m!.Articles)
+                    .Where(dm => dm.Document!.IsDeleted == false
+                                 && dm.Type == LineType.Merchandise);
+
+                // Filter by customer if provided
+                if (customerId.HasValue && customerId.Value > 0)
+                {
+                    query = query.Where(dm => 
+                        (dm.Document!.Type == DocumentTypes.customerInvoice && dm.Document.CounterPartId == customerId.Value)
+                        || (dm.Document.Type == DocumentTypes.customerDeliveryNote 
+                            && dm.Document.ParentDocuments.Any(p => p.ParentDocument!.Type == DocumentTypes.customerInvoice && p.ParentDocument.IsDeleted == false && p.ParentDocument.CounterPartId == customerId.Value))
+                    );
+                }
+
+                // Resolve start and end dates
+                DateTime from = DateTime.Today;
+                if (!string.IsNullOrEmpty(dateFrom))
+                {
+                    if (DateTime.TryParseExact(dateFrom, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var parsedFrom))
+                    {
+                        from = parsedFrom.Date;
+                    }
+                    else if (DateTime.TryParse(dateFrom, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var parsedFromFallback))
+                    {
+                        from = parsedFromFallback.Date;
+                    }
+                }
+
+                DateTime to = DateTime.Today.AddDays(1).AddTicks(-1);
+                if (!string.IsNullOrEmpty(dateTo))
+                {
+                    if (DateTime.TryParseExact(dateTo, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var parsedTo))
+                    {
+                        to = parsedTo.Date.AddDays(1).AddTicks(-1);
+                    }
+                    else if (DateTime.TryParse(dateTo, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var parsedToFallback))
+                    {
+                        to = parsedToFallback.Date.AddDays(1).AddTicks(-1);
+                    }
+                }
+
+                // Filter by Invoice Date (direct invoice creation date or parent invoice creation date for delivery notes)
+                query = query.Where(dm => 
+                    (dm.Document!.Type == DocumentTypes.customerInvoice && dm.Document.CreationDate >= from && dm.Document.CreationDate <= to)
+                    || (dm.Document.Type == DocumentTypes.customerDeliveryNote 
+                        && dm.Document.ParentDocuments.Any(p => p.ParentDocument!.Type == DocumentTypes.customerInvoice && p.ParentDocument.IsDeleted == false && p.ParentDocument.CreationDate >= from && p.ParentDocument.CreationDate <= to))
+                );
+
+                var list = await query.ToListAsync();
+
+                var result = list.Select(dm => {
+                    var catalogPrice = dm.Merchandise?.Articles?.SellPriceHT ?? 0.0;
+
+                    // Resolve the active invoice document reference
+                    var invoiceDoc = dm.Document!.Type == DocumentTypes.customerInvoice
+                        ? dm.Document
+                        : dm.Document.ParentDocuments
+                            .Where(r => r.ParentDocument!.Type == DocumentTypes.customerInvoice && r.ParentDocument.IsDeleted == false)
+                            .Select(r => r.ParentDocument)
+                            .FirstOrDefault();
+
+                    var activeDoc = invoiceDoc ?? dm.Document;
+
+                    // Calculate discount percentage
+                    double discountPercent = 0.0;
+                    if (dm.DiscountPercentage > 0.001)
+                    {
+                        discountPercent = dm.DiscountPercentage;
+                    }
+                    else if (activeDoc != null && activeDoc.TotalCostDiscountDoc > 0.001)
+                    {
+                        // Calculate global discount percentage from invoice
+                        double totalGrossHT = activeDoc.TotalCostHTNetDoc + activeDoc.TotalCostDiscountDoc;
+                        if (totalGrossHT > 0.001)
+                        {
+                            discountPercent = (activeDoc.TotalCostDiscountDoc / totalGrossHT) * 100.0;
+                        }
+                    }
+
+                    var invoicePrice = dm.UnitPriceHT * (1 - discountPercent / 100.0);
+
+                    return new {
+                        dm,
+                        catalogPrice,
+                        invoicePrice,
+                        discountPercent,
+                        activeDoc
+                    };
+                })
+                // Only keep lines that have a discount
+                .Where(x => x.discountPercent > 0.001)
+                .Select(x => new DiscountReportLineDto
+                {
+                    InvoiceDate = x.activeDoc?.CreationDate ?? DateTime.MinValue,
+                    InvoiceNumber = x.activeDoc?.DocNumber ?? string.Empty,
+                    ArticleReference = x.dm.Merchandise?.Articles?.Reference ?? "INCONNU",
+                    ArticleDescription = x.dm.Merchandise?.Articles?.Description ?? x.dm.Merchandise?.Description ?? string.Empty,
+                    Quantity = x.dm.Quantity,
+                    Unit = x.dm.Merchandise?.Articles?.Unit ?? "Pcs",
+                    CatalogPriceHT = Math.Round(x.catalogPrice, 3),
+                    InvoicePriceHT = Math.Round(x.invoicePrice, 3),
+                    DiscountPercentage = Math.Round(x.discountPercent, 2),
+                    CustomerId = x.activeDoc?.CounterPartId ?? 0,
+                    CustomerName = x.activeDoc?.CounterPart != null 
+                        ? (x.activeDoc.CounterPart.FirstName + " " + x.activeDoc.CounterPart.LastName).Trim() 
+                        : "INCONNU"
+                })
+                .OrderByDescending(dto => dto.InvoiceDate)
+                .ToList();
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

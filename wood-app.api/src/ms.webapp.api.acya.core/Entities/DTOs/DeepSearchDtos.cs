@@ -40,4 +40,19 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public double RemainingBalance { get; set; }
         public string BillingStatus { get; set; } = string.Empty;
     }
+
+    public class DiscountReportLineDto
+    {
+        public DateTime InvoiceDate { get; set; }
+        public string InvoiceNumber { get; set; } = string.Empty;
+        public string ArticleReference { get; set; } = string.Empty;
+        public string ArticleDescription { get; set; } = string.Empty;
+        public double Quantity { get; set; }
+        public string Unit { get; set; } = string.Empty;
+        public double CatalogPriceHT { get; set; }
+        public double InvoicePriceHT { get; set; }
+        public double DiscountPercentage { get; set; }
+        public int CustomerId { get; set; }
+        public string CustomerName { get; set; } = string.Empty;
+    }
 }

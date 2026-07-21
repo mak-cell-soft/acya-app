@@ -17,7 +17,9 @@ import {
   CheckCircle,
   AlertCircle,
   HelpCircle,
-  CreditCard
+  CreditCard,
+  Percent,
+  Flag
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,12 +31,14 @@ import { useArticles } from '@/hooks/use-articles';
 import { 
   useCustomerPurchases, 
   useMerchandiseBuyers, 
-  useUnpaidDocuments 
+  useUnpaidDocuments,
+  useDiscountReport
 } from '@/hooks/use-deep-search';
 import { CustomerStatementCard } from '@/components/sales/customer-statement-card';
 import { TablePagination } from '@/components/shared/table-pagination';
 import { Customer } from '@/types/customer';
 import { Article } from '@/types/article';
+import { useAuthStore } from '@/store/use-auth-store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -65,11 +69,22 @@ const YEARS = [
 
 export default function DeepSearchPage() {
   const router = useRouter();
-  const [activeSubTab, setActiveSubTab] = useState<'purchases' | 'buyers' | 'unpaid'>('purchases');
+  const user = useAuthStore((state) => state.user);
+  const isAdminOrSuperAdmin = user?.role === 'SuperAdmin' || user?.role === '10' || user?.role === 'Admin' || user?.role === '20';
+
+  const [activeSubTab, setActiveSubTab] = useState<'purchases' | 'buyers' | 'unpaid' | 'discounts'>('purchases');
   
   // Shared period state
-  const [selectedMonth, setSelectedMonth] = useState<number>(0); // 0 = all
-  const [selectedYear, setSelectedYear] = useState<number>(0);   // 0 = all
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1); // Default to current month
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());   // Default to current year
+
+  // Helper to format ISO Date (YYYY-MM-DD)
+  const getTodayISODate = () => {
+    const d = new Date();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${month}-${day}`;
+  };
 
   // --- Sub-Tab 1: Purchases by Customer State ---
   const [customerSearch, setCustomerSearch] = useState('');
@@ -95,6 +110,14 @@ export default function DeepSearchPage() {
 
   // State for filtering by document type: 'all' for both, 'invoice' for Factures, 'delivery' for Bons de livraison
   const [unpaidDocTypeFilter, setUnpaidDocTypeFilter] = useState<'all' | 'invoice' | 'delivery'>('all');
+
+  // --- Sub-Tab 4: Discount Report State ---
+  const [discountDateFrom, setDiscountDateFrom] = useState<string>(getTodayISODate());
+  const [discountDateTo, setDiscountDateTo] = useState<string>(getTodayISODate());
+  const [discountCustomerId, setDiscountCustomerId] = useState<number>(0);
+  const [discountThreshold, setDiscountThreshold] = useState<number>(3);
+  const [discountPage, setDiscountPage] = useState<number>(1);
+  const [discountPageSize, setDiscountPageSize] = useState<number>(10);
 
   // --- Data Queries ---
   const { data: allCustomers = [] } = useCustomers('Customer');
@@ -134,8 +157,15 @@ export default function DeepSearchPage() {
     unpaidCustomerFilter,
     selectedMonth,
     selectedYear,
-    unpaidSearchTerm,
-    // Active only when on the unpaid tab
+    unpaidSearchTerm
+  );
+
+  // Discount report list
+  const { data: discountLines = [], isLoading: isDiscountLoading } = useDiscountReport(
+    discountDateFrom,
+    discountDateTo,
+    discountCustomerId,
+    activeSubTab === 'discounts' && isAdminOrSuperAdmin
   );
 
   // NOTE: Client-side filtering is implemented here to avoid changing the C#/API backend contract.
@@ -175,6 +205,17 @@ export default function DeepSearchPage() {
     const start = (unpaidPage - 1) * unpaidPageSize;
     return filteredUnpaidDocs.slice(start, start + unpaidPageSize);
   }, [filteredUnpaidDocs, unpaidPage, unpaidPageSize]);
+
+  // Reset discount pagination to page 1 whenever filters change
+  useEffect(() => {
+    setDiscountPage(1);
+  }, [discountDateFrom, discountDateTo, discountCustomerId, discountThreshold]);
+
+  // Compute the paginated slice of discount lines to display on the current page
+  const paginatedDiscountLines = useMemo(() => {
+    const start = (discountPage - 1) * discountPageSize;
+    return discountLines.slice(start, start + discountPageSize);
+  }, [discountLines, discountPage, discountPageSize]);
 
   // --- Helper Selectors ---
   // Search and filter customers for Tab 1 Combobox
@@ -524,6 +565,19 @@ export default function DeepSearchPage() {
           >
             <FileText className="w-4 h-4" /> Factures/BL Impayés
           </button>
+          {isAdminOrSuperAdmin && (
+            <button
+              onClick={() => setActiveSubTab('discounts')}
+              className={cn(
+                "px-6 py-3.5 text-sm font-bold border-b-2 transition-all flex items-center gap-2",
+                activeSubTab === 'discounts'
+                  ? "border-corp-blue-600 text-slate-900 bg-corp-blue-50/50"
+                  : "border-transparent text-slate-400 hover:text-slate-900"
+              )}
+            >
+              <Percent className="w-4 h-4" /> Remises Appliquées
+            </button>
+          )}
         </div>
 
         {/* Tab Contents */}
@@ -913,6 +967,227 @@ export default function DeepSearchPage() {
                   <h3 className="text-sm font-bold text-slate-900">Aucun document impayé</h3>
                   <p className="text-xs text-slate-500 mt-1 max-w-sm">
                     Toutes vos créances clients sur la période spécifiée ont été entièrement régularisées !
+                  </p>
+                </div>
+              )}
+
+            </div>
+          )}
+
+          {/* TAB 4: APPLIED DISCOUNTS (ADMIN/SUPERADMIN ONLY) */}
+          {activeSubTab === 'discounts' && isAdminOrSuperAdmin && (
+            <div className="space-y-6">
+              
+              {/* Filters Card */}
+              <Card className="border-slate-200 shadow-sm rounded-xl bg-white">
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
+                    
+                    {/* Date From */}
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-slate-800 block">
+                        Date de début
+                      </label>
+                      <Input
+                        type="date"
+                        value={discountDateFrom}
+                        onChange={(e) => setDiscountDateFrom(e.target.value)}
+                        className="h-11 border-slate-200 rounded-lg focus:border-corp-blue-600 focus:ring-corp-blue-600 text-slate-900 font-bold"
+                      />
+                    </div>
+
+                    {/* Date To */}
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-slate-800 block">
+                        Date de fin
+                      </label>
+                      <Input
+                        type="date"
+                        value={discountDateTo}
+                        onChange={(e) => setDiscountDateTo(e.target.value)}
+                        className="h-11 border-slate-200 rounded-lg focus:border-corp-blue-600 focus:ring-corp-blue-600 text-slate-900 font-bold"
+                      />
+                    </div>
+
+                    {/* Customer Filter */}
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-slate-800 block">
+                        Filtrer par Client
+                      </label>
+                      <select
+                        value={discountCustomerId}
+                        onChange={(e) => setDiscountCustomerId(Number(e.target.value))}
+                        className="w-full h-11 px-3 border border-slate-200 rounded-lg bg-white font-bold text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-corp-blue-600"
+                      >
+                        <option value={0}>Tous les clients</option>
+                        {allCustomers.map(c => (
+                          <option key={c.id} value={c.id}>{c.firstname} {c.lastname}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Seuil % */}
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-slate-800 block">
+                        Seuil de référence (%)
+                      </label>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          value={discountThreshold}
+                          onChange={(e) => setDiscountThreshold(Number(e.target.value))}
+                          className="h-11 pr-8 border-slate-200 rounded-lg focus:border-corp-blue-600 focus:ring-corp-blue-600 text-slate-900 font-bold"
+                        />
+                        <Percent className="absolute right-3 top-3.5 w-4 h-4 text-slate-400" />
+                      </div>
+                    </div>
+
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* KPI Summary Cards */}
+              {discountLines.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in duration-300">
+                  <Card className="border-slate-200 shadow-sm rounded-xl bg-white p-5 flex items-center gap-4">
+                    <div className="p-3 bg-corp-blue-50 text-corp-blue-600 rounded-xl">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nombre de remises</p>
+                      <p className="text-2xl font-black text-slate-900">{discountLines.length}</p>
+                    </div>
+                  </Card>
+                  
+                  <Card className="border-slate-200 shadow-sm rounded-xl bg-white p-5 flex items-center gap-4">
+                    <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                      <Percent className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Remise Moyenne</p>
+                      <p className="text-2xl font-black text-slate-900">
+                        {Math.round((discountLines.reduce((acc, curr) => acc + curr.discountPercentage, 0) / discountLines.length) * 100) / 100} %
+                      </p>
+                    </div>
+                  </Card>
+
+                  <Card className="border-slate-200 shadow-sm rounded-xl bg-white p-5 flex items-center gap-4">
+                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                      <AlertCircle className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Économie Globale (HT)</p>
+                      <p className="text-2xl font-black text-emerald-600">
+                        {formatCurrency(discountLines.reduce((acc, curr) => {
+                          const originalTotal = curr.catalogPriceHT * curr.quantity;
+                          const actualTotal = curr.invoicePriceHT * curr.quantity;
+                          return acc + Math.max(0, originalTotal - actualTotal);
+                        }, 0))}
+                      </p>
+                    </div>
+                  </Card>
+                </div>
+              )}
+
+              {/* Table of discounts */}
+              {isDiscountLoading ? (
+                <div className="flex flex-col items-center justify-center py-24 space-y-4">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-corp-blue-600"></div>
+                  <p className="text-sm font-bold text-slate-800/60 animate-pulse">Chargement des remises...</p>
+                </div>
+              ) : discountLines.length > 0 ? (
+                <Card className="border-slate-200 shadow-sm rounded-xl bg-white animate-in fade-in duration-300">
+                  <CardHeader className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <CardTitle className="text-xl text-slate-900">Remises Appliquées</CardTitle>
+                      <CardDescription>
+                        Historique des remises appliquées sur les ventes HT facturées sur la période choisie.
+                      </CardDescription>
+                    </div>
+                    {/* Seuil label indicators info */}
+                    <div className="flex items-center gap-4 text-xs font-bold bg-slate-50 border border-slate-200 p-2.5 rounded-lg">
+                      <span className="flex items-center gap-1"><Flag className="w-3.5 h-3.5 text-rose-500 fill-rose-500" /> &gt; {discountThreshold}%</span>
+                      <span className="flex items-center gap-1"><Flag className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> = {discountThreshold}%</span>
+                      <span className="flex items-center gap-1"><Flag className="w-3.5 h-3.5 text-emerald-500 fill-emerald-500" /> &lt; {discountThreshold}%</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100">
+                            <th className="px-6 py-4 text-sm font-medium">Date</th>
+                            <th className="px-6 py-4 text-sm font-medium">N° Facture</th>
+                            <th className="px-6 py-4 text-sm font-medium">Client</th>
+                            <th className="px-6 py-4 text-sm font-medium">Réf Marchandise</th>
+                            <th className="px-6 py-4 text-sm font-medium text-right">Quantité</th>
+                            <th className="px-6 py-4 text-sm font-medium text-right">HT Catalogue (Unit)</th>
+                            <th className="px-6 py-4 text-sm font-medium text-right">HT Facturé (Unit)</th>
+                            <th className="px-6 py-4 text-sm font-medium text-right">% Remise</th>
+                            <th className="px-6 py-4 text-sm font-medium text-center">Drapeau</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paginatedDiscountLines.map((line, index) => {
+                            let flagColor = "text-emerald-500 fill-emerald-500";
+                            if (line.discountPercentage > discountThreshold) {
+                              flagColor = "text-rose-500 fill-rose-500";
+                            } else if (line.discountPercentage === discountThreshold) {
+                              flagColor = "text-amber-500 fill-amber-500";
+                            }
+
+                            return (
+                              <tr key={index} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                                <td className="px-6 py-4 text-sm font-medium text-slate-700">
+                                  {new Date(line.invoiceDate).toLocaleDateString('fr-FR')}
+                                </td>
+                                <td className="px-6 py-4 font-bold text-slate-900">{line.invoiceNumber}</td>
+                                <td className="px-6 py-4 font-bold text-slate-900">{line.customerName}</td>
+                                <td className="px-6 py-4 text-slate-700 font-medium">{line.articleReference}</td>
+                                <td className="px-6 py-4 text-right font-bold text-slate-900">
+                                  {line.quantity} <span className="text-xs font-normal text-slate-400 ml-1">{line.unit}</span>
+                                </td>
+                                <td className="px-6 py-4 text-right font-medium text-slate-500">
+                                  {formatCurrency(line.catalogPriceHT)}
+                                </td>
+                                <td className="px-6 py-4 text-right font-black text-slate-900">
+                                  {formatCurrency(line.invoicePriceHT)}
+                                </td>
+                                <td className="px-6 py-4 text-right font-bold text-rose-600">
+                                  {line.discountPercentage} %
+                                </td>
+                                <td className="px-6 py-4 text-center">
+                                  <div className="flex justify-center">
+                                    <Flag className={cn("w-5 h-5 animate-pulse", flagColor)} />
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                    <TablePagination
+                      currentPage={discountPage}
+                      totalItems={discountLines.length}
+                      pageSize={discountPageSize}
+                      onPageChange={setDiscountPage}
+                      onPageSizeChange={(size) => {
+                        setDiscountPageSize(size);
+                        setDiscountPage(1);
+                      }}
+                    />
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50 animate-in fade-in duration-300">
+                  <Percent className="w-12 h-12 text-slate-300 mb-3" />
+                  <h3 className="text-sm font-bold text-slate-900">Aucune remise trouvée</h3>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm">
+                    Aucune remise n'a été appliquée sur les factures émises durant cette période.
                   </p>
                 </div>
               )}

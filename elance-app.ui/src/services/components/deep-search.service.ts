@@ -35,6 +35,20 @@ export interface UnpaidDocument {
   billingStatus: string;
 }
 
+export interface DiscountReportLine {
+  invoiceDate: string;
+  invoiceNumber: string;
+  articleReference: string;
+  articleDescription: string;
+  quantity: number;
+  unit: string;
+  catalogPriceHT: number;
+  invoicePriceHT: number;
+  discountPercentage: number;
+  customerId: number;
+  customerName: string;
+}
+
 export const deepSearchService = {
   getCustomerPurchases: async (customerId: number, month?: number, year?: number) => {
     const params: Record<string, any> = {};
@@ -63,6 +77,16 @@ export const deepSearchService = {
     if (search) params.search = search;
 
     const response = await api.get<UnpaidDocument[]>('/DeepSearch/unpaid-documents', { params });
+    return response.data;
+  },
+
+  getDiscountReport: async (dateFrom?: string, dateTo?: string, customerId?: number) => {
+    const params: Record<string, any> = {};
+    if (dateFrom) params.dateFrom = dateFrom;
+    if (dateTo) params.dateTo = dateTo;
+    if (customerId && customerId > 0) params.customerId = customerId;
+
+    const response = await api.get<DiscountReportLine[]>('/DeepSearch/discount-report', { params });
     return response.data;
   }
 };
