@@ -7,9 +7,10 @@ import { DimensionTable } from './dimension-table';
 import { CategoryAccordion } from './category-accordion';
 import { BankTable } from './bank-table';
 import { TransporterTable } from './transporter-table';
-import { useAppVariables } from '@/hooks/use-app-variables';
+import { useAppVariables, useCreateAppVariable, useUpdateAppVariable } from '@/hooks/use-app-variables';
 import { useEnterprise } from '@/hooks/use-enterprise';
-import { Percent, Ruler, Tags, Truck, Landmark, ShieldCheck } from 'lucide-react';
+import { Percent, Ruler, Tags, Truck, Landmark, ShieldCheck, Sparkles } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 
 import { Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,43 @@ export function ParamsTab() {
   const { data: thicknesses } = useAppVariables('thickness');
   const { data: widths } = useAppVariables('width');
   const { data: lengths } = useAppVariables('Length');
+  const { data: workflow = [] } = useAppVariables('Workflow');
+
+  const createVarMutation = useCreateAppVariable();
+  const updateVarMutation = useUpdateAppVariable();
+  const isMutating = createVarMutation.isPending || updateVarMutation.isPending;
+
+  const autoPaymentVar = React.useMemo(() => 
+    workflow.find(w => w.name === 'AutoPaymentOnInvoice'),
+    [workflow]
+  );
+  const autoPaymentActive = autoPaymentVar ? autoPaymentVar.isactive : false;
+
+  const handleToggleAutoPayment = async (checked: boolean) => {
+    try {
+      if (autoPaymentVar) {
+        await updateVarMutation.mutateAsync({
+          id: autoPaymentVar.id,
+          data: {
+            ...autoPaymentVar,
+            isactive: checked
+          }
+        });
+      } else {
+        await createVarMutation.mutateAsync({
+          nature: 'Workflow',
+          name: 'AutoPaymentOnInvoice',
+          value: '1',
+          isactive: checked,
+          isdefault: false,
+          iseditable: true,
+          isdeleted: false
+        });
+      }
+    } catch (error) {
+      console.error('Failed to toggle auto payment:', error);
+    }
+  };
 
   const [isImportOpen, setIsImportOpen] = React.useState(false);
   const queryClient = useQueryClient();
@@ -100,6 +138,9 @@ export function ParamsTab() {
           <TabsTrigger value="banks" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-corp-blue-900 data-[state=active]:shadow-sm font-bold gap-2">
             <Landmark className="w-4 h-4" /> Banques
           </TabsTrigger>
+          <TabsTrigger value="workflow" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-corp-blue-900 data-[state=active]:shadow-sm font-bold gap-2">
+            <Sparkles className="w-4 h-4" /> Flux & Automations
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="taxes" className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -153,6 +194,40 @@ export function ParamsTab() {
 
         <TabsContent value="banks" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
           <BankTable />
+        </TabsContent>
+
+        <TabsContent value="workflow" className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="max-w-2xl bg-white rounded-2xl border border-corp-blue-100/50 p-6 shadow-sm">
+            <div className="space-y-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <h4 className="text-corp-blue-900 font-bold text-lg flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-corp-blue-500 animate-pulse" />
+                    Flux & Comportement de Facturation
+                  </h4>
+                  <p className="text-sm text-sand-400 leading-relaxed">
+                    Configurez le comportement du système lors de la création de nouveaux documents de vente.
+                  </p>
+                </div>
+              </div>
+
+              <div className="border-t border-corp-blue-50 pt-6 flex items-center justify-between gap-6">
+                <div className="space-y-1 flex-1">
+                  <span className="font-bold text-corp-blue-950 text-sm block">
+                    Règlement automatique après création de facture
+                  </span>
+                  <span className="text-xs text-sand-450 block leading-normal">
+                    Ouvrir automatiquement la fenêtre "Enregistrer un paiement" après la création d'une nouvelle facture client.
+                  </span>
+                </div>
+                <Switch
+                  checked={autoPaymentActive}
+                  onCheckedChange={handleToggleAutoPayment}
+                  disabled={isMutating}
+                />
+              </div>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
 

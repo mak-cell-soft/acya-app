@@ -72,6 +72,7 @@ import { Customer } from '@/types/customer';
 import { Transporter } from '@/types/settings';
 import { toast } from 'sonner';
 import { WoodLengthsDialog } from '@/components/sales/wood-lengths-dialog';
+import { PaymentModal } from '@/components/sales/payment-modal';
 import { GlassSurfaceDialog } from '@/components/shared/glass-surface-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -145,6 +146,10 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
   // Multi-tax support specifically for Factures (Invoices)
   const { data: appvariablesTaxes = [] } = useAppVariables('Taxe'); // For Stamp taxes (Timbre fiscal)
   const { data: appvariablesRS = [] } = useAppVariables('RS');     // For Withholding tax (Retenue à la source)
+  const { data: workflowVars = [] } = useAppVariables('Workflow');
+
+  const autoPaymentEnabled = docType === DocumentTypes.customerInvoice &&
+    workflowVars.some(v => v.name === 'AutoPaymentOnInvoice' && v.isactive);
 
   // 2. Active Site Selection based on logged-in user default site ID
   const activeUserSite = useMemo(() => {
@@ -188,6 +193,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
   // Invoice-specific taxes selection states
   const [selectedTax, setSelectedTax] = useState<any | null>(null);
   const [selectedRS, setSelectedRS] = useState<any | null>(null);
+  const [postCreatePaymentData, setPostCreatePaymentData] = useState<any | null>(null);
 
   // Set default stamp tax for Invoices & Orders once loaded
   useEffect(() => {
@@ -1043,7 +1049,21 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
       // shows the newly created document when the user lands back on /sales.
       await queryClient.invalidateQueries({ queryKey: ['documents'] });
 
-      router.push('/sales');
+      if (autoPaymentEnabled && result && result.id) {
+        setPostCreatePaymentData({
+          documentId: result.id,
+          documentNumber: result.docRef || '',
+          totalAmount: finalPayableTTC,
+          totalNetPayable: finalNetPayable,
+          withholdingtax: !!selectedRS,
+          holdingtax: selectedRS,
+          customerId: selectedCustomer?.id || 0,
+          customerName: selectedCustomer?.name || '',
+          remainingAmount: finalNetPayable
+        });
+      } else {
+        router.push('/sales');
+      }
 
     } catch (err: any) {
       console.error('Error submitting document:', err);
@@ -2082,6 +2102,21 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {postCreatePaymentData && (
+        <PaymentModal
+          isOpen={true}
+          onClose={() => {
+            setPostCreatePaymentData(null);
+            router.push('/sales');
+          }}
+          onSuccess={() => {
+            setPostCreatePaymentData(null);
+            router.push('/sales');
+          }}
+          data={postCreatePaymentData}
+        />
+      )}
 
     </DashboardLayout>
   );
