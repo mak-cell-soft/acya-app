@@ -8,13 +8,16 @@ import { StockKpiBanner } from '@/components/stock/stock-kpi-banner';
 import { StockListByCategory } from '@/components/stock/stock-list-by-category';
 import { StockTimelinePanel } from '@/components/stock/stock-timeline-panel';
 import { StockTransfersList } from '@/components/stock/stock-transfers-list';
+import { StockPurchaseCostPanel } from '@/components/stock/stock-purchase-cost-panel';
+import { useAuthStore } from '@/store/use-auth-store';
 import { 
   Warehouse, 
   Clock, 
   ArrowLeftRight,
   ClipboardList,
   History,
-  Download
+  Download,
+  DollarSign
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,6 +25,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 function StockDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin';
   
   // Tab State syncing with query param
   const activeTabParam = searchParams.get('tab') || 'list';
@@ -43,6 +48,10 @@ function StockDashboardContent() {
     { id: 'timeline', label: 'Mouvements (Timeline)', icon: Clock },
     { id: 'transfers', label: 'Transferts Logistiques', icon: ArrowLeftRight },
   ];
+
+  if (isAdmin) {
+    tabs.push({ id: 'purchase-cost', label: 'Coût Achat', icon: DollarSign });
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -73,7 +82,7 @@ function StockDashboardContent() {
       <StockKpiBanner />
 
       {/* Custom Sleek Luxury Tabs switcher */}
-      <div className="border-b border-stone-200/60 dark:border-stone-850/80 pb-px print:hidden">
+      <div className="border-b border-stone-200/60 dark:border-stone-855/80 pb-px print:hidden">
         <div className="flex space-x-6 overflow-x-auto scrollbar-none">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -117,6 +126,7 @@ function StockDashboardContent() {
             {activeTab === 'list' && <StockListByCategory />}
             {activeTab === 'timeline' && <StockTimelinePanel />}
             {activeTab === 'transfers' && <StockTransfersList />}
+            {activeTab === 'purchase-cost' && isAdmin && <StockPurchaseCostPanel />}
           </motion.div>
         </AnimatePresence>
       </div>

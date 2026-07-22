@@ -24,7 +24,8 @@ import {
   Search,
   Edit,
   ShieldCheck,
-  Coins
+  Coins,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -151,6 +152,8 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
   const autoPaymentEnabled = docType === DocumentTypes.customerInvoice &&
     workflowVars.some(v => v.name === 'AutoPaymentOnInvoice' && v.isactive);
 
+  const isRSBlockingEnabled = workflowVars.some(v => v.name === 'InvoiceWithoutRSBlocking' && v.isactive);
+
   // 2. Active Site Selection based on logged-in user default site ID
   const activeUserSite = useMemo(() => {
     if (!allSites.length) return null;
@@ -160,8 +163,19 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
 
   // 3. Document Level state
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [invoicesWithoutRSCount, setInvoicesWithoutRSCount] = useState<number>(0);
   const [isCustomerFormOpen, setIsCustomerFormOpen] = useState(false);
   const updateCustomer = useUpdateCustomer();
+
+  useEffect(() => {
+    if (docType === DocumentTypes.customerInvoice && selectedCustomer?.id) {
+      documentService.getCustomerInvoicesWithoutRS(selectedCustomer.id)
+        .then((count) => setInvoicesWithoutRSCount(count))
+        .catch(() => setInvoicesWithoutRSCount(0));
+    } else {
+      setInvoicesWithoutRSCount(0);
+    }
+  }, [selectedCustomer, docType]);
 
   const handleUpdateCustomer = (data: any) => {
     if (!selectedCustomer) return;
@@ -885,6 +899,11 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
       return false;
     }
 
+    if (docType === DocumentTypes.customerInvoice && invoicesWithoutRSCount > 0 && isRSBlockingEnabled) {
+      toast.error(`Création impossible : Ce client possède ${invoicesWithoutRSCount} ancienne(s) facture(s) sans Retenue à la Source (RS). (Mode Bloquant actif)`);
+      return false;
+    }
+
     // Transporter is strictly required for delivery sheets (BL) and invoices that impact stock
     const transporterRequired = docType === DocumentTypes.customerDeliveryNote || docType === DocumentTypes.customerInvoice;
     if (transporterRequired && !selectedTransporter) {
@@ -1498,6 +1517,27 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                             Véhicule / Matricule : <span className="font-bold text-corp-blue-800">{typeof selectedTransporter.car === 'object' && selectedTransporter.car !== null ? ((selectedTransporter.car as any).serialnumber || '') : selectedTransporter.car}</span>
                           </span>
                         )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Warning/Blocking banner for old invoices without RS */}
+                  {docType === DocumentTypes.customerInvoice && invoicesWithoutRSCount > 0 && (
+                    <div className={cn(
+                      "p-3 rounded-xl border flex items-start gap-2.5 text-xs font-semibold animate-in slide-in-from-top-2 duration-300 mt-3",
+                      isRSBlockingEnabled ? "bg-red-50 border-red-200 text-red-800" : "bg-amber-50 border-amber-200 text-amber-900"
+                    )}>
+                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                      <div className="space-y-0.5">
+                        <span className="font-bold block">
+                          {isRSBlockingEnabled ? "Création Bloquée (RS Requis)" : "Factures sans Retenue à la Source"}
+                        </span>
+                        <span className="block text-[11px] leading-tight">
+                          Ce client possède <span className="font-extrabold">{invoicesWithoutRSCount}</span> ancienne(s) facture(s) sans RS enregistrée.
+                          {isRSBlockingEnabled
+                            ? " Mode Bloquant actif : régularisez les retenues."
+                            : " Pensez à régulariser les anciennes retenues."}
+                        </span>
                       </div>
                     </div>
                   )}

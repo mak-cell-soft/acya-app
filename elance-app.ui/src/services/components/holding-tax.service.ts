@@ -48,5 +48,26 @@ export const holdingTaxService = {
     if (year !== undefined)  params.year  = year;
     const response = await api.get('/HoldingTax/all', { params });
     return response.data;
+  },
+
+  /**
+   * Fetch all customer holding taxes, optionally filtered by period.
+   * @param month 1–12
+   * @param year  e.g. 2026
+   */
+  getAllCustomer: async (month?: number, year?: number): Promise<HoldingTaxSummary[]> => {
+    const params: Record<string, number> = {};
+    if (month !== undefined) params.month = month;
+    if (year !== undefined)  params.year  = year;
+    const response = await api.get('/HoldingTax/all-customer', { params });
+    return response.data;
+  },
+
+  /** Check if a reference UUID already exists in DB */
+  checkReferenceExists: async (reference: string, excludeHoldingTaxId?: number): Promise<boolean> => {
+    const params: Record<string, any> = { reference };
+    if (excludeHoldingTaxId) params.excludeHoldingTaxId = excludeHoldingTaxId;
+    const response = await api.get('/HoldingTax/check-reference-exists', { params });
+    return response.data?.exists || false;
   }
 };

@@ -55,12 +55,26 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
 
   // Stamp taxes (Taxe / Droit de timbre) from AppVariables
   const { data: stampTaxes = [] } = useAppVariables('Taxe');
+  const { data: workflowVars = [] } = useAppVariables('Workflow');
+
+  const isRSBlockingEnabled = workflowVars.some(v => v.name === 'InvoiceWithoutRSBlocking' && v.isactive);
 
   // Selected stamp tax id (string for Select)
   const [stampTaxId, setStampTaxId] = useState<string>('');
+  const [invoicesWithoutRSCount, setInvoicesWithoutRSCount] = useState<number>(0);
 
   // Conversion loading flag
   const [isConverting, setIsConverting] = useState(false);
+
+  useEffect(() => {
+    if (bl?.counterpart?.id) {
+      documentService.getCustomerInvoicesWithoutRS(bl.counterpart.id)
+        .then((count) => setInvoicesWithoutRSCount(count))
+        .catch(() => setInvoicesWithoutRSCount(0));
+    } else {
+      setInvoicesWithoutRSCount(0);
+    }
+  }, [bl?.counterpart?.id]);
 
   // Auto-select the default stamp tax once taxes load (mirrors Angular: finds isdefault === true)
   useEffect(() => {
@@ -94,6 +108,11 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
   const handleConvert = async () => {
     if (!stampTaxId) {
       toast.warning('Veuillez sélectionner un droit de timbre.');
+      return;
+    }
+
+    if (invoicesWithoutRSCount > 0 && isRSBlockingEnabled) {
+      toast.error(`Conversion impossible : Ce client possède ${invoicesWithoutRSCount} ancienne(s) facture(s) sans Retenue à la Source (RS). (Mode Bloquant actif)`);
       return;
     }
 
@@ -241,6 +260,27 @@ export function BLToInvoiceModal({ bl, onSuccess, onClose }: BLToInvoiceModalPro
                 <span className="text-corp-blue-950 font-bold">{customerName}</span>
               </div>
             </div>
+
+            {/* RS Warning/Blocking alert */}
+            {invoicesWithoutRSCount > 0 && (
+              <div className={cn(
+                "p-3 rounded-2xl border flex items-start gap-2.5 text-xs font-semibold",
+                isRSBlockingEnabled ? "bg-red-50 border-red-200 text-red-800" : "bg-amber-50 border-amber-200 text-amber-900"
+              )}>
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <span className="font-bold block">
+                    {isRSBlockingEnabled ? "Conversion Bloquée (RS Requis)" : "Factures sans Retenue à la Source"}
+                  </span>
+                  <span className="block text-[11px] leading-tight">
+                    Ce client possède <span className="font-extrabold">{invoicesWithoutRSCount}</span> ancienne(s) facture(s) sans RS enregistrée.
+                    {isRSBlockingEnabled
+                      ? " Le mode bloquant est actif : veuillez régulariser les anciennes factures."
+                      : " Pensez à régulariser les anciennes retenues."}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Financial summary — 3 cards */}
             <div className="grid grid-cols-3 gap-3">

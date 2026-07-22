@@ -88,5 +88,12 @@ export const stockService = {
       params: { siteId }
     });
     return response.data;
+  },
+
+  getValuation: async (year?: number) => {
+    const response = await api.get('/Stock/valuation', {
+      params: { year }
+    });
+    return response.data;
   }
 };

@@ -210,5 +210,66 @@ namespace ms.webapp.api.acya.api.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("all-customer")]
+        public async Task<ActionResult> GetAllCustomer([FromQuery] int? month, [FromQuery] int? year)
+        {
+            var query = _context.HoldingTaxes
+                .Where(h => !h.IsDeleted)
+                // Only RS linked to customer-type invoice documents
+                .Where(h => h.Documents.Any(d =>
+                    d.Type == DocumentTypes.customerInvoice));
+
+            // Apply period filter when month and year are provided
+            if (month.HasValue && year.HasValue)
+            {
+                query = query.Where(h =>
+                    h.CreationDate.Month == month.Value &&
+                    h.CreationDate.Year  == year.Value);
+            }
+
+            var result = await query
+                .Include(h => h.Documents)
+                    .ThenInclude(d => d.CounterPart)
+                .Select(h => new
+                {
+                    h.Id,
+                    h.Description,
+                    h.Reference,
+                    h.TaxPercentage,
+                    h.TaxValue,
+                    h.isSigned,
+                    h.CreationDate,
+                    h.UpdateDate,
+                    DocNumber = h.Documents
+                        .OrderByDescending(d => d.UpdateDate)
+                        .Select(d => d.DocNumber)
+                        .FirstOrDefault(),
+                    DocumentId = h.Documents
+                        .OrderByDescending(d => d.UpdateDate)
+                        .Select(d => (int?)d.Id)
+                        .FirstOrDefault(),
+                    CounterPartName = h.Documents
+                        .OrderByDescending(d => d.UpdateDate)
+                        .Select(d => d.CounterPart != null ? (d.CounterPart.Name ?? (d.CounterPart.FirstName + " " + d.CounterPart.LastName)) : "")
+                        .FirstOrDefault()
+                })
+                .OrderByDescending(h => h.UpdateDate)
+                .ToListAsync();
+
+            return Ok(result);
+        }
+
+        [HttpGet("check-reference-exists")]
+        public async Task<ActionResult> CheckReferenceExists([FromQuery] string reference, [FromQuery] int? excludeHoldingTaxId)
+        {
+            if (string.IsNullOrWhiteSpace(reference))
+                return Ok(new { exists = false });
+
+            var exists = await _context.HoldingTaxes
+                .AnyAsync(h => !h.IsDeleted && h.Reference == reference.Trim() && (excludeHoldingTaxId == null || h.Id != excludeHoldingTaxId.Value));
+
+            return Ok(new { exists });
+        }
     }
 }

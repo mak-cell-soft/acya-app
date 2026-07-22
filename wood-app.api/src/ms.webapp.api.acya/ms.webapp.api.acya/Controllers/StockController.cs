@@ -253,5 +253,13 @@ namespace ms.webapp.api.acya.api.Controllers
         var stats = await _stockService.GetStockDashboardStatsAsync(siteId);
         return Ok(stats);
     }
+
+    [HttpGet("valuation")]
+    public async Task<ActionResult<IEnumerable<StockValuationDto>>> GetStockValuation([FromQuery] int? year = null)
+    {
+        int targetYear = year ?? DateTime.UtcNow.Year;
+        var valuation = await _stockService.GetGlobalStockValuationAsync(targetYear);
+        return Ok(valuation);
+    }
   }
 }

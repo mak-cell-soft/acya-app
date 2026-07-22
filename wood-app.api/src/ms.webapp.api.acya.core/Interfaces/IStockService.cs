@@ -29,5 +29,6 @@ namespace ms.webapp.api.acya.core.Interfaces
         Task<bool> UpdateMinimumStockAsync(int stockId, double minimumStock);
         Task<IEnumerable<StockQuantityDto>> GetStockAlertsAsync(int? siteId = null);
         Task<StockDashboardStatsDto> GetStockDashboardStatsAsync(int? siteId = null);
+        Task<IEnumerable<StockValuationDto>> GetGlobalStockValuationAsync(int year);
     }
 }

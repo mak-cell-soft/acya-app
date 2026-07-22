@@ -49,14 +49,28 @@ export function CustomerBatchConversionModal({
   const { data: sites } = useSites();
   // WHY: Only stamp tax is fetched from AppVariables. RS is now a free % input.
   const { data: stampTaxesData } = useAppVariables('Taxe');
+  const { data: workflowVars = [] } = useAppVariables('Workflow');
+
+  const isRSBlockingEnabled = workflowVars.some(v => v.name === 'InvoiceWithoutRSBlocking' && v.isactive);
 
   // Selected customer
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
+  const [invoicesWithoutRSCount, setInvoicesWithoutRSCount] = useState<number>(0);
   const [customerSearchQuery, setCustomerSearchQuery] = useState<string>('');
   const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
   // WHY: Manual discount is now input as a percentage with an option to round the Net à Payer (TTC) amount.
   const [discountPercent, setDiscountPercent] = useState<number>(0);
   const [isRounded, setIsRounded] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (selectedCustomerId) {
+      documentService.getCustomerInvoicesWithoutRS(parseInt(selectedCustomerId))
+        .then((count) => setInvoicesWithoutRSCount(count))
+        .catch(() => setInvoicesWithoutRSCount(0));
+    } else {
+      setInvoicesWithoutRSCount(0);
+    }
+  }, [selectedCustomerId]);
 
   // Helper to format date in local YYYY-MM-DD format
   const getLocalDateString = (d: Date = new Date()) => {
@@ -230,6 +244,12 @@ export function CustomerBatchConversionModal({
       toast.warning('Veuillez sélectionner un client.');
       return;
     }
+
+    if (invoicesWithoutRSCount > 0 && isRSBlockingEnabled) {
+      toast.error(`Facturation groupée impossible : Ce client possède ${invoicesWithoutRSCount} ancienne(s) facture(s) sans Retenue à la Source (RS). (Mode Bloquant actif)`);
+      return;
+    }
+
     if (selectedBlIds.length === 0) {
       toast.warning('Veuillez sélectionner au moins un bon de livraison à facturer.');
       return;

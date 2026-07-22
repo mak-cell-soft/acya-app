@@ -50,13 +50,25 @@ export function CustomerSingleBatchConversionModal({
   const { data: customers } = useCustomers('Customer');
   const { data: sites } = useSites();
   const { data: stampTaxesData } = useAppVariables('Taxe');
-  // NOTE: Retenue à la Source (RS) was removed per user request as it is not needed for single-client batch invoicing.
-  // We no longer query or use rsTaxesData in this component.
+  const { data: workflowVars = [] } = useAppVariables('Workflow');
+
+  const isRSBlockingEnabled = workflowVars.some(v => v.name === 'InvoiceWithoutRSBlocking' && v.isactive);
 
   // Customer selection states
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
+  const [invoicesWithoutRSCount, setInvoicesWithoutRSCount] = useState<number>(0);
   const [customerSearchQuery, setCustomerSearchQuery] = useState<string>('');
   const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    if (selectedCustomerId) {
+      documentService.getCustomerInvoicesWithoutRS(parseInt(selectedCustomerId))
+        .then((count) => setInvoicesWithoutRSCount(count))
+        .catch(() => setInvoicesWithoutRSCount(0));
+    } else {
+      setInvoicesWithoutRSCount(0);
+    }
+  }, [selectedCustomerId]);
 
   // Helper: Retrieve start date of the current month in YYYY-MM-DD
   const getStartOfMonthString = (d: Date = new Date()) => {
@@ -215,6 +227,12 @@ export function CustomerSingleBatchConversionModal({
       toast.warning('Veuillez sélectionner un client.');
       return;
     }
+
+    if (invoicesWithoutRSCount > 0 && isRSBlockingEnabled) {
+      toast.error(`Facturation pour ce client impossible : Ce client possède ${invoicesWithoutRSCount} ancienne(s) facture(s) sans Retenue à la Source (RS). (Mode Bloquant actif)`);
+      return;
+    }
+
     if (selectedBlIds.length === 0) {
       toast.warning('Veuillez sélectionner au moins un bon de livraison à facturer.');
       return;

@@ -80,8 +80,17 @@ export function StockTimelinePanel() {
   const [selectedPkgOption, setSelectedPkgOption] = useState<string>('standard');
 
   // Date range
-  const [fromDate, setFromDate] = useState<string>('');
-  const [toDate, setToDate] = useState<string>('');
+  const [fromDate, setFromDate] = useState<string>(() => {
+    const currentYear = new Date().getFullYear();
+    return `${currentYear}-01-01`;
+  });
+  const [toDate, setToDate] = useState<string>(() => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  });
 
   // Set default site on load
   useEffect(() => {

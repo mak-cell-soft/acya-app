@@ -81,5 +81,14 @@ export const documentService = {
       responseType: 'blob' 
     });
     return response.data;
+  },
+
+  getCustomerInvoicesWithoutRS: async (customerId: number): Promise<number> => {
+    try {
+      const response = await api.get(`/Document/customer-invoices-without-rs/${customerId}`);
+      return response.data?.count || 0;
+    } catch {
+      return 0;
+    }
   }
 };

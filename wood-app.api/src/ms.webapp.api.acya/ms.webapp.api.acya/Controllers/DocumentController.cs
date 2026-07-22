@@ -2090,6 +2090,19 @@ namespace ms.webapp.api.acya.api.Controllers
       return (false, currentTotal, ceilingValue, string.Empty);
     }
 
+    [HttpGet("customer-invoices-without-rs/{customerId}")]
+    public async Task<ActionResult> GetCustomerInvoicesWithoutRS(int customerId)
+    {
+      var count = await _context.Documents
+          .Where(d => d.CounterPartId == customerId
+                   && d.Type == DocumentTypes.customerInvoice
+                   && !d.IsDeleted
+                   && !d.WithHoldingTax)
+          .CountAsync();
+
+      return Ok(new { count });
+    }
+
     #endregion
 
   }

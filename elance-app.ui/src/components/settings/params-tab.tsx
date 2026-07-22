@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { getBaseApiUrl } from '@/lib/axios';
+import { cn } from '@/lib/utils';
 
 export function ParamsTab() {
   const { data: enterprise } = useEnterprise();
@@ -39,6 +40,12 @@ export function ParamsTab() {
     [workflow]
   );
   const autoPaymentActive = autoPaymentVar ? autoPaymentVar.isactive : false;
+
+  const rsBlockingVar = React.useMemo(() => 
+    workflow.find(w => w.name === 'InvoiceWithoutRSBlocking'),
+    [workflow]
+  );
+  const rsBlockingActive = rsBlockingVar ? rsBlockingVar.isactive : false;
 
   const handleToggleAutoPayment = async (checked: boolean) => {
     try {
@@ -63,6 +70,32 @@ export function ParamsTab() {
       }
     } catch (error) {
       console.error('Failed to toggle auto payment:', error);
+    }
+  };
+
+  const handleToggleRSBlocking = async (checked: boolean) => {
+    try {
+      if (rsBlockingVar) {
+        await updateVarMutation.mutateAsync({
+          id: rsBlockingVar.id,
+          data: {
+            ...rsBlockingVar,
+            isactive: checked
+          }
+        });
+      } else {
+        await createVarMutation.mutateAsync({
+          nature: 'Workflow',
+          name: 'InvoiceWithoutRSBlocking',
+          value: '1',
+          isactive: checked,
+          isdefault: false,
+          iseditable: true,
+          isdeleted: false
+        });
+      }
+    } catch (error) {
+      console.error('Failed to toggle RS blocking:', error);
     }
   };
 
@@ -223,6 +256,30 @@ export function ParamsTab() {
                 <Switch
                   checked={autoPaymentActive}
                   onCheckedChange={handleToggleAutoPayment}
+                  disabled={isMutating}
+                />
+              </div>
+
+              <div className="border-t border-corp-blue-50 pt-6 flex items-center justify-between gap-6">
+                <div className="space-y-1 flex-1">
+                  <span className="font-bold text-corp-blue-950 text-sm block flex items-center gap-2">
+                    Contrôle RS Client — Mode Bloquant
+                    <span className={cn(
+                      "text-[10px] px-2 py-0.5 rounded-full font-extrabold uppercase border",
+                      rsBlockingActive ? "bg-red-50 text-red-700 border-red-200" : "bg-amber-50 text-amber-700 border-amber-200"
+                    )}>
+                      {rsBlockingActive ? "Bloquant" : "Non Bloquant (Avertissement)"}
+                    </span>
+                  </span>
+                  <span className="text-xs text-sand-450 block leading-normal">
+                    {rsBlockingActive
+                      ? "Bloquer la création/conversion de facture si le client sélectionné possède au moins une ancienne facture sans retenue à la source (RS)."
+                      : "Afficher une alerte préventive mais autoriser la création/conversion de facture si le client a des factures sans RS."}
+                  </span>
+                </div>
+                <Switch
+                  checked={rsBlockingActive}
+                  onCheckedChange={handleToggleRSBlocking}
                   disabled={isMutating}
                 />
               </div>

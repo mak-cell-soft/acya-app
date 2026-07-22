@@ -771,6 +771,127 @@ namespace ms.webapp.api.acya.api.Services
             }
         }
 
+        public async Task<IEnumerable<StockValuationDto>> GetGlobalStockValuationAsync(int year)
+        {
+            // 1. Get all current stocks where Quantity > 0, grouped by MerchandiseId
+            var currentStocks = await _context.Stocks
+                .Include(s => s.Merchandises)
+                .ThenInclude(m => m.Articles)
+                .Where(s => s.Quantity > 0 && s.Merchandises != null && !s.Merchandises.IsDeleted)
+                .GroupBy(s => new { 
+                    s.MerchandiseId, 
+                    s.Merchandises!.PackageReference, 
+                    s.Merchandises.Description,
+                    Unit = s.Merchandises.Articles != null ? s.Merchandises.Articles.Unit : string.Empty
+                })
+                .Select(g => new
+                {
+                    MerchandiseId = g.Key.MerchandiseId,
+                    Reference = g.Key.PackageReference,
+                    Description = g.Key.Description,
+                    Unit = g.Key.Unit,
+                    TotalQuantity = g.Sum(s => s.Quantity)
+                })
+                .ToListAsync();
+
+            if (!currentStocks.Any())
+            {
+                return Enumerable.Empty<StockValuationDto>();
+            }
+
+            var merchandiseIds = currentStocks.Select(s => s.MerchandiseId).ToList();
+
+            // 2. Fetch all purchase-impacting document lines for these merchandises in the given year.
+            var purchaseTypes = new[]
+            {
+                DocumentTypes.supplierReceipt,
+                DocumentTypes.supplierInvoice
+            };
+
+            var purchaseLines = await (from dm in _context.DocumentMerchandises
+                                       join d in _context.Documents on dm.DocumentId equals d.Id
+                                       where dm.MerchandiseId.HasValue 
+                                             && merchandiseIds.Contains(dm.MerchandiseId.Value)
+                                             && d.CreationDate.HasValue && d.CreationDate.Value.Year == year
+                                             && !d.IsDeleted
+                                             && d.Type.HasValue && purchaseTypes.Contains(d.Type.Value)
+                                       select new
+                                       {
+                                           dm.MerchandiseId,
+                                           dm.DocumentId,
+                                           d.CreationDate,
+                                           dm.Quantity,
+                                           dm.CostNetHT, // HT price with discount applied
+                                           d.Type
+                                       })
+                                       .OrderBy(x => x.CreationDate)
+                                       .ToListAsync();
+
+            // Apply deduplication using DocumentDocumentRelationship
+            var purchaseDocIds = purchaseLines.Select(l => l.DocumentId).Distinct().ToList();
+            var relationships = await _context.DocumentDocumentRelationships
+                .Include(r => r.ChildDocument)
+                .Where(r => purchaseDocIds.Contains(r.ParentDocumentId) || purchaseDocIds.Contains(r.ChildDocumentId))
+                .ToListAsync();
+
+            // Filter out the supplierInvoices that are linked to a supplierReceipt.
+            var filteredPurchaseLines = purchaseLines.Where(line =>
+            {
+                if (line.Type == DocumentTypes.supplierInvoice)
+                {
+                    bool hasLinkedReceipt = relationships.Any(r =>
+                        r.ParentDocumentId == line.DocumentId &&
+                        r.ChildDocument != null &&
+                        r.ChildDocument.Type == DocumentTypes.supplierReceipt);
+
+                    if (hasLinkedReceipt)
+                    {
+                        return false; // Skip invoice, keep the receipt
+                    }
+                }
+                return true;
+            }).ToList();
+
+            var purchaseGroupByMerch = filteredPurchaseLines
+                .GroupBy(l => l.MerchandiseId!.Value)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            var result = new List<StockValuationDto>();
+
+            foreach (var stock in currentStocks)
+            {
+                double cmp = 0;
+                double lastPrice = 0;
+
+                if (purchaseGroupByMerch.TryGetValue(stock.MerchandiseId, out var lines) && lines.Any())
+                {
+                    double totalQty = lines.Sum(l => l.Quantity);
+                    if (totalQty > 0)
+                    {
+                        cmp = lines.Sum(l => l.CostNetHT) / totalQty;
+                    }
+
+                    var latestPurchase = lines.OrderByDescending(l => l.CreationDate).First();
+                    lastPrice = latestPurchase.Quantity > 0 ? (latestPurchase.CostNetHT / latestPurchase.Quantity) : 0;
+                }
+
+                result.Add(new StockValuationDto
+                {
+                    MerchandiseId = stock.MerchandiseId,
+                    Reference = stock.Reference ?? string.Empty,
+                    Description = stock.Description ?? string.Empty,
+                    Unit = stock.Unit ?? string.Empty,
+                    CurrentStockQuantity = stock.TotalQuantity,
+                    CmpUnitPrice = Math.Round(cmp, 3),
+                    CmpTotalValue = Math.Round(stock.TotalQuantity * cmp, 3),
+                    LastPurchasePrice = Math.Round(lastPrice, 3),
+                    LastPurchaseTotalValue = Math.Round(stock.TotalQuantity * lastPrice, 3)
+                });
+            }
+
+            return result;
+        }
+
         #endregion
     }
 }

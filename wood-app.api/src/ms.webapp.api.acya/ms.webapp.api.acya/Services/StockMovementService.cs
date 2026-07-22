@@ -74,6 +74,18 @@ namespace ms.webapp.api.acya.api.Services
             }
 
             // Get all documents for the site and matching merchandises ordered by date
+            var stockImpactingTypes = new[]
+            {
+                DocumentTypes.supplierReceipt,
+                DocumentTypes.customerDeliveryNote,
+                DocumentTypes.stockTransfer,
+                DocumentTypes.customerInvoiceReturn,
+                DocumentTypes.supplierInvoiceReturn,
+                DocumentTypes.inventory,
+                DocumentTypes.supplierInvoice,
+                DocumentTypes.customerInvoice
+            };
+
             var movementsQuery = from dm in _context.DocumentMerchandises
                                  join d in _context.Documents on dm.DocumentId equals d.Id
                                  join m in _context.Merchandises on dm.MerchandiseId equals m.Id
@@ -81,6 +93,7 @@ namespace ms.webapp.api.acya.api.Services
                                        && d.SalesSiteId == salesSiteId 
                                        && !d.IsDeleted 
                                        && !m.IsDeleted
+                                       && d.Type.HasValue && stockImpactingTypes.Contains(d.Type.Value)
                                  select new
                                  {
                                      dm.DocumentId,
@@ -95,11 +108,38 @@ namespace ms.webapp.api.acya.api.Services
 
             var movements = await movementsQuery.OrderBy(x => x.CreationDate).ToListAsync();
 
+            var movementDocumentIds = movements.Select(m => m.DocumentId).Distinct().ToList();
+
+            // Retrieve relationships to exclude invoices that are linked to delivery notes/receipts
+            var relationships = await _context.DocumentDocumentRelationships
+                .Include(r => r.ChildDocument)
+                .Where(r => movementDocumentIds.Contains(r.ParentDocumentId) || movementDocumentIds.Contains(r.ChildDocumentId))
+                .ToListAsync();
+
+            var filteredMovements = movements.Where(mov => 
+            {
+                if (mov.Type == DocumentTypes.customerInvoice || mov.Type == DocumentTypes.supplierInvoice)
+                {
+                    // Check if this invoice is linked to a delivery note / receipt (it is a parent of a BL/SR)
+                    bool hasLinkedDeliveryNote = relationships.Any(r => 
+                        r.ParentDocumentId == mov.DocumentId && 
+                        r.ChildDocument != null && 
+                        (r.ChildDocument.Type == DocumentTypes.customerDeliveryNote || r.ChildDocument.Type == DocumentTypes.supplierReceipt));
+                        
+                    if (hasLinkedDeliveryNote)
+                    {
+                        // Skip this invoice, because the physical stock movement was already recorded by the BL/SR
+                        return false;
+                    }
+                }
+                return true;
+            }).ToList();
+
             var result = new List<StockMovementTimelineDto>();
             double runningTotal = 0;
 
             // Resolve transfers in bulk
-            var transferIds = movements.Where(m => m.Type == DocumentTypes.stockTransfer).Select(m => m.DocumentId).Distinct().ToList();
+            var transferIds = filteredMovements.Where(m => m.Type == DocumentTypes.stockTransfer).Select(m => m.DocumentId).Distinct().ToList();
             var transfers = new List<StockTransfer>();
             if (transferIds.Any())
             {
@@ -110,16 +150,26 @@ namespace ms.webapp.api.acya.api.Services
                     .ToListAsync();
             }
 
-            foreach (var mov in movements)
+            foreach (var mov in filteredMovements)
             {
-                // Calculate signed delta based on StockTransactionType (Add=1, Retrieve=2)
-                double delta = mov.Quantity;
-                if (mov.StockTransactionType == TransactionType.Retrieve)
+                double delta;
+                if (mov.Type == DocumentTypes.inventory)
                 {
-                    delta = -delta;
+                    // Inventory represents the absolute stock level at that point in time.
+                    // The difference (delta) is the inventory level minus the previous running total.
+                    delta = mov.Quantity - runningTotal;
+                    runningTotal = mov.Quantity;
                 }
-
-                runningTotal += delta;
+                else
+                {
+                    // Calculate signed delta based on StockTransactionType (Add=1, Retrieve=2)
+                    delta = mov.Quantity;
+                    if (mov.StockTransactionType == TransactionType.Retrieve)
+                    {
+                        delta = -delta;
+                    }
+                    runningTotal += delta;
+                }
 
                 string counterpartSiteName = "";
                 bool isTransfer = mov.Type == DocumentTypes.stockTransfer;

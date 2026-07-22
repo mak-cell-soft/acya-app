@@ -10,7 +10,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
-  RefreshCw
+  XCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,7 +28,9 @@ import { holdingTaxService } from '@/services/components/holding-tax.service';
 import { Document } from '@/types/document';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+
+const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 
 interface WithholdingTaxModalProps {
   isOpen: boolean;
@@ -48,7 +50,8 @@ export function WithholdingTaxModal({
   const [reference, setReference] = useState<string>('');
   const [issigned, setIssigned] = useState<boolean>(false);
   
-  const [loadingRef, setLoadingRef] = useState<boolean>(false);
+  const [checkingRef, setCheckingRef] = useState<boolean>(false);
+  const [refAlreadyExists, setRefAlreadyExists] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   const totalTtc = doc.total_net_ttc || 0;
@@ -77,6 +80,36 @@ export function WithholdingTaxModal({
     }
   }, [isOpen, rsRates, doc]);
 
+  const isValidUuid = UUID_REGEX.test(reference.trim());
+
+  // Check reference uniqueness with debouncing
+  useEffect(() => {
+    if (!isOpen || !reference.trim() || !isValidUuid) {
+      setRefAlreadyExists(false);
+      setCheckingRef(false);
+      return;
+    }
+    let cancelled = false;
+    setCheckingRef(true);
+    const timer = setTimeout(() => {
+      holdingTaxService.checkReferenceExists(reference.trim(), doc.holdingtax?.id)
+        .then((exists) => {
+          if (!cancelled) setRefAlreadyExists(exists);
+        })
+        .catch(() => {
+          if (!cancelled) setRefAlreadyExists(false);
+        })
+        .finally(() => {
+          if (!cancelled) setCheckingRef(false);
+        });
+    }, 350);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [isOpen, reference, isValidUuid, doc.holdingtax?.id]);
+
   if (!isOpen) return null;
 
   const activeRate = rsRates?.find((r) => r.id.toString() === selectedRateId);
@@ -84,28 +117,25 @@ export function WithholdingTaxModal({
   const rsAmount = (totalTtc * percentage) / 100;
   const netPayable = Math.max(0, totalTtc - rsAmount);
 
-  const handleGenerateReference = async () => {
-    if (!doc.id) return;
-    setLoadingRef(true);
-    try {
-      const res = await holdingTaxService.generateReference(doc.id);
-      setReference(res.reference || '');
-      toast.success('Référence générée avec succès !');
-    } catch (err) {
-      console.error('Failed to generate reference:', err);
-      toast.error('Erreur lors de la génération de la référence.');
-    } finally {
-      setLoadingRef(false);
-    }
-  };
-
   const handleConfirm = async () => {
     if (selectedRateId === 'Aucune RS') {
       toast.warning('Veuillez sélectionner un taux de retenue à la source.');
       return;
     }
     if (!reference.trim()) {
-      toast.warning('Veuillez saisir ou générer une référence de retenue.');
+      toast.warning('Veuillez saisir une référence de retenue.');
+      return;
+    }
+    if (!isValidUuid) {
+      toast.warning('La référence doit être au format UUID valide (ex: 26a84266-e58c-4a11-a71b-c5356619316f).');
+      return;
+    }
+    if (refAlreadyExists) {
+      toast.warning('Cette référence existe déjà dans la base de données.');
+      return;
+    }
+    if (!issigned) {
+      toast.warning('Le document de la retenue doit être signé (veuillez cocher la case).');
       return;
     }
 
@@ -120,7 +150,7 @@ export function WithholdingTaxModal({
         reference: reference.trim(),
         issigned: issigned,
         newamountdocvalue: netPayable,
-        updatedbyid: 1, // connected user
+        updatedbyid: 1,
         isdeleted: false
       };
 
@@ -139,6 +169,14 @@ export function WithholdingTaxModal({
       setSubmitting(false);
     }
   };
+
+  const isFormValid =
+    selectedRateId !== 'Aucune RS' &&
+    reference.trim().length > 0 &&
+    isValidUuid &&
+    !refAlreadyExists &&
+    !checkingRef &&
+    issigned;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -247,32 +285,43 @@ export function WithholdingTaxModal({
             {/* Reference Input */}
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-sand-450 uppercase tracking-wider flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-sand-400" /> Référence / N° Avis de débit
+                <Tag className="w-3.5 h-3.5 text-sand-400" /> Référence / N° Avis de débit (Format UUID)
               </label>
               <div className="relative flex items-center">
                 <Input
                   value={reference}
                   onChange={(e) => setReference(e.target.value)}
-                  placeholder="Ex: RS-2024-001"
-                  className="rounded-xl border-sand-200 pr-12 text-xs font-semibold focus-visible:ring-corp-blue-600 h-10"
+                  placeholder="Ex: 26a84266-e58c-4a11-a71b-c5356619316f"
+                  className={cn(
+                    "rounded-xl border-sand-200 pr-10 text-xs font-mono font-semibold focus-visible:ring-corp-blue-600 h-10",
+                    reference.trim() && !isValidUuid && "border-red-400 focus-visible:ring-red-400 bg-red-50/20",
+                    reference.trim() && isValidUuid && refAlreadyExists && "border-amber-400 focus-visible:ring-amber-400 bg-amber-50/20",
+                    reference.trim() && isValidUuid && !refAlreadyExists && !checkingRef && "border-emerald-500 focus-visible:ring-emerald-500"
+                  )}
                   required
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleGenerateReference}
-                  disabled={loadingRef || !doc.id}
-                  className="absolute right-1 w-8 h-8 rounded-lg text-corp-blue-750 hover:bg-corp-blue-50"
-                  title="Générer automatiquement la référence"
-                >
-                  {loadingRef ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-corp-blue-600" />
-                  ) : (
-                    <RefreshCw className="w-4 h-4" />
+                <div className="absolute right-3 flex items-center pointer-events-none">
+                  {checkingRef && <Loader2 className="w-4 h-4 animate-spin text-sand-400" />}
+                  {!checkingRef && reference.trim() && isValidUuid && !refAlreadyExists && (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                   )}
-                </Button>
+                  {!checkingRef && reference.trim() && (!isValidUuid || refAlreadyExists) && (
+                    <XCircle className="w-4 h-4 text-red-500" />
+                  )}
+                </div>
               </div>
+
+              {/* Reference validation message */}
+              {reference.trim() && !isValidUuid && (
+                <p className="text-[10px] text-red-500 font-semibold flex items-center gap-1">
+                  Format UUID obligatoire (ex: 26a84266-e58c-4a11-a71b-c5356619316f)
+                </p>
+              )}
+              {reference.trim() && isValidUuid && refAlreadyExists && (
+                <p className="text-[10px] text-amber-600 font-semibold flex items-center gap-1">
+                  Cette référence existe déjà dans la base de données.
+                </p>
+              )}
             </div>
 
             {/* Link to TEJ finances portal */}
@@ -292,8 +341,8 @@ export function WithholdingTaxModal({
               </div>
             </div>
 
-            {/* Checkbox: Signed status */}
-            <div className="flex items-center gap-2.5 py-1">
+            {/* Checkbox: Signed status (Required) */}
+            <div className="flex items-center gap-2.5 py-1.5 px-3 bg-amber-50/40 border border-amber-100/60 rounded-xl">
               <input
                 type="checkbox"
                 id="issigned"
@@ -303,11 +352,16 @@ export function WithholdingTaxModal({
               />
               <label
                 htmlFor="issigned"
-                className="text-xs text-sand-700 font-bold cursor-pointer select-none"
+                className="text-xs text-sand-800 font-bold cursor-pointer select-none flex items-center gap-1.5"
               >
-                Le document de la retenue est signé
+                Le document de la retenue est signé <span className="text-red-500 font-extrabold">*</span>
               </label>
             </div>
+            {!issigned && (
+              <p className="text-[10px] text-amber-700 font-semibold italic pl-1">
+                Le document doit être obligatoirement signé pour enregistrer la RS.
+              </p>
+            )}
           </div>
 
           {/* Dynamic calculations preview or warning */}
@@ -353,8 +407,8 @@ export function WithholdingTaxModal({
           <Button
             type="button"
             onClick={handleConfirm}
-            disabled={submitting || selectedRateId === 'Aucune RS' || !reference.trim()}
-            className="bg-corp-blue-900 hover:bg-corp-blue-950 text-white px-5 h-10 font-bold text-xs gap-2 flex items-center"
+            disabled={!isFormValid || submitting}
+            className="bg-corp-blue-900 hover:bg-corp-blue-950 text-white px-5 h-10 font-bold text-xs gap-2 flex items-center disabled:opacity-50"
           >
             {submitting ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -368,4 +422,3 @@ export function WithholdingTaxModal({
     </div>
   );
 }
-
