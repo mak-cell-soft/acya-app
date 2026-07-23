@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { deepSearchService, PurchasedMerchandise, MerchandiseBuyer, UnpaidDocument, DiscountReportLine } from '@/services/components/deep-search.service';
+import { deepSearchService, PurchasedMerchandise, MerchandiseBuyer, UnpaidDocument, DiscountReportLine, ProfitMarginSummary } from '@/services/components/deep-search.service';
 
 export function useCustomerPurchases(customerId: number, month?: number, year?: number, enabled: boolean = true) {
   return useQuery<PurchasedMerchandise[]>({
@@ -28,6 +28,21 @@ export function useDiscountReport(dateFrom?: string, dateTo?: string, customerId
   return useQuery<DiscountReportLine[]>({
     queryKey: ['discount-report', dateFrom, dateTo, customerId],
     queryFn: () => deepSearchService.getDiscountReport(dateFrom, dateTo, customerId),
+    enabled: enabled,
+  });
+}
+
+export function useProfitMargins(
+  dateFrom?: string, 
+  dateTo?: string, 
+  month?: number, 
+  year?: number, 
+  costMethod: 'lastPrice' | 'cmp' = 'lastPrice',
+  enabled: boolean = true
+) {
+  return useQuery<ProfitMarginSummary>({
+    queryKey: ['profit-margins', dateFrom, dateTo, month, year, costMethod],
+    queryFn: () => deepSearchService.getProfitMargins(dateFrom, dateTo, month, year, costMethod),
     enabled: enabled,
   });
 }

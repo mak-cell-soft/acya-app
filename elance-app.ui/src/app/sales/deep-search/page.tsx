@@ -19,7 +19,11 @@ import {
   HelpCircle,
   CreditCard,
   Percent,
-  Flag
+  Flag,
+  TrendingUp,
+  DollarSign,
+  Package,
+  Layers
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,7 +36,8 @@ import {
   useCustomerPurchases, 
   useMerchandiseBuyers, 
   useUnpaidDocuments,
-  useDiscountReport
+  useDiscountReport,
+  useProfitMargins
 } from '@/hooks/use-deep-search';
 import { CustomerStatementCard } from '@/components/sales/customer-statement-card';
 import { TablePagination } from '@/components/shared/table-pagination';
@@ -72,7 +77,7 @@ export default function DeepSearchPage() {
   const user = useAuthStore((state) => state.user);
   const isAdminOrSuperAdmin = user?.role === 'SuperAdmin' || user?.role === '10' || user?.role === 'Admin' || user?.role === '20';
 
-  const [activeSubTab, setActiveSubTab] = useState<'purchases' | 'buyers' | 'unpaid' | 'discounts'>('purchases');
+  const [activeSubTab, setActiveSubTab] = useState<'purchases' | 'buyers' | 'unpaid' | 'discounts' | 'margins'>('purchases');
   
   // Shared period state
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1); // Default to current month
@@ -118,6 +123,43 @@ export default function DeepSearchPage() {
   const [discountThreshold, setDiscountThreshold] = useState<number>(3);
   const [discountPage, setDiscountPage] = useState<number>(1);
   const [discountPageSize, setDiscountPageSize] = useState<number>(10);
+
+  // --- Sub-Tab 5: Margin Report State ---
+  const [marginCostMethod, setMarginCostMethod] = useState<'lastPrice' | 'cmp'>('lastPrice');
+  const [marginPeriodMode, setMarginPeriodMode] = useState<'today' | 'week' | 'month' | 'year' | 'custom'>('today');
+  const [marginDateFrom, setMarginDateFrom] = useState<string>(getTodayISODate());
+  const [marginDateTo, setMarginDateTo] = useState<string>(getTodayISODate());
+  const [marginSearch, setMarginSearch] = useState<string>('');
+  const [marginPage, setMarginPage] = useState<number>(1);
+  const [marginPageSize, setMarginPageSize] = useState<number>(10);
+
+  const handleMarginPeriodChange = (mode: 'today' | 'week' | 'month' | 'year' | 'custom') => {
+    setMarginPeriodMode(mode);
+    const todayStr = getTodayISODate();
+    const today = new Date();
+
+    if (mode === 'today') {
+      setMarginDateFrom(todayStr);
+      setMarginDateTo(todayStr);
+    } else if (mode === 'week') {
+      const lastWeek = new Date(today);
+      lastWeek.setDate(today.getDate() - 7);
+      const year = lastWeek.getFullYear();
+      const month = String(lastWeek.getMonth() + 1).padStart(2, '0');
+      const day = String(lastWeek.getDate()).padStart(2, '0');
+      setMarginDateFrom(`${year}-${month}-${day}`);
+      setMarginDateTo(todayStr);
+    } else if (mode === 'month') {
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      setMarginDateFrom(`${year}-${month}-01`);
+      setMarginDateTo(todayStr);
+    } else if (mode === 'year') {
+      const year = today.getFullYear();
+      setMarginDateFrom(`${year}-01-01`);
+      setMarginDateTo(`${year}-12-31`);
+    }
+  };
 
   // --- Data Queries ---
   const { data: allCustomers = [] } = useCustomers('Customer');
@@ -167,6 +209,36 @@ export default function DeepSearchPage() {
     discountCustomerId,
     activeSubTab === 'discounts' && isAdminOrSuperAdmin
   );
+
+  // Profit margins summary
+  const { data: profitMarginSummary, isLoading: isMarginsLoading } = useProfitMargins(
+    marginDateFrom,
+    marginDateTo,
+    marginPeriodMode === 'month' ? selectedMonth : undefined,
+    marginPeriodMode === 'year' || marginPeriodMode === 'month' ? selectedYear : undefined,
+    marginCostMethod,
+    activeSubTab === 'margins' && isAdminOrSuperAdmin
+  );
+
+  // Filtered and paginated margin items
+  const filteredMarginItems = useMemo(() => {
+    if (!profitMarginSummary?.items) return [];
+    if (!marginSearch.trim()) return profitMarginSummary.items;
+    const q = marginSearch.toLowerCase();
+    return profitMarginSummary.items.filter(item => 
+      (item.articleReference || '').toLowerCase().includes(q) ||
+      (item.articleDescription || '').toLowerCase().includes(q)
+    );
+  }, [profitMarginSummary, marginSearch]);
+
+  useEffect(() => {
+    setMarginPage(1);
+  }, [marginSearch, marginDateFrom, marginDateTo, marginCostMethod, marginPeriodMode]);
+
+  const paginatedMarginItems = useMemo(() => {
+    const start = (marginPage - 1) * marginPageSize;
+    return filteredMarginItems.slice(start, start + marginPageSize);
+  }, [filteredMarginItems, marginPage, marginPageSize]);
 
   // NOTE: Client-side filtering is implemented here to avoid changing the C#/API backend contract.
   // NOTE: Client-side filtering is implemented here to avoid changing the C#/API backend contract.
@@ -566,17 +638,30 @@ export default function DeepSearchPage() {
             <FileText className="w-4 h-4" /> Factures/BL Impayés
           </button>
           {isAdminOrSuperAdmin && (
-            <button
-              onClick={() => setActiveSubTab('discounts')}
-              className={cn(
-                "px-6 py-3.5 text-sm font-bold border-b-2 transition-all flex items-center gap-2",
-                activeSubTab === 'discounts'
-                  ? "border-corp-blue-600 text-slate-900 bg-corp-blue-50/50"
-                  : "border-transparent text-slate-400 hover:text-slate-900"
-              )}
-            >
-              <Percent className="w-4 h-4" /> Remises Appliquées
-            </button>
+            <>
+              <button
+                onClick={() => setActiveSubTab('discounts')}
+                className={cn(
+                  "px-6 py-3.5 text-sm font-bold border-b-2 transition-all flex items-center gap-2",
+                  activeSubTab === 'discounts'
+                    ? "border-corp-blue-600 text-slate-900 bg-corp-blue-50/50"
+                    : "border-transparent text-slate-400 hover:text-slate-900"
+                )}
+              >
+                <Percent className="w-4 h-4" /> Remises Appliquées
+              </button>
+              <button
+                onClick={() => setActiveSubTab('margins')}
+                className={cn(
+                  "px-6 py-3.5 text-sm font-bold border-b-2 transition-all flex items-center gap-2",
+                  activeSubTab === 'margins'
+                    ? "border-corp-blue-600 text-slate-900 bg-corp-blue-50/50"
+                    : "border-transparent text-slate-400 hover:text-slate-900"
+                )}
+              >
+                <TrendingUp className="w-4 h-4 text-emerald-600" /> Marges Bénéficiaires
+              </button>
+            </>
           )}
         </div>
 
@@ -1188,6 +1273,280 @@ export default function DeepSearchPage() {
                   <h3 className="text-sm font-bold text-slate-900">Aucune remise trouvée</h3>
                   <p className="text-xs text-slate-500 mt-1 max-w-sm">
                     Aucune remise n'a été appliquée sur les factures émises durant cette période.
+                  </p>
+                </div>
+              )}
+
+            </div>
+          )}
+
+          {/* TAB 5: PROFIT MARGINS */}
+          {activeSubTab === 'margins' && (
+            <div className="space-y-6">
+              
+              {/* Filters & Cost Method Selector Card */}
+              <Card className="border-slate-200 shadow-sm rounded-xl bg-white">
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    
+                    {/* Period Mode Selector */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Période :</span>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={marginPeriodMode === 'today' ? 'default' : 'outline'}
+                        onClick={() => handleMarginPeriodChange('today')}
+                        className={cn("h-9 rounded-lg font-bold text-xs", marginPeriodMode === 'today' && "bg-corp-blue-600 hover:bg-corp-blue-700")}
+                      >
+                        Aujourd'hui
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={marginPeriodMode === 'week' ? 'default' : 'outline'}
+                        onClick={() => handleMarginPeriodChange('week')}
+                        className={cn("h-9 rounded-lg font-bold text-xs", marginPeriodMode === 'week' && "bg-corp-blue-600 hover:bg-corp-blue-700")}
+                      >
+                        7 derniers jours
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={marginPeriodMode === 'month' ? 'default' : 'outline'}
+                        onClick={() => handleMarginPeriodChange('month')}
+                        className={cn("h-9 rounded-lg font-bold text-xs", marginPeriodMode === 'month' && "bg-corp-blue-600 hover:bg-corp-blue-700")}
+                      >
+                        Ce Mois
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={marginPeriodMode === 'year' ? 'default' : 'outline'}
+                        onClick={() => handleMarginPeriodChange('year')}
+                        className={cn("h-9 rounded-lg font-bold text-xs", marginPeriodMode === 'year' && "bg-corp-blue-600 hover:bg-corp-blue-700")}
+                      >
+                        Cette Année
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={marginPeriodMode === 'custom' ? 'default' : 'outline'}
+                        onClick={() => handleMarginPeriodChange('custom')}
+                        className={cn("h-9 rounded-lg font-bold text-xs", marginPeriodMode === 'custom' && "bg-corp-blue-600 hover:bg-corp-blue-700")}
+                      >
+                        Personnalisé
+                      </Button>
+                    </div>
+
+                    {/* Cost Method Toggle (Last Price vs CMP) */}
+                    <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-2 rounded-xl">
+                      <span className="text-xs font-bold text-slate-700 ml-1">Méthode Achat :</span>
+                      <div className="flex items-center gap-1 bg-white border border-slate-200 p-1 rounded-lg">
+                        <button
+                          type="button"
+                          onClick={() => setMarginCostMethod('lastPrice')}
+                          className={cn(
+                            "px-3 py-1 text-xs font-bold rounded-md transition-all",
+                            marginCostMethod === 'lastPrice'
+                              ? "bg-corp-blue-600 text-white shadow-sm"
+                              : "text-slate-500 hover:text-slate-900"
+                          )}
+                        >
+                          Dernier Prix (Par défaut)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setMarginCostMethod('cmp')}
+                          className={cn(
+                            "px-3 py-1 text-xs font-bold rounded-md transition-all",
+                            marginCostMethod === 'cmp'
+                              ? "bg-corp-blue-600 text-white shadow-sm"
+                              : "text-slate-500 hover:text-slate-900"
+                          )}
+                        >
+                          CMP (Coût Moyen)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Secondary Filter Row: Search & Custom Dates */}
+                  <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 pt-2 border-t border-slate-100">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+                      <Input
+                        placeholder="Rechercher un article par référence ou description..."
+                        value={marginSearch}
+                        onChange={(e) => setMarginSearch(e.target.value)}
+                        className="pl-10 h-10 border-slate-200 rounded-lg text-slate-900 font-bold"
+                      />
+                    </div>
+
+                    {marginPeriodMode === 'custom' && (
+                      <div className="flex items-center gap-2">
+                        <div>
+                          <Input
+                            type="date"
+                            value={marginDateFrom}
+                            onChange={(e) => setMarginDateFrom(e.target.value)}
+                            className="h-10 border-slate-200 rounded-lg text-slate-900 font-bold text-xs"
+                          />
+                        </div>
+                        <span className="text-slate-400 text-xs font-bold">au</span>
+                        <div>
+                          <Input
+                            type="date"
+                            value={marginDateTo}
+                            onChange={(e) => setMarginDateTo(e.target.value)}
+                            className="h-10 border-slate-200 rounded-lg text-slate-900 font-bold text-xs"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* KPI Cards Header */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card className="border-slate-200 shadow-sm rounded-xl bg-white">
+                  <CardContent className="p-5">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Total Ventes HT Net</p>
+                    <h3 className="text-2xl font-black text-slate-900 mt-1">
+                      {formatCurrency(profitMarginSummary?.totalSalesHTNet || 0)}
+                    </h3>
+                    <p className="text-[11px] text-slate-400 mt-1">Ventes nettes remises déduites</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-slate-200 shadow-sm rounded-xl bg-white">
+                  <CardContent className="p-5">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Coût d'Achat Total HT</p>
+                    <h3 className="text-2xl font-black text-slate-900 mt-1">
+                      {formatCurrency(profitMarginSummary?.totalPurchaseCostHTNet || 0)}
+                    </h3>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Basé sur {marginCostMethod === 'lastPrice' ? 'le Dernier Prix' : 'le Coût Moyen (CMP)'}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className={cn(
+                  "border-slate-200 shadow-sm rounded-xl",
+                  (profitMarginSummary?.totalMarginHT || 0) >= 0 ? "bg-emerald-50/50 border-emerald-200" : "bg-rose-50/50 border-rose-200"
+                )}>
+                  <CardContent className="p-5">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-600">Marge Totale HT (DT)</p>
+                    <h3 className={cn(
+                      "text-2xl font-black mt-1",
+                      (profitMarginSummary?.totalMarginHT || 0) >= 0 ? "text-emerald-700" : "text-rose-700"
+                    )}>
+                      {formatCurrency(profitMarginSummary?.totalMarginHT || 0)}
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-1">Bénéfice hors taxe brut</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-slate-200 shadow-sm rounded-xl bg-slate-900 text-white">
+                  <CardContent className="p-5">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Taux de Marge Global</p>
+                    <h3 className="text-2xl font-black text-emerald-400 mt-1">
+                      {(profitMarginSummary?.globalMarginPercentage || 0).toFixed(2)} %
+                    </h3>
+                    <p className="text-[11px] text-slate-400 mt-1">Pourcentage de bénéfice sur Ventes HT</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Detailed Table Section */}
+              {isMarginsLoading ? (
+                <div className="flex flex-col items-center justify-center py-24 space-y-4 animate-in fade-in duration-300">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-corp-blue-600"></div>
+                  <p className="text-sm font-bold text-slate-800/60 animate-pulse">Calcul de la marge bénéficiaire par article...</p>
+                </div>
+              ) : filteredMarginItems.length > 0 ? (
+                <Card className="border-slate-200 shadow-sm rounded-xl bg-white">
+                  <CardHeader className="p-6 border-b border-slate-100 flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle className="text-xl text-slate-900">Détail des Marges par Article</CardTitle>
+                      <CardDescription>
+                        Calcul comparatif Prix de Vente HT Net vs Prix d'Achat HT Net sur les marchandises vendues.
+                      </CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-corp-blue-50/90 text-corp-blue-950 border-b border-corp-blue-100">
+                            <th className="px-6 py-4 text-sm font-medium">Référence Article</th>
+                            <th className="px-6 py-4 text-sm font-medium">Description</th>
+                            <th className="px-6 py-4 text-sm font-medium text-right">Qté Vendue</th>
+                            <th className="px-6 py-4 text-sm font-medium text-right">P.U. Vente HT</th>
+                            <th className="px-6 py-4 text-sm font-medium text-right">P.U. Achat HT</th>
+                            <th className="px-6 py-4 text-sm font-medium text-right">Coût Achat Total</th>
+                            <th className="px-6 py-4 text-sm font-medium text-right">Vente Totale HT</th>
+                            <th className="px-6 py-4 text-sm font-medium text-right">Marge HT (DT)</th>
+                            <th className="px-6 py-4 text-sm font-medium text-right">Taux Marge (%)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paginatedMarginItems.map((item) => {
+                            const isPositive = item.marginHT >= 0;
+                            return (
+                              <tr key={item.articleId} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                                <td className="px-6 py-4 font-bold text-slate-900">{item.articleReference}</td>
+                                <td className="px-6 py-4 text-slate-700 max-w-[200px] truncate" title={item.articleDescription}>
+                                  {item.articleDescription}
+                                </td>
+                                <td className="px-6 py-4 text-right font-bold text-slate-900">
+                                  {item.quantitySold} <span className="text-xs font-normal text-slate-400 ml-1">{item.unit}</span>
+                                </td>
+                                <td className="px-6 py-4 text-right font-medium text-slate-800">{formatCurrency(item.averageSellingPriceHTNet)}</td>
+                                <td className="px-6 py-4 text-right font-medium text-slate-600">{formatCurrency(item.averagePurchasePriceHTNet)}</td>
+                                <td className="px-6 py-4 text-right font-bold text-slate-700">{formatCurrency(item.totalPurchaseCostHTNet)}</td>
+                                <td className="px-6 py-4 text-right font-bold text-slate-900">{formatCurrency(item.totalSalesHTNet)}</td>
+                                <td className={cn("px-6 py-4 text-right font-black", isPositive ? "text-emerald-700" : "text-rose-700")}>
+                                  {formatCurrency(item.marginHT)}
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                  <span className={cn(
+                                    "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-black",
+                                    item.marginPercentage >= 20
+                                      ? "bg-emerald-100 text-emerald-800"
+                                      : item.marginPercentage >= 0
+                                      ? "bg-amber-100 text-amber-800"
+                                      : "bg-rose-100 text-rose-800"
+                                  )}>
+                                    {item.marginPercentage.toFixed(2)} %
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <TablePagination
+                      currentPage={marginPage}
+                      totalItems={filteredMarginItems.length}
+                      pageSize={marginPageSize}
+                      onPageChange={setMarginPage}
+                      onPageSizeChange={(size) => {
+                        setMarginPageSize(size);
+                        setMarginPage(1);
+                      }}
+                    />
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50 animate-in fade-in duration-300">
+                  <TrendingUp className="w-12 h-12 text-slate-300 mb-3" />
+                  <h3 className="text-sm font-bold text-slate-900">Aucun mouvement de vente trouvé</h3>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm">
+                    Aucune marchandise vendue n'a été trouvée pour la période sélectionnée.
                   </p>
                 </div>
               )}

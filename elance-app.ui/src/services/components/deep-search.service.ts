@@ -49,6 +49,28 @@ export interface DiscountReportLine {
   customerName: string;
 }
 
+export interface ProfitMarginItem {
+  articleId: number;
+  articleReference: string;
+  articleDescription: string;
+  unit: string;
+  quantitySold: number;
+  totalSalesHTNet: number;
+  averageSellingPriceHTNet: number;
+  averagePurchasePriceHTNet: number;
+  totalPurchaseCostHTNet: number;
+  marginHT: number;
+  marginPercentage: number;
+}
+
+export interface ProfitMarginSummary {
+  totalSalesHTNet: number;
+  totalPurchaseCostHTNet: number;
+  totalMarginHT: number;
+  globalMarginPercentage: number;
+  items: ProfitMarginItem[];
+}
+
 export const deepSearchService = {
   getCustomerPurchases: async (customerId: number, month?: number, year?: number) => {
     const params: Record<string, any> = {};
@@ -87,6 +109,23 @@ export const deepSearchService = {
     if (customerId && customerId > 0) params.customerId = customerId;
 
     const response = await api.get<DiscountReportLine[]>('/DeepSearch/discount-report', { params });
+    return response.data;
+  },
+
+  getProfitMargins: async (
+    dateFrom?: string, 
+    dateTo?: string, 
+    month?: number, 
+    year?: number, 
+    costMethod: 'lastPrice' | 'cmp' = 'lastPrice'
+  ) => {
+    const params: Record<string, any> = { costMethod };
+    if (dateFrom) params.dateFrom = dateFrom;
+    if (dateTo) params.dateTo = dateTo;
+    if (month && month > 0) params.month = month;
+    if (year && year > 0) params.year = year;
+
+    const response = await api.get<ProfitMarginSummary>('/DeepSearch/profit-margins', { params });
     return response.data;
   }
 };

@@ -66,6 +66,7 @@ import { useSuppliers } from '@/hooks/use-suppliers';
 import { useArticles } from '@/hooks/use-articles';
 import { useSupplierPurchasePaymentChart } from '@/hooks/use-supplier-chart';
 import { useDocumentsByTypeFiltered } from '@/hooks/use-documents';
+import { useProfitMargins } from '@/hooks/use-deep-search';
 import { DocumentTypes } from '@/types/document';
 import { SubCategoryStockHealthDto, ArticleStockDto } from '@/types/analytics';
 import { useStockDashboardStats } from '@/hooks/use-stock';
@@ -99,6 +100,19 @@ export default function AnalyticsPage() {
   const { data: kpis, isLoading: isLoadingKpis, isError } = useAnalyticsKpis(
     chartMonth === 'ALL' ? undefined : chartMonth,
     chartYear
+  );
+
+  // Profit Margins Analytics state
+  const [marginAnalyticsYear, setMarginAnalyticsYear] = useState<number>(new Date().getFullYear());
+  const [marginAnalyticsCostMethod, setMarginAnalyticsCostMethod] = useState<'lastPrice' | 'cmp'>('lastPrice');
+
+  const { data: profitMarginAnalytics, isLoading: isLoadingProfitMargins } = useProfitMargins(
+    undefined,
+    undefined,
+    chartMonth === 'ALL' ? undefined : chartMonth,
+    marginAnalyticsYear,
+    marginAnalyticsCostMethod,
+    true
   );
 
   // ── ADVANCED RECEIVABLES ANALYSIS DIALOG STATES ──
@@ -760,6 +774,75 @@ export default function AnalyticsPage() {
     );
   };
 
+  const renderProfitMarginsAnalytics = () => {
+    if (!isMounted || isLoadingProfitMargins) {
+      return (
+        <div className="h-[320px] w-full bg-corp-blue-50/30 animate-pulse rounded-2xl flex items-center justify-center">
+          <span className="text-corp-blue-300 font-medium">Chargement des données de rentabilité...</span>
+        </div>
+      );
+    }
+
+    const items = profitMarginAnalytics?.items || [];
+    if (items.length === 0) {
+      return (
+        <div className="h-[320px] w-full flex items-center justify-center bg-sand-50 rounded-2xl text-sand-400 text-sm">
+          Aucune donnée de marge pour cette période
+        </div>
+      );
+    }
+
+    const topItems = items.slice(0, 7);
+
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="p-4 bg-emerald-50/60 border border-emerald-100 rounded-2xl">
+            <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Marge Totale HT</span>
+            <div className="text-2xl font-black text-emerald-700 mt-1 font-mono">{formatCurrency(profitMarginAnalytics?.totalMarginHT || 0)}</div>
+          </div>
+          <div className="p-4 bg-corp-blue-50/60 border border-corp-blue-100 rounded-2xl">
+            <span className="text-xs font-bold text-corp-blue-800 uppercase tracking-wider">Ventes Totales HT</span>
+            <div className="text-2xl font-black text-corp-blue-900 mt-1 font-mono">{formatCurrency(profitMarginAnalytics?.totalSalesHTNet || 0)}</div>
+          </div>
+          <div className="p-4 bg-slate-900 text-white rounded-2xl">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Taux de Marge Global</span>
+            <div className="text-2xl font-black text-emerald-400 mt-1 font-mono">{(profitMarginAnalytics?.globalMarginPercentage || 0).toFixed(2)} %</div>
+          </div>
+        </div>
+
+        <div className="h-[280px] w-full">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+            <BarChart data={topItems} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.5} />
+              <XAxis dataKey="articleReference" tick={{ fill: '#64748B', fontSize: 11, fontWeight: 700 }} dy={10} />
+              <YAxis tick={{ fill: '#64748B', fontSize: 11 }} tickFormatter={(val) => `${val} DT`} />
+              <Tooltip 
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    return (
+                      <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[200px]">
+                        <p className="font-bold text-slate-900 text-sm">{data.articleReference}</p>
+                        <p className="text-xs text-slate-500 truncate max-w-[180px]">{data.articleDescription}</p>
+                        <div className="mt-2 space-y-1 text-xs">
+                          <div className="flex justify-between"><span className="text-slate-500">Marge HT:</span> <span className="font-bold text-emerald-600">{formatCurrency(data.marginHT)}</span></div>
+                          <div className="flex justify-between"><span className="text-slate-500">Taux Marge:</span> <span className="font-bold text-slate-900">{data.marginPercentage.toFixed(2)}%</span></div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar dataKey="marginHT" name="Marge HT" fill="#10B981" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    );
+  };
+
   const renderStockHealth = () => {
     if (isLoadingStockHealth) {
       return (
@@ -1200,6 +1283,36 @@ export default function AnalyticsPage() {
               <div className="h-[400px] w-full relative min-h-0">
                 {renderSupplierChart()}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Profit Margins Analysis Chart Card */}
+          <Card className="lg:col-span-12 border-corp-blue-100 rounded-2xl shadow-xl shadow-corp-blue-900/2 bg-white overflow-hidden">
+            <CardHeader className="p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-2xl text-corp-blue-900 flex items-center gap-2">
+                  <TrendingUp className="w-6 h-6 text-emerald-600" />
+                  Marges Bénéficiaires & Rentabilité
+                </CardTitle>
+                <CardDescription className="text-sand-400 font-medium">Analyse comparative des prix de vente HT nets vs coûts d'achat HT nets par article.</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Select
+                  value={marginAnalyticsCostMethod}
+                  onValueChange={(val) => val && setMarginAnalyticsCostMethod(val as 'lastPrice' | 'cmp')}
+                >
+                  <SelectTrigger className="w-[180px] h-9 text-xs font-bold border-slate-200 rounded-lg">
+                    <SelectValue placeholder="Méthode d'Achat" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="lastPrice" className="text-xs font-bold">Dernier Prix (Par défaut)</SelectItem>
+                    <SelectItem value="cmp" className="text-xs font-bold">CMP (Coût Moyen)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+            <CardContent className="p-8 pt-0">
+              {renderProfitMarginsAnalytics()}
             </CardContent>
           </Card>
 

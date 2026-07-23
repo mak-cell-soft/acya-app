@@ -421,5 +421,205 @@ namespace ms.webapp.api.acya.api.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("profit-margins")]
+        public async Task<ActionResult<ProfitMarginSummaryDto>> GetProfitMargins(
+            [FromQuery] string? dateFrom,
+            [FromQuery] string? dateTo,
+            [FromQuery] int? month,
+            [FromQuery] int? year,
+            [FromQuery] string? costMethod = "lastPrice")
+        {
+            try
+            {
+                DateTime from;
+                DateTime to;
+
+                if (month.HasValue && month.Value > 0 && year.HasValue && year.Value > 0)
+                {
+                    from = new DateTime(year.Value, month.Value, 1);
+                    to = from.AddMonths(1).AddTicks(-1);
+                }
+                else if (year.HasValue && year.Value > 0)
+                {
+                    from = new DateTime(year.Value, 1, 1);
+                    to = new DateTime(year.Value, 12, 31, 23, 59, 59);
+                }
+                else if (!string.IsNullOrEmpty(dateFrom) || !string.IsNullOrEmpty(dateTo))
+                {
+                    from = DateTime.Today;
+                    if (!string.IsNullOrEmpty(dateFrom) && DateTime.TryParse(dateFrom, out var pFrom))
+                    {
+                        from = pFrom.Date;
+                    }
+
+                    to = DateTime.Today.AddDays(1).AddTicks(-1);
+                    if (!string.IsNullOrEmpty(dateTo) && DateTime.TryParse(dateTo, out var pTo))
+                    {
+                        to = pTo.Date.AddDays(1).AddTicks(-1);
+                    }
+                }
+                else
+                {
+                    from = DateTime.Today;
+                    to = DateTime.Today.AddDays(1).AddTicks(-1);
+                }
+
+                var salesQuery = _context.DocumentMerchandises
+                    .Include(dm => dm.Document)
+                    .Include(dm => dm.Merchandise)
+                        .ThenInclude(m => m!.Articles)
+                    .Where(dm => dm.Document!.IsDeleted == false
+                                 && dm.Type == LineType.Merchandise
+                                 && dm.Document.CreationDate >= from 
+                                 && dm.Document.CreationDate <= to);
+
+                salesQuery = salesQuery.Where(dm => 
+                    dm.Document!.Type == DocumentTypes.customerInvoice 
+                    || (dm.Document.Type == DocumentTypes.customerDeliveryNote && !dm.Document.IsInvoiced));
+
+                var salesList = await salesQuery.ToListAsync();
+
+                if (!salesList.Any())
+                {
+                    return Ok(new ProfitMarginSummaryDto());
+                }
+
+                var salesByArticle = salesList
+                    .Where(dm => dm.Merchandise?.ArticleId != null && dm.Merchandise.ArticleId > 0)
+                    .GroupBy(dm => dm.Merchandise!.ArticleId);
+
+                var articleIds = salesByArticle.Select(g => g.Key).ToList();
+
+                var purchaseTypes = new[] { DocumentTypes.supplierReceipt, DocumentTypes.supplierInvoice };
+
+                var purchaseLinesQuery = _context.DocumentMerchandises
+                    .Include(dm => dm.Document)
+                    .Include(dm => dm.Merchandise)
+                    .Where(dm => dm.Merchandise != null 
+                                 && articleIds.Contains(dm.Merchandise.ArticleId)
+                                 && dm.Document!.IsDeleted == false
+                                 && dm.Type == LineType.Merchandise
+                                 && dm.Document.Type.HasValue 
+                                 && purchaseTypes.Contains(dm.Document.Type.Value));
+
+                var purchaseLines = await purchaseLinesQuery.ToListAsync();
+
+                var purchaseDocIds = purchaseLines.Select(l => l.DocumentId).Distinct().ToList();
+                var relationships = await _context.DocumentDocumentRelationships
+                    .Include(r => r.ChildDocument)
+                    .Where(r => purchaseDocIds.Contains(r.ParentDocumentId) || purchaseDocIds.Contains(r.ChildDocumentId))
+                    .ToListAsync();
+
+                var filteredPurchaseLines = purchaseLines.Where(line =>
+                {
+                    if (line.Document?.Type == DocumentTypes.supplierInvoice)
+                    {
+                        bool hasLinkedReceipt = relationships.Any(r =>
+                            r.ParentDocumentId == line.DocumentId &&
+                            r.ChildDocument != null &&
+                            r.ChildDocument.Type == DocumentTypes.supplierReceipt);
+
+                        if (hasLinkedReceipt) return false;
+                    }
+                    return true;
+                }).ToList();
+
+                var purchasesByArticle = filteredPurchaseLines
+                    .Where(l => l.Merchandise != null)
+                    .GroupBy(l => l.Merchandise!.ArticleId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                var items = new List<ProfitMarginDto>();
+                bool useCmp = string.Equals(costMethod, "cmp", StringComparison.OrdinalIgnoreCase);
+
+                foreach (var group in salesByArticle)
+                {
+                    int artId = group.Key;
+                    var sampleDm = group.First();
+                    var article = sampleDm.Merchandise?.Articles;
+
+                    double qtySold = group.Sum(x => x.Quantity);
+                    if (qtySold <= 0) continue;
+
+                    double totalSalesHTNet = group.Sum(dm => {
+                        double discountPercent = dm.DiscountPercentage;
+                        if (discountPercent <= 0.001 && dm.Document != null && dm.Document.TotalCostDiscountDoc > 0.001)
+                        {
+                            double totalGrossHT = dm.Document.TotalCostHTNetDoc + dm.Document.TotalCostDiscountDoc;
+                            if (totalGrossHT > 0.001)
+                            {
+                                discountPercent = (dm.Document.TotalCostDiscountDoc / totalGrossHT) * 100.0;
+                            }
+                        }
+                        double unitNetPrice = dm.UnitPriceHT * (1.0 - discountPercent / 100.0);
+                        return unitNetPrice * dm.Quantity;
+                    });
+
+                    double avgSellingPriceHTNet = qtySold > 0 ? (totalSalesHTNet / qtySold) : 0;
+
+                    double unitPurchasePriceHTNet = 0;
+
+                    if (purchasesByArticle.TryGetValue(artId, out var pLines) && pLines.Any())
+                    {
+                        if (useCmp)
+                        {
+                            double totalPurchasedQty = pLines.Sum(l => l.Quantity);
+                            if (totalPurchasedQty > 0)
+                            {
+                                unitPurchasePriceHTNet = pLines.Sum(l => l.CostNetHT > 0 ? l.CostNetHT : (l.UnitPriceHT * (1 - l.DiscountPercentage / 100.0) * l.Quantity)) / totalPurchasedQty;
+                            }
+                        }
+                        else
+                        {
+                            var latestPurchase = pLines.OrderByDescending(l => l.Document?.CreationDate ?? DateTime.MinValue).First();
+                            double latestNetCost = latestPurchase.CostNetHT > 0 
+                                ? latestPurchase.CostNetHT 
+                                : (latestPurchase.UnitPriceHT * (1 - latestPurchase.DiscountPercentage / 100.0) * latestPurchase.Quantity);
+                            unitPurchasePriceHTNet = latestPurchase.Quantity > 0 ? (latestNetCost / latestPurchase.Quantity) : 0;
+                        }
+                    }
+
+                    double totalPurchaseCostHTNet = unitPurchasePriceHTNet * qtySold;
+                    double marginHT = totalSalesHTNet - totalPurchaseCostHTNet;
+                    double marginPercentage = totalSalesHTNet > 0 ? ((marginHT / totalSalesHTNet) * 100.0) : 0;
+
+                    items.Add(new ProfitMarginDto
+                    {
+                        ArticleId = artId,
+                        ArticleReference = article?.Reference ?? "INCONNU",
+                        ArticleDescription = article?.Description ?? sampleDm.Merchandise?.Description ?? string.Empty,
+                        Unit = article?.Unit ?? "Pcs",
+                        QuantitySold = Math.Round(qtySold, 3),
+                        TotalSalesHTNet = Math.Round(totalSalesHTNet, 3),
+                        AverageSellingPriceHTNet = Math.Round(avgSellingPriceHTNet, 3),
+                        AveragePurchasePriceHTNet = Math.Round(unitPurchasePriceHTNet, 3),
+                        TotalPurchaseCostHTNet = Math.Round(totalPurchaseCostHTNet, 3),
+                        MarginHT = Math.Round(marginHT, 3),
+                        MarginPercentage = Math.Round(marginPercentage, 2)
+                    });
+                }
+
+                items = items.OrderByDescending(x => x.MarginHT).ToList();
+
+                double grandTotalSales = Math.Round(items.Sum(x => x.TotalSalesHTNet), 3);
+                double grandTotalPurchase = Math.Round(items.Sum(x => x.TotalPurchaseCostHTNet), 3);
+                double grandTotalMargin = Math.Round(grandTotalSales - grandTotalPurchase, 3);
+                double globalMarginPercent = grandTotalSales > 0 ? Math.Round((grandTotalMargin / grandTotalSales) * 100.0, 2) : 0;
+
+                return Ok(new ProfitMarginSummaryDto
+                {
+                    TotalSalesHTNet = grandTotalSales,
+                    TotalPurchaseCostHTNet = grandTotalPurchase,
+                    TotalMarginHT = grandTotalMargin,
+                    GlobalMarginPercentage = globalMarginPercent,
+                    Items = items
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }
