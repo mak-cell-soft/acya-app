@@ -36,7 +36,7 @@ function parseJwt(token: string) {
     }).join(''));
 
     return JSON.parse(jsonPayload);
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -49,10 +49,15 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       login: (user, token) => {
         const decoded = parseJwt(token);
+        // Check token expiration (exp claim)
+        if (decoded?.exp && decoded.exp * 1000 < Date.now()) {
+          set({ user: null, token: null, isAuthenticated: false });
+          return;
+        }
         if (decoded && decoded.Permissions) {
           try {
             user.permissions = JSON.parse(decoded.Permissions);
-          } catch (e) {
+          } catch {
             user.permissions = null;
           }
         }
@@ -63,6 +68,14 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
+      onRehydrateStorage: () => (state) => {
+        if (state?.token) {
+          const decoded = parseJwt(state.token);
+          if (decoded?.exp && decoded.exp * 1000 < Date.now()) {
+            state.logout();
+          }
+        }
+      },
     }
   )
 );

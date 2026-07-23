@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Bell, Search, User, Settings, LogOut, CreditCard, Menu, Calendar, Store, MapPin, X } from 'lucide-react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { Bell, Search, User, Settings, LogOut, CreditCard, Menu, Calendar, Store, MapPin, X, LayoutDashboard, Package, ShoppingBag, ShoppingCart, Users, Truck, Warehouse, Calculator, BarChart3, ClipboardList, Car, UserCheck, ArrowRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { 
@@ -84,14 +84,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         >
           <Menu className="h-6 w-6" />
         </Button>
-        <div className="relative w-full max-w-sm hidden sm:block">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-sand-400" />
-          <Input
-            type="search"
-            placeholder="Rechercher..."
-            className="pl-10 bg-background border-corp-blue-100 h-10 w-full rounded-xl focus:border-corp-blue-600 focus:ring-4 focus:ring-corp-blue-600/10 transition-all shadow-sm"
-          />
-        </div>
+        <NavbarSearch />
 
         {/* Date bubble matching the styling of WoodApp-UI header */}
         <div className="hidden md:flex items-center gap-2 text-sand-600 bg-sand-50/60 border border-sand-100/50 px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:bg-sand-50 shadow-sm ml-2">
@@ -171,6 +164,220 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
       <ProfileDialog isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </header>
+  );
+}
+
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
+import { PermissionModuleKey } from '@/types/permissions';
+import { Lock } from 'lucide-react';
+
+type SearchShortcut = {
+  name: string;
+  href: string;
+  icon: any;
+  keywords: string[];
+  module?: PermissionModuleKey;
+  adminOnly?: boolean;
+};
+
+const SEARCH_SHORTCUTS: SearchShortcut[] = [
+  { name: 'Tableau de bord', href: '/dashboard', icon: LayoutDashboard, keywords: ['tableau', 'bord', 'accueil', 'dashboard', 'home'] },
+  { name: 'Articles & Produits', href: '/articles', icon: Package, module: 'articles', keywords: ['article', 'produit', 'stock', 'prix', 'm3', 'bois'] },
+  { name: 'Ventes & Factures', href: '/sales', icon: ShoppingBag, module: 'sales', keywords: ['vente', 'devis', 'facture', 'commande', 'client', 'bl'] },
+  { name: 'Achats & Fournisseurs', href: '/purchases', icon: ShoppingCart, module: 'purchases', keywords: ['achat', 'reception', 'bon', 'commande', 'fournisseur'] },
+  { name: 'Stock & Dépôts', href: '/stock', icon: Warehouse, module: 'stock', keywords: ['stock', 'depot', 'transfert', 'inventaire', 'emplacement'] },
+  { name: 'Clients', href: '/customers', icon: Users, module: 'customers', keywords: ['client', 'partenaire', 'contact'] },
+  { name: 'Fournisseurs', href: '/suppliers', icon: Truck, module: 'providers', keywords: ['fournisseur', 'prestataire', 'tiers'] },
+  { name: 'Analyses & Rapports', href: '/analytics', icon: BarChart3, module: 'analytics', keywords: ['analyse', 'rapport', 'statistique', 'chiffre', 'marge'] },
+  { name: 'Recherche Approfondie', href: '/sales/deep-search', icon: Search, module: 'sales', keywords: ['deep', 'recherche', 'avancée', 'impayés', 'bénéfices'] },
+  { name: 'Pré-Analyse Comptable', href: '/accounting', icon: Calculator, module: 'accounting', keywords: ['compta', 'comptabilite', 'tva', 'journal', 'banque'] },
+  { name: 'Chantiers', href: '/chantiers', icon: ClipboardList, keywords: ['chantier', 'projet', 'suivi'] },
+  { name: 'Véhicules & Flotte', href: '/vehicles', icon: Car, module: 'vehicles', keywords: ['vehicule', 'camion', 'flotte', 'transport'] },
+  { name: 'Équipe & RH', href: '/team', icon: UserCheck, module: 'hr', keywords: ['equipe', 'rh', 'employe', 'personnel', 'utilisateur'] },
+  { name: 'Paramètres', href: '/settings', icon: Settings, module: 'configuration', keywords: ['parametre', 'option', 'configuration', 'tva', 'unite'] },
+];
+
+function NavbarSearch() {
+  const [query, setQuery] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const { user } = useAuthStore();
+  const { hasAnyPermission } = usePermissionGuard();
+
+  const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin' || user?.role === '20' || user?.role === '10';
+
+  const checkPermission = (item: SearchShortcut): boolean => {
+    if (item.adminOnly && !isAdmin) return false;
+    if (item.module && !hasAnyPermission(item.module)) return false;
+    return true;
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        inputRef.current?.focus();
+        setIsOpen(true);
+      }
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+        inputRef.current?.blur();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredShortcuts = useMemo(() => {
+    if (!query.trim()) return SEARCH_SHORTCUTS.slice(0, 6);
+    const q = query.toLowerCase().trim();
+    return SEARCH_SHORTCUTS.filter(s => 
+      s.name.toLowerCase().includes(q) || 
+      s.keywords.some(k => k.toLowerCase().includes(q))
+    );
+  }, [query]);
+
+  const handleSelect = (item: SearchShortcut) => {
+    setIsOpen(false);
+    setQuery('');
+
+    if (!checkPermission(item)) {
+      toast.error("Accès refusé : Vous n'avez pas la permission d'accéder à ce module.");
+      return;
+    }
+
+    router.push(item.href);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!query.trim()) return;
+
+    const matched = SEARCH_SHORTCUTS.find(s => s.name.toLowerCase().includes(query.toLowerCase().trim()));
+    if (matched) {
+      handleSelect(matched);
+    } else {
+      setIsOpen(false);
+      inputRef.current?.blur();
+      if (!hasAnyPermission('sales')) {
+        toast.error("Accès refusé : Vous n'avez pas la permission d'accéder à la recherche avancée.");
+        return;
+      }
+      router.push('/sales/deep-search');
+    }
+  };
+
+  return (
+    <div ref={containerRef} className="relative w-full max-w-sm hidden sm:block">
+      <form onSubmit={handleSubmit} className="relative w-full">
+        <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
+        <Input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setIsOpen(true);
+          }}
+          onFocus={() => setIsOpen(true)}
+          placeholder="Rechercher (ex: Devis, Articles, Impayés...)"
+          className="pl-10 pr-16 bg-slate-50/80 hover:bg-slate-100/80 focus:bg-white border-slate-200/80 h-10 w-full rounded-xl text-xs font-semibold focus:border-corp-blue-500 focus:ring-4 focus:ring-corp-blue-500/10 transition-all shadow-2xs placeholder:text-slate-400 placeholder:font-normal"
+        />
+        {query ? (
+          <button
+            type="button"
+            onClick={() => { setQuery(''); inputRef.current?.focus(); }}
+            className="absolute right-3 top-2.5 p-0.5 text-slate-400 hover:text-slate-600 rounded-md transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : (
+          <kbd className="absolute right-3 top-2.5 hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-bold text-slate-400 bg-white border border-slate-200 rounded-md shadow-2xs pointer-events-none select-none">
+            <span className="text-[9px]">⌘</span>K
+          </kbd>
+        )}
+      </form>
+
+      {isOpen && (
+        <div className="absolute left-0 right-0 top-12 bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-2xl z-50 overflow-hidden font-sans p-2 animate-in fade-in slide-in-from-top-2 duration-150">
+          {query.trim() && (
+            <div className="p-2 border-b border-slate-100 mb-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  if (!hasAnyPermission('sales')) {
+                    toast.error("Accès refusé : Vous n'avez pas la permission d'accéder à la recherche avancée.");
+                    return;
+                  }
+                  router.push('/sales/deep-search');
+                }}
+                className="w-full flex items-center justify-between p-2 rounded-xl bg-corp-blue-50/80 hover:bg-corp-blue-100/70 text-corp-blue-900 transition-colors text-xs font-bold text-left group cursor-pointer"
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <Search className="h-4 w-4 text-corp-blue-600 shrink-0" />
+                  <span className="truncate">Recherche Approfondie pour « <strong className="text-corp-blue-700">{query}</strong> »</span>
+                </div>
+                <ArrowRight className="h-3.5 w-3.5 text-corp-blue-600 group-hover:translate-x-0.5 transition-transform shrink-0" />
+              </button>
+            </div>
+          )}
+
+          <div className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400 select-none">
+            {query.trim() ? 'Raccourcis & Modules' : 'Accès Rapide'}
+          </div>
+
+          <div className="max-h-64 overflow-y-auto space-y-0.5 custom-scrollbar py-1">
+            {filteredShortcuts.length > 0 ? (
+              filteredShortcuts.map((item) => {
+                const isPermitted = checkPermission(item);
+                return (
+                  <button
+                    key={item.name}
+                    type="button"
+                    onClick={() => handleSelect(item)}
+                    className={cn(
+                      "w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-colors text-left group cursor-pointer",
+                      isPermitted
+                        ? "hover:bg-slate-100/80 text-slate-700 hover:text-slate-900"
+                        : "hover:bg-rose-50/60 text-slate-400 hover:text-rose-700"
+                    )}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <item.icon className={cn("h-4 w-4 shrink-0 transition-colors", isPermitted ? "text-slate-400 group-hover:text-corp-blue-600" : "text-slate-300 group-hover:text-rose-500")} />
+                      <span>{item.name}</span>
+                    </div>
+                    {isPermitted ? (
+                      <span className="text-[10px] text-slate-400 font-normal group-hover:text-corp-blue-600">Aller</span>
+                    ) : (
+                      <span className="text-[10px] text-rose-500 font-medium flex items-center gap-1">
+                        <Lock className="w-3 h-3" /> Accès restreint
+                      </span>
+                    )}
+                  </button>
+                );
+              })
+            ) : (
+              <div className="p-4 text-center text-xs text-slate-400 italic">
+                Aucun module direct pour « {query} ». Appuyez sur Entrée pour lancer une recherche approfondie.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

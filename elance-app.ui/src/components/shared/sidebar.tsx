@@ -206,85 +206,83 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Mobile Overlay */}
       <div
         className={cn(
-          'fixed inset-0 bg-corp-navy/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300',
+          'fixed inset-0 bg-slate-900/60 backdrop-blur-md z-40 lg:hidden transition-opacity duration-300 ease-out',
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         )}
         onClick={onClose}
       />
 
-      {/* Sidebar panel — custom background color, or fallback to amber-tinted/blue gradient */}
+      {/* Sidebar panel — premium glassmorphism background & subtle border shadow */}
       <div
         style={secondaryColor ? { backgroundColor: secondaryColor, backgroundImage: 'none' } : undefined}
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex flex-col h-full text-slate-800 border-r font-sans transition-all duration-300 ease-in-out lg:relative lg:translate-x-0 shadow-[4px_0_24px_rgba(0,0,0,0.04)]',
+          'fixed inset-y-0 left-0 z-50 flex flex-col h-full text-slate-800 border-r font-sans transition-[width,transform] duration-300 ease-in-out lg:relative lg:translate-x-0 shadow-[4px_0_28px_-4px_rgba(0,0,0,0.05)] selection:bg-corp-blue-500/15',
           isOpen ? 'translate-x-0' : '-translate-x-full',
-          isCollapsed ? 'w-[90px]' : 'w-72',
-          // WHY: Visual distinction — amber gradient for depot, blue for sale (if no custom secondaryColor)
+          isCollapsed ? 'w-[88px]' : 'w-72',
           !secondaryColor && (isDepot
-            ? 'bg-gradient-to-br from-amber-50 via-[#FFFBF0] to-[#FFFEF9] border-amber-100/80'
-            : 'bg-gradient-to-br from-corp-blue-50 via-[#EBF1FA] to-[#F8FAFF] border-corp-blue-100/80')
+            ? 'bg-gradient-to-b from-[#FFFDF7] via-[#FFF9ED] to-[#FFF6E5] border-amber-200/60'
+            : 'bg-gradient-to-b from-[#FFFFFF] via-[#F8FAFC] to-[#F1F5F9] border-slate-200/70')
         )}
       >
         {/* Collapse toggle button */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
+          aria-label={isCollapsed ? 'Agrandir le menu' : 'Réduire le menu'}
           className={cn(
-            'absolute -right-3 top-8 w-6 h-6 bg-white border rounded-full flex items-center justify-center shadow-sm z-50 hidden lg:flex cursor-pointer hover:bg-opacity-80 transition-[background-color,color,border-color,transform] duration-200 ease-out before:absolute before:inset-[-8px] before:content-[""]',
+            'absolute -right-3.5 top-7 w-7 h-7 bg-white border rounded-full flex items-center justify-center shadow-md z-50 hidden lg:flex cursor-pointer hover:bg-slate-50 active:scale-[0.96] transition-[background-color,color,border-color,transform,box-shadow] duration-200 ease-out before:absolute before:inset-[-8px] before:content-[""]',
             isDepot
-              ? 'border-amber-200 text-amber-600 hover:bg-amber-50'
-              : 'border-corp-blue-200 text-corp-blue-600 hover:bg-corp-blue-50'
+              ? 'border-amber-200/90 text-amber-600 hover:text-amber-700 hover:border-amber-300'
+              : 'border-slate-200 text-slate-600 hover:text-corp-blue-600 hover:border-corp-blue-200'
           )}
         >
           <ChevronRight
-            className={cn('w-4 h-4 transition-transform duration-300', isCollapsed ? '' : 'rotate-180')}
+            className={cn('w-4 h-4 transition-transform duration-300 ease-out', isCollapsed ? '' : 'rotate-180')}
           />
         </button>
 
         {/* ── LOGO & SITE BADGE ── */}
         <div
           className={cn(
-            'p-6 pb-6 mb-6 border-b flex items-start justify-between',
-            isCollapsed ? 'px-3' : '',
-            isDepot ? 'border-amber-100/80' : 'border-corp-blue-100/80'
+            'p-5 pb-5 mb-2 border-b flex items-center justify-between transition-padding duration-300',
+            isCollapsed ? 'px-3 justify-center' : '',
+            isDepot ? 'border-amber-200/50' : 'border-slate-200/60'
           )}
         >
           <AlertDialog>
-<AlertDialogTrigger
+            <AlertDialogTrigger
               className={cn(
-                'flex items-center group text-left outline-none w-full',
-                isCollapsed ? 'justify-center' : (logoUrl ? 'justify-center' : 'gap-4')
+                'flex items-center group text-left outline-none w-full cursor-pointer focus-visible:ring-2 focus-visible:ring-corp-blue-500 rounded-xl p-1 transition-[background-color,transform] duration-200 ease-out active:scale-[0.98]',
+                isCollapsed ? 'justify-center' : (logoUrl ? 'justify-center' : 'gap-3.5')
               )}
             >
               {logoUrl ? (
-                <div className="relative group-hover:scale-105 transition-transform duration-500 w-full flex justify-center">
+                <div className="relative group-hover:scale-[1.03] transition-transform duration-300 w-full flex justify-center">
                   <img
                     src={logoUrl}
                     alt={user?.enterpriseName || "Logo"}
                     className={cn(
-                      'object-contain rounded-lg transition-[transform,opacity] duration-200 ease-out outline outline-1 outline-black/10 dark:outline-white/10',
+                      'object-contain rounded-xl transition-[transform,opacity,box-shadow] duration-200 ease-out outline outline-1 outline-black/10 dark:outline-white/10 shadow-sm',
                       isCollapsed 
-                        ? 'w-10 h-10 md:w-11 md:h-11 shadow-sm' 
-                        : 'max-h-16 max-w-full shadow-sm'
+                        ? 'w-10 h-10 md:w-11 md:h-11' 
+                        : 'max-h-14 max-w-full'
                     )}
                   />
                 </div>
               ) : (
                 <>
                   {/* Logo hexagon cluster */}
-                  <div className="relative group-hover:scale-110 transition-transform duration-500 shrink-0">
+                  <div className="relative group-hover:scale-105 transition-transform duration-300 shrink-0">
                     <svg
-                      className="w-10 h-10 md:w-11 md:h-11 transition-transform duration-700 group-hover:scale-105"
+                      className="w-10 h-10 md:w-11 md:h-11 transition-transform duration-500 group-hover:rotate-3"
                       viewBox="0 0 40 40"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <defs>
-                        {/* WHY: Depot uses amber/orange gradients to clearly signal the
-                                 different site mode at a glance. Sale site keeps corp-blue. */}
                         {isDepot ? (
                           <>
                             <linearGradient id="logo_grad_1" x1="0" y1="0" x2="40" y2="40">
-                              <stop offset="0%" stopColor="#FCD34D" />
+                              <stop offset="0%" stopColor="#FBBF24" />
                               <stop offset="100%" stopColor="#F59E0B" />
                             </linearGradient>
                             <linearGradient id="logo_grad_2" x1="0" y1="0" x2="40" y2="40">
@@ -320,38 +318,36 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   </div>
 
                   {!isCollapsed && (
-                    <div className="flex flex-col items-start justify-center gap-1.5 overflow-hidden">
-                      <span className="text-[1.65rem] font-extrabold text-slate-900 tracking-tight leading-none mt-0.5 truncate w-full">
+                    <div className="flex flex-col items-start justify-center gap-1 overflow-hidden">
+                      <span className="text-[1.5rem] font-black text-slate-900 tracking-tight leading-none truncate w-full">
                         Élancé
                       </span>
                       <div
                         className={cn(
-                          'flex items-center gap-1.5 px-2.5 py-1 rounded-md border transition-colors shadow-sm whitespace-nowrap',
+                          'flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border transition-colors shadow-2xs whitespace-nowrap',
                           isDepot
-                            ? 'bg-amber-100/50 border-amber-200/60 group-hover:bg-amber-200/50'
-                            : 'bg-corp-blue-100/50 border-corp-blue-200/60 group-hover:bg-corp-blue-200/50'
+                            ? 'bg-amber-100/70 border-amber-200/80 group-hover:bg-amber-200/70'
+                            : 'bg-slate-100 border-slate-200/80 group-hover:bg-slate-200/60'
                         )}
                       >
                         <span
                           className={cn(
-                            'w-1.5 h-1.5 rounded-full shadow-[0_0_4px_rgba(16,185,129,0.5)] animate-pulse shrink-0',
-                            isDepot ? 'bg-amber-500' : 'bg-emerald-500'
+                            'w-1.5 h-1.5 rounded-full shrink-0 animate-pulse',
+                            isDepot ? 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]' : 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]'
                           )}
                         />
                         <span
                           className={cn(
-                            'text-[0.6rem] font-extrabold uppercase tracking-[0.15em] leading-none',
-                            isDepot ? 'text-amber-800' : 'text-corp-blue-800'
+                            'text-[0.625rem] font-bold uppercase tracking-[0.14em] leading-tight truncate max-w-[130px]',
+                            isDepot ? 'text-amber-800' : 'text-slate-700'
                           )}
                         >
                           {user?.enterpriseName || 'Entreprise'}
                         </span>
                       </div>
 
-                      {/* WHY: Explicit "DÉPÔT" badge so the user always knows which
-                               mode they're in — especially useful on multi-site setups. */}
                       {isDepot && (
-                        <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500 text-white text-[0.55rem] font-black uppercase tracking-widest shadow-sm">
+                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500 text-white text-[0.55rem] font-extrabold uppercase tracking-widest shadow-2xs">
                           <Warehouse className="w-2.5 h-2.5" />
                           Dépôt
                         </div>
@@ -363,27 +359,27 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </AlertDialogTrigger>
 
             {/* Logout confirmation dialog */}
-            <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_30px_100px_-20px_rgba(3,10,28,0.1)] rounded-3xl p-6 sm:p-8 max-w-[600px]">
+            <AlertDialogContent className="bg-white/95 backdrop-blur-2xl border border-slate-200/80 shadow-[0_32px_96px_-16px_rgba(15,23,42,0.18)] rounded-3xl p-6 sm:p-8 max-w-[560px]">
               <AlertDialogHeader className="space-y-4">
                 <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center mb-2 shadow-inner border border-rose-100">
                   <LogOut className="w-7 h-7 text-rose-500" />
                 </div>
-                <AlertDialogTitle className="text-2xl font-extrabold text-slate-900 text-left">
+                <AlertDialogTitle className="text-2xl font-black text-slate-900 text-left tracking-tight">
                   Quitter l'application ?
                 </AlertDialogTitle>
-                <AlertDialogDescription className="text-[1.05rem] text-slate-600 font-medium leading-relaxed text-left">
+                <AlertDialogDescription className="text-[1.025rem] text-slate-600 font-medium leading-relaxed text-left">
                   Êtes-vous sûr de vouloir vous déconnecter de{' '}
                   <span className="font-bold text-corp-blue-700">Élancé</span> ? Vous devrez vous
                   reconnecter pour accéder à votre espace.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter className="mt-8 sm:space-x-4">
-                <AlertDialogCancel className="h-12 px-6 rounded-xl border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 text-[0.95rem] font-bold transition-[border-color,background-color,transform,box-shadow] duration-200 ease-out shadow-sm hover:scale-[1.02] active:scale-[0.96]">
+                <AlertDialogCancel className="h-11 px-6 rounded-xl border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 text-sm font-bold transition-[border-color,background-color,transform,box-shadow] duration-200 ease-out shadow-sm active:scale-[0.96]">
                   Annuler
                 </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleLogout}
-                  className="h-12 px-6 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 text-white font-bold text-[0.95rem] transition-[background-color,transform,box-shadow] duration-200 ease-out shadow-lg shadow-rose-500/20 hover:scale-[1.03] active:scale-[0.96] border-0"
+                  className="h-11 px-6 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold text-sm transition-[background-color,transform,box-shadow] duration-200 ease-out shadow-md shadow-rose-500/25 active:scale-[0.96] border-0"
                 >
                   Se déconnecter
                 </AlertDialogAction>
@@ -392,10 +388,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </AlertDialog>
 
           <button
-            className="lg:hidden p-2 text-slate-400 hover:text-slate-700 transition-colors"
+            className="lg:hidden p-2 text-slate-400 hover:text-slate-700 transition-colors rounded-lg active:scale-[0.96]"
             onClick={onClose}
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -405,32 +401,30 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           onScroll={(e) => {
             sessionStorage.setItem('sidebar-scroll', e.currentTarget.scrollTop.toString());
           }}
-          className={cn('flex-1 overflow-y-auto py-4 custom-scrollbar', isCollapsed ? 'px-3' : 'px-6')}
+          className={cn('flex-1 overflow-y-auto py-3 custom-scrollbar space-y-6', isCollapsed ? 'px-2.5' : 'px-4')}
         >
           {navGroups.map((group) => {
-            // Filter items based on permissions and admin-only guard
             const filteredItems = group.items.filter((item) => {
               if (item.adminOnly && !isAdmin) return false;
               if (item.module) return hasAnyPermission(item.module);
-              return true; // Items without a module are always visible
+              return true;
             });
 
-            // Hide the entire group if no items survive the filter
             if (filteredItems.length === 0) return null;
 
             return (
-              <div key={group.title} className="mb-8">
+              <div key={group.title} className="space-y-1">
                 {!isCollapsed ? (
                   <h3
                     className={cn(
-                      'text-[0.65rem] font-bold uppercase tracking-[0.2em] mb-4 px-4 whitespace-nowrap overflow-hidden',
-                      isDepot ? 'text-amber-400' : 'text-slate-400'
+                      'text-[0.625rem] font-extrabold uppercase tracking-[0.18em] mb-2 px-3 whitespace-nowrap overflow-hidden select-none',
+                      isDepot ? 'text-amber-700/70' : 'text-slate-400'
                     )}
                   >
                     {group.title}
                   </h3>
                 ) : (
-                  <div className="h-2" />
+                  <div className="h-1" />
                 )}
                 <nav className="space-y-1">
                   {filteredItems.map((item) => {
@@ -451,47 +445,35 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           }
                         }}
                         title={isCollapsed ? item.name : undefined}
-                        style={isActive && primaryColor ? { backgroundColor: primaryColor, boxShadow: `0 4px 6px -1px ${primaryColor}33, 0 2px 4px -1px ${primaryColor}22` } : undefined}
+                        style={isActive && primaryColor ? { backgroundColor: `${primaryColor}18`, color: primaryColor, borderColor: `${primaryColor}30` } : undefined}
                         className={cn(
-                          'flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-[background-color,color,transform,box-shadow] duration-200 ease-out group',
+                          'flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color,border-color,transform,box-shadow] duration-200 ease-out active:scale-[0.96] group outline-none focus-visible:ring-2 focus-visible:ring-corp-blue-500 border border-transparent',
                           isActive
                             ? primaryColor
-                              ? 'text-white'
+                              ? 'font-bold border'
                               : isDepot
-                                ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
-                                : 'bg-corp-blue-600 text-white shadow-md shadow-corp-blue-600/20'
+                                ? 'bg-amber-500/15 text-amber-900 font-bold border-amber-300/60 shadow-2xs'
+                                : 'bg-corp-blue-600/10 text-corp-blue-700 font-bold border-corp-blue-500/20 shadow-2xs'
                             : isDepot
-                              ? 'hover:bg-amber-50 hover:text-amber-700 text-slate-500'
-                              : 'hover:bg-corp-blue-50 hover:text-corp-blue-700 text-slate-500',
-                          isCollapsed ? 'justify-center px-0' : 'justify-between'
+                              ? 'hover:bg-amber-100/50 hover:text-amber-900 text-slate-600'
+                              : 'hover:bg-slate-200/60 hover:text-slate-900 text-slate-600',
+                          isCollapsed ? 'justify-center px-0 h-9.5 w-full' : 'justify-start gap-2.5'
                         )}
                       >
-                        <div className={cn('flex items-center gap-3', isCollapsed ? 'justify-center' : '')}>
-                          <item.icon
-                            className={cn(
-                              'w-5 h-5 shrink-0',
-                              isActive
-                                ? 'text-white'
-                                : isDepot
-                                  ? (primaryColor ? 'group-hover:text-[var(--primary)] transition-colors' : 'group-hover:text-amber-600 transition-colors')
-                                  : (primaryColor ? 'group-hover:text-[var(--primary)] transition-colors' : 'group-hover:text-corp-blue-600 transition-colors')
-                            )}
-                          />
-                          {!isCollapsed && (
-                            <span className="whitespace-nowrap overflow-hidden">{item.name}</span>
+                        <item.icon
+                          className={cn(
+                            'w-4.5 h-4.5 shrink-0 transition-transform duration-200 group-hover:scale-105',
+                            isActive
+                              ? isDepot
+                                ? 'text-amber-700'
+                                : 'text-corp-blue-600'
+                              : isDepot
+                                ? (primaryColor ? 'group-hover:text-[var(--primary)] text-slate-500' : 'group-hover:text-amber-700 text-slate-500')
+                                : (primaryColor ? 'group-hover:text-[var(--primary)] text-slate-500' : 'group-hover:text-corp-blue-600 text-slate-500')
                           )}
-                        </div>
-                        {isActive && !isCollapsed && (
-                          <div
-                            className={cn(
-                              'w-1.5 h-1.5 rounded-full shrink-0',
-                              primaryColor
-                                ? 'bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.8)]'
-                                : isDepot
-                                  ? 'bg-amber-200 shadow-[0_0_10px_rgba(251,191,36,0.8)]'
-                                  : 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]'
-                            )}
-                          />
+                        />
+                        {!isCollapsed && (
+                          <span className="whitespace-nowrap overflow-hidden text-[0.85rem] tracking-tight">{item.name}</span>
                         )}
                       </Link>
                     );
@@ -505,27 +487,27 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* ── FOOTER: PLAN + LOGOUT ── */}
         <div
           className={cn(
-            'mt-auto space-y-4 border-t bg-white/40 backdrop-blur-sm',
-            isCollapsed ? 'p-3' : 'p-6',
-            isDepot ? 'border-amber-100/60' : 'border-corp-blue-100/60'
+            'mt-auto space-y-3 border-t bg-white/50 backdrop-blur-md',
+            isCollapsed ? 'p-2.5' : 'p-4',
+            isDepot ? 'border-amber-200/50' : 'border-slate-200/60'
           )}
         >
           {!isCollapsed && (
             <div
               className={cn(
-                'rounded-2xl p-4 border shadow-sm overflow-hidden whitespace-nowrap',
+                'rounded-xl p-3 border shadow-2xs overflow-hidden whitespace-nowrap transition-colors duration-200',
                 isDepot
-                  ? 'bg-amber-50/80 border-amber-100/50'
-                  : 'bg-corp-blue-50/80 border-corp-blue-100/50'
+                  ? 'bg-amber-100/50 border-amber-200/60'
+                  : 'bg-slate-100/70 border-slate-200/70'
               )}
             >
-              <div className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest mb-1">
+              <div className="text-[0.6rem] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
                 Plan Actuel
               </div>
               <div
                 className={cn(
-                  'text-xs font-extrabold',
-                  isDepot ? 'text-amber-700' : 'text-corp-blue-700'
+                  'text-xs font-black tracking-tight',
+                  isDepot ? 'text-amber-800' : 'text-slate-800'
                 )}
               >
                 Élancé Entreprise Premium
@@ -537,11 +519,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             onClick={handleLogout}
             title={isCollapsed ? 'Déconnexion' : undefined}
             className={cn(
-              'flex items-center py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-[background-color,color,transform,scale] duration-200 ease-out active:scale-[0.96] w-full group',
-              isCollapsed ? 'justify-center' : 'gap-3 px-4'
+              'flex items-center py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-[background-color,color,transform,box-shadow] duration-200 ease-out active:scale-[0.96] w-full group outline-none focus-visible:ring-2 focus-visible:ring-rose-500',
+              isCollapsed ? 'justify-center' : 'gap-2.5 px-3.5'
             )}
           >
-            <LogOut className="w-5 h-5 transition-transform group-hover:-translate-x-1 shrink-0" />
+            <LogOut className="w-4.5 h-4.5 transition-transform group-hover:-translate-x-0.5 shrink-0" />
             {!isCollapsed && (
               <span className="whitespace-nowrap overflow-hidden">Déconnexion</span>
             )}
