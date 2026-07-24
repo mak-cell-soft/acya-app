@@ -82,7 +82,7 @@ const MONTHS = [
   'Décembre'
 ];
 
-export default function SalesPage() {
+export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string } = {}) {
   const router = useRouter();
   const { user } = useAuthStore();
   const currentUserId = user?.id ? parseInt(user.id) : null;
@@ -115,7 +115,7 @@ export default function SalesPage() {
   }, [selectedMonthIdx, selectedYear, selectedDay]);
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<string>('bl');
+  const [activeTab, setActiveTab] = useState<string>(defaultTab);
 
   // Modals state
   const [selectedDocIdForDetail, setSelectedDocIdForDetail] = useState<number | null>(null);
@@ -446,27 +446,107 @@ export default function SalesPage() {
               <TabsList className="bg-sand-100/60 p-1 rounded-xl h-11 border border-sand-200/50">
                 <TabsTrigger
                   value="quote"
-                  className="rounded-lg h-9 px-5 text-sm font-medium"
+                  className="rounded-lg h-9 px-3.5 text-sm font-medium flex items-center gap-1.5 group data-[state=active]:font-bold"
                 >
-                  Devis
+                  <span>Devis</span>
+                  {hasPermission('sales', 'canAdd') && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      title="Nouveau Devis"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push('/sales/quote/new');
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation();
+                          router.push('/sales/quote/new');
+                        }
+                      }}
+                      className="inline-flex items-center justify-center w-5 h-5 rounded-md text-sand-500 hover:bg-corp-blue-600 hover:text-white transition-all duration-150 active:scale-[0.96] cursor-pointer ml-0.5"
+                    >
+                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                    </span>
+                  )}
                 </TabsTrigger>
                 <TabsTrigger
                   value="order"
-                  className="rounded-lg h-9 px-5 text-sm font-medium"
+                  className="rounded-lg h-9 px-3.5 text-sm font-medium flex items-center gap-1.5 group data-[state=active]:font-bold"
                 >
-                  Commandes
+                  <span>Commandes</span>
+                  {hasPermission('sales', 'canAdd') && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      title="Nouvelle Commande"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push('/sales/order/new');
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation();
+                          router.push('/sales/order/new');
+                        }
+                      }}
+                      className="inline-flex items-center justify-center w-5 h-5 rounded-md text-sand-500 hover:bg-corp-blue-600 hover:text-white transition-all duration-150 active:scale-[0.96] cursor-pointer ml-0.5"
+                    >
+                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                    </span>
+                  )}
                 </TabsTrigger>
                 <TabsTrigger
                   value="bl"
-                  className="rounded-lg h-9 px-5 text-sm font-medium"
+                  className="rounded-lg h-9 px-3.5 text-sm font-medium flex items-center gap-1.5 group data-[state=active]:font-bold"
                 >
-                  Livraisons (BL)
+                  <span>Livraisons (BL)</span>
+                  {hasPermission('sales', 'canAdd') && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      title="Nouveau Bon de Livraison (BL)"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push('/sales/bl/new');
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation();
+                          router.push('/sales/bl/new');
+                        }
+                      }}
+                      className="inline-flex items-center justify-center w-5 h-5 rounded-md text-sand-500 hover:bg-corp-blue-600 hover:text-white transition-all duration-150 active:scale-[0.96] cursor-pointer ml-0.5"
+                    >
+                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                    </span>
+                  )}
                 </TabsTrigger>
                 <TabsTrigger
                   value="invoice"
-                  className="rounded-lg h-9 px-5 text-sm font-medium"
+                  className="rounded-lg h-9 px-3.5 text-sm font-medium flex items-center gap-1.5 group data-[state=active]:font-bold"
                 >
-                  Factures
+                  <span>Factures</span>
+                  {hasPermission('sales', 'canAdd') && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      title="Nouvelle Facture"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push('/sales/invoice/new');
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation();
+                          router.push('/sales/invoice/new');
+                        }
+                      }}
+                      className="inline-flex items-center justify-center w-5 h-5 rounded-md text-sand-500 hover:bg-corp-blue-600 hover:text-white transition-all duration-150 active:scale-[0.96] cursor-pointer ml-0.5"
+                    >
+                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                    </span>
+                  )}
                 </TabsTrigger>
               </TabsList>
 

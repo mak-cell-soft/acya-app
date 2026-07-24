@@ -60,8 +60,8 @@ const customerSchema = z.object({
   prefix: z.string().min(1, "Le préfixe est requis"),
   name: z.string().optional(),
   description: z.string().optional(),
-  firstname: z.string().min(1, "Le prénom est requis"),
-  lastname: z.string().min(1, "Le nom est requis"),
+  firstname: z.string().optional(),
+  lastname: z.string().optional(),
   identitycardnumber: z.string().optional(),
   email: z.string().email("Email invalide").optional().or(z.literal("")),
   taxregistrationnumber: z.string().optional(),
@@ -78,6 +78,32 @@ const customerSchema = z.object({
   bankaccountnumber: z.string().optional(),
   openingbalance: z.coerce.number(),
   isTypeBoth: z.boolean().default(false),
+}).superRefine((data, ctx) => {
+  const isSociety = SOCIETY_PREFIXES.some(p => p.id === data.prefix);
+  if (isSociety) {
+    if (!data.name || data.name.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "La raison sociale est requise",
+        path: ["name"],
+      });
+    }
+  } else {
+    if (!data.lastname || data.lastname.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Le nom est requis",
+        path: ["lastname"],
+      });
+    }
+    if (!data.firstname || data.firstname.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Le prénom est requis",
+        path: ["firstname"],
+      });
+    }
+  }
 });
 
 type CustomerFormValues = z.infer<typeof customerSchema>;
@@ -196,8 +222,12 @@ export function CustomerFormDialog({
   };
 
   const onSubmit = (values: CustomerFormValues) => {
+    const isSoc = mode === 'society' || SOCIETY_PREFIXES.some(p => p.id === values.prefix);
     const model = {
       ...values,
+      name: isSoc ? (values.name || `${values.firstname || ''} ${values.lastname || ''}`.trim()) : (values.name || ''),
+      firstname: isSoc ? (values.firstname || values.name || '') : (values.firstname || ''),
+      lastname: isSoc ? (values.lastname || '') : (values.lastname || ''),
       type: values.isTypeBoth ? 'Both' : 'Customer',
       updatedbyid: 1, // Mock
       id: editCustomer ? editCustomer.id : 0,
@@ -226,7 +256,7 @@ export function CustomerFormDialog({
                 {editCustomer ? "Modifier le Client" : "Nouveau Client"}
               </DialogTitle>
               <p className="text-muted-foreground text-sm font-medium mt-1">
-                {editCustomer ? `ID : ${editCustomer.id} — ${editCustomer.firstname} ${editCustomer.lastname}` : "Enregistrez un nouveau client régulier."}
+                {editCustomer ? `ID : ${editCustomer.id} — ${editCustomer.name || `${editCustomer.firstname} ${editCustomer.lastname}`}` : "Enregistrez un nouveau client régulier."}
               </p>
             </div>
           </div>
@@ -260,91 +290,195 @@ export function CustomerFormDialog({
               {/* Left Column: Identity & Contact */}
               <div className="space-y-6">
                 {/* Identité */}
-                <div className="bg-slate-50/50 dark:bg-slate-900/50 border border-corp-blue-50/80 rounded-xl p-5 sm:p-6 space-y-6 shadow-sm">
-                  <div className="flex items-center gap-2 pb-2 border-b border-corp-blue-50">
-                    <BadgeInfo className="w-4 h-4 text-corp-blue-600" />
-                    <h3 className="font-bold text-corp-blue-900 uppercase text-xs tracking-wider">Identité</h3>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="prefix"
-                      render={({ field }) => (
-                        <FormItem className="col-span-1">
-                          <FormLabel className="text-xs font-bold text-sand-500 uppercase tracking-wider">Civilité</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="h-11 border-corp-blue-50 bg-white font-semibold text-corp-blue-900 shadow-sm transition-all rounded-xl">
-                                <SelectValue placeholder="Titre" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent className="rounded-xl border-corp-blue-100">
-                              {(mode === 'society' ? SOCIETY_PREFIXES : CUSTOMER_PREFIXES).map(p => (
-                                <SelectItem key={p.id} value={p.id}>{p.id}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="lastname"
-                      render={({ field }) => (
-                        <FormItem className="col-span-1">
-                          <FormLabel className="text-xs font-bold text-sand-500 uppercase tracking-wider">Nom</FormLabel>
-                          <FormControl>
-                            <Input className="h-11 border-corp-blue-50 bg-white font-semibold text-corp-blue-900 shadow-sm transition-all rounded-xl" placeholder="Nom" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="firstname"
-                      render={({ field }) => (
-                        <FormItem className="col-span-1">
-                          <FormLabel className="text-xs font-bold text-sand-500 uppercase tracking-wider">Prénom</FormLabel>
-                          <FormControl>
-                            <Input className="h-11 border-corp-blue-50 bg-white font-semibold text-corp-blue-900 shadow-sm transition-all rounded-xl" placeholder="Prénom" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                <div className="bg-slate-50/50 dark:bg-slate-900/50 border border-corp-blue-50/80 rounded-2xl p-5 sm:p-6 space-y-5 shadow-sm">
+                  {mode === 'society' ? (
+                    <>
+                      <div className="flex items-center justify-between pb-3 border-b border-corp-blue-100/60">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-corp-blue-600" />
+                          <h3 className="font-bold text-corp-blue-900 uppercase text-xs tracking-wider">Identité de la Société</h3>
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-corp-blue-700 bg-corp-blue-50 px-2.5 py-0.5 rounded-full border border-corp-blue-100">
+                          Personne Morale
+                        </span>
+                      </div>
 
-                  {mode === 'society' && (
-                    <div className="space-y-4 animate-in fade-in duration-300">
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-bold text-sand-500 uppercase tracking-wider">Raison Sociale</FormLabel>
-                            <FormControl>
-                              <Input className="h-11 border-corp-blue-50 bg-white font-bold text-corp-blue-900 shadow-sm transition-all rounded-xl" placeholder="Nom de l'entreprise" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      {/* Top Row: Forme Juridique (Civilité) + Raison Sociale */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="prefix"
+                          render={({ field }) => (
+                            <FormItem className="sm:col-span-1">
+                              <FormLabel className="text-xs font-bold text-sand-500 uppercase tracking-wider">Civilité / Forme</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="h-11 border-corp-blue-50 bg-white font-semibold text-corp-blue-900 shadow-sm transition-all rounded-xl">
+                                    <SelectValue placeholder="Forme" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="rounded-xl border-corp-blue-100">
+                                  {SOCIETY_PREFIXES.map(p => (
+                                    <SelectItem key={p.id} value={p.id}>{p.id}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem className="sm:col-span-2">
+                              <FormLabel className="text-xs font-bold text-sand-500 uppercase tracking-wider">Raison Sociale <span className="text-red-500">*</span></FormLabel>
+                              <FormControl>
+                                <Input 
+                                  className="h-11 border-corp-blue-50 bg-white font-bold text-corp-blue-900 shadow-sm transition-all rounded-xl text-sm" 
+                                  placeholder="Ex: SOCOFEIS SARL" 
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Middle Row: Description */}
                       <FormField
                         control={form.control}
                         name="description"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-bold text-sand-500 uppercase tracking-wider">Description</FormLabel>
+                            <FormLabel className="text-xs font-bold text-sand-500 uppercase tracking-wider">Description / Activité Principale</FormLabel>
                             <FormControl>
-                              <Input className="h-11 border-corp-blue-50 bg-white font-semibold text-corp-blue-900 shadow-sm transition-all rounded-xl" placeholder="Description courte" {...field} />
+                              <Input 
+                                className="h-11 border-corp-blue-50 bg-white font-medium text-corp-blue-900 shadow-sm transition-all rounded-xl text-sm" 
+                                placeholder="Description de l'activité ou de l'entreprise..." 
+                                {...field} 
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                    </div>
+
+                      {/* Responsable Section */}
+                      <div className="pt-3 border-t border-corp-blue-100/60 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <User className="w-3.5 h-3.5 text-corp-blue-600" />
+                          <span className="text-xs font-bold text-corp-blue-900 uppercase tracking-wider">Responsable / Interlocuteur Principal</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-corp-blue-50/30 p-3.5 rounded-xl border border-corp-blue-50">
+                          <FormField
+                            control={form.control}
+                            name="lastname"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[11px] font-bold text-sand-500 uppercase">Nom du Responsable</FormLabel>
+                                <FormControl>
+                                  <Input className="h-10 border-sand-200 bg-white font-semibold text-corp-blue-900 rounded-lg text-sm" placeholder="Nom" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="firstname"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[11px] font-bold text-sand-500 uppercase">Prénom du Responsable</FormLabel>
+                                <FormControl>
+                                  <Input className="h-10 border-sand-200 bg-white font-semibold text-corp-blue-900 rounded-lg text-sm" placeholder="Prénom" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between pb-3 border-b border-corp-blue-100/60">
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-corp-blue-600" />
+                          <h3 className="font-bold text-corp-blue-900 uppercase text-xs tracking-wider">Identité du Client</h3>
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
+                          Personne Physique
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="prefix"
+                          render={({ field }) => (
+                            <FormItem className="sm:col-span-1">
+                              <FormLabel className="text-xs font-bold text-sand-500 uppercase tracking-wider">Civilité</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="h-11 border-corp-blue-50 bg-white font-semibold text-corp-blue-900 shadow-sm transition-all rounded-xl">
+                                    <SelectValue placeholder="Civilité" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="rounded-xl border-corp-blue-100">
+                                  {CUSTOMER_PREFIXES.map(p => (
+                                    <SelectItem key={p.id} value={p.id}>{p.id}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="lastname"
+                          render={({ field }) => (
+                            <FormItem className="sm:col-span-1">
+                              <FormLabel className="text-xs font-bold text-sand-500 uppercase tracking-wider">Nom <span className="text-red-500">*</span></FormLabel>
+                              <FormControl>
+                                <Input className="h-11 border-corp-blue-50 bg-white font-semibold text-corp-blue-900 shadow-sm transition-all rounded-xl" placeholder="Nom" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="firstname"
+                          render={({ field }) => (
+                            <FormItem className="sm:col-span-1">
+                              <FormLabel className="text-xs font-bold text-sand-500 uppercase tracking-wider">Prénom <span className="text-red-500">*</span></FormLabel>
+                              <FormControl>
+                                <Input className="h-11 border-corp-blue-50 bg-white font-semibold text-corp-blue-900 shadow-sm transition-all rounded-xl" placeholder="Prénom" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-bold text-sand-500 uppercase tracking-wider">Note / Qualification</FormLabel>
+                            <FormControl>
+                              <Input className="h-11 border-corp-blue-50 bg-white font-semibold text-corp-blue-900 shadow-sm transition-all rounded-xl" placeholder="Ex: Client particulier régulier..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
                   )}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

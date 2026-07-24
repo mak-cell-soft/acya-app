@@ -74,6 +74,13 @@ export interface AccountStatement {
   closingBalance: number;
 }
 
+export interface PassagerInfo {
+  firstname: string;
+  lastname: string;
+  address: string;
+  cin: string;
+}
+
 // --- Constants ---
 
 export const SOCIETY_PREFIXES = [
@@ -81,12 +88,14 @@ export const SOCIETY_PREFIXES = [
   { id: 'ENT', name: 'Entreprise' },
   { id: 'ASS', name: 'Association' },
   { id: 'PERS', name: 'Pers. Physique' },
+  { id: 'PASS', name: 'Passager' },
   { id: 'AUT', name: 'Autre' }
 ];
 
 export const CUSTOMER_PREFIXES = [
   { id: 'MRS', name: 'Monsieur' },
-  { id: 'MME', name: 'Madame' }
+  { id: 'MME', name: 'Madame' },
+  { id: 'PASS', name: 'Passager' }
 ];
 
 export const FULL_PREFIXES = [...SOCIETY_PREFIXES, ...CUSTOMER_PREFIXES];

@@ -147,7 +147,7 @@ namespace ms.webapp.api.acya.core.Entities
       BankAccountNumber = dto.bankaccountnumber;
       IsActive = dto.isactive;
       IsDeleted = dto.isdeleted;
-      UpdatedById = (int)dto.updatedbyid!;
+      UpdatedById = dto.updatedbyid ?? 0;
       TransporterId = dto.transporterid;
       if (dto.appuser != null)
       {

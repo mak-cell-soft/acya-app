@@ -25,7 +25,8 @@ import {
   Edit,
   ShieldCheck,
   Coins,
-  AlertCircle
+  AlertCircle,
+  UserCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -61,7 +62,8 @@ import { CustomerFormDialog } from '@/components/customers/customer-form-dialog'
 import { useTransporters } from '@/hooks/use-transporters';
 import { useArticles } from '@/hooks/use-articles';
 import { useSites } from '@/hooks/use-enterprise';
-import { useAppVariables } from '@/hooks/use-app-variables';
+import { useAppVariables, useCreateAppVariable } from '@/hooks/use-app-variables';
+import { counterpartService } from '@/services/components/counterpart.service';
 import { documentService } from '@/services/components/document.service';
 import { pricingGridService } from '@/services/components/pricing-grid.service';
 import { stockService } from '@/services/components/stock.service';
@@ -69,13 +71,15 @@ import { exchangeRateService } from '@/services/components/exchange-rate.service
 import { DocumentTypes, DocStatus, BillingStatus, LineType, ListOfLength } from '@/types/document';
 import { DEVISES } from '@/lib/constants/settings';
 import { Article } from '@/types/article';
-import { Customer } from '@/types/customer';
+import { Customer, PassagerInfo } from '@/types/customer';
 import { Transporter } from '@/types/settings';
 import { toast } from 'sonner';
 import { WoodLengthsDialog } from '@/components/sales/wood-lengths-dialog';
 import { WoodBdLengthsDialog } from '@/components/sales/wood-bd-lengths-dialog';
 import { PaymentModal } from '@/components/sales/payment-modal';
 import { GlassSurfaceDialog } from '@/components/shared/glass-surface-dialog';
+import { PassengerCustomerModal } from '@/components/sales/passenger-customer-modal';
+import { TransporterModal } from '@/components/sales/transporter-modal';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /**
@@ -149,6 +153,8 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
   const { data: appvariablesTaxes = [] } = useAppVariables('Taxe'); // For Stamp taxes (Timbre fiscal)
   const { data: appvariablesRS = [] } = useAppVariables('RS');     // For Withholding tax (Retenue à la source)
   const { data: workflowVars = [] } = useAppVariables('Workflow');
+  const { data: systemConfigs = [] } = useAppVariables('SystemConfig');
+  const createAppVariable = useCreateAppVariable();
 
   const autoPaymentEnabled = docType === DocumentTypes.customerInvoice &&
     workflowVars.some(v => v.name === 'AutoPaymentOnInvoice' && v.isactive);
@@ -166,7 +172,62 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [invoicesWithoutRSCount, setInvoicesWithoutRSCount] = useState<number>(0);
   const [isCustomerFormOpen, setIsCustomerFormOpen] = useState(false);
+  const [isPassagerModalOpen, setIsPassagerModalOpen] = useState(false);
+  const [isTransporterModalOpen, setIsTransporterModalOpen] = useState(false);
+  const [passagerInfo, setPassagerInfo] = useState<PassagerInfo | null>(null);
   const updateCustomer = useUpdateCustomer();
+
+  const handlePassagerConfirm = async (info: PassagerInfo) => {
+    try {
+      setPassagerInfo(info);
+
+      const virtualCustomer: Customer = {
+        id: 0,
+        type: 'Customer',
+        prefix: 'PASS',
+        name: `${info.firstname} ${info.lastname}`,
+        firstname: info.firstname,
+        lastname: info.lastname,
+        address: info.address,
+        identitycardnumber: info.cin,
+        phonenumberone: '',
+        phonenumbertwo: '',
+        description: `Client Passager (CIN: ${info.cin})`,
+        email: '',
+        gouvernorate: 'Tunis',
+        jobtitle: 'Particulier',
+        notes: 'Client Passager Transient',
+        taxregistrationnumber: '',
+        patentecode: '',
+        maximumdiscount: 0,
+        openingbalance: 0,
+        bankname: '',
+        bankaccountnumber: '',
+        isactive: true,
+        isdeleted: false,
+        isTypeBoth: false,
+        creationdate: new Date().toISOString(),
+        updatedate: new Date().toISOString(),
+        updatedbyid: parseInt(user?.id || '0'),
+      };
+
+      setSelectedCustomer(virtualCustomer);
+      setCustomerSearchQuery(`Passager: ${info.firstname} ${info.lastname}`);
+
+      // Persist passager info via AppVariable service
+      createAppVariable.mutate({
+        nature: 'PassagerInfo',
+        name: `${info.firstname}_${info.lastname}_${info.cin}`,
+        value: JSON.stringify(info),
+        isactive: true,
+      });
+
+      toast.success(`Client Passager configuré : ${info.firstname} ${info.lastname}`);
+    } catch (error) {
+      console.error('Error configuring Passager info:', error);
+      toast.error('Erreur lors de la configuration du Client Passager.');
+    }
+  };
 
   useEffect(() => {
     if (docType === DocumentTypes.customerInvoice && selectedCustomer?.id) {
@@ -998,13 +1059,19 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
       }
 
       // Construct C# Document DTO payload
+      const docDescription = passagerInfo
+        ? `${title} - Client Passager: ${passagerInfo.firstname} ${passagerInfo.lastname} (CIN: ${passagerInfo.cin}, Adresse: ${passagerInfo.address})`
+        : `${title} via Portail Élancé`;
+
       const documentPayload: any = {
         id: 0,
         type: docType,
         stocktransactiontype: stockTransactionType,
         docnumber: '',
-        description: `${title} via Portail Élancé`,
-        supplierReference: customerReference || '',
+        description: docDescription,
+        supplierReference: passagerInfo
+          ? `PASS-${passagerInfo.cin}`
+          : (customerReference || ''),
         isinvoiced: false,
         merchandises: merchandisesPayload,
         total_ht_net_doc: finalNetHT,
@@ -1012,10 +1079,10 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
         total_tva_doc: finalTvaDoc,
         total_net_ttc: parseFloat(finalPayableTTC.toFixed(3)),
         withholdingtax: !!selectedRS,
-        counterpart: selectedCustomer ? {
+        counterpart: (passagerInfo || selectedCustomer?.id === 0) ? null : (selectedCustomer ? {
           ...selectedCustomer,
           transporterid: selectedTransporter?.id || null
-        } : null,
+        } : null),
         sales_site: activeUserSite,
         creationdate: new Date(docDate),
         updatedate: new Date(),
@@ -1152,7 +1219,18 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
               
               {/* Customer Selector */}
               <div className="space-y-2 relative">
-                <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Client *</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Client *</label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsPassagerModalOpen(true)}
+                    className="h-6 px-2 text-[0.65rem] font-bold text-amber-700 bg-amber-50 border-amber-200 hover:bg-amber-100 hover:text-amber-800 rounded-lg flex items-center gap-1 shadow-sm transition-all cursor-pointer"
+                  >
+                    <UserCheck className="w-3 h-3 text-amber-600" /> + Client Passager
+                  </Button>
+                </div>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300 pointer-events-none" />
                   <Input 
@@ -1171,6 +1249,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedCustomer(null);
+                        setPassagerInfo(null);
                         setCustomerSearchQuery('');
                         setIsCustomerDropdownOpen(false);
                       }}
@@ -1202,6 +1281,7 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                             )}
                             onClick={() => {
                               setSelectedCustomer(cust);
+                              setPassagerInfo(null);
                               setCustomerSearchQuery(fullName);
                               setIsCustomerDropdownOpen(false);
                               // Auto-select linked transporter
@@ -1256,7 +1336,18 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
               {/* Transporter Selector - Hidden or Optional for Quotes/Orders */}
               {(docType === DocumentTypes.customerDeliveryNote || docType === DocumentTypes.customerInvoice) ? (
                 <div className="space-y-2 relative">
-                  <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Transporteur *</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Transporteur *</label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsTransporterModalOpen(true)}
+                      className="h-6 px-2 text-[0.65rem] font-bold text-corp-blue-700 bg-corp-blue-50 border-corp-blue-200 hover:bg-corp-blue-100 hover:text-corp-blue-800 rounded-lg flex items-center gap-1 shadow-xs transition-all cursor-pointer"
+                    >
+                      <Truck className="w-3 h-3 text-corp-blue-600" /> + Transporteurs
+                    </Button>
+                  </div>
                   <div className="relative">
                     <Truck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-300 pointer-events-none" />
                     <Input 
@@ -1481,28 +1572,63 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
             <CardContent className="p-6 flex-1 space-y-4 text-xs">
               {selectedCustomer ? (
                 <div className="space-y-3 font-medium">
-                  <div className="bg-corp-blue-50/50 p-3 rounded-xl border border-corp-blue-100/50 relative group">
-                    <button
-                      type="button"
-                      onClick={() => setIsCustomerFormOpen(true)}
-                      className="absolute right-3 top-3 p-1.5 rounded-lg text-corp-blue-600 hover:text-corp-blue-900 hover:bg-corp-blue-100/70 transition-all cursor-pointer"
-                      title="Modifier les informations du client"
-                    >
-                      <Edit className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="text-[0.6rem] font-bold text-sand-400 uppercase tracking-wider block">Nom Client</span>
-                    <span className="font-bold text-corp-blue-900 text-sm pr-8">{selectedCustomer.name || (selectedCustomer.firstname + ' ' + selectedCustomer.lastname)}</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <span className="text-[0.6rem] font-bold text-sand-400 uppercase block">Téléphone</span>
-                      <span className="font-bold text-corp-blue-800">{selectedCustomer.phonenumberone || '—'}</span>
+                  {passagerInfo ? (
+                    <div className="bg-amber-50/70 p-3.5 rounded-xl border border-amber-200/70 relative group">
+                      <button
+                        type="button"
+                        onClick={() => setIsPassagerModalOpen(true)}
+                        className="absolute right-3 top-3 p-1.5 rounded-lg text-amber-700 hover:bg-amber-100/80 transition-all cursor-pointer"
+                        title="Modifier les informations du client passager"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <Badge className="bg-amber-600 hover:bg-amber-700 text-white text-[0.6rem] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
+                          Client Passager
+                        </Badge>
+                      </div>
+                      <span className="font-bold text-corp-blue-900 text-sm block pr-8">
+                        {passagerInfo.firstname} {passagerInfo.lastname}
+                      </span>
+                      <div className="grid grid-cols-2 gap-3 mt-2 text-xs">
+                        <div>
+                          <span className="text-[0.6rem] font-bold text-amber-800 uppercase block">CIN</span>
+                          <span className="font-bold text-corp-blue-900">{passagerInfo.cin}</span>
+                        </div>
+                        <div>
+                          <span className="text-[0.6rem] font-bold text-amber-800 uppercase block">Adresse</span>
+                          <span className="font-bold text-corp-blue-900 truncate block" title={passagerInfo.address}>
+                            {passagerInfo.address}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-[0.6rem] font-bold text-sand-400 uppercase block">Code Fiscal</span>
-                      <span className="font-bold text-corp-blue-800">{selectedCustomer.description || '—'}</span>
+                  ) : (
+                    <div className="bg-corp-blue-50/50 p-3 rounded-xl border border-corp-blue-100/50 relative group">
+                      <button
+                        type="button"
+                        onClick={() => setIsCustomerFormOpen(true)}
+                        className="absolute right-3 top-3 p-1.5 rounded-lg text-corp-blue-600 hover:text-corp-blue-900 hover:bg-corp-blue-100/70 transition-all cursor-pointer"
+                        title="Modifier les informations du client"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="text-[0.6rem] font-bold text-sand-400 uppercase tracking-wider block">Nom Client</span>
+                      <span className="font-bold text-corp-blue-900 text-sm pr-8">{selectedCustomer.name || (selectedCustomer.firstname + ' ' + selectedCustomer.lastname)}</span>
                     </div>
-                  </div>
+                  )}
+                  {!passagerInfo && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <span className="text-[0.6rem] font-bold text-sand-400 uppercase block">Téléphone</span>
+                        <span className="font-bold text-corp-blue-800">{selectedCustomer.phonenumberone || '—'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[0.6rem] font-bold text-sand-400 uppercase block">Code Fiscal</span>
+                        <span className="font-bold text-corp-blue-800">{selectedCustomer.description || '—'}</span>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Transporter Details */}
                   {selectedTransporter && (
@@ -2169,6 +2295,33 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
           data={postCreatePaymentData}
         />
       )}
+
+      {/* Passenger Customer Modal */}
+      <PassengerCustomerModal
+        isOpen={isPassagerModalOpen}
+        onClose={() => setIsPassagerModalOpen(false)}
+        onConfirm={handlePassagerConfirm}
+        initialData={passagerInfo}
+      />
+
+      {/* Transporter Management Modal */}
+      <TransporterModal
+        isOpen={isTransporterModalOpen}
+        onClose={() => setIsTransporterModalOpen(false)}
+        onSelectTransporter={(trans) => {
+          setSelectedTransporter(trans);
+          setTransporterSearchQuery(trans.fullname || '');
+          setRows(prevRows => 
+            prevRows.map(row => {
+              if (row.line_type === LineType.TransportFee) {
+                row.transporter_id = trans.id;
+                row.transporter_name = trans.fullname;
+              }
+              return row;
+            })
+          );
+        }}
+      />
 
     </DashboardLayout>
   );

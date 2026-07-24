@@ -619,27 +619,113 @@ export default function PurchasesPage() {
                 <TabsList className="bg-slate-100 p-1 rounded-2xl w-fit flex h-11 border border-slate-200/50">
                   <TabsTrigger
                     value="order"
-                    className="rounded-xl h-9 font-bold text-xs tracking-wide px-5 data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
+                    className="rounded-xl h-9 font-bold text-xs tracking-wide px-4 data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm transition-all flex items-center gap-1.5 group"
                   >
-                    <Clock className="w-3.5 h-3.5" /> Commandes
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Commandes</span>
+                    {hasPermission('purchases', 'canAdd') && (
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        title="Nouvelle Commande Fournisseur"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push('/purchases/order/new');
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.stopPropagation();
+                            router.push('/purchases/order/new');
+                          }
+                        }}
+                        className="inline-flex items-center justify-center w-5 h-5 rounded-md text-amber-900/60 hover:bg-amber-800 hover:text-white transition-all duration-150 active:scale-[0.96] cursor-pointer ml-0.5"
+                      >
+                        <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                      </span>
+                    )}
                   </TabsTrigger>
                   <TabsTrigger
                     value="receipt"
-                    className="rounded-xl h-9 font-bold text-xs tracking-wide px-5 data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
+                    className="rounded-xl h-9 font-bold text-xs tracking-wide px-4 data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm transition-all flex items-center gap-1.5 group"
                   >
-                    <Layers className="w-3.5 h-3.5" /> Réceptions / BR
+                    <Layers className="w-3.5 h-3.5" />
+                    <span>Réceptions / BR</span>
+                    {hasPermission('purchases', 'canAdd') && (
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        title="Nouveau Bon de Réception (BR)"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push('/purchases/receipt/new');
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.stopPropagation();
+                            router.push('/purchases/receipt/new');
+                          }
+                        }}
+                        className="inline-flex items-center justify-center w-5 h-5 rounded-md text-amber-900/60 hover:bg-amber-800 hover:text-white transition-all duration-150 active:scale-[0.96] cursor-pointer ml-0.5"
+                      >
+                        <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                      </span>
+                    )}
                   </TabsTrigger>
                   <TabsTrigger
                     value="invoice"
-                    className="rounded-xl h-9 font-bold text-xs tracking-wide px-5 data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
+                    className="rounded-xl h-9 font-bold text-xs tracking-wide px-4 data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm transition-all flex items-center gap-1.5 group"
                   >
-                    <FileText className="w-3.5 h-3.5" /> Factures
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>Factures</span>
+                    {hasPermission('purchases', 'canAdd') && (
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        title="Nouvelle Facture Fournisseur"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push('/purchases/invoice/new');
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.stopPropagation();
+                            router.push('/purchases/invoice/new');
+                          }
+                        }}
+                        className="inline-flex items-center justify-center w-5 h-5 rounded-md text-amber-900/60 hover:bg-amber-800 hover:text-white transition-all duration-150 active:scale-[0.96] cursor-pointer ml-0.5"
+                      >
+                        <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                      </span>
+                    )}
                   </TabsTrigger>
                   <TabsTrigger
                     value="credit-note"
-                    className="rounded-xl h-9 font-bold text-xs tracking-wide px-5 data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm transition-all flex items-center gap-1.5"
+                    className="rounded-xl h-9 font-bold text-xs tracking-wide px-4 data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm transition-all flex items-center gap-1.5 group"
                   >
-                    <RotateCcw className="w-3.5 h-3.5" /> Avoirs Fournisseurs
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Avoirs Fournisseurs</span>
+                    {hasPermission('purchases', 'canAdd') && (
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        title="Nouvel Avoir Fournisseur"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setInvoiceForCreditNote(null);
+                          setIsCreditNoteModalOpen(true);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.stopPropagation();
+                            setInvoiceForCreditNote(null);
+                            setIsCreditNoteModalOpen(true);
+                          }
+                        }}
+                        className="inline-flex items-center justify-center w-5 h-5 rounded-md text-amber-900/60 hover:bg-amber-800 hover:text-white transition-all duration-150 active:scale-[0.96] cursor-pointer ml-0.5"
+                      >
+                        <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                      </span>
+                    )}
                   </TabsTrigger>
                 </TabsList>
 

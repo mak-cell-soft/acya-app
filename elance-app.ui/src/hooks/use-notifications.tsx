@@ -143,14 +143,13 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       ? `${apiUrl}notificationHub`
       : `${apiUrl}/notificationHub`;
 
-    console.log('[SignalR] Rebuilding connection to:', hubUrl);
-
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(hubUrl, {
         skipNegotiation: true,
         transport: signalR.HttpTransportType.WebSockets,
         accessTokenFactory: () => token
       })
+      .configureLogging(signalR.LogLevel.None)
       .withAutomaticReconnect({
         nextRetryDelayInMilliseconds: retryContext => {
           return retryContext.previousRetryCount === 0 ? 5000 : null;
