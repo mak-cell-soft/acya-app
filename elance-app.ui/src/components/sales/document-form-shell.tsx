@@ -73,6 +73,7 @@ import { Customer } from '@/types/customer';
 import { Transporter } from '@/types/settings';
 import { toast } from 'sonner';
 import { WoodLengthsDialog } from '@/components/sales/wood-lengths-dialog';
+import { WoodBdLengthsDialog } from '@/components/sales/wood-bd-lengths-dialog';
 import { PaymentModal } from '@/components/sales/payment-modal';
 import { GlassSurfaceDialog } from '@/components/shared/glass-surface-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -2080,15 +2081,26 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
 
       {/* Wood Lengths Entry Modal Dialog */}
       {woodDialogState.article && (
-        <WoodLengthsDialog
-          isOpen={woodDialogState.isOpen}
-          onClose={() => setWoodDialogState(prev => ({ ...prev, isOpen: false }))}
-          article={woodDialogState.article}
-          currentLengths={woodDialogState.currentLengths}
-          availableStockDetails={woodDialogState.availableStockDetails}
-          isPurchase={docType === DocumentTypes.customerQuote || docType === DocumentTypes.customerOrder} // Purchase mode bypasses stock limits for quote & order
-          onSave={saveWoodLengths}
-        />
+        woodDialogState.article.subcategory?.reference?.toUpperCase() === 'BD' ? (
+          <WoodBdLengthsDialog
+            isOpen={woodDialogState.isOpen}
+            onClose={() => setWoodDialogState(prev => ({ ...prev, isOpen: false }))}
+            article={woodDialogState.article}
+            currentLengths={woodDialogState.currentLengths}
+            isPurchase={docType === DocumentTypes.customerQuote || docType === DocumentTypes.customerOrder}
+            onSave={saveWoodLengths}
+          />
+        ) : (
+          <WoodLengthsDialog
+            isOpen={woodDialogState.isOpen}
+            onClose={() => setWoodDialogState(prev => ({ ...prev, isOpen: false }))}
+            article={woodDialogState.article}
+            currentLengths={woodDialogState.currentLengths}
+            availableStockDetails={woodDialogState.availableStockDetails}
+            isPurchase={docType === DocumentTypes.customerQuote || docType === DocumentTypes.customerOrder}
+            onSave={saveWoodLengths}
+          />
+        )
       )}
 
       {/* Glass Surface Entry Modal Dialog */}

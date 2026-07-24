@@ -40,6 +40,7 @@ import { Transporter } from '@/types/settings';
 import { ListOfLength } from '@/types/document';
 import { toast } from 'sonner';
 import { WoodLengthsDialog } from '@/components/sales/wood-lengths-dialog';
+import { WoodBdLengthsDialog } from '@/components/sales/wood-bd-lengths-dialog';
 import { GlassSurfaceDialog } from '@/components/shared/glass-surface-dialog';
 import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 import { StockTransferInfo, StockTransferDetails } from '@/types/stock';
@@ -957,15 +958,26 @@ function NewStockTransferContent() {
 
       {/* Dynamic Wood Lengths Specification Dialog */}
       {lengthsArticle && (
-        <WoodLengthsDialog
-          isOpen={lengthsDialogOpen}
-          onClose={() => setLengthsDialogOpen(false)}
-          article={lengthsArticle}
-          currentLengths={lengthsCurrent}
-          availableStockDetails={lengthsStockDetails}
-          isPurchase={rows.find(r => r.id === activeRowId)?.allownegativstock ?? false}
-          onSave={handleSaveLengths}
-        />
+        lengthsArticle.subcategory?.reference?.toUpperCase() === 'BD' ? (
+          <WoodBdLengthsDialog
+            isOpen={lengthsDialogOpen}
+            onClose={() => setLengthsDialogOpen(false)}
+            article={lengthsArticle}
+            currentLengths={lengthsCurrent}
+            isPurchase={rows.find(r => r.id === activeRowId)?.allownegativstock ?? false}
+            onSave={handleSaveLengths}
+          />
+        ) : (
+          <WoodLengthsDialog
+            isOpen={lengthsDialogOpen}
+            onClose={() => setLengthsDialogOpen(false)}
+            article={lengthsArticle}
+            currentLengths={lengthsCurrent}
+            availableStockDetails={lengthsStockDetails}
+            isPurchase={rows.find(r => r.id === activeRowId)?.allownegativstock ?? false}
+            onSave={handleSaveLengths}
+          />
+        )
       )}
 
       {/* Glass Surface Specification Dialog */}

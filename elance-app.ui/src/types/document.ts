@@ -100,11 +100,13 @@ export enum LineType {
  * ListOfLength details for wood merchandise.
  */
 export interface ListOfLength {
-  id: number;
+  id?: number;
   nbpieces: number;
-  length: AppVariable; // Type: AppVariable with nature = 'Length'
+  length?: AppVariable; // Type: AppVariable with nature = 'Length'
+  customLength?: number; // Custom length in cm for BD wood
+  totalWidth?: number;   // Total width in cm for BD wood
   quantity: number;    // Calculated: pieces * length * thickness * width
-  availablePieces: number; // Current remaining pieces in stock
+  availablePieces?: number; // Current remaining pieces in stock
 }
 
 /**

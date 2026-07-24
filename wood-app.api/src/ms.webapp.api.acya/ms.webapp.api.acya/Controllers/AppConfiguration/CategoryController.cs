@@ -59,6 +59,12 @@ namespace ms.webapp.api.acya.api.Controllers.AppConfiguration
         return NotFound();
       }
 
+      // System category protection: BOIS reference cannot be modified (description can be updated)
+      if (existingEntity.Reference != null && existingEntity.Reference.Trim().Equals("BOIS", StringComparison.OrdinalIgnoreCase))
+      {
+        dto.reference = existingEntity.Reference;
+      }
+
       if (dto.firstchildren != null)
       {
         // Check if any firstchildren have isNew set to true
@@ -92,6 +98,22 @@ namespace ms.webapp.api.acya.api.Controllers.AppConfiguration
         return Ok(updatedDto);
       }
       return NotFound();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> Delete(int id)
+    {
+      var category = await _repositroy.Get(id);
+      if (category == null)
+      {
+        return NotFound();
+      }
+      if (category.Reference != null && category.Reference.Trim().Equals("BOIS", StringComparison.OrdinalIgnoreCase))
+      {
+        return BadRequest("La catégorie système BOIS ne peut pas être supprimée.");
+      }
+      await _repositroy.Delete(id);
+      return NoContent();
     }
 
   }

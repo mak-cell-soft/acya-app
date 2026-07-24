@@ -77,7 +77,9 @@ export function CategoryAccordion() {
                     <Input 
                       value={editValues.reference || ''} 
                       onChange={(e) => setEditValues({ ...editValues, reference: e.target.value })}
-                      className="h-8 rounded-lg border-corp-blue-100"
+                      disabled={cat.reference?.toUpperCase() === 'BOIS'}
+                      title={cat.reference?.toUpperCase() === 'BOIS' ? "La référence de la catégorie système BOIS ne peut pas être modifiée." : undefined}
+                      className="h-8 rounded-lg border-corp-blue-100 disabled:bg-sand-100 disabled:opacity-80"
                     />
                     <Input 
                       value={editValues.description || ''} 
@@ -132,9 +134,11 @@ export function CategoryAccordion() {
                     <Button onClick={(e) => { e.stopPropagation(); setEditingCatId(cat.id); setEditValues(cat); }} variant="ghost" size="icon" className="h-8 w-8 text-corp-blue-400">
                       <Edit2 className="w-4 h-4" />
                     </Button>
-                    <Button onClick={(e) => { e.stopPropagation(); deleteCat.mutate(cat.id); }} variant="ghost" size="icon" className="h-8 w-8 text-red-400">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    {cat.reference?.toUpperCase() !== 'BOIS' && (
+                      <Button onClick={(e) => { e.stopPropagation(); deleteCat.mutate(cat.id); }} variant="ghost" size="icon" className="h-8 w-8 text-red-400">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </>
                 )}
               </div>
@@ -148,7 +152,9 @@ export function CategoryAccordion() {
                 </div>
 
                 <div className="grid gap-2">
-                  {cat.firstchildren?.map((sub: any) => (
+                  {cat.firstchildren?.map((sub: any) => {
+                    const isSystemSub = ['BD', 'BB', 'BR'].includes(sub.reference?.toUpperCase() || '');
+                    return (
                     <div key={sub.id} className="flex items-center justify-between p-3 rounded-xl bg-sand-50/50 hover:bg-sand-50 border border-transparent hover:border-corp-blue-50 transition-all">
                       <div className="flex items-center gap-3">
                         <Tag className="w-3.5 h-3.5 text-corp-blue-300" />
@@ -157,7 +163,9 @@ export function CategoryAccordion() {
                             <Input 
                               value={editValues.reference || ''} 
                               onChange={(e) => setEditValues({ ...editValues, reference: e.target.value })}
-                              className="h-7 text-xs rounded-lg border-corp-blue-100"
+                              disabled={isSystemSub}
+                              title={isSystemSub ? "La référence des sous-catégories système BD, BB, BR ne peut pas être modifiée." : undefined}
+                              className="h-7 text-xs rounded-lg border-corp-blue-100 disabled:bg-sand-100 disabled:opacity-80"
                             />
                             <Input 
                               value={editValues.description || ''} 
@@ -187,14 +195,17 @@ export function CategoryAccordion() {
                             <Button onClick={() => { setEditingSubId(sub.id); setEditValues(sub); }} variant="ghost" size="icon" className="h-7 w-7 text-sand-300 hover:text-corp-blue-600">
                               <Edit2 className="w-3.5 h-3.5" />
                             </Button>
-                            <Button onClick={() => deleteSub.mutate(sub.id)} variant="ghost" size="icon" className="h-7 w-7 text-sand-300 hover:text-red-500">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
+                            {!isSystemSub && (
+                              <Button onClick={() => deleteSub.mutate(sub.id)} variant="ghost" size="icon" className="h-7 w-7 text-sand-300 hover:text-red-500">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            )}
                           </>
                         )}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                   {(!cat.firstchildren || cat.firstchildren.length === 0) && (
                     <p className="text-xs text-sand-300 font-medium italic pl-1">Aucune sous-catégorie.</p>
                   )}

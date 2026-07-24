@@ -25,6 +25,13 @@ namespace ms.webapp.api.acya.api.Controllers.AppConfiguration
         return NotFound();
       }
 
+      // System subcategory protection: BD, BB, BR references cannot be modified (description can be updated)
+      string[] systemRefs = { "BD", "BB", "BR" };
+      if (existingEntity.Reference != null && systemRefs.Contains(existingEntity.Reference.Trim().ToUpperInvariant()))
+      {
+        dto.reference = existingEntity.Reference;
+      }
+
       // Update the properties using the constructor
       existingEntity.UpdateFromDto(dto);
       // Update the entity in the repository
@@ -47,6 +54,11 @@ namespace ms.webapp.api.acya.api.Controllers.AppConfiguration
       {
         return NotFound();
       }
+      string[] systemRefs = { "BD", "BB", "BR" };
+      if (child.Reference != null && systemRefs.Contains(child.Reference.Trim().ToUpperInvariant()))
+      {
+        return BadRequest("Les sous-catégories système (BD, BB, BR) ne peuvent pas être supprimées.");
+      }
       await _repository.Delete(id);
       return NoContent();
     }
@@ -58,6 +70,11 @@ namespace ms.webapp.api.acya.api.Controllers.AppConfiguration
       if (child == null)
       {
         return NotFound();
+      }
+      string[] systemRefs = { "BD", "BB", "BR" };
+      if (child.Reference != null && systemRefs.Contains(child.Reference.Trim().ToUpperInvariant()))
+      {
+        return BadRequest("Les sous-catégories système (BD, BB, BR) ne peuvent pas être supprimées.");
       }
       child.IsDeleted = true;
       var updateDel = await _repository.Update(child);

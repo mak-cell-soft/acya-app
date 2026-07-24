@@ -56,6 +56,7 @@ import { Supplier } from '@/types/customer';
 import { Transporter } from '@/types/settings';
 import { toast } from 'sonner';
 import { WoodLengthsDialog } from '@/components/sales/wood-lengths-dialog';
+import { WoodBdLengthsDialog } from '@/components/sales/wood-bd-lengths-dialog';
 import { GlassSurfaceDialog } from '@/components/shared/glass-surface-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -388,7 +389,8 @@ function NewSupplierInvoicePageContent() {
       return;
     }
 
-    if (newRowArticle.categoryid === 1 && !newRowPackageReference.trim()) {
+    const isBb = newRowArticle.subcategory?.reference?.toUpperCase() === 'BB';
+    if ((newRowArticle.categoryid === 1 || newRowArticle.iswood) && !isBb && !newRowPackageReference.trim()) {
       toast.error("Veuillez renseigner ou générer la Référence Colis/Paquet pour cet article Bois.");
       return;
     }
@@ -681,7 +683,8 @@ function NewSupplierInvoicePageContent() {
         toast.error(`La quantité de la ligne ${i + 1} doit être supérieure à 0.`);
         return false;
       }
-      if (r.line_type === LineType.Merchandise && r.selectedArticle?.categoryid === 1 && !r.packagereference.trim()) {
+      const isRowBb = r.selectedArticle?.subcategory?.reference?.toUpperCase() === 'BB';
+      if (r.line_type === LineType.Merchandise && (r.selectedArticle?.categoryid === 1 || r.selectedArticle?.iswood) && !isRowBb && !r.packagereference.trim()) {
         toast.error(`Veuillez renseigner la Référence Colis/Paquet pour la ligne ${i + 1} (requis pour les articles Bois).`);
         return false;
       }
@@ -1261,7 +1264,7 @@ function NewSupplierInvoicePageContent() {
               {/* Package/Colis Reference */}
               <div className="space-y-1.5 relative md:col-span-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-mono">
-                  Référence Colis/Paquet {(!newRowArticle || newRowArticle.categoryid === 1) && '*'}
+                  Référence Colis/Paquet {(!newRowArticle || (newRowArticle.categoryid === 1 && newRowArticle.subcategory?.reference?.toUpperCase() !== 'BB')) && '*'}
                 </label>
                 <div className="relative">
                   <Input
@@ -1636,15 +1639,26 @@ function NewSupplierInvoicePageContent() {
 
       {/* Wood Lengths Dialog component */}
       {woodDialogState.isOpen && (
-        <WoodLengthsDialog
-          isOpen={woodDialogState.isOpen}
-          onClose={() => setWoodDialogState(prev => ({ ...prev, isOpen: false }))}
-          article={woodDialogState.article!}
-          currentLengths={woodDialogState.currentLengths}
-          availableStockDetails={[]}
-          isPurchase={true}
-          onSave={handleSaveWoodLengths}
-        />
+        woodDialogState.article?.subcategory?.reference?.toUpperCase() === 'BD' ? (
+          <WoodBdLengthsDialog
+            isOpen={woodDialogState.isOpen}
+            onClose={() => setWoodDialogState(prev => ({ ...prev, isOpen: false }))}
+            article={woodDialogState.article!}
+            currentLengths={woodDialogState.currentLengths}
+            isPurchase={true}
+            onSave={handleSaveWoodLengths}
+          />
+        ) : (
+          <WoodLengthsDialog
+            isOpen={woodDialogState.isOpen}
+            onClose={() => setWoodDialogState(prev => ({ ...prev, isOpen: false }))}
+            article={woodDialogState.article!}
+            currentLengths={woodDialogState.currentLengths}
+            availableStockDetails={[]}
+            isPurchase={true}
+            onSave={handleSaveWoodLengths}
+          />
+        )
       )}
 
       {/* Glass Surface Dialog component */}

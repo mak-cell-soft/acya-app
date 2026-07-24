@@ -59,7 +59,7 @@ export function WoodLengthsDialog({
   onSave
 }: WoodLengthsDialogProps) {
   // Load the Length master list from API via useAppVariables
-  const { data: allLengthsMasterList } = useAppVariables('Length');
+  const { data: allLengthsMasterList, isLoading: isLengthsLoading } = useAppVariables('Length');
 
   const [thicknessStr, setThicknessStr] = useState<string>('0');
   const [widthStr, setWidthStr] = useState<string>('0');
@@ -88,19 +88,39 @@ export function WoodLengthsDialog({
       .filter(Boolean);
   }, [article?.lengths]);
 
+  // Filter master list to include allowed lengths or fall back to all lengths if none specified on article
+  const allowedLengthVariables = useMemo(() => {
+    if (!allLengthsMasterList || allLengthsMasterList.length === 0) return [];
+
+    if (parsedLengthsNames.length > 0) {
+      const filtered = allLengthsMasterList.filter(appVar => 
+        parsedLengthsNames.includes(appVar.name) || 
+        parsedLengthsNames.includes(appVar.value?.toString())
+      );
+      if (filtered.length > 0) return filtered;
+    }
+
+    // Fallback: If no specific lengths configured on the article, show all active master length variables
+    return allLengthsMasterList;
+  }, [allLengthsMasterList, parsedLengthsNames]);
+
   // Build rows structure matching existing lengths or initial setup
   useEffect(() => {
     if (!isOpen || !allLengthsMasterList) return;
 
-    // Filter master list to only include length variables allowed for this article
-    const allowedLengthVariables = allLengthsMasterList.filter(appVar => 
-      parsedLengthsNames.includes(appVar.name)
-    );
+    let finalLengthVars = [...allowedLengthVariables];
+
+    // Ensure any length already recorded in currentLengths is included
+    currentLengths.forEach(curr => {
+      if (curr.length && !finalLengthVars.some(v => v.id === curr.length?.id || v.name === curr.length?.name)) {
+        finalLengthVars.push(curr.length);
+      }
+    });
 
     // Build lengths array
-    const initialRows = allowedLengthVariables.map(lenVar => {
+    const initialRows = finalLengthVars.map(lenVar => {
       // Find pieces already entered in currentLengths if editing
-      const existing = currentLengths.find(l => l.length?.id === lenVar.id);
+      const existing = currentLengths.find(l => l.length?.id === lenVar.id || l.length?.name === lenVar.name);
       const pieces = existing ? existing.nbpieces : 0;
 
       // Find available pieces in stock details for this length
@@ -128,13 +148,13 @@ export function WoodLengthsDialog({
 
     // Sort descending by length value
     initialRows.sort((a, b) => {
-      const valA = parseFloat(a.length.value?.toString() || '0');
-      const valB = parseFloat(b.length.value?.toString() || '0');
+      const valA = parseFloat(a.length?.value?.toString() || '0');
+      const valB = parseFloat(b.length?.value?.toString() || '0');
       return valB - valA;
     });
 
     setRows(initialRows);
-  }, [isOpen, allLengthsMasterList, parsedLengthsNames, currentLengths, availableStockDetails, thicknessStr, widthStr]);
+  }, [isOpen, allLengthsMasterList, allowedLengthVariables, currentLengths, availableStockDetails, thicknessStr, widthStr]);
 
   // Handle number of pieces change for a specific length row
   const handlePiecesChange = (index: number, val: string) => {
@@ -148,7 +168,7 @@ export function WoodLengthsDialog({
       row.nbpieces = cleanPieces;
 
       // Calculate quantity (volume in M3)
-      const lengthVal = parseFloat(row.length.value?.toString().replace(',', '.') || '0');
+      const lengthVal = parseFloat(row.length?.value?.toString().replace(',', '.') || '0');
       const thicknessVal = parseFloat(thicknessStr.replace(',', '.') || '0');
       const widthVal = parseFloat(widthStr.replace(',', '.') || '0');
       
@@ -173,8 +193,8 @@ export function WoodLengthsDialog({
   const validationErrors = useMemo(() => {
     if (isPurchase) return [];
     return rows
-      .filter(row => row.nbpieces > row.availablePieces)
-      .map(row => `Longueur ${row.length.name}: ${row.nbpieces} pièces demandées mais seulement ${row.availablePieces} de disponible.`);
+      .filter(row => row.nbpieces > (row.availablePieces ?? 0))
+      .map(row => `Longueur ${row.length?.name}: ${row.nbpieces} pièces demandées mais seulement ${row.availablePieces ?? 0} de disponible.`);
   }, [rows, isPurchase]);
 
   const handleSubmit = () => {
@@ -185,7 +205,7 @@ export function WoodLengthsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-4xl sm:max-w-4xl md:max-w-4xl rounded-xl border-corp-blue-100 bg-white/95 backdrop-blur-md shadow-2xl p-6 overflow-hidden">
+      <DialogContent className="w-full sm:max-w-3xl md:max-w-4xl max-w-4xl rounded-3xl border-corp-blue-100 bg-white/95 backdrop-blur-md shadow-2xl p-7 overflow-hidden">
         <DialogHeader className="mb-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-corp-blue-100 flex items-center justify-center text-corp-blue-600 shadow-md">
@@ -252,7 +272,13 @@ export function WoodLengthsDialog({
               </tr>
             </thead>
             <tbody className="divide-y divide-corp-blue-50/40">
-              {rows.length === 0 ? (
+              {isLengthsLoading && rows.length === 0 ? (
+                <tr>
+                  <td colSpan={isPurchase ? 3 : 4} className="p-8 text-center text-sand-400 font-medium italic">
+                    Chargement des longueurs...
+                  </td>
+                </tr>
+              ) : rows.length === 0 ? (
                 <tr>
                   <td colSpan={isPurchase ? 3 : 4} className="p-8 text-center text-sand-400 font-medium italic">
                     Aucune longueur disponible configurée sur cet article.
@@ -260,11 +286,12 @@ export function WoodLengthsDialog({
                 </tr>
               ) : (
                 rows.map((row, idx) => {
-                  const hasStockError = !isPurchase && row.nbpieces > row.availablePieces;
+                  const avail = row.availablePieces ?? 0;
+                  const hasStockError = !isPurchase && row.nbpieces > avail;
                   return (
-                    <tr key={row.length.id} className="hover:bg-corp-blue-50/20 transition-all duration-200">
+                    <tr key={row.length?.id || idx} className="hover:bg-corp-blue-50/20 transition-all duration-200">
                       <td className="p-3.5 font-bold text-corp-blue-900">
-                        {row.length.name} cm <span className="text-[0.65rem] text-sand-400 font-normal">({row.length.value} m)</span>
+                        {row.length?.name} cm <span className="text-[0.65rem] text-sand-400 font-normal">({row.length?.value} m)</span>
                       </td>
                       <td className="p-2 text-center w-36">
                         <Input
@@ -285,11 +312,11 @@ export function WoodLengthsDialog({
                       {!isPurchase && (
                         <td className="p-3.5 text-center">
                           <Badge className={`rounded-full px-2.5 py-0.5 text-[0.65rem] font-bold ${
-                            row.availablePieces > 0 
+                            avail > 0 
                               ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
                               : 'bg-rose-50 text-rose-600 border border-rose-100'
                           }`}>
-                            {row.availablePieces} pcs
+                            {avail} pcs
                           </Badge>
                         </td>
                       )}

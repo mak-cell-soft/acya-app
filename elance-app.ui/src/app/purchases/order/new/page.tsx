@@ -54,6 +54,7 @@ import { Transporter } from '@/types/settings';
 import { toast } from 'sonner';
 import { approvalService } from '@/services/components/approval.service';
 import { WoodLengthsDialog } from '@/components/sales/wood-lengths-dialog';
+import { WoodBdLengthsDialog } from '@/components/sales/wood-bd-lengths-dialog';
 import { GlassSurfaceDialog } from '@/components/shared/glass-surface-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -1454,15 +1455,26 @@ function NewSupplierOrderPageContent() {
 
       {/* Wood Lengths Dialog component */}
       {woodDialogState.isOpen && (
-        <WoodLengthsDialog
-          isOpen={woodDialogState.isOpen}
-          onClose={() => setWoodDialogState(prev => ({ ...prev, isOpen: false }))}
-          article={woodDialogState.article!}
-          currentLengths={woodDialogState.currentLengths}
-          availableStockDetails={[]}
-          isPurchase={true}
-          onSave={handleSaveWoodLengths}
-        />
+        woodDialogState.article?.subcategory?.reference?.toUpperCase() === 'BD' ? (
+          <WoodBdLengthsDialog
+            isOpen={woodDialogState.isOpen}
+            onClose={() => setWoodDialogState(prev => ({ ...prev, isOpen: false }))}
+            article={woodDialogState.article!}
+            currentLengths={woodDialogState.currentLengths}
+            isPurchase={true}
+            onSave={handleSaveWoodLengths}
+          />
+        ) : (
+          <WoodLengthsDialog
+            isOpen={woodDialogState.isOpen}
+            onClose={() => setWoodDialogState(prev => ({ ...prev, isOpen: false }))}
+            article={woodDialogState.article!}
+            currentLengths={woodDialogState.currentLengths}
+            availableStockDetails={[]}
+            isPurchase={true}
+            onSave={handleSaveWoodLengths}
+          />
+        )
       )}
 
       {/* Glass Surface Dialog component */}
