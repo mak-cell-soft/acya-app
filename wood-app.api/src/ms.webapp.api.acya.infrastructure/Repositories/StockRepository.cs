@@ -687,8 +687,10 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                      l.QuantityMovements.DocumentMerchandise.Document!.SalesSiteId == salesSiteId)
           .Select(l => new
           {
-            LengthName = l.AppVarLength!.Name,
-            LengthId = l.AppVarLengthId,
+            LengthName = l.AppVarLength != null ? l.AppVarLength.Name : (l.CustomLengthCm.HasValue ? $"{l.CustomLengthCm}" : "Sur mesure"),
+            LengthId = l.AppVarLengthId ?? 0,
+            CustomLengthCm = l.CustomLengthCm,
+            TotalWidthCm = l.TotalWidthCm,
             NumberOfPieces = l.NumberOfPieces,
             TransactionType = l.QuantityMovements!.DocumentMerchandise!.Document!.StockTransactionType,
             IsDeleted = l.QuantityMovements.DocumentMerchandise.Document.IsDeleted
@@ -698,11 +700,13 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
       // Calculate the remaining pieces by length
       var result = lengthMovements
-          .GroupBy(x => new { x.LengthId, x.LengthName })
+          .GroupBy(x => new { x.LengthId, x.LengthName, x.CustomLengthCm, x.TotalWidthCm })
           .Select(g => new WoodArticleStockDetail
           {
-            LengthId = (int)g.Key.LengthId!,
+            LengthId = g.Key.LengthId,
             LengthName = g.Key.LengthName,
+            CustomLengthCm = g.Key.CustomLengthCm,
+            TotalWidthCm = g.Key.TotalWidthCm,
             // Only add pieces for Add (supplier receipts) and subtract for Retrieve (sales delivery notes / invoices).
             // Do not sum/subtract pieces for TransactionType.None (e.g. Orders/Quotes).
             RemainingPieces = g.Sum(x => x.TransactionType == TransactionType.Add 

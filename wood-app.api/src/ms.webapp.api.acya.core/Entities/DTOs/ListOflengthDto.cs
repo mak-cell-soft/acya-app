@@ -9,6 +9,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public int nbpieces { get; set; }
     public AppVariableDto? length { get; set; }
     public double quantity { get; set; }
+    public double? customLength { get; set; }
+    public double? totalWidth { get; set; }
 
     public ListOflengthDto() 
     {
@@ -25,6 +27,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       id = entity.Id;
       nbpieces = entity.NumberOfPieces;
       quantity = entity.Quantity;
+      customLength = entity.CustomLengthCm;
+      totalWidth = entity.TotalWidthCm;
       length = entity.AppVarLength != null ? new AppVariableDto(entity.AppVarLength) : null;
     }
 

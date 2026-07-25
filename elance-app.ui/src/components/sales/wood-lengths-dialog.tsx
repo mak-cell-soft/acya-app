@@ -70,8 +70,32 @@ export function WoodLengthsDialog({
   // Parse and display thickness & width values from article details
   useEffect(() => {
     if (article) {
-      const thickValue = article.thickness?.value || '0';
-      const widthValue = article.width?.value || '0';
+      let thickValue = article.thickness?.value || '0';
+      let widthValue = article.width?.value || '0';
+
+      // Fallback if missing or '0': extract from reference e.g. "RF3-63100-METSA" -> thickness 63mm (0.063m), width 100mm (0.100m)
+      if ((!thickValue || thickValue === '0' || !widthValue || widthValue === '0') && article.reference) {
+        const match = article.reference.match(/-(\d{4,6})-/);
+        if (match) {
+          const dims = match[1];
+          let t = 0, w = 0;
+          if (dims.length === 5) {
+            t = parseInt(dims.substring(0, 2), 10);
+            w = parseInt(dims.substring(2, 5), 10);
+          } else if (dims.length === 4) {
+            t = parseInt(dims.substring(0, 2), 10);
+            w = parseInt(dims.substring(2, 4), 10);
+          } else if (dims.length === 6) {
+            t = parseInt(dims.substring(0, 3), 10);
+            w = parseInt(dims.substring(3, 6), 10);
+          }
+          if (t > 0 && w > 0) {
+            if (!thickValue || thickValue === '0') thickValue = (t / 1000).toString();
+            if (!widthValue || widthValue === '0') widthValue = (w / 1000).toString();
+          }
+        }
+      }
+
       setThicknessStr(thickValue.toString());
       setWidthStr(widthValue.toString());
     }

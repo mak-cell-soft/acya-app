@@ -14,6 +14,9 @@ namespace ms.webapp.api.acya.core.Entities.Product
     public int QuantityMovementId { get; set; }
     public QuantityMovement? QuantityMovements { get; set; }
 
+    public double? CustomLengthCm { get; set; }
+    public double? TotalWidthCm { get; set; }
+
     public ListOfLength() { }
 
     public ListOfLength(ListOflengthDto dto)
@@ -23,9 +26,11 @@ namespace ms.webapp.api.acya.core.Entities.Product
         Id = dto.id;
         NumberOfPieces = dto.nbpieces;
         Quantity = dto.quantity;
+        CustomLengthCm = dto.customLength;
+        TotalWidthCm = dto.totalWidth;
 
         // Initialize AppVarLength from DTO
-        if (dto.length != null)
+        if (dto.length != null && dto.length.id > 0)
         {
           AppVarLength = new AppVariable
           {

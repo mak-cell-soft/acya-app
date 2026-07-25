@@ -180,8 +180,11 @@ namespace ms.webapp.api.acya.api.Controllers
               lisoflengths = dm.QuantityMovements?.ListOfLengths?
                     .Select(ll => new ListOflengthDto
                     {
+                      id = ll.Id,
                       nbpieces = ll.NumberOfPieces,
                       quantity = ll.Quantity,
+                      customLength = ll.CustomLengthCm,
+                      totalWidth = ll.TotalWidthCm,
                       length = ll.AppVarLength != null ?
                             new AppVariableDto(ll.AppVarLength) : null
                     })
@@ -412,8 +415,11 @@ namespace ms.webapp.api.acya.api.Controllers
               lisoflengths = dm.QuantityMovements?.ListOfLengths?
                     .Select(ll => new ListOflengthDto
                     {
+                      id = ll.Id,
                       nbpieces = ll.NumberOfPieces,
                       quantity = ll.Quantity,
+                      customLength = ll.CustomLengthCm,
+                      totalWidth = ll.TotalWidthCm,
                       length = ll.AppVarLength != null ?
                             new AppVariableDto(ll.AppVarLength) : null
                     })
@@ -786,6 +792,8 @@ namespace ms.webapp.api.acya.api.Controllers
                   {
                     NumberOfPieces = lengthDto.nbpieces!,
                     Quantity = lengthDto.quantity,
+                    CustomLengthCm = lengthDto.customLength,
+                    TotalWidthCm = lengthDto.totalWidth,
                     QuantityMovements = newQtyMovement
                   };
 
@@ -1585,6 +1593,8 @@ namespace ms.webapp.api.acya.api.Controllers
                   {
                     NumberOfPieces = lengthDto.nbpieces!,
                     Quantity = lengthDto.quantity,
+                    CustomLengthCm = lengthDto.customLength,
+                    TotalWidthCm = lengthDto.totalWidth,
                     QuantityMovements = newQtyMovement
                   };
 

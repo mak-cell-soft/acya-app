@@ -19,6 +19,8 @@ interface LengthStockDetail {
   id: number;
   lengthId: number;
   lengthName: string;
+  customLengthCm?: number;
+  totalWidthCm?: number;
   remainingPieces: number;
   volumeM3?: number;
 }
@@ -122,15 +124,30 @@ export function WoodStockDetailsDialog({
       });
 
       const mappedDetails: LengthStockDetail[] = (result || []).map((d: any) => {
-        const lengthName = d.lengthName ?? d.LengthName ?? '0';
-        const lengthVal = parseFloat(lengthName.toString().replace(',', '.') || '0') / 100; // cm to m
+        const customLen = d.customLengthCm ?? d.CustomLengthCm;
+        const totWidth = d.totalWidthCm ?? d.TotalWidthCm;
+        const lengthName = d.lengthName ?? d.LengthName ?? (customLen ? `${customLen}` : '0');
+        const lengthVal = customLen ? (customLen / 100) : (parseFloat(lengthName.toString().replace(',', '.') || '0') / 100); // cm to m
         const pieces = d.remainingPieces ?? d.RemainingPieces ?? 0;
-        const volumeM3 = parseFloat((pieces * lengthVal * thicknessVal * widthVal).toFixed(4));
+
+        // Distinguish BD subcategory vs standard wood (BR/BB)
+        let volumeM3 = 0;
+        if (customLen || totWidth) {
+          // BD calculation (Bois de Débit)
+          const lenM = (customLen || 0) / 100;
+          const widthM = (totWidth || 0) / 100;
+          volumeM3 = parseFloat((thicknessVal * lenM * widthM).toFixed(4));
+        } else {
+          // Standard wood calculation for BR (Bois Rouge) & BB (Bois Blanc)
+          volumeM3 = parseFloat((pieces * lengthVal * thicknessVal * widthVal).toFixed(4));
+        }
 
         return {
           id: d.id ?? d.Id,
           lengthId: d.lengthId ?? d.LengthId,
           lengthName: lengthName,
+          customLengthCm: customLen,
+          totalWidthCm: totWidth,
           remainingPieces: pieces,
           volumeM3: volumeM3
         };
@@ -229,7 +246,11 @@ export function WoodStockDetailsDialog({
                   details.map((row) => (
                     <tr key={row.lengthId} className="hover:bg-stone-50/50 dark:hover:bg-stone-900/20 transition-all duration-200">
                       <td className="p-3.5 font-bold text-stone-900 dark:text-stone-100">
-                        {row.lengthName} cm <span className="text-[0.65rem] text-stone-400 font-normal">({(parseFloat(row.lengthName)/100).toFixed(2)} m)</span>
+                        {row.customLengthCm ? `${row.customLengthCm} cm` : `${row.lengthName} cm`}{' '}
+                        <span className="text-[0.65rem] text-stone-400 font-normal">
+                          ({((row.customLengthCm || parseFloat(row.lengthName) || 0) / 100).toFixed(2)} m
+                          {row.totalWidthCm ? ` • Largeur: ${row.totalWidthCm} cm` : ''})
+                        </span>
                       </td>
                       <td className="p-3.5 text-center">
                         <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 text-xs font-bold">

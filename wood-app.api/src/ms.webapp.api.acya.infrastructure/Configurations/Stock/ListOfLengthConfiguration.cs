@@ -15,6 +15,8 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Stock
 
             entity.Property(e => e.AppVarLengthId).HasColumnName("lengthappvarid");
             entity.Property(e => e.QuantityMovementId).HasColumnName("quantitymouvementid");
+            entity.Property(e => e.CustomLengthCm).HasColumnName("customlengthcm");
+            entity.Property(e => e.TotalWidthCm).HasColumnName("totalwidthcm");
 
             entity.HasOne(e => e.AppVarLength)
             .WithMany()

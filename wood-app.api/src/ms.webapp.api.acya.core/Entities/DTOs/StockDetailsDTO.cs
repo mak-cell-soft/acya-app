@@ -34,5 +34,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       public int LengthId { get; set; }
       public string? LengthName { get; set; }
       public int RemainingPieces { get; set; }
+      public double? CustomLengthCm { get; set; }
+      public double? TotalWidthCm { get; set; }
   }
 }
