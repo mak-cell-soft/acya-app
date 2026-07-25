@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using ms.admin.api.acya.core.DTOs;
 using ms.admin.api.acya.core.Entities;
 using ms.admin.api.acya.core.Interfaces;
 using Npgsql;
@@ -22,7 +23,17 @@ namespace ms.admin.api.acya.infrastructure.Services
             _logger = logger;
         }
 
-        public async Task<bool> ProvisionTenantAsync(MasterEnterprise enterprise, string adminUsername, string adminEmail, string adminPassword)
+        public Task<bool> ProvisionTenantAsync(MasterEnterprise enterprise, string adminUsername, string adminEmail, string adminPassword)
+        {
+            return ProvisionTenantAsync(enterprise, new TenantProvisionDetails
+            {
+                AdminUsername = adminUsername,
+                AdminEmail = adminEmail,
+                AdminPassword = adminPassword
+            });
+        }
+
+        public async Task<bool> ProvisionTenantAsync(MasterEnterprise enterprise, TenantProvisionDetails details)
         {
             try
             {
@@ -51,38 +62,59 @@ namespace ms.admin.api.acya.infrastructure.Services
                     }
 
                     // 2. Execute migration script inside schema search path
-                    // Set search path first on connection session
                     using (var cmd = new NpgsqlCommand($"SET search_path TO {enterprise.SchemaName};", conn))
                     {
                         await cmd.ExecuteNonQueryAsync();
                     }
 
-                    // Run the migration script
                     using (var cmd = new NpgsqlCommand(sqlScript, conn))
                     {
                         cmd.CommandTimeout = 300; // 5 minutes timeout for massive schema migration
                         await cmd.ExecuteNonQueryAsync();
                     }
 
-                    // 3. Seed initial admin user credentials inside the schema search path
-                    _logger.LogInformation("Seeding admin user for tenant {Slug}...", enterprise.Slug);
+                    // 3. Seed initial admin user credentials and enterprise details inside the schema search path
+                    _logger.LogInformation("Seeding admin user and enterprise details for tenant {Slug}...", enterprise.Slug);
                     
                     using var hmac = new HMACSHA512();
-                    byte[] passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(adminPassword));
+                    byte[] passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(details.AdminPassword));
                     byte[] passwordSalt = hmac.Key;
 
                     // Seeding enterprise table inside the schema search path (ID = 1)
                     long enterpriseId = 1;
                     using (var cmd = new NpgsqlCommand($@"
                         SET search_path TO {enterprise.SchemaName};
-                        INSERT INTO tbl_enterprise (id, name, enterpriseguid, email, phone, issalingwood, ismanagingconstructions, logourl, faviconurl, primarycolor, secondarycolor, customdomain, language, currency, auditretentionmonths, documentnumberingconfig)
-                        VALUES (1, @name, @guid, @email, @phone, @issalingwood, @ismanagingconstructions, @logourl, @faviconurl, @primarycolor, @secondarycolor, @customdomain, @language, @currency, 12, @documentnumberingconfig)
+                        INSERT INTO tbl_enterprise (
+                            id, name, enterpriseguid, description, email, phone, mobileone, mobiletwo, 
+                            matriculefiscal, devise, nameresponsable, surnameresponsable, positionresponsable, 
+                            siegeaddress, commercialregister, capital, issalingwood, ismanagingconstructions, 
+                            logourl, faviconurl, primarycolor, secondarycolor, customdomain, language, currency, 
+                            auditretentionmonths, documentnumberingconfig
+                        )
+                        VALUES (
+                            1, @name, @guid, @description, @email, @phone, @mobileone, @mobiletwo, 
+                            @matriculefiscal, @devise, @nameresponsable, @surnameresponsable, @positionresponsable, 
+                            @siegeaddress, @commercialregister, @capital, @issalingwood, @ismanagingconstructions, 
+                            @logourl, @faviconurl, @primarycolor, @secondarycolor, @customdomain, @language, @currency, 
+                            12, @documentnumberingconfig
+                        )
                         RETURNING id;", conn))
                     {
                         cmd.Parameters.AddWithValue("name", enterprise.Name);
                         cmd.Parameters.AddWithValue("guid", Guid.NewGuid());
+                        cmd.Parameters.AddWithValue("description", (object?)details.Description ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("email", (object?)enterprise.Email ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("phone", (object?)enterprise.Phone ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("mobileone", (object?)details.MobileOne ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("mobiletwo", (object?)details.MobileTwo ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("matriculefiscal", (object?)details.MatriculeFiscal ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("devise", (object?)details.Devise ?? (object?)enterprise.Currency ?? "TND");
+                        cmd.Parameters.AddWithValue("nameresponsable", (object?)details.NameResponsable ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("surnameresponsable", (object?)details.SurnameResponsable ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("positionresponsable", (object?)details.PositionResponsable ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("siegeaddress", (object?)details.SiegeAddress ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("commercialregister", (object?)details.CommercialRegister ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("capital", (object?)details.Capital ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("issalingwood", enterprise.IsSalingWood);
                         cmd.Parameters.AddWithValue("ismanagingconstructions", enterprise.IsManagingConstructions);
                         cmd.Parameters.AddWithValue("logourl", (object?)enterprise.LogoUrl ?? DBNull.Value);
@@ -96,15 +128,53 @@ namespace ms.admin.api.acya.infrastructure.Services
                         enterpriseId = Convert.ToInt64(await cmd.ExecuteScalarAsync());
                     }
 
+                    // Seed sales sites if provided
+                    long? firstSiteId = null;
+                    if (details.Sites != null && details.Sites.Count > 0)
+                    {
+                        foreach (var site in details.Sites)
+                        {
+                            if (string.IsNullOrWhiteSpace(site.Address) && string.IsNullOrWhiteSpace(site.Gov)) continue;
+
+                            using (var siteCmd = new NpgsqlCommand($@"
+                                SET search_path TO {enterprise.SchemaName};
+                                INSERT INTO tbl_sales_sites (isforsale, gouvernorate, address, isdeleted, enterpriseid)
+                                VALUES (@isforsale, @gov, @address, false, @enterpriseid)
+                                RETURNING id;", conn))
+                            {
+                                siteCmd.Parameters.AddWithValue("isforsale", site.IsForSale);
+                                siteCmd.Parameters.AddWithValue("gov", (object?)site.Gov ?? DBNull.Value);
+                                siteCmd.Parameters.AddWithValue("address", (object?)site.Address ?? DBNull.Value);
+                                siteCmd.Parameters.AddWithValue("enterpriseid", enterpriseId);
+                                long createdSiteId = Convert.ToInt64(await siteCmd.ExecuteScalarAsync());
+                                if (firstSiteId == null)
+                                {
+                                    firstSiteId = createdSiteId;
+                                }
+                            }
+                        }
+                    }
+
                     // Insert Person
+                    string firstName = !string.IsNullOrWhiteSpace(details.AdminSurname) 
+                        ? details.AdminSurname 
+                        : (!string.IsNullOrWhiteSpace(details.SurnameResponsable) ? details.SurnameResponsable : "Admin");
+                    string lastName = !string.IsNullOrWhiteSpace(details.NameResponsable) 
+                        ? details.NameResponsable 
+                        : details.AdminUsername.ToUpper();
+                    string fullName = $"{firstName} {lastName}".Trim();
+
                     long personId;
                     using (var cmd = new NpgsqlCommand($@"
                         SET search_path TO {enterprise.SchemaName};
                         INSERT INTO tbl_person (guid, firstname, lastname, fullname, idrole, isdeleted, isappuser, creationdate, updatedate)
-                        VALUES (@guid, 'Admin', 'Tenant', 'Admin Tenant', 10, false, true, NOW(), NOW())
+                        VALUES (@guid, @firstname, @lastname, @fullname, 10, false, true, NOW(), NOW())
                         RETURNING id;", conn))
                     {
                         cmd.Parameters.AddWithValue("guid", Guid.NewGuid());
+                        cmd.Parameters.AddWithValue("firstname", firstName);
+                        cmd.Parameters.AddWithValue("lastname", lastName);
+                        cmd.Parameters.AddWithValue("fullname", fullName);
                         personId = Convert.ToInt64(await cmd.ExecuteScalarAsync());
                     }
 
@@ -112,16 +182,17 @@ namespace ms.admin.api.acya.infrastructure.Services
                     long userId;
                     using (var cmd = new NpgsqlCommand($@"
                         SET search_path TO {enterprise.SchemaName};
-                        INSERT INTO tbl_app_user (login, email, isactive, passwordhash, passwordsalt, idperson, enterpriseid)
-                        VALUES (@login, @email, true, @passwordhash, @passwordsalt, @idperson, @enterpriseid)
+                        INSERT INTO tbl_app_user (login, email, isactive, passwordhash, passwordsalt, idperson, enterpriseid, idsalessite)
+                        VALUES (@login, @email, true, @passwordhash, @passwordsalt, @idperson, @enterpriseid, @idsalessite)
                         RETURNING id;", conn))
                     {
-                        cmd.Parameters.AddWithValue("login", adminUsername.ToLower());
-                        cmd.Parameters.AddWithValue("email", adminEmail.ToLower());
+                        cmd.Parameters.AddWithValue("login", details.AdminUsername.ToLower());
+                        cmd.Parameters.AddWithValue("email", details.AdminEmail.ToLower());
                         cmd.Parameters.AddWithValue("passwordhash", passwordHash);
                         cmd.Parameters.AddWithValue("passwordsalt", passwordSalt);
                         cmd.Parameters.AddWithValue("idperson", personId);
                         cmd.Parameters.AddWithValue("enterpriseid", enterpriseId);
+                        cmd.Parameters.AddWithValue("idsalessite", (object?)firstSiteId ?? DBNull.Value);
                         userId = Convert.ToInt64(await cmd.ExecuteScalarAsync());
                     }
 

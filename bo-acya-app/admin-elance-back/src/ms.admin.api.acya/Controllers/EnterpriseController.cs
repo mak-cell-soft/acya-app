@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ms.admin.api.acya.core.Entities;
+using ms.admin.api.acya.core.DTOs;
 using ms.admin.api.acya.core.Interfaces;
 using ms.admin.api.acya.common.Enums;
 using ms.admin.api.acya.infrastructure;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -29,6 +31,22 @@ namespace ms.admin.api.acya.Controllers
         public string? Currency { get; set; }
         public bool IsSalingWood { get; set; }
         public bool IsManagingConstructions { get; set; }
+
+        public string? Description { get; set; }
+        public string? MobileOne { get; set; }
+        public string? MobileTwo { get; set; }
+        public string? MatriculeFiscal { get; set; }
+        public string? Devise { get; set; }
+        public string? SiegeAddress { get; set; }
+        public string? CommercialRegister { get; set; }
+        public string? Capital { get; set; }
+
+        public string? NameResponsable { get; set; }
+        public string? SurnameResponsable { get; set; }
+        public string? PositionResponsable { get; set; }
+        public string? AdminSurname { get; set; }
+
+        public List<SiteProvisionItem>? Sites { get; set; }
 
         public string AdminUsername { get; set; } = "admin";
         public string AdminEmail { get; set; } = string.Empty;
@@ -237,11 +255,29 @@ namespace ms.admin.api.acya.Controllers
             var adminEmail = string.IsNullOrWhiteSpace(request.AdminEmail) ? (request.Email ?? $"admin@{slug}.acya.site") : request.AdminEmail;
             var adminPassword = string.IsNullOrWhiteSpace(request.AdminPassword) ? GenerateRandomPassword() : request.AdminPassword;
 
+            var provisionDetails = new TenantProvisionDetails
+            {
+                AdminUsername = adminUsername,
+                AdminEmail = adminEmail,
+                AdminPassword = adminPassword,
+                AdminSurname = request.AdminSurname,
+                Description = request.Description,
+                MobileOne = request.MobileOne,
+                MobileTwo = request.MobileTwo,
+                MatriculeFiscal = request.MatriculeFiscal,
+                Devise = request.Devise,
+                SiegeAddress = request.SiegeAddress,
+                CommercialRegister = request.CommercialRegister,
+                Capital = request.Capital,
+                NameResponsable = request.NameResponsable,
+                SurnameResponsable = request.SurnameResponsable,
+                PositionResponsable = request.PositionResponsable,
+                Sites = request.Sites ?? new List<SiteProvisionItem>()
+            };
+
             var provisionSuccess = await _provisioningService.ProvisionTenantAsync(
                 created,
-                adminUsername,
-                adminEmail,
-                adminPassword
+                provisionDetails
             );
 
             if (!provisionSuccess)

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, Key, ToggleLeft, Trash2, CheckCircle2, Loader2, ExternalLink, Edit, Users, Lock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Shield, Key, ToggleLeft, Trash2, CheckCircle2, Loader2, ExternalLink, Edit, Users, Lock, ChevronLeft, ChevronRight, FileText } from "lucide-react";
 
 interface TenantAppUser {
   id: number;
@@ -98,10 +98,63 @@ export default function EnterprisesPage() {
   const [currency, setCurrency] = useState("TND");
   const [planPrice, setPlanPrice] = useState<number>(0);
 
+  // Extended Registration Data
+  const [description, setDescription] = useState("");
+  const [mobileOne, setMobileOne] = useState("");
+  const [mobileTwo, setMobileTwo] = useState("");
+  const [matriculeFiscal, setMatriculeFiscal] = useState("");
+  const [devise, setDevise] = useState("TND");
+  const [siegeAddress, setSiegeAddress] = useState("");
+  const [commercialRegister, setCommercialRegister] = useState("");
+  const [capital, setCapital] = useState("");
+  const [nameResponsable, setNameResponsable] = useState("");
+  const [surnameResponsable, setSurnameResponsable] = useState("");
+  const [positionResponsable, setPositionResponsable] = useState("");
+  const [adminSurname, setAdminSurname] = useState("");
+  const [sites, setSites] = useState<any[]>([]);
+
   // Admin Credentials
   const [adminUsername, setAdminUsername] = useState("admin");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
+
+  const clearForm = () => {
+    setExistingId(null);
+    setIsEditingActive(false);
+    setName("");
+    setSlug("");
+    setEmail("");
+    setPhone("");
+    setPlan("Trial");
+    setPlanPrice(0);
+    setNotes("");
+    setIsSalingWood(false);
+    setIsManagingConstructions(false);
+    setLogoUrl("");
+    setFaviconUrl("");
+    setPrimaryColor("#3B82F6");
+    setSecondaryColor("#EBF1FA");
+    setCustomDomain("");
+    setLanguage("fr");
+    setCurrency("TND");
+    setAdminUsername("admin");
+    setAdminEmail("");
+    setAdminPassword("");
+
+    setDescription("");
+    setMobileOne("");
+    setMobileTwo("");
+    setMatriculeFiscal("");
+    setDevise("TND");
+    setSiegeAddress("");
+    setCommercialRegister("");
+    setCapital("");
+    setNameResponsable("");
+    setSurnameResponsable("");
+    setPositionResponsable("");
+    setAdminSurname("");
+    setSites([]);
+  };
 
   const getHeaders = () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
@@ -169,7 +222,20 @@ export default function EnterprisesPage() {
       isManagingConstructions,
       adminUsername,
       adminEmail: adminEmail || email || `admin@${slug || "tenant"}.acya.site`,
-      adminPassword: adminPassword || "AdminPass123!"
+      adminPassword: adminPassword || "AdminPass123!",
+      description: description || null,
+      mobileOne: mobileOne || null,
+      mobileTwo: mobileTwo || null,
+      matriculeFiscal: matriculeFiscal || null,
+      devise: devise || null,
+      siegeAddress: siegeAddress || null,
+      commercialRegister: commercialRegister || null,
+      capital: capital || null,
+      nameResponsable: nameResponsable || null,
+      surnameResponsable: surnameResponsable || null,
+      positionResponsable: positionResponsable || null,
+      adminSurname: adminSurname || null,
+      sites: sites && sites.length > 0 ? sites : null,
     };
 
     try {
@@ -196,8 +262,7 @@ export default function EnterprisesPage() {
 
       if (isEditingActive) {
         setShowCreateModal(false);
-        setExistingId(null);
-        setIsEditingActive(false);
+        clearForm();
         fetchEnterprises();
       } else {
         const createdResponse = await res.json();
@@ -212,28 +277,7 @@ export default function EnterprisesPage() {
           url: `https://${createdResponse.slug || payload.slug}.acya.site`
         });
 
-        // Clear forms
-        setExistingId(null);
-        setName("");
-        setSlug("");
-        setEmail("");
-        setPhone("");
-        setPlan("Trial");
-        setPlanPrice(0);
-        setNotes("");
-        setIsSalingWood(false);
-        setIsManagingConstructions(false);
-        setLogoUrl("");
-        setFaviconUrl("");
-        setPrimaryColor("#3B82F6");
-        setSecondaryColor("#EBF1FA");
-        setCustomDomain("");
-        setLanguage("fr");
-        setCurrency("TND");
-        setAdminUsername("admin");
-        setAdminEmail("");
-        setAdminPassword("");
-
+        clearForm();
         fetchEnterprises();
       }
     } catch (err: any) {
@@ -359,43 +403,73 @@ export default function EnterprisesPage() {
     setLanguage(ent.language || "fr");
     setCurrency(ent.currency || "TND");
 
-    // Pre-fill Admin credentials from notes JSON
+    // Pre-fill fields from notes JSON blob
     if (ent.notes) {
       try {
         const payload = JSON.parse(ent.notes);
-        if (payload.issalingwood !== undefined) {
-          setIsSalingWood(payload.issalingwood);
-        } else if (payload.isSalingWood !== undefined) {
-          setIsSalingWood(payload.isSalingWood);
-        } else {
-          setIsSalingWood(false);
-        }
-
-        if (payload.ismanagingconstructions !== undefined) {
-          setIsManagingConstructions(payload.ismanagingconstructions);
-        } else if (payload.isManagingConstructions !== undefined) {
-          setIsManagingConstructions(payload.isManagingConstructions);
-        } else {
-          setIsManagingConstructions(false);
-        }
+        setIsSalingWood(payload.issalingwood ?? payload.isSalingWood ?? false);
+        setIsManagingConstructions(payload.ismanagingconstructions ?? payload.isManagingConstructions ?? false);
+        
+        setDescription(payload.description || "");
+        setMobileOne(payload.mobileOne || "");
+        setMobileTwo(payload.mobileTwo || "");
+        setMatriculeFiscal(payload.matriculeFiscal || "");
+        setDevise(payload.devise || "TND");
+        setSiegeAddress(payload.siegeAddress || "");
+        setCommercialRegister(payload.commercialregister || payload.commercialRegister || "");
+        setCapital(payload.capital || "");
+        setNameResponsable(payload.nameResponsable || "");
+        setSurnameResponsable(payload.surnameResponsable || "");
+        setPositionResponsable(payload.positionResponsable || "");
+        setSites(payload.sites || []);
 
         if (payload.user) {
           setAdminUsername(payload.user.name || "admin");
-          setAdminEmail(payload.user.email || payload.email || "");
+          setAdminSurname(payload.user.surname || "");
+          setAdminEmail(payload.user.email || payload.email || ent.email || "");
           setAdminPassword(payload.user.password || "");
         } else {
           setAdminUsername("admin");
+          setAdminSurname("");
           setAdminEmail(ent.email || "");
           setAdminPassword("");
         }
       } catch (e) {
         setIsSalingWood(false);
+        setIsManagingConstructions(false);
+        setDescription("");
+        setMobileOne("");
+        setMobileTwo("");
+        setMatriculeFiscal("");
+        setDevise("TND");
+        setSiegeAddress("");
+        setCommercialRegister("");
+        setCapital("");
+        setNameResponsable("");
+        setSurnameResponsable("");
+        setPositionResponsable("");
+        setAdminSurname("");
+        setSites([]);
         setAdminUsername("admin");
         setAdminEmail(ent.email || "");
         setAdminPassword("");
       }
     } else {
       setIsSalingWood(false);
+      setIsManagingConstructions(false);
+      setDescription("");
+      setMobileOne("");
+      setMobileTwo("");
+      setMatriculeFiscal("");
+      setDevise("TND");
+      setSiegeAddress("");
+      setCommercialRegister("");
+      setCapital("");
+      setNameResponsable("");
+      setSurnameResponsable("");
+      setPositionResponsable("");
+      setAdminSurname("");
+      setSites([]);
       setAdminUsername("admin");
       setAdminEmail(ent.email || "");
       setAdminPassword("");
@@ -835,6 +909,66 @@ export default function EnterprisesPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Section 1.5: Preserved Registration Details Display */}
+                {(matriculeFiscal || siegeAddress || nameResponsable || (sites && sites.length > 0)) && (
+                  <div className="p-4 bg-slate-950/80 border border-amber-500/20 rounded-xl space-y-3 shadow-inner">
+                    <h4 className="text-xs uppercase font-mono tracking-wider text-amber-400 font-semibold flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-amber-400" />
+                      Données d'Inscription Enregistrées (Conservées à la Validation)
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      {matriculeFiscal && (
+                        <div>
+                          <span className="text-slate-400 font-mono">Matricule Fiscal: </span>
+                          <span className="font-mono text-slate-200 font-bold">{matriculeFiscal}</span>
+                        </div>
+                      )}
+                      {siegeAddress && (
+                        <div>
+                          <span className="text-slate-400">Adresse Siège: </span>
+                          <span className="text-slate-200">{siegeAddress}</span>
+                        </div>
+                      )}
+                      {devise && (
+                        <div>
+                          <span className="text-slate-400">Devise: </span>
+                          <span className="font-mono text-slate-200">{devise}</span>
+                        </div>
+                      )}
+                      {commercialRegister && (
+                        <div>
+                          <span className="text-slate-400">Registre Commerce: </span>
+                          <span className="font-mono text-slate-200">{commercialRegister}</span>
+                        </div>
+                      )}
+                      {capital && (
+                        <div>
+                          <span className="text-slate-400">Capital: </span>
+                          <span className="font-mono text-slate-200">{capital}</span>
+                        </div>
+                      )}
+                      {(nameResponsable || surnameResponsable) && (
+                        <div>
+                          <span className="text-slate-400">Responsable Légale: </span>
+                          <span className="text-slate-200 font-medium">{surnameResponsable} {nameResponsable} {positionResponsable ? `(${positionResponsable})` : ''}</span>
+                        </div>
+                      )}
+                    </div>
+                    {sites && sites.length > 0 && (
+                      <div className="pt-2 border-t border-slate-800/80 text-xs">
+                        <span className="text-slate-400 font-mono">Sites de Vente Enregistrés ({sites.length}): </span>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {sites.map((s: any, idx: number) => (
+                            <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[11px] text-slate-300">
+                              {s.gov ? `${s.gov} - ` : ''}{s.address}{s.isForSale ? ' (Point de Vente)' : ''}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Section 2: Admin Credentials */}
                 {!isEditingActive && (
