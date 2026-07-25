@@ -212,9 +212,10 @@ export default function MonitoringPage() {
         </div>
         {selectedEnt && (
           <button 
+            type="button"
             onClick={() => fetchStatsAndJobs(selectedEnt.id)}
             disabled={statsLoading || backupsLoading}
-            className="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-md transition-colors cursor-pointer flex items-center gap-2 text-sm font-mono"
+            className="p-2.5 bg-slate-800 hover:bg-slate-700 active:scale-[0.96] text-white rounded-md transition-[transform,background-color] cursor-pointer flex items-center gap-2 text-sm font-mono select-none"
           >
             <RefreshCw className={`w-4 h-4 ${(statsLoading || backupsLoading) ? 'animate-spin' : ''}`} />
             REFRESH DATA

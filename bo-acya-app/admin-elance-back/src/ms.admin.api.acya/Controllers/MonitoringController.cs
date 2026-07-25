@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using ms.admin.api.acya.infrastructure;
 using Npgsql;
 using System;
@@ -14,10 +15,12 @@ namespace ms.admin.api.acya.Controllers
     public class MonitoringController : ControllerBase
     {
         private readonly MasterDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public MonitoringController(MasterDbContext context)
+        public MonitoringController(MasterDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         [HttpGet("{tenantId}")]
@@ -30,61 +33,91 @@ namespace ms.admin.api.acya.Controllers
             int userCount = 0;
             int activeConnections = 0;
             DateTime? lastActivity = null;
+            string? errorMessage = null;
 
             try
             {
-                var connStr = _context.Database.GetDbConnection().ConnectionString;
+                // Use the explicit connection string from configuration to preserve password
+                var connStr = _configuration.GetConnectionString("MasterConnection")
+                    ?? _context.Database.GetDbConnection().ConnectionString;
+
                 using (var conn = new NpgsqlConnection(connStr))
                 {
                     await conn.OpenAsync();
 
                     // 1. Get database connections (global)
-                    using (var cmd = new NpgsqlCommand("SELECT count(*) FROM pg_stat_activity", conn))
+                    try
                     {
-                        activeConnections = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                        using (var cmd = new NpgsqlCommand("SELECT count(*) FROM pg_stat_activity", conn))
+                        {
+                            activeConnections = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Monitoring] Failed DB connections count: {ex.Message}");
                     }
 
-                    // 2. Get tenant schema size (sum of tables, indexes, toast etc.)
-                    var sizeSql = $@"
-                        SELECT COALESCE(sum(pg_total_relation_size(quote_ident(schemaname) || '.' || quote_ident(relname))), 0) 
-                        FROM pg_stat_user_tables 
-                        WHERE schemaname = '{tenant.SchemaName}';";
-                    using (var cmd = new NpgsqlCommand(sizeSql, conn))
+                    // Sanitize schema name for safety
+                    var safeSchema = tenant.SchemaName.Replace("\"", "").Replace("'", "");
+
+                    // 2. Get tenant schema size
+                    try
                     {
-                        dbSize = Convert.ToInt64(await cmd.ExecuteScalarAsync());
+                        var sizeSql = @"
+                            SELECT COALESCE(sum(pg_total_relation_size(quote_ident(schemaname) || '.' || quote_ident(relname))), 0) 
+                            FROM pg_stat_user_tables 
+                            WHERE schemaname = @SchemaName;";
+                        using (var cmd = new NpgsqlCommand(sizeSql, conn))
+                        {
+                            cmd.Parameters.AddWithValue("SchemaName", safeSchema);
+                            dbSize = Convert.ToInt64(await cmd.ExecuteScalarAsync());
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Monitoring] Failed schema size calculation: {ex.Message}");
                     }
 
                     // 3. Get users count in tenant schema
-                    var usersSql = $"SELECT count(*) FROM {tenant.SchemaName}.tbl_app_user;";
-                    using (var cmd = new NpgsqlCommand(usersSql, conn))
+                    try
                     {
-                        userCount = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                        var usersSql = $"SELECT count(*) FROM \"{safeSchema}\".tbl_app_user;";
+                        using (var cmd = new NpgsqlCommand(usersSql, conn))
+                        {
+                            userCount = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Monitoring] Failed user count query: {ex.Message}");
                     }
 
                     // 4. Get last audit activity timestamp
-                    var activitySql = $"SELECT max(\"Timestamp\") FROM {tenant.SchemaName}.\"AuditLogs\";";
-                    using (var cmd = new NpgsqlCommand(activitySql, conn))
+                    try
                     {
-                        var res = await cmd.ExecuteScalarAsync();
-                        if (res != null && res != DBNull.Value)
+                        var activitySql = $"SELECT max(\"Timestamp\") FROM \"{safeSchema}\".\"AuditLogs\";";
+                        using (var cmd = new NpgsqlCommand(activitySql, conn))
                         {
-                            lastActivity = (DateTime)res;
+                            var res = await cmd.ExecuteScalarAsync();
+                            if (res != null && res != DBNull.Value)
+                            {
+                                lastActivity = (DateTime)res;
+                            }
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Monitoring] Failed audit logs activity query: {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                return Ok(new
-                {
-                    DatabaseSize = 0,
-                    UserCount = 0,
-                    ActiveConnections = activeConnections,
-                    LastActivity = (DateTime?)null,
-                    Status = "Degraded",
-                    ErrorMessage = ex.Message
-                });
+                errorMessage = ex.Message;
             }
+
+            var isHealthy = string.IsNullOrEmpty(errorMessage);
 
             return Ok(new
             {
@@ -92,8 +125,8 @@ namespace ms.admin.api.acya.Controllers
                 UserCount = userCount,
                 ActiveConnections = activeConnections,
                 LastActivity = lastActivity,
-                Status = "Healthy",
-                ErrorMessage = (string?)null
+                Status = isHealthy ? "Healthy" : "Degraded",
+                ErrorMessage = errorMessage
             });
         }
     }

@@ -63,6 +63,15 @@
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
   }
+  h1, h2, h3, h4, h5, h6 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 .glass-panel {

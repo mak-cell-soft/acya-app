@@ -15,7 +15,9 @@ import {
   CreditCard, 
   Activity, 
   ClipboardList, 
-  Settings 
+  Settings,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -24,6 +26,9 @@ export default function Sidebar() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -296,56 +301,92 @@ export default function Sidebar() {
                 <label className="text-xs font-mono uppercase text-muted-foreground font-medium">
                   Current Password
                 </label>
-                <input
-                  type="password"
-                  required
-                  className="w-full px-4 py-2.5 bg-zinc-850 border border-zinc-800 rounded-lg text-sm focus:outline-none focus:border-primary transition-colors text-foreground"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="••••••••"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    required
+                    autoComplete="current-password"
+                    maxLength={128}
+                    className="w-full pl-4 pr-11 py-2.5 bg-zinc-850 border border-zinc-800 rounded-lg text-sm focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(16,185,129,0.15)] transition-[border-color,box-shadow] text-foreground"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-1 p-2 text-muted-foreground hover:text-foreground transition-[color,transform] active:scale-[0.96] rounded-md flex items-center justify-center cursor-pointer min-w-[40px] min-h-[40px]"
+                    aria-label={showCurrentPassword ? "Hide current password" : "Show current password"}
+                  >
+                    {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-1">
                 <label className="text-xs font-mono uppercase text-muted-foreground font-medium">
                   New Password
                 </label>
-                <input
-                  type="password"
-                  required
-                  className="w-full px-4 py-2.5 bg-zinc-850 border border-zinc-800 rounded-lg text-sm focus:outline-none focus:border-primary transition-colors text-foreground"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Min 6 characters"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    required
+                    autoComplete="new-password"
+                    maxLength={128}
+                    className="w-full pl-4 pr-11 py-2.5 bg-zinc-850 border border-zinc-800 rounded-lg text-sm focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(16,185,129,0.15)] transition-[border-color,box-shadow] text-foreground"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Min 6 characters"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-1 p-2 text-muted-foreground hover:text-foreground transition-[color,transform] active:scale-[0.96] rounded-md flex items-center justify-center cursor-pointer min-w-[40px] min-h-[40px]"
+                    aria-label={showNewPassword ? "Hide new password" : "Show new password"}
+                  >
+                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-1">
                 <label className="text-xs font-mono uppercase text-muted-foreground font-medium">
                   Confirm New Password
                 </label>
-                <input
-                  type="password"
-                  required
-                  className="w-full px-4 py-2.5 bg-zinc-850 border border-zinc-800 rounded-lg text-sm focus:outline-none focus:border-primary transition-colors text-foreground"
-                  value={confirmPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="••••••••"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    required
+                    autoComplete="new-password"
+                    maxLength={128}
+                    className="w-full pl-4 pr-11 py-2.5 bg-zinc-850 border border-zinc-800 rounded-lg text-sm focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(16,185,129,0.15)] transition-[border-color,box-shadow] text-foreground"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-1 p-2 text-muted-foreground hover:text-foreground transition-[color,transform] active:scale-[0.96] rounded-md flex items-center justify-center cursor-pointer min-w-[40px] min-h-[40px]"
+                    aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsPasswordOpen(false)}
-                  className="px-4 py-2 text-xs font-mono bg-zinc-800 text-muted-foreground rounded-lg hover:bg-zinc-700 transition-colors"
+                  className="px-4 py-2 text-xs font-mono bg-zinc-800 text-muted-foreground rounded-lg hover:bg-zinc-700 active:scale-[0.96] transition-[transform,background-color] cursor-pointer"
                 >
                   CANCEL
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 text-xs font-mono bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1.5"
+                  className="px-4 py-2 text-xs font-mono bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 active:scale-[0.96] transition-[transform,background-color] flex items-center gap-1.5 cursor-pointer select-none"
                 >
                   {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   COMMIT_CHANGE
