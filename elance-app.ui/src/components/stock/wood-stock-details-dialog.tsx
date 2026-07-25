@@ -214,7 +214,10 @@ export function WoodStockDetailsDialog({
             <div>
               <span className="text-[0.6rem] font-bold text-stone-400 uppercase tracking-wider block">Largeur</span>
               <span className="font-bold text-stone-800 dark:text-stone-200 text-sm">
-                {fullArticle?._displayWidth || '—'} <span className="text-xs font-normal text-stone-400">mm</span>
+                {(stock.merchandise?.article as any)?.subcategory?.reference?.toUpperCase() === 'BD' || details.some(d => d.customLengthCm || d.totalWidthCm)
+                  ? <span className="text-amber-600 dark:text-amber-400 font-bold">Variable (BD)</span>
+                  : `${fullArticle?._displayWidth || '—'} mm`
+                }
               </span>
             </div>
           </div>
@@ -249,7 +252,7 @@ export function WoodStockDetailsDialog({
                         {row.customLengthCm ? `${row.customLengthCm} cm` : `${row.lengthName} cm`}{' '}
                         <span className="text-[0.65rem] text-stone-400 font-normal">
                           ({((row.customLengthCm || parseFloat(row.lengthName) || 0) / 100).toFixed(2)} m
-                          {row.totalWidthCm ? ` • Largeur: ${row.totalWidthCm} cm` : ''})
+                          {row.totalWidthCm ? ` • Épaisseur: ${fullArticle?._displayThickness || '—'} mm • Largeur: ${row.totalWidthCm} cm` : ''})
                         </span>
                       </td>
                       <td className="p-3.5 text-center">

@@ -37,7 +37,8 @@ import {
   X, 
   TreeDeciduous, 
   Calculator,
-  LayoutGrid
+  LayoutGrid,
+  Info
 } from "lucide-react";
 import { useCategories } from "@/hooks/use-categories";
 import { useAppVariables } from "@/hooks/use-app-variables";
@@ -173,6 +174,25 @@ export function ArticleFormDialog({
     return cat?.firstchildren || [];
   }, [selectedCategoryId, categories]);
 
+  const selectedSubcategoryId = form.watch("subcategoryid");
+
+  const selectedSubcategory = useMemo(() => {
+    if (!selectedSubcategoryId || !filteredSubCategories) return null;
+    return filteredSubCategories.find(s => s.id.toString() === selectedSubcategoryId.toString());
+  }, [selectedSubcategoryId, filteredSubCategories]);
+
+  const isBdSubcategory = useMemo(() => {
+    return selectedSubcategory?.reference?.toUpperCase() === 'BD';
+  }, [selectedSubcategory]);
+
+  // Clear width and lengths when BD subcategory is selected
+  useEffect(() => {
+    if (isBdSubcategory) {
+      form.setValue("widthid", "");
+      setSelectedLengths([]);
+    }
+  }, [isBdSubcategory, form]);
+
   // Handle Category logic (Wood vs others)
   // Uses isWoodCategory (description-based) instead of hardcoded ID=1
   useEffect(() => {
@@ -215,20 +235,18 @@ export function ArticleFormDialog({
   };
 
   const onSubmit = (values: ArticleFormValues) => {
+    const isBd = isBdSubcategory;
     const model = {
       ...values,
-      // Flag C#/API contract assumption where frontend meets backend:
-      // Pass the existing article ID if editing so the backend ArticleDto can bind it,
-      // preventing EF Core from overwriting or resetting the primary key.
       id: editArticle?.id,
       categoryid: parseInt(values.categoryid),
       subcategoryid: parseInt(values.subcategoryid),
       tvaid: parseInt(values.tvaid),
       thicknessid: values.thicknessid ? parseInt(values.thicknessid) : null,
-      widthid: values.widthid ? parseInt(values.widthid) : null,
+      widthid: isBd ? null : (values.widthid ? parseInt(values.widthid) : null),
       sellprice_ht: calculatedHT,
       iswood: isWoodCategory,
-      lengths: isWoodCategory ? `[${selectedLengths.join(', ')}]` : null,
+      lengths: (isWoodCategory && !isBd) ? `[${selectedLengths.join(', ')}]` : "[]",
       updatedby: 1, // Mock user ID
     };
     onSave(model);
@@ -396,17 +414,35 @@ export function ArticleFormDialog({
             {/* Wood Properties Section (Conditional) */}
             {isWoodCategory && (
               <div className="space-y-6 animate-in slide-in-from-top duration-500">
-                <div className="flex items-center gap-2 pb-2 border-b border-corp-blue-50">
-                  <TreeDeciduous className="w-4 h-4 text-corp-blue-600" />
-                  <h3 className="font-bold text-corp-blue-900">Propriétés du Bois</h3>
+                <div className="flex items-center justify-between pb-2 border-b border-corp-blue-50">
+                  <div className="flex items-center gap-2">
+                    <TreeDeciduous className="w-4 h-4 text-corp-blue-600" />
+                    <h3 className="font-bold text-corp-blue-900">Propriétés du Bois</h3>
+                  </div>
+                  {isBdSubcategory && (
+                    <Badge className="bg-amber-100 text-amber-800 border border-amber-300 font-bold px-3 py-1 rounded-lg flex items-center gap-1.5 text-xs">
+                      <Info className="w-3.5 h-3.5 text-amber-600" />
+                      Sous-catégorie BD (Bois de Débit) — Saisie Sur Mesure
+                    </Badge>
+                  )}
                 </div>
+
+                {isBdSubcategory && (
+                  <div className="bg-amber-50/80 border border-amber-200/80 rounded-2xl p-4 text-xs text-amber-900 flex items-start gap-3">
+                    <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <p className="leading-relaxed">
+                      <span className="font-bold">Spécificité Bois BD :</span> Seule <strong>l'Épaisseur</strong> est fixe sur la fiche article. La <strong>Longueur</strong> et la <strong>Largeur Totale</strong> sont variables et seront renseignées sur mesure lors des mouvements de stock (Réceptions & Ventes).
+                    </p>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
                     name="thicknessid"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Épaisseur (mm)</FormLabel>
+                        <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Épaisseur (mm) *</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                           <FormControl>
                             <SelectTrigger >
@@ -431,11 +467,15 @@ export function ArticleFormDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Largeur (mm)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          value={isBdSubcategory ? "" : (field.value?.toString() || "")}
+                          disabled={isBdSubcategory}
+                        >
                           <FormControl>
-                            <SelectTrigger >
-                              <SelectValue placeholder="Choisir une largeur">
-                                {field.value && widths ? widths.find(w => w.id.toString() === field.value!.toString())?.name : undefined}
+                            <SelectTrigger className={isBdSubcategory ? "bg-slate-100 opacity-60 cursor-not-allowed" : ""}>
+                              <SelectValue placeholder={isBdSubcategory ? "Variable (Saisie à la transaction)" : "Choisir une largeur"}>
+                                {!isBdSubcategory && field.value && widths ? widths.find(w => w.id.toString() === field.value!.toString())?.name : undefined}
                               </SelectValue>
                             </SelectTrigger>
                           </FormControl>
@@ -445,32 +485,47 @@ export function ArticleFormDialog({
                             ))}
                           </SelectContent>
                         </Select>
+                        {isBdSubcategory && (
+                          <p className="text-[0.65rem] text-amber-700 font-medium mt-1">
+                            La largeur fixe est désactivée pour le BD (saisie sur mesure).
+                          </p>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
-                <div className="space-y-4 p-6 rounded-3xl bg-corp-blue-50/50 border border-corp-blue-100">
-                  <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Longueurs Disponibles (cm)</FormLabel>
-                  <div className="flex flex-wrap gap-4">
-                    {lengths?.map((l) => (
-                      <div key={l.id} className="flex items-center space-x-2 bg-white px-3 py-2 rounded-xl border border-corp-blue-100 hover:border-corp-blue-600 transition-colors">
-                        <Checkbox 
-                          id={`len-${l.id}`} 
-                          checked={selectedLengths.includes(l.name)}
-                          onCheckedChange={() => handleLengthToggle(l.name)}
-                          className="border-corp-blue-200 data-[state=checked]:bg-corp-blue-600 data-[state=checked]:border-corp-blue-600"
-                        />
-                        <label 
-                          htmlFor={`len-${l.id}`}
-                          className="text-sm font-bold text-corp-blue-900 cursor-pointer"
-                        >
-                          {l.name}
-                        </label>
-                      </div>
-                    ))}
+
+                {!isBdSubcategory ? (
+                  <div className="space-y-4 p-6 rounded-3xl bg-corp-blue-50/50 border border-corp-blue-100">
+                    <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Longueurs Disponibles (cm)</FormLabel>
+                    <div className="flex flex-wrap gap-4">
+                      {lengths?.map((l) => (
+                        <div key={l.id} className="flex items-center space-x-2 bg-white px-3 py-2 rounded-xl border border-corp-blue-100 hover:border-corp-blue-600 transition-colors">
+                          <Checkbox 
+                            id={`len-${l.id}`} 
+                            checked={selectedLengths.includes(l.name)}
+                            onCheckedChange={() => handleLengthToggle(l.name)}
+                            className="border-corp-blue-200 data-[state=checked]:bg-corp-blue-600 data-[state=checked]:border-corp-blue-600"
+                          />
+                          <label 
+                            htmlFor={`len-${l.id}`}
+                            className="text-sm font-bold text-corp-blue-900 cursor-pointer"
+                          >
+                            {l.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="p-4 rounded-2xl bg-amber-50/50 border border-dashed border-amber-200 text-amber-900 text-xs font-medium flex items-center justify-between">
+                    <span>Sélection des longueurs prédéfinies désactivée : les longueurs seront saisies librement par ligne lors des mouvements.</span>
+                    <Badge variant="outline" className="border-amber-300 text-amber-800 bg-white font-mono text-[0.65rem] font-bold shrink-0 ml-2">
+                      Longueurs Libres
+                    </Badge>
+                  </div>
+                )}
               </div>
             )}
 
