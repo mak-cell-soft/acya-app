@@ -28,8 +28,8 @@ export function DatePicker({ date, setDate, placeholder = "Sélectionner une dat
         <Button
           variant={"outline"}
           className={cn(
-            "w-full h-11 justify-start text-left font-bold rounded-xl border-corp-blue-100",
-            !date && "text-sand-400",
+            "w-full h-11 justify-start text-left font-semibold rounded-xl border border-slate-300 bg-white hover:border-slate-400 focus:border-corp-blue-600 focus:ring-4 focus:ring-corp-blue-600/15 shadow-2xs transition-all dark:bg-slate-900/60 dark:border-slate-700 dark:hover:border-slate-600",
+            !date && "text-slate-400 font-normal",
             className
           )}
         >

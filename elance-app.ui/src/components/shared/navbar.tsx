@@ -293,7 +293,7 @@ function NavbarSearch() {
           }}
           onFocus={() => setIsOpen(true)}
           placeholder="Rechercher (ex: Devis, Articles, Impayés...)"
-          className="pl-10 pr-16 bg-slate-50/80 hover:bg-slate-100/80 focus:bg-white border-slate-200/80 h-10 w-full rounded-xl text-xs font-semibold focus:border-corp-blue-500 focus:ring-4 focus:ring-corp-blue-500/10 transition-all shadow-2xs placeholder:text-slate-400 placeholder:font-normal"
+          className="pl-10 pr-16 bg-white hover:bg-slate-50 focus:bg-white border-slate-300 hover:border-slate-400 focus:border-corp-blue-600 focus:ring-4 focus:ring-corp-blue-600/15 h-10 w-full rounded-xl text-xs font-semibold transition-all shadow-2xs placeholder:text-slate-400/90 placeholder:font-normal"
         />
         {query ? (
           <button

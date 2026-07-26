@@ -18,6 +18,7 @@ import {
   Building
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from '@/store/use-auth-store';
@@ -110,12 +111,13 @@ export function SupportDialog({ isOpen, onClose }: SupportDialogProps) {
             <div className="space-y-2">
               <Label htmlFor="fullname" className="text-sm font-medium text-slate-700">Nom Complet</Label>
               <div className="relative">
-                <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                <User className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
                 <Input
                   id="fullname"
                   value={fullname}
                   onChange={(e) => setFullname(e.target.value)}
-                  className={`pl-10 h-10 w-full rounded-lg bg-slate-50/50 border-slate-200 focus:bg-white transition-all shadow-sm ${errors.fullname ? 'border-rose-500' : ''}`}
+                  className={`pl-10 ${errors.fullname ? 'aria-invalid:border-rose-500' : ''}`}
+                  aria-invalid={!!errors.fullname}
                 />
               </div>
               {errors.fullname && (
@@ -129,13 +131,14 @@ export function SupportDialog({ isOpen, onClose }: SupportDialogProps) {
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium text-slate-700">Email professionnel</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                <Mail className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
                 <Input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`pl-10 h-10 w-full rounded-lg bg-slate-50/50 border-slate-200 focus:bg-white transition-all shadow-sm ${errors.email ? 'border-rose-500' : ''}`}
+                  className={`pl-10 ${errors.email ? 'aria-invalid:border-rose-500' : ''}`}
+                  aria-invalid={!!errors.email}
                 />
               </div>
               {errors.email && (
@@ -150,12 +153,12 @@ export function SupportDialog({ isOpen, onClose }: SupportDialogProps) {
           <div className="space-y-2">
             <Label htmlFor="enterprise" className="text-sm font-medium text-slate-700">Entreprise</Label>
             <div className="relative">
-              <Building className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              <Building className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
               <Input
                 id="enterprise"
                 value={enterprise}
                 onChange={(e) => setEnterprise(e.target.value)}
-                className="pl-10 h-10 w-full rounded-lg bg-slate-50/50 border-slate-200 focus:bg-white transition-all shadow-sm"
+                className="pl-10"
               />
             </div>
           </div>
@@ -168,7 +171,7 @@ export function SupportDialog({ isOpen, onClose }: SupportDialogProps) {
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Ex: Problème d'impression, question sur la facturation..."
-              className={`h-10 w-full rounded-lg bg-slate-50/50 border-slate-200 focus:bg-white transition-all shadow-sm ${errors.subject ? 'border-rose-500' : ''}`}
+              aria-invalid={!!errors.subject}
             />
             {errors.subject && (
               <p className="text-xs font-bold text-rose-500 flex items-center gap-1 mt-1">
@@ -180,13 +183,13 @@ export function SupportDialog({ isOpen, onClose }: SupportDialogProps) {
           {/* Message */}
           <div className="space-y-2">
             <Label htmlFor="message" className="text-sm font-medium text-slate-700">Message / Détails</Label>
-            <textarea
+            <Textarea
               id="message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={4}
               placeholder="Décrivez votre problème ou votre question..."
-              className={`w-full p-3.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-corp-blue-500 transition-all outline-none resize-none shadow-sm ${errors.message ? 'border-rose-500' : ''}`}
+              aria-invalid={!!errors.message}
             />
             {errors.message && (
               <p className="text-xs font-bold text-rose-500 flex items-center gap-1 mt-1">

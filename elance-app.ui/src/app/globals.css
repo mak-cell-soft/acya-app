@@ -99,8 +99,9 @@
   --accent: var(--corp-blue-50);
   --accent-foreground: var(--corp-blue-600);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: #E2E8F0;
-  --input: #E2E8F0;
+  --border: #CBD5E1;
+  --input: #CBD5E1;
+  --input-hover: #94A3B8;
   --ring: var(--corp-blue-600);
   --radius: 1rem;
 
@@ -145,8 +146,9 @@
   --accent: var(--corp-blue-950);
   --accent-foreground: var(--corp-blue-400);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: #1E293B;
-  --input: #1E293B;
+  --border: #334155;
+  --input: #334155;
+  --input-hover: #475569;
   --ring: var(--corp-blue-500);
 
 
