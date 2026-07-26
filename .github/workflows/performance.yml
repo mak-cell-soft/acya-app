@@ -1,0 +1,22 @@
+name: Performance Tests (k6)
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  k6_smoke_test:
+    name: Run k6 Smoke Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run k6 Smoke Test
+        uses: grafana/k6-action@v0.3.1
+        with:
+          filename: tests/performance/k6/scenarios/01_smoke.js
+          flags: --env K6_ENV=local --env K6_TENANT=socofeb
