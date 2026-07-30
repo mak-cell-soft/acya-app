@@ -129,3 +129,36 @@ export function useDeleteDocument() {
   });
 }
 
+/**
+ * Hook to retrieve a single document by ID.
+ */
+export function useDocumentById(id: number | null) {
+  return useQuery<Document>({
+    queryKey: ['documents', 'byId', id],
+    queryFn: () => documentService.getById(id!),
+    enabled: typeof id === 'number' && id > 0,
+  });
+}
+
+/**
+ * Hook to update an existing document.
+ */
+export function useUpdateDocument() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, model }: { id: number; model: any }) =>
+      documentService.update(id, model),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      queryClient.invalidateQueries({ queryKey: ['stocks'] });
+      toast.success('Document mis à jour avec succès');
+    },
+    onError: (error: any) => {
+      console.error('Error updating document:', error);
+      const errorMsg = error.response?.data?.message || 'Erreur lors de la mise à jour du document';
+      toast.error(errorMsg);
+    },
+  });
+}
+

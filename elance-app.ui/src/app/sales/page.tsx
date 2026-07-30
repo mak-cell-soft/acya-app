@@ -665,6 +665,9 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
                           item.parentdocuments?.some((p: any) => p.type === DocumentTypes.customerInvoice || p.parentdocument?.type === DocumentTypes.customerInvoice) ||
                           item.childdocuments?.some((c: any) => c.type === DocumentTypes.customerInvoice || c.childdocument?.type === DocumentTypes.customerInvoice);
 
+                        const isInvoiceBatched = (item.deliveryNoteDocNumbers && item.deliveryNoteDocNumbers.length > 0) ||
+                          item.parentdocuments?.some((p: any) => p.type === DocumentTypes.customerDeliveryNote || p.parentdocument?.type === DocumentTypes.customerDeliveryNote);
+
                         const isOwner = isAdmin || item.updatedbyid === currentUserId;
 
                         return (
@@ -926,6 +929,58 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
                                             className="gap-2 font-semibold text-sand-800 cursor-pointer"
                                           >
                                             <Printer className="w-4 h-4" /> Imprimer Facture
+                                          </DropdownMenuItem>
+                                        )}
+
+                                        {/* Edit BL — require canUpdate & not invoiced */}
+                                        {hasPermission('sales', 'canUpdate') && item.type === DocumentTypes.customerDeliveryNote && (
+                                          <DropdownMenuItem
+                                            onClick={() => router.push(`/sales/bl/${item.id}/edit`)}
+                                            disabled={isBlInvoiced || !isOwner}
+                                            className={cn(
+                                              "gap-2 font-semibold cursor-pointer",
+                                              (isBlInvoiced || !isOwner) ? "text-sand-400 cursor-not-allowed" : "text-amber-800 hover:bg-amber-50"
+                                            )}
+                                          >
+                                            {isBlInvoiced ? (
+                                              <>
+                                                <Lock className="w-4 h-4 text-sand-400" /> Non Modifiable (Facturé)
+                                              </>
+                                            ) : !isOwner ? (
+                                              <>
+                                                <Lock className="w-4 h-4 text-sand-400" /> Non Autorisé
+                                              </>
+                                            ) : (
+                                              <>
+                                                <Edit className="w-4 h-4 text-amber-600" /> Modifier BL
+                                              </>
+                                            )}
+                                          </DropdownMenuItem>
+                                        )}
+
+                                        {/* Edit Invoice — require canUpdate & not batched */}
+                                        {hasPermission('sales', 'canUpdate') && item.type === DocumentTypes.customerInvoice && (
+                                          <DropdownMenuItem
+                                            onClick={() => router.push(`/sales/invoice/${item.id}/edit`)}
+                                            disabled={isInvoiceBatched || !isOwner}
+                                            className={cn(
+                                              "gap-2 font-semibold cursor-pointer",
+                                              (isInvoiceBatched || !isOwner) ? "text-sand-400 cursor-not-allowed" : "text-amber-800 hover:bg-amber-50"
+                                            )}
+                                          >
+                                            {isInvoiceBatched ? (
+                                              <>
+                                                <Lock className="w-4 h-4 text-sand-400" /> Non Modifiable (Issu de BL)
+                                              </>
+                                            ) : !isOwner ? (
+                                              <>
+                                                <Lock className="w-4 h-4 text-sand-400" /> Non Autorisé
+                                              </>
+                                            ) : (
+                                              <>
+                                                <Edit className="w-4 h-4 text-amber-600" /> Modifier Facture
+                                              </>
+                                            )}
                                           </DropdownMenuItem>
                                         )}
 

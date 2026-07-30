@@ -26,8 +26,10 @@ import {
   ShieldCheck,
   Coins,
   AlertCircle,
-  UserCheck
+  UserCheck,
+  RotateCcw
 } from 'lucide-react';
+import { useDocumentById, useUpdateDocument } from '@/hooks/use-documents';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -112,9 +114,10 @@ interface DocumentFormShellProps {
   docType: DocumentTypes;
   title: string;
   subtitle: string;
+  editDocumentId?: number;
 }
 
-export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShellProps) {
+export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: DocumentFormShellProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   // React Query client — used to manually invalidate cached document lists after create/convert
@@ -123,12 +126,19 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
   // Guard: redirect non-authorised users who navigate directly to the form URL
   const { hasPermission } = usePermissionGuard();
   useEffect(() => {
-    if (!hasPermission('sales', 'canAdd')) {
-      toast.error("Vous n'avez pas la permission de créer des documents de vente.");
-      router.replace('/sales');
+    if (editDocumentId && editDocumentId > 0) {
+      if (!hasPermission('sales', 'canUpdate')) {
+        toast.error("Vous n'avez pas la permission de modifier des documents de vente.");
+        router.replace('/sales');
+      }
+    } else {
+      if (!hasPermission('sales', 'canAdd')) {
+        toast.error("Vous n'avez pas la permission de créer des documents de vente.");
+        router.replace('/sales');
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [editDocumentId]);
 
   // Connected User details
   const { user } = useAuthStore();
@@ -143,6 +153,8 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
   const [sourceDocumentId] = useState<number>(sourceIdFromParams);
 
   // 1. Data hooks
+  const { data: editingDoc, isLoading: isEditLoading } = useDocumentById(editDocumentId || null);
+  const updateDocumentMutation = useUpdateDocument();
   const { data: allCustomers = [], isLoading: isLoadingCustomers } = useCustomers('Customer');
   const { data: allTransporters = [], isLoading: isLoadingTransporters } = useTransporters();
   const { data: allArticles = [], isLoading: isLoadingArticles } = useArticles();
@@ -666,6 +678,112 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
       .finally(() => setIsSourceLoading(false));
   }, [sourceDocumentId, allArticles, allCustomers, siteStocks]);
 
+  // 8b. Load Existing Document for Modification (Edit mode)
+  useEffect(() => {
+    if (!editingDoc || !editDocumentId || editDocumentId <= 0) return;
+
+    // Rule 1: Cannot update an invoiced delivery note
+    const isBlInvoiced = editingDoc.isinvoiced ||
+      editingDoc.parentdocuments?.some((p: any) => p.type === DocumentTypes.customerInvoice || p.parentdocument?.type === DocumentTypes.customerInvoice) ||
+      editingDoc.childdocuments?.some((c: any) => c.type === DocumentTypes.customerInvoice || c.childdocument?.type === DocumentTypes.customerInvoice);
+
+    if (docType === DocumentTypes.customerDeliveryNote && isBlInvoiced) {
+      toast.error("Ce bon de livraison est déjà facturé et ne peut pas être modifié.");
+      router.replace('/sales');
+      return;
+    }
+
+    // Rule 2: Cannot update a batched or converted invoice
+    const isInvoiceBatched = (editingDoc.deliveryNoteDocNumbers && editingDoc.deliveryNoteDocNumbers.length > 0) ||
+      editingDoc.parentdocuments?.some((p: any) => p.type === DocumentTypes.customerDeliveryNote || p.parentdocument?.type === DocumentTypes.customerDeliveryNote);
+
+    if (docType === DocumentTypes.customerInvoice && isInvoiceBatched) {
+      toast.error("Cette facture est issue d'un bon de livraison et ne peut pas être modifiée.");
+      router.replace('/sales');
+      return;
+    }
+
+    // 1. Select Customer
+    if (editingDoc.counterpart) {
+      const match = allCustomers.find(c => c.id === editingDoc.counterpart.id);
+      setSelectedCustomer(match || editingDoc.counterpart);
+    }
+
+    // 2. Transporter & Reference
+    if (editingDoc.supplierReference) {
+      setCustomerReference(editingDoc.supplierReference);
+    }
+
+    if (editingDoc.creationdate) {
+      setDocDate(new Date(editingDoc.creationdate).toISOString().substring(0, 10));
+    }
+
+    if (editingDoc.currency) {
+      setDocCurrency(editingDoc.currency);
+    }
+
+    if (editingDoc.exchangeRate) {
+      setExchangeRate(editingDoc.exchangeRate);
+    }
+
+    if (editingDoc.taxe) {
+      const matchTax = appvariablesTaxes.find(t => t.id === editingDoc.taxe?.id || t.name === editingDoc.taxe?.name);
+      setSelectedTax(matchTax || editingDoc.taxe);
+    } else {
+      setSelectedTax(null);
+    }
+
+    if (editingDoc.holdingtax && appvariablesRS.length > 0) {
+      const matchRS = appvariablesRS.find(r => 
+        r.id === editingDoc.holdingtax?.id || 
+        r.name === editingDoc.holdingtax?.description || 
+        r.value?.toString() === editingDoc.holdingtax?.taxpercentage?.toString()
+      );
+      setSelectedRS(matchRS || null);
+    }
+
+    if (editingDoc.merchandises && allArticles.length > 0) {
+      const mappedRows = editingDoc.merchandises.map((m: any) => {
+        const isWood = m.article ? !!m.article.iswood : false;
+        const isGlass = m.article ? m.article.unit?.toUpperCase() === 'M2' : false;
+        const r: MerchandRow = {
+          selectedArticle: m.article,
+          selectedStock: null,
+          articleSearchInput: m.article ? `${m.article.reference} - ${m.article.description || ''}` : '',
+          filteredArticles: allArticles,
+          unit_price_ht: m.unit_price_ht || 0,
+          quantity: m.quantity || 0,
+          listLengths: m.lisoflengths || [],
+          selldiscountpercentage: m.discount_percentage || 0,
+          sellcostprice_discountValue: m.cost_discount_value || 0,
+          sellcostprice_net_ht: m.cost_net_ht || 0,
+          sellcostprice_taxValue: m.tva_value || 0,
+          totalWithTax: m.cost_ttc || 0,
+          line_type: m.line_type || LineType.Merchandise,
+          description: m.description || '',
+          isWoodArticle: isWood,
+          isGlassArticle: isGlass,
+          glassInputs: { nbpieces: 1, height: m.quantity || 0, width: 1 },
+          isNegotiated: false,
+          transporter_id: m.transporter_id,
+          transporter_name: m.transporter_name
+        };
+
+        if (m.article && siteStocks.length > 0) {
+          const matchedStocks = siteStocks.filter(s => s.articleId === m.article.id);
+          r.selectedStock = matchedStocks.length === 1 ? matchedStocks[0] : null;
+        }
+
+        return r;
+      });
+      setRows(mappedRows);
+    }
+
+    if (typeof editingDoc.total_net_ttc === 'number') {
+      setManualNetTTC(editingDoc.total_net_ttc.toFixed(3));
+    }
+  }, [editingDoc, editDocumentId, allArticles, allCustomers, siteStocks, appvariablesTaxes, appvariablesRS, docType, router]);
+
   // 9. Dynamic Row additions & changes
   const addMerchandiseRow = () => {
     const newRow: MerchandRow = {
@@ -1064,15 +1182,15 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
         : `${title} via Portail Élancé`;
 
       const documentPayload: any = {
-        id: 0,
+        id: (editDocumentId && editDocumentId > 0) ? editDocumentId : 0,
         type: docType,
         stocktransactiontype: stockTransactionType,
-        docnumber: '',
+        docnumber: editingDoc?.docnumber || '',
         description: docDescription,
         supplierReference: passagerInfo
           ? `PASS-${passagerInfo.cin}`
           : (customerReference || ''),
-        isinvoiced: false,
+        isinvoiced: editingDoc?.isinvoiced ?? false,
         merchandises: merchandisesPayload,
         total_ht_net_doc: finalNetHT,
         total_discount_doc: parseFloat(finalDiscountValue.toFixed(3)),
@@ -1084,16 +1202,16 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
           transporterid: selectedTransporter?.id || null
         } : null),
         sales_site: activeUserSite,
-        creationdate: new Date(docDate),
+        creationdate: editingDoc?.creationdate ? new Date(editingDoc.creationdate) : new Date(docDate),
         updatedate: new Date(),
         updatedbyid: parseInt(user?.id || '0'),
         isdeleted: false,
-        regulationid: 0,
+        regulationid: editingDoc?.regulationid || 0,
         editing: false,
-        docstatus: DocStatus.Created,
-        isservice: false,
-        isPaid: false,
-        billingstatus: BillingStatus.NotBilled,
+        docstatus: editingDoc?.docstatus ?? DocStatus.Created,
+        isservice: editingDoc?.isservice ?? false,
+        isPaid: editingDoc?.isPaid ?? false,
+        billingstatus: editingDoc?.billingstatus ?? BillingStatus.NotBilled,
         currency: docCurrency,
         exchangeRate: exchangeRate
       };
@@ -1101,11 +1219,12 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
       // Factor in withholding taxes (RS) if selected on Invoices
       if (docType === DocumentTypes.customerInvoice && selectedRS) {
         documentPayload.holdingtax = {
+          id: editingDoc?.holdingtax?.id || 0,
           description: selectedRS.name,
           taxpercentage: parseFloat(selectedRS.value || '0'),
           taxvalue: rsTaxValue,
           newamountdocvalue: finalNetPayable,
-          issigned: false,
+          issigned: editingDoc?.holdingtax?.issigned ?? false,
           isdeleted: false,
           updatedbyid: parseInt(user?.id || '0')
         };
@@ -1122,24 +1241,26 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
 
       console.log('Sending Document payload to backend:', documentPayload);
 
-      // Execute conversion or creation API call
+      // Execute edit, conversion or creation API call
       let result;
-      if (sourceDocumentId > 0) {
+      if (editDocumentId && editDocumentId > 0) {
+        result = await updateDocumentMutation.mutateAsync({ id: editDocumentId, model: documentPayload });
+      } else if (sourceDocumentId > 0) {
         result = await documentService.convert(sourceDocumentId, documentPayload);
+        toast.success(`${title} créé avec succès !`);
       } else {
         result = await documentService.add(documentPayload);
+        toast.success(`${title} créé avec succès !`);
       }
 
-      toast.success(`${title} créé avec succès !`);
-
       // Invalidate all cached document queries so the sales list immediately
-      // shows the newly created document when the user lands back on /sales.
+      // shows the updated/newly created document when the user lands back on /sales.
       await queryClient.invalidateQueries({ queryKey: ['documents'] });
 
       if (autoPaymentEnabled && result && result.id) {
         setPostCreatePaymentData({
           documentId: result.id,
-          documentNumber: result.docRef || '',
+          documentNumber: result.docRef || editingDoc?.docnumber || '',
           totalAmount: finalPayableTTC,
           totalNetPayable: finalNetPayable,
           withholdingtax: !!selectedRS,
@@ -1203,8 +1324,35 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                 Conversion active
               </Badge>
             )}
+            {editDocumentId && editDocumentId > 0 && (
+              <Badge className="bg-amber-500/15 text-amber-800 border border-amber-300 font-bold px-3 py-1.5 rounded-lg flex items-center gap-2">
+                <Edit className="w-3.5 h-3.5 text-amber-600" />
+                Mode Modification ({editingDoc?.docnumber || `#${editDocumentId}`})
+              </Badge>
+            )}
           </div>
         </div>
+
+        {editDocumentId && editDocumentId > 0 && (
+          <div className="bg-gradient-to-r from-amber-500/15 via-amber-400/10 to-amber-500/15 border border-amber-200 rounded-xl p-4 flex items-center justify-between shadow-xs animate-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-amber-500/20 border border-amber-300/50 flex items-center justify-center text-amber-800">
+                <Edit className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-amber-950 flex items-center gap-2">
+                  Modification en cours : <span className="font-mono text-corp-blue-950">{editingDoc?.docnumber || `#${editDocumentId}`}</span>
+                </h4>
+                <p className="text-xs text-amber-800/80 font-medium">
+                  Toutes les modifications apportées à ce document seront enregistrées lors de la validation.
+                </p>
+              </div>
+            </div>
+            <Badge variant="outline" className="bg-amber-100 text-amber-900 border-amber-300 font-bold text-xs">
+              {editingDoc?.docstatus === DocStatus.Validated ? 'Validé' : 'Brouillon'}
+            </Badge>
+          </div>
+        )}
 
         {/* 1. Main configuration panel */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1516,7 +1664,9 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                     value={selectedTax?.id?.toString() || ''}
                   >
                     <SelectTrigger className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900">
-                      <SelectValue placeholder="Aucun timbre" />
+                      <SelectValue placeholder="Aucun timbre">
+                        {selectedTax ? `${selectedTax.name} (${parseFloat(selectedTax.value || '0').toFixed(3)} TND)` : 'Aucun timbre'}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-corp-blue-50 font-bold text-xs">
                       {appvariablesTaxes.map((tax) => (
@@ -1545,7 +1695,9 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                     value={selectedRS?.id?.toString() || 'none'}
                   >
                     <SelectTrigger className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900">
-                      <SelectValue placeholder="Aucune retenue" />
+                      <SelectValue placeholder="Aucune retenue">
+                        {selectedRS ? `${selectedRS.name} (${selectedRS.value}%)` : 'Aucune retenue (0%)'}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-corp-blue-50 font-bold text-xs">
                       <SelectItem value="none" className="font-bold text-xs text-rose-500">Aucune retenue (0%)</SelectItem>
@@ -2141,20 +2293,37 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                   <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block mb-0.5">Montant TTC Final Payable *</label>
                   <span className="text-xs text-sand-400 font-medium">Saisissez une valeur ajustée pour forcer une remise d'arrondi.</span>
                 </div>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    step="0.001"
-                    min="0"
-                    className="h-11 rounded-lg text-right font-bold text-corp-blue-950 border-corp-blue-200 focus:ring-corp-blue-600 bg-white max-w-44 pr-10 text-sm shadow-sm"
-                    value={manualNetTTC}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value);
-                      if (val < 0) return;
-                      handleFinalPriceChange(e.target.value);
-                    }}
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-sand-400 pointer-events-none">TND</span>
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      step="0.001"
+                      min="0"
+                      className="h-11 rounded-lg text-right font-bold text-corp-blue-950 border-corp-blue-200 focus:ring-corp-blue-600 bg-white max-w-44 pr-10 text-sm shadow-sm"
+                      value={manualNetTTC}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        if (val < 0) return;
+                        handleFinalPriceChange(e.target.value);
+                      }}
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-sand-400 pointer-events-none">TND</span>
+                  </div>
+                  {extraDiscount !== 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setManualNetTTC('');
+                        setExtraDiscount(0);
+                      }}
+                      className="h-11 px-3 rounded-lg border-sand-200 text-xs font-bold text-sand-600 hover:text-sand-900 hover:bg-sand-100"
+                      title="Réinitialiser l'arrondi au montant calculé"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 mr-1" /> RàZ
+                    </Button>
+                  )}
                 </div>
               </div>
 
@@ -2186,16 +2355,23 @@ export function DocumentFormShell({ docType, title, subtitle }: DocumentFormShel
                   variant="outline"
                   className="border-corp-blue-100 text-corp-blue-600 hover:bg-corp-blue-50 font-bold h-11 text-xs"
                   onClick={() => router.push('/sales')}
-                  disabled={isLoading || isSourceLoading}
+                  disabled={isLoading || isSourceLoading || isEditLoading}
                 >
                   Annuler
                 </Button>
                 <Button
-                  className="bg-corp-blue-600 hover:bg-corp-blue-800 text-white font-bold h-11 px-6 shadow-lg shadow-corp-blue-600/20 text-xs"
+                  className={cn(
+                    "font-bold h-11 px-6 shadow-lg text-xs transition-all",
+                    editDocumentId && editDocumentId > 0
+                      ? "bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/20"
+                      : "bg-corp-blue-600 hover:bg-corp-blue-800 text-white shadow-corp-blue-600/20"
+                  )}
                   onClick={handleSubmit}
-                  disabled={isLoading || isSourceLoading}
+                  disabled={isLoading || isSourceLoading || isEditLoading}
                 >
-                  {isLoading ? 'Création en cours...' : 'Enregistrer le Document'}
+                  {isLoading
+                    ? (editDocumentId ? 'Mise à jour en cours...' : 'Création en cours...')
+                    : (editDocumentId ? 'Mettre à jour le Document' : 'Enregistrer le Document')}
                 </Button>
               </div>
 
