@@ -63,6 +63,28 @@ export default function AccountingDashboard() {
     return prevMonth < 0 ? 11 : prevMonth;
   });
 
+  // Period Mode State ('month' | 'custom')
+  const [periodMode, setPeriodMode] = useState<'month' | 'custom'>('month');
+
+  // Custom date range states (defaults to 1st and last day of previous month)
+  const [customStartDate, setCustomStartDate] = useState<string>(() => {
+    const d = new Date();
+    const prevMonth = d.getMonth() - 1;
+    const year = prevMonth < 0 ? d.getFullYear() - 1 : d.getFullYear();
+    const month = prevMonth < 0 ? 11 : prevMonth;
+    const firstDay = new Date(year, month, 1);
+    return firstDay.toISOString().split('T')[0];
+  });
+
+  const [customEndDate, setCustomEndDate] = useState<string>(() => {
+    const d = new Date();
+    const prevMonth = d.getMonth() - 1;
+    const year = prevMonth < 0 ? d.getFullYear() - 1 : d.getFullYear();
+    const month = prevMonth < 0 ? 11 : prevMonth;
+    const lastDay = new Date(year, month + 1, 0);
+    return lastDay.toISOString().split('T')[0];
+  });
+
   // Automatically adjust year if month wrapped around to last year
   React.useEffect(() => {
     const prevMonth = new Date().getMonth() - 1;
@@ -93,12 +115,12 @@ export default function AccountingDashboard() {
   React.useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setAchatsPage(1);
-  }, [selectedYear, selectedMonth, achatsSearch]);
+  }, [selectedYear, selectedMonth, achatsSearch, periodMode, customStartDate, customEndDate]);
 
   React.useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setVentesPage(1);
-  }, [selectedYear, selectedMonth, ventesSearchName, ventesSearchNumber]);
+  }, [selectedYear, selectedMonth, ventesSearchName, ventesSearchNumber, periodMode, customStartDate, customEndDate]);
 
   // Auth Store for Admin validation
   const { user } = useAuthStore();
@@ -108,6 +130,34 @@ export default function AccountingDashboard() {
 
 
 
+  // Calculate document query filter params
+  const docFilterParams = useMemo(() => {
+    if (periodMode === 'month') {
+      return { month: selectedMonth + 1, year: selectedYear, day: 0 };
+    }
+    if (customStartDate && customEndDate) {
+      const dStart = new Date(customStartDate);
+      const dEnd = new Date(customEndDate);
+      if (dStart.getFullYear() === dEnd.getFullYear() && dStart.getMonth() === dEnd.getMonth()) {
+        return { month: dStart.getMonth() + 1, year: dStart.getFullYear(), day: 0 };
+      } else if (dStart.getFullYear() === dEnd.getFullYear()) {
+        return { month: 0, year: dStart.getFullYear(), day: 0 };
+      }
+    }
+    return { month: 0, year: 0, day: 0 };
+  }, [periodMode, selectedMonth, selectedYear, customStartDate, customEndDate]);
+
+  // Helper to check if date falls in selected range
+  const isDateInRange = (dateStr: string | Date | undefined) => {
+    if (!dateStr) return false;
+    if (periodMode === 'month') return true;
+    if (!customStartDate || !customEndDate) return true;
+    const docTime = new Date(dateStr).getTime();
+    const startTime = new Date(`${customStartDate}T00:00:00`).getTime();
+    const endTime = new Date(`${customEndDate}T23:59:59`).getTime();
+    return docTime >= startTime && docTime <= endTime;
+  };
+
   // Query both standard supplier invoices and supplier credit notes (avoirs)
   const { 
     data: achatsDocs = [], 
@@ -115,9 +165,9 @@ export default function AccountingDashboard() {
     refetch: refetchAchats 
   } = useDocumentsByTypeFiltered({
     typeDoc: DocumentTypes.supplierInvoice,
-    month: selectedMonth + 1,
-    year: selectedYear,
-    day: 0
+    month: docFilterParams.month,
+    year: docFilterParams.year,
+    day: docFilterParams.day
   });
 
   const { 
@@ -126,9 +176,9 @@ export default function AccountingDashboard() {
     refetch: refetchAvoirs 
   } = useDocumentsByTypeFiltered({
     typeDoc: DocumentTypes.supplierInvoiceReturn,
-    month: selectedMonth + 1,
-    year: selectedYear,
-    day: 0
+    month: docFilterParams.month,
+    year: docFilterParams.year,
+    day: docFilterParams.day
   });
 
   const { 
@@ -137,9 +187,9 @@ export default function AccountingDashboard() {
     refetch: refetchVentes 
   } = useDocumentsByTypeFiltered({
     typeDoc: DocumentTypes.customerInvoice,
-    month: selectedMonth + 1,
-    year: selectedYear,
-    day: 0
+    month: docFilterParams.month,
+    year: docFilterParams.year,
+    day: docFilterParams.day
   });
 
   const refreshAll = () => {
@@ -178,13 +228,14 @@ export default function AccountingDashboard() {
     const sorted = combined.sort((a, b) => new Date(b.creationdate).getTime() - new Date(a.creationdate).getTime());
 
     return sorted.filter(doc => {
+      if (!isDateInRange(doc.creationdate)) return false;
       const term = achatsSearch.toLowerCase();
       const counterpartName = doc.counterpart?.name?.toLowerCase() || '';
       const docNum = doc.docnumber?.toLowerCase() || '';
       const ref = doc.supplierReference?.toLowerCase() || '';
       return counterpartName.includes(term) || docNum.includes(term) || ref.includes(term);
     });
-  }, [achatsDocs, avoirsDocs, achatsSearch]);
+  }, [achatsDocs, avoirsDocs, achatsSearch, periodMode, customStartDate, customEndDate]);
 
   // Slice pagination for Achats
   const paginatedAchats = useMemo(() => {
@@ -195,6 +246,7 @@ export default function AccountingDashboard() {
   // Client-side filtering logic for Ventes
   const filteredVentes = useMemo(() => {
     return ventesDocs.filter(doc => {
+      if (!isDateInRange(doc.creationdate)) return false;
       const nameTerm = ventesSearchName.toLowerCase();
       const numTerm = ventesSearchNumber.toLowerCase();
 
@@ -210,7 +262,7 @@ export default function AccountingDashboard() {
 
       return nameMatch && numMatch;
     });
-  }, [ventesDocs, ventesSearchName, ventesSearchNumber]);
+  }, [ventesDocs, ventesSearchName, ventesSearchNumber, periodMode, customStartDate, customEndDate]);
 
   // Slice pagination for Ventes
   const paginatedVentes = useMemo(() => {
@@ -322,41 +374,148 @@ export default function AccountingDashboard() {
 
 
 
-      {/* Month Navigator */}
+      {/* Month & Custom Period Navigator */}
       <Card className="border-slate-100 shadow-md shadow-slate-900/5 rounded-xl bg-white overflow-hidden border">
-        <div className="px-6 py-4 bg-corp-blue-50/90 text-corp-blue-950 flex items-center justify-between border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-white text-corp-blue-600 rounded-lg shadow-sm">
-              <Calendar className="w-4 h-4" />
+        <div className="px-6 py-4 bg-corp-blue-50/90 text-corp-blue-950 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white text-corp-blue-600 rounded-xl shadow-sm border border-corp-blue-100">
+              <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-corp-blue-900">
-                Période active : {MONTHS[selectedMonth]} {selectedYear}
+              <h2 className="text-lg font-bold text-corp-blue-900 flex items-center gap-2">
+                Période active :{' '}
+                {periodMode === 'month' ? (
+                  <span>{MONTHS[selectedMonth]} {selectedYear}</span>
+                ) : (
+                  <span>
+                    Du {customStartDate ? new Date(customStartDate).toLocaleDateString('fr-FR') : '...'} au{' '}
+                    {customEndDate ? new Date(customEndDate).toLocaleDateString('fr-FR') : '...'}
+                  </span>
+                )}
               </h2>
-              <p className="text-[9px] font-bold text-corp-blue-600/80 uppercase tracking-widest font-mono">
-                Analyse mensuelle de la facturation
+              <p className="text-[10px] font-bold text-corp-blue-600/80 uppercase tracking-widest font-mono mt-0.5">
+                {periodMode === 'month' ? 'Analyse mensuelle de la facturation' : 'Analyse sur période personnalisée'}
               </p>
             </div>
           </div>
-        </div>
-        <div className="px-4 py-2 bg-slate-50 overflow-x-auto flex items-center gap-1 justify-between border-t border-slate-100">
-          {MONTHS.map((month, idx) => (
+
+          {/* Mode Switcher Buttons */}
+          <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-corp-blue-100 shadow-sm self-start md:self-auto">
             <Button
-              key={month}
-              variant={selectedMonth === idx ? 'default' : 'ghost'}
+              variant={periodMode === 'month' ? 'default' : 'ghost'}
               size="sm"
-              onClick={() => setSelectedMonth(idx)}
+              onClick={() => setPeriodMode('month')}
               className={cn(
-                'rounded-xl h-9 px-4 font-bold text-xs transition-colors flex-1 min-w-[85px]',
-                selectedMonth === idx
-                  ? 'bg-corp-blue-600 text-white hover:bg-corp-blue-700 shadow-sm'
-                  : 'text-slate-500 hover:text-corp-blue-900 hover:bg-corp-blue-50/50'
+                "h-8 text-xs font-bold rounded-lg transition-all",
+                periodMode === 'month' ? "bg-corp-blue-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"
               )}
             >
-              {month}
+              Par Mois
             </Button>
-          ))}
+            <Button
+              variant={periodMode === 'custom' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setPeriodMode('custom')}
+              className={cn(
+                "h-8 text-xs font-bold rounded-lg transition-all",
+                periodMode === 'custom' ? "bg-corp-blue-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"
+              )}
+            >
+              Période Personnalisée
+            </Button>
+          </div>
         </div>
+
+        {periodMode === 'month' ? (
+          <div className="px-4 py-2 bg-slate-50 overflow-x-auto flex items-center gap-1 justify-between border-t border-slate-100">
+            {MONTHS.map((month, idx) => (
+              <Button
+                key={month}
+                variant={selectedMonth === idx ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setSelectedMonth(idx)}
+                className={cn(
+                  'rounded-xl h-9 px-4 font-bold text-xs transition-colors flex-1 min-w-[85px]',
+                  selectedMonth === idx
+                    ? 'bg-corp-blue-600 text-white hover:bg-corp-blue-700 shadow-sm'
+                    : 'text-slate-500 hover:text-corp-blue-900 hover:bg-corp-blue-50/50'
+                )}
+              >
+                {month}
+              </Button>
+            ))}
+          </div>
+        ) : (
+          <div className="p-6 bg-slate-50/80 border-t border-slate-100 flex flex-col md:flex-row items-center gap-6 justify-between">
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+              <div className="flex flex-col gap-1 w-full sm:w-auto">
+                <label className="text-[0.7rem] font-bold text-slate-500 uppercase tracking-wider">Date de Début</label>
+                <Input
+                  type="date"
+                  value={customStartDate}
+                  onChange={(e) => setCustomStartDate(e.target.value)}
+                  className="h-10 rounded-xl border-slate-200 bg-white text-xs font-bold font-mono focus:border-corp-blue-600 text-slate-800"
+                />
+              </div>
+              <span className="text-slate-400 font-bold hidden sm:inline mt-5">à</span>
+              <div className="flex flex-col gap-1 w-full sm:w-auto">
+                <label className="text-[0.7rem] font-bold text-slate-500 uppercase tracking-wider">Date de Fin</label>
+                <Input
+                  type="date"
+                  value={customEndDate}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
+                  className="h-10 rounded-xl border-slate-200 bg-white text-xs font-bold font-mono focus:border-corp-blue-600 text-slate-800"
+                />
+              </div>
+            </div>
+
+            {/* Quick preset buttons */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const now = new Date();
+                  const first = new Date(now.getFullYear(), now.getMonth(), 1);
+                  const last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                  setCustomStartDate(first.toISOString().split('T')[0]);
+                  setCustomEndDate(last.toISOString().split('T')[0]);
+                }}
+                className="h-8 rounded-lg text-xs font-bold border-slate-200 bg-white hover:bg-corp-blue-50 hover:text-corp-blue-900 text-slate-700"
+              >
+                Ce Mois-ci
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const now = new Date();
+                  const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                  const last = new Date(now.getFullYear(), now.getMonth(), 0);
+                  setCustomStartDate(first.toISOString().split('T')[0]);
+                  setCustomEndDate(last.toISOString().split('T')[0]);
+                }}
+                className="h-8 rounded-lg text-xs font-bold border-slate-200 bg-white hover:bg-corp-blue-50 hover:text-corp-blue-900 text-slate-700"
+              >
+                Mois Dernier
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const now = new Date();
+                  const first = new Date(now.getFullYear(), 0, 1);
+                  const last = new Date(now.getFullYear(), 11, 31);
+                  setCustomStartDate(first.toISOString().split('T')[0]);
+                  setCustomEndDate(last.toISOString().split('T')[0]);
+                }}
+                className="h-8 rounded-lg text-xs font-bold border-slate-200 bg-white hover:bg-corp-blue-50 hover:text-corp-blue-900 text-slate-700"
+              >
+                Année {selectedYear}
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* PRÉ-ANALYSE COMPTABLE SECTION */}

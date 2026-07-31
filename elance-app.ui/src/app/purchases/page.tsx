@@ -430,15 +430,15 @@ export default function PurchasesPage() {
                 variant="ghost"
                 size="icon"
                 onClick={handlePrevMonth}
-                className="text-white hover:bg-white/10 h-9 w-9 transition-colors"
+                className="text-corp-blue-800 hover:bg-corp-blue-100 hover:text-corp-blue-950 h-9 w-9 transition-colors rounded-lg"
               >
                 <ChevronLeft className="w-5 h-5" />
               </Button>
               <div className="text-left">
-                <h2 className="text-lg font-bold text-amber-50">
+                <h2 className="text-xl font-extrabold text-corp-blue-950 tracking-tight">
                   {MONTHS[selectedMonthIdx]} {selectedYear}
                 </h2>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-mono">
+                <p className="text-[10px] font-bold text-corp-blue-700/80 uppercase tracking-widest font-mono">
                   Période d&apos;activité comptable
                 </p>
               </div>
@@ -446,7 +446,7 @@ export default function PurchasesPage() {
                 variant="ghost"
                 size="icon"
                 onClick={handleNextMonth}
-                className="text-white hover:bg-white/10 h-9 w-9 transition-colors"
+                className="text-corp-blue-800 hover:bg-corp-blue-100 hover:text-corp-blue-950 h-9 w-9 transition-colors rounded-lg"
               >
                 <ChevronRight className="w-5 h-5" />
               </Button>

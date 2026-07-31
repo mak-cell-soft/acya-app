@@ -330,15 +330,15 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
                 variant="ghost"
                 size="icon"
                 onClick={handlePrevMonth}
-                className="text-white hover:bg-white/10 h-8 w-8 "
+                className="text-corp-blue-800 hover:bg-corp-blue-100 hover:text-corp-blue-950 h-8 w-8 rounded-lg transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
               <div className="text-center">
-                <h2 className="text-base font-bold text-sand-100">
+                <h2 className="text-base font-extrabold text-corp-blue-950">
                   {MONTHS[selectedMonthIdx]} {selectedYear}
                 </h2>
-                <p className="text-[9px] font-bold text-sand-400 uppercase tracking-widest">
+                <p className="text-[9px] font-bold text-corp-blue-700/80 uppercase tracking-widest">
                   Période sélectionnée
                 </p>
               </div>
@@ -346,7 +346,7 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
                 variant="ghost"
                 size="icon"
                 onClick={handleNextMonth}
-                className="text-white hover:bg-white/10 h-8 w-8 "
+                className="text-corp-blue-800 hover:bg-corp-blue-100 hover:text-corp-blue-950 h-8 w-8 rounded-lg transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>

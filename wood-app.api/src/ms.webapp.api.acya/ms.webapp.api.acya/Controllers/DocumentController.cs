@@ -296,7 +296,7 @@ namespace ms.webapp.api.acya.api.Controllers
                               .ThenInclude(a => a!.TVAs)
           .Include(d => d.ChildDocuments)
               .ThenInclude(cd => cd.ChildDocument)
-          .Include(d => d.ParentDocuments)
+.Include(d => d.ParentDocuments)
               .ThenInclude(pd => pd.ParentDocument)
                   .ThenInclude(c => c!.DocumentMerchandises)
                       .ThenInclude(cdm => cdm.QuantityMovements)
@@ -305,8 +305,8 @@ namespace ms.webapp.api.acya.api.Controllers
           .Where(d => d.Type == _type.typeDoc)
           .Where(d => d.CreationDate.HasValue
                    && (_type.day == 0 || d.CreationDate.Value.Day == _type.day)
-                   && d.CreationDate.Value.Month == _type.month
-                   && d.CreationDate.Value.Year == _type.year)
+                   && (_type.month == 0 || d.CreationDate.Value.Month == _type.month)
+                   && (_type.year == 0 || d.CreationDate.Value.Year == _type.year))
           .ToListAsync();
 
       // Convert to DTOs
@@ -1012,7 +1012,7 @@ namespace ms.webapp.api.acya.api.Controllers
     [HttpPost("createinvoice")]
     public async Task<ActionResult> CreateInvoice(GenerateInvoiceDto genDto)
     {
-      if (!genDto.docChildrenIds!.Any())
+      if (genDto.docChildrenIds == null || !genDto.docChildrenIds.Any())
       {
         return BadRequest("Nothing to Create");
       }
@@ -1078,13 +1078,9 @@ namespace ms.webapp.api.acya.api.Controllers
       string newDocNumber;
       try
       {
-        // Lock resource to ensure thread safety
         lock (_repository)
         {
-          // Fetch the last DocNumber for this prefix
           string? lastDocNumber = _repository.GetLastDocNumberByPrefix(prefix);
-
-          // Generate a new incremental DocNumber
           newDocNumber = Helpers.GenerateNewDocNumber(prefix, lastDocNumber, numberingConfig.YearFormat, numberingConfig.IncrementLength);
         }
       }
@@ -1093,168 +1089,218 @@ namespace ms.webapp.api.acya.api.Controllers
         return StatusCode(500, $"Failed to generate document number: {ex.Message}");
       }
 
-      // Create the invoice document
-      Document invoice = new Document(genDto.invoiceDoc);
-      
-      invoice.TotalCostHTNetDoc = Math.Round(invoice.TotalCostHTNetDoc, 3, MidpointRounding.AwayFromZero);
-      invoice.TotalCostTvaDoc = Math.Round(invoice.TotalCostTvaDoc, 3, MidpointRounding.AwayFromZero);
-      invoice.TotalCostDiscountDoc = Math.Round(invoice.TotalCostDiscountDoc, 3, MidpointRounding.AwayFromZero);
-      invoice.TotalCostNetTTCDoc = Math.Round(invoice.TotalCostNetTTCDoc, 3, MidpointRounding.AwayFromZero);
-
-      // Calculate totals based on the selected documents
-      //foreach (var id in genDto.docChildrenIds!)
-      //{
-      //  var _d = await _repository.Get(id);
-      //  if (_d == null)
-      //  {
-      //    return NotFound($"Document with ID {id} not found");
-      //  }
-
-      //  invoice.TotalCostHTNetDoc += _d.TotalCostHTNetDoc;
-      //  invoice.TotalCostTvaDoc += _d.TotalCostTvaDoc;
-      //  invoice.TotalCostDiscountDoc += _d.TotalCostDiscountDoc;
-      //  invoice.TotalCostNetTTCDoc += _d.TotalCostNetTTCDoc;
-      //}
-
-      /**
-       * Add the new doc number to the invoice
-       */
-      invoice.DocNumber = newDocNumber;
-
-      // Ensure the AppUser is tracked as an existing entity
-      if (user != null)
-      {
-        invoice.AppUsers = user;
-        _context.Entry(invoice.AppUsers).State = EntityState.Unchanged;
-      }
-      else
-      {
-        invoice.AppUsers = null;
-        invoice.UpdatedById = genDto.invoiceDoc.updatedbyid;
-      }
-
-      // Ensure HoldingTaxeId is null if HoldingTaxes is null
-      if (invoice.HoldingTaxes == null)
-      {
-        invoice.HoldingTaxId = null;
-      }
-      else
-      {
-        _context.Entry(invoice.HoldingTaxes).State = EntityState.Unchanged;
-      }
-
-      // Ensure the CounterPart is tracked as an existing entity
-      if (invoice.CounterPart != null)
-      {
-        _context.Entry(invoice.CounterPart).State = EntityState.Unchanged;
-      }
-
-      // Ensure the Sales Site is tracked as an existing entity
-      if (invoice.SalesSite != null)
-      {
-        _context.Entry(invoice.SalesSite).State = EntityState.Unchanged;
-      }
-
-      // Ensure TaxeId is null if Taxes is null
-      if (invoice.Taxes != null)
-      {
-        _context.Entry(invoice.Taxes).State = EntityState.Unchanged;
-      }
-
-      // Add the invoice to the database
-      await _repository.Add(invoice);
-
-      /**
-       * Another Approach if we have many Children Documents
-       */
-
-      // Fetch all child documents in a single query
-      var childDocuments = await _context.Documents
-          .Include(d => d.DocumentMerchandises)
-          .Where(d => genDto.docChildrenIds!.Contains(d.Id))
-          .ToListAsync();
-
-      // Update the IsInvoiced property for each child document
-      foreach (var childDocument in childDocuments)
-      {
-        childDocument.IsInvoiced = true;
-        childDocument.BillingStatus = BillingStatus.Billed;
-        _context.Entry(childDocument).State = EntityState.Modified;
-
-        // Clone merchandises to the invoice for printing
-        foreach (var dm in childDocument.DocumentMerchandises)
-        {
-          var newDm = new DocumentMerchandise
-          {
-            Document = invoice,
-            MerchandiseId = dm.MerchandiseId,
-            Type = dm.Type,
-            TransporterId = dm.TransporterId,
-            Description = dm.Description,
-            Quantity = dm.Quantity,
-            UnitPriceHT = dm.UnitPriceHT,
-            CostHT = dm.CostHT,
-            CostDiscountValue = dm.CostDiscountValue,
-            CostNetHT = dm.CostNetHT,
-            CostTTC = dm.CostTTC,
-            DiscountPercentage = dm.DiscountPercentage,
-            TvaValue = dm.TvaValue,
-            CreationDate = invoice.CreationDate,
-            UpdateDate = DateTime.UtcNow
-          };
-          _context.DocumentMerchandises.Add(newDm);
-        }
-      }
-
-      // Register relationships in DocumentDocumentRelationship
-      foreach (var id in genDto.docChildrenIds!)
-      {
-        var relationship = new DocumentDocumentRelationship
-        {
-          ParentDocumentId = invoice.Id, // The new invoice is the parent
-          ChildDocumentId = id           // The selected documents are the children
-        };
-
-        // Add the relationship to the database
-        await _repository.AddRelationship(relationship);
-      }
-
-      // Transfer payments from children to the new invoice
-      var paymentsToTransfer = await _context.Payments
-          .Where(p => p.DocumentId.HasValue && genDto.docChildrenIds!.Contains(p.DocumentId.Value) && !p.IsDeleted)
-          .ToListAsync();
-
-      decimal totalTransferredAmount = 0;
-      foreach (var payment in paymentsToTransfer)
-      {
-          payment.DocumentId = invoice.Id;
-          _context.Entry(payment).State = EntityState.Modified;
-          totalTransferredAmount += (payment.Amount ?? 0);
-      }
-      
-      if (totalTransferredAmount > 0)
-      {
-          double netPayable = invoice.TotalCostNetTTCDoc;
-          if (invoice.WithHoldingTax && invoice.HoldingTaxes != null)
-          {
-              netPayable -= invoice.HoldingTaxes.TaxValue;
-          }
-          netPayable -= invoice.TotalCreditNotes;
-
-          if ((double)totalTransferredAmount >= Math.Round(netPayable, 3, MidpointRounding.AwayFromZero) - 0.005)
-          {
-              invoice.BillingStatus = BillingStatus.Billed;
-          }
-          else
-          {
-              invoice.BillingStatus = BillingStatus.PartiallyBilled;
-          }
-      }
-
-      // Save changes and verify
       try
       {
-        await _repository.SaveChanges();
+        // 1. Instantiate invoice with scalar properties
+        Document invoice = new Document
+        {
+          DocNumber = newDocNumber,
+          Type = genDto.invoiceDoc.type.Value,
+          StockTransactionType = genDto.invoiceDoc.stocktransactiontype,
+          Description = genDto.invoiceDoc.description,
+          SupplierReference = genDto.invoiceDoc.supplierReference,
+          CreationDate = genDto.invoiceDoc.creationdate ?? DateTime.UtcNow,
+          UpdateDate = DateTime.UtcNow,
+          UpdatedById = genDto.invoiceDoc.updatedbyid,
+          DocStatus = genDto.invoiceDoc.docstatus,
+          BillingStatus = genDto.invoiceDoc.billingstatus,
+          WithHoldingTax = genDto.invoiceDoc.withholdingtax,
+          Isservice = genDto.invoiceDoc.isservice,
+          IsDeleted = genDto.invoiceDoc.isdeleted,
+          IsInvoiced = genDto.invoiceDoc.isinvoiced,
+          Currency = genDto.invoiceDoc.currency,
+          ExchangeRate = genDto.invoiceDoc.exchangeRate > 0 ? genDto.invoiceDoc.exchangeRate : 1.0,
+          TotalCostHTNetDoc = Math.Round(genDto.invoiceDoc.total_ht_net_doc, 3, MidpointRounding.AwayFromZero),
+          TotalCostTvaDoc = Math.Round(genDto.invoiceDoc.total_tva_doc, 3, MidpointRounding.AwayFromZero),
+          TotalCostDiscountDoc = Math.Round(genDto.invoiceDoc.total_discount_doc, 3, MidpointRounding.AwayFromZero),
+          TotalCostNetTTCDoc = Math.Round(genDto.invoiceDoc.total_net_ttc, 3, MidpointRounding.AwayFromZero)
+        };
+
+        // Handle AppUsers
+        if (user != null)
+        {
+          invoice.AppUsers = user;
+          invoice.UpdatedById = user.Id;
+          _context.Entry(invoice.AppUsers).State = EntityState.Unchanged;
+        }
+        else if (genDto.invoiceDoc.updatedbyid > 0)
+        {
+          invoice.UpdatedById = genDto.invoiceDoc.updatedbyid;
+        }
+
+        // Handle CounterPart
+        var cpId = genDto.invoiceDoc.counterpart?.id;
+        if (cpId.HasValue && cpId.Value > 0)
+        {
+          invoice.CounterPart = await _context.CounterParts.FindAsync(cpId.Value);
+          invoice.CounterPartId = cpId.Value;
+          if (invoice.CounterPart != null)
+          {
+            _context.Entry(invoice.CounterPart).State = EntityState.Unchanged;
+          }
+        }
+
+        // Handle SalesSite
+        var siteId = genDto.invoiceDoc.sales_site?.id;
+        if (siteId.HasValue && siteId.Value > 0)
+        {
+          invoice.SalesSite = await _context.SalesSites.FindAsync(siteId.Value);
+          invoice.SalesSiteId = siteId.Value;
+          if (invoice.SalesSite != null)
+          {
+            _context.Entry(invoice.SalesSite).State = EntityState.Unchanged;
+          }
+        }
+        else
+        {
+          var defaultSite = await _context.SalesSites.FirstOrDefaultAsync(s => !s.IsDeleted);
+          if (defaultSite != null)
+          {
+            invoice.SalesSite = defaultSite;
+            invoice.SalesSiteId = defaultSite.Id;
+            _context.Entry(invoice.SalesSite).State = EntityState.Unchanged;
+          }
+        }
+
+        // Handle HoldingTaxes
+        var holdingTaxId = genDto.invoiceDoc.holdingtax?.id;
+        if (holdingTaxId.HasValue && holdingTaxId.Value > 0)
+        {
+          invoice.HoldingTaxes = await _context.HoldingTaxes.FindAsync(holdingTaxId.Value);
+          invoice.HoldingTaxId = holdingTaxId.Value;
+          if (invoice.HoldingTaxes != null)
+          {
+            _context.Entry(invoice.HoldingTaxes).State = EntityState.Unchanged;
+          }
+        }
+
+        // Handle Taxes (Stamp tax / Droit de timbre)
+        var taxeId = genDto.invoiceDoc.taxe?.id;
+        if (taxeId.HasValue && taxeId.Value > 0)
+        {
+          invoice.Taxes = await _context.AppVariables.FindAsync(taxeId.Value);
+          invoice.TaxeId = taxeId.Value;
+          if (invoice.Taxes != null)
+          {
+            _context.Entry(invoice.Taxes).State = EntityState.Unchanged;
+          }
+        }
+
+        // Add invoice and SAVE to database so invoice.Id gets generated by Postgres identity!
+        await _context.Documents.AddAsync(invoice);
+        await _context.SaveChangesAsync();
+
+        // 2. Fetch all child documents
+        var childDocuments = await _context.Documents
+            .Include(d => d.DocumentMerchandises)
+            .Where(d => genDto.docChildrenIds!.Contains(d.Id))
+            .ToListAsync();
+
+        foreach (var childDocument in childDocuments)
+        {
+          childDocument.IsInvoiced = true;
+          childDocument.BillingStatus = BillingStatus.Billed;
+          _context.Entry(childDocument).State = EntityState.Modified;
+
+          // Clone merchandises to the invoice for printing
+          foreach (var dm in childDocument.DocumentMerchandises)
+          {
+            var newDm = new DocumentMerchandise
+            {
+              DocumentId = invoice.Id,
+              MerchandiseId = dm.MerchandiseId,
+              Type = dm.Type,
+              TransporterId = dm.TransporterId,
+              Description = dm.Description,
+              Quantity = dm.Quantity,
+              UnitPriceHT = dm.UnitPriceHT,
+              CostHT = dm.CostHT,
+              CostDiscountValue = dm.CostDiscountValue,
+              CostNetHT = dm.CostNetHT,
+              CostTTC = dm.CostTTC,
+              DiscountPercentage = dm.DiscountPercentage,
+              TvaValue = dm.TvaValue,
+              CreationDate = invoice.CreationDate,
+              UpdateDate = DateTime.UtcNow
+            };
+            _context.DocumentMerchandises.Add(newDm);
+          }
+        }
+
+        // 3. Register relationships with invoice.Id (which is now guaranteed > 0!)
+        foreach (var id in genDto.docChildrenIds!)
+        {
+          var relationship = new DocumentDocumentRelationship
+          {
+            ParentDocumentId = invoice.Id,
+            ChildDocumentId = id
+          };
+          _context.DocumentDocumentRelationships.Add(relationship);
+        }
+
+        // 4. Transfer payments from children to the new invoice (only if child belongs to same counterpart)
+        var paymentsToTransfer = await _context.Payments
+            .Where(p => p.DocumentId.HasValue && genDto.docChildrenIds!.Contains(p.DocumentId.Value) && !p.IsDeleted)
+            .ToListAsync();
+
+        decimal totalTransferredAmount = 0;
+        foreach (var payment in paymentsToTransfer)
+        {
+            if (payment.CustomerId == invoice.CounterPartId)
+            {
+                payment.DocumentId = invoice.Id;
+                _context.Entry(payment).State = EntityState.Modified;
+            }
+            totalTransferredAmount += (payment.Amount ?? 0);
+        }
+        
+        if (totalTransferredAmount > 0)
+        {
+            double netPayable = invoice.TotalCostNetTTCDoc;
+            if (invoice.WithHoldingTax && invoice.HoldingTaxes != null)
+            {
+                netPayable -= invoice.HoldingTaxes.TaxValue;
+            }
+            netPayable -= invoice.TotalCreditNotes;
+
+            if ((double)totalTransferredAmount >= Math.Round(netPayable, 3, MidpointRounding.AwayFromZero) - 0.005)
+            {
+                invoice.BillingStatus = BillingStatus.Billed;
+            }
+            else
+            {
+                invoice.BillingStatus = BillingStatus.PartiallyBilled;
+            }
+
+            // For batch invoices with different counterparts, create a payment record for the batch customer
+            if (invoice.CounterPartId.HasValue && invoice.CounterPartId.Value > 0)
+            {
+                bool hasDifferentCounterparts = childDocuments.Any(c => c.CounterPartId != invoice.CounterPartId);
+                if (hasDifferentCounterparts)
+                {
+                    bool paymentExists = await _context.Payments.AnyAsync(p => p.DocumentId == invoice.Id && !p.IsDeleted);
+                    if (!paymentExists)
+                    {
+                        var batchPayment = new Payment
+                        {
+                            DocumentId = invoice.Id,
+                            CustomerId = invoice.CounterPartId.Value,
+                            Amount = totalTransferredAmount,
+                            PaymentDate = invoice.CreationDate ?? DateTime.UtcNow,
+                            PaymentMethod = "Règlement Facture Groupée",
+                            Notes = $"Règlement automatique facture groupée {invoice.DocNumber}",
+                            CreatedAt = DateTime.UtcNow,
+                            IsDeleted = false,
+                            ExchangeRate = 1.0m
+                        };
+                        _context.Payments.Add(batchPayment);
+                    }
+                }
+            }
+        }
+
+        // Save all child, merchandise, and relationship updates
+        await _context.SaveChangesAsync();
 
         // Record Price History for the newly created invoice
         await RecordPriceHistory(invoice);
@@ -1263,21 +1309,22 @@ namespace ms.webapp.api.acya.api.Controllers
         await _accountService.SyncLedgerForInvoiceAsync(invoice);
 
         // Update persistent balance
-        if (invoice.CounterPartId > 0)
+        if (invoice.CounterPartId.HasValue && invoice.CounterPartId.Value > 0)
         {
-          if (invoice.CounterPart?.Type == CounterPartType.Customer)
-            await _balanceService.UpdateCustomerBalanceAsync(invoice.CounterPartId ?? 0, "mouvement", DateTime.UtcNow);
+          var cp = invoice.CounterPart ?? await _context.CounterParts.FindAsync(invoice.CounterPartId.Value);
+          if (cp?.Type == CounterPartType.Customer)
+            await _balanceService.UpdateCustomerBalanceAsync(invoice.CounterPartId.Value, "mouvement", DateTime.UtcNow);
           else
-            await _balanceService.UpdateSupplierBalanceAsync(invoice.CounterPartId ?? 0, "mouvement", DateTime.UtcNow);
+            await _balanceService.UpdateSupplierBalanceAsync(invoice.CounterPartId.Value, "mouvement", DateTime.UtcNow);
         }
 
-        // Return the created invoice with a 201 Created status
-        return CreatedAtAction(nameof(GetInvoiceById), new { id = invoice.Id }, invoice);
+        return Ok(new { id = invoice.Id, docRef = invoice.DocNumber, message = "Invoice created successfully" });
       }
       catch (Exception ex)
       {
-        // Log the error (if needed)
-        return StatusCode(500, "An error occurred while saving the invoice and relationships. " + ex.Message);
+        string errMsg = ex.Message;
+        if (ex.InnerException != null) errMsg += " | Inner: " + ex.InnerException.Message;
+        return StatusCode(500, "An error occurred while saving the invoice and relationships: " + errMsg);
       }
     }
     #endregion

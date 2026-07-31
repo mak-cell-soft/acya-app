@@ -277,8 +277,12 @@ namespace ms.webapp.api.acya.api.Services
 
             foreach (var child in children)
             {
-                // Delete the receipt/BL ledger entry so it is not double-counted
-                await DeleteLedgerEntryAsync(child.Id, child.Type.ToString()!);
+                // Only delete the receipt/BL ledger entry if the child BL belongs to the same counterpart as the invoice.
+                // If the child BL belongs to a different counterpart (e.g. multi-customer batch invoice), keep it on its original customer's ledger.
+                if (child.CounterPartId == invoice.CounterPartId)
+                {
+                    await DeleteLedgerEntryAsync(child.Id, child.Type.ToString()!);
+                }
             }
 
             // 2. Build a description mentioning source documents
