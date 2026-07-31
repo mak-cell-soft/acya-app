@@ -73,7 +73,14 @@ export function InvoiceStandard({ document, enterprise, printLocale }: InvoiceSt
       {/* Document Title and Client Info */}
       <div className="document-header">
         <div className="document-title-section">
-          <h2 className="document-title">FACTURE</h2>
+          <h2 className="document-title">
+            FACTURE N° {document?.docnumber || 'BROUILLON'}
+            {document?.deliveryNoteDocNumbers && document.deliveryNoteDocNumbers.length > 0 && (
+              <span className="text-[0.7rem] font-normal text-slate-600 ml-2">
+                (BL Réf: {document.deliveryNoteDocNumbers.join(', ')})
+              </span>
+            )}
+          </h2>
         </div>
 
         <div className="client-info">
@@ -82,9 +89,15 @@ export function InvoiceStandard({ document, enterprise, printLocale }: InvoiceSt
             <span className="value font-bold">{utils.getClientName(document)}</span>
           </div>
           <div className="info-row">
-            <span className="label">{ar.labels.address}</span>
-            <span className="value">{utils.getClientAddress(document)}</span>
+            <span className="label">Adresse</span>
+            <span className="value">{utils.getCustomerRealAddress(document) || '—'}</span>
           </div>
+          {utils.getCustomDeliveryAddress(document) && (
+            <div className="info-row">
+              <span className="label">Adresse de Livraison</span>
+              <span className="value font-semibold text-slate-800">{utils.getCustomDeliveryAddress(document)}</span>
+            </div>
+          )}
           <div className="info-row">
             <span className="label">{ar.labels.tvaCode}</span>
             <span className="value font-mono text-xs">{utils.getTvaCode(document)}</span>
@@ -99,8 +112,10 @@ export function InvoiceStandard({ document, enterprise, printLocale }: InvoiceSt
           <span className="detail-value">{utils.formatDate(document?.creationdate)}</span>
         </div>
         <div className="detail-item">
-          <span className="detail-label">{ar.labels.docNumberInvoice}</span>
-          <span className="detail-value">{document?.docnumber || 'BROUILLON'}</span>
+          <span className="detail-label">Adresse de Livraison</span>
+          <span className="detail-value">
+            {utils.getCustomDeliveryAddress(document) || utils.getCustomerRealAddress(document) || '—'}
+          </span>
         </div>
         <div className="detail-item">
           <span className="detail-label">{ar.labels.accountNumber}</span>

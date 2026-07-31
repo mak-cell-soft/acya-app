@@ -66,3 +66,48 @@ export function useDeleteCustomer() {
     },
   });
 }
+
+export function useOrCreatePassagerCounterpart() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (updatedById: number): Promise<Customer> => {
+      const customers: Customer[] = await counterpartService.getAll('Customer');
+      const existing = customers.find(
+        (c) => (c.notes === 'SYSTEM_PASSAGER' || (c.prefix === 'PASS' && c.name === 'Client Passager')) && !c.isdeleted
+      );
+      if (existing) return existing;
+
+      await counterpartService.add({
+        type: 'Customer',
+        prefix: 'PASS',
+        name: 'Client Passager',
+        firstname: 'Client',
+        lastname: 'Passager',
+        description: 'Client Passager - Compte système pour clients de passage',
+        notes: 'SYSTEM_PASSAGER',
+        address: 'N/A',
+        gouvernorate: 'Tunis',
+        jobtitle: 'Particulier',
+        isactive: true,
+        isdeleted: false,
+        openingbalance: 0,
+        maximumdiscount: 0,
+        updatedbyid: updatedById,
+      });
+
+      const refreshed: Customer[] = await counterpartService.getAll('Customer');
+      const created = refreshed.find(
+        (c) => (c.notes === 'SYSTEM_PASSAGER' || (c.prefix === 'PASS' && c.name === 'Client Passager')) && !c.isdeleted
+      );
+      if (!created) {
+        throw new Error('Failed to retrieve created Client Passager counterpart');
+      }
+      return created;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+    },
+  });
+}
+

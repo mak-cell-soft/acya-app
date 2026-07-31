@@ -36,7 +36,12 @@ export function DeliveryNoteLight({ document, enterprise, printLocale }: Deliver
 
       {/* Document Type Label */}
       <div className="document-type-header">
-        BON DE LIVRAISON CLIENT
+        BON DE LIVRAISON CLIENT N° {document?.docnumber || 'BROUILLON'}
+        {document?.deliveryNoteDocNumbers && document.deliveryNoteDocNumbers.length > 0 && (
+          <span style={{ fontSize: '0.8em', fontWeight: 'normal', marginLeft: '6px' }}>
+            (BL Réf: {document.deliveryNoteDocNumbers.join(', ')})
+          </span>
+        )}
       </div>
 
       {/* Meta details & client box side-by-side */}
@@ -47,8 +52,8 @@ export function DeliveryNoteLight({ document, enterprise, printLocale }: Deliver
             <span>{utils.formatDate(document?.creationdate)}</span>
           </div>
           <div className="info-row">
-            <span className="info-label">{ar.labels.docNumberBL}: </span>
-            <span>{document?.docnumber || 'BROUILLON'}</span>
+            <span className="info-label">Adresse de Livraison: </span>
+            <span>{utils.getCustomDeliveryAddress(document) || utils.getCustomerRealAddress(document) || '—'}</span>
           </div>
           <div className="info-row">
             <span className="info-label">{ar.labels.accountNumber}: </span>
@@ -62,9 +67,15 @@ export function DeliveryNoteLight({ document, enterprise, printLocale }: Deliver
             <span style={{ fontWeight: 'bold' }}>{utils.getClientName(document)}</span>
           </div>
           <div className="info-row">
-            <span className="info-label">{ar.labels.address} </span>
-            <span>{utils.getClientAddress(document)}</span>
+            <span className="info-label">Adresse: </span>
+            <span>{utils.getCustomerRealAddress(document) || '—'}</span>
           </div>
+          {utils.getCustomDeliveryAddress(document) && (
+            <div className="info-row">
+              <span className="info-label">Adresse de Livraison: </span>
+              <span style={{ fontWeight: 'bold' }}>{utils.getCustomDeliveryAddress(document)}</span>
+            </div>
+          )}
           <div className="info-row">
             <span className="info-label">{ar.labels.tvaCode} </span>
             <span>{utils.getTvaCode(document)}</span>

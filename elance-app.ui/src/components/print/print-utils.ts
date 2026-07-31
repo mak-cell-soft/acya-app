@@ -132,23 +132,118 @@ export function getTvaBreakdown(document: Document | null | undefined): Array<{ 
   });
 }
 
+export interface ParsedPassagerInfo {
+  name: string;
+  cin: string;
+  address: string;
+}
+
+export function parsePassagerInfo(document: Document | null | undefined): ParsedPassagerInfo | null {
+  if (!document) return null;
+
+  const cp = document.counterpart;
+  const isPassagerCP =
+    cp?.notes === 'SYSTEM_PASSAGER' ||
+    cp?.prefix === 'PASS' ||
+    cp?.name === 'Client Passager' ||
+    (cp?.firstname === 'Client' && cp?.lastname === 'Passager');
+
+  const desc = document.description || '';
+  const supplierRef = document.supplierReference || '';
+
+  const hasPassagerInDesc = desc.includes('Client Passager:');
+
+  if (!isPassagerCP && !hasPassagerInDesc) {
+    return null;
+  }
+
+  let name = '';
+  let cin = '';
+  let address = '';
+
+  const passagerMatch = desc.match(/Client Passager:\s*([^(]+)/i);
+  if (passagerMatch && passagerMatch[1]) {
+    name = passagerMatch[1].trim();
+  }
+
+  const cinMatch = desc.match(/CIN:\s*([^,)]+)/i);
+  if (cinMatch && cinMatch[1]) {
+    cin = cinMatch[1].trim();
+  } else if (supplierRef.startsWith('PASS-')) {
+    cin = supplierRef.replace(/^PASS-/i, '').trim();
+  }
+
+  const addrMatch = desc.match(/Adresse:\s*([^)]+)/i);
+  if (addrMatch && addrMatch[1]) {
+    address = addrMatch[1].trim();
+  }
+
+  if (!name && !cin && !address) {
+    return null;
+  }
+
+  return {
+    name: name || 'Client Passager',
+    cin,
+    address,
+  };
+}
+
 /**
- * Helper to retrieve client details from the counterpart model
+ * Helper to retrieve client details from the counterpart model or passager description
  */
 export function getClientName(document: Document | null | undefined): string {
+  const passager = parsePassagerInfo(document);
+  if (passager && passager.name) {
+    return passager.name;
+  }
+
   const cp = document?.counterpart;
   if (!cp) return '';
   return cp.name || `${cp.firstname || ''} ${cp.lastname || ''}`.trim() || 'Client sans nom';
 }
 
+export function getCustomerRealAddress(document: Document | null | undefined): string {
+  if (!document) return '';
+  const passager = parsePassagerInfo(document);
+  if (passager && passager.address) {
+    return passager.address;
+  }
+  return document.counterpart?.address || '';
+}
+
+export function getCustomDeliveryAddress(document: Document | null | undefined): string {
+  if (!document) return '';
+  const supplierRef = (document.supplierReference || (document as any)?.supplierreference || '').trim();
+  if (
+    supplierRef && 
+    !supplierRef.startsWith('PASS-') && 
+    !supplierRef.match(/^BL-?\d+/i) && 
+    !supplierRef.match(/^FAC-?\d+/i)
+  ) {
+    return supplierRef;
+  }
+  return '';
+}
+
 export function getClientAddress(document: Document | null | undefined): string {
-  return document?.counterpart?.address || '';
+  return getCustomDeliveryAddress(document) || getCustomerRealAddress(document);
 }
 
 export function getTvaCode(document: Document | null | undefined): string {
+  const passager = parsePassagerInfo(document);
+  if (passager && passager.cin) {
+    return `CIN: ${passager.cin}`;
+  }
+
   return document?.counterpart?.taxregistrationnumber || '';
 }
 
 export function getAccountNumber(document: Document | null | undefined): string {
+  const passager = parsePassagerInfo(document);
+  if (passager && passager.cin) {
+    return `PASS-${passager.cin}`;
+  }
   return document?.counterpart?.id?.toString() || '';
 }
+

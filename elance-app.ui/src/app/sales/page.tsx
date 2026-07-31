@@ -43,6 +43,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { getClientName } from '@/components/print/print-utils';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -220,7 +221,7 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
   const filteredDocuments = (documents || [])
     .filter((doc) => {
       const term = searchTerm.toLowerCase();
-      const clientName = (doc.counterpart?.name || `${doc.counterpart?.firstname || ''} ${doc.counterpart?.lastname || ''}`).toLowerCase();
+      const clientName = getClientName(doc).toLowerCase();
       return (
         doc.docnumber?.toLowerCase().includes(term) ||
         clientName.includes(term) ||
@@ -709,12 +710,12 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
                             </td>
                             <td className="px-6 py-4">
                               <div className={cn("font-bold flex items-center gap-2", item.isdeleted ? "text-sand-400" : "text-corp-blue-950")}>
-                                <div className="w-7 h-7 rounded-lg bg-corp-blue-50 border border-corp-blue-100/50 flex items-center justify-center text-xs text-corp-blue-800">
-                                  {item.counterpart ? (item.counterpart.name || item.counterpart.firstname || 'C').substring(0, 1) : '?'}
+                                <div className="w-7 h-7 rounded-lg bg-corp-blue-50 border border-corp-blue-100/50 flex items-center justify-center text-xs text-corp-blue-800 font-bold">
+                                  {getClientName(item).substring(0, 1) || 'C'}
                                 </div>
                                 {item.counterpart ? (
                                   <span className={item.isdeleted ? "line-through" : ""}>
-                                    {item.counterpart.name || `${item.counterpart.firstname || ''} ${item.counterpart.lastname || ''}`.trim() || 'Client sans nom'}
+                                    {getClientName(item)}
                                   </span>
                                 ) : (
                                   <span className="italic text-sand-450 font-normal">Non affecté</span>

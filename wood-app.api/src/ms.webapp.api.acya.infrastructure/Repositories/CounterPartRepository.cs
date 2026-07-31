@@ -153,28 +153,68 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
     {
       if (dto == null) return new CounterPartExistenceResult { Exists = false, Dto = null };
 
-      if (!string.IsNullOrEmpty(dto.taxregistrationnumber))
+      int currentId = dto.id;
+      string? taxReg = string.IsNullOrWhiteSpace(dto.taxregistrationnumber) ? null : dto.taxregistrationnumber.Trim();
+      string? cin = string.IsNullOrWhiteSpace(dto.identitycardnumber) ? null : dto.identitycardnumber.Trim();
+      string? patente = string.IsNullOrWhiteSpace(dto.patentecode) ? null : dto.patentecode.Trim();
+
+      // Determine if Personne Morale (Company) or Personne Physique (Individual)
+      bool isCompany = dto.prefix == "STE" || dto.prefix == "ENT" || dto.prefix == "ASS";
+
+      if (isCompany)
       {
-        var existing = await context.CounterParts.FirstOrDefaultAsync(c => c.TaxRegistrationNumber == dto.taxregistrationnumber && c.IsDeleted == false);
-        if (existing != null)
+        // Personne Morale: test existence by MATRICULE FISCAL (or Patente)
+        if (!string.IsNullOrEmpty(taxReg))
         {
-          return new CounterPartExistenceResult { Exists = true, Dto = new CounterPartDto(existing) };
+          var existingByTax = await context.CounterParts
+            .FirstOrDefaultAsync(c => c.Id != currentId && c.TaxRegistrationNumber == taxReg && c.IsDeleted == false);
+          if (existingByTax != null)
+          {
+            return new CounterPartExistenceResult { Exists = true, Dto = new CounterPartDto(existingByTax) };
+          }
+        }
+
+        if (!string.IsNullOrEmpty(patente))
+        {
+          var existingByPatente = await context.CounterParts
+            .FirstOrDefaultAsync(c => c.Id != currentId && c.PatenteCode == patente && c.IsDeleted == false);
+          if (existingByPatente != null)
+          {
+            return new CounterPartExistenceResult { Exists = true, Dto = new CounterPartDto(existingByPatente) };
+          }
         }
       }
-      else if (!string.IsNullOrEmpty(dto.identitycardnumber))
+      else
       {
-        var existing = await context.CounterParts.FirstOrDefaultAsync(c => c.IdentityCardNumber == dto.identitycardnumber && c.IsDeleted == false);
-        if (existing != null)
+        // Personne Physique: test existence by CIN OR MATRICULE FISCAL
+        if (!string.IsNullOrEmpty(cin))
         {
-          return new CounterPartExistenceResult { Exists = true, Dto = new CounterPartDto(existing) };
+          var existingByCin = await context.CounterParts
+            .FirstOrDefaultAsync(c => c.Id != currentId && c.IdentityCardNumber == cin && c.IsDeleted == false);
+          if (existingByCin != null)
+          {
+            return new CounterPartExistenceResult { Exists = true, Dto = new CounterPartDto(existingByCin) };
+          }
         }
-      }
-      else if (!string.IsNullOrEmpty(dto.patentecode))
-      {
-        var existing = await context.CounterParts.FirstOrDefaultAsync(c => c.PatenteCode! == dto.patentecode && c.IsDeleted == false);
-        if (existing != null)
+
+        if (!string.IsNullOrEmpty(taxReg))
         {
-          return new CounterPartExistenceResult { Exists = true, Dto = new CounterPartDto(existing) };
+          var existingByTax = await context.CounterParts
+            .FirstOrDefaultAsync(c => c.Id != currentId && c.TaxRegistrationNumber == taxReg && c.IsDeleted == false);
+          if (existingByTax != null)
+          {
+            return new CounterPartExistenceResult { Exists = true, Dto = new CounterPartDto(existingByTax) };
+          }
+        }
+
+        if (!string.IsNullOrEmpty(patente))
+        {
+          var existingByPatente = await context.CounterParts
+            .FirstOrDefaultAsync(c => c.Id != currentId && c.PatenteCode == patente && c.IsDeleted == false);
+          if (existingByPatente != null)
+          {
+            return new CounterPartExistenceResult { Exists = true, Dto = new CounterPartDto(existingByPatente) };
+          }
         }
       }
 

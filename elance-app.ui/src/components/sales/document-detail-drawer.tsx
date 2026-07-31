@@ -24,6 +24,7 @@ import { documentService } from '@/services/components/document.service';
 import { DocumentTypes, DocStatus, Document } from '@/types/document';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getClientName, getClientAddress, getTvaCode } from '@/components/print/print-utils';
 
 interface DocumentDetailDrawerProps {
   isOpen: boolean;
@@ -259,22 +260,22 @@ export function DocumentDetailDrawer({
                       <Separator className="bg-sand-100" />
                       <div className="space-y-3 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-sand-400">Raison Sociale:</span>
+                          <span className="text-sand-400">Raison Sociale / Nom:</span>
                           <span className="font-bold text-sand-900">
-                            {doc.counterpart?.name || `${doc.counterpart?.firstname || ''} ${doc.counterpart?.lastname || ''}`.trim() || 'Client sans nom'}
+                            {getClientName(doc)}
                           </span>
                         </div>
-                        {doc.counterpart?.phonenumberone && (
+                        {getClientAddress(doc) && (
                           <div className="flex justify-between">
-                            <span className="text-sand-400">Téléphone:</span>
-                            <span className="font-medium text-sand-700">{doc.counterpart.phonenumberone}</span>
+                            <span className="text-sand-400">Adresse:</span>
+                            <span className="font-medium text-sand-700">{getClientAddress(doc)}</span>
                           </div>
                         )}
-                        {doc.counterpart?.taxregistrationnumber && (
+                        {getTvaCode(doc) && (
                           <div className="flex justify-between">
-                            <span className="text-sand-400">Matricule Fiscal:</span>
+                            <span className="text-sand-400">Matricule Fiscal / CIN:</span>
                             <span className="font-mono text-xs bg-sand-50 px-2 py-0.5 rounded text-sand-700 border border-sand-200/60">
-                              {doc.counterpart.taxregistrationnumber}
+                              {getTvaCode(doc)}
                             </span>
                           </div>
                         )}
@@ -304,7 +305,7 @@ export function DocumentDetailDrawer({
                         </div>
                         {doc.supplierReference && (
                           <div className="flex justify-between">
-                            <span className="text-sand-400">Réf. Fournisseur:</span>
+                            <span className="text-sand-400">Adresse de Livraison / Réf:</span>
                             <span className="font-mono font-bold text-sand-800">
                               {doc.supplierReference}
                             </span>

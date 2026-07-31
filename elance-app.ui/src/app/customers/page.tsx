@@ -36,11 +36,19 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useCustomers, useCreateCustomer, useUpdateCustomer, useDeleteCustomer } from '@/hooks/use-customers';
 import { Customer, GOUVERNORATES_TN } from '@/types/customer';
 import { CustomerFormDialog } from '@/components/customers/customer-form-dialog';
+import { TablePagination } from '@/components/shared/table-pagination';
 import { CustomerDetailsDialog } from '@/components/customers/customer-details-dialog';
 import { CustomerAccountDialog } from '@/components/customers/customer-account-dialog';
 import { DeleteCustomerDialog } from '@/components/customers/delete-customer-dialog';
@@ -48,9 +56,26 @@ import { CustomerRecouvrementDialog } from '@/components/customers/customer-reco
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
+const PREFIX_LABELS: Record<string, string> = {
+  ALL: 'Toutes Civilités / Formes',
+  STE: 'STE — Société',
+  ENT: 'ENT — Entreprise',
+  ASS: 'ASS — Association',
+  MRS: 'MRS — Monsieur',
+  MME: 'MME — Madame',
+  PERS: 'PERS — Pers. Physique',
+  PASS: 'PASS — Passager',
+  AUT: 'AUT — Autre',
+};
+
 export default function CustomersPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [prefixFilter, setPrefixFilter] = useState<string>('ALL');
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  
+  // Pagination States
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
   
   // Dialog States
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -71,14 +96,23 @@ export default function CustomersPage() {
   const filteredCustomers = useMemo(() => {
     if (!customers) return [];
     const term = searchTerm.toLowerCase();
-    return customers.filter(c => 
-      (c.firstname && c.firstname.toLowerCase().includes(term)) ||
-      (c.lastname && c.lastname.toLowerCase().includes(term)) ||
-      (c.name && c.name.toLowerCase().includes(term)) ||
-      (c.taxregistrationnumber && c.taxregistrationnumber.toLowerCase().includes(term)) ||
-      (c.phonenumberone && c.phonenumberone.includes(searchTerm))
-    );
-  }, [customers, searchTerm]);
+    return customers.filter(c => {
+      const matchesPrefix = prefixFilter === 'ALL' || c.prefix === prefixFilter;
+      const matchesTerm = !term ||
+        (c.firstname && c.firstname.toLowerCase().includes(term)) ||
+        (c.lastname && c.lastname.toLowerCase().includes(term)) ||
+        (c.name && c.name.toLowerCase().includes(term)) ||
+        (c.identitycardnumber && c.identitycardnumber.toLowerCase().includes(term)) ||
+        (c.taxregistrationnumber && c.taxregistrationnumber.toLowerCase().includes(term)) ||
+        (c.phonenumberone && c.phonenumberone.includes(searchTerm));
+      return matchesPrefix && matchesTerm;
+    });
+  }, [customers, searchTerm, prefixFilter]);
+
+  const paginatedCustomers = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredCustomers.slice(startIndex, startIndex + pageSize);
+  }, [filteredCustomers, currentPage, pageSize]);
 
   const handleCreate = (data: any) => {
     createCustomer.mutate(data, {
@@ -204,16 +238,28 @@ export default function CustomersPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400" />
                 <Input 
-                  placeholder="Rechercher par nom, MF, téléphone..." 
+                  placeholder="Rechercher par nom, CIN, MF, téléphone..." 
                   className="pl-10 h-11 rounded-xl border-corp-blue-50 bg-transparent focus:border-corp-blue-600 focus:ring-corp-blue-600 transition-all"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <div className="flex items-center gap-3">
-                <Button variant="ghost" className="h-11 text-sand-400 font-bold hover:bg-sand-100">
-                  <Filter className="w-4 h-4 mr-2" /> Filtres
-                </Button>
+                <Select value={prefixFilter} onValueChange={(val) => setPrefixFilter(val || 'ALL')}>
+                  <SelectTrigger className="w-[230px] h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900">
+                    <div className="flex items-center gap-2 truncate">
+                      <Filter className="w-4 h-4 text-corp-blue-600 shrink-0" />
+                      <span className="truncate">{PREFIX_LABELS[prefixFilter] || 'Toutes Civilités / Formes'}</span>
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-corp-blue-100">
+                    {Object.entries(PREFIX_LABELS).map(([key, label]) => (
+                      <SelectItem key={key} value={key} className="font-bold text-xs">
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <div className="h-6 w-[1px] bg-corp-blue-100 mx-2 hidden md:block" />
                 <div className="flex items-center gap-2 px-3 py-2 bg-corp-blue-50 rounded-lg">
                   <User className="w-4 h-4 text-corp-blue-600" />
@@ -245,7 +291,7 @@ export default function CustomersPage() {
                         </div>
                       </td>
                     </tr>
-                  ) : filteredCustomers.map((item) => (
+                  ) : paginatedCustomers.map((item) => (
                     <React.Fragment key={item.id}>
                       <tr 
                         className={cn(
@@ -289,14 +335,20 @@ export default function CustomersPage() {
                           </span>
                         </td>
                         <td className="p-5 text-center">
-                          <Badge 
-                            className={cn(
-                              "rounded-full px-3 py-1 font-bold text-[0.7rem] border-none",
-                              item.isTypeBoth ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"
-                            )}
-                          >
-                            {item.isTypeBoth ? 'Client/Fournisseur' : 'Client'}
-                          </Badge>
+                          {item.notes === 'SYSTEM_PASSAGER' ? (
+                            <Badge className="rounded-full px-3 py-1 font-bold text-[0.7rem] border-none bg-amber-100 text-amber-800">
+                              🔒 Client Passager (Système)
+                            </Badge>
+                          ) : (
+                            <Badge 
+                              className={cn(
+                                "rounded-full px-3 py-1 font-bold text-[0.7rem] border-none",
+                                item.isTypeBoth ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"
+                              )}
+                            >
+                              {item.isTypeBoth ? 'Client/Fournisseur' : 'Client'}
+                            </Badge>
+                          )}
                         </td>
                         <td className="p-5 text-right">
                           <div className="flex items-center justify-end gap-2">
@@ -324,12 +376,12 @@ export default function CustomersPage() {
                                 <DropdownMenuItem onClick={() => openDetails(item)} className="gap-2 font-bold text-corp-blue-900 cursor-pointer">
                                   <FileText className="w-4 h-4" /> Détails / Grille
                                 </DropdownMenuItem>
-                                {hasPermission('customers', 'canUpdate') && (
+                                {hasPermission('customers', 'canUpdate') && item.notes !== 'SYSTEM_PASSAGER' && (
                                   <DropdownMenuItem onClick={() => openForm(item)} className="gap-2 font-bold text-corp-blue-900 cursor-pointer">
                                     <Edit className="w-4 h-4" /> Modifier
                                   </DropdownMenuItem>
                                 )}
-                                {hasPermission('customers', 'canDelete') && (
+                                {hasPermission('customers', 'canDelete') && item.notes !== 'SYSTEM_PASSAGER' && (
                                   <DropdownMenuItem onClick={() => openDelete(item)} className="gap-2 font-bold text-rose-600 cursor-pointer hover:text-rose-700 hover:bg-rose-50">
                                     <Trash2 className="w-4 h-4" /> Supprimer
                                   </DropdownMenuItem>
@@ -436,16 +488,17 @@ export default function CustomersPage() {
                 </tbody>
               </table>
             </div>
-            <div className="p-6 border-t border-corp-blue-50 flex items-center justify-between">
-              <p className="text-sm text-sand-400 font-medium">
-                Affichage de {filteredCustomers.length} clients
-              </p>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold border-corp-blue-50 text-corp-blue-600" disabled>Précédent</Button>
-                <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold bg-corp-blue-600 text-white border-corp-blue-600">1</Button>
-                <Button variant="outline" size="sm" className="rounded-lg h-9 font-bold border-corp-blue-50 text-corp-blue-600">Suivant</Button>
-              </div>
-            </div>
+            <TablePagination
+              currentPage={currentPage}
+              totalItems={filteredCustomers.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              pageSizeOptions={[15, 30, 50, 100]}
+            />
           </CardContent>
         </Card>
 

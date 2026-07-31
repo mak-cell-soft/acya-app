@@ -59,7 +59,7 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/use-auth-store';
-import { useCustomers, useUpdateCustomer } from '@/hooks/use-customers';
+import { useCustomers, useUpdateCustomer, useOrCreatePassagerCounterpart } from '@/hooks/use-customers';
 import { CustomerFormDialog } from '@/components/customers/customer-form-dialog';
 import { useTransporters } from '@/hooks/use-transporters';
 import { useArticles } from '@/hooks/use-articles';
@@ -188,42 +188,17 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
   const [isTransporterModalOpen, setIsTransporterModalOpen] = useState(false);
   const [passagerInfo, setPassagerInfo] = useState<PassagerInfo | null>(null);
   const updateCustomer = useUpdateCustomer();
+  const orCreatePassagerMutation = useOrCreatePassagerCounterpart();
 
   const handlePassagerConfirm = async (info: PassagerInfo) => {
     try {
       setPassagerInfo(info);
 
-      const virtualCustomer: Customer = {
-        id: 0,
-        type: 'Customer',
-        prefix: 'PASS',
-        name: `${info.firstname} ${info.lastname}`,
-        firstname: info.firstname,
-        lastname: info.lastname,
-        address: info.address,
-        identitycardnumber: info.cin,
-        phonenumberone: '',
-        phonenumbertwo: '',
-        description: `Client Passager (CIN: ${info.cin})`,
-        email: '',
-        gouvernorate: 'Tunis',
-        jobtitle: 'Particulier',
-        notes: 'Client Passager Transient',
-        taxregistrationnumber: '',
-        patentecode: '',
-        maximumdiscount: 0,
-        openingbalance: 0,
-        bankname: '',
-        bankaccountnumber: '',
-        isactive: true,
-        isdeleted: false,
-        isTypeBoth: false,
-        creationdate: new Date().toISOString(),
-        updatedate: new Date().toISOString(),
-        updatedbyid: parseInt(user?.id || '0'),
-      };
+      const passagerCounterpart = await orCreatePassagerMutation.mutateAsync(
+        parseInt(user?.id || '0')
+      );
 
-      setSelectedCustomer(virtualCustomer);
+      setSelectedCustomer(passagerCounterpart);
       setCustomerSearchQuery(`Passager: ${info.firstname} ${info.lastname}`);
 
       // Persist passager info via AppVariable service
@@ -1197,10 +1172,10 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
         total_tva_doc: finalTvaDoc,
         total_net_ttc: parseFloat(finalPayableTTC.toFixed(3)),
         withholdingtax: !!selectedRS,
-        counterpart: (passagerInfo || selectedCustomer?.id === 0) ? null : (selectedCustomer ? {
+        counterpart: selectedCustomer ? {
           ...selectedCustomer,
           transporterid: selectedTransporter?.id || null
-        } : null),
+        } : null,
         sales_site: activeUserSite,
         creationdate: editingDoc?.creationdate ? new Date(editingDoc.creationdate) : new Date(docDate),
         updatedate: new Date(),
@@ -1593,12 +1568,12 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                 </div>
               )}
 
-              {/* Reference */}
+              {/* Reference / Delivery Address */}
               <div className="space-y-2">
-                <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Référence Client / Externe</label>
+                <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Adresse de Livraison (Optionnel)</label>
                 <Input
                   className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900"
-                  placeholder="Ex: BC-1234"
+                  placeholder="Ex: Rue de l'Usine, Zone Industrielle, Sfax"
                   value={customerReference}
                   onChange={(e) => setCustomerReference(e.target.value)}
                 />

@@ -11,6 +11,7 @@ interface TablePaginationProps {
   pageSize: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
+  pageSizeOptions?: number[];
 }
 
 export function TablePagination({
@@ -19,6 +20,7 @@ export function TablePagination({
   pageSize,
   onPageChange,
   onPageSizeChange,
+  pageSizeOptions = [15, 30, 50, 100],
 }: TablePaginationProps) {
   const totalPages = Math.ceil(totalItems / pageSize);
   const startItem = (currentPage - 1) * pageSize + 1;
@@ -27,7 +29,7 @@ export function TablePagination({
   if (totalItems === 0) return null;
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2 py-4 border-t border-corp-blue-50/50">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-4 border-t border-corp-blue-50/50">
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
           <p className="text-xs font-bold text-sand-400 uppercase tracking-wider">Lignes par page</p>
@@ -35,11 +37,11 @@ export function TablePagination({
             value={pageSize.toString()}
             onValueChange={(val) => onPageSizeChange(Number(val))}
           >
-            <SelectTrigger className="h-8 w-[70px] rounded-lg border-corp-blue-100 bg-white text-xs font-bold text-corp-blue-900 focus:ring-corp-blue-600">
+            <SelectTrigger className="h-8 w-[75px] rounded-lg border-corp-blue-100 bg-white text-xs font-bold text-corp-blue-900 focus:ring-corp-blue-600">
               <SelectValue placeholder={pageSize} />
             </SelectTrigger>
             <SelectContent className="rounded-xl border-corp-blue-100">
-              {[5, 10, 15].map((size) => (
+              {pageSizeOptions.map((size) => (
                 <SelectItem key={size} value={size.toString()} className="text-xs font-medium">
                   {size}
                 </SelectItem>
