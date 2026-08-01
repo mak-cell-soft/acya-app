@@ -33,6 +33,8 @@ import { useBanks } from '@/hooks/use-banks';
 import { useAuthStore } from '@/store/use-auth-store';
 import { paymentService } from '@/services/components/payment.service';
 import { useAppVariables } from '@/hooks/use-app-variables';
+import { PaymentRejectionModal } from '@/components/treasury/payment-rejection-modal';
+import { CustomerRecouvrementDialog } from '@/components/customers/customer-recouvrement-dialog';
 
 export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
   const [tab, setTab] = React.useState<'pending' | 'versed'>('pending');
@@ -56,6 +58,12 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
   const [nextReference, setNextReference] = React.useState<string | null>(null);
   const [selectedTva, setSelectedTva] = React.useState<number>(19);
   const { data: tvas = [] } = useAppVariables('Tva');
+
+  const [isRejectionModalOpen, setIsRejectionModalOpen] = React.useState(false);
+  const [rejectionTarget, setRejectionTarget] = React.useState<any>(null);
+
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [editingPayment, setEditingPayment] = React.useState<any>(null);
 
   const handleTabChange = (val: 'pending' | 'versed') => {
     setTab(val);
@@ -268,9 +276,8 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
                   <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider">{side === 'Supplier' ? 'Fournisseur / Doc' : 'Client / Doc'}</th>
                   <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider">Date / Échéance</th>
                   <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider text-right">Montant</th>
-                  {tab === 'versed' && (
-                    <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider">Bordereau / Statut</th>
-                  )}
+                  <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider">Bordereau / Statut</th>
+                  <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-corp-blue-50/20">
@@ -320,18 +327,69 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
                       </span>
                       <span className="text-[0.65rem] font-bold text-sand-400 ml-1">TND</span>
                     </td>
-                    {tab === 'versed' && (
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col gap-1">
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-1">
+                        {inst.bordereauReference && (
                           <span className="text-xs font-black text-corp-blue-800 bg-corp-blue-100 px-2 py-1 rounded w-fit border border-corp-blue-200">
-                            {inst.bordereauReference || '-'}
+                            {inst.bordereauReference}
                           </span>
+                        )}
+                        {inst.bankSettlementStatus === 'BOUNCED' ? (
+                          <span className="text-xs font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded border border-rose-200 w-fit">
+                            REJETÉ / IMPAYÉ
+                          </span>
+                        ) : (
                           <span className="text-[0.65rem] font-bold uppercase tracking-wider text-sand-400">
                             {inst.bankSettlementStatus || 'PENDING'}
                           </span>
-                        </div>
-                      </td>
-                    )}
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right flex items-center justify-end gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-xs text-corp-blue-600 hover:text-corp-blue-800 hover:bg-corp-blue-50 font-medium px-2 py-1 h-auto"
+                        onClick={() => {
+                          setEditingPayment({
+                            paymentId: inst.paymentId || inst.id,
+                            id: inst.paymentId || inst.id,
+                            amount: inst.amount,
+                            paymentMethod: inst.type,
+                            reference: inst.bordereauReference || '',
+                            instrument: {
+                              instrumentNumber: inst.instrumentNumber,
+                              bank: inst.bank,
+                              owner: inst.customerName,
+                              dueDate: inst.dueDate
+                            }
+                          });
+                          setIsEditModalOpen(true);
+                        }}
+                      >
+                        Modifier
+                      </Button>
+                      {inst.bankSettlementStatus !== 'BOUNCED' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-xs text-rose-600 hover:text-rose-800 hover:bg-rose-50 font-medium px-2 py-1 h-auto"
+                          onClick={() => {
+                            setRejectionTarget({
+                              id: inst.paymentId || inst.id,
+                              reference: inst.bordereauReference || inst.instrumentNumber,
+                              amount: inst.amount,
+                              method: inst.type,
+                              customerName: inst.customerName,
+                              instrumentNumber: inst.instrumentNumber
+                            });
+                            setIsRejectionModalOpen(true);
+                          }}
+                        >
+                          Rejeter / Impayé
+                        </Button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -484,6 +542,33 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <PaymentRejectionModal
+        isOpen={isRejectionModalOpen}
+        onClose={() => {
+          setIsRejectionModalOpen(false);
+          setRejectionTarget(null);
+        }}
+        onSuccess={() => {
+          window.location.reload();
+        }}
+        payment={rejectionTarget}
+      />
+
+      {editingPayment && (
+        <CustomerRecouvrementDialog
+          open={isEditModalOpen}
+          onOpenChange={(val) => {
+            setIsEditModalOpen(val);
+            if (!val) setEditingPayment(null);
+          }}
+          customerId={editingPayment.customerId || 0}
+          paymentToEdit={editingPayment}
+          onSuccess={() => {
+            window.location.reload();
+          }}
+        />
+      )}
     </Card>
   );
 }

@@ -242,27 +242,36 @@ namespace ms.webapp.api.acya.api.Services
             if (payment == null)
                 throw new KeyNotFoundException("Payment not found.");
 
-            if (payment.Amount != updateDto.Amount && payment.DocumentId.HasValue)
-            {
-                var totalPaid = Math.Round(await _paymentRepository.GetTotalByDocumentIdAsync(payment.DocumentId.Value), 3, MidpointRounding.AwayFromZero);
-                var totalPaidExcludingThis = totalPaid - Math.Round((payment.Amount ?? 0), 3, MidpointRounding.AwayFromZero);
-                
-                var document = await _documentRepository.Get(payment.DocumentId.Value);
-                if (document != null) {
-                    var rsValue = (document.WithHoldingTax && document.HoldingTaxes != null) ? Math.Round((decimal)document.HoldingTaxes.TaxValue, 3, MidpointRounding.AwayFromZero) : 0;
-                    var totalCreditNotes = (decimal)document.TotalCreditNotes;
-                    var remainingBalance = Math.Round((decimal)document.TotalCostNetTTCDoc - rsValue - totalPaidExcludingThis - totalCreditNotes, 3, MidpointRounding.AwayFromZero);
-                    var updateAmount = Math.Round(updateDto.Amount ?? 0, 3, MidpointRounding.AwayFromZero);
+            int? oldDocumentId = payment.DocumentId;
+            int? newDocumentId = updateDto.DocumentId;
 
-                    if (updateAmount > remainingBalance)
-                        throw new ArgumentException($"New payment amount ({updateAmount}) exceeds remaining balance ({remainingBalance}).");
+            // Validate amount against target document if specified
+            if (newDocumentId.HasValue && newDocumentId.Value > 0)
+            {
+                var targetDoc = await _documentRepository.Get(newDocumentId.Value);
+                if (targetDoc == null || targetDoc.IsDeleted)
+                    throw new ArgumentException("Selected target document not found.");
+
+                var totalPaidOnTarget = Math.Round(await _paymentRepository.GetTotalByDocumentIdAsync(newDocumentId.Value), 3, MidpointRounding.AwayFromZero);
+                if (oldDocumentId == newDocumentId)
+                {
+                    totalPaidOnTarget -= Math.Round(payment.Amount ?? 0, 3, MidpointRounding.AwayFromZero);
                 }
+
+                var rsValue = (targetDoc.WithHoldingTax && targetDoc.HoldingTaxes != null) ? Math.Round((decimal)targetDoc.HoldingTaxes.TaxValue, 3, MidpointRounding.AwayFromZero) : 0;
+                var totalCreditNotes = (decimal)targetDoc.TotalCreditNotes;
+                var remainingBalance = Math.Round((decimal)targetDoc.TotalCostNetTTCDoc - rsValue - totalPaidOnTarget - totalCreditNotes, 3, MidpointRounding.AwayFromZero);
+                var updateAmount = Math.Round(updateDto.Amount ?? 0, 3, MidpointRounding.AwayFromZero);
+
+                if (updateAmount > remainingBalance + 0.005m)
+                    throw new ArgumentException($"Le montant ({updateAmount}) dépasse le solde restant de la facture ({remainingBalance}).");
             }
 
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
                 {
+                    payment.DocumentId = newDocumentId;
                     payment.PaymentDate = updateDto.PaymentDate;
                     payment.Amount = updateDto.Amount;
                     payment.PaymentMethod = updateDto.PaymentMethod;
@@ -307,12 +316,30 @@ namespace ms.webapp.api.acya.api.Services
 
                     var updatedPayment = await _paymentRepository.Update(payment);
                     
+                    // Sync Caisse Movement for CASH/ESPECE
+                    var caisseMovement = await _context.CaisseMovements.FirstOrDefaultAsync(m => m.PaymentId == payment.Id && !m.IsDeleted);
+                    if ((updateDto.PaymentMethod?.ToUpper() == "CASH" || updateDto.PaymentMethod?.ToUpper() == "ESPECE"))
+                    {
+                        if (caisseMovement != null)
+                        {
+                            caisseMovement.Amount = updateDto.Amount ?? caisseMovement.Amount;
+                            caisseMovement.UpdatedAt = DateTime.UtcNow;
+                            _context.CaisseMovements.Update(caisseMovement);
+                        }
+                    }
+                    else if (caisseMovement != null)
+                    {
+                        caisseMovement.IsDeleted = true;
+                        caisseMovement.UpdatedAt = DateTime.UtcNow;
+                        _context.CaisseMovements.Update(caisseMovement);
+                    }
+
                     // Sync Ledger Entry
-                    Document? document = null;
-                    if (payment.DocumentId.HasValue)
-                        document = await _documentRepository.Get(payment.DocumentId.Value);
+                    Document? targetDocument = null;
+                    if (newDocumentId.HasValue && newDocumentId.Value > 0)
+                        targetDocument = await _documentRepository.Get(newDocumentId.Value);
                         
-                    bool isSupplier = IsSupplierDocument(document?.Type);
+                    bool isSupplier = IsSupplierDocument(targetDocument?.Type);
 
                     await _accountService.DeleteLedgerEntryAsync(payment.Id, "Payment");
                     await _accountService.AddLedgerEntryAsync(
@@ -320,21 +347,26 @@ namespace ms.webapp.api.acya.api.Services
                         "Payment", 
                         updateDto.Amount ?? 0, 
                         payment.Id, 
-                        $"Paiement ({payment.PaymentMethod}) - document {(document?.DocNumber ?? "Général")}",
+                        $"Paiement ({payment.PaymentMethod}) - document {(targetDocument?.DocNumber ?? "Général")}",
                         isSupplier,
                         payment.PaymentDate);
+
+                    // Sync billing status for old document if changed
+                    if (oldDocumentId.HasValue && oldDocumentId != newDocumentId)
+                    {
+                        await RecalculateDocumentBillingStatusAsync(oldDocumentId.Value);
+                    }
+
+                    // Sync billing status for new document if set
+                    if (newDocumentId.HasValue)
+                    {
+                        await RecalculateDocumentBillingStatusAsync(newDocumentId.Value);
+                    }
 
                     await transaction.CommitAsync();
 
                     // Update persistent balance
-                    if (document != null)
-                    {
-                        await UpdateBalanceByDocumentTypeAsync(document.Type?.ToString(), payment.CustomerId, "payment", DateTime.UtcNow);
-                    }
-                    else
-                    {
-                        await _balanceService.UpdateCustomerBalanceAsync(payment.CustomerId, "payment", DateTime.UtcNow);
-                    }
+                    await _balanceService.UpdateCustomerBalanceAsync(payment.CustomerId, "payment", DateTime.UtcNow);
 
                     return MapToDto(updatedPayment);
                 }
@@ -343,6 +375,32 @@ namespace ms.webapp.api.acya.api.Services
                     await transaction.RollbackAsync();
                     throw;
                 }
+            }
+        }
+
+        private async Task RecalculateDocumentBillingStatusAsync(int docId)
+        {
+            var document = await _documentRepository.GetWithRelationshipsAsync(docId);
+            if (document != null && !document.IsDeleted)
+            {
+                var totalPaid = Math.Round(await _paymentRepository.GetTotalByDocumentIdAsync(docId), 3, MidpointRounding.AwayFromZero);
+                decimal rsValue = (document.WithHoldingTax && document.HoldingTaxes != null) ? Math.Round((decimal)document.HoldingTaxes.TaxValue, 3, MidpointRounding.AwayFromZero) : 0;
+                var totalCreditNotes = (decimal)document.TotalCreditNotes;
+                var remainingBalance = Math.Round((decimal)document.TotalCostNetTTCDoc - rsValue - totalPaid - totalCreditNotes, 3, MidpointRounding.AwayFromZero);
+
+                if (totalPaid <= 0.001m)
+                {
+                    document.BillingStatus = BillingStatus.NotBilled;
+                }
+                else if (totalPaid >= (decimal)document.TotalCostNetTTCDoc - rsValue - totalCreditNotes - 0.005m)
+                {
+                    document.BillingStatus = BillingStatus.Billed;
+                }
+                else
+                {
+                    document.BillingStatus = BillingStatus.PartiallyBilled;
+                }
+                await _documentRepository.Update(document);
             }
         }
 
@@ -457,7 +515,7 @@ namespace ms.webapp.api.acya.api.Services
                 DocumentId = payment.DocumentId,
                 DocumentNumber = payment.Document?.DocNumber,
                 CustomerId = payment.CustomerId,
-                CustomerName = payment.Customer?.Fullname,
+                CustomerName = !string.IsNullOrEmpty(payment.Customer?.Name) ? payment.Customer.Name : (payment.Customer?.Fullname ?? "Inconnu"),
                 PaymentDate = payment.PaymentDate ?? DateTime.MinValue,
                 Amount = payment.Amount ?? 0,
                 PaymentMethod = payment.PaymentMethod,
@@ -1139,6 +1197,134 @@ namespace ms.webapp.api.acya.api.Services
             }
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> RejectPaymentAsync(int paymentId, RejectPaymentDto dto, int updatedByUserId)
+        {
+            var payment = await _context.Payments
+                .Include(p => p.Customer)
+                .Include(p => p.Document)
+                .Include(p => p.PaymentInstrument)
+                .FirstOrDefaultAsync(p => p.Id == paymentId && !p.IsDeleted);
+
+            if (payment == null) return false;
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                DateTime rejectionDate = dto.RejectionDate != default ? dto.RejectionDate : DateTime.UtcNow;
+                decimal amount = payment.Amount ?? 0;
+                string refOrNum = payment.PaymentInstrument?.InstrumentNumber ?? payment.Reference ?? payment.Id.ToString();
+                string method = payment.PaymentMethod ?? "PAIEMENT";
+
+                // 1. Update PaymentInstrument status
+                if (payment.PaymentInstrument != null)
+                {
+                    payment.PaymentInstrument.BankSettlementStatus = "BOUNCED";
+                    payment.PaymentInstrument.IsPaidAtBank = false;
+                    _context.PaymentInstruments.Update(payment.PaymentInstrument);
+                }
+
+                // 2. Add Debit Ledger Entry (Reversal) for Customer
+                if (payment.CustomerId > 0 && amount > 0)
+                {
+                    bool isSupplier = payment.Document?.Type == DocumentTypes.supplierInvoice || payment.Document?.Type == DocumentTypes.supplierReceipt;
+                    string docInfo = payment.Document != null ? $" - doc {payment.Document.DocNumber}" : "";
+                    string reasonText = !string.IsNullOrEmpty(dto.Reason) ? $" ({dto.Reason})" : "";
+
+                    await _accountService.AddLedgerEntryAsync(
+                        payment.CustomerId,
+                        "PAYMENT_REJECTED",
+                        amount,
+                        payment.Id,
+                        $"Rejet / Impayé {method} N° {refOrNum}{docInfo}{reasonText}",
+                        !isSupplier,
+                        rejectionDate);
+                }
+
+                // 3. Update attached Document status if exists
+                if (payment.Document != null)
+                {
+                    var otherValidPaymentsSum = await _context.Payments
+                        .Include(p => p.PaymentInstrument)
+                        .Where(p => p.DocumentId == payment.Document.Id 
+                                 && p.Id != payment.Id 
+                                 && !p.IsDeleted 
+                                 && (p.PaymentInstrument == null || p.PaymentInstrument.BankSettlementStatus != "BOUNCED"))
+                        .SumAsync(p => p.Amount ?? 0);
+
+                    double netPayable = payment.Document.TotalCostNetTTCDoc;
+                    if (payment.Document.WithHoldingTax && payment.Document.HoldingTaxes != null)
+                    {
+                        netPayable -= payment.Document.HoldingTaxes.TaxValue;
+                    }
+                    netPayable -= payment.Document.TotalCreditNotes;
+
+                    if ((double)otherValidPaymentsSum <= 0.001)
+                    {
+                        payment.Document.BillingStatus = BillingStatus.NotBilled;
+                    }
+                    else if ((double)otherValidPaymentsSum >= Math.Round(netPayable, 3, MidpointRounding.AwayFromZero) - 0.005)
+                    {
+                        payment.Document.BillingStatus = BillingStatus.Billed;
+                    }
+                    else
+                    {
+                        payment.Document.BillingStatus = BillingStatus.PartiallyBilled;
+                    }
+
+                    _context.Documents.Update(payment.Document);
+                }
+
+                // 4. Reverse Bank Transaction if instrument was deposited (VERSED/CLEARED)
+                if (payment.PaymentInstrument != null)
+                {
+                    var bankDeposit = await _context.BankDeposits
+                        .Include(bd => bd.Bank)
+                        .FirstOrDefaultAsync(bd => bd.PaymentInstrumentId == payment.PaymentInstrument.Id && !bd.IsDeleted);
+
+                    if (bankDeposit != null && bankDeposit.BankId > 0)
+                    {
+                        var bankReversalTx = new ms.webapp.api.acya.core.Entities.BankTransaction
+                        {
+                            BankId = bankDeposit.BankId,
+                            TransactionDate = rejectionDate,
+                            Description = $"Annulation Rejet / Impayé {method} N° {refOrNum}",
+                            Debit = 0,
+                            Credit = amount,
+                            Reference = payment.Reference,
+                            CreationDate = DateTime.UtcNow,
+                            UpdateDate = DateTime.UtcNow,
+                            IsDeleted = false,
+                            IsReconciled = false
+                        };
+                        await _context.BankTransactions.AddAsync(bankReversalTx);
+                    }
+                }
+
+                payment.UpdatedAt = DateTime.UtcNow;
+                payment.UpdatedById = updatedByUserId;
+                _context.Payments.Update(payment);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                // 5. Sync customer persistent balance
+                if (payment.CustomerId > 0)
+                {
+                    if (payment.Customer?.Type == CounterPartType.Customer)
+                        await _balanceService.UpdateCustomerBalanceAsync(payment.CustomerId, "REJET_PAIEMENT", DateTime.UtcNow);
+                    else
+                        await _balanceService.UpdateSupplierBalanceAsync(payment.CustomerId, "REJET_PAIEMENT", DateTime.UtcNow);
+                }
+
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
     }
 }

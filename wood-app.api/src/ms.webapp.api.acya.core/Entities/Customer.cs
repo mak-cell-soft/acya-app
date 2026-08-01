@@ -11,7 +11,23 @@ namespace ms.webapp.api.acya.core.Entities
     public CounterPartType Type { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
-    public string? Fullname => Helpers.CapitalizeFirstLetter(FirstName!) + " " + LastName!.ToUpper();
+    public string? Fullname
+    {
+      get
+      {
+        var parts = new List<string>();
+        if (!string.IsNullOrEmpty(FirstName))
+        {
+          parts.Add(Helpers.CapitalizeFirstLetter(FirstName));
+        }
+        if (!string.IsNullOrEmpty(LastName))
+        {
+          parts.Add(LastName.ToUpper());
+        }
+
+        return parts.Count > 0 ? string.Join(" ", parts) : "Inconnu";
+      }
+    }
     public string? Cin { get; set; }
     public string? Email { get; set; }
     public string? MFCode { get; set; }

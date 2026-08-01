@@ -43,5 +43,6 @@ namespace ms.webapp.api.acya.api.Interfaces
         Task ClearTraiteAsync(int instrumentId);
         Task<string> DisburseSupplierInstrumentsAsync(DisburseSupplierInstrumentsDto dto);
         Task DeliverSupplierInstrumentsAsync(DeliverSupplierInstrumentsDto dto);
+        Task<bool> RejectPaymentAsync(int paymentId, RejectPaymentDto dto, int updatedByUserId);
     }
 }

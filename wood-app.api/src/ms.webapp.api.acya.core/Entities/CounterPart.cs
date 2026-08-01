@@ -27,7 +27,28 @@ namespace ms.webapp.api.acya.core.Entities
      */
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
-    public string? Fullname => Helpers.CapitalizeFirstLetter(FirstName!) + " " + LastName!.ToUpper();
+    public string? Fullname
+    {
+      get
+      {
+        if (!string.IsNullOrEmpty(Name))
+        {
+          return Name;
+        }
+
+        var parts = new List<string>();
+        if (!string.IsNullOrEmpty(FirstName))
+        {
+          parts.Add(Helpers.CapitalizeFirstLetter(FirstName));
+        }
+        if (!string.IsNullOrEmpty(LastName))
+        {
+          parts.Add(LastName.ToUpper());
+        }
+
+        return parts.Count > 0 ? string.Join(" ", parts) : "Inconnu";
+      }
+    }
     /**
      * IdentityCardNumber : Numéro de la carte d'identité Nationale : Cin
      */

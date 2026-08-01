@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCustomerRecouvrement, useCreateRecouvrement } from '@/hooks/use-recouvrement';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -21,9 +21,11 @@ interface CustomerRecouvrementDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   customerId: number;
+  paymentToEdit?: any;
+  onSuccess?: () => void;
 }
 
-export function CustomerRecouvrementDialog({ open, onOpenChange, customerId }: CustomerRecouvrementDialogProps) {
+export function CustomerRecouvrementDialog({ open, onOpenChange, customerId, paymentToEdit, onSuccess }: CustomerRecouvrementDialogProps) {
   const { data: recouvrementData, isLoading } = useCustomerRecouvrement(customerId, open);
   const createMutation = useCreateRecouvrement();
 
@@ -35,12 +37,29 @@ export function CustomerRecouvrementDialog({ open, onOpenChange, customerId }: C
   const [reference, setReference] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [loadingRef, setLoadingRef] = useState<boolean>(false);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
 
   // Instrument Details (for Cheque / Traite)
   const [instrumentNumber, setInstrumentNumber] = useState('');
   const [bank, setBank] = useState('');
   const [owner, setOwner] = useState('');
   const [dueDate, setDueDate] = useState<string>('');
+
+  React.useEffect(() => {
+    if (paymentToEdit && open) {
+      setPaymentType(paymentToEdit.documentId ? 'document' : 'general');
+      setSelectedDocumentId(paymentToEdit.documentId ? paymentToEdit.documentId.toString() : '');
+      setAmount(paymentToEdit.amount !== undefined ? paymentToEdit.amount.toString() : '');
+      setPaymentDate(paymentToEdit.paymentDate ? format(new Date(paymentToEdit.paymentDate), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'));
+      setPaymentMethod(paymentToEdit.paymentMethod || 'ESPECE');
+      setReference(paymentToEdit.reference || '');
+      setNotes(paymentToEdit.notes || '');
+      setInstrumentNumber(paymentToEdit.instrument?.instrumentNumber || paymentToEdit.instrumentNumber || '');
+      setBank(paymentToEdit.instrument?.bank || paymentToEdit.bank || '');
+      setOwner(paymentToEdit.instrument?.owner || paymentToEdit.owner || '');
+      setDueDate(paymentToEdit.instrument?.dueDate ? format(new Date(paymentToEdit.instrument.dueDate), 'yyyy-MM-dd') : '');
+    }
+  }, [paymentToEdit, open]);
 
   const handleDocumentSelect = (docId: string | null) => {
     if (!docId) {
@@ -97,6 +116,35 @@ export function CustomerRecouvrementDialog({ open, onOpenChange, customerId }: C
       return;
     }
 
+    if (paymentToEdit) {
+      setIsUpdating(true);
+      paymentService.update(paymentToEdit.paymentId || paymentToEdit.id, {
+        paymentId: paymentToEdit.paymentId || paymentToEdit.id,
+        amount: Number(amount),
+        paymentDate: new Date(paymentDate).toISOString(),
+        paymentMethod,
+        reference,
+        notes,
+        documentId: paymentType === 'document' && selectedDocumentId !== 'none' ? Number(selectedDocumentId) : undefined,
+        instrumentDetails: (paymentMethod === 'CHEQUE' || paymentMethod === 'TRAITE') ? {
+          instrumentNumber,
+          bank,
+          owner,
+          dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
+        } : undefined
+      }).then(() => {
+        toast.success('Paiement modifié avec succès');
+        resetForm();
+        onOpenChange(false);
+        if (onSuccess) onSuccess();
+      }).catch((err: any) => {
+        toast.error(err?.response?.data?.message || err?.response?.data?.error || 'Erreur lors de la modification');
+      }).finally(() => {
+        setIsUpdating(false);
+      });
+      return;
+    }
+
     createMutation.mutate(
       {
         customerId,
@@ -118,6 +166,7 @@ export function CustomerRecouvrementDialog({ open, onOpenChange, customerId }: C
           toast.success('Paiement enregistré avec succès');
           resetForm();
           onOpenChange(false);
+          if (onSuccess) onSuccess();
         },
         onError: (err: any) => {
           toast.error(err?.response?.data?.message || 'Erreur lors de l\'enregistrement');

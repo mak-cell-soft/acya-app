@@ -542,5 +542,26 @@ namespace ms.webapp.api.acya.api.Controllers
                 return StatusCode(500, new { error = "An internal error occurred." });
             }
         }
+
+        [HttpPost("{id}/reject")]
+        public async Task<IActionResult> RejectPayment(int id, [FromBody] RejectPaymentDto dto)
+        {
+            try
+            {
+                int userId = GetCurrentUserId();
+                bool result = await _paymentService.RejectPaymentAsync(id, dto, userId);
+                if (!result) return NotFound(new { error = "Payment not found." });
+                return Ok(new { success = true, message = "Paiement marqué comme impayé/rejeté avec succès." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error rejecting payment {PaymentId}", id);
+                return StatusCode(500, new { error = "Une erreur est survenue lors du rejet : " + ex.Message });
+            }
+        }
     }
 }

@@ -17,9 +17,17 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public PaymentInstrumentDto? InstrumentDetails { get; set; }
     }
 
+    public class RejectPaymentDto
+    {
+        public DateTime RejectionDate { get; set; } = DateTime.UtcNow;
+        public string? Reason { get; set; }
+        public decimal RejectionFee { get; set; } = 0;
+    }
+
     public class UpdatePaymentDto
     {
         public int PaymentId { get; set; }
+        public int? DocumentId { get; set; }
         public DateTime? PaymentDate { get; set; }
         public decimal? Amount { get; set; }
         public string? Currency { get; set; }

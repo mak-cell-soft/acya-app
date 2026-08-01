@@ -31,6 +31,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { PrintVariantDialog } from "@/components/print/print-trigger-button";
+import { CustomerRecouvrementDialog } from "@/components/customers/customer-recouvrement-dialog";
 
 interface CustomerAccountDialogProps {
   isOpen: boolean;
@@ -51,6 +52,8 @@ export function CustomerAccountDialog({
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [currentPage, setCurrentPage] = useState(1);
   const [isPrintOpen, setIsPrintOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingPayment, setEditingPayment] = useState<any>(null);
   const pageSize = 8;
 
   const { data: statement, isLoading, isFetching } = useCustomerStatement(
@@ -201,7 +204,6 @@ export function CustomerAccountDialog({
             </div>
           </div>
 
-          {/* Ledger Table */}
           <div className="flex-1 bg-white rounded-2xl border border-slate-200/50 shadow-sm overflow-hidden flex flex-col">
             <div className="flex-1 overflow-y-auto scrollbar-hide">
               <table className="w-full text-left border-collapse">
@@ -213,12 +215,13 @@ export function CustomerAccountDialog({
                     <th className="p-5 text-[0.65rem] font-bold text-rose-600 uppercase tracking-widest text-right">Débit</th>
                     <th className="p-5 text-[0.65rem] font-bold text-emerald-600 uppercase tracking-widest text-right">Crédit</th>
                     <th className="p-5 text-[0.65rem] font-bold text-slate-900 uppercase tracking-widest text-right">Solde</th>
+                    <th className="p-5 text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-corp-blue-50">
                   {isLoading || isFetching ? (
                     <tr>
-                      <td colSpan={6} className="p-20 text-center">
+                      <td colSpan={7} className="p-20 text-center">
                         <div className="flex flex-col items-center gap-3">
                           <div className="w-8 h-8 border-4 border-slate-200 border-t-corp-blue-600 rounded-full animate-spin" />
                           <p className="text-slate-500 font-bold text-sm">Chargement du grand livre...</p>
@@ -271,11 +274,33 @@ export function CustomerAccountDialog({
                             {tx.runningBalance.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}
                           </span>
                         </td>
+                        <td className="p-5 text-right">
+                          {(tx.type === 'Payment' || tx.credit > 0) && tx.relatedId && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-xs text-corp-blue-600 hover:text-corp-blue-800 hover:bg-corp-blue-50 font-medium px-2 py-1 h-auto"
+                              onClick={() => {
+                                setEditingPayment({
+                                  paymentId: tx.relatedId,
+                                  id: tx.relatedId,
+                                  customerId: customer.id,
+                                  amount: tx.credit,
+                                  paymentDate: tx.transactionDate,
+                                  notes: tx.description
+                                });
+                                setIsEditModalOpen(true);
+                              }}
+                            >
+                              Modifier
+                            </Button>
+                          )}
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="p-20 text-center">
+                      <td colSpan={7} className="p-20 text-center">
                         <div className="flex flex-col items-center gap-3 opacity-20">
                           <FileText className="w-12 h-12" />
                           <p className="text-slate-500 font-bold">Aucune transaction trouvée sur cette période</p>
@@ -329,6 +354,21 @@ export function CustomerAccountDialog({
         periodEnd={endDate}
         statementType="customer"
       />
+
+      {editingPayment && (
+        <CustomerRecouvrementDialog
+          open={isEditModalOpen}
+          onOpenChange={(val) => {
+            setIsEditModalOpen(val);
+            if (!val) setEditingPayment(null);
+          }}
+          customerId={customer.id}
+          paymentToEdit={editingPayment}
+          onSuccess={() => {
+            window.location.reload();
+          }}
+        />
+      )}
     </Dialog>
   );
 }

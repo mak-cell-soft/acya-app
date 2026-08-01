@@ -146,5 +146,10 @@ export const paymentService = {
   deliverSupplierInstruments: async (data: { instrumentIds: number[]; deliveryDate: string }) => {
     const response = await api.post('/Payments/instruments/deliver', data);
     return response.data;
+  },
+
+  rejectPayment: async (paymentId: number, data: { rejectionDate?: string; reason?: string; rejectionFee?: number }) => {
+    const response = await api.post(`/Payments/${paymentId}/reject`, data);
+    return response.data;
   }
 };

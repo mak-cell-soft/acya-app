@@ -20,6 +20,7 @@ import { caisseService } from '@/services/treasury/caisse.service';
 
 import { InstrumentsTable } from '@/components/dashboard/instruments-table';
 import { PaymentDeepSearchCard } from '@/components/dashboard/payment-deep-search-card';
+import { CustomerRecouvrementDialog } from '@/components/customers/customer-recouvrement-dialog';
 
 // UI components from shadcn library
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -117,6 +118,9 @@ export function DashboardContent() {
   // Pagination states for payments table
   const [paymentsPage, setPaymentsPage] = React.useState(1);
   const [paymentsPageSize, setPaymentsPageSize] = React.useState(5);
+
+  const [isEditPaymentModalOpen, setIsEditPaymentModalOpen] = React.useState(false);
+  const [editingDashboardPayment, setEditingDashboardPayment] = React.useState<any>(null);
 
   const [selectedStockSubCatId, setSelectedStockSubCatId] = React.useState<number | undefined>(undefined);
 
@@ -807,6 +811,7 @@ export function DashboardContent() {
                         <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider">Montant</th>
                         <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider">Mode</th>
                         <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider">Documents</th>
+                        <th className="px-6 py-4 text-xs font-bold text-sand-400 uppercase tracking-wider text-right">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-corp-blue-50/20">
@@ -852,6 +857,36 @@ export function DashboardContent() {
                                   </span>
                                 )}
                               </div>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-xs text-corp-blue-600 hover:text-corp-blue-800 hover:bg-corp-blue-50 font-medium px-2 py-1 h-auto"
+                                onClick={() => {
+                                  const item = p as any;
+                                  setEditingDashboardPayment({
+                                    paymentId: item.paymentId,
+                                    id: item.paymentId,
+                                    customerId: item.customerId,
+                                    amount: item.amount,
+                                    paymentDate: item.paymentDate,
+                                    paymentMethod: item.paymentMethod,
+                                    reference: item.reference,
+                                    notes: item.notes,
+                                    documentId: item.documentId,
+                                    instrument: item.paymentInstrument ? {
+                                      instrumentNumber: item.paymentInstrument.instrumentNumber,
+                                      bank: item.paymentInstrument.bank,
+                                      owner: item.paymentInstrument.owner,
+                                      dueDate: item.paymentInstrument.dueDate
+                                    } : undefined
+                                  });
+                                  setIsEditPaymentModalOpen(true);
+                                }}
+                              >
+                                Modifier
+                              </Button>
                             </td>
                           </tr>
                         );
@@ -1152,6 +1187,20 @@ export function DashboardContent() {
         </DialogContent>
       </Dialog>
 
+      {editingDashboardPayment && (
+        <CustomerRecouvrementDialog
+          open={isEditPaymentModalOpen}
+          onOpenChange={(val) => {
+            setIsEditPaymentModalOpen(val);
+            if (!val) setEditingDashboardPayment(null);
+          }}
+          customerId={editingDashboardPayment.customerId || 0}
+          paymentToEdit={editingDashboardPayment}
+          onSuccess={() => {
+            window.location.reload();
+          }}
+        />
+      )}
     </div>
   );
 }
