@@ -46,5 +46,6 @@ namespace ms.webapp.api.acya.core.Entities
     public string? Language { get; set; }
     public string? Currency { get; set; }
     public bool CustomDomainConfigured { get; set; }
+    public string? RneDocumentUrl { get; set; }
   }
 }

@@ -82,6 +82,9 @@ namespace ms.admin.api.acya.infrastructure.Configurations
                 .HasColumnName("PlanPrice")
                 .HasColumnType("numeric(18,2)")
                 .HasDefaultValue(0.00m);
+
+            builder.Property(x => x.RneDocumentUrl)
+                .HasColumnName("RneDocumentUrl");
         }
     }
 }

@@ -40,6 +40,7 @@ const registrationSchema = z.object({
   commercialRegister: z.string().optional(),
   capital: z.string().optional(),
   siegeAddress: z.string().min(1, "L'adresse du siège est requise"),
+  rneDocumentUrl: z.string().min(1, "Le document PDF RNE est obligatoire"),
 
   // Admin & Legal
   surnameResponsable: z.string().min(1, "Le nom est requis"),
@@ -104,6 +105,8 @@ export default function EnterpriseRegistrationPage() {
   const [newSiteIsForSale, setNewSiteIsForSale] = useState(false);
   const [isSiteDialogOpen, setIsSiteDialogOpen] = useState(false);
   const [isTaxModalOpen, setIsTaxModalOpen] = useState(false);
+  const [rneFileName, setRneFileName] = useState('');
+  const [rneFileSize, setRneFileSize] = useState('');
 
   const { register, handleSubmit, control, formState: { errors }, setValue, watch } = useForm<RegistrationFormValues>({
     resolver: zodResolver(registrationSchema),
@@ -113,7 +116,8 @@ export default function EnterpriseRegistrationPage() {
       isWoodSelling: false,
       isManagingConstructions: false,
       selectedRole: "20",
-      devise: "TND"
+      devise: "TND",
+      rneDocumentUrl: ""
     }
   });
 
@@ -121,6 +125,37 @@ export default function EnterpriseRegistrationPage() {
     control,
     name: "sites"
   });
+
+  const handleRneFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      toast.error('Le document RNE doit obligatoirement être au format PDF.');
+      return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error('La taille du fichier PDF ne doit pas dépasser 15 Mo.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      setValue('rneDocumentUrl', dataUrl, { shouldValidate: true });
+      setRneFileName(file.name);
+      setRneFileSize((file.size / 1024 / 1024).toFixed(2) + ' Mo');
+      toast.success('Document PDF RNE téléchargé avec succès.');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveRneFile = () => {
+    setValue('rneDocumentUrl', '', { shouldValidate: true });
+    setRneFileName('');
+    setRneFileSize('');
+  };
 
   const handleAddSite = () => {
     if (!newSiteAddress || !newSiteGov) {
@@ -153,6 +188,7 @@ export default function EnterpriseRegistrationPage() {
         commercialregister: data.commercialRegister,
         capital: data.capital,
         siegeAddress: data.siegeAddress,
+        rneDocumentUrl: data.rneDocumentUrl,
         nameResponsable: data.nameResponsable,
         surnameResponsable: data.surnameResponsable,
         positionResponsable: data.positionResponsable,
@@ -301,7 +337,7 @@ export default function EnterpriseRegistrationPage() {
             const errorKeys = Object.keys(errs);
             if (errorKeys.length > 0) {
               const firstErrorKey = errorKeys[0];
-              if (['name', 'email', 'phone', 'matriculeFiscal', 'devise', 'siegeAddress'].includes(firstErrorKey)) {
+              if (['name', 'email', 'phone', 'matriculeFiscal', 'devise', 'siegeAddress', 'rneDocumentUrl'].includes(firstErrorKey)) {
                 setActiveTab('entreprise');
               } else if (['surnameResponsable', 'nameResponsable', 'positionResponsable', 'appUsername', 'appUserSurname', 'emailAppUser', 'passwordAppUser', 'confirmPasswordAppUser', 'selectedRole'].includes(firstErrorKey)) {
                 setActiveTab('admin');
@@ -429,6 +465,69 @@ export default function EnterpriseRegistrationPage() {
                         <Label className=" flex items-center gap-2"><MapPin size={14}/> Adresse du Siège *</Label>
                         <Input {...register("siegeAddress")} placeholder="Adresse complète" className="h-11 bg-slate-50/50" />
                         {errors.siegeAddress && <p className="text-red-500 text-xs font-medium mt-1">{errors.siegeAddress.message}</p>}
+                      </div>
+
+                      {/* RNE PDF Document Upload (Mandatory) */}
+                      <div className="space-y-2 pt-3 border-t border-slate-100">
+                        <div className="flex items-center justify-between">
+                          <Label className="flex items-center gap-2 font-bold text-slate-800">
+                            <span className="inline-flex items-center justify-center bg-slate-100 p-1.5 rounded-lg border border-slate-200 shadow-2xs">
+                              <img src="/images/rne-logo.png" alt="Logo RNE" className="h-5 object-contain" />
+                            </span>
+                            Document PDF RNE (Registre National des Entreprises) *
+                          </Label>
+                          <span className="text-xs font-semibold text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-100">
+                            Obligatoire
+                          </span>
+                        </div>
+                        
+                        {!watch("rneDocumentUrl") ? (
+                          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer bg-slate-50/60 hover:bg-corp-blue-50/30 hover:border-corp-blue-400 transition-all group relative overflow-hidden">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
+                              <div className="w-10 h-10 mb-2 rounded-full bg-white shadow-xs border border-slate-200 flex items-center justify-center text-corp-blue-600 group-hover:scale-110 transition-transform">
+                                <FileText className="w-5 h-5" />
+                              </div>
+                              <p className="mb-1 text-sm font-semibold text-slate-700">
+                                <span className="text-corp-blue-600 underline">Cliquez pour téléverser</span> le PDF RNE
+                              </p>
+                              <p className="text-xs text-slate-400">Format PDF uniquement (max. 15 Mo)</p>
+                            </div>
+                            <input 
+                              type="file" 
+                              accept=".pdf,application/pdf" 
+                              className="hidden" 
+                              onChange={handleRneFileChange}
+                            />
+                          </label>
+                        ) : (
+                          <div className="flex items-center justify-between p-4 bg-emerald-50/60 border border-emerald-200 rounded-xl shadow-2xs">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-white border border-emerald-200 flex items-center justify-center shrink-0 p-1">
+                                <img src="/images/rne-logo.png" alt="RNE Logo" className="h-7 object-contain" />
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-bold text-slate-800 truncate max-w-xs sm:max-w-md">{rneFileName || "Document_RNE.pdf"}</p>
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                </div>
+                                <p className="text-xs text-slate-500">{rneFileSize ? `${rneFileSize} • PDF prêt` : "Document PDF prêt à être envoyé"}</p>
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg h-9 w-9 p-0 cursor-pointer"
+                              onClick={handleRemoveRneFile}
+                              title="Supprimer / Remplacer le fichier"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        )}
+                        {errors.rneDocumentUrl && (
+                          <p className="text-red-500 text-xs font-semibold mt-1">{errors.rneDocumentUrl.message}</p>
+                        )}
                       </div>
                     </div>
                   </div>

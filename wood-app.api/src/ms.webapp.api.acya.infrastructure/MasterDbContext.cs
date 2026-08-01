@@ -44,6 +44,7 @@ namespace ms.webapp.api.acya.infrastructure
         entity.Property(e => e.Language).HasColumnName("Language");
         entity.Property(e => e.Currency).HasColumnName("Currency");
         entity.Property(e => e.CustomDomainConfigured).HasColumnName("CustomDomainConfigured");
+        entity.Property(e => e.RneDocumentUrl).HasColumnName("RneDocumentUrl");
 
         entity.HasIndex(e => e.Slug).IsUnique();
         entity.HasIndex(e => e.SchemaName).IsUnique();

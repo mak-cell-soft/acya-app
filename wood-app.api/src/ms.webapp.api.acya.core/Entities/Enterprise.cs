@@ -31,6 +31,7 @@ namespace ms.webapp.api.acya.core.Entities
     public string? CustomDomain { get; set; }
     public string? Language { get; set; }
     public string? Currency { get; set; }
+    public string? RneDocumentUrl { get; set; }
 
     public HashSet<SalesSite>? Sites { get; set; } = new HashSet<SalesSite>();
 
@@ -84,6 +85,7 @@ namespace ms.webapp.api.acya.core.Entities
       CustomDomain = dto.customDomain;
       Language = dto.language;
       Currency = dto.currency;
+      RneDocumentUrl = dto.rneDocumentUrl;
 
       if (dto.sites != null)
       {

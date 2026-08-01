@@ -163,6 +163,7 @@ namespace ms.webapp.api.acya.api.Controllers
         SecondaryColor = dto.secondaryColor,
         Language = dto.language ?? "fr",
         Currency = dto.currency ?? "EUR",
+        RneDocumentUrl = dto.rneDocumentUrl,
         Notes = System.Text.Json.JsonSerializer.Serialize(dto)
       };
 

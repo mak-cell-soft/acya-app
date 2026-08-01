@@ -34,6 +34,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? customDomain { get; set; }
     public string? language { get; set; }
     public string? currency { get; set; }
+    public string? rneDocumentUrl { get; set; }
     public SiteDto[]? sites { get; set; }
     public AppUserEnterpriseDto? user { get; set; }
 
@@ -76,6 +77,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       customDomain = entity.CustomDomain;
       language = entity.Language;
       currency = entity.Currency;
+      rneDocumentUrl = entity.RneDocumentUrl;
       if (entity.Sites != null)
       {
         sites = entity.Sites.Select(site => new SiteDto(site)).ToArray();

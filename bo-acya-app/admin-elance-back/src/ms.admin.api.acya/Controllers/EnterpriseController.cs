@@ -52,6 +52,7 @@ namespace ms.admin.api.acya.Controllers
         public string AdminEmail { get; set; } = string.Empty;
         public string AdminPassword { get; set; } = string.Empty;
         public decimal? PlanPrice { get; set; }
+        public string? RneDocumentUrl { get; set; }
     }
 
     public class UpdateEnterpriseRequest
@@ -72,6 +73,7 @@ namespace ms.admin.api.acya.Controllers
         public bool IsSalingWood { get; set; }
         public bool IsManagingConstructions { get; set; }
         public decimal? PlanPrice { get; set; }
+        public string? RneDocumentUrl { get; set; }
     }
 
     public class TenantAppUserDto

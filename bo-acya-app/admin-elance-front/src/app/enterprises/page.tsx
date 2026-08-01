@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, Key, ToggleLeft, Trash2, CheckCircle2, Loader2, ExternalLink, Edit, Users, Lock, ChevronLeft, ChevronRight, FileText } from "lucide-react";
+import { Shield, Key, ToggleLeft, Trash2, CheckCircle2, Loader2, ExternalLink, Edit, Users, Lock, ChevronLeft, ChevronRight, FileText, Eye } from "lucide-react";
 
 interface TenantAppUser {
   id: number;
@@ -40,6 +40,7 @@ interface Enterprise {
   isSalingWood?: boolean;
   isManagingConstructions?: boolean;
   planPrice?: number;
+  rneDocumentUrl?: string | null;
 }
 
 export default function EnterprisesPage() {
@@ -112,6 +113,7 @@ export default function EnterprisesPage() {
   const [positionResponsable, setPositionResponsable] = useState("");
   const [adminSurname, setAdminSurname] = useState("");
   const [sites, setSites] = useState<any[]>([]);
+  const [rneDocumentUrl, setRneDocumentUrl] = useState("");
 
   // Admin Credentials
   const [adminUsername, setAdminUsername] = useState("admin");
@@ -154,6 +156,7 @@ export default function EnterprisesPage() {
     setPositionResponsable("");
     setAdminSurname("");
     setSites([]);
+    setRneDocumentUrl("");
   };
 
   const getHeaders = () => {
@@ -307,6 +310,16 @@ export default function EnterprisesPage() {
     setCurrency(ent.currency || "TND");
     setIsSalingWood(ent.isSalingWood || false);
     setIsManagingConstructions(ent.isManagingConstructions || false);
+    
+    let parsedRne = ent.rneDocumentUrl || "";
+    if (!parsedRne && ent.notes) {
+      try {
+        const payload = JSON.parse(ent.notes);
+        parsedRne = payload.rneDocumentUrl || payload.rneDocument || "";
+      } catch (e) {}
+    }
+    setRneDocumentUrl(parsedRne);
+
     setShowCreateModal(true);
   };
 
@@ -403,6 +416,8 @@ export default function EnterprisesPage() {
     setLanguage(ent.language || "fr");
     setCurrency(ent.currency || "TND");
 
+    let initialRne = ent.rneDocumentUrl || "";
+
     // Pre-fill fields from notes JSON blob
     if (ent.notes) {
       try {
@@ -422,6 +437,9 @@ export default function EnterprisesPage() {
         setSurnameResponsable(payload.surnameResponsable || "");
         setPositionResponsable(payload.positionResponsable || "");
         setSites(payload.sites || []);
+        if (!initialRne) {
+          initialRne = payload.rneDocumentUrl || payload.rneDocument || "";
+        }
 
         if (payload.user) {
           setAdminUsername(payload.user.name || "admin");
@@ -475,6 +493,7 @@ export default function EnterprisesPage() {
       setAdminPassword("");
     }
 
+    setRneDocumentUrl(initialRne);
     setShowCreateModal(true);
   };
 
@@ -646,6 +665,7 @@ export default function EnterprisesPage() {
                   <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider">URL / Slug</th>
                   <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider">DB Schema</th>
                   <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider">Plan</th>
+                  <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider">Doc RNE</th>
                   <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider">Status</th>
                   <th className="px-6 py-4 text-xs font-mono text-muted-foreground font-medium uppercase tracking-wider text-right">Actions</th>
                 </tr>
@@ -659,7 +679,7 @@ export default function EnterprisesPage() {
                   return true;
                 }).length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground font-mono">
+                    <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground font-mono">
                       NO ENTERPRISES FOUND IN THIS CATEGORY
                     </td>
                   </tr>
@@ -670,7 +690,18 @@ export default function EnterprisesPage() {
                     if (statusFilter === 'Active') return ent.isActive && ent.status !== 'Pending';
                     if (statusFilter === 'Deactivated') return !ent.isActive && ent.status !== 'Pending';
                     return true;
-                  }).map((ent) => (
+                  }).map((ent) => {
+                    const docUrl = ent.rneDocumentUrl || (() => {
+                      if (ent.notes) {
+                        try {
+                          const parsed = JSON.parse(ent.notes);
+                          return parsed.rneDocumentUrl || parsed.rneDocument || null;
+                        } catch (e) {}
+                      }
+                      return null;
+                    })();
+
+                    return (
                     <tr key={ent.id} className="hover:bg-secondary/20 transition-colors group">
                       <td className="px-6 py-4">
                         <div className="font-semibold text-sm text-slate-100">{ent.name}</div>
@@ -695,6 +726,29 @@ export default function EnterprisesPage() {
                         <div className="text-xs text-muted-foreground font-mono mt-0.5">
                           {ent.plan === "Trial" ? "Free" : `${ent.planPrice || 0} ${ent.currency || "TND"}/mo`}
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {docUrl ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const win = window.open();
+                              if (win) {
+                                win.document.write(`<iframe src="${docUrl}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+                              }
+                            }}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-semibold hover:bg-cyan-500/20 transition-all cursor-pointer shadow-xs"
+                            title="Consulter le document PDF RNE"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Voir RNE</span>
+                          </button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground font-mono opacity-40 flex items-center gap-1">
+                            <Eye className="w-3 h-3 text-muted-foreground/30" />
+                            Non fourni
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         {ent.status === 'Pending' ? (
@@ -764,7 +818,8 @@ export default function EnterprisesPage() {
                         </button>
                       </td>
                     </tr>
-                  ))
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -967,6 +1022,46 @@ export default function EnterprisesPage() {
                         </div>
                       </div>
                     )}
+
+                    {/* Document PDF RNE (Visible Uniquement dans le Back Office) */}
+                    <div className="pt-3 border-t border-slate-800/80">
+                      {rneDocumentUrl ? (
+                        <div className="p-3.5 bg-slate-900/90 border border-cyan-500/30 rounded-xl flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center p-1 shrink-0">
+                              <img src="/images/rne-logo.png" alt="Logo RNE" className="h-6 object-contain" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-slate-100">Document PDF RNE</span>
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                  Document Téléversé
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-400 mt-0.5">Registre National des Entreprises (PDF)</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const win = window.open();
+                              if (win) {
+                                win.document.write(`<iframe src="${rneDocumentUrl}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+                              }
+                            }}
+                            className="px-3.5 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            Consulter PDF RNE
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3">
+                          <img src="/images/rne-logo.png" alt="Logo RNE" className="h-5 object-contain opacity-70" />
+                          <span className="text-xs text-amber-400 font-medium">Aucun document PDF RNE n'a été rattaché à cette entreprise.</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
