@@ -836,3 +836,335 @@ export function getTraitePrintStyles(offsetX: number = 0, offsetY: number = 0): 
   `;
 }
 
+/**
+ * Return CSS print styles for 1/2 A4 portrait (A5 portrait).
+ * Used for Remise de Caisse and Règlement Fournisseur.
+ */
+export function getHalfA4PrintStyles(): string {
+  return `
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;700;800&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    @page {
+      size: A5 portrait;
+      margin: 6mm;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', Arial, sans-serif;
+      background: #fff !important;
+      color: #0f172a;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .half-a4-container {
+      width: 136mm;
+      min-height: 198mm;
+      margin: 0 auto;
+      padding: 8mm;
+      background: #fff !important;
+      font-size: 8.5pt;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .half-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 4mm;
+      margin-bottom: 5mm;
+    }
+
+    .half-title-badge {
+      text-align: right;
+    }
+
+    .half-doc-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 13pt;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #0f172a;
+    }
+
+    .half-doc-ref {
+      font-family: monospace;
+      font-size: 9pt;
+      font-weight: 700;
+      color: #334155;
+      margin-top: 2px;
+    }
+
+    .half-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3mm;
+      margin-bottom: 5mm;
+    }
+
+    .half-info-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 3mm;
+    }
+
+    .half-info-label {
+      font-size: 7pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 2px;
+    }
+
+    .half-info-value {
+      font-size: 8.5pt;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .half-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 5mm;
+      font-size: 8pt;
+    }
+
+    .half-table th {
+      background: #f1f5f9;
+      color: #334155;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 7.5pt;
+      padding: 2.5mm 3mm;
+      border: 1px solid #cbd5e1;
+      text-align: left;
+    }
+
+    .half-table td {
+      padding: 2.5mm 3mm;
+      border: 1px solid #cbd5e1;
+      color: #0f172a;
+    }
+
+    .half-total-box {
+      background: #f8fafc;
+      border: 2px solid #0f172a;
+      border-radius: 6px;
+      padding: 4mm;
+      margin-bottom: 5mm;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .half-total-words {
+      font-size: 8pt;
+      font-style: italic;
+      color: #334155;
+      margin-top: 2mm;
+    }
+
+    .half-signatures {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10mm;
+      margin-top: 6mm;
+      padding-top: 4mm;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .half-sig-box {
+      text-align: center;
+    }
+
+    .half-sig-title {
+      font-size: 7.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #475569;
+      margin-bottom: 12mm;
+    }
+
+    @media print {
+      body {
+        background: transparent !important;
+      }
+      .half-a4-container {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        width: 100% !important;
+      }
+    }
+  `;
+}
+
+/**
+ * Return CSS print styles for Bordereau de Versement (Chèque & Traite)
+ * Duplicated twice on a single A4 portrait page.
+ */
+export function getDuplicatedBordereauPrintStyles(): string {
+  return `
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;700;800&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 6mm;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', Arial, sans-serif;
+      background: #fff !important;
+      color: #0f172a;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .a4-duplicated-page {
+      width: 198mm;
+      height: 284mm;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: #fff;
+    }
+
+    .bordereau-copy-box {
+      height: 136mm;
+      border: 1px solid #94a3b8;
+      border-radius: 6px;
+      padding: 4mm 5mm;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      font-size: 8pt;
+    }
+
+    .bordereau-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 3mm;
+      margin-bottom: 3mm;
+    }
+
+    .bordereau-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 11pt;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #0f172a;
+      letter-spacing: 0.3px;
+    }
+
+    .bordereau-bank-badge {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 2mm 3mm;
+      border-radius: 4px;
+      text-align: right;
+    }
+
+    .bordereau-bank-name {
+      font-weight: 800;
+      font-size: 9pt;
+      color: #0f172a;
+    }
+
+    .bordereau-bank-code {
+      font-family: monospace;
+      font-size: 8pt;
+      color: #475569;
+    }
+
+    .bordereau-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 3mm;
+      font-size: 7.5pt;
+    }
+
+    .bordereau-table th {
+      background: #f8fafc;
+      color: #1e293b;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 7pt;
+      padding: 2mm 2.5mm;
+      border: 1px solid #cbd5e1;
+      text-align: left;
+    }
+
+    .bordereau-table td {
+      padding: 1.8mm 2.5mm;
+      border: 1px solid #cbd5e1;
+      color: #0f172a;
+    }
+
+    .bordereau-footer-grid {
+      display: grid;
+      grid-template-columns: 1.8fr 1fr;
+      gap: 4mm;
+      align-items: flex-start;
+    }
+
+    .bordereau-total-card {
+      background: #f8fafc;
+      border: 1.5px solid #0f172a;
+      border-radius: 4px;
+      padding: 2.5mm 3.5mm;
+    }
+
+    .bordereau-cut-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 2mm 0;
+      font-size: 7.5pt;
+      color: #64748b;
+      font-weight: 700;
+      letter-spacing: 2px;
+      border-top: 1.5px dashed #94a3b8;
+      padding-top: 2px;
+    }
+
+    @media print {
+      body {
+        background: transparent !important;
+      }
+      .a4-duplicated-page {
+        width: 100% !important;
+        height: 100% !important;
+      }
+    }
+  `;
+}
+

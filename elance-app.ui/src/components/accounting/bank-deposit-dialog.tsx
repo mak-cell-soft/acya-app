@@ -26,7 +26,8 @@ import { useBanks } from '@/hooks/use-banks';
 import { useAllCaisseBalances, useCaissePrincipaleBalance, useCreateBankDeposit } from '@/hooks/use-treasury';
 import { useAuthStore } from '@/store/use-auth-store';
 import { toast } from 'sonner';
-import { Loader2, Landmark, Wallet, Receipt, RefreshCw } from 'lucide-react';
+import { Loader2, Landmark, Wallet, Receipt, RefreshCw, Printer } from 'lucide-react';
+import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 
 const depositSchema = z.object({
   bankId: z.string().min(1, 'La banque de destination est requise'),
@@ -72,6 +73,8 @@ export function BankDepositDialog({
   const createDeposit = useCreateBankDeposit();
 
   const [loading, setLoading] = useState<boolean>(false);
+  const [printedDeposit, setPrintedDeposit] = useState<any>(null);
+  const [isPrintOpen, setIsPrintOpen] = useState<boolean>(false);
 
   const {
     register,
@@ -124,6 +127,8 @@ export function BankDepositDialog({
     }
   }, [isOpen, reset, siteId]);
 
+  const selectedBankObj = banks.find((b: any) => b.id.toString() === bankId);
+
   const onSubmit = async (values: DepositFormValues) => {
     // Validate balance for cash deposits
     if (values.depositType === 'ESPECE' && values.amount > currentBalance) {
@@ -147,6 +152,17 @@ export function BankDepositDialog({
         salesSiteId: parsedSalesSiteId,
         createdByUserId: user?.id ? String(user.id) : null,
       });
+
+      const depObj = {
+        amountHT: values.amount,
+        depositType: values.depositType,
+        reference: values.reference || `REM-${Date.now().toString().slice(-6)}`,
+        notes: values.notes,
+        depositDate: new Date()
+      };
+
+      setPrintedDeposit(depObj);
+      setIsPrintOpen(true);
 
       if (onSuccess) onSuccess();
       onClose();
@@ -374,6 +390,16 @@ export function BankDepositDialog({
           </DialogFooter>
         </form>
       </DialogContent>
+
+      <PrintVariantDialog
+        isOpen={isPrintOpen}
+        onClose={() => setIsPrintOpen(false)}
+        docType="caisse-remise"
+        deposit={printedDeposit}
+        bank={selectedBankObj}
+        userName={(user as any)?.login || (user as any)?.username || user?.email || 'Utilisateur'}
+        caisseName={isCentral ? 'Caisse Principale' : 'Caisse Site'}
+      />
     </Dialog>
   );
 }

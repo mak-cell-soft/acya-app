@@ -316,6 +316,10 @@ export default function AccountingDashboard() {
     return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
+  // Supplier Payment Print State
+  const [selectedSupplierPayment, setSelectedSupplierPayment] = useState<any>(null);
+  const [isPrintSupplierPaymentOpen, setIsPrintSupplierPaymentOpen] = useState(false);
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       {/* Header and Year Navigator */}
@@ -745,6 +749,7 @@ export default function AccountingDashboard() {
                           <TableHead className="font-bold">Montant</TableHead>
                           <TableHead className="font-bold">Mode</TableHead>
                           <TableHead className="font-bold">Documents</TableHead>
+                          <TableHead className="font-bold text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody className="divide-y divide-amber-50/20 text-xs">
@@ -784,6 +789,29 @@ export default function AccountingDashboard() {
                                     </span>
                                   )}
                                 </div>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setSelectedSupplierPayment({
+                                      id: p.paymentId,
+                                      date: p.createdAt || p.paymentDate,
+                                      amount: p.amount,
+                                      mode: p.paymentMethod,
+                                      supplierName: p.customerName,
+                                      invoiceDocNumber: p.invoiceNumber,
+                                      reference: `REG-${p.paymentId}`
+                                    });
+                                    setIsPrintSupplierPaymentOpen(true);
+                                  }}
+                                  className="h-8 px-2 text-[#0f172a] hover:text-corp-blue-900 hover:bg-slate-100 gap-1.5 font-bold cursor-pointer"
+                                  title="Imprimer le reçu de règlement (1/2 A4 vertical)"
+                                >
+                                  <Printer className="w-3.5 h-3.5 text-corp-blue-600" />
+                                  <span className="text-xs">Imprimer</span>
+                                </Button>
                               </TableCell>
                             </TableRow>
                           );
@@ -1000,6 +1028,13 @@ export default function AccountingDashboard() {
         documentsList={filteredVentes}
         listContext="sales"
         listTitle="Factures Client"
+      />
+
+      <PrintVariantDialog
+        isOpen={isPrintSupplierPaymentOpen}
+        onClose={() => setIsPrintSupplierPaymentOpen(false)}
+        docType="supplier-payment"
+        supplierPayment={selectedSupplierPayment}
       />
     </div>
   );

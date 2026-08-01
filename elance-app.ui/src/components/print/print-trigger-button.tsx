@@ -33,6 +33,10 @@ import { AccountStatement, Customer, Supplier } from '@/types/customer';
 import { DocumentListStandard } from './document-list-standard';
 import { BankStatementStandard } from './bank-statement-standard';
 import { BankStatementLight } from './bank-statement-light';
+import { CaisseRemiseStandard } from './caisse-remise-standard';
+import { SupplierPaymentStandard } from './supplier-payment-standard';
+import { BordereauVersementStandard } from './bordereau-versement-standard';
+import { getHalfA4PrintStyles, getDuplicatedBordereauPrintStyles } from './print-styles';
 
 interface PrintVariantDialogProps {
   isOpen: boolean;
@@ -57,7 +61,16 @@ interface PrintVariantDialogProps {
   bank?: any;
   statementMonth?: number;
   statementYear?: number;
-  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | 'document-list' | 'bank-statement' | null | undefined;
+  deposit?: any;
+  caisseName?: string;
+  userName?: string;
+  supplierPayment?: any;
+  bordereauInstruments?: any[];
+  bordereauType?: 'CHEQUE' | 'TRAITE';
+  counterpartType?: 'client' | 'supplier';
+  bordereauNumber?: string;
+  depositDate?: Date | string;
+  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | 'document-list' | 'bank-statement' | 'caisse-remise' | 'supplier-payment' | 'bordereau-versement' | null | undefined;
 }
 
 export function PrintVariantDialog({
@@ -83,16 +96,25 @@ export function PrintVariantDialog({
   bank,
   statementMonth,
   statementYear,
+  deposit,
+  caisseName,
+  userName,
+  supplierPayment,
+  bordereauInstruments,
+  bordereauType,
+  counterpartType,
+  bordereauNumber,
+  depositDate,
   docType,
 }: PrintVariantDialogProps) {
   const { data: enterprise, isLoading } = useEnterprise();
   const { data: printLocale } = usePrintLocale();
   const [printing, setPrinting] = useState(false);
 
-  // Auto-trigger print for single-variant HR documents (leave, advance) and statements as soon as enterprise settings load
+  // Auto-trigger print for single-variant HR documents, statements, caisse-remise, supplier-payment, bordereau-versement as soon as enterprise settings load
   React.useEffect(() => {
     if (isOpen && enterprise && !isLoading && !printing && 
-       (docType === 'leave' || docType === 'advance' || docType === 'customer-statement' || docType === 'supplier-statement' || docType === 'document-list')) {
+       (docType === 'leave' || docType === 'advance' || docType === 'customer-statement' || docType === 'supplier-statement' || docType === 'document-list' || docType === 'caisse-remise' || docType === 'supplier-payment' || docType === 'bordereau-versement')) {
       handlePrint('standard');
     }
   }, [isOpen, enterprise, isLoading, docType]);
@@ -106,6 +128,9 @@ export function PrintVariantDialog({
     docType !== 'supplier-statement' &&
     docType !== 'document-list' &&
     docType !== 'bank-statement' &&
+    docType !== 'caisse-remise' &&
+    docType !== 'supplier-payment' &&
+    docType !== 'bordereau-versement' &&
     (!document || !docType)
   ) return null;
   if (docType === 'transfer' && !transfer) return null;
@@ -115,6 +140,9 @@ export function PrintVariantDialog({
   if ((docType === 'customer-statement' || docType === 'supplier-statement') && (!statement || !counterpart || !periodStart || !periodEnd || !statementType)) return null;
   if (docType === 'document-list' && (!documentsList || !listTitle || !listContext)) return null;
   if (docType === 'bank-statement' && !bankStatement) return null;
+  if (docType === 'caisse-remise' && !deposit) return null;
+  if (docType === 'supplier-payment' && !supplierPayment) return null;
+  if (docType === 'bordereau-versement' && (!bordereauInstruments || bordereauInstruments.length === 0)) return null;
 
   /**
    * Executes the print flow by generating markup, injecting it into a hidden iframe,
@@ -236,6 +264,44 @@ export function PrintVariantDialog({
               printLocale={printLocale}
             />
           )
+        );
+      } else if (docType === 'caisse-remise' && deposit) {
+        printDocNumber = `REMISE-CAISSE-${deposit.reference || deposit.id || Date.now()}`;
+        styleCss = getHalfA4PrintStyles();
+        contentHtml = renderToStaticMarkup(
+          <CaisseRemiseStandard
+            deposit={deposit}
+            caisseName={caisseName}
+            bank={bank}
+            userName={userName}
+            enterprise={enterprise}
+            printLocale={printLocale}
+          />
+        );
+      } else if (docType === 'supplier-payment' && supplierPayment) {
+        printDocNumber = `REGLEMENT-FOURNISSEUR-${supplierPayment.reference || supplierPayment.id || Date.now()}`;
+        styleCss = getHalfA4PrintStyles();
+        contentHtml = renderToStaticMarkup(
+          <SupplierPaymentStandard
+            payment={supplierPayment}
+            enterprise={enterprise}
+            printLocale={printLocale}
+          />
+        );
+      } else if (docType === 'bordereau-versement' && bordereauInstruments) {
+        printDocNumber = `BORDEREAU-VERSEMENT-${bordereauType || 'CHEQUE'}-${bordereauNumber || Date.now()}`;
+        styleCss = getDuplicatedBordereauPrintStyles();
+        contentHtml = renderToStaticMarkup(
+          <BordereauVersementStandard
+            instruments={bordereauInstruments}
+            bank={bank}
+            bordereauType={bordereauType}
+            counterpartType={counterpartType}
+            bordereauNumber={bordereauNumber}
+            depositDate={depositDate}
+            enterprise={enterprise}
+            printLocale={printLocale}
+          />
         );
       }
 

@@ -32,6 +32,7 @@ import { InstrumentsTable } from '@/components/dashboard/instruments-table';
 import { useBankStatement, useBankDeposits } from '@/hooks/use-bank-transactions';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PrintVariantDialog } from '@/components/print/print-trigger-button';
+import { BordereauPrintDialog } from '@/components/accounting/bordereau-print-dialog';
 
 const MONTHS = [
   'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
@@ -49,9 +50,10 @@ export function TreasuryDashboard() {
   const { data: mainCaisseBalance = 0, isLoading: isLoadingMainCaisse, refetch: refetchMainCaisse } = useCaissePrincipaleBalance();
   const { data: siteCaisseBalances = [], isLoading: isLoadingSites, refetch: refetchSites } = useAllCaisseBalances();
 
-  // State to control deposit dialog
+  // State to control deposit dialog & bordereau print dialog
   const [isDepositDialogOpen, setIsDepositDialogOpen] = useState(false);
   const [isPrintStatementOpen, setIsPrintStatementOpen] = useState(false);
+  const [isBordereauDialogOpen, setIsBordereauDialogOpen] = useState(false);
 
   // Bank Management dialog state — null means "add new", object means "editing existing"
   const [isBankFormOpen, setIsBankFormOpen] = useState(false);
@@ -185,10 +187,18 @@ export function TreasuryDashboard() {
         </div>
 
         <div className="flex items-center gap-3">
+          <Button
+            onClick={() => setIsBordereauDialogOpen(true)}
+            className="bg-corp-blue-900 hover:bg-corp-blue-950 text-white font-bold h-11 px-5 rounded-xl gap-2 shadow-sm cursor-pointer"
+          >
+            <Printer className="w-4 h-4 text-amber-400" />
+            Bordereau de Versement (x2)
+          </Button>
+
           <Button 
             variant="outline" 
             onClick={refreshAll} 
-            className="border-slate-200 hover:bg-slate-50 gap-2 h-11 px-4 font-bold"
+            className="border-slate-200 hover:bg-slate-50 gap-2 h-11 px-4 font-bold cursor-pointer"
           >
             <RefreshCw className="w-4 h-4 text-slate-600" />
             Actualiser
@@ -839,6 +849,12 @@ export function TreasuryDashboard() {
           statementYear={statementYear}
         />
       )}
+
+      {/* Bordereau Print Dialog */}
+      <BordereauPrintDialog
+        isOpen={isBordereauDialogOpen}
+        onClose={() => setIsBordereauDialogOpen(false)}
+      />
     </div>
   );
 }

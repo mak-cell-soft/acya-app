@@ -7,15 +7,19 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePendingBordereaux, useRemoveInstrumentFromBordereau, useValidateBordereau } from '@/hooks/use-payment-instruments';
-import { Landmark, Calendar, X, CheckCircle2, ChevronRight, Hash, Building2 } from 'lucide-react';
+import { Landmark, Calendar, X, CheckCircle2, ChevronRight, Hash, Building2, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { formatCurrency } from '@/lib/utils';
+import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 
 export function PendingBordereauxSection() {
   const { data: bordereaux, isLoading } = usePendingBordereaux();
   const { mutate: removeInstrument, isPending: isRemoving } = useRemoveInstrumentFromBordereau();
   const { mutate: validateBordereau, isPending: isValidating } = useValidateBordereau();
+
+  const [selectedBordereau, setSelectedBordereau] = React.useState<any>(null);
+  const [isPrintBordereauOpen, setIsPrintBordereauOpen] = React.useState<boolean>(false);
 
   if (isLoading) {
     return (
@@ -143,14 +147,40 @@ export function PendingBordereauxSection() {
                       <span className="text-sm font-bold text-corp-blue-900">Total Frais (TTC) : <span className="font-mono text-rose-600">{formatCurrency(bordereau.totalFeeWithTax)}</span></span>
                       <span className="text-xs text-sand-500 mt-1">Montant Brut : {formatCurrency(bordereau.totalAmountHT)}</span>
                     </div>
-                    <Button 
-                      onClick={() => validateBordereau(bordereau.reference)}
-                      disabled={isValidating || isRemoving}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 h-12 rounded-xl shadow-lg shadow-emerald-600/20 transition-all hover:scale-[1.02]"
-                    >
-                      <CheckCircle2 className="w-5 h-5 mr-2" />
-                      Valider la remise en banque
-                    </Button>
+                    <div className="flex items-center gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedBordereau({
+                            reference: bordereau.reference,
+                            bank: { designation: bordereau.bankName, rib: bordereau.bankRib },
+                            type: (bordereau as any).type || 'CHEQUE',
+                            instruments: bordereau.instruments.map((i: any) => ({
+                              number: i.instrumentNumber,
+                              bankName: i.bankName || i.issuerBank || 'STB',
+                              counterpartName: i.owner || i.customerName || i.supplierName || 'Client',
+                              dueDate: i.dueDate,
+                              amount: i.amount
+                            }))
+                          });
+                          setIsPrintBordereauOpen(true);
+                        }}
+                        className="border-corp-blue-300 text-corp-blue-900 font-bold px-5 h-12 rounded-xl hover:bg-corp-blue-50 gap-2 cursor-pointer"
+                      >
+                        <Printer className="w-4 h-4 text-corp-blue-600" />
+                        Imprimer Bordereau (x2)
+                      </Button>
+
+                      <Button 
+                        onClick={() => validateBordereau(bordereau.reference)}
+                        disabled={isValidating || isRemoving}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 h-12 rounded-xl shadow-lg shadow-emerald-600/20 transition-all hover:scale-[1.02] cursor-pointer"
+                      >
+                        <CheckCircle2 className="w-5 h-5 mr-2" />
+                        Valider la remise en banque
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </AccordionContent>
@@ -158,6 +188,18 @@ export function PendingBordereauxSection() {
           ))}
         </Accordion>
       </CardContent>
+
+      <PrintVariantDialog
+        isOpen={isPrintBordereauOpen}
+        onClose={() => setIsPrintBordereauOpen(false)}
+        docType="bordereau-versement"
+        bordereauInstruments={selectedBordereau?.instruments || []}
+        bank={selectedBordereau?.bank}
+        bordereauType={selectedBordereau?.type || 'CHEQUE'}
+        counterpartType="client"
+        bordereauNumber={selectedBordereau?.reference}
+        depositDate={new Date()}
+      />
     </Card>
   );
 }
