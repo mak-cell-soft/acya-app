@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using ms.webapp.api.acya.core.Entities.DTOs;
 
 namespace ms.webapp.api.acya.core.Entities
@@ -31,6 +32,8 @@ namespace ms.webapp.api.acya.core.Entities
     public string? CustomDomain { get; set; }
     public string? Language { get; set; }
     public string? Currency { get; set; }
+
+    [NotMapped]
     public string? RneDocumentUrl { get; set; }
 
     public HashSet<SalesSite>? Sites { get; set; } = new HashSet<SalesSite>();

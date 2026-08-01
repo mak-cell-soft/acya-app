@@ -36,6 +36,7 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Organization
             entity.Property(e => e.CustomDomain).HasColumnName("customdomain");
             entity.Property(e => e.Language).HasColumnName("language");
             entity.Property(e => e.Currency).HasColumnName("currency");
+            entity.Ignore(e => e.RneDocumentUrl);
 
             // Configure one-to-many relationship with SalesSite
             entity.HasMany(e => e.Sites)
