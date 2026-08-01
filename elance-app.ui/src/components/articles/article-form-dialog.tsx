@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import { useCategories } from "@/hooks/use-categories";
 import { useAppVariables } from "@/hooks/use-app-variables";
+import { useAuthStore } from "@/store/use-auth-store";
 import { Article, QuantityUnits } from "@/types/article";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -234,6 +235,9 @@ export function ArticleFormDialog({
     );
   };
 
+  const { user } = useAuthStore();
+  const currentUserId = user?.id ? parseInt(user.id.toString()) : 1;
+
   const onSubmit = (values: ArticleFormValues) => {
     const isBd = isBdSubcategory;
     const model = {
@@ -247,7 +251,7 @@ export function ArticleFormDialog({
       sellprice_ht: calculatedHT,
       iswood: isWoodCategory,
       lengths: (isWoodCategory && !isBd) ? `[${selectedLengths.join(', ')}]` : "[]",
-      updatedby: 1, // Mock user ID
+      updatedby: currentUserId,
     };
     onSave(model);
   };

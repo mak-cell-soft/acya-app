@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/select';
 import { documentService } from '@/services/components/document.service';
 import { useCustomers } from '@/hooks/use-customers';
+import { CustomerSolvencyBadge } from '@/components/customers/customer-solvency-badge';
 import { useSites } from '@/hooks/use-enterprise';
 import { useAppVariables } from '@/hooks/use-app-variables';
 import { DocumentTypes, DocStatus, BillingStatus, Document } from '@/types/document';
@@ -456,6 +457,15 @@ export function CustomerSingleBatchConversionModal({
                     </button>
                   )}
                 </div>
+
+                {selectedCustomerId && (
+                  <div className="pt-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <CustomerSolvencyBadge 
+                      customerId={parseInt(selectedCustomerId)} 
+                      creditLimit={customers?.find(c => c.id.toString() === selectedCustomerId)?.maximumsalesbar} 
+                    />
+                  </div>
+                )}
 
                 {isCustomerDropdownOpen && (
                   <>

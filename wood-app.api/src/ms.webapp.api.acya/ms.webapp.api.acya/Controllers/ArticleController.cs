@@ -1,8 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ms.webapp.api.acya.api.Controllers;
+using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities.DTOs;
 using ms.webapp.api.acya.core.Entities.Product;
+using ms.webapp.api.acya.core.Interfaces;
+using ms.webapp.api.acya.infrastructure;
 using ms.webapp.api.acya.infrastructure.Repositories;
+using Microsoft.Extensions.Logging;
 
 namespace ms.webapp.api.acya.api.Controllers
 {
@@ -10,11 +15,22 @@ namespace ms.webapp.api.acya.api.Controllers
   {
     private readonly ArticleRepository _repository;
     private readonly SellPriceHistoryRepository _repositoryPriceHistory;
+    private readonly WoodAppContext _context;
+    private readonly IAppNotificationService _notificationService;
+    private readonly ILogger<ArticleController> _logger;
 
-    public ArticleController(ArticleRepository repository, SellPriceHistoryRepository repositoryPriceHistory)
+    public ArticleController(
+        ArticleRepository repository, 
+        SellPriceHistoryRepository repositoryPriceHistory,
+        WoodAppContext context,
+        IAppNotificationService notificationService,
+        ILogger<ArticleController> logger)
     {
       _repository = repository;
       _repositoryPriceHistory = repositoryPriceHistory;
+      _context = context;
+      _notificationService = notificationService;
+      _logger = logger;
     }
 
     [HttpPost("Add")]
@@ -101,6 +117,11 @@ namespace ms.webapp.api.acya.api.Controllers
         return NotFound();
       }
 
+      // Capture old values for comparison
+      string oldReference = existingArticle.Reference ?? string.Empty;
+      double oldSellPriceHT = existingArticle.SellPriceHT ?? 0;
+      double oldSellPriceTTC = existingArticle.SellPriceTTC ?? 0;
+
       // Check if there's another article with the same reference but a different ID
       var articleWithSameReference = await _repository.GetByReference(dto.reference!);
       if (articleWithSameReference != null && articleWithSameReference.Id != id)
@@ -115,6 +136,73 @@ namespace ms.webapp.api.acya.api.Controllers
       var updatedEntity = await _repository.Update(existingArticle);
       if (updatedEntity != null)
       {
+        string newReference = updatedEntity.Reference ?? string.Empty;
+        double newSellPriceHT = updatedEntity.SellPriceHT ?? 0;
+        double newSellPriceTTC = updatedEntity.SellPriceTTC ?? 0;
+
+        bool referenceChanged = !string.Equals(oldReference, newReference, StringComparison.OrdinalIgnoreCase);
+        bool priceHTChanged = Math.Abs(oldSellPriceHT - newSellPriceHT) > 0.0001;
+        bool priceTTCChanged = Math.Abs(oldSellPriceTTC - newSellPriceTTC) > 0.0001;
+        bool priceChanged = priceHTChanged || priceTTCChanged;
+
+        if (referenceChanged || priceChanged)
+        {
+          try
+          {
+            string updaterName = "Un utilisateur";
+            if (updatedEntity.UpdatedBy > 0)
+            {
+              var user = await _context.AppUsers
+                  .Include(u => u.Persons)
+                  .FirstOrDefaultAsync(u => u.Id == updatedEntity.UpdatedBy);
+
+              if (user != null)
+              {
+                var person = user.Persons;
+                if (person != null && (!string.IsNullOrEmpty(person.Firstname) || !string.IsNullOrEmpty(person.Lastname)))
+                {
+                  updaterName = $"{person.Firstname} {person.Lastname}".Trim();
+                }
+                else if (person != null && !string.IsNullOrEmpty(person.FullName))
+                {
+                  updaterName = person.FullName;
+                }
+                else if (!string.IsNullOrEmpty(user.Login))
+                {
+                  updaterName = user.Login;
+                }
+              }
+            }
+
+            var changes = new List<string>();
+            if (referenceChanged)
+            {
+              changes.Add($"Code: '{oldReference}' → '{newReference}'");
+            }
+            if (priceChanged)
+            {
+              changes.Add($"Prix de vente HT: {oldSellPriceHT:N3} DT → {newSellPriceHT:N3} DT (TTC: {newSellPriceTTC:N3} DT)");
+            }
+
+            string displayRef = !string.IsNullOrEmpty(newReference) ? newReference : oldReference;
+            string title = $"Mise à jour Article ({displayRef})";
+            string message = $"{updaterName} a mis à jour l'article ({displayRef}) : {string.Join(" | ", changes)}.";
+
+            await _notificationService.NotifyAsync(
+              title: title,
+              message: message,
+              type: NotificationType.Info,
+              priority: NotificationPriority.Normal,
+              relatedEntityId: id.ToString(),
+              relatedEntityType: "Article"
+            );
+          }
+          catch (Exception ex)
+          {
+            _logger.LogError(ex, "Erreur lors de l'envoi de la notification de mise à jour d'article {ArticleId}", id);
+          }
+        }
+
         // Record sell price history if price changed
         if (dto.sellprice_ttc > 0)
         {

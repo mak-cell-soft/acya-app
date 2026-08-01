@@ -61,6 +61,7 @@ import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/use-auth-store';
 import { useCustomers, useUpdateCustomer, useOrCreatePassagerCounterpart } from '@/hooks/use-customers';
 import { CustomerFormDialog } from '@/components/customers/customer-form-dialog';
+import { CustomerSolvencyBadge } from '@/components/customers/customer-solvency-badge';
 import { useTransporters } from '@/hooks/use-transporters';
 import { useArticles } from '@/hooks/use-articles';
 import { useSites } from '@/hooks/use-enterprise';
@@ -1382,6 +1383,15 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                     </button>
                   )}
                 </div>
+
+                {selectedCustomer && (
+                  <div className="pt-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <CustomerSolvencyBadge 
+                      customerId={selectedCustomer.id} 
+                      creditLimit={selectedCustomer.maximumsalesbar} 
+                    />
+                  </div>
+                )}
 
                 {isCustomerDropdownOpen && (
                   <>

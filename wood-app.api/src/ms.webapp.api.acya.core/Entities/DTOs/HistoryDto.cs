@@ -38,7 +38,10 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       isdeleted = entity.IsDeleted;
       articleid = entity.ArticleId;
       updatedby = entity.UpdatedBy;
-      updatedby_name = entity.AppUsers?.Persons?.FullName ?? entity.AppUsers?.Login;
+      var person = entity.AppUsers?.Persons;
+      updatedby_name = person != null && (!string.IsNullOrEmpty(person.Firstname) || !string.IsNullOrEmpty(person.Lastname))
+          ? $"{person.Firstname} {person.Lastname}".Trim()
+          : (person?.FullName ?? entity.AppUsers?.Login ?? "Système");
     }
   }
 
@@ -73,7 +76,10 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       isdeleted = entity.IsDeleted;
       updatedby_id = entity.UpdatedById ?? entity.Document?.UpdatedById;
       var user = entity.UpdatedBy ?? entity.Document?.AppUsers;
-      updatedby_name = user?.Persons?.FullName ?? user?.Login;
+      var person = user?.Persons;
+      updatedby_name = person != null && (!string.IsNullOrEmpty(person.Firstname) || !string.IsNullOrEmpty(person.Lastname))
+          ? $"{person.Firstname} {person.Lastname}".Trim()
+          : (person?.FullName ?? user?.Login ?? "Système");
     }
   }
 
@@ -108,7 +114,10 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       isdeleted = entity.IsDeleted;
       updatedby_id = entity.UpdatedById ?? entity.Document?.UpdatedById;
       var user = entity.UpdatedBy ?? entity.Document?.AppUsers;
-      updatedby_name = user?.Persons?.FullName ?? user?.Login;
+      var person = user?.Persons;
+      updatedby_name = person != null && (!string.IsNullOrEmpty(person.Firstname) || !string.IsNullOrEmpty(person.Lastname))
+          ? $"{person.Firstname} {person.Lastname}".Trim()
+          : (person?.FullName ?? user?.Login ?? "Système");
     }
   }
 }
