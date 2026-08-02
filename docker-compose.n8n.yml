@@ -1,0 +1,70 @@
+version: '3.8'
+
+# ============================================================
+# n8n Automation Stack – ACYA
+# Isolated service. Does NOT modify existing ACYA stack.
+# Run: sudo docker-compose -f docker-compose.n8n.yml up -d
+# ============================================================
+
+services:
+
+  # ── Dedicated PostgreSQL for n8n ─────────────────────────
+  postgres-n8n:
+    image: postgres:15-alpine
+    container_name: postgres-n8n
+    restart: unless-stopped
+    env_file: .env.n8n
+    volumes:
+      - postgres_n8n:/var/lib/postgresql/data
+    networks:
+      - acya_n8n_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
+
+  # ── n8n Application ───────────────────────────────────────
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    env_file: .env.n8n
+    ports:
+      - "127.0.0.1:5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      postgres-n8n:
+        condition: service_healthy
+    networks:
+      - acya_n8n_network
+      - wood-app-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+# ── Volumes ───────────────────────────────────────────────
+volumes:
+  n8n_data:
+    name: n8n_data
+  postgres_n8n:
+    name: postgres_n8n
+
+# ── Networks ─────────────────────────────────────────────
+networks:
+  acya_n8n_network:
+    name: acya_n8n_network
+    driver: bridge
+
+  wood-app-network:
+    external: true
+    name: acya-app_wood-app-network
