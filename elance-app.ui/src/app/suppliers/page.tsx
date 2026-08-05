@@ -43,7 +43,7 @@ import * as XLSX from 'xlsx';
 
 // Hooks & Types
 import { useSuppliers, useCreateSupplier, useUpdateSupplier, useDeleteSupplier } from '@/hooks/use-suppliers';
-import { Supplier, SUPPLIER_CATEGORIES, GOUVERNORATES_TN } from '@/types/customer';
+import { Supplier, SUPPLIER_CATEGORIES, GOUVERNORATES_TN, SOCIETY_PREFIXES } from '@/types/customer';
 
 // Components
 import { SupplierFormDialog } from '@/components/suppliers/supplier-form-dialog';
@@ -130,20 +130,26 @@ export default function ProvidersPage() {
   const handleExport = () => {
     if (!suppliers || suppliers.length === 0) return;
 
-    const exportData = suppliers.map(s => ({
-      'Raison Sociale': s.name || '',
-      'Prénom': s.firstname || '',
-      'Nom': s.lastname || '',
-      'Email': s.email || '',
-      'Matricule Fiscal': s.taxregistrationnumber || '',
-      'CIN': s.identitycardnumber || '',
-      'Adresse': s.address || '',
-      'Gouvernorat': s.gouvernorate || '',
-      'Tél 1': s.phonenumberone || '',
-      'Tél 2': s.phonenumbertwo || '',
-      'Fonction': s.jobtitle || '',
-      'Notes': s.notes || ''
-    }));
+    const exportData = suppliers.map(s => {
+      const isSociety = SOCIETY_PREFIXES.some(p => p.id === s.prefix) || !!s.name;
+      return {
+        'Type Personne': isSociety ? 'Personne Morale' : 'Personne Physique',
+        'Préfixe': s.prefix || (isSociety ? 'STE' : 'MR'),
+        'Raison Sociale': s.name || '',
+        'Description / Activité': s.description || '',
+        'Prénom (Responsable)': s.firstname || '',
+        'Nom (Responsable)': s.lastname || '',
+        'Email': s.email || '',
+        'Matricule Fiscal': s.taxregistrationnumber || '',
+        'CIN': s.identitycardnumber || '',
+        'Adresse': s.address || '',
+        'Gouvernorat': s.gouvernorate || '',
+        'Tél 1': s.phonenumberone || '',
+        'Tél 2': s.phonenumbertwo || '',
+        'Fonction': s.jobtitle || '',
+        'Notes': s.notes || ''
+      };
+    });
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();

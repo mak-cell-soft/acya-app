@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/select';
 import { documentService } from '@/services/components/document.service';
 import { useCustomers } from '@/hooks/use-customers';
+import { getCustomerDisplayName } from '@/types/customer';
 import { useSites } from '@/hooks/use-enterprise';
 import { useAppVariables } from '@/hooks/use-app-variables';
 import { DocumentTypes, DocStatus, BillingStatus, Document } from '@/types/document';
@@ -88,7 +89,7 @@ export function CustomerBatchConversionModal({
     if (selectedCustomerId && customers) {
       const c = customers.find((c) => c.id.toString() === selectedCustomerId);
       if (c) {
-        const fullName = c.name || `${c.firstname || ''} ${c.lastname || ''}`.trim() || 'Client sans nom';
+        const fullName = getCustomerDisplayName(c);
         setCustomerSearchQuery(fullName);
       }
     } else if (!selectedCustomerId) {
@@ -98,7 +99,7 @@ export function CustomerBatchConversionModal({
 
   // Filter customers by search query
   const filteredCustomers = (customers || []).filter((cust) => {
-    const name = (cust.name || `${cust.firstname || ''} ${cust.lastname || ''}`).toLowerCase();
+    const name = getCustomerDisplayName(cust).toLowerCase();
     const query = customerSearchQuery.toLowerCase();
     return name.includes(query);
   });
@@ -506,7 +507,7 @@ export function CustomerBatchConversionModal({
                     />
                     <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto z-20 rounded-xl border border-sand-200 bg-white shadow-lg p-1.5 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
                       {filteredCustomers.map((cust) => {
-                        const fullName = cust.name || `${cust.firstname || ''} ${cust.lastname || ''}`.trim() || 'Client sans nom';
+                        const fullName = getCustomerDisplayName(cust);
                         const isSelected = selectedCustomerId === cust.id.toString();
                         return (
                           <button

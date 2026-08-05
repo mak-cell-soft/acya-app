@@ -182,3 +182,27 @@ export interface SupplierDashboardData {
   recentTransactions: LedgerEntry[];
 }
 
+export function getCustomerDisplayName(c: {
+  prefix?: string | null;
+  name?: string | null;
+  firstname?: string | null;
+  lastname?: string | null;
+} | null | undefined): string {
+  if (!c) return '';
+  const companyName = (c.name || '').trim();
+  const contactFirstName = (c.firstname || '').trim();
+  const contactLastName = (c.lastname || '').trim();
+  const contactName = [contactFirstName, contactLastName].filter(Boolean).join(' ').trim();
+
+  if (companyName && contactName) {
+    return `${companyName} (${contactName})`;
+  }
+  if (companyName) {
+    return companyName;
+  }
+  if (contactName) {
+    return c.prefix ? `${c.prefix} ${contactName}` : contactName;
+  }
+  return 'Client sans nom';
+}
+

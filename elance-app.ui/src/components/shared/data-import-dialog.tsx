@@ -143,8 +143,8 @@ export function DataImportDialog({
             // Pas de validation stricte d'en-têtes pour les paramètres car le format peut varier
           } else {
             // Customer ou Provider
-            if (!headerString.includes('nom') && !headerString.includes('prénom')) {
-              toast.error(`Fichier invalide : Il ne semble pas contenir des ${type === 'customer' ? 'clients' : 'fournisseurs'} (colonnes Nom, Prénom introuvables).`);
+            if (!headerString.includes('nom') && !headerString.includes('prénom') && !headerString.includes('sociale')) {
+              toast.error(`Fichier invalide : Il ne semble pas contenir des ${type === 'customer' ? 'clients' : 'fournisseurs'} (colonnes Raison Sociale, Nom, ou Prénom introuvables).`);
               return;
             }
           }

@@ -382,7 +382,9 @@ namespace ms.webapp.api.acya.Services
                         _context.CounterParts.Add(cp);
                     }
 
+                    cp.Prefix = !string.IsNullOrEmpty(item.Prefix) ? item.Prefix : cp.Prefix;
                     cp.Name = item.Name;
+                    cp.Description = item.Description;
                     cp.FirstName = item.FirstName;
                     cp.LastName = item.LastName;
                     cp.Email = item.Email;
@@ -520,48 +522,112 @@ namespace ms.webapp.api.acya.Services
             var worksheet = workbook.Worksheet(1);
             
             var firstRow = worksheet.Row(1);
-            int lastCol = firstRow.LastCellUsed()?.Address.ColumnNumber ?? 12;
+            int lastCol = firstRow.LastCellUsed()?.Address.ColumnNumber ?? 15;
 
-            int colName = 1, colFirstName = 2, colLastName = 3, colEmail = 4;
-            int colTaxReg = 5, colCin = 6, colAddress = 7, colGov = 8;
-            int colPhone1 = 9, colPhone2 = 10, colJob = 11, colNotes = 12;
+            int colPrefix = -1, colName = -1, colDesc = -1, colFirstName = -1, colLastName = -1;
+            int colEmail = -1, colTaxReg = -1, colCin = -1, colAddress = -1, colGov = -1;
+            int colPhone1 = -1, colPhone2 = -1, colJob = -1, colNotes = -1;
 
             for (int c = 1; c <= lastCol; c++)
             {
                 var header = NormalizeString(firstRow.Cell(c).GetString());
-                if (header.Contains("sociale") || header.Contains("nomservice") || (header.Contains("nom") && !header.Contains("prenom"))) { colName = c; }
-                else if (header.Contains("prenom") || header.Contains("firstname")) { colFirstName = c; }
-                else if (header.Contains("lastname") || header == "nom") { colLastName = c; }
-                else if (header.Contains("email") || header.Contains("courriel")) { colEmail = c; }
-                else if (header.Contains("matricule") || header.Contains("tax")) { colTaxReg = c; }
-                else if (header.Contains("cin") || header.Contains("identity")) { colCin = c; }
-                else if (header.Contains("adresse") || header.Contains("address")) { colAddress = c; }
-                else if (header.Contains("gouvernorat") || header.Contains("gov")) { colGov = c; }
-                else if (header.Contains("tel1") || header.Contains("phone1") || header.Contains("telephone1")) { colPhone1 = c; }
-                else if (header.Contains("tel2") || header.Contains("phone2") || header.Contains("telephone2")) { colPhone2 = c; }
-                else if (header.Contains("poste") || header.Contains("fonction") || header.Contains("job")) { colJob = c; }
-                else if (header.Contains("note")) { colNotes = c; }
+                if (string.IsNullOrEmpty(header)) continue;
+
+                if (header.Contains("type personne") || header.Contains("type client") || header.Contains("type fournisseur") || header.Contains("prefix"))
+                {
+                    colPrefix = c;
+                }
+                else if (header.Contains("sociale") || header.Contains("societe") || header.Contains("entreprise") || header.Contains("company") || header.Contains("nom service") || header.Contains("nom entreprise"))
+                {
+                    colName = c;
+                }
+                else if (header.Contains("description") || header.Contains("activite"))
+                {
+                    colDesc = c;
+                }
+                else if (header.Contains("prenom") || header.Contains("firstname"))
+                {
+                    colFirstName = c;
+                }
+                else if (header == "nom" || header.Contains("lastname") || header.Contains("responsable") || header.Contains("contact"))
+                {
+                    colLastName = c;
+                }
+                else if (header.Contains("email") || header.Contains("courriel"))
+                {
+                    colEmail = c;
+                }
+                else if (header.Contains("matricule") || header.Contains("tax"))
+                {
+                    colTaxReg = c;
+                }
+                else if (header.Contains("cin") || header.Contains("identity"))
+                {
+                    colCin = c;
+                }
+                else if (header.Contains("adresse") || header.Contains("address"))
+                {
+                    colAddress = c;
+                }
+                else if (header.Contains("gouvernorat") || header.Contains("gov"))
+                {
+                    colGov = c;
+                }
+                else if (header.Contains("tel1") || header.Contains("phone1") || header.Contains("telephone1"))
+                {
+                    colPhone1 = c;
+                }
+                else if (header.Contains("tel2") || header.Contains("phone2") || header.Contains("telephone2"))
+                {
+                    colPhone2 = c;
+                }
+                else if (header.Contains("poste") || header.Contains("fonction") || header.Contains("job"))
+                {
+                    colJob = c;
+                }
+                else if (header.Contains("note"))
+                {
+                    colNotes = c;
+                }
             }
 
             var rows = worksheet.RangeUsed()!.RowsUsed().Skip(1);
 
             foreach (var row in rows)
             {
-                list.Add(new CounterPartImportDto
+                var item = new CounterPartImportDto
                 {
-                    Name = GetSafeString(row.Cell(colName)),
-                    FirstName = GetSafeString(row.Cell(colFirstName)),
-                    LastName = GetSafeString(row.Cell(colLastName)),
-                    Email = GetSafeString(row.Cell(colEmail)),
-                    TaxRegistrationNumber = GetSafeString(row.Cell(colTaxReg)),
-                    IdentityCardNumber = GetSafeString(row.Cell(colCin)),
-                    Address = GetSafeString(row.Cell(colAddress)),
-                    Gouvernorate = GetSafeString(row.Cell(colGov)),
-                    PhoneNumberOne = GetSafeString(row.Cell(colPhone1)),
-                    PhoneNumberTwo = GetSafeString(row.Cell(colPhone2)),
-                    JobTitle = GetSafeString(row.Cell(colJob)),
-                    Notes = GetSafeString(row.Cell(colNotes))
-                });
+                    Prefix = colPrefix > 0 ? GetSafeString(row.Cell(colPrefix)) : null,
+                    Name = colName > 0 ? GetSafeString(row.Cell(colName)) : null,
+                    Description = colDesc > 0 ? GetSafeString(row.Cell(colDesc)) : null,
+                    FirstName = colFirstName > 0 ? GetSafeString(row.Cell(colFirstName)) : null,
+                    LastName = colLastName > 0 ? GetSafeString(row.Cell(colLastName)) : null,
+                    Email = colEmail > 0 ? GetSafeString(row.Cell(colEmail)) : null,
+                    TaxRegistrationNumber = colTaxReg > 0 ? GetSafeString(row.Cell(colTaxReg)) : null,
+                    IdentityCardNumber = colCin > 0 ? GetSafeString(row.Cell(colCin)) : null,
+                    Address = colAddress > 0 ? GetSafeString(row.Cell(colAddress)) : null,
+                    Gouvernorate = colGov > 0 ? GetSafeString(row.Cell(colGov)) : null,
+                    PhoneNumberOne = colPhone1 > 0 ? GetSafeString(row.Cell(colPhone1)) : null,
+                    PhoneNumberTwo = colPhone2 > 0 ? GetSafeString(row.Cell(colPhone2)) : null,
+                    JobTitle = colJob > 0 ? GetSafeString(row.Cell(colJob)) : null,
+                    Notes = colNotes > 0 ? GetSafeString(row.Cell(colNotes)) : null,
+                };
+
+                // Normalize Prefix if 'Personne Morale' / 'Personne Physique' is specified in Excel
+                if (!string.IsNullOrEmpty(item.Prefix))
+                {
+                    var normPrefix = NormalizeString(item.Prefix);
+                    if (normPrefix.Contains("morale") || normPrefix.Contains("societe"))
+                    {
+                        item.Prefix = "STE";
+                    }
+                    else if (normPrefix.Contains("physique") || normPrefix.Contains("particulier") || normPrefix.Contains("individu"))
+                    {
+                        item.Prefix = "MR";
+                    }
+                }
+
+                list.Add(item);
             }
             return list;
         }

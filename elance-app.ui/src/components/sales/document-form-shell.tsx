@@ -74,7 +74,7 @@ import { exchangeRateService } from '@/services/components/exchange-rate.service
 import { DocumentTypes, DocStatus, BillingStatus, LineType, ListOfLength } from '@/types/document';
 import { DEVISES } from '@/lib/constants/settings';
 import { Article } from '@/types/article';
-import { Customer, PassagerInfo } from '@/types/customer';
+import { Customer, PassagerInfo, getCustomerDisplayName } from '@/types/customer';
 import { Transporter } from '@/types/settings';
 import { toast } from 'sonner';
 import { WoodLengthsDialog } from '@/components/sales/wood-lengths-dialog';
@@ -200,7 +200,7 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
       );
 
       setSelectedCustomer(passagerCounterpart);
-      setCustomerSearchQuery(`Passager: ${info.firstname} ${info.lastname}`);
+      setCustomerSearchQuery(`${info.firstname} ${info.lastname}`);
 
       // Persist passager info via AppVariable service
       createAppVariable.mutate({
@@ -322,21 +322,66 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
   const [extraDiscount, setExtraDiscount] = useState<number>(0);
   const [manualNetTTC, setManualNetTTC] = useState<string>('');
 
+  // Ensure Client Passager system counterpart is always present in customer dropdown options
+  const allCustomersWithPassager = useMemo(() => {
+    const hasPassager = allCustomers.some(
+      c => c.notes === 'SYSTEM_PASSAGER' || (c.prefix === 'PASS' && c.name === 'Client Passager')
+    );
+    if (hasPassager) {
+      return allCustomers;
+    }
+    const virtualPassager: Customer = {
+      id: -1,
+      type: 'Customer',
+      prefix: 'PASS',
+      name: 'Client Passager',
+      firstname: 'Client',
+      lastname: 'Passager',
+      description: 'Client Passager - Compte système',
+      notes: 'SYSTEM_PASSAGER',
+      address: 'N/A',
+      gouvernorate: 'Tunis',
+      jobtitle: 'Particulier',
+      identitycardnumber: '',
+      email: '',
+      taxregistrationnumber: '',
+      patentecode: '',
+      phonenumberone: '',
+      phonenumbertwo: '',
+      creationdate: new Date(),
+      updatedate: new Date(),
+      bankname: '',
+      bankaccountnumber: '',
+      isactive: true,
+      isdeleted: false,
+      updatedbyid: 0,
+      openingbalance: 0,
+      maximumdiscount: 0,
+      isTypeBoth: false
+    };
+    return [virtualPassager, ...allCustomers];
+  }, [allCustomers]);
+
   // Derived lists for client and transporter autocompletion
   const filteredCustomersList = useMemo(() => {
     if (!customerSearchQuery.trim()) {
-      return allCustomers;
+      return allCustomersWithPassager;
     }
     const q = customerSearchQuery.toLowerCase();
-    return allCustomers.filter(c => {
-      const name = (c.name || '').toLowerCase();
-      const firstname = (c.firstname || '').toLowerCase();
-      const lastname = (c.lastname || '').toLowerCase();
+    return allCustomersWithPassager.filter(c => {
+      const isPassager = c.notes === 'SYSTEM_PASSAGER' || c.prefix === 'PASS';
+      if (isPassager) {
+        const passagerName = passagerInfo 
+          ? `${passagerInfo.firstname} ${passagerInfo.lastname}`.toLowerCase()
+          : '';
+        return 'client passager'.includes(q) || 'passager'.includes(q) || (passagerName && passagerName.includes(q));
+      }
+      const fullName = getCustomerDisplayName(c).toLowerCase();
       const phone = (c.phonenumberone || '').toLowerCase();
       const taxReg = (c.taxregistrationnumber || '').toLowerCase();
-      return name.includes(q) || firstname.includes(q) || lastname.includes(q) || phone.includes(q) || taxReg.includes(q);
+      return fullName.includes(q) || phone.includes(q) || taxReg.includes(q);
     });
-  }, [allCustomers, customerSearchQuery]);
+  }, [allCustomersWithPassager, customerSearchQuery, passagerInfo]);
 
   const filteredTransportersList = useMemo(() => {
     if (!transporterSearchQuery.trim()) {
@@ -353,12 +398,16 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
   // Sync search inputs when selected customer changes
   useEffect(() => {
     if (selectedCustomer) {
-      const fullName = selectedCustomer.name || (selectedCustomer.firstname + ' ' + selectedCustomer.lastname);
-      setCustomerSearchQuery(fullName);
+      const isPassager = selectedCustomer.notes === 'SYSTEM_PASSAGER' || selectedCustomer.prefix === 'PASS';
+      if (isPassager && passagerInfo) {
+        setCustomerSearchQuery(`${passagerInfo.firstname} ${passagerInfo.lastname}`);
+      } else {
+        setCustomerSearchQuery(getCustomerDisplayName(selectedCustomer));
+      }
     } else {
       setCustomerSearchQuery('');
     }
-  }, [selectedCustomer]);
+  }, [selectedCustomer, passagerInfo]);
 
   // Sync search inputs when selected transporter changes
   useEffect(() => {
@@ -1401,21 +1450,36 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                     />
                     <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto z-20 rounded-xl border border-corp-blue-100 bg-white/95 backdrop-blur-md shadow-2xl p-1.5 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
                       {filteredCustomersList.map(cust => {
-                        const fullName = cust.name || (cust.firstname + ' ' + cust.lastname);
+                        const isPassager = cust.notes === 'SYSTEM_PASSAGER' || cust.prefix === 'PASS';
+                        const isSelected = selectedCustomer && (
+                          selectedCustomer.id === cust.id || 
+                          (isPassager && (selectedCustomer.notes === 'SYSTEM_PASSAGER' || selectedCustomer.prefix === 'PASS'))
+                        );
+                        const displayLabel = isPassager
+                          ? (passagerInfo ? `🔒 Client Passager (${passagerInfo.firstname} ${passagerInfo.lastname})` : '🔒 Client Passager (Vente rapide)')
+                          : getCustomerDisplayName(cust);
+
                         return (
                           <button
                             key={cust.id}
                             type="button"
                             className={cn(
                               "w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between",
-                              selectedCustomer?.id === cust.id 
+                              isSelected 
                                 ? "bg-corp-blue-600 text-white" 
-                                : "text-corp-blue-900 hover:bg-corp-blue-50"
+                                : isPassager 
+                                  ? "bg-amber-50/80 text-amber-900 hover:bg-amber-100/80 border border-amber-200/50" 
+                                  : "text-corp-blue-900 hover:bg-corp-blue-50"
                             )}
                             onClick={() => {
+                              if (isPassager) {
+                                setIsCustomerDropdownOpen(false);
+                                setIsPassagerModalOpen(true);
+                                return;
+                              }
                               setSelectedCustomer(cust);
                               setPassagerInfo(null);
-                              setCustomerSearchQuery(fullName);
+                              setCustomerSearchQuery(getCustomerDisplayName(cust));
                               setIsCustomerDropdownOpen(false);
                               // Auto-select linked transporter
                               let defaultTransp = null;
@@ -1446,7 +1510,7 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                               }
                             }}
                           >
-                            <span>{fullName}</span>
+                            <span>{displayLabel}</span>
                             <span className={cn(
                               "text-[0.65rem] font-medium",
                               selectedCustomer?.id === cust.id ? "text-corp-blue-200" : "text-sand-400"

@@ -462,6 +462,8 @@ CREATE TABLE tbl_list_of_lengths (
     quantity double precision NOT NULL,
     lengthappvarid integer NULL,
     quantitymouvementid integer NOT NULL,
+    customlengthcm double precision NULL,
+    totalwidthcm double precision NULL,
     CONSTRAINT "PK_tbl_list_of_lengths" PRIMARY KEY (id),
     CONSTRAINT "FK_tbl_list_of_lengths_tbl_appvariable_lengthappvarid" FOREIGN KEY (lengthappvarid) REFERENCES tbl_appvariable (id) ON DELETE SET NULL,
     CONSTRAINT "FK_tbl_list_of_lengths_tbl_quantity_mouvements_quantitymouveme~" FOREIGN KEY (quantitymouvementid) REFERENCES tbl_quantity_mouvements (id) ON DELETE CASCADE

@@ -47,7 +47,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useCustomers, useCreateCustomer, useUpdateCustomer, useDeleteCustomer } from '@/hooks/use-customers';
-import { Customer, GOUVERNORATES_TN } from '@/types/customer';
+import { Customer, GOUVERNORATES_TN, SOCIETY_PREFIXES } from '@/types/customer';
 import { CustomerFormDialog } from '@/components/customers/customer-form-dialog';
 import { TablePagination } from '@/components/shared/table-pagination';
 import { CustomerDetailsDialog } from '@/components/customers/customer-details-dialog';
@@ -181,20 +181,26 @@ export default function CustomersPage() {
   const handleExport = () => {
     if (!customers || customers.length === 0) return;
 
-    const exportData = customers.map(c => ({
-      'Raison Sociale': c.name || '',
-      'Prénom': c.firstname || '',
-      'Nom': c.lastname || '',
-      'Email': c.email || '',
-      'Matricule Fiscal': c.taxregistrationnumber || '',
-      'CIN': c.identitycardnumber || '',
-      'Adresse': c.address || '',
-      'Gouvernorat': c.gouvernorate || '',
-      'Tél 1': c.phonenumberone || '',
-      'Tél 2': c.phonenumbertwo || '',
-      'Fonction': c.jobtitle || '',
-      'Notes': c.notes || ''
-    }));
+    const exportData = customers.map(c => {
+      const isSociety = SOCIETY_PREFIXES.some(p => p.id === c.prefix) || !!c.name;
+      return {
+        'Type Personne': isSociety ? 'Personne Morale' : 'Personne Physique',
+        'Préfixe': c.prefix || (isSociety ? 'STE' : 'MR'),
+        'Raison Sociale': c.name || '',
+        'Description / Activité': c.description || '',
+        'Prénom': c.firstname || '',
+        'Nom': c.lastname || '',
+        'Email': c.email || '',
+        'Matricule Fiscal': c.taxregistrationnumber || '',
+        'CIN': c.identitycardnumber || '',
+        'Adresse': c.address || '',
+        'Gouvernorat': c.gouvernorate || '',
+        'Tél 1': c.phonenumberone || '',
+        'Tél 2': c.phonenumbertwo || '',
+        'Fonction / Activité': c.jobtitle || '',
+        'Notes': c.notes || ''
+      };
+    });
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
@@ -347,18 +353,22 @@ export default function CustomersPage() {
                         <td className="p-5 text-center">
                           {item.notes === 'SYSTEM_PASSAGER' ? (
                             <Badge className="rounded-full px-3 py-1 font-bold text-[0.7rem] border-none bg-amber-100 text-amber-800">
-                              🔒 Client Passager (Système)
+                              🔒 Client Passager
                             </Badge>
-                          ) : (
-                            <Badge 
-                              className={cn(
-                                "rounded-full px-3 py-1 font-bold text-[0.7rem] border-none",
-                                item.isTypeBoth ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"
-                              )}
-                            >
-                              {item.isTypeBoth ? 'Client/Fournisseur' : 'Client'}
-                            </Badge>
-                          )}
+                          ) : (() => {
+                            const isSociety = SOCIETY_PREFIXES.some(p => p.id === item.prefix) || !!item.name;
+                            const label = isSociety ? 'Personne Morale' : 'Personne Physique';
+                            return (
+                              <Badge 
+                                className={cn(
+                                  "rounded-full px-3 py-1 font-bold text-[0.7rem] border-none shadow-2xs",
+                                  isSociety ? "bg-corp-blue-100 text-corp-blue-800" : "bg-emerald-100 text-emerald-800"
+                                )}
+                              >
+                                {label}
+                              </Badge>
+                            );
+                          })()}
                         </td>
                         <td className="p-5 text-right">
                           <div className="flex items-center justify-end gap-2">
