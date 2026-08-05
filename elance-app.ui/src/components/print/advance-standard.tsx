@@ -42,17 +42,17 @@ export function AdvanceStandard({ employee, advance, enterprise, printLocale }: 
       {/* Custom Stylesheet specifically for administrative letters */}
       <style>{`
         .letter-content {
-          margin-top: 15mm;
-          margin-bottom: 20mm;
+          margin-top: 4mm;
+          margin-bottom: 4mm;
           display: flex;
           flex-direction: column;
-          gap: 10mm;
+          gap: 3mm;
         }
         .body-paragraph {
-          font-size: 10.5pt;
-          line-height: 1.8;
+          font-size: 9.5pt;
+          line-height: 1.5;
           text-align: justify;
-          margin-bottom: 6mm;
+          margin-bottom: 2mm;
           color: #111;
         }
         .body-paragraph.arabic {
@@ -60,37 +60,39 @@ export function AdvanceStandard({ employee, advance, enterprise, printLocale }: 
           text-align: justify;
           font-family: 'Inter', Arial, sans-serif;
           font-weight: bold;
-          font-size: 11pt;
+          font-size: 10pt;
+          line-height: 1.5;
         }
         .hr-signature-section {
-          margin-top: 25mm;
+          margin-top: 5mm;
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 20mm;
+          gap: 10mm;
+          page-break-inside: avoid;
         }
         .hr-sig-box {
           border: 1px dashed #ccc;
-          padding: 4mm;
-          min-height: 35mm;
+          padding: 2.5mm;
+          min-height: 22mm;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
-          border-radius: 8px;
+          border-radius: 6px;
         }
         .hr-sig-label {
           font-weight: bold;
-          font-size: 9.5pt;
+          font-size: 9pt;
           text-align: center;
           border-bottom: 1px dotted #ccc;
-          padding-bottom: 1.5mm;
-          margin-bottom: 3mm;
+          padding-bottom: 1mm;
+          margin-bottom: 2mm;
           text-transform: uppercase;
         }
         .hr-sig-area {
           flex: 1;
         }
         .hr-sig-footer {
-          font-size: 7.5pt;
+          font-size: 7pt;
           color: #666;
           text-align: center;
           margin-top: auto;
@@ -141,15 +143,15 @@ export function AdvanceStandard({ employee, advance, enterprise, printLocale }: 
       </div>
 
       {/* Document Title Header */}
-      <div className="document-header" style={{ marginBottom: '8mm' }}>
-        <div className="document-title-section" style={{ width: '100%', padding: '6mm' }}>
+      <div className="document-header" style={{ marginBottom: '4mm' }}>
+        <div className="document-title-section" style={{ width: '100%', padding: '3mm' }}>
           <h2 className="document-title" style={{ letterSpacing: '1px' }}>{templates.advance.title}</h2>
-          <span style={{ fontSize: '12pt', fontWeight: 'bold', marginTop: '2mm', display: 'block' }}>{templates.advance.titleAr}</span>
+          <span style={{ fontSize: '11pt', fontWeight: 'bold', marginTop: '1mm', display: 'block' }}>{templates.advance.titleAr}</span>
         </div>
       </div>
 
       {/* Meta Dates Bar */}
-      <div className="document-details" style={{ marginBottom: '10mm' }}>
+      <div className="document-details" style={{ marginBottom: '4mm' }}>
         <div className="detail-item">
           <span className="detail-label">DATE DE DEMANDE</span>
           <span className="detail-value">{new Date(advance.requestdate).toLocaleDateString('fr-FR')}</span>
@@ -167,7 +169,7 @@ export function AdvanceStandard({ employee, advance, enterprise, printLocale }: 
           {bodyFr}
         </div>
 
-        <div style={{ borderBottom: '1px dotted #ccc', margin: '4mm 0' }} />
+        <div style={{ borderBottom: '1px dotted #ccc', margin: '2mm 0' }} />
 
         {/* Arabic Block */}
         <div className="body-paragraph arabic" style={{ whiteSpace: 'pre-line' }}>
@@ -201,7 +203,7 @@ export function AdvanceStandard({ employee, advance, enterprise, printLocale }: 
       )}
 
       {/* Legal Footer */}
-      <div className="footer-legal" style={{ marginTop: '25mm' }}>
+      <div className="footer-legal" style={{ marginTop: '5mm', pageBreakInside: 'avoid' }}>
         <p className="legal-text">
           {enterprise.description ? `${enterprise.name} - ${enterprise.description}` : enterprise.name}
         </p>

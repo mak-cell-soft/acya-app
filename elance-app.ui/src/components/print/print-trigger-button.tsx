@@ -36,6 +36,8 @@ import { BankStatementLight } from './bank-statement-light';
 import { CaisseRemiseStandard } from './caisse-remise-standard';
 import { SupplierPaymentStandard } from './supplier-payment-standard';
 import { BordereauVersementStandard } from './bordereau-versement-standard';
+import { SupplierPaymentsListStandard } from './supplier-payments-list-standard';
+import { DashboardPaymentDto } from '@/types/payment';
 import { getHalfA4PrintStyles, getDuplicatedBordereauPrintStyles } from './print-styles';
 
 interface PrintVariantDialogProps {
@@ -70,7 +72,8 @@ interface PrintVariantDialogProps {
   counterpartType?: 'client' | 'supplier';
   bordereauNumber?: string;
   depositDate?: Date | string;
-  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | 'document-list' | 'bank-statement' | 'caisse-remise' | 'supplier-payment' | 'bordereau-versement' | null | undefined;
+  supplierPaymentsList?: DashboardPaymentDto[];
+  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | 'document-list' | 'bank-statement' | 'caisse-remise' | 'supplier-payment' | 'bordereau-versement' | 'supplier-payments-list' | null | undefined;
 }
 
 export function PrintVariantDialog({
@@ -105,16 +108,17 @@ export function PrintVariantDialog({
   counterpartType,
   bordereauNumber,
   depositDate,
+  supplierPaymentsList,
   docType,
 }: PrintVariantDialogProps) {
   const { data: enterprise, isLoading } = useEnterprise();
   const { data: printLocale } = usePrintLocale();
   const [printing, setPrinting] = useState(false);
 
-  // Auto-trigger print for single-variant HR documents, statements, caisse-remise, supplier-payment, bordereau-versement as soon as enterprise settings load
+  // Auto-trigger print for single-variant HR documents, statements, caisse-remise, supplier-payment, bordereau-versement, payslip, supplier-payments-list as soon as enterprise settings load
   React.useEffect(() => {
     if (isOpen && enterprise && !isLoading && !printing && 
-       (docType === 'leave' || docType === 'advance' || docType === 'customer-statement' || docType === 'supplier-statement' || docType === 'document-list' || docType === 'caisse-remise' || docType === 'supplier-payment' || docType === 'bordereau-versement')) {
+       (docType === 'leave' || docType === 'advance' || docType === 'payslip' || docType === 'customer-statement' || docType === 'supplier-statement' || docType === 'document-list' || docType === 'caisse-remise' || docType === 'supplier-payment' || docType === 'bordereau-versement' || docType === 'supplier-payments-list')) {
       handlePrint('standard');
     }
   }, [isOpen, enterprise, isLoading, docType]);
@@ -131,6 +135,7 @@ export function PrintVariantDialog({
     docType !== 'caisse-remise' &&
     docType !== 'supplier-payment' &&
     docType !== 'bordereau-versement' &&
+    docType !== 'supplier-payments-list' &&
     (!document || !docType)
   ) return null;
   if (docType === 'transfer' && !transfer) return null;
@@ -143,6 +148,7 @@ export function PrintVariantDialog({
   if (docType === 'caisse-remise' && !deposit) return null;
   if (docType === 'supplier-payment' && !supplierPayment) return null;
   if (docType === 'bordereau-versement' && (!bordereauInstruments || bordereauInstruments.length === 0)) return null;
+  if (docType === 'supplier-payments-list' && !supplierPaymentsList) return null;
 
   /**
    * Executes the print flow by generating markup, injecting it into a hidden iframe,
@@ -299,6 +305,17 @@ export function PrintVariantDialog({
             counterpartType={counterpartType}
             bordereauNumber={bordereauNumber}
             depositDate={depositDate}
+            enterprise={enterprise}
+            printLocale={printLocale}
+          />
+        );
+      } else if (docType === 'supplier-payments-list' && supplierPaymentsList) {
+        printDocNumber = `LISTE-REGLEMENTS-FOURNISSEURS`;
+        styleCss = getStandardPrintStyles();
+        contentHtml = renderToStaticMarkup(
+          <SupplierPaymentsListStandard
+            paymentsList={supplierPaymentsList}
+            listTitle={listTitle || 'Règlements Fournisseurs'}
             enterprise={enterprise}
             printLocale={printLocale}
           />

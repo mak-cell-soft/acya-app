@@ -64,6 +64,7 @@ export interface DashboardPaymentDto {
   invoiceNumber: string;
   deliveryNoteNumber: string;
   createdAt: string;
+  dueDate?: string;
 }
 
 export interface UnpaidInvoiceSummaryDto {

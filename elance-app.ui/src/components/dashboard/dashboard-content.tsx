@@ -21,6 +21,7 @@ import { caisseService } from '@/services/treasury/caisse.service';
 import { InstrumentsTable } from '@/components/dashboard/instruments-table';
 import { PaymentDeepSearchCard } from '@/components/dashboard/payment-deep-search-card';
 import { CustomerRecouvrementDialog } from '@/components/customers/customer-recouvrement-dialog';
+import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 
 // UI components from shadcn library
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -89,7 +90,8 @@ import {
   FileText,
   Truck,
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  Printer
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -108,6 +110,7 @@ export function DashboardContent() {
   const [timelineDate, setTimelineDate] = React.useState<Date>(new Date());
   // Caisse action state: ENTREE or SORTIE movement dialog
   const [movementModalType, setMovementModalType] = React.useState<'ENTREE' | 'SORTIE' | null>(null);
+  const [printedRemise, setPrintedRemise] = React.useState<any | null>(null);
   
   // Form states for adding cash movements
   const [movementAmount, setMovementAmount] = React.useState<string>('');
@@ -710,13 +713,31 @@ export function DashboardContent() {
                           )}
 
                           {/* Text indicators */}
-                          <div className={cn("text-center mt-2 flex flex-col", isEven ? "" : "order-first mb-2 mt-0")}>
+                          <div className={cn("text-center mt-2 flex flex-col items-center", isEven ? "" : "order-first mb-2 mt-0")}>
                             <span className="text-[0.7rem] font-bold text-corp-blue-900 leading-tight">
                               {formatReason(m.reason)}
                             </span>
                             <span className="text-[0.65rem] text-sand-300 font-bold mt-0.5">
                               {format(new Date(m.movementDate), 'HH:mm')}
                             </span>
+                            {(m.reason === 'REMISE_CENTRALE' || (m.reason && m.reason.toUpperCase().includes('REMISE'))) && (
+                              <button
+                                type="button"
+                                onClick={() => setPrintedRemise({
+                                  id: m.id,
+                                  reference: m.reference || `REM-${m.id}`,
+                                  amount: m.amount,
+                                  depositDate: m.movementDate,
+                                  notes: m.notes || 'Remise de caisse vers caisse principale',
+                                  depositType: 'ESPECE'
+                                })}
+                                className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.65rem] font-bold text-corp-blue-700 bg-corp-blue-50 hover:bg-corp-blue-100 border border-corp-blue-100 transition-colors shadow-xs"
+                                title="Imprimer le reçu de Remise Centrale"
+                              >
+                                <Printer className="w-3 h-3 text-corp-blue-700" />
+                                <span>Imprimer</span>
+                              </button>
+                            )}
                           </div>
 
                           {/* Action to delete manual entries */}
@@ -1201,6 +1222,15 @@ export function DashboardContent() {
           }}
         />
       )}
+
+      <PrintVariantDialog
+        isOpen={printedRemise !== null}
+        onClose={() => setPrintedRemise(null)}
+        docType="caisse-remise"
+        deposit={printedRemise}
+        userName={(user as any)?.login || (user as any)?.username || user?.email || 'Utilisateur'}
+        caisseName={siteName || 'Caisse Site'}
+      />
     </div>
   );
 }

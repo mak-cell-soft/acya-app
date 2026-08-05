@@ -110,6 +110,7 @@ export default function AccountingDashboard() {
   // Print List States
   const [isPrintAchatsListModalOpen, setIsPrintAchatsListModalOpen] = useState(false);
   const [isPrintVentesListModalOpen, setIsPrintVentesListModalOpen] = useState(false);
+  const [isPrintSupplierPaymentsListOpen, setIsPrintSupplierPaymentsListOpen] = useState(false);
 
   // Reset pages to 1 when period or search terms change
   React.useEffect(() => {
@@ -716,12 +717,23 @@ export default function AccountingDashboard() {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <div className="space-y-6 pt-6">
-            <div className="flex items-center gap-3">
-              <CreditCard className="w-6 h-6 text-amber-500" />
-              <h2 className="text-xl font-bold text-slate-900">Règlements Fournisseurs</h2>
-              <span className="text-xs font-bold text-slate-400 ml-1">
-                — {format(selectedMonthDate, 'MMMM yyyy', { locale: fr })}
-              </span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <CreditCard className="w-6 h-6 text-amber-500" />
+                <h2 className="text-xl font-bold text-slate-900">Règlements Fournisseurs</h2>
+                <span className="text-xs font-bold text-slate-400 ml-1">
+                  — {format(selectedMonthDate, 'MMMM yyyy', { locale: fr })}
+                </span>
+              </div>
+              <Button
+                onClick={() => setIsPrintSupplierPaymentsListOpen(true)}
+                variant="outline"
+                size="sm"
+                className="h-9 px-3 gap-2 border-amber-200 text-amber-800 hover:bg-amber-50 font-bold"
+              >
+                <Printer className="w-4 h-4 text-amber-600" />
+                <span>Imprimer tout le tableau</span>
+              </Button>
             </div>
 
             <Card className="border-amber-100 rounded-xl bg-white overflow-hidden shadow-none border">
@@ -1035,6 +1047,14 @@ export default function AccountingDashboard() {
         onClose={() => setIsPrintSupplierPaymentOpen(false)}
         docType="supplier-payment"
         supplierPayment={selectedSupplierPayment}
+      />
+
+      <PrintVariantDialog
+        isOpen={isPrintSupplierPaymentsListOpen}
+        onClose={() => setIsPrintSupplierPaymentsListOpen(false)}
+        docType="supplier-payments-list"
+        supplierPaymentsList={supplierPayments}
+        listTitle={`Règlements Fournisseurs - ${format(selectedMonthDate, 'MMMM yyyy', { locale: fr })}`}
       />
     </div>
   );

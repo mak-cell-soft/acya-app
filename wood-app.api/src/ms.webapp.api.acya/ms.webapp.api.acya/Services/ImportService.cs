@@ -18,6 +18,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ms.webapp.api.acya.Services
@@ -29,6 +30,30 @@ namespace ms.webapp.api.acya.Services
         public ImportService(WoodAppContext context)
         {
             _context = context;
+        }
+
+        private static string RemoveAccents(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return "";
+            text = text.Trim().Replace("\u00A0", " ");
+            var normalizedString = text.Normalize(NormalizationForm.FormD);
+            var stringBuilder = new StringBuilder();
+            foreach (var c in normalizedString)
+            {
+                var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+            return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
+        }
+
+        private static string NormalizeString(string? s)
+        {
+            if (string.IsNullOrWhiteSpace(s)) return "";
+            var unaccented = RemoveAccents(s);
+            return new string(unaccented.Where(c => char.IsLetterOrDigit(c)).ToArray()).ToLowerInvariant();
         }
 
         public async Task<ImportReportDto> ImportArticlesAsync(Stream fileStream, string fileName, int userId, int enterpriseId)
@@ -64,8 +89,6 @@ namespace ms.webapp.api.acya.Services
 
             report.TotalRows = items.Count;
 
-            string NormalizeString(string? s) => s?.Replace(" ", "")?.Replace("-", "")?.Replace("_", "")?.ToLower() ?? "";
-
             var parentsList = await _context.Parents.Where(x => x.Description != null).ToListAsync();
             var categories = parentsList.GroupBy(x => NormalizeString(x.Description)).ToDictionary(g => g.Key, g => g.First().Id);
             
@@ -73,7 +96,15 @@ namespace ms.webapp.api.acya.Services
             var subCategories = childrenList.GroupBy(x => NormalizeString(x.Description)).ToDictionary(g => g.Key, g => g.First().Id);
             
             var tvas = await _context.AppVariables.Where(x => x.Nature != null && x.Nature.ToLower() == "tva").ToListAsync();
-            var dimensions = await _context.AppVariables.Where(x => x.Nature != null && x.Nature.ToLower() == "dimension").ToListAsync();
+            var dimensions = await _context.AppVariables
+                .Where(x => x.Nature != null && (
+                    x.Nature.ToLower() == "dimension" || 
+                    x.Nature.ToLower() == "thickness" || 
+                    x.Nature.ToLower() == "width" || 
+                    x.Nature.ToLower() == "length" ||
+                    x.Nature.ToLower() == "epaisseur" ||
+                    x.Nature.ToLower() == "largeur"))
+                .ToListAsync();
 
             int rowIndex = 1;
             foreach (var item in items)
@@ -81,40 +112,135 @@ namespace ms.webapp.api.acya.Services
                 rowIndex++;
                 try
                 {
+                    int categoryId;
                     var categoryKey = NormalizeString(item.CategoryName);
-                    if (string.IsNullOrEmpty(categoryKey) || !categories.TryGetValue(categoryKey, out int categoryId))
+                    if (string.IsNullOrEmpty(categoryKey))
                     {
-                        report.Errors.Add(new ImportError { RowIndex = rowIndex, Message = $"Catégorie inconnue : {item.CategoryName}" });
+                        report.Errors.Add(new ImportError { RowIndex = rowIndex, Message = "Catégorie non spécifiée." });
                         continue;
                     }
 
-                    var subCategoryKey = NormalizeString(item.SubCategoryName);
-                    if (string.IsNullOrEmpty(subCategoryKey) || !subCategories.TryGetValue(subCategoryKey, out int subCategoryId))
+                    if (!categories.TryGetValue(categoryKey, out categoryId))
                     {
-                        report.Errors.Add(new ImportError { RowIndex = rowIndex, Message = $"Sous-catégorie inconnue : {item.SubCategoryName}" });
+                        var existingParent = parentsList.FirstOrDefault(p => 
+                            NormalizeString(p.Reference) == categoryKey || 
+                            NormalizeString(p.Description).Contains(categoryKey) || 
+                            categoryKey.Contains(NormalizeString(p.Description)));
+
+                        if (existingParent != null)
+                        {
+                            categoryId = existingParent.Id;
+                            categories[categoryKey] = categoryId;
+                        }
+                        else
+                        {
+                            var newParent = new Parent
+                            {
+                                Reference = item.CategoryName.Length > 10 ? item.CategoryName.Substring(0, 10).ToUpper() : item.CategoryName.ToUpper(),
+                                Description = item.CategoryName,
+                                CreationDate = DateTime.UtcNow,
+                                UpdateDate = DateTime.UtcNow,
+                                IsDeleted = false
+                            };
+                            _context.Parents.Add(newParent);
+                            await _context.SaveChangesAsync();
+                            categoryId = newParent.Id;
+                            parentsList.Add(newParent);
+                            categories[categoryKey] = categoryId;
+                        }
+                    }
+
+                    int subCategoryId;
+                    var subCategoryKey = NormalizeString(item.SubCategoryName);
+                    if (string.IsNullOrEmpty(subCategoryKey))
+                    {
+                        report.Errors.Add(new ImportError { RowIndex = rowIndex, Message = "Sous-catégorie non spécifiée." });
                         continue;
+                    }
+
+                    if (!subCategories.TryGetValue(subCategoryKey, out subCategoryId))
+                    {
+                        var existingChild = childrenList.FirstOrDefault(c => 
+                            (c.IdParent == categoryId || c.IdParent == 0) && (
+                                NormalizeString(c.Reference) == subCategoryKey || 
+                                NormalizeString(c.Description).Replace("plq", "plaque").Replace("hgs", "hgss") == subCategoryKey.Replace("plq", "plaque").Replace("hgs", "hgss") ||
+                                NormalizeString(c.Description).Contains(subCategoryKey) || 
+                                subCategoryKey.Contains(NormalizeString(c.Description))
+                            ));
+
+                        if (existingChild == null)
+                        {
+                            existingChild = childrenList.FirstOrDefault(c => 
+                                NormalizeString(c.Description).Replace("plq", "plaque").Replace("hgs", "hgss") == subCategoryKey.Replace("plq", "plaque").Replace("hgs", "hgss"));
+                        }
+
+                        if (existingChild != null)
+                        {
+                            subCategoryId = existingChild.Id;
+                            subCategories[subCategoryKey] = subCategoryId;
+                        }
+                        else
+                        {
+                            var newChild = new FirstChild
+                            {
+                                IdParent = categoryId,
+                                Reference = item.SubCategoryName.Length > 10 ? item.SubCategoryName.Substring(0, 10).ToUpper() : item.SubCategoryName.ToUpper(),
+                                Description = item.SubCategoryName,
+                                CreationDate = DateTime.UtcNow,
+                                UpdateDate = DateTime.UtcNow,
+                                IsDeleted = false
+                            };
+                            _context.FirstChildren.Add(newChild);
+                            await _context.SaveChangesAsync();
+                            subCategoryId = newChild.Id;
+                            childrenList.Add(newChild);
+                            subCategories[subCategoryKey] = subCategoryId;
+                        }
                     }
 
                     // Fix percentage if stored as decimal (e.g., 0.19 instead of 19)
                     var normalizedTva = item.TvaRate > 0 && item.TvaRate < 1 ? Math.Round(item.TvaRate * 100, 2) : item.TvaRate;
 
-                    var tva = tvas.FirstOrDefault(x => x.Value == normalizedTva);
+                    var tva = tvas.FirstOrDefault(x => 
+                        Math.Abs((x.Value ?? 0) - normalizedTva) < 0.01 || 
+                        Math.Abs((x.Value ?? 0) * 100 - normalizedTva) < 0.01 ||
+                        Math.Abs((x.Value ?? 0) - normalizedTva / 100.0) < 0.0001
+                    ) ?? tvas.FirstOrDefault(x => x.isDefault == true) ?? tvas.FirstOrDefault();
+
                     if (tva == null)
                     {
-                        report.Errors.Add(new ImportError { RowIndex = rowIndex, Message = $"Taux TVA '{item.TvaRate}' non configuré." });
-                        continue;
+                        tva = new AppVariable
+                        {
+                            Nature = "TVA",
+                            Name = $"TVA {(normalizedTva > 0 ? normalizedTva : 19)}%",
+                            Value = normalizedTva > 0 ? normalizedTva : 19,
+                            isActive = true,
+                            isDefault = true,
+                            isEditable = true,
+                            isDeleted = false
+                        };
+                        _context.AppVariables.Add(tva);
+                        await _context.SaveChangesAsync();
+                        tvas.Add(tva);
                     }
 
                     int? thicknessId = null;
                     if (!string.IsNullOrEmpty(item.Thickness))
                     {
-                        thicknessId = dimensions.FirstOrDefault(x => x.Name == item.Thickness)?.Id;
+                        var normThickness = NormalizeString(item.Thickness);
+                        thicknessId = dimensions.FirstOrDefault(x => NormalizeString(x.Name) == normThickness || NormalizeString(x.Value?.ToString()) == normThickness)?.Id;
                     }
 
                     int? widthId = null;
                     if (!string.IsNullOrEmpty(item.Width))
                     {
-                        widthId = dimensions.FirstOrDefault(x => x.Name == item.Width)?.Id;
+                        var normWidth = NormalizeString(item.Width);
+                        widthId = dimensions.FirstOrDefault(x => NormalizeString(x.Name) == normWidth || NormalizeString(x.Value?.ToString()) == normWidth)?.Id;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(item.Reference))
+                    {
+                        item.Reference = $"ART-{rowIndex}-{Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper()}";
                     }
 
                     var article = await _context.Articles.FirstOrDefaultAsync(x => x.Reference == item.Reference && !x.IsDeleted);
@@ -142,7 +268,7 @@ namespace ms.webapp.api.acya.Services
                     article.Unit = item.Unit;
                     article.SellPriceHT = item.SellPriceHT;
                     var normalizedArticleTva = item.TvaRate > 0 && item.TvaRate < 1 ? Math.Round(item.TvaRate * 100, 2) : item.TvaRate;
-                    article.SellPriceTTC = item.SellPriceHT * (1 + normalizedArticleTva / 100.0);
+                    article.SellPriceTTC = item.SellPriceHT * (1 + (normalizedArticleTva > 0 ? normalizedArticleTva : (tva.Value ?? 0)) / 100.0);
                     article.LastPurchasePriceTTC = item.LastPurchasePriceTTC;
                     article.MinQuantity = item.MinQuantity;
                     article.Lengths = item.Lengths;
@@ -170,20 +296,6 @@ namespace ms.webapp.api.acya.Services
                             await _context.SaveChangesAsync();
                             article.SellHistoryId = sellHistory.Id;
                         }
-                    }
-
-                    if (item.LastPurchasePriceTTC > 0 && isNew)
-                    {
-                        var purchaseHistory = new PurchasePriceHistory
-                        {
-                            ArticleId = article.Id,
-                            PriceValue = item.LastPurchasePriceTTC,
-                            CreationDate = article.CreationDate,
-                            UpdateDate = article.UpdateDate,
-                            IsDeleted = false,
-                            UpdatedById = userId
-                        };
-                        _context.PurchasePriceHistories.Add(purchaseHistory);
                     }
 
                     await _context.SaveChangesAsync();
@@ -290,6 +402,7 @@ namespace ms.webapp.api.acya.Services
                     cp.MaximumDiscount ??= 0;
                     cp.MaximumSalesBar ??= 0;
 
+                    await _context.SaveChangesAsync();
                     report.SuccessCount++;
                 }
                 catch (Exception ex)
@@ -298,7 +411,6 @@ namespace ms.webapp.api.acya.Services
                 }
             }
 
-            await _context.SaveChangesAsync();
             report.ErrorCount = report.Errors.Count;
             return report;
         }
@@ -328,7 +440,7 @@ namespace ms.webapp.api.acya.Services
 
             strVal = strVal.Replace(',', '.');
 
-            if (double.TryParse(strVal, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+            if (double.TryParse(strVal, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed))
             {
                 return parsed;
             }
@@ -341,26 +453,54 @@ namespace ms.webapp.api.acya.Services
             var list = new List<ArticleImportDto>();
             using var workbook = new XLWorkbook(stream);
             var worksheet = workbook.Worksheet(1);
+            
+            var firstRow = worksheet.Row(1);
+            int lastCol = firstRow.LastCellUsed()?.Address.ColumnNumber ?? 15;
+
+            int colRef = 1, colDesc = 2, colCat = 3, colSubCat = 4, colIsWood = 5;
+            int colThickness = 6, colWidth = 7, colLengths = 8, colUnit = 9, colSellPriceHT = 10;
+            int colTva = 11, colMargin = 13, colPurchasePrice = 14, colMinQty = 15;
+
+            for (int c = 1; c <= lastCol; c++)
+            {
+                var header = NormalizeString(firstRow.Cell(c).GetString());
+                if (header.Contains("ref")) { colRef = c; }
+                else if (header.Contains("designation") || header.Contains("description")) { colDesc = c; }
+                else if (header.Contains("souscat")) { colSubCat = c; }
+                else if (header == "categorie" || header == "category") { colCat = c; }
+                else if (header.Contains("estbois") || header.Contains("iswood")) { colIsWood = c; }
+                else if (header.Contains("epaisseur") || header.Contains("thickness")) { colThickness = c; }
+                else if (header.Contains("largeur") || header.Contains("width")) { colWidth = c; }
+                else if (header.Contains("longueur") || header.Contains("length")) { colLengths = c; }
+                else if (header.Contains("unite") || header.Contains("unit")) { colUnit = c; }
+                else if (header.Contains("puht") || header.Contains("sellprice")) { colSellPriceHT = c; }
+                else if (header.Contains("tva")) { colTva = c; }
+                else if (header.Contains("marge") || header.Contains("profit")) { colMargin = c; }
+                else if (header.Contains("achat") || header.Contains("purchase")) { colPurchasePrice = c; }
+                else if (header.Contains("seuil") || header.Contains("alerte") || header.Contains("minqty") || header.Contains("minquantity")) { colMinQty = c; }
+            }
+
             var rows = worksheet.RangeUsed()!.RowsUsed().Skip(1);
 
             foreach (var row in rows)
             {
+                var isWoodStr = GetSafeString(row.Cell(colIsWood)).ToUpper();
                 list.Add(new ArticleImportDto
                 {
-                    Reference = row.Cell(1).GetString(),
-                    Description = row.Cell(2).GetString(),
-                    CategoryName = row.Cell(3).GetString(),
-                    SubCategoryName = row.Cell(4).GetString(),
-                    IsWood = row.Cell(5).GetString()?.ToUpper() == "O",
-                    Thickness = row.Cell(6).GetString(),
-                    Width = row.Cell(7).GetString(),
-                    Lengths = row.Cell(8).GetString(),
-                    Unit = row.Cell(9).GetString(),
-                    SellPriceHT = GetSafeDouble(row.Cell(10)),
-                    TvaRate = GetSafeDouble(row.Cell(11)),
-                    ProfitMarginPercentage = GetSafeDouble(row.Cell(13)),
-                    LastPurchasePriceTTC = GetSafeDouble(row.Cell(14)),
-                    MinQuantity = GetSafeDouble(row.Cell(15))
+                    Reference = GetSafeString(row.Cell(colRef)),
+                    Description = GetSafeString(row.Cell(colDesc)),
+                    CategoryName = GetSafeString(row.Cell(colCat)),
+                    SubCategoryName = GetSafeString(row.Cell(colSubCat)),
+                    IsWood = isWoodStr == "O" || isWoodStr == "OUI" || isWoodStr == "TRUE" || isWoodStr == "1",
+                    Thickness = GetSafeString(row.Cell(colThickness)),
+                    Width = GetSafeString(row.Cell(colWidth)),
+                    Lengths = GetSafeString(row.Cell(colLengths)),
+                    Unit = GetSafeString(row.Cell(colUnit)),
+                    SellPriceHT = GetSafeDouble(row.Cell(colSellPriceHT)),
+                    TvaRate = GetSafeDouble(row.Cell(colTva)),
+                    ProfitMarginPercentage = GetSafeDouble(row.Cell(colMargin)),
+                    LastPurchasePriceTTC = GetSafeDouble(row.Cell(colPurchasePrice)),
+                    MinQuantity = GetSafeDouble(row.Cell(colMinQty))
                 });
             }
             return list;
@@ -378,24 +518,49 @@ namespace ms.webapp.api.acya.Services
             var list = new List<CounterPartImportDto>();
             using var workbook = new XLWorkbook(stream);
             var worksheet = workbook.Worksheet(1);
+            
+            var firstRow = worksheet.Row(1);
+            int lastCol = firstRow.LastCellUsed()?.Address.ColumnNumber ?? 12;
+
+            int colName = 1, colFirstName = 2, colLastName = 3, colEmail = 4;
+            int colTaxReg = 5, colCin = 6, colAddress = 7, colGov = 8;
+            int colPhone1 = 9, colPhone2 = 10, colJob = 11, colNotes = 12;
+
+            for (int c = 1; c <= lastCol; c++)
+            {
+                var header = NormalizeString(firstRow.Cell(c).GetString());
+                if (header.Contains("sociale") || header.Contains("nomservice") || (header.Contains("nom") && !header.Contains("prenom"))) { colName = c; }
+                else if (header.Contains("prenom") || header.Contains("firstname")) { colFirstName = c; }
+                else if (header.Contains("lastname") || header == "nom") { colLastName = c; }
+                else if (header.Contains("email") || header.Contains("courriel")) { colEmail = c; }
+                else if (header.Contains("matricule") || header.Contains("tax")) { colTaxReg = c; }
+                else if (header.Contains("cin") || header.Contains("identity")) { colCin = c; }
+                else if (header.Contains("adresse") || header.Contains("address")) { colAddress = c; }
+                else if (header.Contains("gouvernorat") || header.Contains("gov")) { colGov = c; }
+                else if (header.Contains("tel1") || header.Contains("phone1") || header.Contains("telephone1")) { colPhone1 = c; }
+                else if (header.Contains("tel2") || header.Contains("phone2") || header.Contains("telephone2")) { colPhone2 = c; }
+                else if (header.Contains("poste") || header.Contains("fonction") || header.Contains("job")) { colJob = c; }
+                else if (header.Contains("note")) { colNotes = c; }
+            }
+
             var rows = worksheet.RangeUsed()!.RowsUsed().Skip(1);
 
             foreach (var row in rows)
             {
                 list.Add(new CounterPartImportDto
                 {
-                    Name = row.Cell(1).GetString(),
-                    FirstName = row.Cell(2).GetString(),
-                    LastName = row.Cell(3).GetString(),
-                    Email = row.Cell(4).GetString(),
-                    TaxRegistrationNumber = row.Cell(5).GetString(),
-                    IdentityCardNumber = row.Cell(6).GetString(),
-                    Address = row.Cell(7).GetString(),
-                    Gouvernorate = row.Cell(8).GetString(),
-                    PhoneNumberOne = row.Cell(9).GetString(),
-                    PhoneNumberTwo = row.Cell(10).GetString(),
-                    JobTitle = row.Cell(11).GetString(),
-                    Notes = row.Cell(12).GetString()
+                    Name = GetSafeString(row.Cell(colName)),
+                    FirstName = GetSafeString(row.Cell(colFirstName)),
+                    LastName = GetSafeString(row.Cell(colLastName)),
+                    Email = GetSafeString(row.Cell(colEmail)),
+                    TaxRegistrationNumber = GetSafeString(row.Cell(colTaxReg)),
+                    IdentityCardNumber = GetSafeString(row.Cell(colCin)),
+                    Address = GetSafeString(row.Cell(colAddress)),
+                    Gouvernorate = GetSafeString(row.Cell(colGov)),
+                    PhoneNumberOne = GetSafeString(row.Cell(colPhone1)),
+                    PhoneNumberTwo = GetSafeString(row.Cell(colPhone2)),
+                    JobTitle = GetSafeString(row.Cell(colJob)),
+                    Notes = GetSafeString(row.Cell(colNotes))
                 });
             }
             return list;
@@ -426,7 +591,7 @@ namespace ms.webapp.api.acya.Services
                 // Import Taxes
                 if (workbook.TryGetWorksheet("Taxes", out var wsTaxes))
                 {
-                    var rows = wsTaxes.RowsUsed().Skip(1); // skip header
+                    var rows = wsTaxes.RowsUsed().Skip(1);
                     foreach (var row in rows)
                     {
                         string nature = GetSafeString(row.Cell(1));
@@ -486,7 +651,8 @@ namespace ms.webapp.api.acya.Services
 
                         if (string.IsNullOrEmpty(description)) continue;
 
-                        var existing = await _context.Parents.FirstOrDefaultAsync(x => x.Description == description);
+                        var normDesc = NormalizeString(description);
+                        var existing = await _context.Parents.FirstOrDefaultAsync(x => x.Description == description || (x.Description != null && NormalizeString(x.Description) == normDesc));
                         if (existing != null)
                         {
                             existing.Reference = reference;
@@ -521,14 +687,16 @@ namespace ms.webapp.api.acya.Services
 
                         if (string.IsNullOrEmpty(description) || string.IsNullOrEmpty(parentDescription)) continue;
 
-                        var parent = parents.FirstOrDefault(p => p.Description == parentDescription);
+                        var normParent = NormalizeString(parentDescription);
+                        var parent = parents.FirstOrDefault(p => p.Description == parentDescription || (p.Description != null && NormalizeString(p.Description) == normParent));
                         if (parent == null)
                         {
                             report.Errors.Add(new ImportError { RowIndex = row.RowNumber(), Message = $"Catégorie parente introuvable : {parentDescription}" });
                             continue;
                         }
 
-                        var existing = await _context.FirstChildren.FirstOrDefaultAsync(x => x.Description == description && x.IdParent == parent.Id);
+                        var normDesc = NormalizeString(description);
+                        var existing = await _context.FirstChildren.FirstOrDefaultAsync(x => x.IdParent == parent.Id && (x.Description == description || (x.Description != null && NormalizeString(x.Description) == normDesc)));
                         if (existing != null)
                         {
                             existing.Reference = reference;
