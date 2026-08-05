@@ -27,18 +27,24 @@ export function usePermissionGuard() {
 
   const hasPermission = useCallback((module: PermissionModuleKey, action: PermissionActionKey): boolean => {
     if (user?.role === 'SuperAdmin' || user?.role === '10') return true;
+    if (user?.role === 'Admin' || user?.role === '20') return true;
 
     const perms = getModulePerms(module);
     if (perms) {
       const val = getActionValue(perms, action);
       if (val !== undefined) return isTruthy(val);
+      return false;
     }
 
-    if (user?.role === 'Admin' || user?.role === '20') return true;
+    // If explicit permissions map exists for user, but this module is not in it:
+    if (user?.permissions && Object.keys(user.permissions).length > 0) {
+      return false;
+    }
+
     if (action === 'canRead') return true;
 
     return false;
-  }, [user?.role, getModulePerms, getActionValue, isTruthy]);
+  }, [user?.role, user?.permissions, getModulePerms, getActionValue, isTruthy]);
 
   const hasAnyPermission = useCallback((module: PermissionModuleKey): boolean => {
     if (user?.role === 'SuperAdmin' || user?.role === '10') return true;
@@ -46,13 +52,17 @@ export function usePermissionGuard() {
 
     const perms = getModulePerms(module);
     if (perms) {
-      // If object is empty due to weird serialization, fallback to false
       if (Object.keys(perms).length === 0) return false;
       return Object.values(perms).some(isTruthy);
     }
 
+    // If explicit permissions map exists for user, but this module is not in it:
+    if (user?.permissions && Object.keys(user.permissions).length > 0) {
+      return false;
+    }
+
     return true; // Fallback if no explicit permissions exist
-  }, [user?.role, getModulePerms, isTruthy]);
+  }, [user?.role, user?.permissions, getModulePerms, isTruthy]);
 
   return { hasPermission, hasAnyPermission };
 }

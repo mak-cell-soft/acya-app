@@ -25,6 +25,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useQueryClient } from '@tanstack/react-query';
 import { DataImportDialog } from '@/components/shared/data-import-dialog';
+import { toast } from 'sonner';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -64,7 +65,14 @@ export default function ProvidersPage() {
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
 
   const queryClient = useQueryClient();
-  const { hasPermission } = usePermissionGuard();
+  const { hasPermission, hasAnyPermission } = usePermissionGuard();
+
+  React.useEffect(() => {
+    if (!hasAnyPermission('providers')) {
+      toast.error("Vous n'avez pas l'autorisation d'accéder aux fournisseurs.");
+      router.replace('/dashboard');
+    }
+  }, [hasAnyPermission, router]);
 
   // Queries & Mutations
   const { data: suppliers = [], isLoading } = useSuppliers();

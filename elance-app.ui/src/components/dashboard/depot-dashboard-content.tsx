@@ -10,6 +10,8 @@ import { useDashboardPayments } from '@/hooks/use-dashboard-payments';
 import { DocumentTypes } from '@/types/document';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { toast } from 'sonner';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
 
 
 // UI components
@@ -97,6 +99,7 @@ function transferStatusBadge(status: any) {
 export function DepotDashboardContent() {
   const router = useRouter();
   const { user } = useAuthStore();
+  const { hasAnyPermission, hasPermission } = usePermissionGuard();
 
   // Resolve the numeric site ID from the auth store
   const siteId = user?.defaultSiteId ? Number(user.defaultSiteId) : undefined;
@@ -353,16 +356,34 @@ export function DepotDashboardContent() {
           <Button
             size="lg"
             variant="outline"
-            onClick={() => router.push('/stock')}
-            className="h-12 rounded-xl border-amber-200 text-amber-700 hover:bg-amber-50 font-bold"
+            onClick={() => {
+              if (!hasAnyPermission('stock')) {
+                toast.error("Vous n'avez pas l'autorisation d'accéder au module Stock & Dépôts.");
+                return;
+              }
+              router.push('/stock');
+            }}
+            className={cn(
+              "h-12 rounded-xl border-amber-200 text-amber-700 hover:bg-amber-50 font-bold",
+              !hasAnyPermission('stock') && "opacity-50 cursor-not-allowed"
+            )}
           >
             <Warehouse className="w-4 h-4 mr-2" />
             Stock & Dépôts
           </Button>
           <Button
             size="lg"
-            onClick={() => router.push('/stock/transfer/new')}
-            className="h-12 rounded-xl bg-amber-500 text-white hover:bg-amber-600 font-bold shadow-lg shadow-amber-500/20 gap-2 px-6"
+            onClick={() => {
+              if (!hasPermission('stock', 'canAdd')) {
+                toast.error("Vous n'avez pas l'autorisation de créer un transfert de stock.");
+                return;
+              }
+              router.push('/stock/transfer/new');
+            }}
+            className={cn(
+              "h-12 rounded-xl bg-amber-500 text-white hover:bg-amber-600 font-bold shadow-lg shadow-amber-500/20 gap-2 px-6",
+              !hasPermission('stock', 'canAdd') && "opacity-50 cursor-not-allowed"
+            )}
           >
             <Plus className="w-5 h-5" />
             Nouveau Transfert
@@ -373,28 +394,42 @@ export function DepotDashboardContent() {
       {/* ── QUICK SHORTCUTS ── */}
       <motion.div {...fadeUp(0.07)} className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {[
-          { title: 'Articles & M³', icon: Package,       path: '/articles',         color: 'text-amber-600 bg-amber-50 border-amber-100/50' },
-          { title: 'Stock & Dépôts', icon: Warehouse,    path: '/stock',            color: 'text-slate-600 bg-slate-50 border-slate-100/50' },
-          { title: 'Transferts',     icon: ArrowLeftRight,path: '/stock?tab=transfers',  color: 'text-blue-600 bg-blue-50 border-blue-100/50' },
-          { title: 'Achats',         icon: ShoppingCart,  path: '/purchases',       color: 'text-emerald-600 bg-emerald-50 border-emerald-100/50' },
-          { title: 'Fournisseurs',   icon: Truck,         path: '/suppliers',       color: 'text-orange-600 bg-orange-50 border-orange-100/50' },
-        ].map((item, i) => (
-          <motion.div key={item.title} {...scaleIn(i * 0.05 + 0.1)}>
-            <Card
-              onClick={() => router.push(item.path)}
-              className="border border-transparent bg-white shadow-none rounded-[16px] cursor-pointer group transition-all duration-300 hover:border-amber-400 hover:-translate-y-0.5 hover:shadow-md hover:shadow-amber-900/5"
-            >
-              <CardContent className="p-3 flex flex-row items-center justify-start text-left gap-3">
-                <div className={cn('w-10 h-10 shrink-0 rounded-xl flex items-center justify-center', item.color)}>
-                  <item.icon className="w-5 h-5" />
-                </div>
-                <span className="text-[10px] lg:text-[11px] font-bold text-slate-800 uppercase tracking-wider truncate">
-                  {item.title}
-                </span>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+          { title: 'Articles & M³', icon: Package,       path: '/articles',         module: 'articles' as const,  color: 'text-amber-600 bg-amber-50 border-amber-100/50' },
+          { title: 'Stock & Dépôts', icon: Warehouse,    path: '/stock',            module: 'stock' as const,     color: 'text-slate-600 bg-slate-50 border-slate-100/50' },
+          { title: 'Transferts',     icon: ArrowLeftRight,path: '/stock?tab=transfers',module: 'stock' as const,     color: 'text-blue-600 bg-blue-50 border-blue-100/50' },
+          { title: 'Achats',         icon: ShoppingCart,  path: '/purchases',       module: 'purchases' as const, color: 'text-emerald-600 bg-emerald-50 border-emerald-100/50' },
+          { title: 'Fournisseurs',   icon: Truck,         path: '/suppliers',       module: 'providers' as const, color: 'text-orange-600 bg-orange-50 border-orange-100/50' },
+        ].map((item, i) => {
+          const hasAccess = hasAnyPermission(item.module);
+          return (
+            <motion.div key={item.title} {...scaleIn(i * 0.05 + 0.1)}>
+              <Card
+                onClick={() => {
+                  if (!hasAccess) {
+                    toast.error(`Vous n'avez pas l'autorisation d'accéder au module ${item.title}.`);
+                    return;
+                  }
+                  router.push(item.path);
+                }}
+                className={cn(
+                  "border border-transparent bg-white shadow-none rounded-[16px] transition-all duration-300",
+                  !hasAccess 
+                    ? "opacity-40 cursor-not-allowed grayscale" 
+                    : "cursor-pointer group hover:border-amber-400 hover:-translate-y-0.5 hover:shadow-md hover:shadow-amber-900/5"
+                )}
+              >
+                <CardContent className="p-3 flex flex-row items-center justify-start text-left gap-3">
+                  <div className={cn('w-10 h-10 shrink-0 rounded-xl flex items-center justify-center', item.color)}>
+                    <item.icon className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] lg:text-[11px] font-bold text-slate-800 uppercase tracking-wider truncate">
+                    {item.title}
+                  </span>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
       </motion.div>
 
       {/* ── KPI CARDS ── */}
@@ -538,7 +573,13 @@ export function DepotDashboardContent() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => router.push('/stock')}
+                onClick={() => {
+                  if (!hasAnyPermission('stock')) {
+                    toast.error("Vous n'avez pas l'autorisation d'accéder au module Stock & Dépôts.");
+                    return;
+                  }
+                  router.push('/stock');
+                }}
                 className="text-amber-600 hover:text-amber-800 hover:bg-amber-50 font-bold text-xs gap-1"
               >
                 Voir tout <ChevronRight className="w-4 h-4" />
@@ -620,15 +661,30 @@ export function DepotDashboardContent() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => router.push('/stock?tab=transfers')}
+                  onClick={() => {
+                    if (!hasAnyPermission('stock')) {
+                      toast.error("Vous n'avez pas l'autorisation d'accéder au module Stock & Dépôts.");
+                      return;
+                    }
+                    router.push('/stock?tab=transfers');
+                  }}
                   className="h-9 rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50 font-bold text-xs gap-1"
                 >
                   Voir tout <ChevronRight className="w-4 h-4" />
                 </Button>
                 <Button
                   size="sm"
-                  onClick={() => router.push('/stock/transfer/new')}
-                  className="h-9 rounded-xl bg-amber-500 text-white hover:bg-amber-600 font-bold text-xs gap-2"
+                  onClick={() => {
+                    if (!hasPermission('stock', 'canAdd')) {
+                      toast.error("Vous n'avez pas l'autorisation de créer un transfert de stock.");
+                      return;
+                    }
+                    router.push('/stock/transfer/new');
+                  }}
+                  className={cn(
+                    "h-9 rounded-xl bg-amber-500 text-white hover:bg-amber-600 font-bold text-xs gap-2",
+                    !hasPermission('stock', 'canAdd') && "opacity-50 cursor-not-allowed"
+                  )}
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Ajouter Transfert

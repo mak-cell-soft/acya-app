@@ -90,7 +90,14 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
   const isAdmin = user?.role === '10' || user?.role === '20';
 
   // Permission guard: gates UI actions based on the user's saved permissions for the 'sales' module
-  const { hasPermission } = usePermissionGuard();
+  const { hasPermission, hasAnyPermission } = usePermissionGuard();
+
+  useEffect(() => {
+    if (!hasAnyPermission('sales')) {
+      toast.error("Vous n'avez pas l'autorisation d'accéder aux ventes.");
+      router.replace('/dashboard');
+    }
+  }, [hasAnyPermission, router]);
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
 

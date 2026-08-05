@@ -13,6 +13,7 @@ import { useSupplierPayments } from '@/hooks/use-supplier-payments';
 import { TablePagination } from '@/components/shared/table-pagination';
 import { DocumentTypes, DocTypes_FR, DocStatus, DocStatus_FR } from '@/types/document';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { motion } from 'framer-motion';
 
@@ -27,7 +28,14 @@ export default function SupplierDashboardPage({ params }: PageProps) {
   const { id } = React.use(params);
   const supplierId = parseInt(id, 10);
   const router = useRouter();
-  const { hasPermission } = usePermissionGuard();
+  const { hasPermission, hasAnyPermission } = usePermissionGuard();
+
+  React.useEffect(() => {
+    if (!hasAnyPermission('providers')) {
+      toast.error("Vous n'avez pas l'autorisation d'accéder aux fournisseurs.");
+      router.replace('/dashboard');
+    }
+  }, [hasAnyPermission, router]);
 
   // Load dashboard data via react-query
   const { data, isLoading, error } = useSupplierDashboard(supplierId);

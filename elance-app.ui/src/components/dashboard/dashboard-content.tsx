@@ -18,6 +18,8 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { caisseService } from '@/services/treasury/caisse.service';
 
+import { toast } from 'sonner';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { InstrumentsTable } from '@/components/dashboard/instruments-table';
 import { PaymentDeepSearchCard } from '@/components/dashboard/payment-deep-search-card';
 import { CustomerRecouvrementDialog } from '@/components/customers/customer-recouvrement-dialog';
@@ -98,6 +100,7 @@ import { cn } from '@/lib/utils';
 
 export function DashboardContent() {
   const router = useRouter();
+  const { hasAnyPermission, hasPermission } = usePermissionGuard();
   
   // NOTE: Auth store hook to fetch current logged-in user profile, role, and sales site context.
   const { user } = useAuthStore();
@@ -488,15 +491,33 @@ export function DashboardContent() {
           <Button 
             size="lg" 
             variant="outline" 
-            onClick={() => router.push('/sales/customer-invoice-modal')}
-            className="h-12 rounded-xl border-corp-blue-100 text-corp-blue-600 hover:bg-corp-blue-50 font-bold"
+            onClick={() => {
+              if (!hasPermission('sales', 'canAdd')) {
+                toast.error("Vous n'avez pas la permission de créer des factures.");
+                return;
+              }
+              router.push('/sales/customer-invoice-modal');
+            }}
+            className={cn(
+              "h-12 rounded-xl border-corp-blue-100 text-corp-blue-600 hover:bg-corp-blue-50 font-bold",
+              !hasPermission('sales', 'canAdd') && "opacity-50 cursor-not-allowed"
+            )}
           >
             Facturer
           </Button>
           <Button 
             size="lg" 
-            onClick={() => router.push('/sales')}
-            className="h-12 rounded-xl bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20 gap-2 px-6"
+            onClick={() => {
+              if (!hasPermission('sales', 'canAdd')) {
+                toast.error("Vous n'avez pas la permission de créer des ventes.");
+                return;
+              }
+              router.push('/sales');
+            }}
+            className={cn(
+              "h-12 rounded-xl bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20 gap-2 px-6",
+              !hasPermission('sales', 'canAdd') && "opacity-50 cursor-not-allowed"
+            )}
           >
             <Plus className="w-5 h-5" /> Nouvelle Vente
           </Button>
@@ -506,34 +527,48 @@ export function DashboardContent() {
       {/* ── SHORTCUTS CONTAINER ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {[
-          { title: 'Clients', icon: Users, path: '/customers', color: 'text-blue-600 bg-blue-50 border-blue-100/50' },
-          { title: 'Fournisseurs', icon: Truck, path: '/suppliers', color: 'text-amber-600 bg-amber-50 border-amber-100/50' },
-          { title: 'Ventes', icon: ShoppingCart, path: '/sales', color: 'text-emerald-600 bg-emerald-50 border-emerald-100/50' },
-          { title: 'Comptabilité', icon: FileText, path: '/accounting', color: 'text-purple-600 bg-purple-50 border-purple-100/50' },
-          { title: 'Paramètres', icon: Settings, path: '/settings', disabled: !isAdmin, color: 'text-sand-400 bg-sand-50 border-sand-100/50' }
-        ].map((item, i) => (
-          <motion.div
-            key={item.title}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 + 0.1, duration: 0.4 }}
-          >
-            <Card 
-              onClick={() => !item.disabled && router.push(item.path)}
-              className={cn(
-                "border border-transparent bg-white shadow-none rounded-[16px] cursor-pointer group transition-[border-color,transform,box-shadow,scale] duration-200 ease-out",
-                item.disabled ? "opacity-60 cursor-not-allowed" : "hover:border-corp-blue-600 hover:-translate-y-0.5 hover:shadow-md hover:shadow-corp-blue-900/5 active:scale-[0.96]"
-              )}
+          { title: 'Clients', icon: Users, path: '/customers', module: 'customers' as const, color: 'text-blue-600 bg-blue-50 border-blue-100/50' },
+          { title: 'Fournisseurs', icon: Truck, path: '/suppliers', module: 'providers' as const, color: 'text-amber-600 bg-amber-50 border-amber-100/50' },
+          { title: 'Ventes', icon: ShoppingCart, path: '/sales', module: 'sales' as const, color: 'text-emerald-600 bg-emerald-50 border-emerald-100/50' },
+          { title: 'Comptabilité', icon: FileText, path: '/accounting', module: 'accounting' as const, color: 'text-purple-600 bg-purple-50 border-purple-100/50' },
+          { title: 'Paramètres', icon: Settings, path: '/settings', module: 'configuration' as const, color: 'text-sand-400 bg-sand-50 border-sand-100/50' }
+        ].map((item, i) => {
+          const hasAccess = item.module === 'configuration' 
+            ? (isAdmin || hasAnyPermission('configuration')) 
+            : hasAnyPermission(item.module);
+
+          return (
+            <motion.div
+              key={item.title}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 + 0.1, duration: 0.4 }}
             >
-              <CardContent className="p-3 flex flex-row items-center justify-start text-left gap-3">
-                <div className={cn("w-10 h-10 shrink-0 rounded-xl flex items-center justify-center", item.color)}>
-                  <item.icon className="w-5 h-5" />
-                </div>
-                <span className="text-[10px] lg:text-[11px] font-bold text-corp-blue-900 uppercase tracking-wider truncate">{item.title}</span>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+              <Card 
+                onClick={() => {
+                  if (!hasAccess) {
+                    toast.error(`Vous n'avez pas l'autorisation d'accéder au module ${item.title}.`);
+                    return;
+                  }
+                  router.push(item.path);
+                }}
+                className={cn(
+                  "border border-transparent bg-white shadow-none rounded-[16px] group transition-[border-color,transform,box-shadow,scale] duration-200 ease-out",
+                  !hasAccess 
+                    ? "opacity-40 cursor-not-allowed grayscale" 
+                    : "cursor-pointer hover:border-corp-blue-600 hover:-translate-y-0.5 hover:shadow-md hover:shadow-corp-blue-900/5 active:scale-[0.96]"
+                )}
+              >
+                <CardContent className="p-3 flex flex-row items-center justify-start text-left gap-3">
+                  <div className={cn("w-10 h-10 shrink-0 rounded-xl flex items-center justify-center", item.color)}>
+                    <item.icon className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] lg:text-[11px] font-bold text-corp-blue-900 uppercase tracking-wider truncate">{item.title}</span>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* ── CAISSE SECTION (GLASSMORPHISM / EDITORIAL LUXURY) ── */}

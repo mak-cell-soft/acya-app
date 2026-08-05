@@ -21,12 +21,22 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
 
 function StockDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuthStore();
+  const { hasAnyPermission } = usePermissionGuard();
   const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin';
+
+  useEffect(() => {
+    if (!hasAnyPermission('stock')) {
+      toast.error("Vous n'avez pas l'autorisation d'accéder au stock.");
+      router.replace('/dashboard');
+    }
+  }, [hasAnyPermission, router]);
   
   // Tab State syncing with query param
   const activeTabParam = searchParams.get('tab') || 'list';

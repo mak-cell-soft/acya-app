@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
 import { 
   Search, 
@@ -69,6 +70,7 @@ const PREFIX_LABELS: Record<string, string> = {
 };
 
 export default function CustomersPage() {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [prefixFilter, setPrefixFilter] = useState<string>('ALL');
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -87,7 +89,15 @@ export default function CustomersPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
   const queryClient = useQueryClient();
-  const { hasPermission } = usePermissionGuard();
+  const { hasPermission, hasAnyPermission } = usePermissionGuard();
+
+  useEffect(() => {
+    if (!hasAnyPermission('customers')) {
+      toast.error("Vous n'avez pas l'autorisation d'accéder aux clients.");
+      router.replace('/dashboard');
+    }
+  }, [hasAnyPermission, router]);
+
   const { data: customers, isLoading } = useCustomers();
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();

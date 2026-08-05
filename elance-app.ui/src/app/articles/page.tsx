@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
 import { 
   Plus, 
@@ -64,8 +66,16 @@ export default function ArticlesPage() {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
 
+  const router = useRouter();
   const queryClient = useQueryClient();
-  const { hasPermission } = usePermissionGuard();
+  const { hasPermission, hasAnyPermission } = usePermissionGuard();
+
+  useEffect(() => {
+    if (!hasAnyPermission('articles')) {
+      toast.error("Vous n'avez pas l'autorisation d'accéder aux articles.");
+      router.replace('/dashboard');
+    }
+  }, [hasAnyPermission, router]);
 
   // Queries and Mutations
   const { data: articles, isLoading: isArticlesLoading } = useArticles();

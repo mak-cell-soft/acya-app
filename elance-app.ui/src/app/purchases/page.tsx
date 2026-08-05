@@ -101,7 +101,14 @@ export default function PurchasesPage() {
   const queryClient = useQueryClient();
   // Use the centralised permission guard instead of a raw role check, so that fine-grained
   // permissions (set per user via the Permissions panel) are respected for 'purchases'
-  const { hasPermission } = usePermissionGuard();
+  const { hasPermission, hasAnyPermission } = usePermissionGuard();
+
+  useEffect(() => {
+    if (!hasAnyPermission('purchases')) {
+      toast.error("Vous n'avez pas l'autorisation d'accéder aux achats.");
+      router.replace('/dashboard');
+    }
+  }, [hasAnyPermission, router]);
 
   // Search & Expansion States
   const [searchTerm, setSearchTerm] = useState('');

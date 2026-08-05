@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
 import { 
   Search, 
@@ -90,6 +92,16 @@ export default function TeamPage() {
   // Selection State
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [selectedUser, setSelectedUser] = useState<AppUser | null>(null);
+
+  const router = useRouter();
+  const { hasAnyPermission } = usePermissionGuard();
+
+  useEffect(() => {
+    if (!hasAnyPermission('hr')) {
+      toast.error("Vous n'avez pas l'autorisation d'accéder à l'équipe & RH.");
+      router.replace('/dashboard');
+    }
+  }, [hasAnyPermission, router]);
 
   // Queries & Mutations
   const { data: persons, isLoading: isPersonsLoading } = usePersons();

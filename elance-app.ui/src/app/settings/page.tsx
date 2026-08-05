@@ -12,11 +12,23 @@ import { PrintTab } from '@/components/settings/print-tab';
 import { DailyCeilingTab } from '@/components/settings/daily-ceiling-tab';
 import { Building2, Settings2, Hash, ShieldCheck, Cog, Printer, TrendingUp } from 'lucide-react';
 import { useAuthStore } from '@/store/use-auth-store';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
 
 export default function SettingsPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = React.useState('enterprise');
   const { user } = useAuthStore();
+  const { hasAnyPermission } = usePermissionGuard();
   const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin';
+
+  React.useEffect(() => {
+    if (!isAdmin && !hasAnyPermission('configuration')) {
+      toast.error("Vous n'avez pas l'autorisation d'accéder aux paramètres.");
+      router.replace('/dashboard');
+    }
+  }, [isAdmin, hasAnyPermission, router]);
 
   return (
     <DashboardLayout>

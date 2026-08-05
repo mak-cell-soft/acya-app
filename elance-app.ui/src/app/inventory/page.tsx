@@ -35,11 +35,22 @@ import {
 } from '@/components/ui/dialog';
 import { DocStatus, Document } from '@/types/document';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { cn } from '@/lib/utils';
 
 function InventoryListContent() {
   const router = useRouter();
   const { user } = useAuthStore();
+  const { hasAnyPermission } = usePermissionGuard();
+
+  React.useEffect(() => {
+    if (!hasAnyPermission('inventory')) {
+      toast.error("Vous n'avez pas l'autorisation d'accéder à l'inventaire.");
+      router.replace('/dashboard');
+    }
+  }, [hasAnyPermission, router]);
+
   const { data: inventories = [], isLoading } = useInventories();
   const { mutate: validateInventory, isPending: isValidating } = useValidateInventory();
   
