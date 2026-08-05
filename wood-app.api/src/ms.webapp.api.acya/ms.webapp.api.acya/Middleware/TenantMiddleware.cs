@@ -37,7 +37,8 @@ namespace ms.webapp.api.acya.api.Middleware
           path.StartsWith("/api/register") || 
           path.StartsWith("/api/tenant/register") ||
           path.Contains("/api/enterprise/register") ||
-          path.Contains("/api/enterprise/request-registration"))
+          path.Contains("/api/enterprise/request-registration") ||
+          path.Contains("/api/enterprise/public-settings"))
       {
         await _next(context);
         return;

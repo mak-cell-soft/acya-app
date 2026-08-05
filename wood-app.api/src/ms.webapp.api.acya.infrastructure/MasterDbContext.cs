@@ -14,6 +14,7 @@ namespace ms.webapp.api.acya.infrastructure
     }
 
     public DbSet<TenantRegistry> TenantRegistries { get; set; }
+    public DbSet<PlatformSetting> PlatformSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -48,6 +49,15 @@ namespace ms.webapp.api.acya.infrastructure
 
         entity.HasIndex(e => e.Slug).IsUnique();
         entity.HasIndex(e => e.SchemaName).IsUnique();
+      });
+
+      modelBuilder.Entity<PlatformSetting>(entity =>
+      {
+        entity.ToTable("bo_tbl_platform_settings", "public");
+        entity.HasKey(e => e.Key);
+        entity.Property(e => e.Key).HasColumnName("Key").HasMaxLength(100);
+        entity.Property(e => e.Value).HasColumnName("Value");
+        entity.Property(e => e.UpdatedAt).HasColumnName("UpdatedAt");
       });
     }
   }

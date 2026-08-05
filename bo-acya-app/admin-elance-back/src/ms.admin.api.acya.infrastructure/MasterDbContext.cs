@@ -17,6 +17,7 @@ namespace ms.admin.api.acya.infrastructure
         public DbSet<TenantPayment> TenantPayments { get; set; } = null!;
         public DbSet<MasterAuditLog> MasterAuditLogs { get; set; } = null!;
         public DbSet<BackupJob> BackupJobs { get; set; } = null!;
+        public DbSet<PlatformSetting> PlatformSettings { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,6 +30,15 @@ namespace ms.admin.api.acya.infrastructure
             modelBuilder.ApplyConfiguration(new TenantPaymentConfiguration());
             modelBuilder.ApplyConfiguration(new MasterAuditLogConfiguration());
             modelBuilder.ApplyConfiguration(new BackupJobConfiguration());
+
+            modelBuilder.Entity<PlatformSetting>(entity =>
+            {
+                entity.ToTable("bo_tbl_platform_settings", "public");
+                entity.HasKey(e => e.Key);
+                entity.Property(e => e.Key).HasColumnName("Key").HasMaxLength(100);
+                entity.Property(e => e.Value).HasColumnName("Value");
+                entity.Property(e => e.UpdatedAt).HasColumnName("UpdatedAt");
+            });
         }
     }
 }

@@ -118,6 +118,15 @@ namespace ms.webapp.api.acya.api.Controllers
         return BadRequest("Le matricule fiscal est requis.");
       }
 
+      // Check if RNE PDF document is required by platform settings
+      var rneSetting = await _masterDb.PlatformSettings.FirstOrDefaultAsync(s => s.Key == "RneRequired");
+      bool isRneRequired = rneSetting == null || !rneSetting.Value.Equals("false", StringComparison.OrdinalIgnoreCase);
+
+      if (isRneRequired && string.IsNullOrWhiteSpace(dto.rneDocumentUrl))
+      {
+        return BadRequest("Le document PDF RNE est obligatoire.");
+      }
+
       // Check if enterprise with the same matricule fiscal already exists in master db
       var existingMF = await _masterDb.TenantRegistries.FirstOrDefaultAsync(t => t.Notes != null && t.Notes.Contains(dto.matriculeFiscal));
       if (existingMF != null)
@@ -244,6 +253,19 @@ namespace ms.webapp.api.acya.api.Controllers
         language = tenant.Language,
         currency = tenant.Currency,
         status = tenant.Status
+      });
+    }
+
+    [HttpGet("public-settings")]
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    public async Task<ActionResult> GetPublicSettings()
+    {
+      var rneSetting = await _masterDb.PlatformSettings.FirstOrDefaultAsync(s => s.Key == "RneRequired");
+      bool isRneRequired = rneSetting == null || !rneSetting.Value.Equals("false", StringComparison.OrdinalIgnoreCase);
+
+      return Ok(new
+      {
+        isRneRequired = isRneRequired
       });
     }
 

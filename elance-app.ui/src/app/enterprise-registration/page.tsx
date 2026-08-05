@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { z } from 'zod';
@@ -40,7 +40,7 @@ const registrationSchema = z.object({
   commercialRegister: z.string().optional(),
   capital: z.string().optional(),
   siegeAddress: z.string().min(1, "L'adresse du siège est requise"),
-  rneDocumentUrl: z.string().min(1, "Le document PDF RNE est obligatoire"),
+  rneDocumentUrl: z.string().optional(),
 
   // Admin & Legal
   surnameResponsable: z.string().min(1, "Le nom est requis"),
@@ -107,6 +107,25 @@ export default function EnterpriseRegistrationPage() {
   const [isTaxModalOpen, setIsTaxModalOpen] = useState(false);
   const [rneFileName, setRneFileName] = useState('');
   const [rneFileSize, setRneFileSize] = useState('');
+  const [isRneRequired, setIsRneRequired] = useState(true);
+
+  useEffect(() => {
+    const fetchPublicSettings = async () => {
+      try {
+        const apiUrl = getBaseApiUrl();
+        const res = await fetch(`${apiUrl}Enterprise/public-settings`);
+        if (res.ok) {
+          const data = await res.json();
+          if (typeof data.isRneRequired === 'boolean') {
+            setIsRneRequired(data.isRneRequired);
+          }
+        }
+      } catch (err) {
+        console.error('Erreur lors du chargement de la configuration système:', err);
+      }
+    };
+    fetchPublicSettings();
+  }, []);
 
   const { register, handleSubmit, control, formState: { errors }, setValue, watch } = useForm<RegistrationFormValues>({
     resolver: zodResolver(registrationSchema),
@@ -174,6 +193,12 @@ export default function EnterpriseRegistrationPage() {
   };
 
   const onSubmit = async (data: RegistrationFormValues) => {
+    if (isRneRequired && (!data.rneDocumentUrl || data.rneDocumentUrl.trim() === '')) {
+      toast.error('Le document PDF RNE est obligatoire.');
+      setActiveTab('entreprise');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const payload = {
@@ -467,18 +492,24 @@ export default function EnterpriseRegistrationPage() {
                         {errors.siegeAddress && <p className="text-red-500 text-xs font-medium mt-1">{errors.siegeAddress.message}</p>}
                       </div>
 
-                      {/* RNE PDF Document Upload (Mandatory) */}
+                      {/* RNE PDF Document Upload */}
                       <div className="space-y-2 pt-3 border-t border-slate-100">
                         <div className="flex items-center justify-between">
                           <Label className="flex items-center gap-2 font-bold text-slate-800">
                             <span className="inline-flex items-center justify-center bg-slate-100 p-1.5 rounded-lg border border-slate-200 shadow-2xs">
                               <img src="/images/rne-logo.png" alt="Logo RNE" className="h-5 object-contain" />
                             </span>
-                            Document PDF RNE (Registre National des Entreprises) *
+                            Document PDF RNE (Registre National des Entreprises) {isRneRequired ? '*' : '(Optionnel)'}
                           </Label>
-                          <span className="text-xs font-semibold text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-100">
-                            Obligatoire
-                          </span>
+                          {isRneRequired ? (
+                            <span className="text-xs font-semibold text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-100">
+                              Obligatoire
+                            </span>
+                          ) : (
+                            <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+                              Non obligatoire
+                            </span>
+                          )}
                         </div>
                         
                         {!watch("rneDocumentUrl") ? (

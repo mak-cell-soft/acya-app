@@ -121,6 +121,16 @@ namespace ms.admin.api.acya.infrastructure
                     ""IsActive"" BOOLEAN DEFAULT TRUE,
                     ""CreatedAt"" TIMESTAMPTZ DEFAULT NOW()
                 );
+
+                CREATE TABLE IF NOT EXISTS public.bo_tbl_platform_settings (
+                    ""Key"" VARCHAR(100) PRIMARY KEY,
+                    ""Value"" TEXT NOT NULL,
+                    ""UpdatedAt"" TIMESTAMPTZ DEFAULT NOW()
+                );
+
+                INSERT INTO public.bo_tbl_platform_settings (""Key"", ""Value"", ""UpdatedAt"")
+                VALUES ('RneRequired', 'true', NOW())
+                ON CONFLICT (""Key"") DO NOTHING;
             ");
 
             // 2. Seed super admin user if not exists
