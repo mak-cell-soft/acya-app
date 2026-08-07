@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using ms.admin.api.acya.infrastructure;
+using ms.admin.api.acya.Services;
 using Npgsql;
 using System;
 using System.Threading.Tasks;
@@ -58,8 +59,12 @@ namespace ms.admin.api.acya.Controllers
                         Console.WriteLine($"[Monitoring] Failed DB connections count: {ex.Message}");
                     }
 
-                    // Sanitize schema name for safety
-                    var safeSchema = tenant.SchemaName.Replace("\"", "").Replace("'", "");
+                    if (!SchemaSanitizer.IsValidIdentifier(tenant.SchemaName))
+                    {
+                        return BadRequest("Invalid tenant schema configuration.");
+                    }
+                    var safeSchema = tenant.SchemaName;
+                    var quotedSchema = SchemaSanitizer.QuoteIdentifier(tenant.SchemaName);
 
                     // 2. Get tenant schema size
                     try
@@ -82,7 +87,7 @@ namespace ms.admin.api.acya.Controllers
                     // 3. Get users count in tenant schema
                     try
                     {
-                        var usersSql = $"SELECT count(*) FROM \"{safeSchema}\".tbl_app_user;";
+                        var usersSql = $"SELECT count(*) FROM {quotedSchema}.tbl_app_user;";
                         using (var cmd = new NpgsqlCommand(usersSql, conn))
                         {
                             userCount = Convert.ToInt32(await cmd.ExecuteScalarAsync());
@@ -96,7 +101,7 @@ namespace ms.admin.api.acya.Controllers
                     // 4. Get last audit activity timestamp
                     try
                     {
-                        var activitySql = $"SELECT max(\"Timestamp\") FROM \"{safeSchema}\".\"AuditLogs\";";
+                        var activitySql = $"SELECT max(\"Timestamp\") FROM {quotedSchema}.\"AuditLogs\";";
                         using (var cmd = new NpgsqlCommand(activitySql, conn))
                         {
                             var res = await cmd.ExecuteScalarAsync();
@@ -114,7 +119,7 @@ namespace ms.admin.api.acya.Controllers
             }
             catch (Exception ex)
             {
-                errorMessage = ex.Message;
+                errorMessage = "Unable to fetch tenant metrics.";
             }
 
             var isHealthy = string.IsNullOrEmpty(errorMessage);

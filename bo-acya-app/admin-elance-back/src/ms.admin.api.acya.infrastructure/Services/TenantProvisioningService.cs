@@ -37,6 +37,12 @@ namespace ms.admin.api.acya.infrastructure.Services
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(enterprise.SchemaName) || !System.Text.RegularExpressions.Regex.IsMatch(enterprise.SchemaName, @"^[a-zA-Z0-9_]+$"))
+                {
+                    _logger.LogError("Invalid schema name: {SchemaName}", enterprise.SchemaName);
+                    return false;
+                }
+
                 var connStr = _config.GetConnectionString("MasterConnection") ?? throw new InvalidOperationException("Master connection string is missing");
                 var scriptPath = _config["MigrationScriptPath"] ?? "/app/db/FullDb_Migration/full_migration.sql";
 
@@ -56,13 +62,13 @@ namespace ms.admin.api.acya.infrastructure.Services
                     await conn.OpenAsync();
 
                     // 1. Create Schema
-                    using (var cmd = new NpgsqlCommand($"CREATE SCHEMA IF NOT EXISTS {enterprise.SchemaName};", conn))
+                    using (var cmd = new NpgsqlCommand($"CREATE SCHEMA IF NOT EXISTS \"{enterprise.SchemaName}\";", conn))
                     {
                         await cmd.ExecuteNonQueryAsync();
                     }
 
                     // 2. Execute migration script inside schema search path
-                    using (var cmd = new NpgsqlCommand($"SET search_path TO {enterprise.SchemaName};", conn))
+                    using (var cmd = new NpgsqlCommand($"SET search_path TO \"{enterprise.SchemaName}\";", conn))
                     {
                         await cmd.ExecuteNonQueryAsync();
                     }
@@ -83,7 +89,7 @@ namespace ms.admin.api.acya.infrastructure.Services
                     // Seeding enterprise table inside the schema search path (ID = 1)
                     long enterpriseId = 1;
                     using (var cmd = new NpgsqlCommand($@"
-                        SET search_path TO {enterprise.SchemaName};
+                        SET search_path TO ""{enterprise.SchemaName}"";
                         INSERT INTO tbl_enterprise (
                             id, name, enterpriseguid, description, email, phone, mobileone, mobiletwo, 
                             matriculefiscal, devise, nameresponsable, surnameresponsable, positionresponsable, 
@@ -137,7 +143,7 @@ namespace ms.admin.api.acya.infrastructure.Services
                             if (string.IsNullOrWhiteSpace(site.Address) && string.IsNullOrWhiteSpace(site.Gov)) continue;
 
                             using (var siteCmd = new NpgsqlCommand($@"
-                                SET search_path TO {enterprise.SchemaName};
+                                SET search_path TO ""{enterprise.SchemaName}"";
                                 INSERT INTO tbl_sales_sites (isforsale, gouvernorate, address, isdeleted, enterpriseid)
                                 VALUES (@isforsale, @gov, @address, false, @enterpriseid)
                                 RETURNING id;", conn))
@@ -166,7 +172,7 @@ namespace ms.admin.api.acya.infrastructure.Services
 
                     long personId;
                     using (var cmd = new NpgsqlCommand($@"
-                        SET search_path TO {enterprise.SchemaName};
+                        SET search_path TO ""{enterprise.SchemaName}"";
                         INSERT INTO tbl_person (guid, firstname, lastname, fullname, idrole, isdeleted, isappuser, creationdate, updatedate)
                         VALUES (@guid, @firstname, @lastname, @fullname, 10, false, true, NOW(), NOW())
                         RETURNING id;", conn))
@@ -181,7 +187,7 @@ namespace ms.admin.api.acya.infrastructure.Services
                     // Insert App User
                     long userId;
                     using (var cmd = new NpgsqlCommand($@"
-                        SET search_path TO {enterprise.SchemaName};
+                        SET search_path TO ""{enterprise.SchemaName}"";
                         INSERT INTO tbl_app_user (login, email, isactive, passwordhash, passwordsalt, idperson, enterpriseid, idsalessite)
                         VALUES (@login, @email, true, @passwordhash, @passwordsalt, @idperson, @enterpriseid, @idsalessite)
                         RETURNING id;", conn))
@@ -198,7 +204,7 @@ namespace ms.admin.api.acya.infrastructure.Services
 
                     // Insert User Permissions (Grant all modules access)
                     using (var cmd = new NpgsqlCommand($@"
-                        SET search_path TO {enterprise.SchemaName};
+                        SET search_path TO ""{enterprise.SchemaName}"";
                         INSERT INTO tbl_user_permissions (""UserId"", ""Permissions"", ""UpdatedAt"")
                         VALUES (@userId, @permissions::jsonb, NOW());", conn))
                     {
@@ -246,7 +252,7 @@ namespace ms.admin.api.acya.infrastructure.Services
                             sql = sql.Replace("{{APP_USER_ID}}", userId.ToString());
 
                             using (var cmd = new NpgsqlCommand($@"
-                                SET search_path TO {enterprise.SchemaName};
+                                SET search_path TO ""{enterprise.SchemaName}"";
                                 {sql}", conn))
                             {
                                 await cmd.ExecuteNonQueryAsync();
@@ -274,6 +280,12 @@ namespace ms.admin.api.acya.infrastructure.Services
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(enterprise.SchemaName) || !System.Text.RegularExpressions.Regex.IsMatch(enterprise.SchemaName, @"^[a-zA-Z0-9_]+$"))
+                {
+                    _logger.LogError("Invalid schema name for deprovisioning: {SchemaName}", enterprise.SchemaName);
+                    return false;
+                }
+
                 var connStr = _config.GetConnectionString("MasterConnection") ?? throw new InvalidOperationException("Master connection string is missing");
                 
                 _logger.LogInformation("Deprovisioning tenant {Slug} by dropping schema {Schema}", 
@@ -284,7 +296,7 @@ namespace ms.admin.api.acya.infrastructure.Services
                     await conn.OpenAsync();
 
                     // Drop schema CASCADE to remove all tables, views, triggers, etc.
-                    using (var cmd = new NpgsqlCommand($"DROP SCHEMA IF EXISTS {enterprise.SchemaName} CASCADE;", conn))
+                    using (var cmd = new NpgsqlCommand($"DROP SCHEMA IF EXISTS \"{enterprise.SchemaName}\" CASCADE;", conn))
                     {
                         await cmd.ExecuteNonQueryAsync();
                     }

@@ -5,6 +5,7 @@ using ms.admin.api.acya.core.DTOs;
 using ms.admin.api.acya.core.Interfaces;
 using ms.admin.api.acya.common.Enums;
 using ms.admin.api.acya.infrastructure;
+using ms.admin.api.acya.Services;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -175,7 +176,9 @@ namespace ms.admin.api.acya.Controllers
             slug = uniqueSlug;
 
             var schemaName = $"tenant_{slug.Replace("-", "_")}";
-            var defaultConnectionString = "Host=postgres;Port=5432;Database=wood-app-db;Username=postgres;Password=wood_app_strong_db_password_270326;";
+            var defaultConnectionString = _configuration.GetConnectionString("DefaultTenantConnection") 
+                ?? _configuration.GetConnectionString("MasterConnection") 
+                ?? throw new InvalidOperationException("Default connection string is missing.");
 
             MasterEnterprise created;
             if (request.ExistingId.HasValue)
@@ -483,15 +486,16 @@ namespace ms.admin.api.acya.Controllers
 
             try
             {
+                var safeSchema = SchemaSanitizer.QuoteIdentifier(enterprise.SchemaName);
                 var connStr = _configuration.GetConnectionString("MasterConnection");
                 using (var conn = new Npgsql.NpgsqlConnection(connStr))
                 {
                     await conn.OpenAsync();
                     var sql = $@"
                         SELECT u.login, u.email, p.fullname, COALESCE(r.""Permissions""::text, '')
-                        FROM {enterprise.SchemaName}.tbl_app_user u
-                        JOIN {enterprise.SchemaName}.tbl_person p ON u.idperson = p.id
-                        LEFT JOIN {enterprise.SchemaName}.tbl_user_permissions r ON u.id = r.""UserId""
+                        FROM {safeSchema}.tbl_app_user u
+                        JOIN {safeSchema}.tbl_person p ON u.idperson = p.id
+                        LEFT JOIN {safeSchema}.tbl_user_permissions r ON u.id = r.""UserId""
                         LIMIT 1;";
                     
                     using (var cmd = new Npgsql.NpgsqlCommand(sql, conn))
@@ -511,7 +515,7 @@ namespace ms.admin.api.acya.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Failed to query tenant admin user details: {ex.Message}");
+                return StatusCode(500, "Failed to query tenant admin user details.");
             }
 
             if (string.IsNullOrEmpty(adminLogin))
@@ -587,13 +591,14 @@ namespace ms.admin.api.acya.Controllers
 
             try
             {
+                var safeSchema = SchemaSanitizer.QuoteIdentifier(enterprise.SchemaName);
                 var connStr = _configuration.GetConnectionString("MasterConnection");
                 using (var conn = new Npgsql.NpgsqlConnection(connStr))
                 {
                     await conn.OpenAsync();
 
                     // 1. Get total count
-                    var countSql = $"SELECT COUNT(*) FROM {enterprise.SchemaName}.tbl_app_user";
+                    var countSql = $"SELECT COUNT(*) FROM {safeSchema}.tbl_app_user";
                     using (var countCmd = new Npgsql.NpgsqlCommand(countSql, conn))
                     {
                         totalCount = Convert.ToInt32(await countCmd.ExecuteScalarAsync());
@@ -602,8 +607,8 @@ namespace ms.admin.api.acya.Controllers
                     // 2. Get paginated list of users
                     var sql = $@"
                         SELECT u.id, u.login, u.email, u.isactive, p.fullname, p.idrole, p.phonenumber, p.creationdate
-                        FROM {enterprise.SchemaName}.tbl_app_user u
-                        JOIN {enterprise.SchemaName}.tbl_person p ON u.idperson = p.id
+                        FROM {safeSchema}.tbl_app_user u
+                        JOIN {safeSchema}.tbl_person p ON u.idperson = p.id
                         ORDER BY p.creationdate DESC
                         LIMIT @Limit OFFSET @Offset;";
 
@@ -648,7 +653,7 @@ namespace ms.admin.api.acya.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Failed to query tenant users: {ex.Message}");
+                return StatusCode(500, "Failed to query tenant users.");
             }
 
             return Ok(new { TotalCount = totalCount, Users = users });
@@ -675,13 +680,14 @@ namespace ms.admin.api.acya.Controllers
 
             try
             {
+                var safeSchema = SchemaSanitizer.QuoteIdentifier(enterprise.SchemaName);
                 var connStr = _configuration.GetConnectionString("MasterConnection");
                 using (var conn = new Npgsql.NpgsqlConnection(connStr))
                 {
                     await conn.OpenAsync();
 
                     // Verify user existence and get user info
-                    var verifySql = $"SELECT login, email FROM {enterprise.SchemaName}.tbl_app_user WHERE id = @UserId";
+                    var verifySql = $"SELECT login, email FROM {safeSchema}.tbl_app_user WHERE id = @UserId";
                     using (var verifyCmd = new Npgsql.NpgsqlCommand(verifySql, conn))
                     {
                         verifyCmd.Parameters.AddWithValue("@UserId", userId);
@@ -706,7 +712,7 @@ namespace ms.admin.api.acya.Controllers
 
                     // Update user password
                     var updateSql = $@"
-                        UPDATE {enterprise.SchemaName}.tbl_app_user
+                        UPDATE {safeSchema}.tbl_app_user
                         SET passwordhash = @PasswordHash, passwordsalt = @PasswordSalt
                         WHERE id = @UserId;";
 
@@ -722,7 +728,7 @@ namespace ms.admin.api.acya.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Failed to reset user password: {ex.Message}");
+                return StatusCode(500, "Failed to reset user password.");
             }
 
             // Log Master Audit Log event
@@ -834,7 +840,7 @@ namespace ms.admin.api.acya.Controllers
         </tr>
         <tr>
             <td style='padding: 8px 0; font-weight: bold;'>Mot de passe :</td>
-            <td style='padding: 8px 0; font-family: monospace; font-size: 14px; color: #d97706;'>{adminPassword}</td>
+            <td style='padding: 8px 0; font-family: monospace; font-size: 14px; color: #d97706;'>[Transmis de manière sécurisée lors du provisionnement]</td>
         </tr>
         <tr>
             <td style='padding: 8px 0; font-weight: bold;'>Adresse Email :</td>

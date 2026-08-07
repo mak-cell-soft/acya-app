@@ -133,20 +133,38 @@ namespace ms.admin.api.acya.infrastructure
                 ON CONFLICT (""Key"") DO NOTHING;
             ");
 
-            // 2. Seed super admin user if not exists
-            var hasAdmin = context.SuperAdminUsers.Any(u => u.Username == "admin");
-            if (!hasAdmin)
+            // 2. Seed super admin user if not exists or upgrade legacy plaintext password
+            var adminUser = context.SuperAdminUsers.FirstOrDefault(u => u.Username == "admin");
+            if (adminUser == null)
             {
                 context.SuperAdminUsers.Add(new SuperAdminUser
                 {
                     Username = "admin",
-                    PasswordHash = "adminpassword", // Match AuthController plain text comparison
+                    PasswordHash = HashInitialPassword("adminpassword"),
                     Email = "admin@acya.site",
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
                 });
                 context.SaveChanges();
             }
+            else if (!adminUser.PasswordHash.StartsWith("PBKDF2$"))
+            {
+                adminUser.PasswordHash = HashInitialPassword(adminUser.PasswordHash);
+                context.SaveChanges();
+            }
+        }
+
+        private static string HashInitialPassword(string password)
+        {
+            byte[] salt = System.Security.Cryptography.RandomNumberGenerator.GetBytes(16);
+            byte[] hash = System.Security.Cryptography.Rfc2898DeriveBytes.Pbkdf2(
+                System.Text.Encoding.UTF8.GetBytes(password),
+                salt,
+                100_000,
+                System.Security.Cryptography.HashAlgorithmName.SHA512,
+                64
+            );
+            return $"PBKDF2$SHA512$100000${Convert.ToBase64String(salt)}${Convert.ToBase64String(hash)}";
         }
     }
 }

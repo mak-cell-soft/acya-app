@@ -18,21 +18,17 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api/";
-      const res = await fetch(`${apiBase}admin/auth/login`, {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
       if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(txt || "Invalid credentials");
+        const data = await res.json().catch(() => ({ error: "Invalid credentials" }));
+        throw new Error(data.error || "Invalid credentials");
       }
 
-      const data = await res.json();
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("username", data.username);
       router.push("/");
     } catch (err: any) {
       const msg = typeof err?.message === "string" ? err.message : "An error occurred";

@@ -26,9 +26,21 @@ namespace ms.admin.api.acya.Services
 
         public async Task BackupTenantSchemaAsync(string schemaName, string targetFilePath)
         {
-            _logger.LogInformation("Starting pg_dump for schema {Schema} to {Path}", schemaName, targetFilePath);
+            if (!SchemaSanitizer.IsValidIdentifier(schemaName))
+            {
+                throw new ArgumentException($"Invalid schema name: '{schemaName}'", nameof(schemaName));
+            }
 
-            var dir = Path.GetDirectoryName(targetFilePath);
+            var fullPath = Path.GetFullPath(targetFilePath);
+            var backupsDir = Path.GetFullPath("/app/backups");
+            if (!fullPath.StartsWith(backupsDir, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Invalid target file path outside backups directory.");
+            }
+
+            _logger.LogInformation("Starting pg_dump for schema {Schema} to {Path}", schemaName, fullPath);
+
+            var dir = Path.GetDirectoryName(fullPath);
             if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
             {
                 Directory.CreateDirectory(dir);
@@ -44,7 +56,7 @@ namespace ms.admin.api.acya.Services
             var startInfo = new ProcessStartInfo
             {
                 FileName = "pg_dump",
-                Arguments = $"-h {host} -p {port} -U {username} -d {database} -n {schemaName} -F c -b -v -f \"{targetFilePath}\"",
+                Arguments = $"-h {host} -p {port} -U {username} -d {database} -n \"{schemaName}\" -F c -b -v -f \"{fullPath}\"",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
@@ -61,7 +73,7 @@ namespace ms.admin.api.acya.Services
                 if (process.ExitCode != 0)
                 {
                     _logger.LogError("pg_dump failed with exit code {Code}. Error: {Err}", process.ExitCode, error);
-                    throw new Exception($"pg_dump failed with exit code {process.ExitCode}. Error: {error}");
+                    throw new Exception($"pg_dump failed with exit code {process.ExitCode}.");
                 }
             }
 
@@ -70,11 +82,23 @@ namespace ms.admin.api.acya.Services
 
         public async Task RestoreTenantSchemaAsync(string schemaName, string sourceFilePath)
         {
-            _logger.LogInformation("Starting pg_restore for schema {Schema} from {Path}", schemaName, sourceFilePath);
-
-            if (!File.Exists(sourceFilePath))
+            if (!SchemaSanitizer.IsValidIdentifier(schemaName))
             {
-                throw new FileNotFoundException("Backup file not found.", sourceFilePath);
+                throw new ArgumentException($"Invalid schema name: '{schemaName}'", nameof(schemaName));
+            }
+
+            var fullPath = Path.GetFullPath(sourceFilePath);
+            var backupsDir = Path.GetFullPath("/app/backups");
+            if (!fullPath.StartsWith(backupsDir, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Invalid source file path outside backups directory.");
+            }
+
+            _logger.LogInformation("Starting pg_restore for schema {Schema} from {Path}", schemaName, fullPath);
+
+            if (!File.Exists(fullPath))
+            {
+                throw new FileNotFoundException("Backup file not found.", fullPath);
             }
 
             var builder = new NpgsqlConnectionStringBuilder(_connectionString);
@@ -88,7 +112,7 @@ namespace ms.admin.api.acya.Services
             using (var conn = new NpgsqlConnection(_connectionString))
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand($"DROP SCHEMA IF EXISTS {schemaName} CASCADE; CREATE SCHEMA {schemaName};", conn))
+                using (var cmd = new NpgsqlCommand($"DROP SCHEMA IF EXISTS \"{schemaName}\" CASCADE; CREATE SCHEMA \"{schemaName}\";", conn))
                 {
                     await cmd.ExecuteNonQueryAsync();
                 }
@@ -98,7 +122,7 @@ namespace ms.admin.api.acya.Services
             var startInfo = new ProcessStartInfo
             {
                 FileName = "pg_restore",
-                Arguments = $"-h {host} -p {port} -U {username} -d {database} -v \"{sourceFilePath}\"",
+                Arguments = $"-h {host} -p {port} -U {username} -d {database} -v \"{fullPath}\"",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
@@ -115,7 +139,7 @@ namespace ms.admin.api.acya.Services
                 if (process.ExitCode != 0)
                 {
                     _logger.LogError("pg_restore failed with exit code {Code}. Error: {Err}", process.ExitCode, error);
-                    throw new Exception($"pg_restore failed with exit code {process.ExitCode}. Error: {error}");
+                    throw new Exception($"pg_restore failed with exit code {process.ExitCode}.");
                 }
             }
 

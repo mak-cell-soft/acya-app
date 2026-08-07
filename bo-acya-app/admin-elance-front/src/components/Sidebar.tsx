@@ -62,8 +62,8 @@ export default function Sidebar() {
       setError('Current password is required');
       return;
     }
-    if (newPassword.length < 6) {
-      setError('New password must be at least 6 characters long');
+    if (newPassword.length < 12) {
+      setError('New password must be at least 12 characters long');
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -336,7 +336,7 @@ export default function Sidebar() {
                     className="w-full pl-4 pr-11 py-2.5 bg-zinc-850 border border-zinc-800 rounded-lg text-sm focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(16,185,129,0.15)] transition-[border-color,box-shadow] text-foreground"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Min 6 characters"
+                    placeholder="Min 12 characters"
                   />
                   <button
                     type="button"

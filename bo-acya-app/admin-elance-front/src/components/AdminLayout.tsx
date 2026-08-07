@@ -11,11 +11,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token && !isLoginPage) {
-      router.push("/login");
+    let mounted = true;
+    if (isLoginPage) {
+      setAuthChecked(true);
+      return;
     }
-    setAuthChecked(true);
+
+    fetch("/api/auth/session")
+      .then((res) => {
+        if (!res.ok) {
+          const hasLocalToken = typeof window !== "undefined" && !!localStorage.getItem("token");
+          if (!hasLocalToken) {
+            router.push("/login");
+          }
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (mounted) setAuthChecked(true);
+      });
+
+    return () => {
+      mounted = false;
+    };
   }, [pathname, isLoginPage, router]);
 
   if (!authChecked) {
@@ -26,9 +44,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <div className="w-screen h-screen flex items-center justify-center bg-background">{children}</div>;
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem("token");
     localStorage.removeItem("username");
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
     router.push("/login");
   };
 

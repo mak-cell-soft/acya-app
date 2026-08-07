@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using ms.admin.api.acya.core.DTOs;
 using ms.admin.api.acya.infrastructure;
@@ -21,17 +22,27 @@ namespace ms.admin.api.acya.Controllers
             _tokenService = tokenService;
         }
 
+        [EnableRateLimiting("AuthLimiter")]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+                return Unauthorized("Invalid credentials.");
+
             var user = await _context.SuperAdminUsers.FirstOrDefaultAsync(u => u.Username == request.Username);
 
             if (user == null || !user.IsActive)
                 return Unauthorized("Invalid credentials or inactive user.");
 
-            // Using simple password check for prototype. Needs BCrypt in real impl.
-            if (user.PasswordHash != request.Password)
+            if (!PasswordHasher.VerifyPassword(request.Password, user.PasswordHash))
                 return Unauthorized("Invalid credentials.");
+
+            // Transparently upgrade legacy plain-text hashes to PBKDF2 on successful login
+            if (!user.PasswordHash.StartsWith("PBKDF2$"))
+            {
+                user.PasswordHash = PasswordHasher.HashPassword(request.Password);
+                await _context.SaveChangesAsync();
+            }
 
             var token = _tokenService.CreateToken(user);
 
@@ -55,13 +66,13 @@ namespace ms.admin.api.acya.Controllers
             if (user == null || !user.IsActive)
                 return Unauthorized("User not found or inactive.");
 
-            if (user.PasswordHash != request.CurrentPassword)
+            if (!PasswordHasher.VerifyPassword(request.CurrentPassword, user.PasswordHash))
                 return BadRequest("Le mot de passe actuel est incorrect.");
 
-            if (string.IsNullOrWhiteSpace(request.NewPassword) || request.NewPassword.Length < 6)
-                return BadRequest("Le nouveau mot de passe doit contenir au moins 6 caractères.");
+            if (string.IsNullOrWhiteSpace(request.NewPassword) || request.NewPassword.Length < 12)
+                return BadRequest("Le nouveau mot de passe doit contenir au moins 12 caractères.");
 
-            user.PasswordHash = request.NewPassword;
+            user.PasswordHash = PasswordHasher.HashPassword(request.NewPassword);
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Mot de passe mis à jour avec succès." });
