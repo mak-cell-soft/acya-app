@@ -124,6 +124,7 @@ services:
       - PORT=3000
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=https://admin.acya.site/api/
+      - BACKEND_INTERNAL_URL=http://admin-api:80/api/
     ports:
       - "5002:3000"
     depends_on:

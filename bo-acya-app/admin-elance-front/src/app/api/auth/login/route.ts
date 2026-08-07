@@ -10,14 +10,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Username and password are required" }, { status: 400 });
     }
 
-    const backendUrl = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || "http://admin-api:80/api/";
+    const backendUrl = process.env.BACKEND_INTERNAL_URL || "http://admin-api:80/api/";
     const normalizedUrl = backendUrl.endsWith("/") ? backendUrl : `${backendUrl}/`;
 
-    const res = await fetch(`${normalizedUrl}admin/auth/login`, {
+    let res = await fetch(`${normalizedUrl}admin/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
-    });
+    }).catch(() => null);
+
+    if (!res || !res.ok) {
+      // Fallback to NEXT_PUBLIC_API_URL if internal request failed
+      const publicBase = process.env.NEXT_PUBLIC_API_URL || "/api/";
+      const normPublic = publicBase.endsWith("/") ? publicBase : `${publicBase}/`;
+      res = await fetch(`${normPublic}admin/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+    }
 
     if (!res.ok) {
       const errorText = await res.text();
