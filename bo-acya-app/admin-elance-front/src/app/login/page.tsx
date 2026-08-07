@@ -24,9 +24,16 @@ export default function LoginPage() {
         body: JSON.stringify({ username, password }),
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json().catch(() => ({ error: "Invalid credentials" }));
         throw new Error(data.error || "Invalid credentials");
+      }
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+      if (data.username) {
+        localStorage.setItem("username", data.username);
       }
 
       router.push("/");
