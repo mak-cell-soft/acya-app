@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { Loader2, Printer } from 'lucide-react';
+import { Loader2, Printer, Crosshair } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,7 @@ import { Enterprise, Bank } from '@/types/settings';
 import { GOVERNORATS } from '@/constants/governorats';
 import { TraiteLettreDeChange, TraiteData } from '@/components/print/traite-lettre-de-change';
 import { getTraitePrintStyles } from '@/components/print/print-styles';
+import { TraiteCalibrationDialog } from '@/components/purchases/traite-calibration-dialog';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -88,6 +89,7 @@ export function TraitePrintDialog({
   const [printing, setPrinting] = useState(false);
   const [offsetX, setOffsetX] = useState<number>(0);
   const [offsetY, setOffsetY] = useState<number>(0);
+  const [isCalibrationOpen, setIsCalibrationOpen] = useState(false);
 
   // ── Derived values ───────────────────────────────────────────
   const selectedBank = useMemo(
@@ -373,29 +375,46 @@ export function TraitePrintDialog({
         </div>
 
         {/* Footer */}
-        <DialogFooter className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3 rounded-b-2xl">
+        <DialogFooter className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-between items-center gap-3 rounded-b-2xl">
           <Button
             variant="outline"
-            onClick={onClose}
-            disabled={printing}
-            className="h-10 px-5 rounded-xl font-bold border-slate-200 text-slate-600 hover:bg-slate-100"
+            onClick={() => setIsCalibrationOpen(true)}
+            className="h-10 px-4 rounded-xl font-bold border-corp-blue-200 text-corp-blue-700 hover:bg-corp-blue-50 gap-2 text-xs"
           >
-            Annuler
+            <Crosshair className="w-4 h-4 text-corp-blue-600" />
+            Inspecteur & Calibration
           </Button>
-          <Button
-            onClick={handlePrint}
-            disabled={printing || !selectedBankId}
-            className="h-10 px-5 rounded-xl font-bold bg-corp-blue-600 hover:bg-corp-blue-700 text-white shadow-sm gap-2 disabled:opacity-50 transition-all"
-          >
-            {printing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Printer className="w-4 h-4" />
-            )}
-            Imprimer la Traite
-          </Button>
+
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              disabled={printing}
+              className="h-10 px-5 rounded-xl font-bold border-slate-200 text-slate-600 hover:bg-slate-100"
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={handlePrint}
+              disabled={printing || !selectedBankId}
+              className="h-10 px-5 rounded-xl font-bold bg-corp-blue-600 hover:bg-corp-blue-700 text-white shadow-sm gap-2 disabled:opacity-50 transition-all"
+            >
+              {printing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Printer className="w-4 h-4" />
+              )}
+              Imprimer la Traite
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
+
+      {/* Traite Visual Calibration Inspector Dialog */}
+      <TraiteCalibrationDialog
+        isOpen={isCalibrationOpen}
+        onClose={() => setIsCalibrationOpen(false)}
+      />
     </Dialog>
   );
 }
