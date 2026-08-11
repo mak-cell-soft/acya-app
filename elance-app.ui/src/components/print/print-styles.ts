@@ -1168,3 +1168,274 @@ export function getDuplicatedBordereauPrintStyles(): string {
   `;
 }
 
+/**
+ * Return CSS print styles for Stock Labels (A4 / 2 Labels per Page).
+ */
+export function getStockPrintStyles(): string {
+  return `
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;700;800&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 5mm;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', Arial, sans-serif;
+      background: #fff !important;
+      color: #0f172a;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .stock-a4-page {
+      width: 198mm;
+      height: 284mm;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: #fff;
+    }
+
+    .stock-label-box {
+      height: 136mm;
+      border: 2px solid #0f172a;
+      border-radius: 8px;
+      padding: 5mm 6mm;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      font-size: 8.5pt;
+      overflow: hidden;
+    }
+
+    .label-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 2.5mm;
+      margin-bottom: 3mm;
+    }
+
+    .company-name-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 12pt;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #0f172a;
+      letter-spacing: 0.5px;
+    }
+
+    .depot-subtitle {
+      font-size: 7.5pt;
+      color: #475569;
+      margin-top: 1px;
+    }
+
+    .label-badge-box {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .label-badge-title {
+      background: #0f172a;
+      color: #fff;
+      font-size: 7pt;
+      font-weight: 800;
+      padding: 1.5px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .label-copy-tag {
+      font-size: 7pt;
+      font-weight: 700;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    .main-stock-card {
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 3mm 4mm;
+      margin-bottom: 3mm;
+    }
+
+    .stock-field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5mm 4mm;
+    }
+
+    .stock-field-col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stock-field-col.span-2 {
+      grid-column: span 2;
+    }
+
+    .field-label {
+      font-size: 6.5pt;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #64748b;
+      letter-spacing: 0.5px;
+      margin-bottom: 1px;
+    }
+
+    .field-value-ref {
+      font-family: monospace;
+      font-size: 11pt;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .field-value-desc {
+      font-size: 9pt;
+      font-weight: 600;
+      color: #334155;
+      line-height: 1.2;
+    }
+
+    .field-value-pack {
+      font-family: monospace;
+      font-size: 9.5pt;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .field-value-qty {
+      font-family: monospace;
+      font-size: 11pt;
+      font-weight: 800;
+      color: #059669;
+    }
+
+    .unit-tag {
+      font-family: sans-serif;
+      font-size: 8pt;
+      font-weight: 600;
+      color: #475569;
+      margin-left: 2px;
+    }
+
+    .wood-details-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .wood-specs-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2mm;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      padding: 2mm 3mm;
+      margin-bottom: 2.5mm;
+    }
+
+    .wood-spec-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .spec-label {
+      font-size: 6pt;
+      font-weight: 800;
+      color: #64748b;
+      text-transform: uppercase;
+    }
+
+    .spec-val {
+      font-size: 8.5pt;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .wood-lengths-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 7.5pt;
+    }
+
+    .wood-lengths-table th {
+      background: #f8fafc;
+      color: #334155;
+      font-weight: 800;
+      font-size: 6.5pt;
+      text-transform: uppercase;
+      padding: 1.5mm 2mm;
+      border: 1px solid #cbd5e1;
+      text-align: left;
+    }
+
+    .wood-lengths-table td {
+      padding: 1.2mm 2mm;
+      border: 1px solid #cbd5e1;
+      color: #0f172a;
+    }
+
+    .sub-dim {
+      font-size: 6.5pt;
+      color: #64748b;
+      margin-left: 4px;
+    }
+
+    .text-more {
+      font-size: 7pt;
+      color: #64748b;
+      padding: 1mm !important;
+    }
+
+    .stock-cut-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 1.5mm 0;
+      font-size: 7pt;
+      color: #64748b;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      border-top: 1.5px dashed #94a3b8;
+      padding-top: 2px;
+    }
+
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .font-bold { font-weight: 700; }
+    .font-mono { font-family: monospace; }
+    .font-italic { font-style: italic; }
+
+    @media print {
+      body {
+        background: transparent !important;
+      }
+      .stock-a4-page {
+        width: 100% !important;
+        height: 100% !important;
+      }
+    }
+  `;
+}
+
+

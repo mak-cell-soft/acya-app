@@ -1,10 +1,14 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { useQueryClient } from '@tanstack/react-query';
 import { useStockAll } from '@/hooks/use-stock';
-import { useSites } from '@/hooks/use-enterprise';
+import { useSites, useEnterprise } from '@/hooks/use-enterprise';
 import { stockService } from '@/services/components/stock.service';
+import { fetchWoodStockDetails, WoodStockDetailsResult } from '@/lib/wood-stock-utils';
+import { StockPrintA4Document } from '@/components/print/stock-print-label';
+import { getStockPrintStyles } from '@/components/print/print-styles';
 import { Stock, StockCategoryGroup } from '@/types/stock';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,13 +38,16 @@ import {
   TreeDeciduous,
   FlameKindling,
   Eye,
-  EyeOff
+  EyeOff,
+  Printer
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function StockListByCategory() {
   const queryClient = useQueryClient();
   const { data: allStocks = [], isLoading, error } = useStockAll();
+  const { data: enterprise } = useEnterprise();
+  const [printingStockId, setPrintingStockId] = useState<number | null>(null);
 
   const formatQuantity = (qty: number, unit?: string | null) => {
     const isM3 = unit?.toUpperCase().includes('M3') || unit?.toUpperCase().includes('MÈTRE 3') || unit?.toUpperCase().includes('METRE 3');
@@ -127,6 +134,75 @@ export function StockListByCategory() {
       };
     });
   }, [allStocks, searchQuery, selectedSiteId, hideZeroStock]);
+
+  // Handle printing a stock label
+  const handlePrintStock = async (stock: Stock) => {
+    setPrintingStockId(stock.id);
+    try {
+      const isWood = stock.merchandise?.article?.iswood || stock.merchandise?.article?.categoryid === 1;
+      let woodDetails: WoodStockDetailsResult | null = null;
+      if (isWood) {
+        woodDetails = await fetchWoodStockDetails(stock);
+      }
+
+      const contentHtml = renderToStaticMarkup(
+        <StockPrintA4Document stock={stock} woodDetails={woodDetails} enterprise={enterprise} />
+      );
+
+      const styleCss = getStockPrintStyles();
+
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      document.body.appendChild(iframe);
+
+      const doc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!doc) {
+        throw new Error("Impossible d'accéder au contexte d'impression.");
+      }
+
+      doc.open();
+      doc.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Imprimer Étiquette - ${stock.merchandise?.article?.reference || 'Stock'}</title>
+            <style>${styleCss}</style>
+          </head>
+          <body>
+            ${contentHtml}
+          </body>
+        </html>
+      `);
+      doc.close();
+
+      setTimeout(() => {
+        try {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+        } catch (err) {
+          console.error('Print error:', err);
+        }
+
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
+          }
+        }, 1000);
+
+        setPrintingStockId(null);
+      }, 400);
+
+    } catch (error) {
+      console.error('Print stock label failed:', error);
+      toast.error("Erreur lors de la préparation de l'impression.");
+      setPrintingStockId(null);
+    }
+  };
 
   // Handle setting thresholds
   const handleOpenThreshold = (stock: Stock) => {
@@ -411,6 +487,20 @@ export function StockListByCategory() {
                                 )}
                                 <Button
                                   variant="ghost"
+                                  title="Imprimer"
+                                  onClick={() => handlePrintStock(stock)}
+                                  disabled={printingStockId === stock.id}
+                                  className="h-7 w-7 p-0 rounded-lg hover:bg-stone-100 text-stone-450 dark:hover:bg-stone-800"
+                                >
+                                  {printingStockId === stock.id ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-600" />
+                                  ) : (
+                                    <Printer className="h-3.5 w-3.5" />
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  title="Modifier le seuil"
                                   onClick={() => handleOpenThreshold(stock)}
                                   className="h-7 w-7 p-0 rounded-lg hover:bg-stone-100 text-stone-450 dark:hover:bg-stone-800"
                                 >
