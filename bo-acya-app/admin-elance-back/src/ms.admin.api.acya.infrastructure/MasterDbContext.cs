@@ -18,6 +18,8 @@ namespace ms.admin.api.acya.infrastructure
         public DbSet<MasterAuditLog> MasterAuditLogs { get; set; } = null!;
         public DbSet<BackupJob> BackupJobs { get; set; } = null!;
         public DbSet<PlatformSetting> PlatformSettings { get; set; } = null!;
+        public DbSet<EmailLog> EmailLogs { get; set; } = null!;
+        public DbSet<EmailLogEvent> EmailLogEvents { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,6 +32,8 @@ namespace ms.admin.api.acya.infrastructure
             modelBuilder.ApplyConfiguration(new TenantPaymentConfiguration());
             modelBuilder.ApplyConfiguration(new MasterAuditLogConfiguration());
             modelBuilder.ApplyConfiguration(new BackupJobConfiguration());
+            modelBuilder.ApplyConfiguration(new EmailLogConfiguration());
+            modelBuilder.ApplyConfiguration(new EmailLogEventConfiguration());
 
             modelBuilder.Entity<PlatformSetting>(entity =>
             {

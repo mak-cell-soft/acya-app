@@ -104,17 +104,20 @@ namespace ms.admin.api.acya.Controllers
         private readonly ITenantProvisioningService _provisioningService;
         private readonly MasterDbContext _context;
         private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
+        private readonly ms.admin.api.acya.core.Interfaces.IEmailService _emailService;
 
         public EnterpriseController(
             IEnterpriseRepository enterpriseRepository, 
             ITenantProvisioningService provisioningService, 
             MasterDbContext context,
-            Microsoft.Extensions.Configuration.IConfiguration configuration)
+            Microsoft.Extensions.Configuration.IConfiguration configuration,
+            ms.admin.api.acya.core.Interfaces.IEmailService emailService)
         {
             _enterpriseRepository = enterpriseRepository;
             _provisioningService = provisioningService;
             _context = context;
             _configuration = configuration;
+            _emailService = emailService;
         }
 
         [HttpGet]
@@ -350,8 +353,8 @@ namespace ms.admin.api.acya.Controllers
             await _context.MasterAuditLogs.AddAsync(auditLog);
             await _context.SaveChangesAsync();
 
-            // 9. Send welcome email (Log and write to local file directory)
-            await WriteWelcomeEmailAsync(created, adminUsername, adminEmail, adminPassword);
+            // 9. Send welcome email via n8n Email Service (Fail-safe)
+            await _emailService.SendWelcomeEmailAsync(created, adminEmail, request.ExistingId, HttpContext.TraceIdentifier);
 
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }

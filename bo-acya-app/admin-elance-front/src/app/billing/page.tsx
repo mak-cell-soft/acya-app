@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CreditCard, PlusCircle, History, Receipt, DollarSign, Loader2, ArrowRight } from "lucide-react";
+import { CreditCard, PlusCircle, History, Receipt, DollarSign, Loader2, ArrowRight, Search, Filter } from "lucide-react";
 
 interface Enterprise {
   id: number;
@@ -38,6 +38,8 @@ export default function BillingPage() {
   const [selectedEnt, setSelectedEnt] = useState<Enterprise | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [planFilter, setPlanFilter] = useState("ALL");
 
   // Subscriptions & Invoices data
   const [subs, setSubs] = useState<Subscription[]>([]);
@@ -242,35 +244,76 @@ export default function BillingPage() {
           LOADING SYSTEM BILLING MODULES...
         </div>
       ) : (
-        <div className="grid lg:grid-cols-4 gap-8">
-          
-          {/* Enterprises Selector */}
-          <div className="lg:col-span-1 space-y-4">
-            <h3 className="text-xs uppercase font-mono tracking-wider text-muted-foreground">Select Tenant</h3>
-            <div className="glass-panel p-2 rounded-xl bg-card/25 border border-border/50 space-y-1">
-              {enterprises.map(ent => (
+        <div className="space-y-6">
+          {/* Controls Bar: Search & Plan Filters */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-card/50 p-4 rounded-xl border border-border">
+            <div className="flex items-center gap-2 flex-1 max-w-md">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search tenant name or slug for billing..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-background border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+            </div>
+
+            {/* Filter Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+              <Filter className="w-4 h-4 text-muted-foreground mr-1 shrink-0" />
+              {["ALL", "TRIAL", "STARTER", "PRO", "ENTERPRISE"].map((p) => (
                 <button
-                  key={ent.id}
-                  onClick={() => setSelectedEnt(ent)}
-                  className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all flex items-center justify-between cursor-pointer ${
-                    selectedEnt?.id === ent.id
-                      ? "bg-primary text-primary-foreground font-medium"
-                      : "text-slate-300 hover:bg-slate-800/40"
+                  key={p}
+                  onClick={() => setPlanFilter(p)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                    planFilter === p
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "bg-secondary/50 text-muted-foreground hover:text-foreground hover:bg-secondary"
                   }`}
                 >
-                  <div className="truncate pr-2">
-                    <div>{ent.name}</div>
-                    <div className={`text-[10px] font-mono mt-0.5 ${selectedEnt?.id === ent.id ? "text-primary-foreground/75" : "text-muted-foreground"}`}>{ent.slug}</div>
-                  </div>
-                  <span className={`text-[10px] uppercase font-mono px-2 py-0.5 rounded ${
-                    selectedEnt?.id === ent.id ? "bg-white/20 text-white" : "bg-slate-800 text-slate-400"
-                  }`}>
-                    {ent.plan}
-                  </span>
+                  {p}
                 </button>
               ))}
             </div>
           </div>
+
+          <div className="grid lg:grid-cols-4 gap-8">
+            {/* Enterprises Selector */}
+            <div className="lg:col-span-1 space-y-4">
+              <h3 className="text-xs uppercase font-mono tracking-wider text-muted-foreground">Select Tenant</h3>
+              <div className="glass-panel p-2 rounded-xl bg-card/25 border border-border/50 space-y-1 max-h-[600px] overflow-y-auto">
+                {enterprises.filter((ent) => {
+                  if (planFilter !== "ALL" && (ent.plan || "").toUpperCase() !== planFilter) return false;
+                  if (searchTerm) {
+                    const s = searchTerm.toLowerCase();
+                    return ent.name?.toLowerCase().includes(s) || ent.slug?.toLowerCase().includes(s);
+                  }
+                  return true;
+                }).map(ent => (
+                  <button
+                    key={ent.id}
+                    onClick={() => setSelectedEnt(ent)}
+                    className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all flex items-center justify-between cursor-pointer ${
+                      selectedEnt?.id === ent.id
+                        ? "bg-primary text-primary-foreground font-medium"
+                        : "text-slate-300 hover:bg-slate-800/40"
+                    }`}
+                  >
+                    <div className="truncate pr-2">
+                      <div>{ent.name}</div>
+                      <div className={`text-[10px] font-mono mt-0.5 ${selectedEnt?.id === ent.id ? "text-primary-foreground/75" : "text-muted-foreground"}`}>{ent.slug}</div>
+                    </div>
+                    <span className={`text-[10px] uppercase font-mono px-2 py-0.5 rounded ${
+                      selectedEnt?.id === ent.id ? "bg-white/20 text-white" : "bg-slate-800 text-slate-400"
+                    }`}>
+                      {ent.plan}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
 
           {/* Billing Control Center */}
           <div className="lg:col-span-3 space-y-8">
@@ -572,8 +615,8 @@ export default function BillingPage() {
                 PLEASE REGISTER A TENANT ENTERPRISE IN THE REGISTRY TO CONFIGURE BILLING.
               </div>
             )}
+            </div>
           </div>
-
         </div>
       )}
     </div>

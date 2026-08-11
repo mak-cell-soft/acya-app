@@ -62,6 +62,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<ITenantProvisioningService, TenantProvisioningService>();
 builder.Services.AddScoped<BackupService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddHostedService<SaaSLifecycleScheduler>();
 
 // Repositories

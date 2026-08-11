@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, Key, ToggleLeft, Trash2, CheckCircle2, Loader2, ExternalLink, Edit, Users, Lock, ChevronLeft, ChevronRight, FileText, Eye } from "lucide-react";
+import { Shield, Key, ToggleLeft, Trash2, CheckCircle2, Loader2, ExternalLink, Edit, Users, Lock, ChevronLeft, ChevronRight, FileText, Eye, Search, Filter } from "lucide-react";
 
 interface TenantAppUser {
   id: number;
@@ -56,6 +56,7 @@ export default function EnterprisesPage() {
   const [existingId, setExistingId] = useState<number | null>(null);
   const [isEditingActive, setIsEditingActive] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Pending' | 'Deactivated'>('All');
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Users list slide-over panel state
   const [selectedEnterprise, setSelectedEnterprise] = useState<Enterprise | null>(null);
@@ -632,29 +633,48 @@ export default function EnterprisesPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="flex gap-2 border-b border-border/20 pb-1">
-            {(['All', 'Active', 'Pending', 'Deactivated'] as const).map((filter) => {
-              const count = enterprises.filter(ent => {
-                if (filter === 'All') return true;
-                if (filter === 'Pending') return ent.status === 'Pending';
-                if (filter === 'Active') return ent.isActive && ent.status !== 'Pending';
-                if (filter === 'Deactivated') return !ent.isActive && ent.status !== 'Pending';
-              }).length;
+          {/* Controls Bar: Search & Status Filters */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-card/50 p-4 rounded-xl border border-border">
+            <div className="flex items-center gap-2 flex-1 max-w-md">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search enterprise name, slug, email, domain..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-background border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+            </div>
 
-              return (
-                <button
-                  key={filter}
-                  onClick={() => setStatusFilter(filter)}
-                  className={`px-4 py-2 text-xs font-mono font-medium rounded-t-lg border-t border-x transition-all cursor-pointer ${
-                    statusFilter === filter
-                      ? 'bg-secondary/40 border-border text-white'
-                      : 'bg-transparent border-transparent text-muted-foreground hover:text-white'
-                  }`}
-                >
-                  {filter.toUpperCase()} ({count})
-                </button>
-              );
-            })}
+            {/* Filter Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+              <Filter className="w-4 h-4 text-muted-foreground mr-1 shrink-0" />
+              {(['All', 'Active', 'Pending', 'Deactivated'] as const).map((filter) => {
+                const count = enterprises.filter(ent => {
+                  if (filter === 'All') return true;
+                  if (filter === 'Pending') return ent.status === 'Pending';
+                  if (filter === 'Active') return ent.isActive && ent.status !== 'Pending';
+                  if (filter === 'Deactivated') return !ent.isActive && ent.status !== 'Pending';
+                  return true;
+                }).length;
+
+                return (
+                  <button
+                    key={filter}
+                    onClick={() => setStatusFilter(filter)}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                      statusFilter === filter
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "bg-secondary/50 text-muted-foreground hover:text-foreground hover:bg-secondary"
+                    }`}
+                  >
+                    {filter.toUpperCase()} ({count})
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="glass-panel rounded-xl overflow-hidden bg-card/25 border border-border/50">
@@ -672,10 +692,19 @@ export default function EnterprisesPage() {
               </thead>
               <tbody className="divide-y divide-border/50">
                 {enterprises.filter(ent => {
-                  if (statusFilter === 'All') return true;
-                  if (statusFilter === 'Pending') return ent.status === 'Pending';
-                  if (statusFilter === 'Active') return ent.isActive && ent.status !== 'Pending';
-                  if (statusFilter === 'Deactivated') return !ent.isActive && ent.status !== 'Pending';
+                  if (statusFilter === 'Pending' && ent.status !== 'Pending') return false;
+                  if (statusFilter === 'Active' && (!ent.isActive || ent.status === 'Pending')) return false;
+                  if (statusFilter === 'Deactivated' && (ent.isActive || ent.status === 'Pending')) return false;
+                  
+                  if (searchTerm) {
+                    const s = searchTerm.toLowerCase();
+                    const matchesName = ent.name?.toLowerCase().includes(s);
+                    const matchesSlug = ent.slug?.toLowerCase().includes(s);
+                    const matchesEmail = ent.email?.toLowerCase().includes(s);
+                    const matchesPlan = ent.plan?.toLowerCase().includes(s);
+                    const matchesDomain = ent.customDomain?.toLowerCase().includes(s);
+                    return matchesName || matchesSlug || matchesEmail || matchesPlan || matchesDomain;
+                  }
                   return true;
                 }).length === 0 ? (
                   <tr>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Database, Users, Activity, Play, Download, RefreshCw, AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
+import { Database, Users, Activity, Play, Download, RefreshCw, AlertTriangle, CheckCircle, Loader2, Search, Filter } from "lucide-react";
 
 interface Enterprise {
   id: number;
@@ -34,6 +34,8 @@ export default function MonitoringPage() {
   const [selectedEnt, setSelectedEnt] = useState<Enterprise | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
   const [stats, setStats] = useState<MonitorStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
@@ -234,30 +236,70 @@ export default function MonitoringPage() {
           LOADING METRICS ENGINE...
         </div>
       ) : (
-        <div className="grid lg:grid-cols-4 gap-8">
-          
-          {/* Enterprises Selector */}
-          <div className="lg:col-span-1 space-y-4">
-            <h3 className="text-xs uppercase font-mono tracking-wider text-muted-foreground">Select Tenant</h3>
-            <div className="glass-panel p-2 rounded-xl bg-card/25 border border-border/50 space-y-1">
-              {enterprises.map(ent => (
+        <div className="space-y-6">
+          {/* Controls Bar: Search & Status Filters */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-card/50 p-4 rounded-xl border border-border">
+            <div className="flex items-center gap-2 flex-1 max-w-md">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search tenant name or slug for monitoring..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-background border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+            </div>
+
+            {/* Filter Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+              <Filter className="w-4 h-4 text-muted-foreground mr-1 shrink-0" />
+              {["ALL", "COMPLETED", "PENDING", "FAILED"].map((st) => (
                 <button
-                  key={ent.id}
-                  onClick={() => setSelectedEnt(ent)}
-                  className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all flex items-center justify-between cursor-pointer ${
-                    selectedEnt?.id === ent.id
-                      ? "bg-primary text-primary-foreground font-medium"
-                      : "text-slate-300 hover:bg-slate-800/40"
+                  key={st}
+                  onClick={() => setStatusFilter(st)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                    statusFilter === st
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "bg-secondary/50 text-muted-foreground hover:text-foreground hover:bg-secondary"
                   }`}
                 >
-                  <div>
-                    <div>{ent.name}</div>
-                    <div className={`text-[10px] font-mono mt-0.5 ${selectedEnt?.id === ent.id ? "text-primary-foreground/75" : "text-muted-foreground"}`}>{ent.slug}</div>
-                  </div>
+                  {st}
                 </button>
               ))}
             </div>
           </div>
+
+          <div className="grid lg:grid-cols-4 gap-8">
+            {/* Enterprises Selector */}
+            <div className="lg:col-span-1 space-y-4">
+              <h3 className="text-xs uppercase font-mono tracking-wider text-muted-foreground">Select Tenant</h3>
+              <div className="glass-panel p-2 rounded-xl bg-card/25 border border-border/50 space-y-1 max-h-[600px] overflow-y-auto">
+                {enterprises.filter((ent) => {
+                  if (searchTerm) {
+                    const s = searchTerm.toLowerCase();
+                    return ent.name?.toLowerCase().includes(s) || ent.slug?.toLowerCase().includes(s);
+                  }
+                  return true;
+                }).map(ent => (
+                  <button
+                    key={ent.id}
+                    onClick={() => setSelectedEnt(ent)}
+                    className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all flex items-center justify-between cursor-pointer ${
+                      selectedEnt?.id === ent.id
+                        ? "bg-primary text-primary-foreground font-medium"
+                        : "text-slate-300 hover:bg-slate-800/40"
+                    }`}
+                  >
+                    <div>
+                      <div>{ent.name}</div>
+                      <div className={`text-[10px] font-mono mt-0.5 ${selectedEnt?.id === ent.id ? "text-primary-foreground/75" : "text-muted-foreground"}`}>{ent.slug}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
 
           {/* Monitoring Metrics & Actions */}
           <div className="lg:col-span-3 space-y-8">
@@ -423,9 +465,9 @@ export default function MonitoringPage() {
               </div>
             )}
           </div>
-
         </div>
-      )}
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
 }

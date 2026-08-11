@@ -17,7 +17,8 @@ import {
   ClipboardList, 
   Settings,
   Eye,
-  EyeOff
+  EyeOff,
+  Mail
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -280,6 +281,15 @@ export default function Sidebar() {
         >
           <ClipboardList className="w-4.5 h-4.5 shrink-0" />
           {(!isCollapsed || !mounted) && <span>Audit Logs</span>}
+        </Link>
+
+        <Link 
+          href="/email-logs" 
+          className={getLinkClasses('/email-logs')}
+          title={isCollapsed ? "Email Logs" : undefined}
+        >
+          <Mail className="w-4.5 h-4.5 shrink-0" />
+          {(!isCollapsed || !mounted) && <span>Email Logs</span>}
         </Link>
 
         {(!isCollapsed || !mounted) && (

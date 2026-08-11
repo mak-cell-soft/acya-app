@@ -101,6 +101,8 @@ services:
       - JwtSettings__Audience=acya-bo-ui
       - JwtSettings__ExpirationInMinutes=1440
       - MigrationScriptPath=/app/db/FullDb_Migration/full_migration.sql
+      - N8nEmailService__BaseUrl=http://n8n:5678
+      - N8nEmailService__ApiKey=${N8N_EMAIL_SERVICE_API_KEY}
     ports:
       - "8082:80"
     volumes:
