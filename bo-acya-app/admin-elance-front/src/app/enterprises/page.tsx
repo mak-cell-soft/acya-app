@@ -583,6 +583,23 @@ export default function EnterprisesPage() {
   };
 
 
+  const filteredEnterprises = enterprises.filter(ent => {
+    if (statusFilter === 'Pending' && ent.status !== 'Pending') return false;
+    if (statusFilter === 'Active' && (!ent.isActive || ent.status === 'Pending')) return false;
+    if (statusFilter === 'Deactivated' && (ent.isActive || ent.status === 'Pending')) return false;
+    
+    if (searchTerm) {
+      const s = searchTerm.trim().toLowerCase();
+      const matchesName = ent.name?.toLowerCase().includes(s);
+      const matchesSlug = ent.slug?.toLowerCase().includes(s);
+      const matchesEmail = ent.email?.toLowerCase().includes(s);
+      const matchesPlan = ent.plan?.toLowerCase().includes(s);
+      const matchesDomain = ent.customDomain?.toLowerCase().includes(s);
+      return matchesName || matchesSlug || matchesEmail || matchesPlan || matchesDomain;
+    }
+    return true;
+  });
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-end justify-between">
@@ -691,35 +708,14 @@ export default function EnterprisesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
-                {enterprises.filter(ent => {
-                  if (statusFilter === 'Pending' && ent.status !== 'Pending') return false;
-                  if (statusFilter === 'Active' && (!ent.isActive || ent.status === 'Pending')) return false;
-                  if (statusFilter === 'Deactivated' && (ent.isActive || ent.status === 'Pending')) return false;
-                  
-                  if (searchTerm) {
-                    const s = searchTerm.toLowerCase();
-                    const matchesName = ent.name?.toLowerCase().includes(s);
-                    const matchesSlug = ent.slug?.toLowerCase().includes(s);
-                    const matchesEmail = ent.email?.toLowerCase().includes(s);
-                    const matchesPlan = ent.plan?.toLowerCase().includes(s);
-                    const matchesDomain = ent.customDomain?.toLowerCase().includes(s);
-                    return matchesName || matchesSlug || matchesEmail || matchesPlan || matchesDomain;
-                  }
-                  return true;
-                }).length === 0 ? (
+                {filteredEnterprises.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground font-mono">
-                      NO ENTERPRISES FOUND IN THIS CATEGORY
+                      NO ENTERPRISES FOUND MATCHING SEARCH / FILTER
                     </td>
                   </tr>
                 ) : (
-                  enterprises.filter(ent => {
-                    if (statusFilter === 'All') return true;
-                    if (statusFilter === 'Pending') return ent.status === 'Pending';
-                    if (statusFilter === 'Active') return ent.isActive && ent.status !== 'Pending';
-                    if (statusFilter === 'Deactivated') return !ent.isActive && ent.status !== 'Pending';
-                    return true;
-                  }).map((ent) => {
+                  filteredEnterprises.map((ent) => {
                     const docUrl = ent.rneDocumentUrl || (() => {
                       if (ent.notes) {
                         try {

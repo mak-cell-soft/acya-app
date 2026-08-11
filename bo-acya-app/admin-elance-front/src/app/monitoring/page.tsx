@@ -399,14 +399,27 @@ export default function MonitoringPage() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800/60 font-mono">
-                          {backupJobs.length === 0 ? (
-                            <tr>
-                              <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                                NO BACKUP HISTORY RECORDS
-                              </td>
-                            </tr>
-                          ) : (
-                            backupJobs.map(job => (
+                          {(() => {
+                            const filteredBackupJobs = backupJobs.filter(job => {
+                              if (statusFilter !== "ALL" && (job.status || "").toUpperCase() !== statusFilter) return false;
+                              if (searchTerm) {
+                                const s = searchTerm.trim().toLowerCase();
+                                return job.filePath?.toLowerCase().includes(s) || job.id?.toString().includes(s) || job.type?.toLowerCase().includes(s);
+                              }
+                              return true;
+                            });
+
+                            if (filteredBackupJobs.length === 0) {
+                              return (
+                                <tr>
+                                  <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                                    NO BACKUP HISTORY RECORDS MATCHING FILTER
+                                  </td>
+                                </tr>
+                              );
+                            }
+
+                            return filteredBackupJobs.map(job => (
                               <tr key={job.id} className="hover:bg-slate-900/10">
                                 <td className="px-4 py-3 text-slate-400">#{job.id.toString().padStart(4, '0')}</td>
                                 <td className="px-4 py-3 font-bold uppercase">{job.type}</td>
@@ -450,8 +463,8 @@ export default function MonitoringPage() {
                                   )}
                                 </td>
                               </tr>
-                            ))
-                          )}
+                            ));
+                          })()}
                         </tbody>
                       </table>
                     </div>
