@@ -3,8 +3,16 @@ import {
   PhysicalDimensions,
   TraiteFieldKey,
   TraitePixelMap,
+  TraiteBusinessData,
 } from '@/types/traite-calibration';
-import { TEMPLATE_HEIGHT_PX, TEMPLATE_WIDTH_PX, TEMPLATE_ASPECT_RATIO } from './traite-coordinate-map';
+import {
+  TEMPLATE_HEIGHT_PX,
+  TEMPLATE_WIDTH_PX,
+  TEMPLATE_ASPECT_RATIO,
+  CONFIRMED_PHYSICAL_WIDTH_MM,
+  CONFIRMED_PHYSICAL_HEIGHT_MM,
+} from './traite-coordinate-map';
+import { numberToFrenchWords } from '@/lib/number-to-words';
 
 export interface PhysicalFieldCoordinate {
   x: number;          // in mm from top-left
@@ -20,15 +28,58 @@ export interface PhysicalFieldCoordinate {
 export type PhysicalTraiteFieldMap = Record<TraiteFieldKey, PhysicalFieldCoordinate>;
 
 /**
+ * Maps high-level business data (printData) to the 16 physical rendering fields.
+ * Duplicated physical fields (e.g. echeanceCorps + echeanceTalon) are populated
+ * automatically from single business inputs.
+ */
+export function mapBusinessDataToPixelMap(
+  pixelMap: TraitePixelMap,
+  data: TraiteBusinessData
+): TraitePixelMap {
+  const montantFormatted = `# ${data.montant.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} TND #`;
+  const montantSimple = `# ${data.montant.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} #`;
+  const amountInWords = data.montantLettres || `# ${numberToFrenchWords(data.montant)} #`;
+
+  const formatDate = (iso: string) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  };
+
+  return {
+    ...pixelMap,
+    echeanceCorps: { ...pixelMap.echeanceCorps, sampleValue: formatDate(data.echeance) },
+    echeanceTalon: { ...pixelMap.echeanceTalon, sampleValue: formatDate(data.echeance) },
+    montantCorps: { ...pixelMap.montantCorps, sampleValue: montantFormatted },
+    montantSecond: { ...pixelMap.montantSecond, sampleValue: montantSimple },
+    lieuCreationCorps: { ...pixelMap.lieuCreationCorps, sampleValue: data.lieuCreation },
+    dateCreationCorps: { ...pixelMap.dateCreationCorps, sampleValue: formatDate(data.dateCreation) },
+    ribTireCorps: { ...pixelMap.ribTireCorps, sampleValue: data.ribTire },
+    ordrePaiement: { ...pixelMap.ordrePaiement, sampleValue: data.ordrePaiement },
+    montantLettres: { ...pixelMap.montantLettres, sampleValue: amountInWords },
+    valeurEn: { ...pixelMap.valeurEn, sampleValue: data.valeurEn || 'MARCHANDISES' },
+    nomAdresseTire: { ...pixelMap.nomAdresseTire, sampleValue: data.nomAdresseTire },
+    domiciliation: { ...pixelMap.domiciliation, sampleValue: data.domiciliation },
+    ribTireTalon: { ...pixelMap.ribTireTalon, sampleValue: data.ribTire },
+    lieuCreationTalon: { ...pixelMap.lieuCreationTalon, sampleValue: data.lieuCreation },
+    dateCreationTalon: { ...pixelMap.dateCreationTalon, sampleValue: formatDate(data.dateCreation) },
+    aval: { ...pixelMap.aval, sampleValue: data.aval || '[Pas d\'aval]' },
+  };
+}
+
+/**
  * Centralized conversion function: Converts a single pixel template coordinate into physical millimeters.
  *
  * Formula:
- * physicalX = (templateX / TEMPLATE_WIDTH_PX) * widthMm
- * physicalY = (templateY / TEMPLATE_HEIGHT_PX) * heightMm
+ * physicalX = (templateX / 820) * 280
+ * physicalY = (templateY / 536) * 183
+ * physicalWidth = (templateWidth / 820) * 280
+ * physicalHeight = (templateHeight / 536) * 183
  */
 export function templateToPhysical(
   coord: FieldTemplateCoordinate,
-  dimensions: PhysicalDimensions
+  dimensions: PhysicalDimensions = { widthMm: CONFIRMED_PHYSICAL_WIDTH_MM, heightMm: CONFIRMED_PHYSICAL_HEIGHT_MM }
 ): PhysicalFieldCoordinate {
   const x = (coord.templateX / TEMPLATE_WIDTH_PX) * dimensions.widthMm;
   const y = (coord.templateY / TEMPLATE_HEIGHT_PX) * dimensions.heightMm;
@@ -52,7 +103,7 @@ export function templateToPhysical(
  */
 export function convertFullPixelMapToPhysical(
   pixelMap: TraitePixelMap,
-  dimensions: PhysicalDimensions
+  dimensions: PhysicalDimensions = { widthMm: CONFIRMED_PHYSICAL_WIDTH_MM, heightMm: CONFIRMED_PHYSICAL_HEIGHT_MM }
 ): PhysicalTraiteFieldMap {
   const result: Partial<PhysicalTraiteFieldMap> = {};
 
@@ -66,7 +117,7 @@ export function convertFullPixelMapToPhysical(
 /**
  * Compares the aspect ratio of supplied physical dimensions against the scanned template aspect ratio (1.52985).
  */
-export function validateAspectRatio(dimensions: PhysicalDimensions): {
+export function validateAspectRatio(dimensions: PhysicalDimensions = { widthMm: CONFIRMED_PHYSICAL_WIDTH_MM, heightMm: CONFIRMED_PHYSICAL_HEIGHT_MM }): {
   physicalAspectRatio: number;
   templateAspectRatio: number;
   differencePercent: number;
@@ -81,25 +132,40 @@ export function validateAspectRatio(dimensions: PhysicalDimensions): {
     physicalAspectRatio: Number(physicalAspectRatio.toFixed(4)),
     templateAspectRatio: Number(TEMPLATE_ASPECT_RATIO.toFixed(4)),
     differencePercent: Number(differencePercent.toFixed(2)),
-    isAligned: differencePercent <= 2.0, // aligned within 2% margin
+    isAligned: differencePercent <= 2.0,
   };
 }
 
 /**
- * Generates formatted JSON export string for the calibrated template pixel coordinate map.
+ * Generates clean JSON export containing ONLY the required fields with templateX, templateY, templateWidth, templateHeight, centerX, centerY.
  */
 export function exportPixelMapAsJSON(pixelMap: TraitePixelMap): string {
-  const cleanMap: Record<string, { templateX: number; templateY: number; templateWidth: number; templateHeight: number; centerX: number; centerY: number }> = {};
+  const cleanMap: Record<
+    string,
+    {
+      templateX: number;
+      templateY: number;
+      templateWidth: number;
+      templateHeight: number;
+      centerX: number;
+      centerY: number;
+      label: string;
+    }
+  > = {};
 
   (Object.keys(pixelMap) as TraiteFieldKey[]).forEach((key) => {
     const item = pixelMap[key];
+    const centerX = item.templateX + Math.round(item.templateWidth / 2);
+    const centerY = item.templateY + Math.round(item.templateHeight / 2);
+
     cleanMap[key] = {
       templateX: item.templateX,
       templateY: item.templateY,
       templateWidth: item.templateWidth,
       templateHeight: item.templateHeight,
-      centerX: item.templateX + Math.round(item.templateWidth / 2),
-      centerY: item.templateY + Math.round(item.templateHeight / 2),
+      centerX,
+      centerY,
+      label: item.label,
     };
   });
 
