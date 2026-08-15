@@ -364,7 +364,7 @@ export function TraiteCalibrationDialog({
               <DialogTitle className="text-lg font-bold flex items-center gap-2.5 text-white tracking-tight text-wrap-balance">
                 Inspecteur de Calibration Traite — Périmètre Final (16 Champs)
                 <Badge variant="outline" className="text-xs bg-emerald-950 text-emerald-300 border-emerald-700/70 font-mono tabular-nums">
-                  280 × 183 mm
+                  {CONFIRMED_PHYSICAL_WIDTH_MM} × {CONFIRMED_PHYSICAL_HEIGHT_MM} mm
                 </Badge>
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-400 font-medium">
@@ -664,10 +664,10 @@ export function TraiteCalibrationDialog({
               </div>
             </fieldset>
 
-            {/* Section 3: Physical Paper Conversion (280 x 183 mm) */}
+            {/* Section 3: Physical Paper Conversion (176.5 x 115.2 mm) */}
             <fieldset className="border border-slate-800 bg-slate-900/60 rounded-2xl p-4 space-y-3 shadow-xs">
-              <legend className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
-                Paper Geometry (280 × 183 mm)
+              <legend className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1 flex items-center justify-between w-full">
+                <span>Paper Geometry ({physicalWidthMm} × {physicalHeightMm} mm)</span>
               </legend>
 
               <div className="grid grid-cols-2 gap-3">
@@ -675,6 +675,7 @@ export function TraiteCalibrationDialog({
                   <Label className="text-[10px] font-bold text-slate-300">Largeur Papier (mm)</Label>
                   <Input
                     type="number"
+                    step="0.1"
                     value={physicalWidthMm}
                     onChange={(e) => setPhysicalWidthMm(parseFloat(e.target.value) || CONFIRMED_PHYSICAL_WIDTH_MM)}
                     className="h-8 text-xs bg-slate-950 border-slate-700 font-mono text-center text-white tabular-nums"
@@ -684,10 +685,43 @@ export function TraiteCalibrationDialog({
                   <Label className="text-[10px] font-bold text-slate-300">Hauteur Papier (mm)</Label>
                   <Input
                     type="number"
+                    step="0.1"
                     value={physicalHeightMm}
                     onChange={(e) => setPhysicalHeightMm(parseFloat(e.target.value) || CONFIRMED_PHYSICAL_HEIGHT_MM)}
                     className="h-8 text-xs bg-slate-950 border-slate-700 font-mono text-center text-white tabular-nums"
                   />
+                </div>
+              </div>
+
+              {/* Warning if physical paper dimensions are altered */}
+              {(physicalWidthMm !== CONFIRMED_PHYSICAL_WIDTH_MM || physicalHeightMm !== CONFIRMED_PHYSICAL_HEIGHT_MM) && (
+                <div className="bg-amber-950/80 border border-amber-600/80 text-amber-200 p-2.5 rounded-xl text-[11px] flex items-start gap-2 animate-pulse">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="font-bold">Attention : Dimensions physiques modifiées !</strong>
+                    <p className="text-[10px] text-amber-300/90 mt-0.5 leading-snug">
+                      Les dimensions mesurées officielles du papier sont {CONFIRMED_PHYSICAL_WIDTH_MM} × {CONFIRMED_PHYSICAL_HEIGHT_MM} mm.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Aspect Ratio Display */}
+              <div className="bg-slate-950 border border-slate-800/90 p-3 rounded-xl text-xs space-y-1 font-mono shadow-2xs">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                  Aspect Ratios & Dimensions
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-300 tabular-nums">
+                  <div>
+                    <span className="text-slate-400 block text-[9px] uppercase">Template</span>
+                    <strong className="text-sky-400">820 × 536 px</strong>
+                    <div className="text-[10px] text-slate-400">Ratio: <span className="text-sky-300">{(TEMPLATE_WIDTH_PX / TEMPLATE_HEIGHT_PX).toFixed(5)}</span></div>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[9px] uppercase">Physical Paper</span>
+                    <strong className="text-emerald-400">{physicalWidthMm} × {physicalHeightMm} mm</strong>
+                    <div className="text-[10px] text-slate-400">Ratio: <span className="text-emerald-300">{(physicalWidthMm / physicalHeightMm).toFixed(5)}</span></div>
+                  </div>
                 </div>
               </div>
 

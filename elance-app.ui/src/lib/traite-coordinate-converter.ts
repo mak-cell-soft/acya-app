@@ -72,10 +72,10 @@ export function mapBusinessDataToPixelMap(
  * Centralized conversion function: Converts a single pixel template coordinate into physical millimeters.
  *
  * Formula:
- * physicalX = (templateX / 820) * 280
- * physicalY = (templateY / 536) * 183
- * physicalWidth = (templateWidth / 820) * 280
- * physicalHeight = (templateHeight / 536) * 183
+ * physicalX = (templateX / 820) * 176.5
+ * physicalY = (templateY / 536) * 115.2
+ * physicalWidth = (templateWidth / 820) * 176.5
+ * physicalHeight = (templateHeight / 536) * 115.2
  */
 export function templateToPhysical(
   coord: FieldTemplateCoordinate,

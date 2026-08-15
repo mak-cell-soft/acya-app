@@ -782,8 +782,8 @@ export function getTraitePrintStyles(offsetX: number = 0, offsetY: number = 0): 
     }
 
     .traite-container {
-      width: 297mm;
-      height: 210mm;
+      width: 176.5mm;
+      height: 115.2mm;
       margin: 0 auto;
       background: #fff;
       position: relative;
@@ -806,7 +806,7 @@ export function getTraitePrintStyles(offsetX: number = 0, offsetY: number = 0): 
 
     @media print {
       @page {
-        size: A4 landscape;
+        size: 176.5mm 115.2mm;
         margin: 0;
       }
       body {
@@ -815,8 +815,8 @@ export function getTraitePrintStyles(offsetX: number = 0, offsetY: number = 0): 
         background: transparent !important;
       }
       .traite-container {
-        width: 297mm !important;
-        height: 210mm !important;
+        width: 176.5mm !important;
+        height: 115.2mm !important;
         position: relative !important;
         background: transparent !important;
         transform: translate(${offsetX}mm, ${offsetY}mm) !important;

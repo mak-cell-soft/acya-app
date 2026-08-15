@@ -10,14 +10,13 @@ export const TEMPLATE_ASPECT_RATIO = TEMPLATE_WIDTH_PX / TEMPLATE_HEIGHT_PX; // 
 /**
  * Confirmed Physical Paper Geometry (Measured Paper Dimensions)
  */
-export const CONFIRMED_PHYSICAL_WIDTH_MM = 280;
-export const CONFIRMED_PHYSICAL_HEIGHT_MM = 183;
-export const CONFIRMED_PHYSICAL_ASPECT_RATIO = CONFIRMED_PHYSICAL_WIDTH_MM / CONFIRMED_PHYSICAL_HEIGHT_MM; // ~1.53005
+export const CONFIRMED_PHYSICAL_WIDTH_MM = 176.5;
+export const CONFIRMED_PHYSICAL_HEIGHT_MM = 115.2;
+export const CONFIRMED_PHYSICAL_ASPECT_RATIO = CONFIRMED_PHYSICAL_WIDTH_MM / CONFIRMED_PHYSICAL_HEIGHT_MM; // ~1.532118
 
 /**
  * Baseline pixel coordinate map for the 16 final dynamic fields on the 820x536 scanned template.
- * 13 existing approved coordinates are preserved exactly.
- * 3 new fields (echeanceTalon, montantSecond, aval) are marked as NEEDS CALIBRATION.
+ * Preserved strictly in canonical 820x536 template coordinate system.
  */
 export const INITIAL_TRAITE_PIXEL_MAP: TraitePixelMap = {
   echeanceCorps: {
@@ -30,14 +29,13 @@ export const INITIAL_TRAITE_PIXEL_MAP: TraitePixelMap = {
     category: 'corps',
   },
   echeanceTalon: {
-    templateX: 13,
-    templateY: 455,
-    templateWidth: 140,
-    templateHeight: 22,
+    templateX: 268,
+    templateY: 272,
+    templateWidth: 120,
+    templateHeight: 25,
     label: '2. Échéance (Talon)',
     sampleValue: '31/12/2026',
     category: 'talon',
-    needsCalibration: true,
   },
   montantCorps: {
     templateX: 613,
@@ -49,28 +47,27 @@ export const INITIAL_TRAITE_PIXEL_MAP: TraitePixelMap = {
     category: 'corps',
   },
   montantSecond: {
-    templateX: 275,
-    templateY: 273,
-    templateWidth: 130,
-    templateHeight: 24,
+    templateX: 615,
+    templateY: 188,
+    templateWidth: 179,
+    templateHeight: 23,
     label: '4. Montant Second (Talon/Cadre)',
     sampleValue: '# 12 345,678 #',
     category: 'talon',
-    needsCalibration: true,
   },
   lieuCreationCorps: {
-    templateX: 402,
+    templateX: 397,
     templateY: 57,
-    templateWidth: 110,
-    templateHeight: 22,
+    templateWidth: 123,
+    templateHeight: 20,
     label: '5. Lieu de création (Corps)',
     sampleValue: 'Tunis',
     category: 'corps',
   },
   dateCreationCorps: {
-    templateX: 404,
-    templateY: 78,
-    templateWidth: 110,
+    templateX: 399,
+    templateY: 80,
+    templateWidth: 122,
     templateHeight: 22,
     label: '6. Date de création (Corps)',
     sampleValue: '13/08/2026',
@@ -105,27 +102,27 @@ export const INITIAL_TRAITE_PIXEL_MAP: TraitePixelMap = {
   },
   valeurEn: {
     templateX: 410,
-    templateY: 311,
-    templateWidth: 82,
-    templateHeight: 19,
+    templateY: 309,
+    templateWidth: 81,
+    templateHeight: 17,
     label: '10. Valeur en...',
     sampleValue: 'TND 12 345,678',
     category: 'talon',
   },
   nomAdresseTire: {
-    templateX: 357,
+    templateX: 355,
     templateY: 349,
-    templateWidth: 173,
-    templateHeight: 88,
+    templateWidth: 175,
+    templateHeight: 83,
     label: '11. Nom et adresse du tiré',
     sampleValue: 'ACYA STE - Zone Industrielle Charguia, Tunis',
     category: 'talon',
   },
   domiciliation: {
-    templateX: 550,
-    templateY: 327,
-    templateWidth: 245,
-    templateHeight: 44,
+    templateX: 545,
+    templateY: 324,
+    templateWidth: 252,
+    templateHeight: 49,
     label: '12. Domiciliation bancaire',
     sampleValue: 'BIAT - Agence Avenue Habib Bourguiba, Tunis',
     category: 'talon',
@@ -152,19 +149,18 @@ export const INITIAL_TRAITE_PIXEL_MAP: TraitePixelMap = {
     templateX: 144,
     templateY: 273,
     templateWidth: 114,
-    templateHeight: 24,
+    templateHeight: 26,
     label: '15. Date de création (Talon - Le)',
     sampleValue: '13/08/2026',
     category: 'talon',
   },
   aval: {
-    templateX: 550,
-    templateY: 450,
-    templateWidth: 240,
-    templateHeight: 45,
+    templateX: 183,
+    templateY: 379,
+    templateWidth: 157,
+    templateHeight: 60,
     label: '16. Aval (Cautionnement)',
     sampleValue: 'Bon pour aval pour le compte du tiré',
     category: 'talon',
-    needsCalibration: true,
   },
 };
