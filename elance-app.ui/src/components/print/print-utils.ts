@@ -239,6 +239,10 @@ export function getTvaCode(document: Document | null | undefined): string {
   return document?.counterpart?.taxregistrationnumber || '';
 }
 
+export function getCustomerCin(document: Document | null | undefined): string {
+  return document?.counterpart?.identitycardnumber || '';
+}
+
 export function getAccountNumber(document: Document | null | undefined): string {
   const passager = parsePassagerInfo(document);
   if (passager && passager.cin) {

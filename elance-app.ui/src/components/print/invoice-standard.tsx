@@ -23,7 +23,7 @@ export function InvoiceStandard({ document, enterprise, printLocale, payments }:
   const tvaBreakdown = utils.getTvaBreakdown(document);
 
   const rowCount = document?.merchandises?.length || 0;
-  const paddingCount = Math.max(0, 10 - rowCount);
+  const paddingCount = Math.max(0, 7 - rowCount);
   const emptyRows = Array.from({ length: paddingCount });
 
   return (
@@ -49,15 +49,12 @@ export function InvoiceStandard({ document, enterprise, printLocale, payments }:
         {/* Center: Styled Logo (Choose a not so bold character as requested) */}
         <div className="center-section">
           <div className="logo" style={{ borderColor: '#000' }}>
-            <h1 
-              className="logo-text" 
+            <h1
+              className="logo-text"
               style={{ fontWeight: 400, fontSize: '18pt', letterSpacing: '3px', textTransform: 'uppercase' }}
             >
               {enterprise.name}
             </h1>
-          </div>
-          <div className="location">
-            <p>{enterprise.siegeAddress?.split('-')[1]?.trim() || 'TUNIS'}</p>
           </div>
         </div>
 
@@ -103,6 +100,10 @@ export function InvoiceStandard({ document, enterprise, printLocale, payments }:
           <div className="info-row">
             <span className="label">{ar.labels.tvaCode}</span>
             <span className="value font-mono text-xs">{utils.getTvaCode(document)}</span>
+          </div>
+          <div className="info-row">
+            <span className="label">CIN :</span>
+            <span className="value font-mono text-xs">{utils.getCustomerCin(document)}</span>
           </div>
         </div>
       </div>
@@ -249,7 +250,7 @@ export function InvoiceStandard({ document, enterprise, printLocale, payments }:
             <span className="total-label">{ar.labels.totalHT}</span>
             <span className="total-value">{utils.formatNumber(document?.total_ht_net_doc)}</span>
           </div>
-          
+
           <div className="total-row">
             <span className="total-label">{ar.labels.totalTVA}</span>
             <span className="total-value">{utils.formatNumber(document?.total_tva_doc)}</span>
@@ -361,15 +362,12 @@ export function InvoiceStandard({ document, enterprise, printLocale, payments }:
         </div>
       )}
 
-      {/* Legal terms footer */}
+      {/* Legal terms footer
       <div className="footer-legal">
         <p className="legal-text">
           {enterprise.description ? `${enterprise.name} - ${enterprise.description}` : enterprise.name}
         </p>
-        <p className="agency-info">
-          Adresse: {enterprise.siegeAddress} | Tél: {enterprise.phone} | M.F: {enterprise.matriculeFiscal}
-        </p>
-      </div>
+      </div> */}
     </div>
   );
 }

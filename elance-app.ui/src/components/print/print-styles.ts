@@ -24,9 +24,10 @@ export function getStandardPrintStyles(): string {
 
     .print-container {
       width: 210mm;
-      min-height: 297mm;
+      max-height: 297mm;
+      overflow: hidden;
       margin: 0 auto;
-      padding: 10mm;
+      padding: 8mm 10mm;
       background: #fff !important;
       font-size: 9pt;
       color: #000;
@@ -269,7 +270,7 @@ export function getStandardPrintStyles(): string {
     }
 
     .empty-row td {
-      height: 7mm;
+      height: 5mm;
       border-top: none;
       border-bottom: none;
     }
@@ -281,8 +282,8 @@ export function getStandardPrintStyles(): string {
     .footer-section {
       display: grid;
       grid-template-columns: 1.8fr 1.2fr;
-      gap: 5mm;
-      margin-bottom: 4mm;
+      gap: 3mm;
+      margin-bottom: 2mm;
     }
 
     .tax-tables {
@@ -372,7 +373,7 @@ export function getStandardPrintStyles(): string {
     }
 
     .payment-methods-section {
-      margin-bottom: 4mm;
+      margin-bottom: 2mm;
       border: 1px solid #ccc;
       border-radius: 1mm;
       overflow: hidden;
@@ -439,13 +440,13 @@ export function getStandardPrintStyles(): string {
       grid-template-columns: repeat(5, 1fr);
       gap: 0;
       border: 1px solid #000;
-      margin-bottom: 4mm;
+      margin-bottom: 2mm;
     }
 
     .signature-box {
       border-right: 1px solid #000;
-      padding: 2mm;
-      min-height: 22mm;
+      padding: 1.5mm 2mm;
+      min-height: 18mm;
       display: flex;
       flex-direction: column;
     }
@@ -463,7 +464,7 @@ export function getStandardPrintStyles(): string {
 
     .signature-area {
       flex: 1;
-      min-height: 12mm;
+      min-height: 8mm;
     }
 
     .cin-label {
@@ -518,7 +519,13 @@ export function getStandardPrintStyles(): string {
         background: #fff !important;
       }
       .print-container {
-        padding: 8mm;
+        padding: 8mm 10mm;
+        max-height: 297mm;
+        overflow: hidden;
+        page-break-after: avoid;
+      }
+      * {
+        page-break-inside: avoid;
       }
     }
   `;
