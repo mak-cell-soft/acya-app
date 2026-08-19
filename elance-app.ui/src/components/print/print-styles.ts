@@ -371,6 +371,69 @@ export function getStandardPrintStyles(): string {
       background-color: #f0f0f0 !important;
     }
 
+    .payment-methods-section {
+      margin-bottom: 4mm;
+      border: 1px solid #ccc;
+      border-radius: 1mm;
+      overflow: hidden;
+    }
+
+    .payment-methods-title {
+      font-size: 7pt;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      padding: 2mm 3mm 1.5mm 3mm;
+      background-color: #f5f5f5;
+      border-bottom: 1px solid #ccc;
+      text-transform: uppercase;
+    }
+
+    .payment-methods-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 7.5pt;
+    }
+
+    .payment-methods-table thead tr {
+      background-color: #f9f9f9;
+    }
+
+    .payment-methods-table th {
+      text-align: left;
+      padding: 1.5mm 2.5mm;
+      font-weight: bold;
+      border-bottom: 1px solid #ccc;
+      font-size: 7pt;
+    }
+
+    .payment-methods-table td {
+      padding: 1.5mm 2.5mm;
+      border-bottom: 1px solid #eee;
+      vertical-align: middle;
+    }
+
+    .payment-methods-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .payment-methods-table .pm-method {
+      font-weight: bold;
+      font-size: 7pt;
+      letter-spacing: 0.3px;
+    }
+
+    .payment-methods-table .pm-mono {
+      font-family: 'Courier New', monospace;
+      font-size: 7pt;
+    }
+
+    .payment-methods-table .pm-amount {
+      text-align: right;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      font-size: 7.5pt;
+    }
+
     .signature-section {
       display: grid;
       grid-template-columns: repeat(5, 1fr);

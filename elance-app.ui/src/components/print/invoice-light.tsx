@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document } from '@/types/document';
 import { Enterprise } from '@/types/settings';
+import { Payment } from '@/types/payment';
 import { numberToFrenchWords } from '@/lib/number-to-words';
 import defaultAr from '@/locales/print-ar.json';
 import { PrintLocale } from '@/hooks/use-print-locale';
@@ -10,9 +11,10 @@ interface InvoiceLightProps {
   document: Document;
   enterprise: Enterprise;
   printLocale?: PrintLocale;
+  payments?: Payment[];
 }
 
-export function InvoiceLight({ document, enterprise, printLocale }: InvoiceLightProps) {
+export function InvoiceLight({ document, enterprise, printLocale, payments }: InvoiceLightProps) {
   const ar = printLocale || defaultAr;
   const finalPayable = document?.total_net_payable || document?.total_net_ttc || 0;
   const amountInWords = numberToFrenchWords(finalPayable);
@@ -168,6 +170,45 @@ export function InvoiceLight({ document, enterprise, printLocale }: InvoiceLight
           </div>
         </div>
       </div>
+
+      {/* Payment Methods Section */}
+      {payments && payments.length > 0 && (
+        <div style={{ marginTop: '8pt', marginBottom: '4pt' }}>
+          <div style={{ fontSize: '7.5pt', fontWeight: 'bold', borderBottom: '1px solid #000', marginBottom: '3pt', letterSpacing: '0.5px' }}>
+            MODE DE RÈGLEMENT
+          </div>
+          <table style={{ width: '100%', fontSize: '7pt', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #000' }}>
+                <th style={{ textAlign: 'left', padding: '1pt 3pt' }}>Méthode</th>
+                <th style={{ textAlign: 'left', padding: '1pt 3pt' }}>N° Inst.</th>
+                <th style={{ textAlign: 'left', padding: '1pt 3pt' }}>Banque</th>
+                <th style={{ textAlign: 'left', padding: '1pt 3pt' }}>Tireur</th>
+                <th style={{ textAlign: 'left', padding: '1pt 3pt' }}>Échéance</th>
+                <th style={{ textAlign: 'right', padding: '1pt 3pt' }}>Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payments.map((p, idx) => (
+                <tr key={p.paymentId || idx} style={{ borderBottom: '1px dashed #ccc' }}>
+                  <td style={{ padding: '1pt 3pt', fontWeight: 'bold' }}>{p.paymentMethod}</td>
+                  <td style={{ padding: '1pt 3pt', fontFamily: 'monospace' }}>{p.instrument?.instrumentNumber || '—'}</td>
+                  <td style={{ padding: '1pt 3pt' }}>{p.instrument?.bank || '—'}</td>
+                  <td style={{ padding: '1pt 3pt' }}>{p.instrument?.owner || '—'}</td>
+                  <td style={{ padding: '1pt 3pt', fontFamily: 'monospace' }}>
+                    {p.instrument?.dueDate
+                      ? new Date(p.instrument.dueDate).toLocaleDateString('fr-FR')
+                      : '—'}
+                  </td>
+                  <td style={{ padding: '1pt 3pt', textAlign: 'right', fontFamily: 'monospace' }}>
+                    {(p.amount || 0).toLocaleString('fr-FR', { minimumFractionDigits: 3 })}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Signatures */}
       <div className="signatures">

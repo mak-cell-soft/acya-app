@@ -37,7 +37,8 @@ import { CaisseRemiseStandard } from './caisse-remise-standard';
 import { SupplierPaymentStandard } from './supplier-payment-standard';
 import { BordereauVersementStandard } from './bordereau-versement-standard';
 import { SupplierPaymentsListStandard } from './supplier-payments-list-standard';
-import { DashboardPaymentDto } from '@/types/payment';
+import { DashboardPaymentDto, Payment } from '@/types/payment';
+import { paymentService } from '@/services/components/payment.service';
 import { getHalfA4PrintStyles, getDuplicatedBordereauPrintStyles } from './print-styles';
 
 interface PrintVariantDialogProps {
@@ -154,7 +155,7 @@ export function PrintVariantDialog({
    * Executes the print flow by generating markup, injecting it into a hidden iframe,
    * applying the printer CSS, and invoking browser's print dialog.
    */
-  const handlePrint = (variant: 'standard' | 'light') => {
+  const handlePrint = async (variant: 'standard' | 'light') => {
     if (!enterprise) return;
 
     setPrinting(true);
@@ -177,11 +178,19 @@ export function PrintVariantDialog({
       } else if (docType === 'invoice' && document) {
         printDocNumber = document.docnumber || '';
         styleCss = variant === 'standard' ? getStandardPrintStyles() : getLightPrintStyles();
+        // Fetch payments for this invoice before rendering
+        let invoicePayments: Payment[] = [];
+        try {
+          invoicePayments = await paymentService.getByDocumentId(document.id);
+        } catch {
+          // Non-blocking: if payments fail to load, print without them
+          invoicePayments = [];
+        }
         contentHtml = renderToStaticMarkup(
           variant === 'standard' ? (
-            <InvoiceStandard document={document} enterprise={enterprise} printLocale={printLocale} />
+            <InvoiceStandard document={document} enterprise={enterprise} printLocale={printLocale} payments={invoicePayments} />
           ) : (
-            <InvoiceLight document={document} enterprise={enterprise} printLocale={printLocale} />
+            <InvoiceLight document={document} enterprise={enterprise} printLocale={printLocale} payments={invoicePayments} />
           )
         );
       } else if (docType === 'transfer' && transfer) {

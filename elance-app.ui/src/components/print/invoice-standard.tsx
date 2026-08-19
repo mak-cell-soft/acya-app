@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document } from '@/types/document';
 import { Enterprise } from '@/types/settings';
+import { Payment } from '@/types/payment';
 import { numberToFrenchWords } from '@/lib/number-to-words';
 import defaultAr from '@/locales/print-ar.json';
 import { PrintLocale } from '@/hooks/use-print-locale';
@@ -10,9 +11,10 @@ interface InvoiceStandardProps {
   document: Document;
   enterprise: Enterprise;
   printLocale?: PrintLocale;
+  payments?: Payment[];
 }
 
-export function InvoiceStandard({ document, enterprise, printLocale }: InvoiceStandardProps) {
+export function InvoiceStandard({ document, enterprise, printLocale, payments }: InvoiceStandardProps) {
   const ar = printLocale || defaultAr;
   // Invoices net payable can differ from total_net_ttc if withholding tax (RS) is applied.
   const finalPayable = document?.total_net_payable || document?.total_net_ttc || 0;
@@ -281,6 +283,43 @@ export function InvoiceStandard({ document, enterprise, printLocale }: InvoiceSt
           </div>
         </div>
       </div>
+
+      {/* Payment Methods Section */}
+      {payments && payments.length > 0 && (
+        <div className="payment-methods-section">
+          <div className="payment-methods-title">MODE DE RÈGLEMENT</div>
+          <table className="payment-methods-table">
+            <thead>
+              <tr>
+                <th>Méthode</th>
+                <th>N° Instrument</th>
+                <th>Banque</th>
+                <th>Tireur / Porteur</th>
+                <th>Échéance</th>
+                <th>Montant (TND)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payments.map((p, idx) => (
+                <tr key={p.paymentId || idx}>
+                  <td className="pm-method">{p.paymentMethod}</td>
+                  <td className="pm-mono">{p.instrument?.instrumentNumber || '—'}</td>
+                  <td>{p.instrument?.bank || '—'}</td>
+                  <td>{p.instrument?.owner || '—'}</td>
+                  <td className="pm-mono">
+                    {p.instrument?.dueDate
+                      ? new Date(p.instrument.dueDate).toLocaleDateString('fr-FR')
+                      : '—'}
+                  </td>
+                  <td className="pm-amount">
+                    {(p.amount || 0).toLocaleString('fr-FR', { minimumFractionDigits: 3 })}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Signature boxes */}
       <div className="signature-section">
