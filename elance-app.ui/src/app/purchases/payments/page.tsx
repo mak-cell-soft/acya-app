@@ -21,7 +21,8 @@ import {
   Plus,
   Loader2,
   Printer,
-  FileText
+  FileText,
+  Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSuppliers } from '@/hooks/use-suppliers';
@@ -30,7 +31,8 @@ import {
   useSupplierInvoices,
   useSupplierTraites,
   useEcheances,
-  useMarkTraiteAsPaid
+  useMarkTraiteAsPaid,
+  useDeletePayment
 } from '@/hooks/use-payments';
 import { PaymentModal } from '@/components/sales/payment-modal';
 import { EcheanceDetailsModal } from '@/components/purchases/echeance-details-modal';
@@ -102,6 +104,7 @@ function SupplierPaymentsPageContent() {
   const [selectedEcheanceData, setSelectedEcheanceData] = useState<any /* eslint-disable-line @typescript-eslint/no-explicit-any */>(null);
 
   const [traiteToConfirm, setTraiteToConfirm] = useState<any /* eslint-disable-line @typescript-eslint/no-explicit-any */>(null);
+  const [paymentToDelete, setPaymentToDelete] = useState<any /* eslint-disable-line @typescript-eslint/no-explicit-any */>(null);
 
   const [isDisburseModalOpen, setIsDisburseModalOpen] = useState(false);
   const [traiteToDisburse, setTraiteToDisburse] = useState<any /* eslint-disable-line @typescript-eslint/no-explicit-any */>(null);
@@ -125,6 +128,7 @@ function SupplierPaymentsPageContent() {
   const { data: echeances = [], isLoading: loadingEcheances, refetch: refetchEcheances } = useEcheances(projectionDays);
 
   const markTraiteAsPaidMutation = useMarkTraiteAsPaid();
+  const deletePaymentMutation = useDeletePayment();
   const disburseInstrumentsMutation = useDisburseInstruments();
   const { data: banks = [] } = useBanks();
   const { data: tvas = [] } = useAppVariables('Tva');
@@ -313,13 +317,23 @@ function SupplierPaymentsPageContent() {
 
   // Open Payment modal in EDIT mode
   const triggerEditPayment = (payment: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+    const docId = payment.documentId ?? 0;
+
+    // Look up the linked invoice from the already-loaded list using documentId.
+    // The Payment type does not carry invoice metadata directly.
+    const linkedInvoice = rawInvoices.find((inv: any) => inv.id === docId);
+
     setPaymentModalData({
       isEditMode: true,
       paymentId: payment.paymentId || payment.id,
-      documentId: payment.documentId,
-      documentNumber: payment.reference || '',
-      totalAmount: payment.amount || 0,
-      remainingAmount: payment.amount || 0,
+      documentId: docId,
+      documentNumber: linkedInvoice?.docnumber ?? '',
+      totalAmount: linkedInvoice?.total_net_ttc ?? payment.amount ?? 0,
+      remainingAmount: linkedInvoice?.remaining_balance ?? payment.amount ?? 0,
+      totalCreditNotes: linkedInvoice?.total_credit_notes ?? 0,
+      withholdingtax: linkedInvoice?.withholdingtax,
+      holdingtax: linkedInvoice?.holdingtax,
+      totalNetPayable: linkedInvoice?.total_net_payable,
       customerId: selectedSupplierId!,
       customerName: selectedSupplier?.name || `${selectedSupplier?.firstname || ''} ${selectedSupplier?.lastname || ''}`.trim(),
       prefillAmount: payment.amount,
@@ -330,6 +344,18 @@ function SupplierPaymentsPageContent() {
       prefillInstrument: payment.instrument
     });
     setIsPaymentModalOpen(true);
+  };
+
+
+  // Delete a payment after user confirmation
+  const handleDeletePayment = async () => {
+    if (!paymentToDelete) return;
+    const id = paymentToDelete.paymentId || paymentToDelete.id;
+    setPaymentToDelete(null);
+    await deletePaymentMutation.mutateAsync(id);
+    refetchInvoices();
+    refetchTraites();
+    refetchEcheances();
   };
 
   const handleModalSuccess = () => {
@@ -805,9 +831,20 @@ function SupplierPaymentsPageContent() {
                                           onClick={() => triggerEditPayment(traite)}
                                           variant="ghost"
                                           size="icon"
+                                          title="Modifier le paiement"
                                           className="w-8 h-8 rounded-full text-slate-550 hover:bg-slate-100 hover:text-slate-800"
                                         >
                                           <Edit2 className="w-3.5 h-3.5" />
+                                        </Button>
+
+                                        <Button
+                                          onClick={() => setPaymentToDelete(traite)}
+                                          variant="ghost"
+                                          size="icon"
+                                          title="Supprimer le paiement"
+                                          className="w-8 h-8 rounded-full text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
                                         </Button>
 
                                         <Button
@@ -928,6 +965,44 @@ function SupplierPaymentsPageContent() {
                 <>
                   <CheckCircle2 className="w-4 h-4" />
                   Confirmer
+                </>
+              )}
+            </Button>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Payment Confirmation Dialog */}
+      <AlertDialog open={!!paymentToDelete} onOpenChange={(open) => !open && setPaymentToDelete(null)}>
+        <AlertDialogContent className="rounded-3xl border-slate-100 shadow-2xl overflow-hidden p-0 max-w-sm sm:max-w-[400px]">
+          <div className="bg-gradient-to-b from-rose-50/50 to-white px-8 pt-10 pb-8 text-center space-y-5">
+            <div className="mx-auto w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-rose-100 shadow-sm shadow-rose-100/50">
+              <Trash2 className="w-8 h-8 text-rose-500" />
+            </div>
+            <div>
+              <AlertDialogTitle className="text-[17px] font-black tracking-tight text-slate-800 mb-2">Supprimer le paiement</AlertDialogTitle>
+              <AlertDialogDescription className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[280px] mx-auto">
+                Êtes-vous sûr de vouloir supprimer le paiement{paymentToDelete?.instrument?.instrumentNumber ? (
+                  <> N° <span className="font-mono text-slate-700 font-bold bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-150">{paymentToDelete.instrument.instrumentNumber}</span></>
+                ) : ''} ? Cette action est irréversible.
+              </AlertDialogDescription>
+            </div>
+          </div>
+          <div className="bg-slate-50/80 px-4 py-4 sm:px-6 sm:py-5 flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3 border-t border-slate-100/60">
+            <AlertDialogCancel className="h-10 sm:h-11 rounded-xl px-4 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 bg-white w-full sm:w-auto sm:flex-1 hover:bg-slate-50 transition-colors m-0">
+              Annuler
+            </AlertDialogCancel>
+            <Button
+              onClick={handleDeletePayment}
+              disabled={deletePaymentMutation.isPending}
+              className="h-10 sm:h-11 rounded-xl px-4 text-xs font-bold text-white bg-rose-500 hover:bg-rose-600 shadow-sm shadow-rose-500/20 w-full sm:w-auto sm:flex-1 transition-colors flex items-center justify-center gap-2 m-0"
+            >
+              {deletePaymentMutation.isPending ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white/80" />
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4" />
+                  Supprimer
                 </>
               )}
             </Button>

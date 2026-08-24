@@ -128,6 +128,27 @@ export function useUpdatePayment() {
 }
 
 /**
+ * Hook to delete an existing payment.
+ */
+export function useDeletePayment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => paymentService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['traites'] });
+      queryClient.invalidateQueries({ queryKey: ['echeances'] });
+      toast.success('Paiement supprimé avec succès.');
+    },
+    onError: (error: any) => {
+      console.error('Error deleting payment:', error);
+      toast.error('Erreur lors de la suppression du paiement.');
+    },
+  });
+}
+
+/**
  * Hook to retrieve all supplier payments (both Traites and Cheques) across all suppliers.
  */
 export function useAllSupplierTraites() {

@@ -45,7 +45,7 @@ export default function VehiclesPage() {
   const router = useRouter();
 
   const { data: enterprise } = useEnterprise();
-  const enterpriseName = enterprise?.name || 'SOCOBOIS';
+  const enterpriseName = enterprise?.name || '';
 
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);

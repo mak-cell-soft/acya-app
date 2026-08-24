@@ -157,7 +157,7 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
 
   // Load existing payments to calculate remaining amount or fill prefilled details
   useEffect(() => {
-    if (isOpen && data.documentId) {
+    if (isOpen && (data.documentId || data.isEditMode)) {
       if (data.isEditMode) {
         setSelectedMethod(data.prefillMethod || 'ESPECE');
         setAmount((data.prefillAmount || 0).toFixed(3));
@@ -256,6 +256,7 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
       if (data.isEditMode && data.paymentId) {
         const updatePayload: any = {
           paymentId: data.paymentId,
+          documentId: data.documentId,
           amount: parsedAmount,
           paymentDate: new Date(paymentDate).toISOString(),
           paymentMethod: selectedMethod,
