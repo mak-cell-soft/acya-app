@@ -482,7 +482,7 @@ namespace ms.webapp.api.acya.api.Controllers
       {
         if (_repository.GetDocBySupplierReference(dto.supplierReference, (DocumentTypes)dto.type))
         {
-          return Conflict("An existing doc with same reference.");
+          return Conflict("Un document existant avec la même référence.");
         }
       }
 
@@ -1041,7 +1041,7 @@ namespace ms.webapp.api.acya.api.Controllers
       {
         if (_repository.GetDocBySupplierReference(genDto.invoiceDoc.supplierReference, (DocumentTypes)genDto.invoiceDoc.type))
         {
-          return Conflict("An existing doc with same reference.");
+          return Conflict("Un document existant avec la même référence.");
         }
       }
 

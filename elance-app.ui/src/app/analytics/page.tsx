@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
 import { 
   Card, 
@@ -73,7 +73,9 @@ import { useStockDashboardStats } from '@/hooks/use-stock';
 import { useEcheances, useSalesEcheances } from '@/hooks/use-payments';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ActivityLogSection } from '@/components/analytics/activity-log-section';
+import { AnalyticsReport } from '@/components/analytics/analytics-report';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
+import { useEnterprise } from '@/hooks/use-enterprise';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -91,11 +93,46 @@ const formatCurrency = (value: number) => {
 export default function AnalyticsPage() {
   const { hasAnyPermission } = usePermissionGuard();
   const router = useRouter();
-  
+
   const [isMounted, setIsMounted] = useState(false);
   const [chartYear, setChartYear] = useState<number>(new Date().getFullYear());
   const [chartMonth, setChartMonth] = useState<number | 'ALL'>(new Date().getMonth() + 1);
   const [receivablesSearch, setReceivablesSearch] = useState('');
+  const [showReport, setShowReport] = useState(false);
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const { data: enterprise } = useEnterprise();
+
+  const handlePrint = () => {
+    if (!printRef.current) return;
+    const content = printRef.current.innerHTML;
+    const win = window.open('', '_blank', 'width=960,height=800');
+    if (!win) return;
+    win.document.write(`
+      <!DOCTYPE html>
+      <html lang="fr">
+        <head>
+          <meta charset="UTF-8" />
+          <title>Rapport Complet — ${enterprise?.name || 'Analyse Business'}</title>
+          <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body { font-family: system-ui, -apple-system, sans-serif; background: #ffffff; }
+            @media print {
+              @page { margin: 15mm; size: A4; }
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            }
+          </style>
+        </head>
+        <body>${content}</body>
+      </html>
+    `);
+    win.document.close();
+    win.focus();
+    setTimeout(() => {
+      win.print();
+      win.close();
+    }, 400);
+  };
 
   const { data: kpis, isLoading: isLoadingKpis, isError } = useAnalyticsKpis(
     chartMonth === 'ALL' ? undefined : chartMonth,
@@ -1026,7 +1063,10 @@ export default function AnalyticsPage() {
                 <option value="12">Décembre</option>
               </select>
             </div>
-            <Button className="h-12 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20 px-6">
+            <Button
+              onClick={() => setShowReport(true)}
+              className="h-12 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20 px-6"
+            >
               <Download className="w-4 h-4 mr-2" /> Rapport Complet
             </Button>
           </div>
@@ -1902,6 +1942,60 @@ export default function AnalyticsPage() {
         <ActivityLogSection />
 
       </div>
+
+      {/* ── RAPPORT COMPLET MODAL ── */}
+      <Dialog open={showReport} onOpenChange={setShowReport}>
+        <DialogContent className="max-w-[95vw] sm:max-w-5xl bg-white border border-corp-blue-100 rounded-3xl overflow-hidden shadow-2xl p-0 flex flex-col max-h-[92vh]">
+          <DialogHeader className="p-6 pb-4 border-b border-corp-blue-50/60 bg-gradient-to-r from-corp-blue-50/30 to-white shrink-0">
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="text-xl font-bold text-corp-blue-950 flex items-center gap-2">
+                  <Download className="w-5 h-5 text-corp-blue-600" />
+                  Rapport Complet d'Analyse Business
+                </DialogTitle>
+                <DialogDescription className="text-xs text-sand-500 mt-0.5">
+                  Aperçu avant impression — Cliquez sur «&nbsp;Imprimer&nbsp;» pour lancer le dialogue d'impression.
+                </DialogDescription>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  onClick={handlePrint}
+                  className="h-9 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold px-5 text-sm gap-2"
+                >
+                  <Download className="w-4 h-4" /> Imprimer
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowReport(false)}
+                  className="h-9 px-3 text-sand-500 hover:bg-sand-50"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {/* Scrollable report preview */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar bg-sand-50/40 p-4">
+            <div ref={printRef} className="bg-white rounded-xl shadow-sm border border-corp-blue-50/50 overflow-hidden">
+              <AnalyticsReport
+                enterprise={enterprise}
+                chartMonth={chartMonth}
+                chartYear={chartYear}
+                kpis={kpis}
+                totalPurchasesTTC={totalPurchasesTTC}
+                monthlyData={monthlyData || []}
+                profitMarginAnalytics={profitMarginAnalytics}
+                futureTotals={futureTotals}
+                stockStats={stockStats}
+                customersCount={customers.length}
+                suppliersCount={suppliers.length}
+              />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </DashboardLayout>
   );
 }

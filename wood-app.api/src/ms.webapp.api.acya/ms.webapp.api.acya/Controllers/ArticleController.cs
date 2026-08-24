@@ -126,7 +126,7 @@ namespace ms.webapp.api.acya.api.Controllers
       var articleWithSameReference = await _repository.GetByReference(dto.reference!);
       if (articleWithSameReference != null && articleWithSameReference.Id != id)
       {
-        return Conflict(new { message = "An article with the same reference already exists." });
+        return Conflict(new { message = "Un article portant la même référence existe déjà." });
       }
 
       // Update the properties using the constructor
