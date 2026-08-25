@@ -212,10 +212,12 @@ export function TraitePrintDialog({
         bankDesignation: selectedBank.designation ?? '',
       };
 
+      // WHY: Render Traite markup into static HTML for silent iframe printing
       const contentHtml = renderToStaticMarkup(
         <TraiteLettreDeChange data={traiteData} enterprise={enterprise} />
       );
 
+      // WHY: Fetch print CSS styles configured for A4 Portrait with (0,0) top-left origin
       const styleCss = getTraitePrintStyles(0, 0);
 
       const iframe = window.document.createElement('iframe');

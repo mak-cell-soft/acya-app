@@ -836,8 +836,10 @@ export function getAccountStatementPrintStyles(): string {
 
 /**
  * Returns CSS optimised for printing a Tunisian Lettre de Change (Bill of Exchange).
- * During printing, it produces a completely blank A4 landscape sheet where only the
- * text values are printed, aligned with the custom offset calibration values.
+ * WHY:
+ * 1. Printed on standard A4 paper in Portrait orientation (A4 portrait).
+ * 2. Positioned at top-left (0,0) of the page so pre-printed Traite sheet aligned at the top margin fits exactly.
+ * 3. Only the data text values (.print-value) are rendered; layout guides (.mock-element) are hidden in print media.
  */
 export function getTraitePrintStyles(offsetX: number = 0, offsetY: number = 0): string {
   return `
@@ -854,7 +856,7 @@ export function getTraitePrintStyles(offsetX: number = 0, offsetY: number = 0): 
     .traite-container {
       width: 176.5mm;
       height: 115.2mm;
-      margin: 0 auto;
+      margin: 0;
       background: #fff;
       position: relative;
     }
@@ -875,19 +877,26 @@ export function getTraitePrintStyles(offsetX: number = 0, offsetY: number = 0): 
     }
 
     @media print {
+      /* WHY: Set page size to A4 Portrait with zero margin to fit physical feed */
       @page {
-        size: 176.5mm 115.2mm;
+        size: A4 portrait;
         margin: 0;
       }
-      body {
+      html, body {
         margin: 0;
         padding: 0;
+        width: 210mm;
+        height: 297mm;
         background: transparent !important;
       }
+      /* WHY: Position Traite container at top-left (start of A4 sheet) instead of center */
       .traite-container {
         width: 176.5mm !important;
         height: 115.2mm !important;
-        position: relative !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        margin: 0 !important;
         background: transparent !important;
         transform: translate(${offsetX}mm, ${offsetY}mm) !important;
         transform-origin: top left !important;
