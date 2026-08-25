@@ -94,7 +94,8 @@ export function TraitePrintDialog({
     banks.length > 0 ? banks[0].id.toString() : ''
   );
   const [ordrePaiement, setOrdrePaiement] = useState<string>(initialSupplierName);
-  const [valeurEn, setValeurEn] = useState<string>('MARCHANDISES');
+  // Default currency value fixed to 'Dinars' for commercial bill (traite) valuation
+  const [valeurEn, setValeurEn] = useState<string>('Dinars');
   const [aval, setAval] = useState<string>('');
 
   // Tiré enterprise name & address pre-fill
@@ -353,12 +354,13 @@ export function TraitePrintDialog({
                   <Label className="text-xs font-bold text-slate-700">
                     Valeur en... · القيمة
                   </Label>
+                  {/* Currency valuation input defaulting to Dinars */}
                   <Input
                     type="text"
                     value={valeurEn}
                     onChange={(e) => setValeurEn(e.target.value)}
                     className="h-10 rounded-xl border-corp-blue-100 text-sm font-medium text-slate-700 focus:ring-corp-blue-600/20 focus:border-corp-blue-600 bg-white shadow-2xs"
-                    placeholder="MARCHANDISES..."
+                    placeholder="Dinars..."
                   />
                 </div>
               </div>
@@ -433,7 +435,10 @@ export function TraitePrintDialog({
                     </Label>
                     <Select value={selectedBankId} onValueChange={(v) => v && setSelectedBankId(v)}>
                       <SelectTrigger className="h-10 w-full rounded-xl border-corp-blue-100 text-sm font-medium focus:ring-corp-blue-600/20 focus:border-corp-blue-600 bg-white shadow-2xs">
-                        <SelectValue placeholder="Sélectionnez une banque..." />
+                        {/* Display bank reference & designation in trigger to avoid rendering raw bank ID */}
+                        <SelectValue placeholder="Sélectionnez une banque...">
+                          {selectedBank ? `${selectedBank.reference}${selectedBank.designation ? ` — ${selectedBank.designation}` : ''}` : undefined}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-corp-blue-100 shadow-xl">
                         {banks.map((b) => (
