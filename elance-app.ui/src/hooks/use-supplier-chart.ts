@@ -42,7 +42,10 @@ export function useSupplierPurchasePaymentChart(year: number, month?: number | '
         });
 
         const purchases = sInvoices.reduce((sum: number, inv: any) => {
-          const val = inv.total_net_ttc || inv.totalNetTtc || inv.totalCostPriceTtc || inv.totalcostpricettc || 0;
+          // Use total_net_payable (TTC minus RS/withholding tax) so the analytics
+          // matches the remaining_balance calculation on the invoice page.
+          // Falls back to total_net_ttc if total_net_payable is not available.
+          const val = inv.total_net_payable ?? inv.total_net_ttc ?? inv.totalNetTtc ?? inv.totalCostPriceTtc ?? inv.totalcostpricettc ?? 0;
           return sum + val;
         }, 0);
 

@@ -409,6 +409,19 @@ namespace ms.webapp.api.acya.api.Services
             var payment = await _paymentRepository.GetByIdAsync(paymentId);
             if (payment == null) return false;
 
+            // Guard: cannot delete a payment whose instrument is already paid at bank
+            if (payment.PaymentInstrument != null && payment.PaymentInstrument.IsPaidAtBank)
+                throw new InvalidOperationException("Ce paiement ne peut pas être supprimé : l'instrument a déjà été encaissé en banque.");
+
+            // Guard: cannot delete a payment whose instrument is already in an active bordereau
+            if (payment.PaymentInstrument != null)
+            {
+                bool inBordereau = await _context.BankDeposits
+                    .AnyAsync(b => b.PaymentInstrumentId == payment.PaymentInstrument.Id && !b.IsDeleted);
+                if (inBordereau)
+                    throw new InvalidOperationException("Ce paiement ne peut pas être supprimé : l'instrument est inclus dans un bordereau.");
+            }
+
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
@@ -417,6 +430,13 @@ namespace ms.webapp.api.acya.api.Services
                     var result = await _paymentRepository.DeleteAsync(paymentId);
                     if (result)
                     {
+                        // Hard-delete the linked PaymentInstrument (no IsDeleted field; safe
+                        // because guards above already rejected disbursed/paid instruments)
+                        if (payment.PaymentInstrument != null)
+                        {
+                            _context.PaymentInstruments.Remove(payment.PaymentInstrument);
+                        }
+
                         // Delete linked CaisseMovement
                         var caisseMovement = await _context.CaisseMovements.FirstOrDefaultAsync(m => m.PaymentId == paymentId);
                         if (caisseMovement != null)
@@ -447,6 +467,13 @@ namespace ms.webapp.api.acya.api.Services
                         else
                         {
                             await _balanceService.UpdateCustomerBalanceAsync(payment.CustomerId, "payment", DateTime.UtcNow);
+                        }
+
+                        // Recalculate the linked invoice's BillingStatus so it no longer
+                        // appears as fully paid if the deleted payment was its last settlement.
+                        if (payment.DocumentId.HasValue)
+                        {
+                            await RecalculateDocumentBillingStatusAsync(payment.DocumentId.Value);
                         }
                     }
                     return result;

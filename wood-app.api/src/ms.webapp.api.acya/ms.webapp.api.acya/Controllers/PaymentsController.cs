@@ -162,6 +162,10 @@ namespace ms.webapp.api.acya.api.Controllers
 
                 return Ok(result);
             }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting payment {PaymentId}", id);
