@@ -28,11 +28,14 @@ export interface TraiteData {
 interface Props {
   data: TraiteData;
   enterprise: Enterprise;
+  businessData?: TraiteBusinessData;
   customPixelMap?: typeof INITIAL_TRAITE_PIXEL_MAP;
 }
 
-export function TraiteLettreDeChange({ data, enterprise, customPixelMap }: Props) {
+export function TraiteLettreDeChange({ data, enterprise, businessData, customPixelMap }: Props) {
   const printBusinessData: TraiteBusinessData = useMemo(() => {
+    if (businessData) return businessData;
+
     const defaultNomAdresse = enterprise.siegeAddress
       ? `${enterprise.name || 'ACYA'} — ${enterprise.siegeAddress}`
       : enterprise.name || 'ACYA';
@@ -49,11 +52,11 @@ export function TraiteLettreDeChange({ data, enterprise, customPixelMap }: Props
       ribTire: data.rib,
       nomAdresseTire: defaultNomAdresse,
       domiciliation: defaultDomiciliation,
-      valeurEn: 'MARCHANDISES',
+      valeurEn: 'Dinars',
       aval: '',
       instrumentNumber: data.instrumentNumber,
     };
-  }, [data, enterprise]);
+  }, [data, enterprise, businessData]);
 
   const physMap = useMemo(() => {
     const baseMap = customPixelMap || INITIAL_TRAITE_PIXEL_MAP;

@@ -214,7 +214,7 @@ export function TraitePrintDialog({
 
       // WHY: Render Traite markup into static HTML for silent iframe printing
       const contentHtml = renderToStaticMarkup(
-        <TraiteLettreDeChange data={traiteData} enterprise={enterprise} />
+        <TraiteLettreDeChange data={traiteData} enterprise={enterprise} businessData={printData} />
       );
 
       // WHY: Fetch print CSS styles configured for A4 Portrait with (0,0) top-left origin

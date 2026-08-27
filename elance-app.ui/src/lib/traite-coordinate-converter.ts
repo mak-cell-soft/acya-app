@@ -58,7 +58,7 @@ export function mapBusinessDataToPixelMap(
     ribTireCorps: { ...pixelMap.ribTireCorps, sampleValue: data.ribTire },
     ordrePaiement: { ...pixelMap.ordrePaiement, sampleValue: data.ordrePaiement },
     montantLettres: { ...pixelMap.montantLettres, sampleValue: amountInWords },
-    valeurEn: { ...pixelMap.valeurEn, sampleValue: data.valeurEn || 'MARCHANDISES' },
+    valeurEn: { ...pixelMap.valeurEn, sampleValue: data.valeurEn || 'Dinars' },
     nomAdresseTire: { ...pixelMap.nomAdresseTire, sampleValue: data.nomAdresseTire },
     domiciliation: { ...pixelMap.domiciliation, sampleValue: data.domiciliation },
     ribTireTalon: { ...pixelMap.ribTireTalon, sampleValue: data.ribTire },

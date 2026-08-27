@@ -65,7 +65,7 @@ interface TraiteCalibrationDialogProps {
   liveData?: TraiteBusinessData;
 }
 
-const LOCAL_STORAGE_KEY = 'acya_traite_pixel_map_final_v1';
+const LOCAL_STORAGE_KEY = 'acya_traite_pixel_map_final_v2';
 const FIELD_KEYS = Object.keys(INITIAL_TRAITE_PIXEL_MAP) as TraiteFieldKey[];
 
 export type VisibilityMode = 'all' | 'single' | 'none';

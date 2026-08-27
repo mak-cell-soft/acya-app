@@ -232,7 +232,10 @@ export function InstrumentsTable({ side }: { side?: 'Customer' | 'Supplier' }) {
             </div>
             <Select value={typeFilter} onValueChange={(val: string | null) => { if (val) setTypeFilter(val as 'ALL' | 'CHEQUE' | 'TRAITE'); setPage(1); }}>
               <SelectTrigger className="w-[140px] h-10 border-slate-200 font-medium text-slate-700">
-                <SelectValue placeholder="Type" />
+                {/* NOTE: Base UI SelectValue requires explicit child text to map raw keys ('ALL') to localized labels ('Tous') */}
+                <SelectValue placeholder="Type">
+                  {typeFilter === 'ALL' ? 'Tous' : typeFilter === 'CHEQUE' ? 'Chèques' : typeFilter === 'TRAITE' ? 'Traites' : 'Tous'}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Tous</SelectItem>
