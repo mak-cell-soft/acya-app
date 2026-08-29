@@ -2038,4 +2038,457 @@ export function getStockInventoryPrintStyles(): string {
   `;
 }
 
+/**
+ * Return CSS print styles for Stock Purchase Cost & Valuation Reports (Multi-page A4).
+ */
+export function getStockPurchaseCostPrintStyles(): string {
+  return `
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;700;800&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 8mm;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', Arial, sans-serif;
+      background: #fff !important;
+      color: #0f172a;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .print-container.cost-print-page {
+      width: 100%;
+      max-width: 194mm;
+      margin: 0 auto;
+      background: #fff !important;
+      font-size: 8pt;
+      color: #0f172a;
+    }
+
+    /* Enterprise Branding Header */
+    .header {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 6mm;
+      margin-bottom: 4mm;
+      padding-bottom: 3mm;
+      border-bottom: 1.5px solid #0f172a;
+    }
+
+    .company-info {
+      text-align: left;
+    }
+
+    .company-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 11pt;
+      font-weight: 800;
+      margin: 0 0 1.5mm 0;
+      color: #0f172a;
+    }
+
+    .company-details {
+      font-size: 6.8pt;
+      margin: 0.8mm 0;
+      line-height: 1.25;
+      color: #334155;
+    }
+
+    .center-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3mm;
+    }
+
+    .logo {
+      padding: 3mm 8mm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #0f172a;
+      background: #f8fafc;
+    }
+
+    .logo-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16pt;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #0f172a;
+    }
+
+    .location {
+      text-align: center;
+      font-weight: bold;
+      font-size: 7.5pt;
+      border: 1px solid #0f172a;
+      padding: 1.5mm 5mm;
+      background: #f1f5f9;
+    }
+
+    .arabic-info {
+      text-align: right;
+      direction: rtl;
+    }
+
+    .arabic-text {
+      font-size: 8.5pt;
+      font-weight: bold;
+      margin: 0.8mm 0;
+      color: #0f172a;
+    }
+
+    .arabic-details {
+      font-size: 6.8pt;
+      margin: 0.8mm 0;
+      color: #334155;
+    }
+
+    .original-label {
+      font-size: 8.5pt;
+      font-weight: bold;
+      border: 1.5px solid #0f172a;
+      padding: 1mm 3mm;
+      display: inline-block;
+      text-align: center;
+      background: #f8fafc;
+    }
+
+    /* Document Title Banner */
+    .cost-doc-header {
+      margin-bottom: 4mm;
+    }
+
+    .cost-title-box {
+      border: 1.5px solid #0f172a;
+      background: #f8fafc;
+      padding: 2.5mm 4mm;
+      border-radius: 4px;
+    }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px dashed #cbd5e1;
+      padding-bottom: 1.5mm;
+      margin-bottom: 1.5mm;
+    }
+
+    .cost-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 10.5pt;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .print-date-badge {
+      font-size: 7pt;
+      color: #475569;
+      font-weight: 500;
+    }
+
+    .filter-description-box {
+      font-size: 7pt;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 3px;
+    }
+
+    .filter-label {
+      font-weight: 700;
+      color: #0f172a;
+      text-transform: uppercase;
+    }
+
+    .filter-val {
+      font-weight: 600;
+      color: #b45309;
+    }
+
+    .sep {
+      margin: 0 4px;
+      color: #cbd5e1;
+    }
+
+    .filter-count {
+      margin-left: 6px;
+      font-style: italic;
+      color: #64748b;
+    }
+
+    /* Summary KPI Grid */
+    .cost-kpi-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2.5mm;
+      margin-bottom: 4mm;
+      page-break-inside: avoid;
+    }
+
+    .kpi-card {
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      border-radius: 3px;
+      padding: 2mm 2.5mm;
+      text-align: center;
+    }
+
+    .kpi-card.highlight-cmp {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    .kpi-card.highlight-last {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+
+    .kpi-card.highlight-variance {
+      border-color: #10b981;
+      background: #ecfdf5;
+    }
+
+    .kpi-label {
+      font-size: 6pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #64748b;
+      letter-spacing: 0.3px;
+    }
+
+    .kpi-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 9pt;
+      font-weight: 800;
+      color: #0f172a;
+      margin-top: 0.5mm;
+    }
+
+    .kpi-subtitle {
+      font-size: 5.5pt;
+      color: #64748b;
+      margin-top: 0.5mm;
+    }
+
+    .kpi-currency {
+      font-size: 6pt;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .kpi-quantities {
+      margin-top: 0.5mm;
+      font-size: 7.5pt;
+      color: #0f172a;
+    }
+
+    .kpi-val-span small {
+      font-size: 6pt;
+      color: #64748b;
+      text-transform: uppercase;
+    }
+
+    /* Main Table */
+    .cost-items-table-container {
+      margin-bottom: 4mm;
+    }
+
+    .cost-items-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1.5px solid #0f172a;
+      font-size: 7pt;
+    }
+
+    .cost-items-table thead {
+      display: table-header-group;
+    }
+
+    .cost-items-table th {
+      border: 1px solid #cbd5e1;
+      border-bottom: 1.5px solid #0f172a;
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 1.8mm 2mm;
+      font-weight: 700;
+      font-size: 6.5pt;
+      text-transform: uppercase;
+      text-align: left;
+    }
+
+    .cost-items-table td {
+      border: 1px solid #e2e8f0;
+      padding: 1.3mm 2mm;
+      color: #1e293b;
+      vertical-align: middle;
+    }
+
+    .cost-row {
+      page-break-inside: avoid;
+    }
+
+    .cost-row:nth-child(even) {
+      background: #fafafa;
+    }
+
+    .col-idx {
+      text-align: center !important;
+      color: #64748b;
+      font-size: 6.5pt;
+    }
+
+    .col-ref {
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .col-desc {
+      text-align: left;
+      font-weight: 500;
+    }
+
+    .col-qty {
+      text-align: right !important;
+      color: #0f172a;
+    }
+
+    .qty-unit {
+      font-size: 6pt;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+    }
+
+    .col-cmp-pu, .col-last-pu {
+      text-align: right !important;
+      color: #334155;
+    }
+
+    .col-cmp-val, .col-last-val {
+      text-align: right !important;
+    }
+
+    .col-cmp-val {
+      color: #b45309;
+    }
+
+    .col-last-val {
+      color: #1d4ed8;
+    }
+
+    .bg-cmp-subtle {
+      background-color: #fffbeb !important;
+    }
+
+    .bg-last-subtle {
+      background-color: #eff6ff !important;
+    }
+
+    .cost-footer-row td {
+      background: #f8fafc;
+      border-top: 1.5px solid #0f172a;
+      padding: 1.8mm 2mm;
+      font-size: 7pt;
+      color: #0f172a;
+    }
+
+    /* Footer Notes & Stamp */
+    .cost-footer-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 4mm;
+      padding-top: 2mm;
+      border-top: 1px dashed #cbd5e1;
+      page-break-inside: avoid;
+    }
+
+    .footer-notes {
+      font-size: 6pt;
+      color: #64748b;
+      line-height: 1.35;
+      max-width: 120mm;
+    }
+
+    .note-text {
+      margin-bottom: 0.8mm;
+    }
+
+    .stamp-container {
+      text-align: center;
+    }
+
+    .stamp-title {
+      font-size: 6pt;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 1mm;
+      text-transform: uppercase;
+    }
+
+    .stamp-image {
+      max-width: 38mm;
+      max-height: 24mm;
+      object-fit: contain;
+    }
+
+    .signature-box {
+      border: 1px dashed #94a3b8;
+      padding: 2mm 5mm;
+      width: 45mm;
+      text-align: center;
+    }
+
+    .sig-title {
+      font-size: 6pt;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 8mm;
+    }
+
+    .sig-line {
+      border-top: 1px solid #0f172a;
+    }
+
+    .text-right { text-align: right !important; }
+    .text-center { text-align: center !important; }
+    .font-bold { font-weight: 700 !important; }
+    .font-mono { font-family: monospace !important; }
+
+    @media print {
+      body {
+        background: #fff !important;
+      }
+      .print-container.cost-print-page {
+        width: 100% !important;
+        max-width: none !important;
+        padding: 0 !important;
+      }
+      thead {
+        display: table-header-group !important;
+      }
+      tr {
+        page-break-inside: avoid !important;
+      }
+    }
+  `;
+}
+
 

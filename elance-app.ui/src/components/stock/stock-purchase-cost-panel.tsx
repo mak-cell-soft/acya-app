@@ -1,9 +1,14 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { useQuery } from '@tanstack/react-query';
 import { formatCurrency } from '@/lib/utils';
 import { stockService } from '@/services/components/stock.service';
+import { useEnterprise } from '@/hooks/use-enterprise';
+import { usePrintLocale } from '@/hooks/use-print-locale';
+import { StockPurchaseCostStandard } from '@/components/print/stock-purchase-cost-standard';
+import { getStockPurchaseCostPrintStyles } from '@/components/print/print-styles';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,8 +27,10 @@ import {
   TrendingUp, 
   Package, 
   Info,
-  Calendar
+  Calendar,
+  Printer
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
 interface StockValuationItem {
@@ -42,6 +49,10 @@ export function StockPurchaseCostPanel() {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isPrinting, setIsPrinting] = useState<boolean>(false);
+
+  const { data: enterprise } = useEnterprise();
+  const { data: printLocale } = usePrintLocale();
 
   // Generate year options (current year and 4 years back)
   const yearOptions = useMemo(() => {
@@ -103,6 +114,96 @@ export function StockPurchaseCostPanel() {
     }
   };
 
+  // Handle printing valuation
+  const handlePrintValuation = async () => {
+    if (!enterprise) {
+      toast.error("Chargement des informations de l'entreprise...");
+      return;
+    }
+    if (filteredData.length === 0) {
+      toast.error("Aucun article à imprimer.");
+      return;
+    }
+
+    setIsPrinting(true);
+    try {
+      const filterInfo = {
+        year: selectedYear,
+        searchQuery: searchQuery.trim(),
+        totalFilteredCount: filteredData.length,
+        totalRawCount: valuationData.length,
+      };
+
+      const contentHtml = renderToStaticMarkup(
+        <StockPurchaseCostStandard
+          valuationItems={filteredData}
+          enterprise={enterprise}
+          filterInfo={filterInfo}
+          printLocale={printLocale}
+        />
+      );
+
+      const styleCss = getStockPurchaseCostPrintStyles();
+
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      document.body.appendChild(iframe);
+
+      const doc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!doc) {
+        throw new Error("Impossible d'accéder au contexte d'impression.");
+      }
+
+      const printTitle = searchQuery.trim()
+        ? `Valorisation-Stock-${selectedYear}-Filtre`
+        : `Valorisation-Stock-${selectedYear}-Global`;
+
+      doc.open();
+      doc.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>${printTitle}</title>
+            <style>${styleCss}</style>
+          </head>
+          <body>
+            ${contentHtml}
+          </body>
+        </html>
+      `);
+      doc.close();
+
+      setTimeout(() => {
+        try {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+        } catch (err) {
+          console.error('Print error:', err);
+        }
+
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
+          }
+        }, 1000);
+
+        setIsPrinting(false);
+      }, 400);
+
+    } catch (error) {
+      console.error('Print valuation failed:', error);
+      toast.error("Erreur lors de la préparation de l'impression de la valorisation.");
+      setIsPrinting(false);
+    }
+  };
+
+  const isFiltered = searchQuery.trim() !== '';
+
   return (
     <div className="space-y-6">
       {/* Filters and Actions */}
@@ -141,7 +242,7 @@ export function StockPurchaseCostPanel() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <Button
             variant="outline"
             onClick={() => refetch()}
@@ -154,6 +255,30 @@ export function StockPurchaseCostPanel() {
               <RefreshCw className="h-4 w-4 text-stone-400" />
             )}
             Actualiser
+          </Button>
+
+          {/* Print Valuation Report Button */}
+          <Button
+            onClick={handlePrintValuation}
+            disabled={isLoading || isPrinting || filteredData.length === 0}
+            className="h-10 px-4 rounded-lg gap-2 font-bold text-xs uppercase tracking-wider transition-all bg-stone-900 hover:bg-stone-800 text-white dark:bg-amber-600 dark:hover:bg-amber-500 shadow-sm border border-stone-800 dark:border-amber-500 cursor-pointer disabled:opacity-50"
+            title="Imprimer le rapport de valorisation du stock"
+          >
+            {isPrinting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin text-amber-400 dark:text-white" />
+                <span>Génération PDF...</span>
+              </>
+            ) : (
+              <>
+                <Printer className="h-4 w-4 text-amber-400 dark:text-white" />
+                <span>
+                  {isFiltered 
+                    ? `Imprimer sélection (${filteredData.length})` 
+                    : `Imprimer valorisation (${filteredData.length})`}
+                </span>
+              </>
+            )}
           </Button>
         </div>
       </div>
