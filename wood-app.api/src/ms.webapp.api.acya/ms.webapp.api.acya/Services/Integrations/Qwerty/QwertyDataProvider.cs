@@ -80,9 +80,14 @@ namespace ms.webapp.api.acya.Services.Integrations.Qwerty
                              bt.TransactionDate.Year == year &&
                              bt.TransactionDate.Month == month);
 
+            // Only filter by bankId if that Bank actually exists in this tenant DB
             if (bankId.HasValue && bankId.Value > 0)
             {
-                query = query.Where(bt => bt.BankId == bankId.Value);
+                var bankExists = await _context.Banks.AnyAsync(b => b.Id == bankId.Value);
+                if (bankExists)
+                {
+                    query = query.Where(bt => bt.BankId == bankId.Value);
+                }
             }
 
             return await query
@@ -101,14 +106,60 @@ namespace ms.webapp.api.acya.Services.Integrations.Qwerty
                              cm.MovementDate.Year == year &&
                              cm.MovementDate.Month == month);
 
+            // Only filter by siteId if that SalesSite actually exists in this tenant DB
             if (siteId.HasValue && siteId.Value > 0)
             {
-                query = query.Where(cm => cm.SalesSiteId == siteId.Value);
+                var siteExists = await _context.SalesSites.AnyAsync(s => s.Id == siteId.Value);
+                if (siteExists)
+                {
+                    query = query.Where(cm => cm.SalesSiteId == siteId.Value);
+                }
             }
 
-            return await query
+            var movements = await query
                 .OrderBy(cm => cm.MovementDate)
                 .ToListAsync();
+
+            // Include cash payments from tbl_payments (e.g. Règlements Fournisseurs / Encaissements en espèces)
+            var cashPaymentMethods = new[] { "ESPECE", "ESPECES", "CASH" };
+            var cashPayments = await _context.Payments
+                .AsNoTracking()
+                .Include(p => p.Customer)
+                .Include(p => p.Document)
+                .Where(p => !p.IsDeleted &&
+                            p.PaymentMethod != null && cashPaymentMethods.Contains(p.PaymentMethod.ToUpper()) &&
+                            p.PaymentDate.HasValue &&
+                            p.PaymentDate.Value.Year == year &&
+                            p.PaymentDate.Value.Month == month)
+                .ToListAsync();
+
+            var existingPaymentIds = movements
+                .Where(m => m.PaymentId.HasValue)
+                .Select(m => m.PaymentId!.Value)
+                .ToHashSet();
+
+            foreach (var p in cashPayments)
+            {
+                if (existingPaymentIds.Contains(p.Id)) continue;
+
+                var isSupplier = (p.Document != null && (p.Document.Type == DocumentTypes.supplierInvoice || p.Document.Type == DocumentTypes.supplierReceipt || p.Document.Type == DocumentTypes.supplierInvoiceReturn)) ||
+                                 (p.Customer != null && p.Customer.Type == CounterPartType.Supplier);
+
+                movements.Add(new CaisseMovement
+                {
+                    Id = p.Id,
+                    PaymentId = p.Id,
+                    MovementDate = p.PaymentDate!.Value,
+                    Type = isSupplier ? "SORTIE" : "ENTREE",
+                    Reason = isSupplier ? "REGLEMENT_FOURNISSEUR" : "ENCAISSEMENT",
+                    Amount = p.Amount ?? 0m,
+                    Reference = p.Reference ?? p.Document?.DocNumber,
+                    Notes = p.Notes ?? (isSupplier ? $"Règlement fournisseur {p.Customer?.Name ?? p.Customer?.Fullname}" : $"Encaissement client {p.Customer?.Name ?? p.Customer?.Fullname}"),
+                    Payment = p
+                });
+            }
+
+            return movements.OrderBy(m => m.MovementDate).ToList();
         }
     }
 }
