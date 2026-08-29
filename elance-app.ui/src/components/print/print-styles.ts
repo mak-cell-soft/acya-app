@@ -1478,40 +1478,561 @@ export function getStockPrintStyles(): string {
       color: #64748b;
       margin-left: 4px;
     }
+  `;
+}
 
-    .text-more {
-      font-size: 7pt;
-      color: #64748b;
-      padding: 1mm !important;
+/**
+ * Return CSS print styles for Stock Inventory & Categorized Stock Reports (Multi-page A4).
+ */
+export function getStockInventoryPrintStyles(): string {
+  return `
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;700;800&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
-    .stock-cut-line {
+    @page {
+      size: A4 portrait;
+      margin: 8mm;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', Arial, sans-serif;
+      background: #fff !important;
+      color: #0f172a;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .print-container.stock-print-page {
+      width: 100%;
+      max-width: 194mm;
+      margin: 0 auto;
+      background: #fff !important;
+      font-size: 8pt;
+      color: #0f172a;
+    }
+
+    /* Enterprise Branding Header */
+    .header {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 6mm;
+      margin-bottom: 4mm;
+      padding-bottom: 3mm;
+      border-bottom: 1.5px solid #0f172a;
+    }
+
+    .company-info {
+      text-align: left;
+    }
+
+    .company-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 11pt;
+      font-weight: 800;
+      margin: 0 0 1.5mm 0;
+      color: #0f172a;
+    }
+
+    .company-details {
+      font-size: 6.8pt;
+      margin: 0.8mm 0;
+      line-height: 1.25;
+      color: #334155;
+    }
+
+    .center-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3mm;
+    }
+
+    .logo {
+      padding: 3mm 8mm;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      margin: 1.5mm 0;
-      font-size: 7pt;
-      color: #64748b;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      border-top: 1.5px dashed #94a3b8;
-      padding-top: 2px;
+      border: 2px solid #0f172a;
+      background: #f8fafc;
     }
 
-    .text-center { text-align: center; }
-    .text-right { text-align: right; }
-    .font-bold { font-weight: 700; }
-    .font-mono { font-family: monospace; }
-    .font-italic { font-style: italic; }
+    .logo-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16pt;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #0f172a;
+    }
+
+    .location {
+      text-align: center;
+      font-weight: bold;
+      font-size: 7.5pt;
+      border: 1px solid #0f172a;
+      padding: 1.5mm 5mm;
+      background: #f1f5f9;
+    }
+
+    .arabic-info {
+      text-align: right;
+      direction: rtl;
+    }
+
+    .arabic-text {
+      font-size: 8.5pt;
+      font-weight: bold;
+      margin: 0.8mm 0;
+      color: #0f172a;
+    }
+
+    .arabic-details {
+      font-size: 6.8pt;
+      margin: 0.8mm 0;
+      color: #334155;
+    }
+
+    .original-label {
+      font-size: 8.5pt;
+      font-weight: bold;
+      border: 1.5px solid #0f172a;
+      padding: 1mm 3mm;
+      display: inline-block;
+      text-align: center;
+      background: #f8fafc;
+    }
+
+    /* Document Title Banner */
+    .stock-doc-header {
+      margin-bottom: 4mm;
+    }
+
+    .stock-title-box {
+      border: 1.5px solid #0f172a;
+      background: #f8fafc;
+      padding: 2.5mm 4mm;
+      border-radius: 4px;
+    }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px dashed #cbd5e1;
+      padding-bottom: 1.5mm;
+      margin-bottom: 1.5mm;
+    }
+
+    .stock-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 11pt;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .print-date-badge {
+      font-size: 7pt;
+      color: #475569;
+      font-weight: 500;
+    }
+
+    .filter-description-box {
+      font-size: 7pt;
+      color: #334155;
+    }
+
+    .filter-label {
+      font-weight: 700;
+      color: #0f172a;
+      text-transform: uppercase;
+    }
+
+    .filter-val {
+      font-weight: 600;
+      color: #b45309;
+    }
+
+    .filter-count {
+      margin-left: 6px;
+      font-style: italic;
+      color: #64748b;
+    }
+
+    /* Summary KPI Grid */
+    .stock-kpi-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(32mm, 1fr));
+      gap: 2mm;
+      margin-bottom: 4mm;
+      page-break-inside: avoid;
+    }
+
+    .kpi-card {
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      border-radius: 3px;
+      padding: 1.5mm 2.5mm;
+      text-align: center;
+    }
+
+    .kpi-card.highlight {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    .kpi-card.warning {
+      border-color: #f97316;
+      background: #fff7ed;
+    }
+
+    .kpi-card.danger {
+      border-color: #ef4444;
+      background: #fef2f2;
+    }
+
+    .kpi-label {
+      font-size: 6pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #64748b;
+      letter-spacing: 0.3px;
+    }
+
+    .kpi-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 9pt;
+      font-weight: 800;
+      color: #0f172a;
+      margin-top: 0.5mm;
+    }
+
+    .kpi-unit {
+      font-size: 6.5pt;
+      font-weight: 600;
+      color: #d97706;
+    }
+
+    /* Category Block & Items Table */
+    .stock-categories-container {
+      margin-bottom: 4mm;
+    }
+
+    .category-block {
+      margin-bottom: 4.5mm;
+      page-break-inside: auto;
+    }
+
+    .category-block-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 1.5mm 3mm;
+      border-top-left-radius: 3px;
+      border-top-right-radius: 3px;
+      page-break-inside: avoid;
+      page-break-after: avoid;
+    }
+
+    .category-name-tag {
+      display: flex;
+      align-items: center;
+      gap: 2mm;
+    }
+
+    .category-icon {
+      color: #f59e0b;
+      font-size: 8pt;
+    }
+
+    .category-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 8.5pt;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .category-count {
+      font-size: 6.5pt;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+
+    .category-subtotals {
+      display: flex;
+      gap: 3mm;
+    }
+
+    .category-subtotal-badge {
+      font-size: 7pt;
+      color: #fef08a;
+    }
+
+    .stock-items-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #0f172a;
+      border-top: none;
+      font-size: 7pt;
+    }
+
+    .stock-items-table thead {
+      display: table-header-group;
+    }
+
+    .stock-items-table th {
+      border: 1px solid #cbd5e1;
+      border-top: 1px solid #0f172a;
+      background: #f1f5f9;
+      color: #1e293b;
+      padding: 1.5mm 2mm;
+      font-weight: 700;
+      font-size: 6.5pt;
+      text-transform: uppercase;
+      text-align: left;
+    }
+
+    .stock-items-table td {
+      border: 1px solid #e2e8f0;
+      padding: 1.2mm 2mm;
+      color: #1e293b;
+      vertical-align: middle;
+    }
+
+    .stock-row {
+      page-break-inside: avoid;
+    }
+
+    .stock-row:nth-child(even) {
+      background: #fcfcfc;
+    }
+
+    .col-idx {
+      text-align: center !important;
+      color: #64748b;
+      font-size: 6.5pt;
+    }
+
+    .col-package {
+      color: #0f172a;
+    }
+
+    .col-ref {
+      font-weight: 600;
+    }
+
+    .col-desc {
+      text-align: left;
+    }
+
+    .desc-main {
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .desc-dim {
+      font-size: 6pt;
+      color: #64748b;
+      margin-top: 0.3mm;
+    }
+
+    .col-site {
+      font-size: 6.5pt;
+      color: #475569;
+    }
+
+    .col-min {
+      text-align: right !important;
+      font-size: 6.5pt;
+      color: #64748b;
+    }
+
+    .col-qty {
+      text-align: right !important;
+      color: #0f172a;
+      font-size: 7.5pt;
+    }
+
+    .qty-value {
+      font-weight: 700;
+    }
+
+    .qty-unit {
+      font-size: 6.2pt;
+      font-weight: 600;
+      color: #d97706;
+    }
+
+    .col-status {
+      text-align: center !important;
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 0.5mm 1.5mm;
+      border-radius: 2px;
+      font-size: 5.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .status-normal {
+      background: #dcfce7;
+      color: #15803d;
+      border: 0.5px solid #86efac;
+    }
+
+    .status-alert {
+      background: #ffedd5;
+      color: #c2410c;
+      border: 0.5px solid #fdba74;
+    }
+
+    .status-rupture {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 0.5px solid #fca5a5;
+    }
+
+    .category-footer-row td {
+      background: #f8fafc;
+      border-top: 1.5px solid #0f172a;
+      padding: 1.5mm 2mm;
+      font-size: 7pt;
+      color: #0f172a;
+    }
+
+    /* Grand Totals Panel */
+    .stock-grand-totals-panel {
+      border: 1.5px solid #0f172a;
+      background: #f8fafc;
+      padding: 2mm 3.5mm;
+      border-radius: 3px;
+      margin-bottom: 4mm;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      page-break-inside: avoid;
+    }
+
+    .grand-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 8pt;
+      font-weight: 800;
+      color: #0f172a;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .grand-metrics {
+      display: flex;
+      gap: 5mm;
+      align-items: center;
+    }
+
+    .grand-metric-item {
+      font-size: 7pt;
+    }
+
+    .grand-metric-item .label {
+      color: #475569;
+      margin-right: 1.5mm;
+    }
+
+    .grand-metric-item .val {
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .grand-metric-item .val.highlight {
+      color: #b45309;
+    }
+
+    /* Footer Legal & Stamp Section */
+    .stock-footer-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 4mm;
+      padding-top: 2mm;
+      border-top: 1px dashed #cbd5e1;
+      page-break-inside: avoid;
+    }
+
+    .footer-notes {
+      font-size: 6pt;
+      color: #64748b;
+      line-height: 1.3;
+      max-width: 100mm;
+    }
+
+    .stamp-container {
+      text-align: center;
+    }
+
+    .stamp-title {
+      font-size: 6pt;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 1mm;
+      text-transform: uppercase;
+    }
+
+    .stamp-image {
+      max-width: 38mm;
+      max-height: 24mm;
+      object-fit: contain;
+    }
+
+    .signature-box {
+      border: 1px dashed #94a3b8;
+      padding: 2mm 5mm;
+      width: 45mm;
+      text-align: center;
+    }
+
+    .sig-title {
+      font-size: 6pt;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 8mm;
+    }
+
+    .sig-line {
+      border-top: 1px solid #0f172a;
+    }
+
+    .text-right { text-align: right !important; }
+    .text-center { text-align: center !important; }
+    .font-bold { font-weight: 700 !important; }
+    .font-mono { font-family: monospace !important; }
+    .text-muted { color: #94a3b8 !important; }
 
     @media print {
       body {
-        background: transparent !important;
+        background: #fff !important;
       }
-      .stock-a4-page {
+      .print-container.stock-print-page {
         width: 100% !important;
-        height: 100% !important;
+        max-width: none !important;
+        padding: 0 !important;
+      }
+      thead {
+        display: table-header-group !important;
+      }
+      tr {
+        page-break-inside: avoid !important;
       }
     }
   `;

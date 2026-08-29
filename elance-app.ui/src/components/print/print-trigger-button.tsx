@@ -39,7 +39,9 @@ import { BordereauVersementStandard } from './bordereau-versement-standard';
 import { SupplierPaymentsListStandard } from './supplier-payments-list-standard';
 import { DashboardPaymentDto, Payment } from '@/types/payment';
 import { paymentService } from '@/services/components/payment.service';
-import { getHalfA4PrintStyles, getDuplicatedBordereauPrintStyles } from './print-styles';
+import { getHalfA4PrintStyles, getDuplicatedBordereauPrintStyles, getStockInventoryPrintStyles } from './print-styles';
+import { StockInventoryListStandard, StockInventoryFilterInfo } from './stock-inventory-list-standard';
+import { StockCategoryGroup } from '@/types/stock';
 
 interface PrintVariantDialogProps {
   isOpen: boolean;
@@ -74,7 +76,9 @@ interface PrintVariantDialogProps {
   bordereauNumber?: string;
   depositDate?: Date | string;
   supplierPaymentsList?: DashboardPaymentDto[];
-  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | 'document-list' | 'bank-statement' | 'caisse-remise' | 'supplier-payment' | 'bordereau-versement' | 'supplier-payments-list' | null | undefined;
+  stockCategoryGroups?: StockCategoryGroup[];
+  stockFilterInfo?: StockInventoryFilterInfo;
+  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | 'document-list' | 'bank-statement' | 'caisse-remise' | 'supplier-payment' | 'bordereau-versement' | 'supplier-payments-list' | 'stock-inventory' | null | undefined;
 }
 
 export function PrintVariantDialog({
@@ -110,16 +114,18 @@ export function PrintVariantDialog({
   bordereauNumber,
   depositDate,
   supplierPaymentsList,
+  stockCategoryGroups,
+  stockFilterInfo,
   docType,
 }: PrintVariantDialogProps) {
   const { data: enterprise, isLoading } = useEnterprise();
   const { data: printLocale } = usePrintLocale();
   const [printing, setPrinting] = useState(false);
 
-  // Auto-trigger print for single-variant HR documents, statements, caisse-remise, supplier-payment, bordereau-versement, payslip, supplier-payments-list as soon as enterprise settings load
+  // Auto-trigger print for single-variant HR documents, statements, caisse-remise, supplier-payment, bordereau-versement, payslip, supplier-payments-list, stock-inventory as soon as enterprise settings load
   React.useEffect(() => {
     if (isOpen && enterprise && !isLoading && !printing && 
-       (docType === 'leave' || docType === 'advance' || docType === 'payslip' || docType === 'customer-statement' || docType === 'supplier-statement' || docType === 'document-list' || docType === 'caisse-remise' || docType === 'supplier-payment' || docType === 'bordereau-versement' || docType === 'supplier-payments-list')) {
+       (docType === 'leave' || docType === 'advance' || docType === 'payslip' || docType === 'customer-statement' || docType === 'supplier-statement' || docType === 'document-list' || docType === 'caisse-remise' || docType === 'supplier-payment' || docType === 'bordereau-versement' || docType === 'supplier-payments-list' || docType === 'stock-inventory')) {
       handlePrint('standard');
     }
   }, [isOpen, enterprise, isLoading, docType]);
@@ -137,6 +143,7 @@ export function PrintVariantDialog({
     docType !== 'supplier-payment' &&
     docType !== 'bordereau-versement' &&
     docType !== 'supplier-payments-list' &&
+    docType !== 'stock-inventory' &&
     (!document || !docType)
   ) return null;
   if (docType === 'transfer' && !transfer) return null;
@@ -150,6 +157,7 @@ export function PrintVariantDialog({
   if (docType === 'supplier-payment' && !supplierPayment) return null;
   if (docType === 'bordereau-versement' && (!bordereauInstruments || bordereauInstruments.length === 0)) return null;
   if (docType === 'supplier-payments-list' && !supplierPaymentsList) return null;
+  if (docType === 'stock-inventory' && !stockCategoryGroups) return null;
 
   /**
    * Executes the print flow by generating markup, injecting it into a hidden iframe,
@@ -326,6 +334,17 @@ export function PrintVariantDialog({
             paymentsList={supplierPaymentsList}
             listTitle={listTitle || 'Règlements Fournisseurs'}
             enterprise={enterprise}
+            printLocale={printLocale}
+          />
+        );
+      } else if (docType === 'stock-inventory' && stockCategoryGroups) {
+        printDocNumber = `ETAT-STOCK-${new Date().toISOString().slice(0, 10)}`;
+        styleCss = getStockInventoryPrintStyles();
+        contentHtml = renderToStaticMarkup(
+          <StockInventoryListStandard
+            categoryGroups={stockCategoryGroups}
+            enterprise={enterprise}
+            filterInfo={stockFilterInfo}
             printLocale={printLocale}
           />
         );

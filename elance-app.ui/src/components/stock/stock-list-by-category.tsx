@@ -5,10 +5,12 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { useQueryClient } from '@tanstack/react-query';
 import { useStockAll } from '@/hooks/use-stock';
 import { useSites, useEnterprise } from '@/hooks/use-enterprise';
+import { usePrintLocale } from '@/hooks/use-print-locale';
 import { stockService } from '@/services/components/stock.service';
 import { fetchWoodStockDetails, WoodStockDetailsResult } from '@/lib/wood-stock-utils';
 import { StockPrintA4Document } from '@/components/print/stock-print-label';
-import { getStockPrintStyles } from '@/components/print/print-styles';
+import { StockInventoryListStandard } from '@/components/print/stock-inventory-list-standard';
+import { getStockPrintStyles, getStockInventoryPrintStyles } from '@/components/print/print-styles';
 import { Stock, StockCategoryGroup } from '@/types/stock';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,7 +49,9 @@ export function StockListByCategory() {
   const queryClient = useQueryClient();
   const { data: allStocks = [], isLoading, error } = useStockAll();
   const { data: enterprise } = useEnterprise();
+  const { data: printLocale } = usePrintLocale();
   const [printingStockId, setPrintingStockId] = useState<number | null>(null);
+  const [isPrintingInventory, setIsPrintingInventory] = useState<boolean>(false);
 
   const formatQuantity = (qty: number, unit?: string | null) => {
     const isM3 = unit?.toUpperCase().includes('M3') || unit?.toUpperCase().includes('MÈTRE 3') || unit?.toUpperCase().includes('METRE 3');
@@ -134,6 +138,107 @@ export function StockListByCategory() {
       };
     });
   }, [allStocks, searchQuery, selectedSiteId, hideZeroStock]);
+
+  // Total count of current filtered stock rows
+  const totalFilteredItemsCount = useMemo(() => {
+    return groupedCategories.reduce((acc, g) => acc + g.stocks.length, 0);
+  }, [groupedCategories]);
+
+  const isFiltered = searchQuery.trim() !== '' || selectedSiteId !== 'all' || !hideZeroStock;
+
+  // Handle printing the whole (or filtered) stock inventory
+  const handlePrintWholeStock = async () => {
+    if (!enterprise) {
+      toast.error("Chargement des informations de l'entreprise...");
+      return;
+    }
+    if (groupedCategories.length === 0 || totalFilteredItemsCount === 0) {
+      toast.error("Aucun article en stock à imprimer avec les filtres sélectionnés.");
+      return;
+    }
+
+    setIsPrintingInventory(true);
+    try {
+      const selectedSite = allSites.find((s: any) => s.id.toString() === selectedSiteId);
+      const siteName = selectedSite 
+        ? `${selectedSite.gov ? selectedSite.gov + ' - ' : ''}${selectedSite.address || ''}`
+        : 'Tous les dépôts';
+
+      const filterInfo = {
+        searchQuery: searchQuery.trim(),
+        siteName: selectedSiteId === 'all' ? 'Tous les dépôts' : siteName,
+        hideZeroStock,
+        totalFilteredCount: totalFilteredItemsCount,
+        totalRawCount: allStocks.length,
+      };
+
+      const contentHtml = renderToStaticMarkup(
+        <StockInventoryListStandard
+          categoryGroups={groupedCategories}
+          enterprise={enterprise}
+          filterInfo={filterInfo}
+          printLocale={printLocale}
+        />
+      );
+
+      const styleCss = getStockInventoryPrintStyles();
+
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      document.body.appendChild(iframe);
+
+      const doc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!doc) {
+        throw new Error("Impossible d'accéder au contexte d'impression.");
+      }
+
+      const printTitle = isFiltered
+        ? `Etat-Stock-Filtre-${new Date().toISOString().slice(0, 10)}`
+        : `Etat-Global-Stock-${new Date().toISOString().slice(0, 10)}`;
+
+      doc.open();
+      doc.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>${printTitle}</title>
+            <style>${styleCss}</style>
+          </head>
+          <body>
+            ${contentHtml}
+          </body>
+        </html>
+      `);
+      doc.close();
+
+      setTimeout(() => {
+        try {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+        } catch (err) {
+          console.error('Print error:', err);
+        }
+
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
+          }
+        }, 1000);
+
+        setIsPrintingInventory(false);
+      }, 400);
+
+    } catch (error) {
+      console.error('Print whole stock failed:', error);
+      toast.error("Erreur lors de la préparation de l'impression du stock.");
+      setIsPrintingInventory(false);
+    }
+  };
 
   // Handle printing a stock label
   const handlePrintStock = async (stock: Stock) => {
@@ -250,9 +355,9 @@ export function StockListByCategory() {
       
       {/* Category header filters and sticky navigation */}
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 border-b border-stone-200/40 dark:border-stone-800/40 pb-4">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:max-w-3xl">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:max-w-4xl flex-wrap">
           {/* Search Bar */}
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-[200px]">
             <Input
               value={searchQuery}
               onChange={(e: any) => setSearchQuery(e.target.value)}
@@ -263,7 +368,7 @@ export function StockListByCategory() {
           </div>
 
           {/* Dépôt Selection */}
-          <div className="w-full sm:w-[220px]">
+          <div className="w-full sm:w-[200px]">
             <Select value={selectedSiteId} onValueChange={(val: string | null) => setSelectedSiteId(val || 'all')}>
               <SelectTrigger className="h-10 text-xs bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-850 rounded-xl font-semibold focus:ring-amber-500/20">
                 <SelectValue placeholder="Filtrer par Dépôt">
@@ -307,6 +412,31 @@ export function StockListByCategory() {
               <>
                 <Eye className="h-4 w-4 text-stone-400" />
                 <span>Stock nul visible</span>
+              </>
+            )}
+          </Button>
+
+          {/* Print Whole / Filtered Stock Button */}
+          <Button
+            type="button"
+            onClick={handlePrintWholeStock}
+            disabled={isPrintingInventory || totalFilteredItemsCount === 0}
+            className="h-10 px-4 rounded-xl gap-2 font-bold text-xs uppercase tracking-wider transition-all bg-stone-900 hover:bg-stone-800 text-white dark:bg-amber-600 dark:hover:bg-amber-500 shadow-sm border border-stone-800 dark:border-amber-500 cursor-pointer disabled:opacity-50"
+            title="Imprimer l'état global ou filtré du stock"
+          >
+            {isPrintingInventory ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin text-amber-400 dark:text-white" />
+                <span>Génération PDF...</span>
+              </>
+            ) : (
+              <>
+                <Printer className="h-4 w-4 text-amber-400 dark:text-white" />
+                <span>
+                  {isFiltered 
+                    ? `Imprimer filtré (${totalFilteredItemsCount})` 
+                    : `Imprimer tout le stock (${totalFilteredItemsCount})`}
+                </span>
               </>
             )}
           </Button>
