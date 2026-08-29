@@ -58,9 +58,9 @@ namespace ms.webapp.api.acya.Controllers.Integrations
             }
 
             var normalizedType = type.Trim().ToLowerInvariant();
-            if (normalizedType != "vente" && normalizedType != "achat" && normalizedType != "banque" && normalizedType != "caisse")
+            if (normalizedType != "vente" && normalizedType != "achat" && normalizedType != "banque" && normalizedType != "caisse" && normalizedType != "rs" && normalizedType != "retenue")
             {
-                return BadRequest(QwertyImportResponseDto.Fail($"Type d'opération '{type}' invalide. Types acceptés : 'vente', 'achat', 'banque', 'caisse'."));
+                return BadRequest(QwertyImportResponseDto.Fail($"Type d'opération '{type}' invalide. Types acceptés : 'vente', 'achat', 'banque', 'caisse', 'rs'."));
             }
 
             // 2. Validate Fiscal Period
@@ -118,6 +118,14 @@ namespace ms.webapp.api.acya.Controllers.Integrations
                         var siteId = num_traitement > 0 ? (int?)num_traitement : null;
                         var movements = await _dataProvider.GetCaisseMovementsAsync(siteId, exercice, mois);
                         var operations = _dataMapper.MapCaisseMovements(movements);
+                        return Ok(QwertyImportResponseDto.Success(operations));
+                    }
+
+                    case "rs":
+                    case "retenue":
+                    {
+                        var holdingTaxes = await _dataProvider.GetHoldingTaxesAsync(exercice, mois);
+                        var operations = _dataMapper.MapHoldingTaxes(holdingTaxes);
                         return Ok(QwertyImportResponseDto.Success(operations));
                     }
 

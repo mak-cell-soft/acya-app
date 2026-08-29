@@ -25,5 +25,10 @@ namespace ms.webapp.api.acya.core.Integrations.Qwerty.Interfaces
         /// Maps caisse movements to Qwerty operations (caisse).
         /// </summary>
         List<QwertyOperationDto> MapCaisseMovements(IEnumerable<CaisseMovement> movements);
+
+        /// <summary>
+        /// Maps holding taxes (RS) to Qwerty operations (rs / retenue).
+        /// </summary>
+        List<QwertyOperationDto> MapHoldingTaxes(IEnumerable<HoldingTax> holdingTaxes);
     }
 }

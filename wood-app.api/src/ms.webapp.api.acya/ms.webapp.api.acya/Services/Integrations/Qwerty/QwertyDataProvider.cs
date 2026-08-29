@@ -194,5 +194,18 @@ namespace ms.webapp.api.acya.Services.Integrations.Qwerty
 
             return movements.OrderBy(m => m.MovementDate).ToList();
         }
+
+        public async Task<List<HoldingTax>> GetHoldingTaxesAsync(int year, int month)
+        {
+            return await _context.HoldingTaxes
+                .AsNoTracking()
+                .Include(ht => ht.Documents)
+                    .ThenInclude(d => d.CounterPart)
+                .Where(ht => !ht.IsDeleted &&
+                             ht.CreationDate.Year == year &&
+                             ht.CreationDate.Month == month)
+                .OrderBy(ht => ht.CreationDate)
+                .ToListAsync();
+        }
     }
 }

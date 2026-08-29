@@ -198,6 +198,54 @@ namespace ms.webapp.api.acya.tests
         }
 
         [Fact]
+        public void MapHoldingTaxes_ShouldFormatWithholdingTaxCorrectly()
+        {
+            // Arrange
+            var supplier = new CounterPart
+            {
+                Id = 12,
+                Name = "FOURNISSEUR ABC",
+                TaxRegistrationNumber = "9876543B",
+                Type = CounterPartType.Supplier
+            };
+
+            var doc = new Document
+            {
+                Id = 202,
+                DocNumber = "FF-2026-88",
+                TotalCostNetTTCDoc = 1190.0,
+                CounterPart = supplier
+            };
+
+            var ht = new HoldingTax
+            {
+                Id = 5,
+                Reference = "RS-2026-001",
+                Description = "Retenue à la source 1.5%",
+                TaxPercentage = 1.5,
+                TaxValue = 17.850,
+                NewAmountDocValue = 1172.150,
+                CreationDate = new DateTime(2026, 8, 20),
+                Documents = new List<Document> { doc }
+            };
+
+            // Act
+            var results = _mapper.MapHoldingTaxes(new[] { ht });
+
+            // Assert
+            Assert.Single(results);
+            var op = results[0];
+
+            Assert.Equal("2026-08-20", op.DateOperation);
+            Assert.Equal("RS-2026-001", op.Reference);
+            Assert.Equal("9876543B", op.Fournisseur);
+            Assert.Equal("1.5", op.Type);
+            Assert.Equal(17.850m, op.Montants["rs"]);
+            Assert.Equal(1190.000m, op.Montants["ttc"]);
+            Assert.Equal(1172.150m, op.Montants["net"]);
+        }
+
+        [Fact]
         public async Task Controller_ShouldRejectInvalidType()
         {
             // Arrange

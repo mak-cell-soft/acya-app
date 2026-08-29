@@ -183,6 +183,60 @@ namespace ms.webapp.api.acya.Services.Integrations.Qwerty
             return operations;
         }
 
+        public List<QwertyOperationDto> MapHoldingTaxes(IEnumerable<HoldingTax> holdingTaxes)
+        {
+            var operations = new List<QwertyOperationDto>();
+
+            foreach (var ht in holdingTaxes)
+            {
+                var doc = ht.Documents?.FirstOrDefault();
+                var cp = doc?.CounterPart;
+                var isSupplier = doc != null && (doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt || doc.Type == DocumentTypes.supplierInvoiceReturn) || (cp != null && cp.Type == CounterPartType.Supplier);
+
+                var op = new QwertyOperationDto
+                {
+                    DateOperation = ht.CreationDate.ToString("yyyy-MM-dd"),
+                    Reference = ht.Reference ?? doc?.DocNumber,
+                    Facture = doc?.DocNumber ?? ht.Reference,
+                    Libelle = !string.IsNullOrWhiteSpace(ht.Description) ? ht.Description : $"Retenue à la source ({ht.TaxPercentage:F1}%) - {doc?.DocNumber ?? ht.Reference}",
+                    Type = ht.TaxPercentage.ToString("F1", CultureInfo.InvariantCulture)
+                };
+
+                if (cp != null)
+                {
+                    if (isSupplier)
+                    {
+                        op.Fournisseur = ResolveTierCode(cp, "FR");
+                        op.FournisseurCreation = BuildTierCreation(cp, op.Fournisseur);
+                    }
+                    else
+                    {
+                        op.Client = ResolveTierCode(cp, "CL");
+                        op.ClientCreation = BuildTierCreation(cp, op.Client);
+                    }
+                }
+
+                var taxVal = Math.Round((decimal)ht.TaxValue, 3);
+                var grossVal = doc != null ? Math.Round((decimal)doc.TotalCostNetTTCDoc, 3) : Math.Round((decimal)(ht.NewAmountDocValue + ht.TaxValue), 3);
+                var netVal = Math.Round((decimal)ht.NewAmountDocValue, 3);
+
+                op.Montants = new Dictionary<string, decimal>
+                {
+                    ["rs"] = taxVal,
+                    ["retenue"] = taxVal,
+                    ["taux"] = Math.Round((decimal)ht.TaxPercentage, 2),
+                    ["ttc"] = grossVal,
+                    ["net"] = netVal,
+                    ["debit"] = isSupplier ? taxVal : 0m,
+                    ["credit"] = !isSupplier ? taxVal : 0m
+                };
+
+                operations.Add(op);
+            }
+
+            return operations;
+        }
+
         #region Helpers
 
         private static string? NormalizeCurrency(string? currency)

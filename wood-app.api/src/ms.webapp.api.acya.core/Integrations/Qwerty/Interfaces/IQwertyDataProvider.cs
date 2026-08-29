@@ -25,5 +25,10 @@ namespace ms.webapp.api.acya.core.Integrations.Qwerty.Interfaces
         /// Retrieves cash movements for a target sales site / caisse and period.
         /// </summary>
         Task<List<CaisseMovement>> GetCaisseMovementsAsync(int? siteId, int year, int month);
+
+        /// <summary>
+        /// Retrieves withholding taxes (RS) for the given fiscal period.
+        /// </summary>
+        Task<List<HoldingTax>> GetHoldingTaxesAsync(int year, int month);
     }
 }
