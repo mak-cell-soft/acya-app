@@ -217,10 +217,25 @@ function SupplierPaymentsPageContent() {
     });
   }, [echeances]);
 
-  // Open print dialog for a traite
-  const handlePrintTraite = (traite: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
-    setTraiteToPrint(traite);
-    setIsPrintTraiteOpen(true);
+  // Open print dialog according to payment mode (currently TRAITE is supported)
+  const handlePrintPaymentInstrument = (payment: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+    const method = (payment.paymentMethod || '').toUpperCase();
+    switch (method) {
+      case 'TRAITE':
+        setTraiteToPrint(payment);
+        setIsPrintTraiteOpen(true);
+        break;
+      case 'CHEQUE':
+        toast.info('Impression bientôt disponible', {
+          description: "L'impression des chèques sera disponible prochainement."
+        });
+        break;
+      default:
+        toast.info('Impression bientôt disponible', {
+          description: `L'impression pour le mode de règlement « ${payment.paymentMethod || 'Non spécifié'} » sera disponible prochainement.`
+        });
+        break;
+    }
   };
 
   // Trigger confirmation dialog for bank settlement
@@ -810,12 +825,12 @@ function SupplierPaymentsPageContent() {
                                 </td>
                                 <td className="py-3.5 px-5">
                                   <div className="flex items-center justify-center gap-1.5">
-                                    {/* Print button — always visible */}
+                                    {/* Print button — switches payment mode */}
                                     <Button
-                                      onClick={() => handlePrintTraite(traite)}
+                                      onClick={() => handlePrintPaymentInstrument(traite)}
                                       variant="ghost"
                                       size="icon"
-                                      title="Imprimer la traite"
+                                      title={traite.paymentMethod === 'TRAITE' ? 'Imprimer la traite' : `Imprimer (${traite.paymentMethod || 'Effet'})`}
                                       className="w-8 h-8 rounded-full text-slate-450 hover:bg-amber-50 hover:text-amber-600 transition-colors"
                                     >
                                       <Printer className="w-3.5 h-3.5" />

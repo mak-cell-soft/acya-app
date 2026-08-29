@@ -26,13 +26,22 @@ export function DocumentListStandard({
   const totalTTC = documentsList.reduce((sum, doc) => sum + (doc.total_net_ttc || 0), 0);
   const totalRest = documentsList.reduce((sum, doc) => sum + (doc.remaining_balance || 0), 0);
 
+  const isPurchase = listContext === 'purchases';
+  const isFacture = listTitle.toLowerCase().includes('facture');
+  const isBR = listTitle.toLowerCase().includes('réception') || listTitle.toLowerCase().includes('reception') || listTitle.toLowerCase().includes('bon');
+  const showSupplierRef = isPurchase && (isFacture || isBR);
+  const showStatus = !isPurchase;
+
   // Status mapping to French (simplified for print)
   const getStatusText = (doc: Document) => {
-    if (listTitle.toLowerCase().includes('facture')) {
+    if (isFacture) {
       return doc.billingstatus === 2 ? 'Payée' : doc.billingstatus === 1 ? 'Partielle' : 'Non Payée';
     }
     return doc.docstatus === 2 ? 'Validé' : doc.docstatus === 1 ? 'Partiel' : 'Brouillon';
   };
+
+  const emptyColSpan = 5 + (showSupplierRef ? 1 : 0) + (isFacture ? 1 : 0) + (showStatus ? 1 : 0);
+  const footerLeadingColSpan = 3 + (showSupplierRef ? 1 : 0);
 
   return (
     <div className="print-container">
@@ -96,24 +105,38 @@ export function DocumentListStandard({
         <table className="items-table">
           <thead>
             <tr>
-              <th className="col-code">N° Document</th>
-              <th className="col-date" style={{ width: '12%', textAlign: 'center', borderRight: '1px solid #000', padding: '4px' }}>Date</th>
-              <th className="col-client" style={{ width: '30%', textAlign: 'left', borderRight: '1px solid #000', padding: '4px' }}>
+              <th className="col-code" style={{ width: showSupplierRef ? (isFacture ? '13%' : '14%') : '16%', textAlign: 'left', borderRight: '1px solid #000', padding: '4px' }}>N° Document</th>
+              {showSupplierRef && (
+                <th className="col-ref" style={{ width: isFacture ? '13%' : '14%', textAlign: 'center', borderRight: '1px solid #000', padding: '4px' }}>
+                  Réf Fournisseur
+                </th>
+              )}
+              <th className="col-date" style={{ width: '10%', textAlign: 'center', borderRight: '1px solid #000', padding: '4px' }}>Date</th>
+              <th className="col-client" style={{ width: showSupplierRef ? (isFacture ? '26%' : '32%') : '30%', textAlign: 'left', borderRight: '1px solid #000', padding: '4px' }}>
                 {listContext === 'sales' ? 'Client' : 'Fournisseur'}
               </th>
-              <th className="col-ht" style={{ width: '15%', textAlign: 'right', borderRight: '1px solid #000', padding: '4px' }}>Montant HT</th>
-              <th className="col-ttc" style={{ width: '15%', textAlign: 'right', borderRight: '1px solid #000', padding: '4px' }}>Montant TTC</th>
-              {listTitle.toLowerCase().includes('facture') && (
-                <th className="col-rest" style={{ width: '12%', textAlign: 'right', borderRight: '1px solid #000', padding: '4px' }}>Reste à payer</th>
+              <th className="col-ht" style={{ width: isFacture ? '12%' : '14%', textAlign: 'right', borderRight: '1px solid #000', padding: '4px' }}>Montant HT</th>
+              <th className="col-ttc" style={{ width: isFacture ? '12%' : '14%', textAlign: 'right', borderRight: (isFacture || showStatus) ? '1px solid #000' : 'none', padding: '4px' }}>Montant TTC</th>
+              {isFacture && (
+                <th className="col-rest" style={{ width: '12%', textAlign: 'right', borderRight: showStatus ? '1px solid #000' : 'none', padding: '4px' }}>Reste à payer</th>
               )}
-              <th className="col-status" style={{ width: '10%', textAlign: 'center', padding: '4px' }}>Statut</th>
+              {showStatus && (
+                <th className="col-status" style={{ width: '10%', textAlign: 'center', padding: '4px' }}>Statut</th>
+              )}
             </tr>
           </thead>
           <tbody>
             {documentsList.length > 0 ? (
               documentsList.map((doc, idx) => (
                 <tr key={doc.id || idx} className="item-row">
-                  <td className="col-code" style={{ padding: '4px' }}>{doc.docnumber || 'Brouillon'}</td>
+                  <td className="col-code" style={{ textAlign: 'left', borderRight: '1px solid #000', padding: '4px' }}>
+                    {doc.docnumber || 'Brouillon'}
+                  </td>
+                  {showSupplierRef && (
+                    <td className="col-ref" style={{ textAlign: 'center', borderRight: '1px solid #000', padding: '4px' }}>
+                      {doc.supplierReference || (doc as any)?.supplierreference || '—'}
+                    </td>
+                  )}
                   <td className="col-date" style={{ textAlign: 'center', borderRight: '1px solid #000', padding: '4px' }}>
                     {utils.formatDate(doc.creationdate)}
                   </td>
@@ -123,22 +146,24 @@ export function DocumentListStandard({
                   <td className="col-ht" style={{ textAlign: 'right', borderRight: '1px solid #000', padding: '4px' }}>
                     {utils.formatNumber(doc.total_ht_net_doc)}
                   </td>
-                  <td className="col-ttc" style={{ textAlign: 'right', borderRight: '1px solid #000', padding: '4px' }}>
+                  <td className="col-ttc" style={{ textAlign: 'right', borderRight: (isFacture || showStatus) ? '1px solid #000' : 'none', padding: '4px' }}>
                     {utils.formatNumber(doc.total_net_ttc)}
                   </td>
-                  {listTitle.toLowerCase().includes('facture') && (
-                    <td className="col-rest" style={{ textAlign: 'right', borderRight: '1px solid #000', padding: '4px' }}>
+                  {isFacture && (
+                    <td className="col-rest" style={{ textAlign: 'right', borderRight: showStatus ? '1px solid #000' : 'none', padding: '4px' }}>
                       {utils.formatNumber(doc.remaining_balance)}
                     </td>
                   )}
-                  <td className="col-status" style={{ textAlign: 'center', padding: '4px', fontSize: '9pt' }}>
-                    {getStatusText(doc)}
-                  </td>
+                  {showStatus && (
+                    <td className="col-status" style={{ textAlign: 'center', padding: '4px', fontSize: '9pt' }}>
+                      {getStatusText(doc)}
+                    </td>
+                  )}
                 </tr>
               ))
             ) : (
               <tr className="empty-row">
-                <td colSpan={listTitle.toLowerCase().includes('facture') ? 7 : 6} style={{ textAlign: 'center', padding: '20px' }}>
+                <td colSpan={emptyColSpan} style={{ textAlign: 'center', padding: '20px' }}>
                   Aucun document trouvé
                 </td>
               </tr>
@@ -148,21 +173,21 @@ export function DocumentListStandard({
           {documentsList.length > 0 && (
             <tfoot>
               <tr style={{ borderTop: '2px solid #000', fontWeight: 'bold' }}>
-                <td colSpan={3} style={{ textAlign: 'right', padding: '6px', borderRight: '1px solid #000' }}>
+                <td colSpan={footerLeadingColSpan} style={{ textAlign: 'right', padding: '6px', borderRight: '1px solid #000' }}>
                   TOTAL GLOBAL
                 </td>
                 <td style={{ textAlign: 'right', padding: '6px', borderRight: '1px solid #000' }}>
                   {utils.formatNumber(totalHT)}
                 </td>
-                <td style={{ textAlign: 'right', padding: '6px', borderRight: '1px solid #000' }}>
+                <td style={{ textAlign: 'right', padding: '6px', borderRight: (isFacture || showStatus) ? '1px solid #000' : 'none' }}>
                   {utils.formatNumber(totalTTC)}
                 </td>
-                {listTitle.toLowerCase().includes('facture') && (
-                  <td style={{ textAlign: 'right', padding: '6px', borderRight: '1px solid #000' }}>
+                {isFacture && (
+                  <td style={{ textAlign: 'right', padding: '6px', borderRight: showStatus ? '1px solid #000' : 'none' }}>
                     {utils.formatNumber(totalRest)}
                   </td>
                 )}
-                <td></td>
+                {showStatus && <td></td>}
               </tr>
             </tfoot>
           )}

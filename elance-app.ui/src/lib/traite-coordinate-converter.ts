@@ -36,7 +36,7 @@ export function mapBusinessDataToPixelMap(
   pixelMap: TraitePixelMap,
   data: TraiteBusinessData
 ): TraitePixelMap {
-  const montantFormatted = `# ${data.montant.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} TND #`;
+  const montantFormatted = `# ${data.montant.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} #`;
   const montantSimple = `# ${data.montant.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} #`;
   const amountInWords = data.montantLettres || `# ${numberToFrenchWords(data.montant)} #`;
 

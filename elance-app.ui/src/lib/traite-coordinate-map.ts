@@ -43,7 +43,7 @@ export const INITIAL_TRAITE_PIXEL_MAP: TraitePixelMap = {
     templateWidth: 165,
     templateHeight: 24,
     label: '3. Montant (Corps)',
-    sampleValue: '# 12 345,678 TND #',
+    sampleValue: '# 12 345,678 #',
     category: 'corps',
   },
   montantSecond: {

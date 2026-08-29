@@ -281,13 +281,13 @@ export function TraitePrintDialog({
             </div>
           </div>
 
-          {/* Header Action Button */}
-          <div className="flex items-center gap-2">
+          {/* Header Action Button (Hidden for now) */}
+          <div className="hidden items-center gap-2">
             <Button
               type="button"
               variant="ghost"
               onClick={() => setIsCalibrationOpen(true)}
-              className="h-8 px-3 rounded-xl font-bold text-xs text-corp-blue-700 bg-corp-blue-50/80 hover:bg-corp-blue-100/80 border border-corp-blue-200/60 transition-all active:scale-[0.96] flex items-center gap-1.5 min-h-[36px]"
+              className="hidden h-8 px-3 rounded-xl font-bold text-xs text-corp-blue-700 bg-corp-blue-50/80 hover:bg-corp-blue-100/80 border border-corp-blue-200/60 transition-all active:scale-[0.96] items-center gap-1.5 min-h-[36px]"
               title="Ouvrir l'inspecteur visuel avec les données réelles saisies"
             >
               <Crosshair className="w-3.5 h-3.5 text-corp-blue-600" />
@@ -565,12 +565,13 @@ export function TraitePrintDialog({
         </div>
 
         {/* ── Fixed Footer ─────────────────────────────────────────────────── */}
-        <DialogFooter className="m-0 mb-0 mx-0 mt-0 px-6 py-3.5 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between gap-3 rounded-b-3xl shrink-0">
+        <DialogFooter className="m-0 mb-0 mx-0 mt-0 px-6 py-3.5 border-t border-slate-100 bg-slate-50/70 flex items-center justify-end gap-3 rounded-b-3xl shrink-0">
+          {/* Footer Visual Inspector button (Hidden for now) */}
           <Button
             type="button"
             variant="outline"
             onClick={() => setIsCalibrationOpen(true)}
-            className="h-10 px-4 rounded-xl font-bold border-corp-blue-200 text-corp-blue-700 hover:bg-corp-blue-50/80 transition-all active:scale-[0.96] gap-2 text-xs min-h-[40px]"
+            className="hidden h-10 px-4 rounded-xl font-bold border-corp-blue-200 text-corp-blue-700 hover:bg-corp-blue-50/80 transition-all active:scale-[0.96] gap-2 text-xs min-h-[40px]"
           >
             <Crosshair className="w-4 h-4 text-corp-blue-600" />
             Inspecteur Visuel
