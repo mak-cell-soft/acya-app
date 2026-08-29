@@ -11,6 +11,7 @@ using ms.webapp.api.acya.api.Services;
 using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs;
+using ms.webapp.api.acya.core.Entities.Product;
 using ms.webapp.api.acya.infrastructure;
 using ms.webapp.api.acya.infrastructure.Repositories;
 using Xunit;
@@ -31,6 +32,7 @@ namespace ms.webapp.api.acya.tests
         {
             var options = new DbContextOptionsBuilder<WoodAppContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .ConfigureWarnings(x => x.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
                 .Options;
 
             _context = new WoodAppContext(options);
@@ -38,7 +40,7 @@ namespace ms.webapp.api.acya.tests
             // Mock Repositories
             var docMerchRepo = new DocumentMerchandiseRepository(_context);
             _stockRepository = new StockRepository(_context, docMerchRepo);
-            _docRepository = new DocumentRepository(_context);
+            _docRepository = new DocumentRepository(_context, _stockRepository);
             
             _hubContextMock = new Mock<IHubContext<NotificationHub>>();
             

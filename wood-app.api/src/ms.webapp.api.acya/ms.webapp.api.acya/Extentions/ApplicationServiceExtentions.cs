@@ -101,6 +101,10 @@ namespace ms.webapp.api.acya.api.Extentions
       });
       services.AddScoped<TejFacade>();
 
+      // Qwerty Accounting Integration Services
+      services.AddScoped<ms.webapp.api.acya.core.Integrations.Qwerty.Interfaces.IQwertyDataProvider, ms.webapp.api.acya.Services.Integrations.Qwerty.QwertyDataProvider>();
+      services.AddScoped<ms.webapp.api.acya.core.Integrations.Qwerty.Interfaces.IQwertyDataMapper, ms.webapp.api.acya.Services.Integrations.Qwerty.QwertyDataMapper>();
+
       // Multi-Tenancy Registration
       var multiTenantEnabled = config.GetValue<bool>("MultiTenancy:Enabled");
 

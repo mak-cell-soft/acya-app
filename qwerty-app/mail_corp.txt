@@ -1,0 +1,22 @@
+
+Yacine Ben Alaya Qwerty Tunisie <yacine.ben.alaya@qwertytunisie.tn>
+Pièces jointes
+21 août 2026 10:29 (il y a 8 jours)
+À moi, contact
+
+Bonjour,
+
+Dans le cadre du projet d'interconnexion entre nos deux applications, nous vous prions de trouver ci-joint le cahier des charges du webservice que vous devez exposer pour nous permettre d'importer automatiquement les opérations vente, achat, banque et caisse dans QwertyTunisieProduction.
+
+Documents joints :
+
+fiche-import-source.md : cahier des charges complet (JSON)  
+fiche-import-source.xsd : schéma XML descriptif du contrat  
+Points essentiels :
+
+Méthode : GET  
+Authentification : Authorization: Bearer <token>  
+Paramètres attendus : type, exercice, mois, num_traitement, identifiant_user, identifiant_dossier  
+Réponse : JSON avec ok: true et un tableau operations  
+Possibilité de création automatique des tiers (client_creation, fournisseur_creation, employe_creation) s'ils n'existent pas encore chez nous  
+Ces informations sont nécessaires pour que notre équipe puisse configurer le lien dossier par dossier.

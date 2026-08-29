@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="https://qwerty.tn/webservices/fiche-import-source"
+           xmlns:tns="https://qwerty.tn/webservices/fiche-import-source"
+           elementFormDefault="qualified">
+
+  <xs:annotation>
+    <xs:documentation>
+      Schéma XML (XSD) descriptif du contrat d'import Vente/Achat/Banque/Caisse.
+      Ce schéma modélise la structure des données échangées entre l'application
+      partenaire et QwertyTunisieProduction. Le format d'échange réel est JSON,
+      mais ce XSD peut servir de référence formelle pour générer ou valider des
+      équivalents XML si besoin.
+    </xs:documentation>
+  </xs:annotation>
+
+  <!-- Requête GET (query parameters) -->
+  <xs:element name="request" type="tns:RequestType"/>
+
+  <xs:complexType name="RequestType">
+    <xs:sequence>
+      <xs:element name="type" type="tns:TypeOperation" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="exercice" type="xs:integer" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="mois" type="xs:integer" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="num_traitement" type="xs:integer" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="identifiant_user" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="identifiant_dossier" type="xs:string" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="TypeOperation">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="vente"/>
+      <xs:enumeration value="achat"/>
+      <xs:enumeration value="banque"/>
+      <xs:enumeration value="caisse"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Réponse JSON en XML équivalent -->
+  <xs:element name="response" type="tns:ResponseType"/>
+
+  <xs:complexType name="ResponseType">
+    <xs:sequence>
+      <xs:element name="ok" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="count" type="xs:integer" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="error" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="operations" type="tns:OperationsType" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="OperationsType">
+    <xs:sequence>
+      <xs:element name="operation" type="tns:OperationType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="OperationType">
+    <xs:sequence>
+      <xs:element name="date_operation" type="xs:date" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="date_valeur" type="xs:date" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="facture" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="reference" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="libelle" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="bon_commande" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="date_bon_commande" type="xs:date" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="autorisation" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="date_autorisation" type="xs:date" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="devise" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="taux_change" type="xs:decimal" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="date_ech" type="xs:date" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="type" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="client" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="client_creation" type="tns:TierCreationType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="fournisseur" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="fournisseur_creation" type="tns:TierCreationType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="employe" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="employe_creation" type="tns:TierCreationType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="contre_partie" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="montants" type="tns:MontantsType" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="TierCreationType">
+    <xs:sequence>
+      <xs:element name="nom" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="code" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="matricule_fiscal" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="adresse" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="telephone" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="email" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="compte_auxiliaire" type="xs:string" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="MontantsType">
+    <xs:sequence>
+      <xs:element name="montant" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:simpleContent>
+            <xs:extension base="xs:decimal">
+              <xs:attribute name="parametre" type="xs:string" use="required"/>
+            </xs:extension>
+          </xs:simpleContent>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>
