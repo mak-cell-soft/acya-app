@@ -90,9 +90,42 @@ namespace ms.webapp.api.acya.Services.Integrations.Qwerty
                 }
             }
 
-            return await query
+            var transactions = await query
                 .OrderBy(bt => bt.TransactionDate)
                 .ToListAsync();
+
+            // Include bank payments (CHEQUE, TRAITE, VIREMENT, CARTE) from tbl_payments
+            var nonCashPaymentMethods = new[] { "CHEQUE", "TRAITE", "VIREMENT", "CARTE", "CARD" };
+            var bankPayments = await _context.Payments
+                .AsNoTracking()
+                .Include(p => p.Customer)
+                .Include(p => p.Document)
+                .Include(p => p.PaymentInstrument)
+                .Where(p => !p.IsDeleted &&
+                            p.PaymentMethod != null && nonCashPaymentMethods.Contains(p.PaymentMethod.ToUpper()) &&
+                            p.PaymentDate.HasValue &&
+                            p.PaymentDate.Value.Year == year &&
+                            p.PaymentDate.Value.Month == month)
+                .ToListAsync();
+
+            foreach (var p in bankPayments)
+            {
+                var isSupplier = (p.Document != null && (p.Document.Type == DocumentTypes.supplierInvoice || p.Document.Type == DocumentTypes.supplierReceipt || p.Document.Type == DocumentTypes.supplierInvoiceReturn)) ||
+                                 (p.Customer != null && p.Customer.Type == CounterPartType.Supplier);
+
+                var amount = p.Amount ?? 0m;
+                transactions.Add(new BankTransaction
+                {
+                    Id = p.Id,
+                    TransactionDate = p.PaymentDate!.Value,
+                    Reference = p.PaymentInstrument?.InstrumentNumber ?? p.Reference ?? p.Document?.DocNumber,
+                    Description = p.Notes ?? (isSupplier ? $"Règlement {p.PaymentMethod} fournisseur {p.Customer?.Name ?? p.Customer?.Fullname}" : $"Encaissement {p.PaymentMethod} client {p.Customer?.Name ?? p.Customer?.Fullname}"),
+                    Debit = isSupplier ? 0m : amount,   // Client collection -> Bank Debit
+                    Credit = isSupplier ? amount : 0m,  // Supplier payment -> Bank Credit
+                });
+            }
+
+            return transactions.OrderBy(bt => bt.TransactionDate).ToList();
         }
 
         public async Task<List<CaisseMovement>> GetCaisseMovementsAsync(int? siteId, int year, int month)
