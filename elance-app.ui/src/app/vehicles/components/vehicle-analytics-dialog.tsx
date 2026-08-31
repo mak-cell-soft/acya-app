@@ -176,7 +176,7 @@ export function VehicleAnalyticsDialog({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-5xl max-h-[92vh] overflow-y-auto rounded-3xl p-0 border-corp-blue-100 shadow-2xl bg-sand-50/30">
+        <DialogContent className="w-full sm:max-w-6xl max-h-[95vh] overflow-y-auto rounded-3xl p-0 border-corp-blue-100 shadow-2xl bg-sand-50/30">
           {/* Header Banner */}
           <div className="bg-gradient-to-r from-corp-blue-950 via-corp-blue-900 to-corp-blue-800 text-white p-6 sm:p-8 rounded-t-3xl relative overflow-hidden">
             <div className="absolute right-0 top-0 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none" />

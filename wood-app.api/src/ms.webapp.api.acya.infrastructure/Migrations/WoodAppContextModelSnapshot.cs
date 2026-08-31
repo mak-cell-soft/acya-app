@@ -2419,6 +2419,76 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                     b.ToTable("tbl_vehicle", (string)null);
                 });
 
+            modelBuilder.Entity("ms.webapp.api.acya.core.Entities.VehicleExpense", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("amount");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("createdat");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("createdby");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("date");
+
+                    b.Property<string>("DriverName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("drivername");
+
+                    b.Property<decimal?>("Liters")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("liters");
+
+                    b.Property<decimal?>("Mileage")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("mileage");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<string>("StationOrProvider")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("stationorprovider");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("type");
+
+                    b.Property<int>("VehicleId")
+                        .HasColumnType("integer")
+                        .HasColumnName("vehicleid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VehicleId");
+
+                    b.HasIndex("Date");
+
+                    b.ToTable("tbl_vehicle_expense", (string)null);
+                });
+
             modelBuilder.Entity("ms.webapp.api.acya.infrastructure.AppHealth", b =>
                 {
                     b.Property<int>("Id")
@@ -3082,6 +3152,16 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                         .HasForeignKey("VehicleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .HasConstraintName("fk_tbl_transporter_tbl_vehicle");
+
+                    b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("ms.webapp.api.acya.core.Entities.VehicleExpense", b =>
+                {
+                    b.HasOne("ms.webapp.api.acya.core.Entities.Vehicle", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Vehicle");
                 });

@@ -170,7 +170,7 @@ export function VehicleExpenseDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl p-0 border-corp-blue-100 shadow-2xl">
+      <DialogContent className="w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl p-0 border-corp-blue-100 shadow-2xl">
         {/* Header with gradient accent */}
         <div className="bg-gradient-to-br from-corp-blue-900 to-corp-blue-800 text-white p-6 rounded-t-2xl relative overflow-hidden">
           <div className="absolute right-0 top-0 translate-x-4 -translate-y-4 w-32 h-32 bg-white/5 rounded-full blur-2xl pointer-events-none" />
