@@ -131,6 +131,7 @@ const depotNavGroups: NavGroup[] = [
   {
     title: 'Opérations',
     items: [
+      { name: 'Chantiers', href: '/chantiers', icon: ClipboardList },
       { name: 'Véhicules', href: '/vehicles', icon: Car, module: 'vehicles' },
       { name: 'Équipe & RH', href: '/team', icon: UserCheck, module: 'hr' },
     ],

@@ -410,6 +410,57 @@ namespace ms.admin.api.acya.Controllers
 
             await _enterpriseRepository.UpdateAsync(enterprise);
 
+            // Synchronize tenant's schema tbl_enterprise if tenant database/schema is provisioned
+            if (!string.IsNullOrWhiteSpace(enterprise.SchemaName) && SchemaSanitizer.IsValidIdentifier(enterprise.SchemaName))
+            {
+                try
+                {
+                    var safeSchema = SchemaSanitizer.QuoteIdentifier(enterprise.SchemaName);
+                    var connStr = _configuration.GetConnectionString("MasterConnection");
+                    using (var conn = new Npgsql.NpgsqlConnection(connStr))
+                    {
+                        await conn.OpenAsync();
+                        var updateTenantSql = $@"
+                            UPDATE {safeSchema}.tbl_enterprise
+                            SET name = @name,
+                                email = @email,
+                                phone = @phone,
+                                logourl = @logourl,
+                                faviconurl = @faviconurl,
+                                primarycolor = @primarycolor,
+                                secondarycolor = @secondarycolor,
+                                customdomain = @customdomain,
+                                language = @language,
+                                currency = @currency,
+                                issalingwood = @issalingwood,
+                                ismanagingconstructions = @ismanagingconstructions
+                            WHERE id = 1 OR enterpriseguid IS NOT NULL;";
+
+                        using (var cmd = new Npgsql.NpgsqlCommand(updateTenantSql, conn))
+                        {
+                            cmd.Parameters.AddWithValue("name", enterprise.Name);
+                            cmd.Parameters.AddWithValue("email", (object?)enterprise.Email ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("phone", (object?)enterprise.Phone ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("logourl", (object?)enterprise.LogoUrl ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("faviconurl", (object?)enterprise.FaviconUrl ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("primarycolor", (object?)enterprise.PrimaryColor ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("secondarycolor", (object?)enterprise.SecondaryColor ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("customdomain", (object?)enterprise.CustomDomain ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("language", (object?)enterprise.Language ?? "fr");
+                            cmd.Parameters.AddWithValue("currency", (object?)enterprise.Currency ?? "TND");
+                            cmd.Parameters.AddWithValue("issalingwood", enterprise.IsSalingWood);
+                            cmd.Parameters.AddWithValue("ismanagingconstructions", enterprise.IsManagingConstructions);
+
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Schema may not exist if tenant has not been fully provisioned yet
+                }
+            }
+
             var auditLog = new MasterAuditLog
             {
                 TenantId = enterprise.Id,
