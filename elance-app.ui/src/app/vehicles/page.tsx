@@ -17,7 +17,9 @@ import {
   ShieldAlert,
   CreditCard,
   Info,
-  Loader2
+  Loader2,
+  BarChart3,
+  Fuel
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -35,6 +37,8 @@ import { vehicleService } from '@/services/components/vehicle.service';
 import { Vehicle } from '@/types/vehicle';
 import { VehicleFormDialog } from './components/vehicle-form-dialog';
 import { DeleteVehicleDialog } from './components/delete-vehicle-dialog';
+import { VehicleAnalyticsDialog } from './components/vehicle-analytics-dialog';
+import { VehicleExpenseDialog } from './components/vehicle-expense-dialog';
 import { toast } from 'sonner';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { useEnterprise } from '@/hooks/use-enterprise';
@@ -55,7 +59,11 @@ export default function VehiclesPage() {
   // Dialog States
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+  const [isExpenseOpen, setIsExpenseOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [selectedVehicleForAnalytics, setSelectedVehicleForAnalytics] = useState<Vehicle | null>(null);
+  const [selectedVehicleForExpense, setSelectedVehicleForExpense] = useState<Vehicle | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   // Fetch all vehicles
@@ -75,7 +83,7 @@ export default function VehiclesPage() {
   useEffect(() => {
     // Redirect if no permission
     if (!hasAnyPermission('vehicles')) {
-      toast.error("Vous n'avez pas l'autorisation d'acc\u00e9der aux v\u00e9hicules.");
+      toast.error("Vous n'avez pas l'autorisation d'accéder aux véhicules.");
       router.replace('/');
       return;
     }
@@ -226,6 +234,18 @@ export default function VehiclesPage() {
     e.stopPropagation();
     setSelectedVehicle(vehicle);
     setIsDeleteOpen(true);
+  };
+
+  const openAnalyticsDialog = (vehicle: Vehicle, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setSelectedVehicleForAnalytics(vehicle);
+    setIsAnalyticsOpen(true);
+  };
+
+  const openQuickExpenseDialog = (vehicle: Vehicle, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setSelectedVehicleForExpense(vehicle);
+    setIsExpenseOpen(true);
   };
 
   // Helper for dynamic Card Styling based on brand type in the expanded view
@@ -425,10 +445,16 @@ export default function VehiclesPage() {
                                         <MoreHorizontal className="w-4 h-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="rounded-xl border-corp-blue-100 w-44">
+                                    <DropdownMenuContent align="end" className="rounded-xl border-corp-blue-100 w-56">
+                                      <DropdownMenuItem onClick={(e) => openAnalyticsDialog(item, e)} className="gap-2 font-bold text-corp-blue-900 cursor-pointer">
+                                        <BarChart3 className="w-4 h-4 text-corp-blue-600" /> Historique & Graphiques
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={(e) => openQuickExpenseDialog(item, e)} className="gap-2 font-bold text-amber-600 cursor-pointer">
+                                        <Fuel className="w-4 h-4" /> Nouveau Plein / Dépense
+                                      </DropdownMenuItem>
                                       {hasPermission('vehicles', 'canUpdate') && (
                                         <DropdownMenuItem onClick={(e) => openEditDialog(item, e)} className="gap-2 font-bold text-corp-blue-900 cursor-pointer">
-                                          <Edit className="w-4 h-4" /> Modifier
+                                          <Edit className="w-4 h-4" /> Modifier Fiche
                                         </DropdownMenuItem>
                                       )}
                                       {hasPermission('vehicles', 'canDelete') && (
@@ -559,6 +585,32 @@ export default function VehiclesPage() {
                                         )}
                                       </div>
                                     </div>
+
+                                    {/* Quick Actions Footer for this Vehicle */}
+                                    <div className="bg-white/80 border-t border-corp-blue-100/60 px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
+                                      <div className="flex items-center gap-2 text-xs font-semibold text-sand-500">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                        Suivi opérationnel & Télémétrie
+                                      </div>
+                                      <div className="flex items-center gap-3">
+                                        <Button
+                                          size="sm"
+                                          onClick={(e) => openAnalyticsDialog(item, e)}
+                                          className="h-9 px-4 rounded-xl bg-corp-blue-900 hover:bg-corp-blue-950 text-white font-bold shadow-md shadow-corp-blue-900/10 text-xs"
+                                        >
+                                          <BarChart3 className="w-3.5 h-3.5 mr-2 text-amber-400" />
+                                          Historique & Graphiques de Consommation
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          onClick={(e) => openQuickExpenseDialog(item, e)}
+                                          className="h-9 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-corp-blue-950 font-bold shadow-md shadow-amber-500/10 text-xs"
+                                        >
+                                          <Fuel className="w-3.5 h-3.5 mr-1.5" />
+                                          + Nouveau Plein / Entretien
+                                        </Button>
+                                      </div>
+                                    </div>
                                   </motion.div>
                                 </td>
                               </tr>
@@ -580,7 +632,7 @@ export default function VehiclesPage() {
         </Card>
       </div>
 
-      {/* Add / Edit Dialog */}
+      {/* Add / Edit Vehicle Dialog */}
       <VehicleFormDialog 
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
@@ -588,7 +640,7 @@ export default function VehiclesPage() {
         onSave={handleSaveVehicle}
       />
 
-      {/* Delete Dialog */}
+      {/* Delete Vehicle Dialog */}
       <DeleteVehicleDialog 
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
@@ -596,7 +648,22 @@ export default function VehiclesPage() {
         onConfirm={handleConfirmDelete}
         isLoading={deleting}
       />
+
+      {/* Analytics & Charts Dialog */}
+      <VehicleAnalyticsDialog
+        isOpen={isAnalyticsOpen}
+        onClose={() => setIsAnalyticsOpen(false)}
+        vehicle={selectedVehicleForAnalytics}
+        onVehicleUpdated={loadVehicles}
+      />
+
+      {/* Quick Add Expense Dialog */}
+      <VehicleExpenseDialog
+        isOpen={isExpenseOpen}
+        onClose={() => setIsExpenseOpen(false)}
+        vehicle={selectedVehicleForExpense}
+        onSuccess={loadVehicles}
+      />
     </DashboardLayout>
   );
 }
-
