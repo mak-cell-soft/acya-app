@@ -34,6 +34,7 @@ const DEFAULT_PERMISSIONS: AppPermissionsMap = {
   inventory: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
   accounting: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
   vehicles: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
+  chantier: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
   hr: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
   configuration: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
 };

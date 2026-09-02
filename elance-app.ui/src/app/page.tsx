@@ -2,7 +2,9 @@ import { HeroSection } from "@/components/shared/hero-section";
 import { PublicNavbar } from "@/components/shared/public-navbar";
 import { ModulesSection } from "@/components/shared/modules-section";
 import { ChantierSection } from "@/components/shared/chantier-section";
+import { QwertyIntegrationSection } from "@/components/shared/qwerty-integration-section";
 import { WhySection } from "@/components/shared/why-section";
+import { PricingSection } from "@/components/shared/pricing-section";
 import { TestimonialSection } from "@/components/shared/testimonial-section";
 import { FAQSection } from "@/components/shared/faq-section";
 import { CTASection } from "@/components/shared/cta-section";
@@ -15,7 +17,9 @@ export default function Home() {
       <HeroSection />
       <ModulesSection />
       <ChantierSection />
+      <QwertyIntegrationSection />
       <WhySection />
+      <PricingSection />
       <TestimonialSection />
       <FAQSection />
       <CTASection />

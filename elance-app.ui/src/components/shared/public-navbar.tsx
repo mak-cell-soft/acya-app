@@ -41,9 +41,11 @@ export function PublicNavbar() {
   }, [isMobileMenuOpen]);
 
   const navLinks = [
-    { name: 'Modules', href: '#modules', isNew: true },
+    { name: 'Modules', href: '#modules' },
     { name: 'Chantiers', href: '#chantiers' },
-    { name: 'Pourquoi Élancé', href: '#pourquoi' },
+    { name: 'Intégration Qwerty', href: '#integration-qwerty', isNew: true },
+    { name: 'Tarifs', href: '#tarifs' },
+    { name: 'Pourquoi ACYA', href: '#pourquoi' },
     { name: 'Contact', href: '/contact' },
   ];
 
@@ -68,9 +70,9 @@ export function PublicNavbar() {
                 Nouveau :
               </span>
               <span className="font-medium text-white/95">
-                Élancé v2.0 est arrivé avec la planification de flotte et la gestion des M³ automatisée.
+                Intégration directe avec Qwerty pour vos comptables & offre unique à 450 DT / an.
               </span>
-              <Link href="#modules" className="underline font-bold hover:text-cyan-200 transition-colors ml-1.5 flex items-center gap-0.5 group/banner">
+              <Link href="#integration-qwerty" className="underline font-bold hover:text-cyan-200 transition-colors ml-1.5 flex items-center gap-0.5 group/banner">
                 Découvrir
                 <ArrowRight size={13} className="inline-block transition-transform group-hover/banner:translate-x-0.5" />
               </Link>

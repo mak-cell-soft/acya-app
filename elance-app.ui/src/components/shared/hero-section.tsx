@@ -115,12 +115,29 @@ export function HeroSection() {
             className="space-y-8 text-left"
           >
             {/* Badge */}
-            <div className="inline-flex items-center gap-3 rounded-full border px-5 py-2 text-sm font-semibold backdrop-blur-md" style={{ borderColor: 'rgba(59,130,246,0.30)', background: 'rgba(59,130,246,0.10)', color: '#60A5FA' }}>
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: '#3B82F6' }} />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full" style={{ background: '#3B82F6' }} />
-              </span>
-              🇹🇳 ERP SaaS · Conçu en Tunisie · Déployé partout
+            <div className="flex flex-wrap items-center gap-2.5">
+              <div className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold backdrop-blur-md" style={{ borderColor: 'rgba(59,130,246,0.30)', background: 'rgba(59,130,246,0.10)', color: '#60A5FA' }}>
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: '#3B82F6' }} />
+                  <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: '#3B82F6' }} />
+                </span>
+                🇹🇳 ERP SaaS · Conçu en Tunisie
+              </div>
+              <Link 
+                href="#integration-qwerty"
+                className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition-all hover:bg-white/10"
+                style={{ borderColor: 'rgba(6,182,212,0.40)', background: 'rgba(6,182,212,0.12)', color: '#22D3EE' }}
+              >
+                <span>Nouveau : Intégration Qwerty</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+              <Link 
+                href="#tarifs"
+                className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition-all hover:bg-white/10"
+                style={{ borderColor: 'rgba(52,211,153,0.35)', background: 'rgba(52,211,153,0.10)', color: '#34D399' }}
+              >
+                <span>450 DT / an · 1,23 DT/jour</span>
+              </Link>
             </div>
 
             {/* H1 */}
@@ -132,12 +149,12 @@ export function HeroSection() {
 
             {/* Subtitle */}
             <p className="text-base sm:text-lg leading-relaxed max-w-xl font-medium" style={{ color: 'rgba(255,255,255,0.70)' }}>
-              Élancé centralise vos ventes, achats, stock, comptabilité, équipe et flotte logistique dans un seul espace de travail — puissant, rapide et conforme.
+              ACYA centralise vos ventes, achats, stocks, chantiers, équipe et flotte logistique, avec une connexion directe vers votre expert-comptable sur Qwerty.
             </p>
 
             {/* Trust checks */}
             <div className="flex flex-wrap gap-x-6 gap-y-3">
-              {['Gestion M³ & Chantiers BTP', 'Facturation & Comptabilité', 'Stock multi-dépôts', 'Zéro double-saisie'].map(item => (
+              {['Gestion M³ & Chantiers BTP', 'Facturation & Écosystème Qwerty', 'Stock multi-dépôts', 'Zéro double-saisie'].map(item => (
                 <div key={item} className="flex items-center gap-2 text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.70)' }}>
                   <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: '#3B82F6' }} />
                   {item}
@@ -156,11 +173,11 @@ export function HeroSection() {
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
-                href="#modules"
+                href="#tarifs"
                 className="inline-flex h-14 items-center justify-center gap-2 rounded-full border px-8 text-base font-bold text-white backdrop-blur-sm transition-all hover:bg-white/10"
                 style={{ borderColor: 'rgba(255,255,255,0.20)', background: 'rgba(255,255,255,0.05)' }}
               >
-                Voir les modules
+                Découvrir l'offre (450 DT)
               </Link>
             </div>
 

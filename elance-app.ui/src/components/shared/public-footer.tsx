@@ -150,12 +150,18 @@ export function PublicFooter() {
 
           <div className="text-left">
             <h4 className="text-[0.72rem] font-bold uppercase tracking-[0.2em] text-corp-blue-700 mb-8">
-              Modules
+              Modules & Offre
             </h4>
             <div className="flex flex-col gap-4">
-              {['Articles & M³', 'Achats & Ventes', 'Gestion Chantiers', 'Flotte Automobile', 'Comptabilité'].map(item => (
-                <Link key={item} href="#" className="text-[0.92rem] text-slate-500 hover:text-corp-blue-600 hover:translate-x-1 transition-all duration-300 w-max font-semibold">
-                  {item}
+              {[
+                { name: 'Articles & M³', href: '#modules' },
+                { name: 'Achats & Ventes', href: '#modules' },
+                { name: 'Gestion Chantiers', href: '#chantiers' },
+                { name: 'Intégration Qwerty', href: '#integration-qwerty' },
+                { name: 'Tarifs (450 DT)', href: '#tarifs' }
+              ].map(item => (
+                <Link key={item.name} href={item.href} className="text-[0.92rem] text-slate-500 hover:text-corp-blue-600 hover:translate-x-1 transition-all duration-300 w-max font-semibold">
+                  {item.name}
                 </Link>
               ))}
             </div>

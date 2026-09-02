@@ -11,24 +11,32 @@ import {
 
 const faqs = [
   {
+    question: "Comment fonctionne l'intégration avec Qwerty et mon expert-comptable ?",
+    answer: "ACYA expose un webservice sécurisé chiffré TLS avec jeton d'authentification certifié. Votre expert-comptable peut récupérer directement et en un clic les récapitulatifs périodiques de vos ventes et de vos achats depuis son propre environnement Qwerty (QwertyTunisieProduction), éliminant ainsi toute ressaisie manuelle ou envoi de fichiers Excel."
+  },
+  {
+    question: "Que comprend exactement l'offre à 450 DT / an ?",
+    answer: "L'offre annuelle de 450 DT (soit seulement 1,23 DT par jour) inclut l'accès illimité à l'intégralité des modules ACYA : gestion commerciale, facturation, ventes, achats, gestion des stocks multi-dépôts (avec calculs M³), module chantiers BTP, flotte logistique, sauvegardes automatiques et l'accès à la passerelle comptable Qwerty."
+  },
+  {
     question: "Comment Élancé s'intègre-t-il avec mon système de facturation existant ?",
-    answer: "Élancé propose une transition en douceur. Notre module comptable est compatible avec les formats standards (Factur-X) et permet des exports compatibles avec la majorité des logiciels comptables du marché (Sage, Cegid, EBP)."
+    answer: "Élancé propose une transition en douceur. Notre module comptable est compatible avec les formats standards (Factur-X) et permet des exports compatibles avec la majorité des logiciels comptables du marché (Sage, Cegid, EBP, Qwerty)."
   },
   {
     question: "Mes données sont-elles en sécurité ?",
-    answer: "Absolument. Vos données sont hébergées sur des serveurs souverains sécurisés. Nous utilisons un chiffrement de bout en bout et effectuons des sauvegardes automatiques toutes les heures pour garantir la pérennité de vos informations."
+    answer: "Absolument. Vos données sont hébergées sur des serveurs sécurisés haute disponibilité. Nous utilisons un chiffrement de bout en bout et effectuons des sauvegardes automatiques pour garantir la pérennité et la confidentialité de vos informations."
   },
   {
     question: "Peut-on personnaliser les modules selon notre secteur d'activité ?",
-    answer: "Oui, Élancé est conçu de manière modulaire. Que vous soyez dans le négoce de bois, la construction, ou la gestion de flotte, nous activons et configurons uniquement les modules dont vous avez besoin."
+    answer: "Oui, ACYA est conçu de manière modulaire. Que vous soyez dans le négoce de bois, la construction, ou la gestion de flotte, nous activons et configurons uniquement les modules dont vous avez besoin."
   },
   {
     question: "Combien de temps faut-il pour déployer Élancé dans mon entreprise ?",
-    answer: "Grâce à notre architecture Cloud, la mise en route technique est instantanée. Selon la complexité de vos processus et la reprise de données, le déploiement complet et la formation prennent généralement entre 2 et 4 semaines."
+    answer: "Grâce à notre architecture Cloud SaaS, la mise en route technique est instantanée. L'accompagnement, la reprise de données et la formation de vos collaborateurs prennent généralement entre quelques jours et 2 semaines."
   },
   {
     question: "Proposez-vous un accompagnement pour la prise en main ?",
-    answer: "Oui, le succès de votre transition est notre priorité. L'équipe d'ACYA Consulting vous accompagne de bout en bout : audit de vos processus, paramétrage, formation sur site, et support client réactif."
+    answer: "Oui, le succès de votre transition est notre priorité. L'équipe d'ACYA Consulting vous accompagne de bout en bout : paramétrage personnalisé, formation des utilisateurs, et support client réactif basé en Tunisie."
   }
 ];
 
