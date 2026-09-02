@@ -18,6 +18,7 @@ export interface AppPermissionsMap {
   hr: ModulePermissions;
   vehicles: ModulePermissions;
   configuration: ModulePermissions;
+  chantier: ModulePermissions;
 }
 
 export interface UserPermissionsDto {
@@ -38,6 +39,7 @@ export const PERMISSION_MODULES = [
   { key: 'vehicles',      label: 'Véhicules',         icon: 'Car' },
   { key: 'hr',            label: 'RH & Équipe',       icon: 'Briefcase' },
   { key: 'configuration', label: 'Configuration',     icon: 'Settings' },
+  { key: 'chantier',      label: 'Chantiers',         icon: 'HardHat' },
 ] as const;
 
 export type PermissionModuleKey = keyof AppPermissionsMap;

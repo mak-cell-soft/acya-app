@@ -89,7 +89,7 @@ const saleNavGroups: NavGroup[] = [
   {
     title: 'Opérations',
     items: [
-      { name: 'Chantiers', href: '/chantiers', icon: ClipboardList },
+      { name: 'Chantiers', href: '/chantiers', icon: ClipboardList, module: 'chantier' },
       { name: 'Véhicules', href: '/vehicles', icon: Car, module: 'vehicles' },
       { name: 'Équipe & RH', href: '/team', icon: UserCheck, module: 'hr' },
     ],
@@ -131,7 +131,7 @@ const depotNavGroups: NavGroup[] = [
   {
     title: 'Opérations',
     items: [
-      { name: 'Chantiers', href: '/chantiers', icon: ClipboardList },
+      { name: 'Chantiers', href: '/chantiers', icon: ClipboardList, module: 'chantier' },
       { name: 'Véhicules', href: '/vehicles', icon: Car, module: 'vehicles' },
       { name: 'Équipe & RH', href: '/team', icon: UserCheck, module: 'hr' },
     ],

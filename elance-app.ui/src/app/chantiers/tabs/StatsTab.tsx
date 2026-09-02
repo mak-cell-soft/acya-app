@@ -1,38 +1,72 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, Wallet, Users } from 'lucide-react';
+import { TrendingUp, Wallet, Users, AlertTriangle } from 'lucide-react';
+import { ChantierDetail } from '@/types/chantier';
+import { useChantierStatistics } from '@/hooks/use-chantiers';
 
-export function StatsTab({ site }: { site: any }) {
-  // Mock data adapted for Elance
-  const progressData = [
-    { month: 'Jan', prevu: 10, reel: 12 },
-    { month: 'Fév', prevu: 25, reel: 22 },
-    { month: 'Mar', prevu: 40, reel: 35 },
-    { month: 'Avr', prevu: 55, reel: 50 },
-    { month: 'Mai', prevu: 70, reel: site.progressPercent || 65 },
-    { month: 'Juin', prevu: 85, reel: null },
-    { month: 'Juil', prevu: 100, reel: null },
-  ];
+interface StatsTabProps {
+  site: ChantierDetail;
+}
 
-  const budgetData = [
-    { name: 'Gros Œuvre', value: 45000, color: '#1a1a1a' },
-    { name: 'Second Œuvre', value: 25000, color: '#2563eb' },
-    { name: 'Menuiserie Bois', value: 18000, color: '#639922' },
-    { name: 'Équipement', value: 12000, color: '#888780' },
-  ];
+export function StatsTab({ site }: StatsTabProps) {
+  const { data: stats, isLoading } = useChantierStatistics(site.id);
 
-  const workforceData = [
-    { week: 'S-4', ouvriers: 12, cadres: 2 },
-    { week: 'S-3', ouvriers: 15, cadres: 3 },
-    { week: 'S-2', ouvriers: 18, cadres: 3 },
-    { week: 'S-1', ouvriers: 22, cadres: 4 },
-    { week: 'S-0', ouvriers: site.employees?.length || 20, cadres: 4 },
-  ];
+  // Fallback defaults while loading or if data is empty
+  const progressData = stats?.progressCurve && stats.progressCurve.length > 0
+    ? stats.progressCurve
+    : [
+        { month: 'Jan', prevu: 15, reel: 12 },
+        { month: 'Fév', prevu: 35, reel: 30 },
+        { month: 'Mar', prevu: 60, reel: site.progressPct || 55 },
+        { month: 'Avr', prevu: 80, reel: null },
+        { month: 'Mai', prevu: 100, reel: null },
+      ];
+
+  const budgetData = stats?.budgetByPhase && stats.budgetByPhase.length > 0
+    ? stats.budgetByPhase
+    : [
+        { name: 'Gros Œuvre', value: site.budgetTotal ? Number(site.budgetTotal) * 0.6 : 30000, color: '#1a1a1a' },
+        { name: 'Second Œuvre', value: site.budgetTotal ? Number(site.budgetTotal) * 0.25 : 15000, color: '#2563eb' },
+        { name: 'Finitions', value: site.budgetTotal ? Number(site.budgetTotal) * 0.15 : 5000, color: '#10b981' },
+      ];
+
+  const workforceData = stats?.workforceEvolution && stats.workforceEvolution.length > 0
+    ? stats.workforceEvolution
+    : [
+        { week: 'S-4', ouvriers: 8, cadres: 2 },
+        { week: 'S-3', ouvriers: 12, cadres: 2 },
+        { week: 'S-2', ouvriers: 14, cadres: 3 },
+        { week: 'S-1', ouvriers: site.teamMembers.length || 10, cadres: 3 },
+      ];
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Top Row */}
+    <div className="flex flex-col gap-8 font-['Outfit',sans-serif]">
+      {/* Top summary cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-2xl border border-black/5 shadow-sm">
+          <span className="text-xs font-bold text-[#888780] uppercase">Avancement Global</span>
+          <div className="text-2xl font-extrabold text-[#2563eb] mt-1">{stats?.overallProgressPct ?? site.progressPct}%</div>
+        </div>
+        <div className="bg-white p-4 rounded-2xl border border-black/5 shadow-sm">
+          <span className="text-xs font-bold text-[#888780] uppercase">Budget Alloué</span>
+          <div className="text-2xl font-extrabold text-[#1a1a1a] mt-1">
+            {site.budgetTotal ? `${site.budgetTotal.toLocaleString('fr-FR')} TND` : '-'}
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-2xl border border-black/5 shadow-sm">
+          <span className="text-xs font-bold text-[#888780] uppercase">Tâches Réalisées</span>
+          <div className="text-2xl font-extrabold text-[#10b981] mt-1">
+            {stats?.completedTasks ?? 0} / {stats?.totalTasks ?? 0}
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-2xl border border-black/5 shadow-sm">
+          <span className="text-xs font-bold text-[#888780] uppercase">Équipe Active</span>
+          <div className="text-2xl font-extrabold text-[#1a1a1a] mt-1">{stats?.activeTeamCount ?? site.teamMembers.length} pers.</div>
+        </div>
+      </div>
+
+      {/* Top Row: Progress Curve & Budget */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* Progress Area Chart */}
@@ -40,7 +74,7 @@ export function StatsTab({ site }: { site: any }) {
           <CardHeader className="bg-[#fbfbfb] border-b border-black/5 pb-4">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-[#2563eb]" />
-              <CardTitle className="text-lg font-bold text-[#1a1a1a]">Courbe d'Avancement</CardTitle>
+              <CardTitle className="text-lg font-bold text-[#1a1a1a]">Courbe d'Avancement (Prévu vs Réel)</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="pt-6 h-[320px]">
@@ -64,7 +98,7 @@ export function StatsTab({ site }: { site: any }) {
                   labelStyle={{ fontWeight: 'bold', color: '#1a1a1a', marginBottom: '4px' }}
                 />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', paddingTop: '10px' }} />
-                <Area type="monotone" name="Prévu (%)" dataKey="prevu" stroke="#1a1a1a" strokeWidth={3} fillOpacity={1} fill="url(#colorPrevu)" strokeDasharray="5 5" />
+                <Area type="monotone" name="Prévu (%)" dataKey="prevu" stroke="#1a1a1a" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrevu)" strokeDasharray="4 4" />
                 <Area type="monotone" name="Réel (%)" dataKey="reel" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorReel)" activeDot={{ r: 6, fill: '#2563eb', stroke: '#fff', strokeWidth: 3 }} />
               </AreaChart>
             </ResponsiveContainer>
@@ -75,8 +109,8 @@ export function StatsTab({ site }: { site: any }) {
         <Card className="border-black/5 shadow-sm rounded-2xl overflow-hidden bg-white">
           <CardHeader className="bg-[#fbfbfb] border-b border-black/5 pb-4">
             <div className="flex items-center gap-2">
-              <Wallet className="w-5 h-5 text-[#639922]" />
-              <CardTitle className="text-lg font-bold text-[#1a1a1a]">Répartition du Budget</CardTitle>
+              <Wallet className="w-5 h-5 text-[#10b981]" />
+              <CardTitle className="text-lg font-bold text-[#1a1a1a]">Répartition du Budget par Phase</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="pt-6 h-[320px] flex items-center justify-center">
@@ -86,8 +120,8 @@ export function StatsTab({ site }: { site: any }) {
                   data={budgetData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={70}
-                  outerRadius={100}
+                  innerRadius={65}
+                  outerRadius={95}
                   paddingAngle={5}
                   dataKey="value"
                   stroke="none"
@@ -97,7 +131,7 @@ export function StatsTab({ site }: { site: any }) {
                   ))}
                 </Pie>
                 <RechartsTooltip 
-                  formatter={(value: any) => [`${Number(value).toLocaleString()} TND`, 'Montant']}
+                  formatter={(value: any) => [`${Number(value).toLocaleString('fr-FR')} TND`, 'Budget']}
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
                   itemStyle={{ fontWeight: 'bold' }}
                 />
@@ -115,12 +149,12 @@ export function StatsTab({ site }: { site: any }) {
 
       </div>
 
-      {/* Bottom Row - Workforce Bar Chart */}
+      {/* Bottom Row: Workforce */}
       <Card className="border-black/5 shadow-sm rounded-2xl overflow-hidden bg-white">
         <CardHeader className="bg-[#fbfbfb] border-b border-black/5 pb-4">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-[#1a1a1a]" />
-            <CardTitle className="text-lg font-bold text-[#1a1a1a]">Évolution des Effectifs (5 dernières semaines)</CardTitle>
+            <CardTitle className="text-lg font-bold text-[#1a1a1a]">Évolution des Effectifs Présents</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="pt-6 h-[300px]">
@@ -136,7 +170,7 @@ export function StatsTab({ site }: { site: any }) {
               />
               <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', paddingTop: '10px' }} />
               <Bar dataKey="ouvriers" name="Ouvriers" fill="#1a1a1a" radius={[4, 4, 0, 0]} maxBarSize={40} />
-              <Bar dataKey="cadres" name="Encadrement" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={40} />
+              <Bar dataKey="cadres" name="Encadrement / Chefs" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={40} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
