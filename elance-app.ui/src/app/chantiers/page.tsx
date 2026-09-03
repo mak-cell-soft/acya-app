@@ -183,8 +183,8 @@ export default function ChantiersPage() {
                 <div 
                   className={cn(
                     "absolute left-0 w-1 h-[65%] rounded-r-[4px]",
-                    site.healthFlag === 'Green' ? "bg-[#10b981]" : 
-                    site.healthFlag === 'Orange' ? "bg-[#f59e0b]" : "bg-[#ef4444]"
+                    (site.healthFlag === 'Green' || (site.healthFlag as any) === 0) ? "bg-[#10b981]" : 
+                    (site.healthFlag === 'Orange' || (site.healthFlag as any) === 1) ? "bg-[#f59e0b]" : "bg-[#ef4444]"
                   )} 
                 />
                 
@@ -243,13 +243,13 @@ export default function ChantiersPage() {
                         </h1>
                         <span className={cn(
                           "text-xs font-bold px-2.5 py-1 rounded-full",
-                          selectedDetail.status === 'Completed' ? "bg-[#dcfce7] text-[#15803d]" :
-                          selectedDetail.status === 'InProgress' ? "bg-[#eff6ff] text-[#1d4ed8]" :
+                          (selectedDetail.status === 'Completed' || (selectedDetail.status as any) === 3) ? "bg-[#dcfce7] text-[#15803d]" :
+                          (selectedDetail.status === 'InProgress' || (selectedDetail.status as any) === 1) ? "bg-[#eff6ff] text-[#1d4ed8]" :
                           "bg-[#f3f4f6] text-[#4b5563]"
                         )}>
-                          {selectedDetail.status === 'Completed' ? 'Terminé' :
-                           selectedDetail.status === 'InProgress' ? 'En cours' :
-                           selectedDetail.status === 'OnHold' ? 'En pause' : 'Planifié'}
+                          {(selectedDetail.status === 'Completed' || (selectedDetail.status as any) === 3) ? 'Terminé' :
+                           (selectedDetail.status === 'InProgress' || (selectedDetail.status as any) === 1) ? 'En cours' :
+                           (selectedDetail.status === 'OnHold' || (selectedDetail.status as any) === 2) ? 'En pause' : 'Planifié'}
                         </span>
                       </div>
                       <div className="flex items-center gap-4 text-xs font-medium text-[#888780] flex-wrap">

@@ -10,9 +10,9 @@ export default function ContactPage() {
   return (
     <main className="flex flex-col min-h-screen bg-slate-50 selection:bg-corp-blue-500/20">
       <PublicNavbar />
-      
+
       <div className="flex-1 max-w-7xl mx-auto w-full px-6 py-32 md:py-40 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
-        
+
         {/* Left Side: Contact Info */}
         <div className="flex flex-col justify-center">
           <Link href="/" className="inline-flex items-center text-sm font-bold text-corp-blue-600 hover:text-corp-blue-700 mb-8 transition-colors w-max">
@@ -39,8 +39,8 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Email</h3>
-                  <a href="mailto:medamine.klabi@gmail.com" className="text-lg font-bold text-slate-900 hover:text-corp-blue-600 transition-colors">
-                    medamine.klabi@gmail.com
+                  <a href="mailto:acya.consulting@gmail.com" className="text-lg font-bold text-slate-900 hover:text-corp-blue-600 transition-colors">
+                    acya.consulting@gmail.com
                   </a>
                 </div>
               </div>
@@ -73,7 +73,7 @@ export default function ContactPage() {
         </div>
 
         {/* Right Side: Contact Form */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -83,35 +83,35 @@ export default function ContactPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700">Prénom</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-corp-blue-500 focus:ring-2 focus:ring-corp-blue-500/20 outline-none transition-all font-medium text-slate-800"
                   placeholder="Jean"
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700">Nom</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-corp-blue-500 focus:ring-2 focus:ring-corp-blue-500/20 outline-none transition-all font-medium text-slate-800"
                   placeholder="Dupont"
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700">Email professionnel</label>
-              <input 
-                type="email" 
+              <input
+                type="email"
                 className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-corp-blue-500 focus:ring-2 focus:ring-corp-blue-500/20 outline-none transition-all font-medium text-slate-800"
                 placeholder="jean@entreprise.com"
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700">Entreprise</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-corp-blue-500 focus:ring-2 focus:ring-corp-blue-500/20 outline-none transition-all font-medium text-slate-800"
                 placeholder="Votre entreprise"
               />
@@ -119,13 +119,13 @@ export default function ContactPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700">Message</label>
-              <textarea 
+              <textarea
                 className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-corp-blue-500 focus:ring-2 focus:ring-corp-blue-500/20 outline-none transition-all font-medium text-slate-800 min-h-[120px] resize-y"
                 placeholder="Comment pouvons-nous vous aider ?"
               />
             </div>
 
-            <button 
+            <button
               type="submit"
               className="w-full h-12 bg-gradient-to-r from-corp-blue-600 to-corp-blue-700 hover:from-corp-blue-500 hover:to-corp-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-corp-blue-600/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >

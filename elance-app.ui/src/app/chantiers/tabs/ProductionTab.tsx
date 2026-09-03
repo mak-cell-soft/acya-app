@@ -62,9 +62,9 @@ export function ProductionTab({ site }: ProductionTabProps) {
 
   const cycleStatus = (phaseId: number, taskId: number, currentStatus: ChantierTaskStatus) => {
     let nextStatus: ChantierTaskStatus = 'InProgress';
-    if (currentStatus === 'Planned') nextStatus = 'InProgress';
-    else if (currentStatus === 'InProgress') nextStatus = 'Done';
-    else if (currentStatus === 'Done') nextStatus = 'Planned';
+    if (currentStatus === 'Planned' || (currentStatus as any) === 0) nextStatus = 'InProgress';
+    else if (currentStatus === 'InProgress' || (currentStatus as any) === 1) nextStatus = 'Done';
+    else if (currentStatus === 'Done' || (currentStatus as any) === 2) nextStatus = 'Planned';
 
     updateTaskStatus.mutate({
       taskId,
@@ -91,7 +91,7 @@ export function ProductionTab({ site }: ProductionTabProps) {
 
       {phases.map((phase) => {
         const tasks = phase.tasks || [];
-        const completedTasks = tasks.filter(t => t.status === 'Done').length;
+        const completedTasks = tasks.filter(t => t.status === 'Done' || (t.status as any) === 2).length;
         const phasePct = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : phase.progressPct;
 
         return (
@@ -99,67 +99,79 @@ export function ProductionTab({ site }: ProductionTabProps) {
             {/* Phase Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-black/5 pb-3 gap-2">
               <div className="flex items-center gap-3">
-                <div className="w-3.5 h-3.5 rounded-md shrink-0 ring-1 ring-black/5" style={{ backgroundColor: phase.color || '#1a1a1a' }} />
-                <h4 className="text-lg font-bold text-[#1a1a1a] m-0 [text-wrap:balance]">{phase.name}</h4>
-                <span className="text-xs font-semibold text-[#888780] bg-[#f0f0f0] px-2.5 py-0.5 rounded-full tabular-nums">
-                  {completedTasks}/{tasks.length} terminées ({phasePct}%)
+                <div
+                  className="w-3.5 h-3.5 rounded-full ring-2 ring-white shadow-xs"
+                  style={{ backgroundColor: phase.color || '#2563eb' }}
+                />
+                <h4 className="text-sm font-extrabold text-[#1a1a1a] m-0">{phase.name}</h4>
+                <span className="text-[0.68rem] font-bold text-[#888780] bg-[#f8f9fa] px-2 py-0.5 rounded-md tabular-nums">
+                  {completedTasks}/{tasks.length} tâche(s) terminée(s)
                 </span>
               </div>
-              <Button
-                size="sm"
-                onClick={() => { setSelectedPhaseId(phase.id); setIsAddTaskOpen(true); }}
-                className="rounded-xl font-semibold bg-[#eff6ff] text-[#2563eb] hover:bg-[#dbeafe] text-xs active:scale-[0.96] transition-transform min-h-[36px]"
-              >
-                <Plus className="w-3.5 h-3.5 mr-1.5" /> Ajouter une tâche
-              </Button>
+
+              <div className="flex items-center gap-4">
+                <div className="w-24 bg-[#e5e7eb] h-2 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${phasePct}%`,
+                      backgroundColor: phase.color || '#2563eb'
+                    }}
+                  />
+                </div>
+                <span className="text-xs font-bold text-[#1a1a1a] tabular-nums w-8 text-right">{phasePct}%</span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedPhaseId(phase.id);
+                    setIsAddTaskOpen(true);
+                  }}
+                  className="h-8 text-xs font-bold rounded-xl border-black/10 active:scale-[0.96] transition-transform"
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" /> Tâche
+                </Button>
+              </div>
             </div>
 
-            {/* Task list */}
-            <div className="flex flex-col gap-3">
-              {tasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white border border-black/5 shadow-sm rounded-2xl gap-4 hover:border-black/10 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold text-[#1a1a1a] text-sm truncate">{task.label}</div>
-                    {task.subLabel && <div className="text-xs text-[#888780] font-medium mt-0.5 [text-wrap:pretty]">{task.subLabel}</div>}
-                    {task.responsiblePersonName && (
-                      <div className="text-[0.7rem] font-semibold text-[#2563eb] mt-1">
-                        Responsable: {task.responsiblePersonName}
+            {/* Phase Tasks List */}
+            <div className="flex flex-col gap-2">
+              {tasks.map((task) => {
+                const isTaskDone = task.status === 'Done' || (task.status as any) === 2;
+                const isTaskInProgress = task.status === 'InProgress' || (task.status as any) === 1;
+                const isTaskPlanned = task.status === 'Planned' || (task.status as any) === 0;
+
+                return (
+                  <div
+                    key={task.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white rounded-2xl border border-black/5 hover:border-black/10 transition-colors gap-3"
+                  >
+                    <div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
+                      <button
+                        onClick={() => cycleStatus(phase.id, task.id, task.status)}
+                        title="Cliquer pour changer le statut"
+                        className={cn(
+                          "text-[0.75rem] font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer active:scale-[0.96] transition-transform select-none min-h-[36px]",
+                          isTaskDone
+                            ? 'bg-[#f0fdf4] text-[#166534] border border-[#bbf7d0]'
+                            : isTaskInProgress
+                            ? 'bg-[#eff6ff] text-[#2563eb] border border-[#bfdbfe]'
+                            : 'bg-[#f8f9fa] text-[#888780] border border-[#e5e7eb]'
+                        )}
+                      >
+                        {isTaskDone && <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />}
+                        {isTaskInProgress && <PlayCircle className="w-3.5 h-3.5 shrink-0" />}
+                        {isTaskPlanned && <Clock className="w-3.5 h-3.5 shrink-0" />}
+                        {isTaskDone ? 'Terminé' : isTaskInProgress ? 'En cours' : 'Planifié'}
+                      </button>
+                      <div className="min-w-0">
+                        <div className="font-bold text-[#1a1a1a] text-sm truncate">{task.label}</div>
+                        {task.subLabel && <div className="text-xs text-[#888780] font-medium truncate">{task.subLabel}</div>}
                       </div>
-                    )}
+                    </div>
                   </div>
-
-                  {/* Interactive Status Pill */}
-                  <div className="w-[130px] shrink-0">
-                    <button
-                      onClick={() => cycleStatus(phase.id, task.id, task.status)}
-                      title="Cliquer pour changer de statut"
-                      className={cn(
-                        "text-[0.75rem] font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer active:scale-[0.96] transition-transform select-none min-h-[36px]",
-                        task.status === 'Done'
-                          ? 'bg-[#f0fdf4] text-[#166534] border border-[#bbf7d0]'
-                          : task.status === 'InProgress'
-                          ? 'bg-[#eff6ff] text-[#2563eb] border border-[#bfdbfe]'
-                          : 'bg-[#f8f9fa] text-[#888780] border border-[#e5e7eb]'
-                      )}
-                    >
-                      {task.status === 'Done' && <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />}
-                      {task.status === 'InProgress' && <PlayCircle className="w-3.5 h-3.5 shrink-0" />}
-                      {task.status === 'Planned' && <Clock className="w-3.5 h-3.5 shrink-0" />}
-                      {task.status === 'Done' ? 'Terminé' : task.status === 'InProgress' ? 'En cours' : 'Planifié'}
-                    </button>
-                  </div>
-
-                  <div className="text-xs font-semibold text-[#888780] w-[140px] shrink-0 tabular-nums flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-[#888780] shrink-0" />
-                    <span>
-                      {new Date(task.startDate).toLocaleDateString('fr-FR')} {task.plannedEndDate ? `→ ${new Date(task.plannedEndDate).toLocaleDateString('fr-FR')}` : ''}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
 
               {tasks.length === 0 && (
                 <div className="p-6 text-center border border-dashed border-black/10 rounded-2xl text-[#888780] font-medium text-xs bg-[#fafafa]">

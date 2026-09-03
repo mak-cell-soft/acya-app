@@ -1,10 +1,12 @@
 using System;
+using System.Text.Json.Serialization;
 
 namespace ms.webapp.api.acya.core.Entities.Chantier
 {
   /// <summary>
   /// Lifecycle status of a construction project.
   /// </summary>
+  [JsonConverter(typeof(JsonStringEnumConverter))]
   public enum ChantierStatus
   {
     Planned = 0,
@@ -17,6 +19,7 @@ namespace ms.webapp.api.acya.core.Entities.Chantier
   /// <summary>
   /// Health indicator flag for a chantier project.
   /// </summary>
+  [JsonConverter(typeof(JsonStringEnumConverter))]
   public enum ChantierFlag
   {
     Green = 0,
@@ -27,6 +30,7 @@ namespace ms.webapp.api.acya.core.Entities.Chantier
   /// <summary>
   /// Phase progress status.
   /// </summary>
+  [JsonConverter(typeof(JsonStringEnumConverter))]
   public enum ChantierPhaseStatus
   {
     Planned = 0,
@@ -38,6 +42,7 @@ namespace ms.webapp.api.acya.core.Entities.Chantier
   /// <summary>
   /// Individual operational task execution status.
   /// </summary>
+  [JsonConverter(typeof(JsonStringEnumConverter))]
   public enum ChantierTaskStatus
   {
     Planned = 0,
@@ -50,6 +55,7 @@ namespace ms.webapp.api.acya.core.Entities.Chantier
   /// <summary>
   /// Classification of a timeline journal event.
   /// </summary>
+  [JsonConverter(typeof(JsonStringEnumConverter))]
   public enum ChantierEntryType
   {
     DailyReport = 0,
@@ -61,6 +67,7 @@ namespace ms.webapp.api.acya.core.Entities.Chantier
   /// <summary>
   /// Completion status of a progress entry.
   /// </summary>
+  [JsonConverter(typeof(JsonStringEnumConverter))]
   public enum ChantierEntryStatus
   {
     Done = 0,
@@ -71,6 +78,7 @@ namespace ms.webapp.api.acya.core.Entities.Chantier
   /// <summary>
   /// Severity classification of a chantier alert.
   /// </summary>
+  [JsonConverter(typeof(JsonStringEnumConverter))]
   public enum ChantierAlertType
   {
     Critical = 0,

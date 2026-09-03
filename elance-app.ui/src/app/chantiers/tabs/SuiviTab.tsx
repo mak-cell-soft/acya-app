@@ -14,6 +14,26 @@ interface SuiviTabProps {
   site: ChantierDetail;
 }
 
+const ENTRY_TYPE_LABELS: Record<string, string> = {
+  DailyReport: 'Rapport journalier',
+  Milestone: 'Étape clé',
+  Observation: 'Observation',
+  Issue: 'Incident / Alerte',
+  '0': 'Rapport journalier',
+  '1': 'Étape clé',
+  '2': 'Observation',
+  '3': 'Incident / Alerte',
+};
+
+const ALERT_TYPE_LABELS: Record<string, string> = {
+  Critical: 'Blocage critique',
+  Warning: 'Point de vigilance',
+  Info: 'Information',
+  '0': 'Blocage critique',
+  '1': 'Point de vigilance',
+  '2': 'Information',
+};
+
 export function SuiviTab({ site }: SuiviTabProps) {
   const [isAddEntryOpen, setIsAddEntryOpen] = useState(false);
   const [entryTitle, setEntryTitle] = useState('');
@@ -77,31 +97,38 @@ export function SuiviTab({ site }: SuiviTabProps) {
           </CardHeader>
           <CardContent className="pt-6">
             <div className="flex flex-col">
-              {timeline.map((ev, i) => (
-                <div key={ev.id} className="flex gap-4 relative pb-8 last:pb-0">
-                  <div className="flex flex-col items-center">
-                    <div className={cn(
-                      "w-4 h-4 rounded-full border-[3px] z-10 bg-white ring-1 ring-black/5",
-                      ev.entryType === 'Milestone' ? 'border-[#2563eb]' :
-                      ev.entryType === 'Issue' ? 'border-[#dc2626]' :
-                      'border-[#10b981]'
-                    )} />
-                    {i < timeline.length - 1 && <div className="w-[2px] h-full bg-[#f0f0f0] absolute top-4 left-[7px]" />}
-                  </div>
-                  <div className="-mt-1 flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-bold text-[#888780] tabular-nums">
-                        {new Date(ev.entryDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </span>
-                      <span className="text-[0.65rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#f8f9fa] text-[#888780]">
-                        {ev.entryType}
-                      </span>
+              {timeline.map((ev, i) => {
+                const isMilestone = ev.entryType === 'Milestone' || (ev.entryType as any) === 1;
+                const isIssue = ev.entryType === 'Issue' || (ev.entryType as any) === 3;
+                const typeKey = String(ev.entryType);
+                const typeLabel = ENTRY_TYPE_LABELS[typeKey] || typeKey;
+
+                return (
+                  <div key={ev.id} className="flex gap-4 relative pb-8 last:pb-0">
+                    <div className="flex flex-col items-center">
+                      <div className={cn(
+                        "w-4 h-4 rounded-full border-[3px] z-10 bg-white ring-1 ring-black/5",
+                        isMilestone ? 'border-[#2563eb]' :
+                        isIssue ? 'border-[#dc2626]' :
+                        'border-[#10b981]'
+                      )} />
+                      {i < timeline.length - 1 && <div className="w-[2px] h-full bg-[#f0f0f0] absolute top-4 left-[7px]" />}
                     </div>
-                    <div className="font-bold text-[#1a1a1a] text-sm">{ev.title}</div>
-                    {ev.description && <div className="text-xs text-[#666] mt-1 leading-relaxed [text-wrap:pretty]">{ev.description}</div>}
+                    <div className="-mt-1 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold text-[#888780] tabular-nums">
+                          {new Date(ev.entryDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                        <span className="text-[0.65rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#f8f9fa] text-[#888780]">
+                          {typeLabel}
+                        </span>
+                      </div>
+                      <div className="font-bold text-[#1a1a1a] text-sm">{ev.title}</div>
+                      {ev.description && <div className="text-xs text-[#666] mt-1 leading-relaxed [text-wrap:pretty]">{ev.description}</div>}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {timeline.length === 0 && (
                 <div className="py-8 text-center text-[#888780] text-xs [text-wrap:pretty]">
@@ -129,39 +156,45 @@ export function SuiviTab({ site }: SuiviTabProps) {
           </CardHeader>
           <CardContent className="pt-6">
             <div className="flex flex-col gap-3">
-              {alerts.map((a) => (
-                <div
-                  key={a.id}
-                  className={cn(
-                    "flex items-start justify-between gap-3 p-3.5 rounded-2xl border transition-colors",
-                    a.isResolved
-                      ? 'bg-[#f8f9fa] border-black/5 text-[#888780] opacity-60'
-                      : a.alertType === 'Critical'
-                      ? 'bg-[#fef2f2] border-[#fecaca] text-[#dc2626]'
-                      : 'bg-[#fffbeb] border-[#fde68a] text-[#d97706]'
-                  )}
-                >
-                  <div className="flex items-start gap-2.5 min-w-0">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold leading-tight m-0 [text-wrap:pretty]">{a.message}</p>
-                      <span className="text-[0.65rem] opacity-75 mt-1 block tabular-nums">
-                        {new Date(a.createdAt).toLocaleDateString('fr-FR')} · {a.alertType}
-                      </span>
-                    </div>
-                  </div>
+              {alerts.map((a) => {
+                const isCritical = a.alertType === 'Critical' || (a.alertType as any) === 0;
+                const alertKey = String(a.alertType);
+                const alertLabel = ALERT_TYPE_LABELS[alertKey] || alertKey;
 
-                  {!a.isResolved && (
-                    <button
-                      onClick={() => resolveAlert.mutate(a.id)}
-                      title="Marquer comme résolu"
-                      className="p-1 rounded-lg hover:bg-black/5 text-current cursor-pointer active:scale-[0.96] transition-transform shrink-0"
-                    >
-                      <Check className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
+                return (
+                  <div
+                    key={a.id}
+                    className={cn(
+                      "flex items-start justify-between gap-3 p-3.5 rounded-2xl border transition-colors",
+                      a.isResolved
+                        ? 'bg-[#f8f9fa] border-black/5 text-[#888780] opacity-60'
+                        : isCritical
+                        ? 'bg-[#fef2f2] border-[#fecaca] text-[#dc2626]'
+                        : 'bg-[#fffbeb] border-[#fde68a] text-[#d97706]'
+                    )}
+                  >
+                    <div className="flex items-start gap-2.5 min-w-0">
+                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold leading-tight m-0 [text-wrap:pretty]">{a.message}</p>
+                        <span className="text-[0.65rem] opacity-75 mt-1 block tabular-nums">
+                          {new Date(a.createdAt).toLocaleDateString('fr-FR')} · {alertLabel}
+                        </span>
+                      </div>
+                    </div>
+
+                    {!a.isResolved && (
+                      <button
+                        onClick={() => resolveAlert.mutate(a.id)}
+                        title="Marquer comme résolu"
+                        className="p-1 rounded-lg hover:bg-black/5 text-current cursor-pointer active:scale-[0.96] transition-transform shrink-0"
+                      >
+                        <Check className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
 
               {alerts.length === 0 && (
                 <div className="p-8 text-center border border-dashed border-black/10 rounded-2xl text-[#888780] text-xs">

@@ -119,8 +119,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
   );
 
   public record UpdateChantierStatusDto(
-    ChantierStatus Status,
-    ChantierFlag? HealthFlag
+    ChantierStatus Status = ChantierStatus.Planned,
+    ChantierFlag? HealthFlag = null
   );
 
   public record UpdateChantierProgressDto(
@@ -261,8 +261,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
   );
 
   public record UpdateTaskStatusDto(
-    ChantierTaskStatus Status,
-    int? ProgressPct
+    ChantierTaskStatus Status = ChantierTaskStatus.Planned,
+    int? ProgressPct = null
   );
 
   #endregion
@@ -390,10 +390,10 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
 
   public record CreateProgressEntryDto(
     string Title,
-    string? Description,
-    ChantierEntryType EntryType,
-    ChantierEntryStatus EntryStatus,
-    DateTime? EntryDate
+    string? Description = null,
+    ChantierEntryType EntryType = ChantierEntryType.DailyReport,
+    ChantierEntryStatus EntryStatus = ChantierEntryStatus.Done,
+    DateTime? EntryDate = null
   );
 
   public class ChantierAlertDto
@@ -422,7 +422,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
 
   public record CreateChantierAlertDto(
     string Message,
-    ChantierAlertType AlertType
+    ChantierAlertType AlertType = ChantierAlertType.Warning
   );
 
   #endregion
