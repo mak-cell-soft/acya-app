@@ -6,15 +6,15 @@ CREATE TABLE IF NOT EXISTS chantier_caisse_transactions (
     "Id"                  SERIAL       PRIMARY KEY,
     "Guid"                UUID         NOT NULL DEFAULT gen_random_uuid() UNIQUE,
     "ChantierId"          INT          NOT NULL REFERENCES chantier_projects("Id") ON DELETE CASCADE,
-    "Type"                SMALLINT     NOT NULL DEFAULT 0, -- 0: Alimentation (Entrée), 1: Sortie (Dépense / Décaissement)
-    "Status"              SMALLINT     NOT NULL DEFAULT 0, -- 0: Completed (Validé), 1: Pending (Demande mobile en attente), 2: Rejected (Rejeté)
+    "Type"                SMALLINT     NOT NULL DEFAULT 0, -- 0: Alimentation (Entree), 1: Sortie (Depense / Decaissement)
+    "Status"              SMALLINT     NOT NULL DEFAULT 0, -- 0: Completed (Valide), 1: Pending (Demande mobile en attente), 2: Rejected (Rejete)
     "Amount"              NUMERIC(18,3) NOT NULL CHECK ("Amount" > 0),
     "TransactionDate"     TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
-    "Reason"              VARCHAR(300) NOT NULL,           -- Motif (ex: Alimentation hebdomadaire, Achat outillage, etc.)
-    "Reference"           VARCHAR(100),                    -- Réf pièce / Bon / Facture / Mode de règlement
-    "BeneficiaryPersonId" INT          REFERENCES "Persons"("Id") ON DELETE SET NULL, -- Collaborateur bénéficiaire ou demandeur
-    "CreatedById"         INT          NOT NULL,           -- AppUser.Id
-    "ValidatedById"       INT,                             -- AppUser.Id (Admin who validated mobile request)
+    "Reason"              VARCHAR(300) NOT NULL,
+    "Reference"           VARCHAR(100),
+    "BeneficiaryPersonId" INT          REFERENCES tbl_person(id) ON DELETE SET NULL,
+    "CreatedById"         INT          NOT NULL,
+    "ValidatedById"       INT,
     "ValidationDate"      TIMESTAMP WITHOUT TIME ZONE,
     "Notes"               TEXT,
     "CreationDate"        TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),

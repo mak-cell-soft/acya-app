@@ -15,6 +15,7 @@ FILES=(
   "04_chantier_materials.sql"
   "05_chantier_vehicles.sql"
   "06_chantier_suivi.sql"
+  "07_chantier_caisse.sql"
 )
 
 echo "============================================================"
