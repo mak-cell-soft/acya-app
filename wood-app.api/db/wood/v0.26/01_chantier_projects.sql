@@ -19,8 +19,8 @@ CREATE TABLE IF NOT EXISTS chantier_projects (
     "StartDate"              TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     "PlannedEndDate"         TIMESTAMP WITHOUT TIME ZONE,
     "ActualEndDate"          TIMESTAMP WITHOUT TIME ZONE,
-    "ArchitectPersonId"      INT          REFERENCES "Persons"("Id") ON DELETE SET NULL,
-    "ProjectManagerPersonId" INT          REFERENCES "Persons"("Id") ON DELETE SET NULL,
+    "ArchitectPersonId"      INT          REFERENCES tbl_person(id) ON DELETE SET NULL,
+    "ProjectManagerPersonId" INT          REFERENCES tbl_person(id) ON DELETE SET NULL,
     "ClientCounterPartId"    INT,                              -- Logical FK to CounterPart, no direct constraint for loose coupling
     "CreatedById"            INT          NOT NULL,            -- FK to AppUser.Id
     "UpdatedById"            INT,                              -- FK to AppUser.Id

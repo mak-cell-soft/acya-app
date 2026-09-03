@@ -381,8 +381,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       {
         ChantierId = chantierId,
         MerchandiseId = dto.MerchandiseId,
-        MerchandiseRef = merchandise.PackageReference ?? merchandise.Articles?.Reference ?? string.Empty,
-        MerchandiseDesignation = merchandise.Description ?? merchandise.Articles?.Description ?? string.Empty,
+        MerchandiseRef = merchandise.PackageReference ?? string.Empty,
+        MerchandiseDesignation = merchandise.Description ?? string.Empty,
         Category = dto.Category,
         MaterialType = dto.MaterialType,
         RequiredQty = dto.RequiredQty,

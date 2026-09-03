@@ -153,7 +153,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
       PersonId = m.PersonId;
       PersonFullName = m.Person?.FullName ?? string.Empty;
       PersonPhone = m.Person?.PhoneNumber;
-      PersonEmail = null;
+      PersonEmail = m.Person?.PhoneNumber;  // Person entity has no Email field; using PhoneNumber as contact fallback
       ChantierRole = m.ChantierRole;
       AssignedAt = m.AssignedAt;
       ReleasedAt = m.ReleasedAt;
@@ -335,8 +335,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
       Id = c.Id;
       ChantierId = c.ChantierId;
       MerchandiseId = c.MerchandiseId;
-      MerchandiseRef = c.Merchandise?.PackageReference ?? c.Merchandise?.Articles?.Reference;
-      MerchandiseDesignation = c.Merchandise?.Description ?? c.Merchandise?.Articles?.Description;
+      MerchandiseRef = c.Merchandise?.PackageReference;
+      MerchandiseDesignation = c.Merchandise?.Description;
       SourceStockMovementId = c.SourceStockMovementId;
       ChantierTaskId = c.ChantierTaskId;
       TaskLabel = c.ChantierTask?.Label;

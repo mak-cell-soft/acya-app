@@ -6,7 +6,7 @@
 CREATE TABLE IF NOT EXISTS chantier_material_requirements (
     "Id"                     SERIAL        PRIMARY KEY,
     "ChantierId"             INT           NOT NULL REFERENCES chantier_projects("Id") ON DELETE CASCADE,
-    "MerchandiseId"          INT           NOT NULL REFERENCES "Merchandises"("Id") ON DELETE RESTRICT,
+    "MerchandiseId"          INT           NOT NULL REFERENCES tbl_merchandise(id) ON DELETE RESTRICT,
     "MerchandiseRef"         VARCHAR(100)  NOT NULL, -- Denormalized for rapid query and historical snapshot
     "MerchandiseDesignation" VARCHAR(500)  NOT NULL,
     "Category"               VARCHAR(100)  NOT NULL DEFAULT 'Principal',
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS chantier_material_requirements (
 CREATE TABLE IF NOT EXISTS chantier_material_consumptions (
     "Id"                    SERIAL        PRIMARY KEY,
     "ChantierId"            INT           NOT NULL REFERENCES chantier_projects("Id") ON DELETE CASCADE,
-    "MerchandiseId"         INT           NOT NULL REFERENCES "Merchandises"("Id") ON DELETE RESTRICT,
+    "MerchandiseId"         INT           NOT NULL REFERENCES tbl_merchandise(id) ON DELETE RESTRICT,
     "SourceStockMovementId" INT,          -- Logical FK to StockMovement.Id for audit trail (no hard DB constraint)
     "ChantierTaskId"        INT           REFERENCES chantier_tasks("Id") ON DELETE SET NULL,
     "ConsumedQty"           NUMERIC(18,3) NOT NULL,

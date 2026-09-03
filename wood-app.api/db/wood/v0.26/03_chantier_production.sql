@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS chantier_tasks (
     "StartDate"           TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     "PlannedEndDate"      TIMESTAMP WITHOUT TIME ZONE,
     "ActualEndDate"       TIMESTAMP WITHOUT TIME ZONE,
-    "ResponsiblePersonId" INT          REFERENCES "Persons"("Id") ON DELETE SET NULL,
+    "ResponsiblePersonId" INT          REFERENCES tbl_person(id) ON DELETE SET NULL,
     "SortOrder"           INT          NOT NULL DEFAULT 0,
     "CreationDate"        TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
     "UpdateDate"          TIMESTAMP WITHOUT TIME ZONE,
