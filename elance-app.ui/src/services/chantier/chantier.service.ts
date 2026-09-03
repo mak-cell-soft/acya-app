@@ -23,7 +23,11 @@ import {
   AssignChantierVehicleInput,
   ChantierStatistics,
   ChantierStatus,
-  ChantierFlag
+  ChantierFlag,
+  ChantierCaisseSummary,
+  ChantierCaisseTransaction,
+  CreateCaisseAlimentationInput,
+  CreateCaisseSortieInput
 } from '@/types/chantier';
 
 export const chantierService = {
@@ -171,5 +175,34 @@ export const chantierService = {
   getStatistics: async (id: number): Promise<ChantierStatistics> => {
     const response = await api.get(`/chantier/${id}/statistics`);
     return response.data;
+  },
+
+  // Caisse (Petty cash / Alimentation / Sorties / Mobile requests)
+  getCaisseSummary: async (id: number): Promise<ChantierCaisseSummary> => {
+    const response = await api.get(`/chantier/${id}/caisse`);
+    return response.data;
+  },
+
+  getCaisseTransactions: async (id: number, params?: { type?: number; status?: number }): Promise<ChantierCaisseTransaction[]> => {
+    const response = await api.get(`/chantier/${id}/caisse/transactions`, { params });
+    return response.data;
+  },
+
+  addCaisseAlimentation: async (id: number, input: CreateCaisseAlimentationInput): Promise<ChantierCaisseTransaction> => {
+    const response = await api.post(`/chantier/${id}/caisse/alimentation`, input);
+    return response.data;
+  },
+
+  addCaisseSortie: async (id: number, input: CreateCaisseSortieInput): Promise<ChantierCaisseTransaction> => {
+    const response = await api.post(`/chantier/${id}/caisse/sortie`, input);
+    return response.data;
+  },
+
+  validateCaisseRequest: async (id: number, txId: number, approve: boolean): Promise<void> => {
+    await api.post(`/chantier/${id}/caisse/transactions/${txId}/validate`, { approve });
+  },
+
+  deleteCaisseTransaction: async (id: number, txId: number): Promise<void> => {
+    await api.delete(`/chantier/${id}/caisse/transactions/${txId}`);
   }
 };

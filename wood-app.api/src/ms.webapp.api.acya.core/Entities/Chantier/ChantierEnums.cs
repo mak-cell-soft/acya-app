@@ -77,4 +77,23 @@ namespace ms.webapp.api.acya.core.Entities.Chantier
     Warning = 1,
     Info = 2
   }
+
+  /// <summary>
+  /// Petty cash transaction type: Alimentation (cash in) vs Sortie (cash out / expense).
+  /// </summary>
+  public enum ChantierCaisseTransactionType
+  {
+    Alimentation = 0,
+    Sortie = 1
+  }
+
+  /// <summary>
+  /// Approval status for caisse transactions (especially mobile cash requests).
+  /// </summary>
+  public enum ChantierCaisseTransactionStatus
+  {
+    Completed = 0,
+    Pending = 1,
+    Rejected = 2
+  }
 }

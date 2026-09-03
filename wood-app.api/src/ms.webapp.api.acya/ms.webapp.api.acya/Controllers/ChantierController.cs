@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities.Chantier;
 using ms.webapp.api.acya.core.Entities.DTOs.Chantier;
 using ms.webapp.api.acya.core.Interfaces;
@@ -20,11 +21,16 @@ namespace ms.webapp.api.acya.api.Controllers
   {
     private readonly IChantierRepository _chantierRepo;
     private readonly WoodAppContext _context;
+    private readonly IAppNotificationService _notificationService;
 
-    public ChantierController(IChantierRepository chantierRepo, WoodAppContext context)
+    public ChantierController(
+      IChantierRepository chantierRepo,
+      WoodAppContext context,
+      IAppNotificationService notificationService)
     {
       _chantierRepo = chantierRepo;
       _context = context;
+      _notificationService = notificationService;
     }
 
     /// <summary>
@@ -571,6 +577,168 @@ namespace ms.webapp.api.acya.api.Controllers
 
       var stats = await _chantierRepo.GetStatisticsAsync(id);
       return Ok(stats);
+    }
+
+    #endregion
+
+    #region Caisse (Petty cash / Alimentation / Sorties / Mobile requests)
+
+    [HttpGet("{id}/caisse")]
+    public async Task<ActionResult<ChantierCaisseSummaryDto>> GetCaisseSummary(int id)
+    {
+      if (!await IsModuleActiveAsync())
+      {
+        return StatusCode(StatusCodes.Status403Forbidden, "Module Chantier non activé.");
+      }
+
+      var summary = await _chantierRepo.GetCaisseSummaryAsync(id);
+      return Ok(summary);
+    }
+
+    [HttpGet("{id}/caisse/transactions")]
+    public async Task<ActionResult<List<ChantierCaisseTransactionDto>>> GetCaisseTransactions(
+      int id,
+      [FromQuery] ChantierCaisseTransactionType? type,
+      [FromQuery] ChantierCaisseTransactionStatus? status)
+    {
+      if (!await IsModuleActiveAsync())
+      {
+        return StatusCode(StatusCodes.Status403Forbidden, "Module Chantier non activé.");
+      }
+
+      var items = await _chantierRepo.GetCaisseTransactionsAsync(id, type, status);
+      return Ok(items);
+    }
+
+    [HttpPost("{id}/caisse/alimentation")]
+    public async Task<ActionResult<ChantierCaisseTransactionDto>> AddCaisseAlimentation(
+      int id,
+      [FromBody] CreateChantierCaisseAlimentationDto dto)
+    {
+      if (!await IsModuleActiveAsync())
+      {
+        return StatusCode(StatusCodes.Status403Forbidden, "Module Chantier non activé.");
+      }
+
+      if (dto.Amount <= 0)
+      {
+        return BadRequest("Le montant de l'alimentation doit être supérieur à zéro.");
+      }
+
+      if (string.IsNullOrWhiteSpace(dto.Reason))
+      {
+        return BadRequest("Le motif de l'alimentation est obligatoire.");
+      }
+
+      var userId = GetCurrentUserId();
+      var created = await _chantierRepo.AddCaisseAlimentationAsync(id, dto, userId);
+      if (created == null)
+      {
+        return NotFound("Chantier introuvable.");
+      }
+
+      return Ok(created);
+    }
+
+    [HttpPost("{id}/caisse/sortie")]
+    public async Task<ActionResult<ChantierCaisseTransactionDto>> AddCaisseSortie(
+      int id,
+      [FromBody] CreateChantierCaisseSortieDto dto)
+    {
+      if (!await IsModuleActiveAsync())
+      {
+        return StatusCode(StatusCodes.Status403Forbidden, "Module Chantier non activé.");
+      }
+
+      if (dto.Amount <= 0)
+      {
+        return BadRequest("Le montant de la dépense doit être supérieur à zéro.");
+      }
+
+      if (string.IsNullOrWhiteSpace(dto.Reason))
+      {
+        return BadRequest("Le motif de la dépense est obligatoire.");
+      }
+
+      var userId = GetCurrentUserId();
+      var created = await _chantierRepo.AddCaisseSortieAsync(id, dto, userId);
+      if (created == null)
+      {
+        return NotFound("Chantier introuvable.");
+      }
+
+      // If this is a cash request from the mobile app, automatically notify admins
+      if (dto.IsMobileRequest)
+      {
+        try
+        {
+          var chantier = await _context.Chantiers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
+          var chantierName = chantier?.Name ?? $"Chantier #{id}";
+          var requester = created.BeneficiaryPersonName ?? "Un collaborateur";
+
+          var title = "Demande d'argent - Caisse Chantier";
+          var message = $"{requester} a demandé {dto.Amount:N3} TND sur le chantier '{chantierName}' ({dto.Reason}).";
+
+          var adminRoles = new[] { "Admin", "SuperAdmin" };
+          foreach (var role in adminRoles)
+          {
+            await _notificationService.NotifyAsync(
+              title: title,
+              message: message,
+              type: NotificationType.Warning,
+              priority: NotificationPriority.High,
+              targetRole: role,
+              relatedEntityId: created.Id.ToString(),
+              relatedEntityType: "ChantierCaisseTransaction"
+            );
+          }
+        }
+        catch (Exception ex)
+        {
+          Console.WriteLine($"[ChantierCaisse] Failed to send notification: {ex.Message}");
+        }
+      }
+
+      return Ok(created);
+    }
+
+    [HttpPost("{id}/caisse/transactions/{txId}/validate")]
+    public async Task<IActionResult> ValidateCaisseRequest(
+      int id,
+      int txId,
+      [FromBody] ValidateCaisseRequestDto dto)
+    {
+      if (!await IsModuleActiveAsync())
+      {
+        return StatusCode(StatusCodes.Status403Forbidden, "Module Chantier non activé.");
+      }
+
+      var userId = GetCurrentUserId();
+      var success = await _chantierRepo.ValidateCaisseRequestAsync(id, txId, dto.Approve, userId);
+      if (!success)
+      {
+        return NotFound();
+      }
+
+      return NoContent();
+    }
+
+    [HttpDelete("{id}/caisse/transactions/{txId}")]
+    public async Task<IActionResult> DeleteCaisseTransaction(int id, int txId)
+    {
+      if (!await IsModuleActiveAsync())
+      {
+        return StatusCode(StatusCodes.Status403Forbidden, "Module Chantier non activé.");
+      }
+
+      var userId = GetCurrentUserId();
+      var success = await _chantierRepo.DeleteCaisseTransactionAsync(txId, userId);
+      if (!success)
+      {
+        return NotFound();
+      }
+
+      return NoContent();
     }
 
     #endregion

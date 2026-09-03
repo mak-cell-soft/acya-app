@@ -253,8 +253,14 @@ export function QwertyIntegrationSection() {
               ref={qwertyRef}
               className="relative flex flex-col items-center text-center p-6 bg-white rounded-2xl border border-slate-200/80 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:border-corp-cyan/60 transition-all duration-300"
             >
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FF6B35] to-[#D84315] flex items-center justify-center text-white shadow-lg shadow-[#FF6B35]/25 mb-3">
-                <span className="font-black text-xl tracking-tighter">Q</span>
+              {/* Real Qwerty Logo */}
+              <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200/90 flex items-center justify-center p-2 shadow-md shadow-slate-100 mb-3 overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src="https://qwerty.tn/img/qwerty.png" 
+                  alt="Qwerty Tunisie" 
+                  className="w-full h-full object-contain"
+                />
               </div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B35] bg-orange-50 border border-orange-200/60 px-2.5 py-0.5 rounded-full mb-1">
                 Étape 3 · Logiciel
@@ -414,8 +420,10 @@ export function QwertyIntegrationSection() {
               href="https://qwerty.tn/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-13 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-7 text-sm font-bold text-white hover:bg-white/10 transition-all"
+              className="inline-flex h-13 items-center justify-center gap-2.5 rounded-xl border border-white/20 bg-white/5 px-7 text-sm font-bold text-white hover:bg-white/10 transition-all"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="https://qwerty.tn/img/qwerty.png" alt="Qwerty" className="h-4 w-auto object-contain bg-white/90 rounded px-1 py-0.5" />
               En savoir plus sur Qwerty.tn
             </a>
           </div>

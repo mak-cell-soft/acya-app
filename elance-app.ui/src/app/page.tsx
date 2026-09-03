@@ -20,7 +20,8 @@ export default function Home() {
       <QwertyIntegrationSection />
       <WhySection />
       <PricingSection />
-      <TestimonialSection />
+      {/* TODO: Re-enable once real client testimonials/approvals are collected */}
+      {/* <TestimonialSection /> */}
       <FAQSection />
       <CTASection />
       <PublicFooter />

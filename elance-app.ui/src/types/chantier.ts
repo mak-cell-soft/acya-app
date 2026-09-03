@@ -292,3 +292,56 @@ export interface ChantierStatistics {
   workforceEvolution: WeeklyWorkforcePoint[];
   materialAlerts: MaterialStockStatusPoint[];
 }
+
+export type ChantierCaisseTransactionType = 'Alimentation' | 'Sortie';
+export type ChantierCaisseTransactionStatus = 'Completed' | 'Pending' | 'Rejected';
+
+export interface ChantierCaisseTransaction {
+  id: number;
+  guid: string;
+  chantierId: number;
+  type: number; // 0: Alimentation, 1: Sortie
+  typeName: string;
+  status: number; // 0: Completed, 1: Pending, 2: Rejected
+  statusName: string;
+  amount: number;
+  transactionDate: string;
+  reason: string;
+  reference?: string;
+  beneficiaryPersonId?: number;
+  beneficiaryPersonName?: string;
+  createdById: number;
+  validatedById?: number;
+  validationDate?: string;
+  notes?: string;
+  creationDate: string;
+}
+
+export interface CreateCaisseAlimentationInput {
+  amount: number;
+  transactionDate?: string;
+  reason: string;
+  reference?: string;
+  notes?: string;
+}
+
+export interface CreateCaisseSortieInput {
+  amount: number;
+  transactionDate?: string;
+  reason: string;
+  beneficiaryPersonId?: number;
+  reference?: string;
+  notes?: string;
+  isMobileRequest?: boolean;
+}
+
+export interface ChantierCaisseSummary {
+  chantierId: number;
+  currentBalance: number;
+  totalAlimentations: number;
+  totalSorties: number;
+  pendingRequestsCount: number;
+  pendingRequestsAmount: number;
+  lastMovementDate?: string;
+  recentTransactions: ChantierCaisseTransaction[];
+}

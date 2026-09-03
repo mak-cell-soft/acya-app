@@ -16,7 +16,9 @@ import {
   CreateChantierAlertInput,
   AssignChantierVehicleInput,
   ChantierStatus,
-  ChantierFlag
+  ChantierFlag,
+  CreateCaisseAlimentationInput,
+  CreateCaisseSortieInput
 } from '@/types/chantier';
 import { toast } from 'sonner';
 
@@ -28,6 +30,9 @@ export const CHANTIER_QUERY_KEYS = {
   details: () => [...CHANTIER_QUERY_KEYS.all, 'detail'] as const,
   detail: (id: number) => [...CHANTIER_QUERY_KEYS.details(), id] as const,
   statistics: (id: number) => [...CHANTIER_QUERY_KEYS.detail(id), 'statistics'] as const,
+  caisse: (id: number) => [...CHANTIER_QUERY_KEYS.detail(id), 'caisse'] as const,
+  caisseTransactions: (id: number, params?: { type?: number; status?: number }) =>
+    [...CHANTIER_QUERY_KEYS.caisse(id), 'transactions', params] as const,
 };
 
 export function useChantiersList(params?: { status?: ChantierStatus; healthFlag?: ChantierFlag; search?: string }) {
@@ -64,6 +69,22 @@ export function useCreateChantier() {
     },
     onError: () => {
       toast.error("Erreur lors de la création du chantier.");
+    },
+  });
+}
+
+export function useUpdateChantier(chantierId: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateChantierInput) => chantierService.update(chantierId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.detail(chantierId) });
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.lists() });
+      toast.success("Chantier mis à jour avec succès.");
+    },
+    onError: () => {
+      toast.error("Erreur lors de la mise à jour du chantier.");
     },
   });
 }
@@ -262,6 +283,90 @@ export function useReleaseVehicle(chantierId: number) {
     },
     onError: () => {
       toast.error("Erreur lors de la libération du véhicule.");
+    },
+  });
+}
+
+// ==================== Caisse Hooks ====================
+
+export function useChantierCaisseSummary(chantierId: number) {
+  return useQuery({
+    queryKey: CHANTIER_QUERY_KEYS.caisse(chantierId),
+    queryFn: () => chantierService.getCaisseSummary(chantierId),
+    enabled: !!chantierId,
+  });
+}
+
+export function useChantierCaisseTransactions(chantierId: number, params?: { type?: number; status?: number }) {
+  return useQuery({
+    queryKey: CHANTIER_QUERY_KEYS.caisseTransactions(chantierId, params),
+    queryFn: () => chantierService.getCaisseTransactions(chantierId, params),
+    enabled: !!chantierId,
+  });
+}
+
+export function useAddCaisseAlimentation(chantierId: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: CreateCaisseAlimentationInput) =>
+      chantierService.addCaisseAlimentation(chantierId, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.caisse(chantierId) });
+      toast.success("Alimentation de caisse enregistrée.");
+    },
+    onError: (error: any) => {
+      const msg = error.response?.data || "Erreur lors de l'alimentation de caisse.";
+      toast.error(typeof msg === 'string' ? msg : "Erreur lors de l'enregistrement.");
+    },
+  });
+}
+
+export function useAddCaisseSortie(chantierId: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: CreateCaisseSortieInput) =>
+      chantierService.addCaisseSortie(chantierId, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.caisse(chantierId) });
+      toast.success("Dépense de caisse enregistrée.");
+    },
+    onError: (error: any) => {
+      const msg = error.response?.data || "Erreur lors de l'enregistrement de la dépense.";
+      toast.error(typeof msg === 'string' ? msg : "Erreur lors de l'enregistrement.");
+    },
+  });
+}
+
+export function useValidateCaisseRequest(chantierId: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ txId, approve }: { txId: number; approve: boolean }) =>
+      chantierService.validateCaisseRequest(chantierId, txId, approve),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.caisse(chantierId) });
+      toast.success(variables.approve ? "Demande validée et décaissée." : "Demande rejetée.");
+    },
+    onError: () => {
+      toast.error("Erreur lors de la validation de la demande.");
+    },
+  });
+}
+
+export function useDeleteCaisseTransaction(chantierId: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (txId: number) =>
+      chantierService.deleteCaisseTransaction(chantierId, txId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.caisse(chantierId) });
+      toast.success("Opération de caisse supprimée.");
+    },
+    onError: () => {
+      toast.error("Erreur lors de la suppression de l'opération.");
     },
   });
 }

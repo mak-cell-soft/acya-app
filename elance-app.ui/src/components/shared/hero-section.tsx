@@ -114,31 +114,7 @@ export function HeroSection() {
             transition={{ duration: 0.8, ease: 'easeOut' }}
             className="space-y-8 text-left"
           >
-            {/* Badge */}
-            <div className="flex flex-wrap items-center gap-2.5">
-              <div className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold backdrop-blur-md" style={{ borderColor: 'rgba(59,130,246,0.30)', background: 'rgba(59,130,246,0.10)', color: '#60A5FA' }}>
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: '#3B82F6' }} />
-                  <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: '#3B82F6' }} />
-                </span>
-                🇹🇳 ERP SaaS · Conçu en Tunisie
-              </div>
-              <Link 
-                href="#integration-qwerty"
-                className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition-all hover:bg-white/10"
-                style={{ borderColor: 'rgba(6,182,212,0.40)', background: 'rgba(6,182,212,0.12)', color: '#22D3EE' }}
-              >
-                <span>Nouveau : Intégration Qwerty</span>
-                <ArrowRight className="w-3 h-3" />
-              </Link>
-              <Link 
-                href="#tarifs"
-                className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition-all hover:bg-white/10"
-                style={{ borderColor: 'rgba(52,211,153,0.35)', background: 'rgba(52,211,153,0.10)', color: '#34D399' }}
-              >
-                <span>450 DT / an · 1,23 DT/jour</span>
-              </Link>
-            </div>
+
 
             {/* H1 */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05] text-white">

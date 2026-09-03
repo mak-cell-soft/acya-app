@@ -101,6 +101,7 @@ namespace ms.webapp.api.acya.infrastructure
     public virtual DbSet<ChantierProgressEntry> ChantierProgressEntries { get; set; }
     public virtual DbSet<ChantierAlert> ChantierAlerts { get; set; }
     public virtual DbSet<ChantierVehicleAssignment> ChantierVehicleAssignments { get; set; }
+    public virtual DbSet<ChantierCaisseTransaction> ChantierCaisseTransactions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

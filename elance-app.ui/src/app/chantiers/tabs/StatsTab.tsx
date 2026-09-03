@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,23 +48,23 @@ export function StatsTab({ site }: StatsTabProps) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-2xl border border-black/5 shadow-sm">
           <span className="text-xs font-bold text-[#888780] uppercase">Avancement Global</span>
-          <div className="text-2xl font-extrabold text-[#2563eb] mt-1">{stats?.overallProgressPct ?? site.progressPct}%</div>
+          <div className="text-2xl font-extrabold text-[#2563eb] mt-1 tabular-nums">{stats?.overallProgressPct ?? site.progressPct}%</div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-black/5 shadow-sm">
           <span className="text-xs font-bold text-[#888780] uppercase">Budget Alloué</span>
-          <div className="text-2xl font-extrabold text-[#1a1a1a] mt-1">
+          <div className="text-2xl font-extrabold text-[#1a1a1a] mt-1 tabular-nums">
             {site.budgetTotal ? `${site.budgetTotal.toLocaleString('fr-FR')} TND` : '-'}
           </div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-black/5 shadow-sm">
           <span className="text-xs font-bold text-[#888780] uppercase">Tâches Réalisées</span>
-          <div className="text-2xl font-extrabold text-[#10b981] mt-1">
+          <div className="text-2xl font-extrabold text-[#10b981] mt-1 tabular-nums">
             {stats?.completedTasks ?? 0} / {stats?.totalTasks ?? 0}
           </div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-black/5 shadow-sm">
           <span className="text-xs font-bold text-[#888780] uppercase">Équipe Active</span>
-          <div className="text-2xl font-extrabold text-[#1a1a1a] mt-1">{stats?.activeTeamCount ?? site.teamMembers.length} pers.</div>
+          <div className="text-2xl font-extrabold text-[#1a1a1a] mt-1 tabular-nums">{stats?.activeTeamCount ?? site.teamMembers.length} pers.</div>
         </div>
       </div>
 
@@ -74,7 +76,7 @@ export function StatsTab({ site }: StatsTabProps) {
           <CardHeader className="bg-[#fbfbfb] border-b border-black/5 pb-4">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-[#2563eb]" />
-              <CardTitle className="text-lg font-bold text-[#1a1a1a]">Courbe d'Avancement (Prévu vs Réel)</CardTitle>
+              <CardTitle className="text-lg font-bold text-[#1a1a1a] [text-wrap:balance]">Courbe d'Avancement (Prévu vs Réel)</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="pt-6 h-[320px]">
@@ -110,7 +112,7 @@ export function StatsTab({ site }: StatsTabProps) {
           <CardHeader className="bg-[#fbfbfb] border-b border-black/5 pb-4">
             <div className="flex items-center gap-2">
               <Wallet className="w-5 h-5 text-[#10b981]" />
-              <CardTitle className="text-lg font-bold text-[#1a1a1a]">Répartition du Budget par Phase</CardTitle>
+              <CardTitle className="text-lg font-bold text-[#1a1a1a] [text-wrap:balance]">Répartition du Budget par Phase</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="pt-6 h-[320px] flex items-center justify-center">
@@ -154,7 +156,7 @@ export function StatsTab({ site }: StatsTabProps) {
         <CardHeader className="bg-[#fbfbfb] border-b border-black/5 pb-4">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-[#1a1a1a]" />
-            <CardTitle className="text-lg font-bold text-[#1a1a1a]">Évolution des Effectifs Présents</CardTitle>
+            <CardTitle className="text-lg font-bold text-[#1a1a1a] [text-wrap:balance]">Évolution des Effectifs Présents</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="pt-6 h-[300px]">
@@ -175,7 +177,6 @@ export function StatsTab({ site }: StatsTabProps) {
           </ResponsiveContainer>
         </CardContent>
       </Card>
-
     </div>
   );
 }

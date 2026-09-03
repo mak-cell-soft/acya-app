@@ -153,7 +153,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
       PersonId = m.PersonId;
       PersonFullName = m.Person?.FullName ?? string.Empty;
       PersonPhone = m.Person?.PhoneNumber;
-      PersonEmail = m.Person?.Email;
+      PersonEmail = null;
       ChantierRole = m.ChantierRole;
       AssignedAt = m.AssignedAt;
       ReleasedAt = m.ReleasedAt;
@@ -335,8 +335,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
       Id = c.Id;
       ChantierId = c.ChantierId;
       MerchandiseId = c.MerchandiseId;
-      MerchandiseRef = c.Merchandise?.Reference;
-      MerchandiseDesignation = c.Merchandise?.Designation;
+      MerchandiseRef = c.Merchandise?.PackageReference ?? c.Merchandise?.Articles?.Reference;
+      MerchandiseDesignation = c.Merchandise?.Description ?? c.Merchandise?.Articles?.Description;
       SourceStockMovementId = c.SourceStockMovementId;
       ChantierTaskId = c.ChantierTaskId;
       TaskLabel = c.ChantierTask?.Label;
@@ -450,8 +450,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
       Id = v.Id;
       ChantierId = v.ChantierId;
       VehicleId = v.VehicleId;
-      VehicleRegistration = v.Vehicle?.RegistrationNumber ?? string.Empty;
-      VehicleModel = v.Vehicle?.BrandAndModel ?? string.Empty;
+      VehicleRegistration = v.Vehicle?.SerialNumber ?? string.Empty;
+      VehicleModel = v.Vehicle?.Brand ?? string.Empty;
       DriverPersonId = v.DriverPersonId;
       DriverPersonName = v.DriverPerson?.FullName;
       AssignedAt = v.AssignedAt;

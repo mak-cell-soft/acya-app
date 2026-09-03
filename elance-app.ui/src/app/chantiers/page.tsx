@@ -17,7 +17,8 @@ import {
   AlertCircle,
   Loader2,
   Building2,
-  CheckCircle
+  CheckCircle,
+  Coins
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +31,7 @@ import { EquipeTab } from './tabs/EquipeTab';
 import { ProductionTab } from './tabs/ProductionTab';
 import { MateriauxTab } from './tabs/MateriauxTab';
 import { MagasinTab } from './tabs/MagasinTab';
+import { CaisseTab } from './tabs/CaisseTab';
 import { SuiviTab } from './tabs/SuiviTab';
 import { StatsTab } from './tabs/StatsTab';
 
@@ -42,8 +44,9 @@ const TABS = [
   { id: 2, label: 'Production', icon: HardHat },
   { id: 3, label: 'Matériaux', icon: LayoutGrid },
   { id: 4, label: 'Magasin', icon: Store },
-  { id: 5, label: 'Suivi', icon: TrendingUp },
-  { id: 6, label: 'Statistiques', icon: BarChart2 },
+  { id: 5, label: 'Caisse', icon: Coins },
+  { id: 6, label: 'Suivi', icon: TrendingUp },
+  { id: 7, label: 'Statistiques', icon: BarChart2 },
 ];
 
 export default function ChantiersPage() {
@@ -106,17 +109,18 @@ export default function ChantiersPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex h-[calc(100vh-120px)] bg-[#f8f9fa] -m-8 font-['Outfit',sans-serif] overflow-hidden">
+      {/* Framed dual-pane container without destructive negative margin */}
+      <div className="flex h-[calc(100vh-190px)] min-h-[640px] bg-[#f8f9fa] rounded-2xl border border-black/5 shadow-sm font-['Outfit',sans-serif] overflow-hidden">
         
         {/* Sidebar */}
         <aside className="w-full md:w-[330px] bg-white border-r border-black/5 shadow-[4px_0_15px_rgba(0,0,0,0.02)] z-10 flex flex-col shrink-0">
           <div className="p-5 border-b border-black/5">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="m-0 text-lg font-bold text-[#1a1a1a] tracking-tight flex items-center gap-2">
+              <h2 className="m-0 text-lg font-bold text-[#1a1a1a] tracking-tight flex items-center gap-2 [text-wrap:balance]">
                 <Building2 className="w-5 h-5 text-[#2563eb]" />
                 Mes Chantiers
               </h2>
-              <span className="text-xs font-semibold text-[#888780] bg-[#f0f0f0] px-2 py-0.5 rounded-full">
+              <span className="text-xs font-semibold text-[#888780] bg-[#f0f0f0] px-2.5 py-0.5 rounded-full tabular-nums">
                 {chantiers.length}
               </span>
             </div>
@@ -129,13 +133,13 @@ export default function ChantiersPage() {
                 placeholder="Rechercher un chantier..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 h-9 text-xs rounded-xl bg-[#f8f9fa] border-black/5"
+                className="pl-9 h-9 text-xs rounded-xl bg-[#f8f9fa] border-black/10 focus-visible:ring-1 focus-visible:ring-[#2563eb]"
               />
             </div>
 
             <Button
               onClick={() => setIsCreateOpen(true)}
-              className="w-full rounded-xl font-semibold bg-[#eff6ff] text-[#2563eb] hover:bg-[#dbeafe] text-xs h-9 transition-colors"
+              className="w-full rounded-xl font-semibold bg-[#eff6ff] text-[#2563eb] hover:bg-[#dbeafe] text-xs h-9 active:scale-[0.96] transition-transform"
             >
               <Plus className="w-4 h-4 mr-1.5" />
               Nouveau Chantier
@@ -155,11 +159,11 @@ export default function ChantiersPage() {
               <div className="text-center py-12 px-4 text-[#888780]">
                 <HardHat className="w-10 h-10 mx-auto text-[#ccc] mb-2" />
                 <p className="text-sm font-bold text-[#1a1a1a] mb-1">Aucun chantier</p>
-                <p className="text-xs text-[#888780] mb-4">Créez votre premier projet de construction pour commencer.</p>
+                <p className="text-xs text-[#888780] mb-4 [text-wrap:pretty]">Créez votre premier projet de construction pour commencer.</p>
                 <Button
                   size="sm"
                   onClick={() => setIsCreateOpen(true)}
-                  className="bg-[#2563eb] text-white rounded-xl text-xs font-bold"
+                  className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl text-xs font-bold active:scale-[0.96] transition-transform min-h-[38px]"
                 >
                   <Plus className="w-3.5 h-3.5 mr-1" /> Créer un chantier
                 </Button>
@@ -171,7 +175,7 @@ export default function ChantiersPage() {
                 key={site.id}
                 onClick={() => setSelectedId(site.id)}
                 className={cn(
-                  "flex items-center p-3.5 rounded-xl cursor-pointer relative overflow-hidden transition-all duration-200 border border-transparent bg-white hover:bg-[#fafafa] hover:translate-x-0.5",
+                  "flex items-center p-3.5 rounded-xl cursor-pointer relative overflow-hidden transition-all duration-200 border border-transparent bg-white hover:bg-[#fafafa] active:scale-[0.98]",
                   effectiveId === site.id && "bg-white border-[#2563eb] shadow-[0_4px_16px_rgba(37,99,235,0.08)]"
                 )}
               >
@@ -195,7 +199,7 @@ export default function ChantiersPage() {
                 
                 {/* Progress Circle */}
                 <div className={cn(
-                  "w-9 h-9 rounded-full border-2 flex items-center justify-center text-[0.7rem] font-extrabold transition-colors shrink-0 ml-2",
+                  "w-9 h-9 rounded-full border-2 flex items-center justify-center text-[0.7rem] font-extrabold transition-colors shrink-0 ml-2 tabular-nums",
                   effectiveId === site.id 
                     ? "border-[#2563eb] text-[#2563eb] bg-[#eff6ff]" 
                     : "border-[#e5e7eb] text-[#666]"
@@ -220,10 +224,10 @@ export default function ChantiersPage() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={selectedDetail.id}
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.25 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.2 }}
                 className="p-8 max-w-[1250px] mx-auto"
               >
                 {/* Page Header */}
@@ -231,10 +235,10 @@ export default function ChantiersPage() {
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div>
                       <div className="flex items-center gap-3 mb-1.5 flex-wrap">
-                        <span className="text-xs font-bold text-[#2563eb] bg-[#eff6ff] px-2.5 py-1 rounded-md">
+                        <span className="text-xs font-bold text-[#2563eb] bg-[#eff6ff] px-2.5 py-1 rounded-md tabular-nums">
                           {selectedDetail.reference}
                         </span>
-                        <h1 className="text-2xl font-extrabold text-[#1a1a1a] tracking-tight m-0">
+                        <h1 className="text-2xl font-extrabold text-[#1a1a1a] tracking-tight m-0 [text-wrap:balance]">
                           {selectedDetail.name}
                         </h1>
                         <span className={cn(
@@ -254,12 +258,12 @@ export default function ChantiersPage() {
                         </span>
                         <span>•</span>
                         <span className="flex items-center gap-1">
-                          <Calendar className="w-3.5 h-3.5" /> Début: {new Date(selectedDetail.startDate).toLocaleDateString('fr-FR')}
+                          <Calendar className="w-3.5 h-3.5" /> Début: <span className="tabular-nums">{new Date(selectedDetail.startDate).toLocaleDateString('fr-FR')}</span>
                         </span>
                         {selectedDetail.architectName && (
                           <>
                             <span>•</span>
-                            <span>Architecte: {selectedDetail.architectName}</span>
+                            <span className="font-semibold text-[#1a1a1a]">Architecte: {selectedDetail.architectName}</span>
                           </>
                         )}
                       </div>
@@ -269,7 +273,7 @@ export default function ChantiersPage() {
                     <div className="flex items-center gap-4 bg-[#f8f9fa] p-3.5 rounded-xl border border-black/5 shrink-0">
                       <div>
                         <div className="text-[0.7rem] font-bold uppercase tracking-wider text-[#888780]">Avancement</div>
-                        <div className="text-xl font-extrabold text-[#2563eb]">{selectedDetail.progressPct}%</div>
+                        <div className="text-xl font-extrabold text-[#2563eb] tabular-nums">{selectedDetail.progressPct}%</div>
                       </div>
                       <div className="w-24 bg-[#e5e7eb] h-2.5 rounded-full overflow-hidden">
                         <div
@@ -290,7 +294,7 @@ export default function ChantiersPage() {
                           key={tab.id}
                           onClick={() => setActiveTab(tab.id)}
                           className={cn(
-                            "flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap",
+                            "flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-colors cursor-pointer whitespace-nowrap active:scale-[0.96] transition-transform",
                             isActive
                               ? "border-[#2563eb] text-[#2563eb] bg-[#eff6ff]/40 rounded-t-lg"
                               : "border-transparent text-[#888780] hover:text-[#1a1a1a] hover:bg-[#fafafa] rounded-t-lg"
@@ -306,13 +310,14 @@ export default function ChantiersPage() {
 
                 {/* Tab Views */}
                 <div className="mt-4">
-                  {activeTab === 0 && <GeneralTab site={selectedDetail} onAssignArchitect={() => setActiveTab(1)} />}
+                  {activeTab === 0 && <GeneralTab site={selectedDetail} />}
                   {activeTab === 1 && <EquipeTab site={selectedDetail} />}
                   {activeTab === 2 && <ProductionTab site={selectedDetail} />}
                   {activeTab === 3 && <MateriauxTab site={selectedDetail} />}
                   {activeTab === 4 && <MagasinTab site={selectedDetail} />}
-                  {activeTab === 5 && <SuiviTab site={selectedDetail} />}
-                  {activeTab === 6 && <StatsTab site={selectedDetail} />}
+                  {activeTab === 5 && <CaisseTab site={selectedDetail} />}
+                  {activeTab === 6 && <SuiviTab site={selectedDetail} />}
+                  {activeTab === 7 && <StatsTab site={selectedDetail} />}
                 </div>
               </motion.div>
             </AnimatePresence>
@@ -321,13 +326,13 @@ export default function ChantiersPage() {
           {!isDetailLoading && !selectedDetail && chantiers.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full p-8 text-center text-[#888780]">
               <HardHat className="w-16 h-16 text-[#ccc] mb-4" />
-              <h3 className="text-xl font-bold text-[#1a1a1a] mb-2">Bienvenue sur le module Chantier</h3>
-              <p className="text-sm text-[#888780] max-w-[450px] mb-6">
+              <h3 className="text-xl font-bold text-[#1a1a1a] mb-2 [text-wrap:balance]">Bienvenue sur le module Chantier</h3>
+              <p className="text-sm text-[#888780] max-w-[450px] mb-6 [text-wrap:pretty]">
                 Ce module ERP est conçu pour les entreprises de construction pour piloter la production, les équipes, les matériaux et le suivi d'avancement.
               </p>
               <Button
                 onClick={() => setIsCreateOpen(true)}
-                className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-xl px-6"
+                className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-xl px-6 active:scale-[0.96] transition-transform min-h-[40px]"
               >
                 <Plus className="w-4 h-4 mr-2" /> Créer un premier chantier
               </Button>
@@ -338,9 +343,9 @@ export default function ChantiersPage() {
 
       {/* Modal: Nouveau Chantier */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="sm:max-w-[520px] rounded-2xl font-['Outfit',sans-serif]">
+        <DialogContent className="sm:max-w-[520px] rounded-2xl font-['Outfit',sans-serif] p-6">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Créer un nouveau chantier</DialogTitle>
+            <DialogTitle className="text-xl font-bold [text-wrap:balance]">Créer un nouveau chantier</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreateSubmit} className="flex flex-col gap-4 py-2">
             <div className="grid grid-cols-3 gap-3">
@@ -352,7 +357,7 @@ export default function ChantiersPage() {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   required
-                  className="rounded-xl"
+                  className="rounded-xl text-xs h-10"
                 />
               </div>
               <div>
@@ -362,7 +367,7 @@ export default function ChantiersPage() {
                   placeholder="CH-2026-001"
                   value={newRef}
                   onChange={(e) => setNewRef(e.target.value)}
-                  className="rounded-xl"
+                  className="rounded-xl text-xs h-10"
                 />
               </div>
             </div>
@@ -375,7 +380,7 @@ export default function ChantiersPage() {
                   placeholder="Ex: Ennasr II, Tunis"
                   value={newLocation}
                   onChange={(e) => setNewLocation(e.target.value)}
-                  className="rounded-xl"
+                  className="rounded-xl text-xs h-10"
                 />
               </div>
               <div>
@@ -385,7 +390,7 @@ export default function ChantiersPage() {
                   placeholder="Tunis, Sousse, Sfax..."
                   value={newGouv}
                   onChange={(e) => setNewGouv(e.target.value)}
-                  className="rounded-xl"
+                  className="rounded-xl text-xs h-10"
                 />
               </div>
             </div>
@@ -398,7 +403,7 @@ export default function ChantiersPage() {
                   value={newStartDate}
                   onChange={(e) => setNewStartDate(e.target.value)}
                   required
-                  className="rounded-xl"
+                  className="rounded-xl text-xs h-10 tabular-nums"
                 />
               </div>
               <div>
@@ -407,7 +412,7 @@ export default function ChantiersPage() {
                   type="date"
                   value={newEndDate}
                   onChange={(e) => setNewEndDate(e.target.value)}
-                  className="rounded-xl"
+                  className="rounded-xl text-xs h-10 tabular-nums"
                 />
               </div>
               <div>
@@ -417,7 +422,7 @@ export default function ChantiersPage() {
                   placeholder="150000"
                   value={newBudget || ''}
                   onChange={(e) => setNewBudget(Number(e.target.value))}
-                  className="rounded-xl"
+                  className="rounded-xl text-xs h-10 tabular-nums"
                 />
               </div>
             </div>
@@ -429,16 +434,32 @@ export default function ChantiersPage() {
                 placeholder="Description sommaire du projet..."
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}
-                className="rounded-xl"
+                className="rounded-xl text-xs h-10"
               />
             </div>
 
-            <DialogFooter className="mt-4">
-              <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)} className="rounded-xl text-xs font-semibold">
+            <DialogFooter className="mt-4 pt-3 border-t border-black/5 flex items-center justify-between sm:justify-between">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCreateOpen(false)}
+                className="rounded-xl text-xs font-semibold active:scale-[0.96] transition-transform min-h-[38px]"
+              >
                 Annuler
               </Button>
-              <Button type="submit" disabled={createChantier.isPending} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl text-xs font-bold">
-                {createChantier.isPending ? 'Création...' : 'Créer le chantier'}
+              <Button
+                type="submit"
+                disabled={createChantier.isPending}
+                className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl text-xs font-bold active:scale-[0.96] transition-transform min-h-[38px] px-4"
+              >
+                {createChantier.isPending ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                    Création...
+                  </>
+                ) : (
+                  'Créer le chantier'
+                )}
               </Button>
             </DialogFooter>
           </form>

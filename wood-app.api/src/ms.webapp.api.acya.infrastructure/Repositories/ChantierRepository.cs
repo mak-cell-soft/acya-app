@@ -374,15 +374,15 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
     public async Task<ChantierMaterialRequirementDto?> AddMaterialRequirementAsync(int chantierId, CreateMaterialRequirementDto dto)
     {
-      var merchandise = await context.Merchandises.FirstOrDefaultAsync(m => m.Id == dto.MerchandiseId);
+      var merchandise = await context.Merchandises.Include(m => m.Articles).FirstOrDefaultAsync(m => m.Id == dto.MerchandiseId);
       if (merchandise == null) return null;
 
       var req = new ChantierMaterialRequirement
       {
         ChantierId = chantierId,
         MerchandiseId = dto.MerchandiseId,
-        MerchandiseRef = merchandise.Reference ?? string.Empty,
-        MerchandiseDesignation = merchandise.Designation ?? string.Empty,
+        MerchandiseRef = merchandise.PackageReference ?? merchandise.Articles?.Reference ?? string.Empty,
+        MerchandiseDesignation = merchandise.Description ?? merchandise.Articles?.Description ?? string.Empty,
         Category = dto.Category,
         MaterialType = dto.MaterialType,
         RequiredQty = dto.RequiredQty,
@@ -662,6 +662,160 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       }
 
       return stats;
+    }
+
+    #endregion
+
+    #region Caisse (Petty Cash Register)
+
+    public async Task<ChantierCaisseSummaryDto> GetCaisseSummaryAsync(int chantierId)
+    {
+      var transactions = await context.ChantierCaisseTransactions
+        .AsNoTracking()
+        .Include(t => t.BeneficiaryPerson)
+        .Where(t => t.ChantierId == chantierId && !t.IsDeleted)
+        .OrderByDescending(t => t.TransactionDate)
+        .ToListAsync();
+
+      var completedEntrees = transactions
+        .Where(t => t.Type == ChantierCaisseTransactionType.Alimentation && t.Status == ChantierCaisseTransactionStatus.Completed)
+        .Sum(t => t.Amount);
+
+      var completedSorties = transactions
+        .Where(t => t.Type == ChantierCaisseTransactionType.Sortie && t.Status == ChantierCaisseTransactionStatus.Completed)
+        .Sum(t => t.Amount);
+
+      var pending = transactions
+        .Where(t => t.Status == ChantierCaisseTransactionStatus.Pending)
+        .ToList();
+
+      return new ChantierCaisseSummaryDto
+      {
+        ChantierId = chantierId,
+        CurrentBalance = completedEntrees - completedSorties,
+        TotalAlimentations = completedEntrees,
+        TotalSorties = completedSorties,
+        PendingRequestsCount = pending.Count,
+        PendingRequestsAmount = pending.Sum(t => t.Amount),
+        LastMovementDate = transactions.FirstOrDefault()?.TransactionDate,
+        RecentTransactions = transactions.Take(15).Select(t => new ChantierCaisseTransactionDto(t)).ToList()
+      };
+    }
+
+    public async Task<List<ChantierCaisseTransactionDto>> GetCaisseTransactionsAsync(
+      int chantierId,
+      ChantierCaisseTransactionType? type = null,
+      ChantierCaisseTransactionStatus? status = null)
+    {
+      var query = context.ChantierCaisseTransactions
+        .AsNoTracking()
+        .Include(t => t.BeneficiaryPerson)
+        .Where(t => t.ChantierId == chantierId && !t.IsDeleted);
+
+      if (type.HasValue)
+      {
+        query = query.Where(t => t.Type == type.Value);
+      }
+
+      if (status.HasValue)
+      {
+        query = query.Where(t => t.Status == status.Value);
+      }
+
+      var items = await query
+        .OrderByDescending(t => t.TransactionDate)
+        .ToListAsync();
+
+      return items.Select(t => new ChantierCaisseTransactionDto(t)).ToList();
+    }
+
+    public async Task<ChantierCaisseTransactionDto?> AddCaisseAlimentationAsync(
+      int chantierId,
+      CreateChantierCaisseAlimentationDto dto,
+      int userId)
+    {
+      var chantierExists = await context.Chantiers.AnyAsync(c => c.Id == chantierId && !c.IsDeleted);
+      if (!chantierExists) return null;
+
+      var tx = new ChantierCaisseTransaction
+      {
+        ChantierId = chantierId,
+        Type = ChantierCaisseTransactionType.Alimentation,
+        Status = ChantierCaisseTransactionStatus.Completed,
+        Amount = Math.Abs(dto.Amount),
+        TransactionDate = dto.TransactionDate ?? DateTime.UtcNow,
+        Reason = dto.Reason,
+        Reference = dto.Reference,
+        CreatedById = userId,
+        Notes = dto.Notes,
+        CreationDate = DateTime.UtcNow
+      };
+
+      await context.ChantierCaisseTransactions.AddAsync(tx);
+      await context.SaveChangesAsync();
+
+      return new ChantierCaisseTransactionDto(tx);
+    }
+
+    public async Task<ChantierCaisseTransactionDto?> AddCaisseSortieAsync(
+      int chantierId,
+      CreateChantierCaisseSortieDto dto,
+      int userId)
+    {
+      var chantierExists = await context.Chantiers.AnyAsync(c => c.Id == chantierId && !c.IsDeleted);
+      if (!chantierExists) return null;
+
+      var tx = new ChantierCaisseTransaction
+      {
+        ChantierId = chantierId,
+        Type = ChantierCaisseTransactionType.Sortie,
+        Status = dto.IsMobileRequest ? ChantierCaisseTransactionStatus.Pending : ChantierCaisseTransactionStatus.Completed,
+        Amount = Math.Abs(dto.Amount),
+        TransactionDate = dto.TransactionDate ?? DateTime.UtcNow,
+        Reason = dto.Reason,
+        Reference = dto.Reference,
+        BeneficiaryPersonId = dto.BeneficiaryPersonId,
+        CreatedById = userId,
+        Notes = dto.Notes,
+        CreationDate = DateTime.UtcNow
+      };
+
+      await context.ChantierCaisseTransactions.AddAsync(tx);
+      await context.SaveChangesAsync();
+
+      if (dto.BeneficiaryPersonId.HasValue)
+      {
+        await context.Entry(tx).Reference(t => t.BeneficiaryPerson).LoadAsync();
+      }
+
+      return new ChantierCaisseTransactionDto(tx);
+    }
+
+    public async Task<bool> ValidateCaisseRequestAsync(int chantierId, int transactionId, bool approve, int userId)
+    {
+      var tx = await context.ChantierCaisseTransactions
+        .FirstOrDefaultAsync(t => t.Id == transactionId && t.ChantierId == chantierId && !t.IsDeleted);
+
+      if (tx == null) return false;
+
+      tx.Status = approve ? ChantierCaisseTransactionStatus.Completed : ChantierCaisseTransactionStatus.Rejected;
+      tx.ValidatedById = userId;
+      tx.ValidationDate = DateTime.UtcNow;
+
+      await context.SaveChangesAsync();
+      return true;
+    }
+
+    public async Task<bool> DeleteCaisseTransactionAsync(int transactionId, int userId)
+    {
+      var tx = await context.ChantierCaisseTransactions
+        .FirstOrDefaultAsync(t => t.Id == transactionId && !t.IsDeleted);
+
+      if (tx == null) return false;
+
+      tx.IsDeleted = true;
+      await context.SaveChangesAsync();
+      return true;
     }
 
     #endregion
