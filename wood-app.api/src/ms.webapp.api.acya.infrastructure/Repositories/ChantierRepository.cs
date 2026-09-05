@@ -668,7 +668,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
     #region Caisse (Petty Cash Register)
 
-    public async Task<ChantierCaisseSummaryDto> GetCaisseSummaryAsync(int chantierId)
+    public async Task<ChantierCaisseSummaryDto> GetCaisseSummaryAsync(int chantierId, int? userId = null, bool isAdmin = true)
     {
       var transactions = await context.ChantierCaisseTransactions
         .AsNoTracking()
@@ -676,6 +676,25 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         .Where(t => t.ChantierId == chantierId && !t.IsDeleted)
         .OrderByDescending(t => t.TransactionDate)
         .ToListAsync();
+
+      // If user is a collaborator (non-admin), restrict to their own requests and hide caisse total balance
+      if (!isAdmin && userId.HasValue)
+      {
+        var myRequests = transactions.Where(t => t.CreatedById == userId.Value).ToList();
+        var myPending = myRequests.Where(t => t.Status == ChantierCaisseTransactionStatus.Pending).ToList();
+
+        return new ChantierCaisseSummaryDto
+        {
+          ChantierId = chantierId,
+          CurrentBalance = 0,
+          TotalAlimentations = 0,
+          TotalSorties = 0,
+          PendingRequestsCount = myPending.Count,
+          PendingRequestsAmount = myPending.Sum(t => t.Amount),
+          LastMovementDate = myRequests.FirstOrDefault()?.TransactionDate,
+          RecentTransactions = myRequests.Take(25).Select(t => new ChantierCaisseTransactionDto(t)).ToList()
+        };
+      }
 
       var completedEntrees = transactions
         .Where(t => t.Type == ChantierCaisseTransactionType.Alimentation && t.Status == ChantierCaisseTransactionStatus.Completed)
@@ -698,19 +717,27 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         PendingRequestsCount = pending.Count,
         PendingRequestsAmount = pending.Sum(t => t.Amount),
         LastMovementDate = transactions.FirstOrDefault()?.TransactionDate,
-        RecentTransactions = transactions.Take(15).Select(t => new ChantierCaisseTransactionDto(t)).ToList()
+        RecentTransactions = transactions.Take(30).Select(t => new ChantierCaisseTransactionDto(t)).ToList()
       };
     }
 
     public async Task<List<ChantierCaisseTransactionDto>> GetCaisseTransactionsAsync(
       int chantierId,
       ChantierCaisseTransactionType? type = null,
-      ChantierCaisseTransactionStatus? status = null)
+      ChantierCaisseTransactionStatus? status = null,
+      int? userId = null,
+      bool isAdmin = true)
     {
       var query = context.ChantierCaisseTransactions
         .AsNoTracking()
         .Include(t => t.BeneficiaryPerson)
         .Where(t => t.ChantierId == chantierId && !t.IsDeleted);
+
+      // Collaborator only sees their own transactions
+      if (!isAdmin && userId.HasValue)
+      {
+        query = query.Where(t => t.CreatedById == userId.Value);
+      }
 
       if (type.HasValue)
       {
@@ -765,6 +792,20 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       var chantierExists = await context.Chantiers.AnyAsync(c => c.Id == chantierId && !c.IsDeleted);
       if (!chantierExists) return null;
 
+      int? beneficiaryId = dto.BeneficiaryPersonId;
+      // If beneficiary is not provided (e.g. mobile request), resolve the logged-in collaborator's Person
+      if (!beneficiaryId.HasValue || beneficiaryId.Value == 0)
+      {
+        var appUser = await context.AppUsers
+          .Include(u => u.Persons)
+          .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (appUser?.IdPerson > 0)
+        {
+          beneficiaryId = appUser.IdPerson;
+        }
+      }
+
       var tx = new ChantierCaisseTransaction
       {
         ChantierId = chantierId,
@@ -774,7 +815,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         TransactionDate = dto.TransactionDate ?? DateTime.UtcNow,
         Reason = dto.Reason,
         Reference = dto.Reference,
-        BeneficiaryPersonId = dto.BeneficiaryPersonId,
+        BeneficiaryPersonId = beneficiaryId,
         CreatedById = userId,
         Notes = dto.Notes,
         CreationDate = DateTime.UtcNow
@@ -783,7 +824,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       await context.ChantierCaisseTransactions.AddAsync(tx);
       await context.SaveChangesAsync();
 
-      if (dto.BeneficiaryPersonId.HasValue)
+      if (tx.BeneficiaryPersonId.HasValue)
       {
         await context.Entry(tx).Reference(t => t.BeneficiaryPerson).LoadAsync();
       }
@@ -791,19 +832,20 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       return new ChantierCaisseTransactionDto(tx);
     }
 
-    public async Task<bool> ValidateCaisseRequestAsync(int chantierId, int transactionId, bool approve, int userId)
+    public async Task<ChantierCaisseTransactionDto?> ValidateCaisseRequestAsync(int chantierId, int transactionId, bool approve, int userId)
     {
       var tx = await context.ChantierCaisseTransactions
+        .Include(t => t.BeneficiaryPerson)
         .FirstOrDefaultAsync(t => t.Id == transactionId && t.ChantierId == chantierId && !t.IsDeleted);
 
-      if (tx == null) return false;
+      if (tx == null) return null;
 
       tx.Status = approve ? ChantierCaisseTransactionStatus.Completed : ChantierCaisseTransactionStatus.Rejected;
       tx.ValidatedById = userId;
       tx.ValidationDate = DateTime.UtcNow;
 
       await context.SaveChangesAsync();
-      return true;
+      return new ChantierCaisseTransactionDto(tx);
     }
 
     public async Task<bool> DeleteCaisseTransactionAsync(int transactionId, int userId)

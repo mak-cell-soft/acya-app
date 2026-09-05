@@ -54,11 +54,11 @@ namespace ms.webapp.api.acya.core.Interfaces
     Task<bool> ReleaseVehicleAssignmentAsync(int assignmentId);
 
     // Caisse (Petty cash / Alimentation / Sorties / Mobile requests)
-    Task<ChantierCaisseSummaryDto> GetCaisseSummaryAsync(int chantierId);
-    Task<List<ChantierCaisseTransactionDto>> GetCaisseTransactionsAsync(int chantierId, ChantierCaisseTransactionType? type = null, ChantierCaisseTransactionStatus? status = null);
+    Task<ChantierCaisseSummaryDto> GetCaisseSummaryAsync(int chantierId, int? userId = null, bool isAdmin = true);
+    Task<List<ChantierCaisseTransactionDto>> GetCaisseTransactionsAsync(int chantierId, ChantierCaisseTransactionType? type = null, ChantierCaisseTransactionStatus? status = null, int? userId = null, bool isAdmin = true);
     Task<ChantierCaisseTransactionDto?> AddCaisseAlimentationAsync(int chantierId, CreateChantierCaisseAlimentationDto dto, int userId);
     Task<ChantierCaisseTransactionDto?> AddCaisseSortieAsync(int chantierId, CreateChantierCaisseSortieDto dto, int userId);
-    Task<bool> ValidateCaisseRequestAsync(int chantierId, int transactionId, bool approve, int userId);
+    Task<ChantierCaisseTransactionDto?> ValidateCaisseRequestAsync(int chantierId, int transactionId, bool approve, int userId);
     Task<bool> DeleteCaisseTransactionAsync(int transactionId, int userId);
 
     // Statistics / KPIs

@@ -54,6 +54,13 @@ namespace ms.webapp.api.acya.api.Controllers
       return 1; // Fallback system admin user
     }
 
+    private bool IsUserAdmin()
+    {
+      return User.IsInRole("Admin") || User.IsInRole("SuperAdmin") ||
+             User.HasClaim(ClaimTypes.Role, "Admin") || User.HasClaim(ClaimTypes.Role, "SuperAdmin") ||
+             User.HasClaim(ClaimTypes.Role, "10") || User.HasClaim(ClaimTypes.Role, "20");
+    }
+
     #region Chantier CRUD
 
     [HttpGet]
@@ -591,7 +598,9 @@ namespace ms.webapp.api.acya.api.Controllers
         return StatusCode(StatusCodes.Status403Forbidden, "Module Chantier non activé.");
       }
 
-      var summary = await _chantierRepo.GetCaisseSummaryAsync(id);
+      var userId = GetCurrentUserId();
+      var isAdmin = IsUserAdmin();
+      var summary = await _chantierRepo.GetCaisseSummaryAsync(id, userId, isAdmin);
       return Ok(summary);
     }
 
@@ -606,7 +615,9 @@ namespace ms.webapp.api.acya.api.Controllers
         return StatusCode(StatusCodes.Status403Forbidden, "Module Chantier non activé.");
       }
 
-      var items = await _chantierRepo.GetCaisseTransactionsAsync(id, type, status);
+      var userId = GetCurrentUserId();
+      var isAdmin = IsUserAdmin();
+      var items = await _chantierRepo.GetCaisseTransactionsAsync(id, type, status, userId, isAdmin);
       return Ok(items);
     }
 
@@ -667,14 +678,22 @@ namespace ms.webapp.api.acya.api.Controllers
         return NotFound("Chantier introuvable.");
       }
 
-      // If this is a cash request from the mobile app, automatically notify admins
+      // If this is a cash request from the mobile app, automatically notify admins with collaborator full name
       if (dto.IsMobileRequest)
       {
         try
         {
           var chantier = await _context.Chantiers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
           var chantierName = chantier?.Name ?? $"Chantier #{id}";
-          var requester = created.BeneficiaryPersonName ?? "Un collaborateur";
+
+          // Resolve requester's real full name
+          var requester = created.BeneficiaryPersonName;
+          if (string.IsNullOrWhiteSpace(requester))
+          {
+            var user = await _context.AppUsers.Include(u => u.Persons).FirstOrDefaultAsync(u => u.Id == userId);
+            requester = user?.Persons?.FullName;
+          }
+          requester = string.IsNullOrWhiteSpace(requester) ? "Un collaborateur" : requester;
 
           var title = "Demande d'argent - Caisse Chantier";
           var message = $"{requester} a demandé {dto.Amount:N3} TND sur le chantier '{chantierName}' ({dto.Reason}).";
@@ -714,10 +733,35 @@ namespace ms.webapp.api.acya.api.Controllers
       }
 
       var userId = GetCurrentUserId();
-      var success = await _chantierRepo.ValidateCaisseRequestAsync(id, txId, dto.Approve, userId);
-      if (!success)
+      var updated = await _chantierRepo.ValidateCaisseRequestAsync(id, txId, dto.Approve, userId);
+      if (updated == null)
       {
         return NotFound();
+      }
+
+      // Notify the collaborator who submitted the cash request about the approval/rejection status
+      try
+      {
+        var chantier = await _context.Chantiers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
+        var chantierName = chantier?.Name ?? $"Chantier #{id}";
+        var statusLabel = dto.Approve ? "validée" : "rejetée";
+        var notifType = dto.Approve ? NotificationType.Success : NotificationType.Warning;
+        var title = dto.Approve ? "Demande d'argent validée" : "Demande d'argent rejetée";
+        var message = $"Votre demande de {updated.Amount:N3} TND sur le chantier '{chantierName}' a été {statusLabel}.";
+
+        await _notificationService.NotifyAsync(
+          title: title,
+          message: message,
+          type: notifType,
+          priority: NotificationPriority.High,
+          targetUserId: updated.CreatedById,
+          relatedEntityId: updated.Id.ToString(),
+          relatedEntityType: "ChantierCaisseTransaction"
+        );
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"[ChantierCaisse] Failed to notify collaborator of validation status: {ex.Message}");
       }
 
       return NoContent();
