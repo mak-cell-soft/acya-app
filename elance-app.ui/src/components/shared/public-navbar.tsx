@@ -44,6 +44,7 @@ export function PublicNavbar() {
     { name: 'Modules', href: '#modules' },
     { name: 'Chantiers', href: '#chantiers' },
     { name: 'Intégration Qwerty', href: '#integration-qwerty', isNew: true },
+    { name: 'App Mobile', href: '#mobile-app', isNew: true },
     { name: 'Tarifs', href: '#tarifs' },
     { name: 'Pourquoi ACYA', href: '#pourquoi' },
     { name: 'Contact', href: '/contact' },

@@ -4,6 +4,7 @@ import { ModulesSection } from "@/components/shared/modules-section";
 import { ChantierSection } from "@/components/shared/chantier-section";
 import { QwertyIntegrationSection } from "@/components/shared/qwerty-integration-section";
 import { WhySection } from "@/components/shared/why-section";
+import { MobileAppSection } from "@/components/shared/mobile-app-section";
 import { PricingSection } from "@/components/shared/pricing-section";
 import { TestimonialSection } from "@/components/shared/testimonial-section";
 import { FAQSection } from "@/components/shared/faq-section";
@@ -19,6 +20,7 @@ export default function Home() {
       <ChantierSection />
       <QwertyIntegrationSection />
       <WhySection />
+      <MobileAppSection />
       <PricingSection />
       {/* TODO: Re-enable once real client testimonials/approvals are collected */}
       {/* <TestimonialSection /> */}
