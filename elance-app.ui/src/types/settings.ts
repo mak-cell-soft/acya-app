@@ -32,6 +32,8 @@ export interface Enterprise {
   commercialregister: string;
   capital: string;
   issalingwood: boolean;
+  ismanagingconstructions?: boolean;
+  isManagingConstructions?: boolean;
   auditRetentionMonths: number;
   documentNumberingConfig?: string; // Stored as JSON string in DB
   sites?: Site[];

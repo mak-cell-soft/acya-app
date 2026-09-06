@@ -191,7 +191,7 @@ const SEARCH_SHORTCUTS: SearchShortcut[] = [
   { name: 'Analyses & Rapports', href: '/analytics', icon: BarChart3, module: 'analytics', keywords: ['analyse', 'rapport', 'statistique', 'chiffre', 'marge'] },
   { name: 'Recherche Approfondie', href: '/sales/deep-search', icon: Search, module: 'sales', keywords: ['deep', 'recherche', 'avancée', 'impayés', 'bénéfices'] },
   { name: 'Pré-Analyse Comptable', href: '/accounting', icon: Calculator, module: 'accounting', keywords: ['compta', 'comptabilite', 'tva', 'journal', 'banque'] },
-  { name: 'Chantiers', href: '/chantiers', icon: ClipboardList, keywords: ['chantier', 'projet', 'suivi'] },
+  { name: 'Chantiers', href: '/chantiers', icon: ClipboardList, module: 'chantier', keywords: ['chantier', 'projet', 'suivi'] },
   { name: 'Véhicules & Flotte', href: '/vehicles', icon: Car, module: 'vehicles', keywords: ['vehicule', 'camion', 'flotte', 'transport'] },
   { name: 'Équipe & RH', href: '/team', icon: UserCheck, module: 'hr', keywords: ['equipe', 'rh', 'employe', 'personnel', 'utilisateur'] },
   { name: 'Paramètres', href: '/settings', icon: Settings, module: 'configuration', keywords: ['parametre', 'option', 'configuration', 'tva', 'unite'] },

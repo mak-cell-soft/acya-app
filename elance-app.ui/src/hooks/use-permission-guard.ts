@@ -26,6 +26,11 @@ export function usePermissionGuard() {
   const isTruthy = useCallback((val: any) => val === true || val === 'true' || val === 'True' || val === 1, []);
 
   const hasPermission = useCallback((module: PermissionModuleKey, action: PermissionActionKey): boolean => {
+    // WHY: If tenant does not subscribe to Chantier module, deny permission regardless of user role
+    if (module === 'chantier' && !user?.isManagingConstructions) {
+      return false;
+    }
+
     if (user?.role === 'SuperAdmin' || user?.role === '10') return true;
     if (user?.role === 'Admin' || user?.role === '20') return true;
 
@@ -44,9 +49,14 @@ export function usePermissionGuard() {
     if (action === 'canRead') return true;
 
     return false;
-  }, [user?.role, user?.permissions, getModulePerms, getActionValue, isTruthy]);
+  }, [user?.role, user?.permissions, user?.isManagingConstructions, getModulePerms, getActionValue, isTruthy]);
 
   const hasAnyPermission = useCallback((module: PermissionModuleKey): boolean => {
+    // WHY: If tenant does not subscribe to Chantier module, deny permission regardless of user role
+    if (module === 'chantier' && !user?.isManagingConstructions) {
+      return false;
+    }
+
     if (user?.role === 'SuperAdmin' || user?.role === '10') return true;
     if (user?.role === 'Admin' || user?.role === '20') return true;
 
@@ -62,7 +72,7 @@ export function usePermissionGuard() {
     }
 
     return true; // Fallback if no explicit permissions exist
-  }, [user?.role, user?.permissions, getModulePerms, isTruthy]);
+  }, [user?.role, user?.permissions, user?.isManagingConstructions, getModulePerms, isTruthy]);
 
   return { hasPermission, hasAnyPermission };
 }
