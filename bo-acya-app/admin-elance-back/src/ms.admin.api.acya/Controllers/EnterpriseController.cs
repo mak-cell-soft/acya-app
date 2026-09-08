@@ -577,8 +577,11 @@ namespace ms.admin.api.acya.Controllers
                 return NotFound("No admin user found for this tenant.");
             }
 
-            // Generate Client JWT Token
-            var key = System.Text.Encoding.ASCII.GetBytes("wood_app_super_secret_unguessable_key_For_FrontEnd_$$&&!_xzawwo9985error,ughjjnp21365_##1");
+            // Generate Client JWT Token using configured tenant client key
+            var clientJwtSecret = _configuration["ClientJwtSettings:Secret"] 
+                ?? _configuration["JWTSettings:securityKey"]
+                ?? throw new InvalidOperationException("Tenant client JWT secret is not configured.");
+            var key = System.Text.Encoding.ASCII.GetBytes(clientJwtSecret);
             var claims = new System.Collections.Generic.List<System.Security.Claims.Claim>
             {
                 new System.Security.Claims.Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Email, adminEmail),

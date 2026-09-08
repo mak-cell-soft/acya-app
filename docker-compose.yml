@@ -7,10 +7,10 @@ services:
     container_name: wood-app-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: "wood_app_strong_db_password_270326"
-      POSTGRES_DB: wood-app-db
-      APP_DB: app-db-bo
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-wood-app-db}
+      APP_DB: ${APP_DB:-app-db-bo}
       PGDATA: /var/lib/postgresql/data/pgdata
 #    ports:
 #      - "5432:5432"
@@ -41,22 +41,24 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
-      - ConnectionStrings__WoodAppContextConnection=Host=postgres;Port=5432;Database=wood-app-db;Username=postgres;Password=wood_app_strong_db_password_270326;
-      - ConnectionStrings__AppContextConnection=Host=postgres;Port=5432;Database=app-db-bo;Username=postgres;Password=wood_app_strong_db_password_270326;
+      - ConnectionStrings__WoodAppContextConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB:-wood-app-db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD};
+      - ConnectionStrings__AppContextConnection=Host=postgres;Port=5432;Database=${APP_DB:-app-db-bo};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD};
       - MultiTenancy__Enabled=true
-      - ConnectionStrings__MasterConnection=Host=postgres;Port=5432;Database=wood-app-db;Username=postgres;Password=wood_app_strong_db_password_270326;
-      - TokenKey=wood_app_super_secret_unguessable_key_For_FrontEnd_$$&&!_xzawwo9985error,ughjjnp21365_##1
-      - JWTSettings__securityKey=wood_app_super_secret_unguessable_key_For_FrontEnd_$$&&!_xzawwo9985error,ughjjnp21365_##1
+      - ConnectionStrings__MasterConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB:-wood-app-db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD};
+      - TokenKey=${JWT_SECRET_MAIN}
+      - JWTSettings__securityKey=${JWT_SECRET_MAIN}
       - JWTSettings__ValidAudience=https://acya.site
       - JWTSettings__ValidIssuer=https://acya.site/api/
       - AllowedOrigins=https://acya.site;https://www.acya.site;https://migration.acya.site
-      - SmtpSettings__Server=smtp.gmail.com
-      - SmtpSettings__Port=587
-      - SmtpSettings__SenderName=ACYA Notification
-      - SmtpSettings__SenderEmail=your-email@gmail.com
-      - SmtpSettings__Username=your-email@gmail.com
-      - SmtpSettings__Password=your-app-password
-      - SmtpSettings__EnableSsl=true
+      - SmtpSettings__Server=${SMTP_SERVER:-smtp.gmail.com}
+      - SmtpSettings__Port=${SMTP_PORT:-587}
+      - SmtpSettings__SenderName=${SMTP_SENDER_NAME:-ACYA Notification}
+      - SmtpSettings__SenderEmail=${SMTP_SENDER_EMAIL}
+      - SmtpSettings__Username=${SMTP_USERNAME}
+      - SmtpSettings__Password=${SMTP_PASSWORD}
+      - SmtpSettings__EnableSsl=${SMTP_ENABLE_SSL:-true}
+      - Tej__Username=${TEJ_USERNAME}
+      - Tej__Password=${TEJ_PASSWORD}
     ports:
       - "8080:80"
     depends_on:
@@ -95,11 +97,13 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
-      - ConnectionStrings__MasterConnection=Host=postgres;Port=5432;Database=wood-app-db;Username=postgres;Password=wood_app_strong_db_password_270326;
-      - JwtSettings__Secret=SuperSecretKeyForAcyaAppBackofficeSuperAdminOnly2026_LongerKeyForSha512!
+      - ConnectionStrings__MasterConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB:-wood-app-db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD};
+      - JwtSettings__Secret=${JWT_SECRET_ADMIN}
       - JwtSettings__Issuer=acya-bo
       - JwtSettings__Audience=acya-bo-ui
       - JwtSettings__ExpirationInMinutes=1440
+      - ClientJwtSettings__Secret=${JWT_SECRET_MAIN}
+      - MailgunSettings__WebhookSigningKey=${MAILGUN_WEBHOOK_SIGNING_KEY}
       - MigrationScriptPath=/app/db/FullDb_Migration/full_migration.sql
       - N8nEmailService__BaseUrl=http://n8n:5678
       - N8nEmailService__ApiKey=${N8N_EMAIL_SERVICE_API_KEY}

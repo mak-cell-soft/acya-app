@@ -18,7 +18,7 @@ namespace ms.webapp.api.acya.api.Extentions
       }).AddJwtBearer(opt =>
       {
         opt.SaveToken = true;
-        opt.RequireHttpsMetadata = false;
+        opt.RequireHttpsMetadata = config["ASPNETCORE_ENVIRONMENT"] == "Production" ? true : false;
         opt.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
         {
           ValidateIssuer = true,

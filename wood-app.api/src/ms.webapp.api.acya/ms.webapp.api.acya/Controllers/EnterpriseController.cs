@@ -18,14 +18,16 @@ namespace ms.webapp.api.acya.api.Controllers
     private readonly SalesSitesRepository _salesSitesRepository;
     private readonly MasterDbContext _masterDb;
     private readonly TenantContext _tenantContext;
+    private readonly IConfiguration _configuration;
 
-    public EnterpriseController(EnterpriseRepository repository, AppUserRepository userrepository, SalesSitesRepository salessitesrepository, MasterDbContext masterDb, TenantContext tenantContext)
+    public EnterpriseController(EnterpriseRepository repository, AppUserRepository userrepository, SalesSitesRepository salessitesrepository, MasterDbContext masterDb, TenantContext tenantContext, IConfiguration configuration)
     {
       _repository = repository;
       _userRepository = userrepository;
       _salesSitesRepository = salessitesrepository;
       _masterDb = masterDb;
       _tenantContext = tenantContext;
+      _configuration = configuration;
     }
 
     [HttpPost("register")]
@@ -161,7 +163,8 @@ namespace ms.webapp.api.acya.api.Controllers
         Email = dto.email,
         Phone = dto.phone,
         SchemaName = $"tenant_{finalSlug.Replace("-", "_")}",
-        ConnectionString = "Host=postgres;Port=5432;Database=wood-app-db;Username=postgres;Password=wood_app_strong_db_password_270326;",
+        ConnectionString = _configuration.GetConnectionString("WoodAppContextConnection")
+          ?? "Host=postgres;Port=5432;Database=wood-app-db;Username=postgres;",
         IsActive = false,
         Plan = "Trial",
         Status = "Pending",

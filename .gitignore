@@ -24,8 +24,10 @@ obj/
 *.user
 
 # ===== Environment / secrets =====
-*.env
+.env
 .env.*
+*.env
+!.env.example
 appsettings.Development.json
 appsettings.Local.json
 
