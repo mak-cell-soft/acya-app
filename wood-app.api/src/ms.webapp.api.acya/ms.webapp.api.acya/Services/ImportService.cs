@@ -136,7 +136,7 @@ namespace ms.webapp.api.acya.Services
                         {
                             var newParent = new Parent
                             {
-                                Reference = item.CategoryName.Length > 10 ? item.CategoryName.Substring(0, 10).ToUpper() : item.CategoryName.ToUpper(),
+                                Reference = item.CategoryName!.Length > 10 ? item.CategoryName.Substring(0, 10).ToUpper() : item.CategoryName.ToUpper(),
                                 Description = item.CategoryName,
                                 CreationDate = DateTime.UtcNow,
                                 UpdateDate = DateTime.UtcNow,
@@ -184,7 +184,7 @@ namespace ms.webapp.api.acya.Services
                             var newChild = new FirstChild
                             {
                                 IdParent = categoryId,
-                                Reference = item.SubCategoryName.Length > 10 ? item.SubCategoryName.Substring(0, 10).ToUpper() : item.SubCategoryName.ToUpper(),
+                                Reference = item.SubCategoryName!.Length > 10 ? item.SubCategoryName.Substring(0, 10).ToUpper() : item.SubCategoryName.ToUpper(),
                                 Description = item.SubCategoryName,
                                 CreationDate = DateTime.UtcNow,
                                 UpdateDate = DateTime.UtcNow,

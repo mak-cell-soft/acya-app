@@ -167,6 +167,8 @@ export default function PurchasesPage() {
         return DocumentTypes.supplierInvoice;
       case 'credit-note':
         return DocumentTypes.supplierInvoiceReturn;
+      case 'return':
+        return DocumentTypes.supplierMerchandiseReturn;
       default:
         return DocumentTypes.supplierInvoice;
     }
@@ -421,7 +423,10 @@ export default function PurchasesPage() {
                     <FileText className="w-4 h-4 text-amber-700" /> Facture Fournisseur
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => { setInvoiceForCreditNote(null); setIsCreditNoteModalOpen(true); }} className="font-bold text-slate-800 gap-2 cursor-pointer">
-                    <RotateCcw className="w-4 h-4 text-amber-700" /> Avoir Fournisseur
+                    <RotateCcw className="w-4 h-4 text-amber-700" /> Avoir Financier
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/purchases/return/new')} className="font-bold text-slate-800 gap-2 cursor-pointer">
+                    <RotateCcw className="w-4 h-4 text-amber-700" /> Retour Marchandise
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -710,12 +715,12 @@ export default function PurchasesPage() {
                     className="rounded-xl h-9 font-bold text-xs tracking-wide px-4 data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm transition-all flex items-center gap-1.5 group"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Avoirs Fournisseurs</span>
+                    <span>Avoir Financier</span>
                     {hasPermission('purchases', 'canAdd') && (
                       <span
                         role="button"
                         tabIndex={0}
-                        title="Nouvel Avoir Fournisseur"
+                        title="Nouvel Avoir Financier"
                         onClick={(e) => {
                           e.stopPropagation();
                           setInvoiceForCreditNote(null);
@@ -726,6 +731,33 @@ export default function PurchasesPage() {
                             e.stopPropagation();
                             setInvoiceForCreditNote(null);
                             setIsCreditNoteModalOpen(true);
+                          }
+                        }}
+                        className="inline-flex items-center justify-center w-5 h-5 rounded-md text-amber-900/60 hover:bg-amber-800 hover:text-white transition-all duration-150 active:scale-[0.96] cursor-pointer ml-0.5"
+                      >
+                        <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                      </span>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="return"
+                    className="rounded-xl h-9 font-bold text-xs tracking-wide px-4 data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm transition-all flex items-center gap-1.5 group"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Retour Marchandise</span>
+                    {hasPermission('purchases', 'canAdd') && (
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        title="Nouveau Retour Marchandise"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push('/purchases/return/new');
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.stopPropagation();
+                            router.push('/purchases/return/new');
                           }
                         }}
                         className="inline-flex items-center justify-center w-5 h-5 rounded-md text-amber-900/60 hover:bg-amber-800 hover:text-white transition-all duration-150 active:scale-[0.96] cursor-pointer ml-0.5"
@@ -848,8 +880,8 @@ export default function PurchasesPage() {
 
                       <th className="p-4">N° Document</th>
 
-                      {(activeTab === 'invoice' || activeTab === 'receipt') && (
-                        <th className="p-4">{activeTab === 'invoice' ? 'Réf. Fournisseur' : 'Réf. BL Fournisseur'}</th>
+                      {(activeTab === 'invoice' || activeTab === 'receipt' || activeTab === 'return') && (
+                        <th className="p-4">{activeTab === 'invoice' ? 'Réf. Fournisseur' : activeTab === 'return' ? 'Réf. Retour / Origine' : 'Réf. BL Fournisseur'}</th>
                       )}
 
                       <th className="p-4">Date</th>
@@ -869,7 +901,7 @@ export default function PurchasesPage() {
                     {isLoading ? (
                       <tr>
                         <td
-                          colSpan={activeTab === 'invoice' ? 11 : activeTab === 'receipt' ? 10 : activeTab === 'order' ? 8 : 7}
+                          colSpan={activeTab === 'invoice' ? 11 : activeTab === 'receipt' ? 10 : (activeTab === 'order' || activeTab === 'return') ? 8 : 7}
                           className="py-24 text-center text-slate-400 italic"
                         >
                           Chargement des documents d&apos;achat en cours...
@@ -935,7 +967,7 @@ export default function PurchasesPage() {
                                 </span>
                               </td>
 
-                              {(activeTab === 'invoice' || activeTab === 'receipt') && (
+                              {(activeTab === 'invoice' || activeTab === 'receipt' || activeTab === 'return') && (
                                 <td className="p-4">
                                   <span className="font-mono font-medium text-slate-500">
                                     {item.supplierReference || '--'}
@@ -1034,7 +1066,7 @@ export default function PurchasesPage() {
                                           ? 'bg-rose-50 text-rose-800 border border-rose-200/50'
                                           : item.docstatus === DocStatus.PartiallyDelivered
                                             ? 'bg-teal-50 text-teal-800 border border-teal-200/50'
-                                            : (activeTab === 'receipt' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/50' : 'bg-amber-50 text-amber-800 border border-amber-200/50')
+                                            : (activeTab === 'receipt' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/50' : activeTab === 'return' ? 'bg-purple-50 text-purple-800 border border-purple-200/50' : 'bg-amber-50 text-amber-800 border border-amber-200/50')
                                   )}
                                 >
                                   {item.docstatus === DocStatus.Validated || item.docstatus === DocStatus.Completed
@@ -1049,7 +1081,7 @@ export default function PurchasesPage() {
                                             ? 'En attente'
                                             : item.docstatus === DocStatus.Rejected
                                               ? 'Rejetée'
-                                              : (activeTab === 'receipt' ? 'Livrée' : 'En cours')}
+                                              : (activeTab === 'receipt' ? 'Livrée' : activeTab === 'return' ? 'Retourné' : 'En cours')}
                                 </Badge>
                               </td>
 
@@ -1182,6 +1214,32 @@ export default function PurchasesPage() {
                                           <Layers className="w-4 h-4 text-amber-700" /> Facturer le BR
                                         </DropdownMenuItem>
                                       )}
+
+                                       {/* Return Merchandise trigger for Receipt and Invoice */}
+                                       {hasPermission('purchases', 'canAdd') && (activeTab === 'receipt' || activeTab === 'invoice') && (
+                                         <DropdownMenuItem
+                                           onClick={() => {
+                                             if (activeTab === 'receipt') {
+                                               router.push(`/purchases/return/new?fromReceiptId=${item.id}`);
+                                             } else {
+                                               router.push(`/purchases/return/new?fromInvoiceId=${item.id}`);
+                                             }
+                                           }}
+                                           className="gap-2 font-bold text-amber-800 cursor-pointer hover:bg-amber-50"
+                                         >
+                                           <RotateCcw className="w-4 h-4 text-amber-700" /> Retour Marchandise
+                                         </DropdownMenuItem>
+                                       )}
+
+                                       {/* Edit return document */}
+                                       {activeTab === 'return' && hasPermission('purchases', 'canUpdate') && (
+                                         <DropdownMenuItem
+                                           onClick={() => router.push(`/purchases/return/${item.id}/edit`)}
+                                           className="gap-2 font-bold text-slate-800 cursor-pointer hover:bg-slate-50"
+                                         >
+                                           <Edit className="w-4 h-4 text-slate-500" /> Modifier Retour
+                                         </DropdownMenuItem>
+                                       )}
 
                                       {/* Delete action — only for users with canDelete on purchases */}
                                       {hasPermission('purchases', 'canDelete') && (
@@ -1489,7 +1547,7 @@ export default function PurchasesPage() {
                     ) : (
                       <tr>
                         <td
-                          colSpan={activeTab === 'invoice' ? 11 : activeTab === 'receipt' ? 9 : activeTab === 'order' ? 8 : 7}
+                          colSpan={activeTab === 'invoice' ? 11 : activeTab === 'receipt' ? 9 : (activeTab === 'order' || activeTab === 'return') ? 8 : 7}
                           className="py-24 text-center text-slate-400 italic font-medium"
                         >
                           Aucun document trouvé pour la période sélectionnée.
@@ -1564,7 +1622,8 @@ export default function PurchasesPage() {
         listTitle={
           activeTab === 'invoice' ? 'Factures' :
           activeTab === 'receipt' ? 'Bons de Réception' :
-          activeTab === 'order' ? 'Commandes' : 'Avoirs'
+          activeTab === 'order' ? 'Commandes' :
+          activeTab === 'return' ? 'Retours Fournisseurs' : 'Avoirs'
         }
       />
 

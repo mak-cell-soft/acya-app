@@ -12,6 +12,7 @@ namespace ms.webapp.api.acya.common
     supplierInvoiceReturn = 8,
     customerInvoiceReturn = 9,
     inventory = 10,
-    customerQuote = 11  // Devis Client — no stock movement
+    customerQuote = 11, // Devis Client — no stock movement
+    supplierMerchandiseReturn = 12 // Retour Marchandise Fournisseur — stock OUT + financial debit
   }
 }

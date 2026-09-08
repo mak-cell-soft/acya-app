@@ -832,12 +832,13 @@ namespace ms.webapp.api.acya.api.Controllers
           await RecordPriceHistory(doc);
 
           #region Ledger Entry
-          // Integrate Ledger Entry if it's an Invoice, Delivery Note or Credit Note
+          // Integrate Ledger Entry if it's an Invoice, Delivery Note or Credit Note / Return
           if (doc.Type == DocumentTypes.customerInvoice || doc.Type == DocumentTypes.customerDeliveryNote || 
               doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt ||
-              doc.Type == DocumentTypes.customerInvoiceReturn || doc.Type == DocumentTypes.supplierInvoiceReturn)
+              doc.Type == DocumentTypes.customerInvoiceReturn || doc.Type == DocumentTypes.supplierInvoiceReturn ||
+              doc.Type == DocumentTypes.supplierMerchandiseReturn)
           {
-              bool isSupplier = doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt || doc.Type == DocumentTypes.supplierInvoiceReturn;
+              bool isSupplier = doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt || doc.Type == DocumentTypes.supplierInvoiceReturn || doc.Type == DocumentTypes.supplierMerchandiseReturn;
               await _accountService.AddLedgerEntryAsync(
                   doc.CounterPartId ?? 0, 
                   doc.Type.ToString()!, 
@@ -852,12 +853,16 @@ namespace ms.webapp.api.acya.api.Controllers
           // Post-commit operations
           await _repository.updateListOfIdsListOfLengths(doc);
           
-          // supplierOrder, customerQuote, customerOrder: no stock movement
-          // Only actual receipts/deliveries affect inventory
-          if (doc.Type != DocumentTypes.supplierOrder 
-              && doc.Type != DocumentTypes.customerQuote
-              && doc.Type != DocumentTypes.customerOrder
-              && doc.Isservice != true) // §5.13 — Skip stock for financial credit notes or services
+          // Documents that do not move inventory (quotes, orders, pure invoices where stock moved at BL/BR, and financial credit notes)
+          var noStockTypes = new[] {
+              DocumentTypes.supplierOrder,
+              DocumentTypes.customerQuote,
+              DocumentTypes.customerOrder,
+              DocumentTypes.supplierInvoice,
+              DocumentTypes.customerInvoice,
+              DocumentTypes.supplierInvoiceReturn
+          };
+          if (!noStockTypes.Contains(doc.Type!.Value) && doc.Isservice != true) // Skip stock for financial credit notes or services
           {
               await _repository.updateStockByMerchandises(doc);
           }
@@ -942,8 +947,8 @@ namespace ms.webapp.api.acya.api.Controllers
         {
             try
             {
-                // 1. Handle Credit Note rollback (update parent balance)
-                if (doc.Type == DocumentTypes.supplierInvoiceReturn || doc.Type == DocumentTypes.customerInvoiceReturn)
+                // 1. Handle Credit Note / Return rollback (update parent balance)
+                if (doc.Type == DocumentTypes.supplierInvoiceReturn || doc.Type == DocumentTypes.customerInvoiceReturn || doc.Type == DocumentTypes.supplierMerchandiseReturn)
                 {
                      var relationships = await _context.DocumentDocumentRelationships
                          .Where(r => r.ChildDocumentId == id)
@@ -960,11 +965,16 @@ namespace ms.webapp.api.acya.api.Controllers
                      }
                 }
 
-                // 2. Revert Stock (for all actual receipts/deliveries)
-                if (doc.Type != DocumentTypes.supplierOrder 
-                    && doc.Type != DocumentTypes.customerQuote
-                    && doc.Type != DocumentTypes.customerOrder
-                    && doc.Isservice != true)
+                // 2. Revert Stock (for all actual receipts/deliveries, returns)
+                var noStockTypes = new[] {
+                    DocumentTypes.supplierOrder,
+                    DocumentTypes.customerQuote,
+                    DocumentTypes.customerOrder,
+                    DocumentTypes.supplierInvoice,
+                    DocumentTypes.customerInvoice,
+                    DocumentTypes.supplierInvoiceReturn
+                };
+                if (!noStockTypes.Contains(doc.Type!.Value) && doc.Isservice != true)
                 {
                     await _repository.revertStockByMerchandises(doc);
                 }
@@ -1523,10 +1533,15 @@ namespace ms.webapp.api.acya.api.Controllers
             return BadRequest("Cannot edit an invoiced document.");
           }
 
-          bool impactsStock = doc.Type != DocumentTypes.supplierOrder 
-              && doc.Type != DocumentTypes.customerQuote
-              && doc.Type != DocumentTypes.customerOrder
-              && doc.Isservice != true;
+          var noStockTypes = new[] {
+              DocumentTypes.supplierOrder,
+              DocumentTypes.customerQuote,
+              DocumentTypes.customerOrder,
+              DocumentTypes.supplierInvoice,
+              DocumentTypes.customerInvoice,
+              DocumentTypes.supplierInvoiceReturn
+          };
+          bool impactsStock = !noStockTypes.Contains(doc.Type!.Value) && doc.Isservice != true;
 
           // Revert old stock impact before replacing merchandises
           if (impactsStock)
@@ -1677,11 +1692,12 @@ namespace ms.webapp.api.acya.api.Controllers
           // Update Ledger Entry (Delete old and Add new to handle amount changes)
           if (doc.Type == DocumentTypes.customerInvoice || doc.Type == DocumentTypes.customerDeliveryNote || 
               doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt ||
-              doc.Type == DocumentTypes.customerInvoiceReturn || doc.Type == DocumentTypes.supplierInvoiceReturn)
+              doc.Type == DocumentTypes.customerInvoiceReturn || doc.Type == DocumentTypes.supplierInvoiceReturn ||
+              doc.Type == DocumentTypes.supplierMerchandiseReturn)
           {
               string docTypeStr = doc.Type.ToString()!;
               await _accountService.DeleteLedgerEntryAsync(doc.Id, docTypeStr);
-              bool isSupplier = doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt || doc.Type == DocumentTypes.supplierInvoiceReturn;
+              bool isSupplier = doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt || doc.Type == DocumentTypes.supplierInvoiceReturn || doc.Type == DocumentTypes.supplierMerchandiseReturn;
               await _accountService.AddLedgerEntryAsync(
                   doc.CounterPartId ?? 0, 
                   docTypeStr, 

@@ -149,6 +149,8 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
     searchParams.get('sourceId') || 
     searchParams.get('fromOrderId') || 
     searchParams.get('fromQuoteId') || 
+    searchParams.get('fromInvoiceId') ||
+    searchParams.get('fromBlId') ||
     '0'
   );
   const [sourceDocumentId] = useState<number>(sourceIdFromParams);
@@ -909,7 +911,7 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
           const matches = siteStocks.filter(s => s.articleId === article.id);
           row.selectedStock = matches.length >= 1 ? matches[0] : null;
 
-          if (docType !== DocumentTypes.customerQuote && docType !== DocumentTypes.customerOrder) {
+          if (docType !== DocumentTypes.customerQuote && docType !== DocumentTypes.customerOrder && docType !== DocumentTypes.customerInvoiceReturn) {
             // Reset quantity if stock not available
             if (matches.length === 0) {
               row.quantity = 0;
@@ -952,7 +954,7 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
 
       if (field === 'selectedStock') {
         const stock = value as any;
-        if (docType !== DocumentTypes.customerQuote && docType !== DocumentTypes.customerOrder) {
+        if (docType !== DocumentTypes.customerQuote && docType !== DocumentTypes.customerOrder && docType !== DocumentTypes.customerInvoiceReturn) {
           if (stock) {
             const stockQty = parseFloat(stock.stockQuantity || 0);
             const allowNeg = stock.allowNegativeStock;
@@ -1176,11 +1178,16 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
         return item;
       });
 
-      // Stock transaction type: exit inventory (2) for Delivery Note and Invoice, none (3) for Quote/Order
-      const stockTransactionType = (
+      // Stock transaction type: 1 = Add, 2 = Retrieve, 3 = None
+      let stockTransactionType = 3;
+      if (docType === DocumentTypes.customerInvoiceReturn) {
+        stockTransactionType = 1; // Entry into stock
+      } else if (
         docType === DocumentTypes.customerDeliveryNote || 
         docType === DocumentTypes.customerInvoice
-      ) ? 2 : 3;
+      ) {
+        stockTransactionType = 2; // Exit stock
+      }
 
       // --- Direct Discount Recalculation ---
       // When the user enters a manual TTC (Net à payer) in the UI, we must recalculate Net HT and TVA.
@@ -1270,6 +1277,9 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
       let result;
       if (editDocumentId && editDocumentId > 0) {
         result = await updateDocumentMutation.mutateAsync({ id: editDocumentId, model: documentPayload });
+      } else if (sourceDocumentId > 0 && docType === DocumentTypes.customerInvoiceReturn) {
+        result = await documentService.createCreditNote(sourceDocumentId, documentPayload);
+        toast.success(`${title} créé avec succès !`);
       } else if (sourceDocumentId > 0) {
         result = await documentService.convert(sourceDocumentId, documentPayload);
         toast.success(`${title} créé avec succès !`);
@@ -1891,6 +1901,12 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                   <span>Le stock n'est pas inclus dans ce document (saisie libre des quantités sans vérification).</span>
                 </div>
               )}
+              {docType === DocumentTypes.customerInvoiceReturn && (
+                <div className="mt-2 text-xs font-bold text-corp-blue-700 bg-corp-blue-50 border border-corp-blue-200/60 rounded-xl px-3 py-2 flex items-center gap-2 w-fit animate-in fade-in duration-300">
+                  <RotateCcw className="w-4 h-4 shrink-0 text-corp-blue-600" />
+                  <span>Avoir Client : les marchandises retournées seront réintégrées en stock (mouvement d'entrée).</span>
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-3">
               {(docType === DocumentTypes.customerDeliveryNote || docType === DocumentTypes.customerInvoice) && (
@@ -1938,7 +1954,7 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                       const isFee = row.line_type === LineType.TransportFee;
                       const matchingStocks = row.selectedArticle ? siteStocks.filter(s => s.articleId === row.selectedArticle!.id) : [];
                       let isQuantityDisabled = false;
-                      if (docType !== DocumentTypes.customerQuote && docType !== DocumentTypes.customerOrder) {
+                      if (docType !== DocumentTypes.customerQuote && docType !== DocumentTypes.customerOrder && docType !== DocumentTypes.customerInvoiceReturn) {
                         if (!isFee && row.selectedArticle) {
                           if (matchingStocks.length === 0) {
                             isQuantityDisabled = true;
@@ -2438,7 +2454,7 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
             onClose={() => setWoodDialogState(prev => ({ ...prev, isOpen: false }))}
             article={woodDialogState.article}
             currentLengths={woodDialogState.currentLengths}
-            isPurchase={docType === DocumentTypes.customerQuote || docType === DocumentTypes.customerOrder}
+            isPurchase={docType === DocumentTypes.customerQuote || docType === DocumentTypes.customerOrder || docType === DocumentTypes.customerInvoiceReturn}
             onSave={saveWoodLengths}
           />
         ) : (

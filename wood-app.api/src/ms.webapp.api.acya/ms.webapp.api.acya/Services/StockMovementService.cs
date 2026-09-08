@@ -81,6 +81,7 @@ namespace ms.webapp.api.acya.api.Services
                 DocumentTypes.stockTransfer,
                 DocumentTypes.customerInvoiceReturn,
                 DocumentTypes.supplierInvoiceReturn,
+                DocumentTypes.supplierMerchandiseReturn,
                 DocumentTypes.inventory,
                 DocumentTypes.supplierInvoice,
                 DocumentTypes.customerInvoice

@@ -1735,9 +1735,11 @@ export function getStockInventoryPrintStyles(): string {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #0f172a;
-      color: #ffffff;
+      background: #f1f5f9;
+      color: #0f172a;
       padding: 1.5mm 3mm;
+      border: 1px solid #cbd5e1;
+      border-bottom: 2px solid #94a3b8;
       border-top-left-radius: 3px;
       border-top-right-radius: 3px;
       page-break-inside: avoid;
@@ -1751,7 +1753,7 @@ export function getStockInventoryPrintStyles(): string {
     }
 
     .category-icon {
-      color: #f59e0b;
+      color: #b45309;
       font-size: 8pt;
     }
 
@@ -1761,12 +1763,13 @@ export function getStockInventoryPrintStyles(): string {
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      color: #0f172a;
     }
 
     .category-count {
       font-size: 6.5pt;
-      color: #94a3b8;
-      font-weight: 500;
+      color: #64748b;
+      font-weight: 600;
     }
 
     .category-subtotals {
@@ -1776,13 +1779,21 @@ export function getStockInventoryPrintStyles(): string {
 
     .category-subtotal-badge {
       font-size: 7pt;
-      color: #fef08a;
+      color: #0f172a;
+      background: #ffffff;
+      padding: 0.5mm 2mm;
+      border-radius: 2px;
+      border: 1px solid #cbd5e1;
+    }
+
+    .category-subtotal-badge strong {
+      color: #b45309;
     }
 
     .stock-items-table {
       width: 100%;
       border-collapse: collapse;
-      border: 1px solid #0f172a;
+      border: 1px solid #cbd5e1;
       border-top: none;
       font-size: 7pt;
     }
@@ -1793,9 +1804,9 @@ export function getStockInventoryPrintStyles(): string {
 
     .stock-items-table th {
       border: 1px solid #cbd5e1;
-      border-top: 1px solid #0f172a;
-      background: #f1f5f9;
-      color: #1e293b;
+      border-top: none;
+      background: #f8fafc;
+      color: #334155;
       padding: 1.5mm 2mm;
       font-weight: 700;
       font-size: 6.5pt;

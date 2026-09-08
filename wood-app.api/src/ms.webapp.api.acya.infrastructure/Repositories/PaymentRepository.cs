@@ -62,7 +62,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                             p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.supplierInvoice || 
                             p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.supplierReceipt || 
                             p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.supplierOrder || 
-                            p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.supplierInvoiceReturn
+                            p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.supplierInvoiceReturn ||
+                            p.Document.Type == ms.webapp.api.acya.common.DocumentTypes.supplierMerchandiseReturn
                         ))
                     );
                 }
@@ -352,7 +353,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                     DocumentTypes.supplierOrder,
                     DocumentTypes.supplierReceipt,
                     DocumentTypes.supplierInvoice,
-                    DocumentTypes.supplierInvoiceReturn
+                    DocumentTypes.supplierInvoiceReturn,
+                    DocumentTypes.supplierMerchandiseReturn
                 };
                 query = query.Where(p => (p.Document != null && p.Document.Type.HasValue && supplierDocTypes.Contains(p.Document.Type.Value)) ||
                                          (p.Document == null && p.Customer != null && (p.Customer.Type == CounterPartType.Supplier || p.Customer.Type == CounterPartType.Both)));

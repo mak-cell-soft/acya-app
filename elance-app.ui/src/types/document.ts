@@ -15,9 +15,10 @@ export enum DocumentTypes {
   customerInvoice = 6,        // Facture Client
   stockTransfer = 7,          // Transfert stock
   supplierInvoiceReturn = 8,  // Avoir Fournisseur
-  customerInvoiceReturn = 9,  // Retour Client
+  customerInvoiceReturn = 9,  // Avoir Client / Retour Client (impact stock IN)
   inventory = 10,             // Inventaire
-  customerQuote = 11          // Devis Client (sans impact stock)
+  customerQuote = 11,         // Devis Client (sans impact stock)
+  supplierMerchandiseReturn = 12 // Retour Marchandise Fournisseur (impact stock OUT)
 }
 
 /**
@@ -32,8 +33,9 @@ export enum DocTypes_FR {
   customerDeliveryNote = 'Bon de Livraison',
   customerInvoice = 'Facture Client',
   stockTransfer = 'Transfert stock',
-  customerInvoiceReturn = 'Retour Client',
-  supplierInvoiceReturn = 'Avoir Fournisseur',
+  customerInvoiceReturn = 'Avoir Client',
+  supplierInvoiceReturn = 'Avoir Financier',
+  supplierMerchandiseReturn = 'Retour Marchandise',
   inventory = 'Inventaire',
   Payment = 'Paiement',
   RS = 'Retenue à la source',

@@ -325,7 +325,7 @@ namespace ms.webapp.api.acya.api.Services
                         continue;
                     }
 
-                    bool isSupplier = doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt || doc.Type == DocumentTypes.supplierInvoiceReturn;
+                    bool isSupplier = doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.supplierReceipt || doc.Type == DocumentTypes.supplierInvoiceReturn || doc.Type == DocumentTypes.supplierMerchandiseReturn;
                     
                     // Add document entry
                     await AddLedgerEntryAsync(

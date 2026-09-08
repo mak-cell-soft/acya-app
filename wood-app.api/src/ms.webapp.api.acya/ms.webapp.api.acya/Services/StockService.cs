@@ -776,7 +776,7 @@ namespace ms.webapp.api.acya.api.Services
             // 1. Get all current stocks where Quantity > 0, grouped by MerchandiseId
             var currentStocks = await _context.Stocks
                 .Include(s => s.Merchandises)
-                .ThenInclude(m => m.Articles)
+                .ThenInclude(m => m!.Articles)
                 .Where(s => s.Quantity > 0 && s.Merchandises != null && !s.Merchandises.IsDeleted)
                 .GroupBy(s => new { 
                     s.MerchandiseId, 

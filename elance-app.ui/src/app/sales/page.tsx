@@ -152,6 +152,8 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
         return DocumentTypes.customerDeliveryNote;
       case 'invoice':
         return DocumentTypes.customerInvoice;
+      case 'avoir':
+        return DocumentTypes.customerInvoiceReturn;
       default:
         return DocumentTypes.customerDeliveryNote;
     }
@@ -164,7 +166,7 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
     typeDoc: docType,
     month: selectedMonthIdx + 1,
     year: selectedYear,
-    day: (activeTab === 'bl' || activeTab === 'invoice') ? selectedDay : undefined
+    day: (activeTab === 'bl' || activeTab === 'invoice' || activeTab === 'avoir') ? selectedDay : undefined
   });
 
   const { data: ceilings = [] } = useAppVariables('DailyInvoiceCeiling');
@@ -556,6 +558,33 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
                     </span>
                   )}
                 </TabsTrigger>
+                <TabsTrigger
+                  value="avoir"
+                  className="rounded-lg h-9 px-3.5 text-sm font-medium flex items-center gap-1.5 group data-[state=active]:font-bold"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Avoirs Client</span>
+                  {hasPermission('sales', 'canAdd') && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      title="Nouvel Avoir Client"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push('/sales/avoir/new');
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation();
+                          router.push('/sales/avoir/new');
+                        }
+                      }}
+                      className="inline-flex items-center justify-center w-5 h-5 rounded-md text-sand-500 hover:bg-corp-blue-600 hover:text-white transition-all duration-150 active:scale-[0.96] cursor-pointer ml-0.5"
+                    >
+                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                    </span>
+                  )}
+                </TabsTrigger>
               </TabsList>
 
               <div className="relative flex-1 max-w-sm">
@@ -570,16 +599,16 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
             </CardHeader>
 
             <CardContent className="p-0">
-              {(activeTab === 'bl' || activeTab === 'invoice') && (
+              {(activeTab === 'bl' || activeTab === 'invoice' || activeTab === 'avoir') && (
                 <div className="p-5 border-b border-sand-100 bg-sand-50/15">
                   <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-between">
                       <div>
                         <span className="text-[10px] font-bold text-sand-400 uppercase tracking-widest block">
-                          Navigation Journalière ({activeTab === 'invoice' ? 'Factures' : 'Bons de Livraison'})
+                          Navigation Journalière ({activeTab === 'invoice' ? 'Factures' : activeTab === 'avoir' ? 'Avoirs Client' : 'Bons de Livraison'})
                         </span>
                         <p className="text-xs text-sand-500 font-medium mt-0.5">
-                          Sélectionnez un jour pour charger les {activeTab === 'invoice' ? 'factures correspondantes' : 'documents correspondants'}
+                          Sélectionnez un jour pour charger les {activeTab === 'invoice' ? 'factures correspondantes' : activeTab === 'avoir' ? 'avoirs correspondants' : 'documents correspondants'}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1052,6 +1081,27 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
                                           </DropdownMenuItem>
                                         )}
 
+                                        {/* Return / Avoir Client Trigger from Invoice or BL */}
+                                        {hasPermission('sales', 'canAdd') && (item.type === DocumentTypes.customerInvoice || item.type === DocumentTypes.customerDeliveryNote) && (
+                                          <DropdownMenuItem
+                                            onClick={() => router.push(`/sales/avoir/new?sourceId=${item.id}`)}
+                                            className="gap-2 font-semibold cursor-pointer text-indigo-700 hover:bg-indigo-50"
+                                          >
+                                            <RotateCcw className="w-4 h-4 text-indigo-600" />
+                                            Créer un Avoir Client
+                                          </DropdownMenuItem>
+                                        )}
+
+                                        {/* Edit Avoir Client */}
+                                        {hasPermission('sales', 'canUpdate') && item.type === DocumentTypes.customerInvoiceReturn && (
+                                          <DropdownMenuItem
+                                            onClick={() => router.push(`/sales/avoir/${item.id}/edit`)}
+                                            className="gap-2 font-semibold cursor-pointer text-amber-800 hover:bg-amber-50"
+                                          >
+                                            <Edit className="w-4 h-4 text-amber-600" /> Modifier Avoir
+                                          </DropdownMenuItem>
+                                        )}
+
                                         {/* Payments Actions */}
                                         {(item.type === DocumentTypes.customerDeliveryNote ||
                                           item.type === DocumentTypes.customerInvoice) && (
@@ -1392,7 +1442,8 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
         listTitle={
           activeTab === 'invoice' ? 'Factures' :
           activeTab === 'bl' ? 'Bons de Livraison' :
-          activeTab === 'order' ? 'Commandes' : 'Devis'
+          activeTab === 'order' ? 'Commandes' :
+          activeTab === 'avoir' ? 'Avoirs Client' : 'Devis'
         }
       />
 

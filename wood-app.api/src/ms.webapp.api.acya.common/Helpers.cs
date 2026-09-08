@@ -36,6 +36,7 @@ namespace ms.webapp.api.acya.common
         DocumentTypes.stockTransfer => "TS", // Transfert Stock
         DocumentTypes.customerInvoiceReturn => "AV", // Avoir Client
         DocumentTypes.supplierInvoiceReturn => "AVF", // Avoir Fournisseur
+        DocumentTypes.supplierMerchandiseReturn => "RMF", // Retour Marchandise Fournisseur
         DocumentTypes.inventory => "INV", // Inventaire
         _ => string.Empty
       };
@@ -129,6 +130,7 @@ namespace ms.webapp.api.acya.common
           return TransactionType.Add;
 
         case DocumentTypes.supplierInvoiceReturn:
+        case DocumentTypes.supplierMerchandiseReturn:
           return TransactionType.Retrieve;
 
         // customerQuote: No stock movement — quote only

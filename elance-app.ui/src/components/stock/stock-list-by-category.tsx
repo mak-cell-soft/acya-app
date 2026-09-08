@@ -653,7 +653,7 @@ export function StockListByCategory() {
 
       {/* Threshold Editor Dialog */}
       <Dialog open={!!selectedStock} onOpenChange={() => setSelectedStock(null)}>
-        <DialogContent className="bg-white dark:bg-stone-950 rounded-2xl border border-stone-250 dark:border-stone-850 shadow-2xl p-6">
+        <DialogContent className="sm:max-w-md w-full bg-white dark:bg-stone-950 rounded-2xl border border-stone-250 dark:border-stone-850 shadow-2xl p-6">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider">
               Modifier le Seuil d'Alerte

@@ -26,6 +26,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Config
             Prefixes[((int)DocumentTypes.stockTransfer).ToString()] = "TS";
             Prefixes[((int)DocumentTypes.customerInvoiceReturn).ToString()] = "AV";
             Prefixes[((int)DocumentTypes.supplierInvoiceReturn).ToString()] = "AVF";
+            Prefixes[((int)DocumentTypes.supplierMerchandiseReturn).ToString()] = "RMF";
         }
     }
 }
