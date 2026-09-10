@@ -435,7 +435,7 @@ namespace ms.webapp.api.acya.api.Controllers
 
     #region Add Document
     [HttpPost]
-    public async Task<ActionResult> Add(DocumentDto dto)
+    public async Task<ActionResult> Add(DocumentDto dto, [FromQuery] bool bypassStockUpdate = false)
     {
       // Validate the DTO
       if (dto == null || dto.type == null)
@@ -853,16 +853,14 @@ namespace ms.webapp.api.acya.api.Controllers
           // Post-commit operations
           await _repository.updateListOfIdsListOfLengths(doc);
           
-          // Documents that do not move inventory (quotes, orders, pure invoices where stock moved at BL/BR, and financial credit notes)
+          // Documents that do not move inventory (quotes, orders, and financial credit notes)
           var noStockTypes = new[] {
               DocumentTypes.supplierOrder,
               DocumentTypes.customerQuote,
               DocumentTypes.customerOrder,
-              DocumentTypes.supplierInvoice,
-              DocumentTypes.customerInvoice,
               DocumentTypes.supplierInvoiceReturn
           };
-          if (!noStockTypes.Contains(doc.Type!.Value) && doc.Isservice != true) // Skip stock for financial credit notes or services
+          if (!noStockTypes.Contains(doc.Type!.Value) && doc.Isservice != true && !bypassStockUpdate) // Skip stock for financial credit notes, services, orders/quotes, or converted invoices where parent BL/BR already moved stock
           {
               await _repository.updateStockByMerchandises(doc);
           }
@@ -965,16 +963,28 @@ namespace ms.webapp.api.acya.api.Controllers
                      }
                 }
 
-                // 2. Revert Stock (for all actual receipts/deliveries, returns)
+                // 2. Revert Stock (for all actual receipts/deliveries, returns, and direct invoices)
                 var noStockTypes = new[] {
                     DocumentTypes.supplierOrder,
                     DocumentTypes.customerQuote,
                     DocumentTypes.customerOrder,
-                    DocumentTypes.supplierInvoice,
-                    DocumentTypes.customerInvoice,
                     DocumentTypes.supplierInvoiceReturn
                 };
-                if (!noStockTypes.Contains(doc.Type!.Value) && doc.Isservice != true)
+
+                bool isLinkedToReceiptOrDelivery = false;
+                if (doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.customerInvoice)
+                {
+                    isLinkedToReceiptOrDelivery = await _context.DocumentDocumentRelationships
+                        .AnyAsync(r => 
+                            (r.ParentDocumentId == doc.Id && r.ChildDocument != null && 
+                             (r.ChildDocument.Type == DocumentTypes.supplierReceipt || r.ChildDocument.Type == DocumentTypes.customerDeliveryNote))
+                            ||
+                            (r.ChildDocumentId == doc.Id && r.ParentDocument != null && 
+                             (r.ParentDocument.Type == DocumentTypes.supplierReceipt || r.ParentDocument.Type == DocumentTypes.customerDeliveryNote))
+                        );
+                }
+
+                if (!noStockTypes.Contains(doc.Type!.Value) && doc.Isservice != true && !isLinkedToReceiptOrDelivery)
                 {
                     await _repository.revertStockByMerchandises(doc);
                 }
@@ -1537,11 +1547,23 @@ namespace ms.webapp.api.acya.api.Controllers
               DocumentTypes.supplierOrder,
               DocumentTypes.customerQuote,
               DocumentTypes.customerOrder,
-              DocumentTypes.supplierInvoice,
-              DocumentTypes.customerInvoice,
               DocumentTypes.supplierInvoiceReturn
           };
-          bool impactsStock = !noStockTypes.Contains(doc.Type!.Value) && doc.Isservice != true;
+
+          bool isLinkedToReceiptOrDelivery = false;
+          if (doc.Type == DocumentTypes.supplierInvoice || doc.Type == DocumentTypes.customerInvoice)
+          {
+              isLinkedToReceiptOrDelivery = await _context.DocumentDocumentRelationships
+                  .AnyAsync(r => 
+                      (r.ParentDocumentId == doc.Id && r.ChildDocument != null && 
+                       (r.ChildDocument.Type == DocumentTypes.supplierReceipt || r.ChildDocument.Type == DocumentTypes.customerDeliveryNote))
+                      ||
+                      (r.ChildDocumentId == doc.Id && r.ParentDocument != null && 
+                       (r.ParentDocument.Type == DocumentTypes.supplierReceipt || r.ParentDocument.Type == DocumentTypes.customerDeliveryNote))
+                  );
+          }
+
+          bool impactsStock = !noStockTypes.Contains(doc.Type!.Value) && doc.Isservice != true && !isLinkedToReceiptOrDelivery;
 
           // Revert old stock impact before replacing merchandises
           if (impactsStock)
@@ -1747,8 +1769,8 @@ namespace ms.webapp.api.acya.api.Controllers
     public async Task<ActionResult> Convert(int parentId, DocumentDto dto)
     {
         // 1. Validate the parent document exists
-        var parentExists = await _context.Documents.AnyAsync(d => d.Id == parentId);
-        if (!parentExists)
+        var parent = await _context.Documents.FindAsync(parentId);
+        if (parent == null)
         {
             return NotFound($"Parent document with ID {parentId} not found.");
         }
@@ -1777,8 +1799,7 @@ namespace ms.webapp.api.acya.api.Controllers
                 {
                     // Ghost found: Document exists with correct reference but NO link to this parent.
                     // Validate that the parent is indeed the source (parent number == child reference)
-                    var parent = await _context.Documents.FindAsync(parentId);
-                    if (parent != null && parent.DocNumber == dto.supplierReference)
+                    if (parent.DocNumber == dto.supplierReference)
                     {
                         var rel = new DocumentDocumentRelationship { ParentDocumentId = parentId, ChildDocumentId = existingChild.Id };
                         var regResult = await RegisterRelationship(rel);
@@ -1790,8 +1811,12 @@ namespace ms.webapp.api.acya.api.Controllers
             }
         }
 
-        // 3. Perform the normal 'Add' logic
-        var result = await Add(dto);
+        // Determine if parent already moved stock (e.g. BR or BL)
+        bool parentMovedStock = (parent.Type == DocumentTypes.supplierReceipt && dto.type == DocumentTypes.supplierInvoice) ||
+                                (parent.Type == DocumentTypes.customerDeliveryNote && dto.type == DocumentTypes.customerInvoice);
+
+        // 3. Perform the normal 'Add' logic, bypassing stock update only if parent already moved stock
+        var result = await Add(dto, bypassStockUpdate: parentMovedStock);
 
         if (result is OkObjectResult okResult)
         {

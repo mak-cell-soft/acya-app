@@ -114,6 +114,7 @@ namespace ms.webapp.api.acya.api.Services
             // Retrieve relationships to exclude invoices that are linked to delivery notes/receipts
             var relationships = await _context.DocumentDocumentRelationships
                 .Include(r => r.ChildDocument)
+                .Include(r => r.ParentDocument)
                 .Where(r => movementDocumentIds.Contains(r.ParentDocumentId) || movementDocumentIds.Contains(r.ChildDocumentId))
                 .ToListAsync();
 
@@ -121,11 +122,16 @@ namespace ms.webapp.api.acya.api.Services
             {
                 if (mov.Type == DocumentTypes.customerInvoice || mov.Type == DocumentTypes.supplierInvoice)
                 {
-                    // Check if this invoice is linked to a delivery note / receipt (it is a parent of a BL/SR)
+                    // Check if this invoice is linked to a delivery note / receipt (either parent or child of a BL/SR)
                     bool hasLinkedDeliveryNote = relationships.Any(r => 
-                        r.ParentDocumentId == mov.DocumentId && 
-                        r.ChildDocument != null && 
-                        (r.ChildDocument.Type == DocumentTypes.customerDeliveryNote || r.ChildDocument.Type == DocumentTypes.supplierReceipt));
+                        (r.ParentDocumentId == mov.DocumentId && 
+                         r.ChildDocument != null && 
+                         (r.ChildDocument.Type == DocumentTypes.customerDeliveryNote || r.ChildDocument.Type == DocumentTypes.supplierReceipt))
+                        ||
+                        (r.ChildDocumentId == mov.DocumentId && 
+                         r.ParentDocument != null && 
+                         (r.ParentDocument.Type == DocumentTypes.customerDeliveryNote || r.ParentDocument.Type == DocumentTypes.supplierReceipt))
+                    );
                         
                     if (hasLinkedDeliveryNote)
                     {
