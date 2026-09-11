@@ -225,3 +225,31 @@ export interface HoldingTax {
   updatedate?: string | Date;
 }
 
+/**
+ * Generic Paged Result matching backend PagedResult<T>
+ */
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+/**
+ * Filter criteria for Deep / Advanced Search in purchases
+ */
+export interface PurchaseSearchFilter {
+  reference?: string;
+  supplierReference?: string;
+  supplierId?: number;
+  articleId?: number;
+  merchandiseId?: number;
+  startDate?: string;
+  endDate?: string;
+  documentType?: DocumentTypes;
+  page?: number;
+  pageSize?: number;
+}
+
+

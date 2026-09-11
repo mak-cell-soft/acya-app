@@ -1,4 +1,5 @@
 import api from '@/lib/axios';
+import { PurchaseSearchFilter, PagedResult, Document } from '@/types/document';
 
 export const documentService = {
   add: async (model: any) => {
@@ -90,5 +91,10 @@ export const documentService = {
     } catch {
       return 0;
     }
+  },
+
+  searchPurchases: async (filter: PurchaseSearchFilter): Promise<PagedResult<Document>> => {
+    const response = await api.post('/Document/search-purchases', filter);
+    return response.data;
   }
 };

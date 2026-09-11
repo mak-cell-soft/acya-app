@@ -309,128 +309,285 @@ namespace ms.webapp.api.acya.api.Controllers
                    && (_type.year == 0 || d.CreationDate.Value.Year == _type.year))
           .ToListAsync();
 
-      // Convert to DTOs
-      var documentDtos = documents.Select(d =>
+      // Convert to DTOs using reusable mapper
+      var documentDtos = documents.Select(MapDocumentToDto).ToList();
+
+      return Ok(documentDtos);
+    }
+
+    /// <summary>
+    /// Advanced / Deep Search endpoint for purchase invoices and documents.
+    /// Supports combinable filters: reference, supplierReference, supplierId,
+    /// article/merchandise ID (at line level), date range, and pagination.
+    /// Preserves tenant isolation via WoodAppContext schema configuration.
+    /// </summary>
+    [HttpPost("search-purchases")]
+    public async Task<ActionResult<PagedResult<DocumentDto>>> SearchPurchases([FromBody] PurchaseSearchFilterDto filter)
+    {
+      if (filter == null)
       {
-        var dto = new DocumentDto(d);
+        return BadRequest("Filter criteria must be provided.");
+      }
 
-        // Logic to retrieve merchandises: 
-        // 1. If ChildDocuments exist (Generated Invoice), aggregate from them
-        // 2. Otherwise use d.DocumentMerchandises (Direct Invoice)
-        
-        var sourceMerchandises = new List<DocumentMerchandise>();
-        
-        bool isOrderOrQuote = d.Type == DocumentTypes.supplierOrder || d.Type == DocumentTypes.customerOrder || d.Type == DocumentTypes.customerQuote;
+      int page = filter.Page > 0 ? filter.Page : 1;
+      int pageSize = filter.PageSize > 0 ? filter.PageSize : 15;
 
-        if (d.ChildDocuments != null && d.ChildDocuments.Any())
+      // Base query scoped to non-deleted documents in the current tenant schema
+      var query = _context.Documents
+          .AsNoTracking()
+          .Where(d => !d.IsDeleted);
+
+      // 1. Document Type Filter: Default to supplier invoices if unspecified
+      if (filter.DocumentType.HasValue)
+      {
+        query = query.Where(d => d.Type == filter.DocumentType.Value);
+      }
+      else
+      {
+        query = query.Where(d => d.Type == DocumentTypes.supplierInvoice);
+      }
+
+      // 2. Invoice Reference (partial case-insensitive match)
+      if (!string.IsNullOrWhiteSpace(filter.Reference))
+      {
+        var refTerm = filter.Reference.Trim().ToLower();
+        query = query.Where(d => d.DocNumber != null && d.DocNumber.ToLower().Contains(refTerm));
+      }
+
+      // 3. Supplier Reference (partial case-insensitive match)
+      if (!string.IsNullOrWhiteSpace(filter.SupplierReference))
+      {
+        var supRefTerm = filter.SupplierReference.Trim().ToLower();
+        query = query.Where(d => d.SupplierReference != null && d.SupplierReference.ToLower().Contains(supRefTerm));
+      }
+
+      // 4. Supplier Filter
+      if (filter.SupplierId.HasValue && filter.SupplierId.Value > 0)
+      {
+        query = query.Where(d => d.CounterPartId == filter.SupplierId.Value);
+      }
+
+      // 5. Date Period Filter (applied to all searches)
+      if (filter.StartDate.HasValue)
+      {
+        var start = DateTime.SpecifyKind(filter.StartDate.Value.Date, DateTimeKind.Utc);
+        query = query.Where(d => d.CreationDate.HasValue && d.CreationDate.Value >= start);
+      }
+
+      if (filter.EndDate.HasValue)
+      {
+        var end = DateTime.SpecifyKind(filter.EndDate.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
+        query = query.Where(d => d.CreationDate.HasValue && d.CreationDate.Value <= end);
+      }
+
+      // 6. Merchandise / Article Filter (checks lines directly and on child receipts with EXISTS)
+      if (filter.ArticleId.HasValue && filter.ArticleId.Value > 0)
+      {
+        int artId = filter.ArticleId.Value;
+        query = query.Where(d =>
+            d.DocumentMerchandises.Any(dm =>
+                dm.Type == LineType.Merchandise &&
+                dm.Merchandise != null &&
+                dm.Merchandise.ArticleId == artId)
+            ||
+            d.ChildDocuments.Any(cd =>
+                cd.ChildDocument != null &&
+                cd.ChildDocument.DocumentMerchandises.Any(cdm =>
+                    cdm.Type == LineType.Merchandise &&
+                    cdm.Merchandise != null &&
+                    cdm.Merchandise.ArticleId == artId))
+        );
+      }
+      else if (filter.MerchandiseId.HasValue && filter.MerchandiseId.Value > 0)
+      {
+        int mId = filter.MerchandiseId.Value;
+        query = query.Where(d =>
+            d.DocumentMerchandises.Any(dm => dm.MerchandiseId == mId)
+            ||
+            d.ChildDocuments.Any(cd =>
+                cd.ChildDocument != null &&
+                cd.ChildDocument.DocumentMerchandises.Any(cdm => cdm.MerchandiseId == mId))
+        );
+      }
+
+      // 7. Get total count for pagination before loading related entities
+      var totalCount = await query.CountAsync();
+
+      // 8. Order by CreationDate descending, then by Id
+      query = query.OrderByDescending(d => d.CreationDate).ThenByDescending(d => d.Id);
+
+      // 9. Fetch paged slice with full relational graph using AsSplitQuery
+      var pagedDocuments = await query
+          .AsSplitQuery()
+          .Include(d => d.CounterPart).ThenInclude(cp => cp!.Transporter).ThenInclude(t => t!.Vehicle)
+          .Include(d => d.SalesSite)
+          .Include(d => d.HoldingTaxes)
+          .Include(d => d.Taxes)
+          .Include(d => d.Payments)
+          .Include(d => d.AppUsers)
+              .ThenInclude(u => u!.Persons)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.Merchandise)
+                  .ThenInclude(m => m!.Articles)
+                      .ThenInclude(a => a!.Thicknesses)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.Merchandise)
+                  .ThenInclude(m => m!.Articles)
+                      .ThenInclude(a => a!.Widths)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.Merchandise)
+                  .ThenInclude(m => m!.Articles)
+                      .ThenInclude(a => a!.TVAs)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.QuantityMovements)
+                  .ThenInclude(qm => qm!.ListOfLengths)
+                      .ThenInclude(ll => ll.AppVarLength)
+          .Include(d => d.ChildDocuments)
+              .ThenInclude(cd => cd.ChildDocument)
+                  .ThenInclude(c => c!.DocumentMerchandises)
+                      .ThenInclude(cdm => cdm.Merchandise)
+                          .ThenInclude(m => m!.Articles)
+                              .ThenInclude(a => a!.Thicknesses)
+          .Include(d => d.ChildDocuments)
+              .ThenInclude(cd => cd.ChildDocument)
+                  .ThenInclude(c => c!.DocumentMerchandises)
+                      .ThenInclude(cdm => cdm.Merchandise)
+                          .ThenInclude(m => m!.Articles)
+                              .ThenInclude(a => a!.Widths)
+          .Include(d => d.ChildDocuments)
+              .ThenInclude(cd => cd.ChildDocument)
+                  .ThenInclude(c => c!.DocumentMerchandises)
+                      .ThenInclude(cdm => cdm.Merchandise)
+                          .ThenInclude(m => m!.Articles)
+                              .ThenInclude(a => a!.TVAs)
+          .Include(d => d.ChildDocuments)
+              .ThenInclude(cd => cd.ChildDocument)
+                  .ThenInclude(c => c!.DocumentMerchandises)
+                      .ThenInclude(cdm => cdm.QuantityMovements)
+                          .ThenInclude(qm => qm!.ListOfLengths)
+                              .ThenInclude(ll => ll.AppVarLength)
+          .Include(d => d.ParentDocuments)
+              .ThenInclude(pd => pd.ParentDocument)
+          .Skip((page - 1) * pageSize)
+          .Take(pageSize)
+          .ToListAsync();
+
+      var items = pagedDocuments.Select(MapDocumentToDto).ToList();
+
+      return Ok(new PagedResult<DocumentDto>
+      {
+        Items = items,
+        TotalCount = totalCount,
+        PageNumber = page,
+        PageSize = pageSize
+      });
+    }
+
+    /// <summary>
+    /// Helper mapper to convert Document entity with related merchandise lines and children to DocumentDto.
+    /// </summary>
+    private static DocumentDto MapDocumentToDto(Document d)
+    {
+      var dto = new DocumentDto(d);
+
+      var sourceMerchandises = new List<DocumentMerchandise>();
+      bool isOrderOrQuote = d.Type == DocumentTypes.supplierOrder || d.Type == DocumentTypes.customerOrder || d.Type == DocumentTypes.customerQuote;
+
+      if (d.ChildDocuments != null && d.ChildDocuments.Any())
+      {
+        dto.deliveryNoteDocNumbers = d.ChildDocuments
+            .Where(cd => cd.ChildDocument != null)
+            .Select(cd => cd.ChildDocument!.DocNumber ?? "")
+            .ToList();
+
+        dto.childdocuments = d.ChildDocuments
+            .Where(cd => cd.ChildDocument != null)
+            .Select(cd => new DocumentDto
+            {
+              id = cd.ChildDocument!.Id,
+              docnumber = cd.ChildDocument.DocNumber,
+              creationdate = cd.ChildDocument.CreationDate
+            }).ToList();
+
+        if (isOrderOrQuote)
         {
-            dto.deliveryNoteDocNumbers = d.ChildDocuments
-                .Where(cd => cd.ChildDocument != null)
-                .Select(cd => cd.ChildDocument!.DocNumber ?? "")
-                .ToList();
-
-             // 🆕 Also populate the full childdocuments collection
-            dto.childdocuments = d.ChildDocuments
-                .Where(cd => cd.ChildDocument != null)
-                .Select(cd => new DocumentDto {
-                    id = cd.ChildDocument!.Id,
-                    docnumber = cd.ChildDocument.DocNumber,
-                    creationdate = cd.ChildDocument.CreationDate
-                }).ToList();
-
-            if (isOrderOrQuote)
-            {
-                // Logic for Orders: Show DIRECT lines (which contain delivered quantities)
-                if (d.DocumentMerchandises != null)
-                {
-                    sourceMerchandises.AddRange(d.DocumentMerchandises);
-                }
-            }
-            else
-            {
-                // Logic for Invoices/BLs: Aggregate from children
-                foreach (var rel in d.ChildDocuments.Where(cd => cd.ChildDocument != null))
-                {
-                    if (rel.ChildDocument!.DocumentMerchandises != null)
-                    {
-                        sourceMerchandises.AddRange(rel.ChildDocument.DocumentMerchandises);
-                    }
-                }
-            }
+          if (d.DocumentMerchandises != null)
+          {
+            sourceMerchandises.AddRange(d.DocumentMerchandises);
+          }
         }
         else
         {
-            if (d.DocumentMerchandises != null)
+          foreach (var rel in d.ChildDocuments.Where(cd => cd.ChildDocument != null))
+          {
+            if (rel.ChildDocument!.DocumentMerchandises != null)
             {
-                sourceMerchandises.AddRange(d.DocumentMerchandises);
+              sourceMerchandises.AddRange(rel.ChildDocument.DocumentMerchandises);
             }
-
-            // Single-convert invoice: ChildDocuments is empty, but the source BL is the PARENT.
-            // Populate deliveryNoteDocNumbers by checking ParentDocuments for BL-type documents.
-            // This covers the case where Convert() was used (BL → Invoice one-to-one).
-            if (d.Type == DocumentTypes.customerInvoice && d.ParentDocuments != null)
-            {
-                var blParents = d.ParentDocuments
-                    .Where(pd => pd.ParentDocument != null && pd.ParentDocument.Type == DocumentTypes.customerDeliveryNote)
-                    .Select(pd => pd.ParentDocument!.DocNumber ?? "")
-                    .Where(num => !string.IsNullOrEmpty(num))
-                    .Distinct()
-                    .ToList();
-
-                // Fallback: if relationship data is missing but supplierReference was set on creation,
-                // use that — the user confirmed this column holds the BL reference in the DB.
-                if (blParents.Count == 0 && !string.IsNullOrEmpty(d.SupplierReference))
-                    blParents = new List<string> { d.SupplierReference };
-
-                if (blParents.Count > 0)
-                    dto.deliveryNoteDocNumbers = blParents;
-            }
+          }
+        }
+      }
+      else
+      {
+        if (d.DocumentMerchandises != null)
+        {
+          sourceMerchandises.AddRange(d.DocumentMerchandises);
         }
 
-        // Map the source merchandises to the DTO
-        dto.merchandises = sourceMerchandises
-            .Select(dm => new MerchandiseDto
-            {
-              id = dm.MerchandiseId,
-              line_type = dm.Type,
-              transporter_id = dm.TransporterId,
-              transporter_name = dm.Transporter?.FullName,
-              packagereference = dm.Merchandise?.PackageReference,
-              description = dm.Type == LineType.TransportFee ? (dm.Description ?? "Frais de transport") : dm.Merchandise?.Description,
-              isinvoicible = dm.Type == LineType.TransportFee || (dm.Merchandise?.IsInvoicible ?? false),
-              allownegativstock = dm.Merchandise?.AllowNegativStock ?? false,
-              quantity = dm.Quantity,
-              // §5.5 — Reliquats
-              quantity_delivered = dm.QuantityDelivered,
-              quantity_remaining = dm.QuantityRemaining,
-              unit_price_ht = dm.UnitPriceHT,
-              cost_ht = dm.CostHT,
-              discount_percentage = dm.DiscountPercentage,
-              cost_net_ht = dm.CostNetHT,
-              cost_discount_value = dm.CostDiscountValue,
-              tva_value = dm.TvaValue,
-              cost_ttc = dm.CostTTC,
-              article = dm.Merchandise?.Articles != null ?
-                    new ArticleDto(dm.Merchandise.Articles) : null,
-              lisoflengths = dm.QuantityMovements?.ListOfLengths?
-                    .Select(ll => new ListOflengthDto
-                    {
-                      id = ll.Id,
-                      nbpieces = ll.NumberOfPieces,
-                      quantity = ll.Quantity,
-                      customLength = ll.CustomLengthCm,
-                      totalWidth = ll.TotalWidthCm,
-                      length = ll.AppVarLength != null ?
-                            new AppVariableDto(ll.AppVarLength) : null
-                    })
-                    .ToArray()
-            })
-            .ToArray();
+        if (d.Type == DocumentTypes.customerInvoice && d.ParentDocuments != null)
+        {
+          var blParents = d.ParentDocuments
+              .Where(pd => pd.ParentDocument != null && pd.ParentDocument.Type == DocumentTypes.customerDeliveryNote)
+              .Select(pd => pd.ParentDocument!.DocNumber ?? "")
+              .Where(num => !string.IsNullOrEmpty(num))
+              .Distinct()
+              .ToList();
 
-        return dto;
-      }).ToList();
+          if (blParents.Count == 0 && !string.IsNullOrEmpty(d.SupplierReference))
+            blParents = new List<string> { d.SupplierReference };
 
-      return Ok(documentDtos);
+          if (blParents.Count > 0)
+            dto.deliveryNoteDocNumbers = blParents;
+        }
+      }
+
+      dto.merchandises = sourceMerchandises
+          .Select(dm => new MerchandiseDto
+          {
+            id = dm.MerchandiseId,
+            line_type = dm.Type,
+            transporter_id = dm.TransporterId,
+            transporter_name = dm.Transporter?.FullName,
+            packagereference = dm.Merchandise?.PackageReference,
+            description = dm.Type == LineType.TransportFee ? (dm.Description ?? "Frais de transport") : dm.Merchandise?.Description,
+            isinvoicible = dm.Type == LineType.TransportFee || (dm.Merchandise?.IsInvoicible ?? false),
+            allownegativstock = dm.Merchandise?.AllowNegativStock ?? false,
+            quantity = dm.Quantity,
+            quantity_delivered = dm.QuantityDelivered,
+            quantity_remaining = dm.QuantityRemaining,
+            unit_price_ht = dm.UnitPriceHT,
+            cost_ht = dm.CostHT,
+            discount_percentage = dm.DiscountPercentage,
+            cost_net_ht = dm.CostNetHT,
+            cost_discount_value = dm.CostDiscountValue,
+            tva_value = dm.TvaValue,
+            cost_ttc = dm.CostTTC,
+            article = dm.Merchandise?.Articles != null ? new ArticleDto(dm.Merchandise.Articles) : null,
+            lisoflengths = dm.QuantityMovements?.ListOfLengths?
+                  .Select(ll => new ListOflengthDto
+                  {
+                    id = ll.Id,
+                    nbpieces = ll.NumberOfPieces,
+                    quantity = ll.Quantity,
+                    customLength = ll.CustomLengthCm,
+                    totalWidth = ll.TotalWidthCm,
+                    length = ll.AppVarLength != null ? new AppVariableDto(ll.AppVarLength) : null
+                  })
+                  .ToArray()
+          })
+          .ToArray();
+
+      return dto;
     }
 
     #region Add Document

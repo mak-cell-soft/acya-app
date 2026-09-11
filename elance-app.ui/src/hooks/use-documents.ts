@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { documentService } from '@/services/components/document.service';
-import { Document, TypeDocsFilter } from '@/types/document';
+import { Document, TypeDocsFilter, PurchaseSearchFilter, PagedResult } from '@/types/document';
 import { toast } from 'sonner';
 
 /**
@@ -35,6 +35,31 @@ export function useDocumentsByTypeFiltered(filter: TypeDocsFilter) {
     // Always re-fetch when the sales page is mounted (e.g. after navigating back from /bl/new)
     // This ensures a freshly created document always appears without a manual reload.
     refetchOnMount: 'always',
+  });
+}
+
+/**
+ * Hook for Advanced / Deep Search of purchases with server-side filtering and pagination.
+ */
+export function usePurchaseDeepSearch(filter: PurchaseSearchFilter, enabled: boolean = true) {
+  return useQuery<PagedResult<Document>>({
+    queryKey: [
+      'purchases',
+      'deep-search',
+      filter.reference,
+      filter.supplierReference,
+      filter.supplierId,
+      filter.articleId,
+      filter.merchandiseId,
+      filter.startDate,
+      filter.endDate,
+      filter.documentType,
+      filter.page,
+      filter.pageSize
+    ],
+    queryFn: () => documentService.searchPurchases(filter),
+    enabled: enabled,
+    placeholderData: (previousData) => previousData,
   });
 }
 

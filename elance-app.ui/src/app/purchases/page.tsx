@@ -31,7 +31,10 @@ import {
   Coins,
   ChevronUp,
   LayoutDashboard,
-  Gavel
+  Gavel,
+  SlidersHorizontal,
+  X,
+  CalendarRange
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -64,12 +67,16 @@ import { usePermissionGuard } from '@/hooks/use-permission-guard';
 // Hooks & Services
 import {
   useDocumentsByTypeFiltered,
+  usePurchaseDeepSearch,
   useParentsWithChildren,
   useDeleteDocument
 } from '@/hooks/use-documents';
 import { useSuppliers } from '@/hooks/use-suppliers';
+import { useArticles } from '@/hooks/use-articles';
+import { TablePagination } from '@/components/shared/table-pagination';
 import { documentService } from '@/services/components/document.service';
-import { DocumentTypes, DocStatus, BillingStatus, Document } from '@/types/document';
+import { DocumentTypes, DocStatus, BillingStatus, Document, PurchaseSearchFilter } from '@/types/document';
+import { Article } from '@/types/article';
 
 // Shared / Modular Components
 import { DocumentDetailDrawer } from '@/components/sales/document-detail-drawer';
@@ -96,6 +103,23 @@ const MONTHS = [
   'Décembre'
 ];
 
+// Helper to compute default period: current date minus 3 months -> current date
+const getDefaultDateRange = () => {
+  const now = new Date();
+  const past = new Date(now);
+  past.setMonth(now.getMonth() - 3);
+  const toISO = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+  return {
+    startDate: toISO(past),
+    endDate: toISO(now)
+  };
+};
+
 export default function PurchasesPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -113,6 +137,29 @@ export default function PurchasesPage() {
   // Search & Expansion States
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
+
+  // Deep Search Panel & Execution States
+  const [isDeepSearchOpen, setIsDeepSearchOpen] = useState(false);
+  const [isDeepSearchActive, setIsDeepSearchActive] = useState(false);
+
+  // Deep Search Criteria States
+  const [deepSearchRef, setDeepSearchRef] = useState('');
+  const [deepSearchSupplierRef, setDeepSearchSupplierRef] = useState('');
+  const [deepSearchSupplierId, setDeepSearchSupplierId] = useState<string>('all');
+  const [deepSearchArticle, setDeepSearchArticle] = useState<Article | null>(null);
+  const [articleSearchTerm, setArticleSearchTerm] = useState('');
+  const [isArticleDropdownOpen, setIsArticleDropdownOpen] = useState(false);
+  const [deepSearchStartDate, setDeepSearchStartDate] = useState(() => getDefaultDateRange().startDate);
+  const [deepSearchEndDate, setDeepSearchEndDate] = useState(() => getDefaultDateRange().endDate);
+
+  // Submitted criteria driving the server-side React Query hook
+  const [activeSearchCriteria, setActiveSearchCriteria] = useState<PurchaseSearchFilter>({
+    startDate: `${getDefaultDateRange().startDate}T00:00:00Z`,
+    endDate: `${getDefaultDateRange().endDate}T23:59:59Z`,
+  });
+
+  const [deepSearchPage, setDeepSearchPage] = useState(1);
+  const [deepSearchPageSize, setDeepSearchPageSize] = useState(15);
 
   // Month & Year Filter State (initialized to current period)
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
@@ -190,6 +237,46 @@ export default function PurchasesPage() {
   // Fetch list of suppliers for client-side drop-down filtering
   const { data: suppliers = [] } = useSuppliers();
 
+  // Fetch catalog articles for Deep Search article/merchandise picker
+  const { data: allArticles = [] } = useArticles();
+
+  // Filtered articles list based on user search term in Deep Search panel
+  const filteredArticlesForSearch = useMemo(() => {
+    if (!articleSearchTerm.trim()) return allArticles;
+    const term = articleSearchTerm.toLowerCase();
+    return allArticles.filter(
+      (a: Article) =>
+        a.reference.toLowerCase().includes(term) ||
+        (a.description && a.description.toLowerCase().includes(term))
+    );
+  }, [allArticles, articleSearchTerm]);
+
+  // Server-side Deep Search query (executes when isDeepSearchActive is true)
+  const {
+    data: deepSearchData,
+    isLoading: isDeepSearchLoading,
+    refetch: refetchDeepSearch
+  } = usePurchaseDeepSearch(
+    {
+      ...activeSearchCriteria,
+      documentType: docType,
+      page: deepSearchPage,
+      pageSize: deepSearchPageSize
+    },
+    isDeepSearchActive
+  );
+
+  // Synchronize active tab document type with active Deep Search criteria
+  useEffect(() => {
+    if (isDeepSearchActive) {
+      setDeepSearchPage(1);
+      setActiveSearchCriteria((prev) => ({
+        ...prev,
+        documentType: tabToDocType(activeTab)
+      }));
+    }
+  }, [activeTab, isDeepSearchActive]);
+
   // Soft Delete mutation
   const deleteDocMutation = useDeleteDocument();
 
@@ -215,7 +302,11 @@ export default function PurchasesPage() {
     if (confirm('Voulez-vous vraiment supprimer ce document d’achat ? Cette action est irréversible.')) {
       try {
         await deleteDocMutation.mutateAsync(id);
-        refetch();
+        if (isDeepSearchActive) {
+          refetchDeepSearch();
+        } else {
+          refetch();
+        }
       } catch (err) {
         toast.error('Erreur lors de la suppression du document.');
       }
@@ -265,7 +356,7 @@ export default function PurchasesPage() {
     return rel?.childDocuments?.filter((d: any) => d.type === DocumentTypes.supplierInvoiceReturn) || [];
   };
 
-  // Client-Side filtering: search terms + supplier drop-down selection
+  // Client-Side filtering: search terms + supplier drop-down selection (used in default month mode)
   const filteredDocuments = useMemo(() => {
     return (documents || [])
       .filter((doc) => {
@@ -290,10 +381,70 @@ export default function PurchasesPage() {
       .sort((a, b) => (b.docnumber || '').localeCompare(a.docnumber || ''));
   }, [documents, searchTerm, selectedSupplierId]);
 
+  // Active documents displayed in the table (switches between Deep Search server results and month-filtered)
+  const displayedDocuments = useMemo(() => {
+    if (isDeepSearchActive) {
+      return deepSearchData?.items || [];
+    }
+    return filteredDocuments;
+  }, [isDeepSearchActive, deepSearchData, filteredDocuments]);
+
+  // Unified loading state
+  const isListLoading = isDeepSearchActive ? isDeepSearchLoading : isLoading;
+
+  // Total count across all pages or current month
+  const totalDocumentsCount = isDeepSearchActive ? (deepSearchData?.totalCount || 0) : filteredDocuments.length;
+
+  // Deep Search action handlers
+  const handleExecuteDeepSearch = () => {
+    if (deepSearchStartDate && deepSearchEndDate && deepSearchStartDate > deepSearchEndDate) {
+      toast.error('La date de début ne peut pas être supérieure à la date de fin.');
+      return;
+    }
+
+    setDeepSearchPage(1);
+    setActiveSearchCriteria({
+      reference: deepSearchRef.trim() || undefined,
+      supplierReference: deepSearchSupplierRef.trim() || undefined,
+      supplierId: deepSearchSupplierId !== 'all' ? Number(deepSearchSupplierId) : undefined,
+      articleId: deepSearchArticle ? deepSearchArticle.id : undefined,
+      startDate: deepSearchStartDate ? `${deepSearchStartDate}T00:00:00Z` : undefined,
+      endDate: deepSearchEndDate ? `${deepSearchEndDate}T23:59:59Z` : undefined,
+      documentType: docType
+    });
+    setIsDeepSearchActive(true);
+    toast.success('Recherche avancée exécutée.');
+  };
+
+  const handleResetDeepSearch = () => {
+    const def = getDefaultDateRange();
+    setDeepSearchRef('');
+    setDeepSearchSupplierRef('');
+    setDeepSearchSupplierId('all');
+    setDeepSearchArticle(null);
+    setArticleSearchTerm('');
+    setIsArticleDropdownOpen(false);
+    setDeepSearchStartDate(def.startDate);
+    setDeepSearchEndDate(def.endDate);
+    setDeepSearchPage(1);
+
+    setActiveSearchCriteria({
+      startDate: `${def.startDate}T00:00:00Z`,
+      endDate: `${def.endDate}T23:59:59Z`,
+      documentType: docType
+    });
+    setIsDeepSearchActive(false);
+    toast.info('Critères réinitialisés au mode standard.');
+  };
+
+  const handleExitDeepSearch = () => {
+    setIsDeepSearchActive(false);
+  };
+
   // Compute live aggregates of selected receipts for batch validation
   const selectedReceipts = useMemo(() => {
-    return (documents || []).filter((doc) => selectedReceiptIds.includes(doc.id));
-  }, [documents, selectedReceiptIds]);
+    return displayedDocuments.filter((doc) => selectedReceiptIds.includes(doc.id));
+  }, [displayedDocuments, selectedReceiptIds]);
 
   // Determine if the batch conversion trigger is active and valid (same supplier + non-invoiced)
   const isBatchTriggerValid = useMemo(() => {
@@ -307,16 +458,23 @@ export default function PurchasesPage() {
     );
   }, [selectedReceipts]);
 
-  // Selected supplier name for display in SelectTrigger
+  // Selected supplier name for display in SelectTrigger (Standard filter)
   const selectedSupplierName = useMemo(() => {
     if (selectedSupplierId === 'all') return 'Tous les Fournisseurs';
     const found = suppliers.find((s: any) => s.id.toString() === selectedSupplierId);
     return found ? (found.name || `${found.firstname || ''} ${found.lastname || ''}`) : 'Tous les Fournisseurs';
   }, [selectedSupplierId, suppliers]);
 
+  // Selected supplier name for Deep Search SelectTrigger
+  const deepSearchSupplierName = useMemo(() => {
+    if (deepSearchSupplierId === 'all') return 'Tous les Fournisseurs';
+    const found = suppliers.find((s: any) => s.id.toString() === deepSearchSupplierId);
+    return found ? (found.name || `${found.firstname || ''} ${found.lastname || ''}`) : 'Tous les Fournisseurs';
+  }, [deepSearchSupplierId, suppliers]);
+
   // Dynamic KPI counters tailored to active workspace and tab calculations
   const kpiData = useMemo(() => {
-    const list = filteredDocuments;
+    const list = displayedDocuments;
     if (activeTab === 'invoice') {
       return list.reduce(
         (acc, curr) => {
@@ -341,7 +499,7 @@ export default function PurchasesPage() {
         { ht: 0, tva: 0, ttc: 0, avoirs: 0, payable: 0, remaining: 0 }
       );
     }
-  }, [filteredDocuments, activeTab]);
+  }, [displayedDocuments, activeTab]);
 
   const fmt = (n: number) =>
     n.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
@@ -404,6 +562,27 @@ export default function PurchasesPage() {
             >
               <Printer className="w-4 h-4" /> Imprimer la liste
             </Button>
+            {/* Deep Search Toggle Button */}
+            <Button
+              onClick={() => setIsDeepSearchOpen((prev) => !prev)}
+              variant="outline"
+              className={cn(
+                "h-11 rounded-xl font-bold gap-2 flex items-center transition-all duration-300",
+                isDeepSearchActive
+                  ? "bg-amber-900 text-white border-amber-900 hover:bg-amber-950 shadow-md shadow-amber-900/20"
+                  : isDeepSearchOpen
+                    ? "bg-amber-50 text-amber-950 border-amber-900/40"
+                    : "border-amber-900/20 text-amber-900 hover:bg-amber-50"
+              )}
+            >
+              <SlidersHorizontal className="w-4 h-4 text-amber-600" />
+              <span>Recherche Avancée</span>
+              {isDeepSearchActive && (
+                <span className="ml-1 px-1.5 py-0.5 rounded-full bg-white text-amber-950 text-[10px] font-mono font-bold leading-none">
+                  Actif
+                </span>
+              )}
+            </Button>
             {/* Primary create dropdown — hidden unless user has canAdd permission on purchases */}
             {hasPermission('purchases', 'canAdd') && (
               <DropdownMenu>
@@ -433,6 +612,243 @@ export default function PurchasesPage() {
             )}
           </div>
         </div>
+
+        {/* Deep Search Collapsible Panel */}
+        <AnimatePresence>
+          {isDeepSearchOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="overflow-hidden"
+            >
+              <Card className="border border-amber-900/20 shadow-xl shadow-amber-950/5 rounded-2xl bg-white overflow-hidden">
+                <div className="px-6 py-4 bg-gradient-to-r from-corp-blue-950 via-corp-blue-900 to-amber-950 text-white flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-300">
+                      <SlidersHorizontal className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-extrabold tracking-tight">Recherche Avancée — Achats</h3>
+                      <p className="text-xs text-amber-200/80 font-medium">
+                        Filtrez vos factures et documents par référence, fournisseur, marchandise/article et période
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {isDeepSearchActive && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleResetDeepSearch}
+                        className="text-xs text-amber-200 hover:text-white hover:bg-white/10 h-8 rounded-lg gap-1.5 font-bold"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" /> Réinitialiser
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setIsDeepSearchOpen(false)}
+                      className="text-white hover:bg-white/10 h-8 w-8 p-0 rounded-lg"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <CardContent className="p-6 space-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {/* 1. Référence Elance */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider font-mono flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5 text-amber-700" /> N° Facture / Réf Elance
+                      </label>
+                      <div className="relative">
+                        <Input
+                          placeholder="Ex: FA-2026-00125 ou 00125..."
+                          value={deepSearchRef}
+                          onChange={(e) => setDeepSearchRef(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') handleExecuteDeepSearch(); }}
+                          className="h-10 rounded-xl border-slate-200 bg-white text-xs font-semibold focus:border-amber-900 pr-8"
+                        />
+                        {deepSearchRef && (
+                          <button
+                            type="button"
+                            onClick={() => setDeepSearchRef('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 2. Référence Fournisseur */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider font-mono flex items-center gap-1.5">
+                        <Layers className="w-3.5 h-3.5 text-amber-700" /> Réf. Facture Fournisseur
+                      </label>
+                      <div className="relative">
+                        <Input
+                          placeholder="Ex: FOU-45872 ou 45872..."
+                          value={deepSearchSupplierRef}
+                          onChange={(e) => setDeepSearchSupplierRef(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') handleExecuteDeepSearch(); }}
+                          className="h-10 rounded-xl border-slate-200 bg-white text-xs font-semibold focus:border-amber-900 pr-8"
+                        />
+                        {deepSearchSupplierRef && (
+                          <button
+                            type="button"
+                            onClick={() => setDeepSearchSupplierRef('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 3. Fournisseur */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider font-mono flex items-center gap-1.5">
+                        <Package className="w-3.5 h-3.5 text-amber-700" /> Fournisseur
+                      </label>
+                      <Select value={deepSearchSupplierId} onValueChange={(val) => setDeepSearchSupplierId(val || 'all')}>
+                        <SelectTrigger className="h-10 rounded-xl border-slate-200 bg-white text-xs font-semibold focus:ring-amber-900">
+                          <SelectValue placeholder="Tous les fournisseurs">
+                            {deepSearchSupplierName}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl shadow-xl max-h-60">
+                          <SelectItem value="all" className="text-xs font-bold">
+                            Tous les Fournisseurs
+                          </SelectItem>
+                          {suppliers.map((s: any) => {
+                            const name = s.name || `${s.firstname || ''} ${s.lastname || ''}`;
+                            return (
+                              <SelectItem key={s.id} value={s.id.toString()} className="text-xs">
+                                {name}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* 4. Marchandise / Article Filter */}
+                    <div className="space-y-1.5 relative">
+                      <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider font-mono flex items-center gap-1.5">
+                        <Package className="w-3.5 h-3.5 text-amber-700" /> Marchandise / Article
+                      </label>
+                      <div className="relative">
+                        <Input
+                          placeholder="Rechercher par référence ou nom d'article..."
+                          value={deepSearchArticle ? `${deepSearchArticle.reference} - ${deepSearchArticle.description || ''}` : articleSearchTerm}
+                          onChange={(e) => {
+                            setArticleSearchTerm(e.target.value);
+                            if (deepSearchArticle) setDeepSearchArticle(null);
+                            setIsArticleDropdownOpen(true);
+                          }}
+                          onFocus={() => setIsArticleDropdownOpen(true)}
+                          className="h-10 rounded-xl border-slate-200 bg-white text-xs font-semibold focus:border-amber-900 pr-8"
+                        />
+                        {(deepSearchArticle || articleSearchTerm) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeepSearchArticle(null);
+                              setArticleSearchTerm('');
+                              setIsArticleDropdownOpen(false);
+                            }}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      {/* Searchable Article Dropdown */}
+                      {isArticleDropdownOpen && filteredArticlesForSearch.length > 0 && !deepSearchArticle && (
+                        <div className="absolute left-0 right-0 top-full mt-1 max-h-56 overflow-y-auto bg-white border border-slate-200 shadow-2xl rounded-xl z-[999] divide-y divide-slate-100">
+                          {filteredArticlesForSearch.slice(0, 10).map((art) => (
+                            <button
+                              key={art.id}
+                              type="button"
+                              onClick={() => {
+                                setDeepSearchArticle(art);
+                                setIsArticleDropdownOpen(false);
+                              }}
+                              className="w-full text-left p-2.5 hover:bg-amber-50/60 transition-colors flex items-center justify-between"
+                            >
+                              <div className="truncate mr-2">
+                                <span className="text-xs font-mono font-bold text-slate-900 block">{art.reference}</span>
+                                <span className="text-[10px] text-slate-400 block truncate">{art.description || '--'}</span>
+                              </div>
+                              <Badge variant="outline" className="text-[9px] uppercase shrink-0 font-mono">
+                                {art.unit || 'Pcs'}
+                              </Badge>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 5. Date Début */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider font-mono flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-amber-700" /> Période : Date Début
+                      </label>
+                      <Input
+                        type="date"
+                        value={deepSearchStartDate}
+                        onChange={(e) => setDeepSearchStartDate(e.target.value)}
+                        className="h-10 rounded-xl border-slate-200 bg-white text-xs font-semibold focus:border-amber-900 font-mono"
+                      />
+                    </div>
+
+                    {/* 6. Date Fin */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider font-mono flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-amber-700" /> Période : Date Fin
+                      </label>
+                      <Input
+                        type="date"
+                        value={deepSearchEndDate}
+                        onChange={(e) => setDeepSearchEndDate(e.target.value)}
+                        className="h-10 rounded-xl border-slate-200 bg-white text-xs font-semibold focus:border-amber-900 font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Search / Reset Actions */}
+                  <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <p className="text-[11px] font-mono text-slate-400">
+                      Période par défaut : année en cours + 3 derniers mois (combinable avec tous les filtres)
+                    </p>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleResetDeepSearch}
+                        className="h-10 rounded-xl text-xs font-bold border-slate-200 hover:bg-slate-100 flex-1 sm:flex-none gap-1.5 px-4"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5 text-slate-500" /> Réinitialiser
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={handleExecuteDeepSearch}
+                        className="h-10 rounded-xl text-xs font-bold bg-amber-900 hover:bg-amber-950 text-white shadow-md shadow-amber-950/10 flex-1 sm:flex-none gap-1.5 px-6"
+                      >
+                        <Search className="w-3.5 h-3.5" /> Lancer la recherche
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Dynamic Period Navigator Card */}
         <Card className="border-slate-100 shadow-md shadow-slate-900/5 rounded-xl bg-white overflow-hidden border">
@@ -841,10 +1257,85 @@ export default function PurchasesPage() {
 
                   <div className="flex items-center gap-2 px-4 py-2 bg-amber-950/5 border border-amber-900/10 rounded-xl text-xs font-bold text-amber-900">
                     <Layers className="w-4 h-4 text-amber-700" />
-                    <span>{filteredDocuments.length} Documents trouvés</span>
+                    <span>{totalDocumentsCount} Document(s) trouvé(s)</span>
                   </div>
                 </div>
               </div>
+
+              {/* Active Criteria Chips Bar when Deep Search is running */}
+              {isDeepSearchActive && (
+                <div className="mt-3 p-3 bg-amber-50/80 border border-amber-200/80 rounded-xl flex flex-wrap items-center justify-between gap-3 animate-in fade-in duration-200">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[11px] font-bold text-amber-950 flex items-center gap-1.5 font-mono uppercase tracking-wider">
+                      <Search className="w-3.5 h-3.5 text-amber-700" /> Filtres actifs :
+                    </span>
+                    {activeSearchCriteria.reference && (
+                      <Badge className="bg-white border-amber-300 text-amber-950 text-xs font-mono font-bold gap-1 py-1 shadow-sm">
+                        <span>Réf: {activeSearchCriteria.reference}</span>
+                        <X
+                          className="w-3.5 h-3.5 cursor-pointer text-slate-400 hover:text-red-600 transition-colors"
+                          onClick={() => {
+                            setDeepSearchRef('');
+                            setActiveSearchCriteria((prev) => ({ ...prev, reference: undefined }));
+                          }}
+                        />
+                      </Badge>
+                    )}
+                    {activeSearchCriteria.supplierReference && (
+                      <Badge className="bg-white border-amber-300 text-amber-950 text-xs font-mono font-bold gap-1 py-1 shadow-sm">
+                        <span>Réf Fourn: {activeSearchCriteria.supplierReference}</span>
+                        <X
+                          className="w-3.5 h-3.5 cursor-pointer text-slate-400 hover:text-red-600 transition-colors"
+                          onClick={() => {
+                            setDeepSearchSupplierRef('');
+                            setActiveSearchCriteria((prev) => ({ ...prev, supplierReference: undefined }));
+                          }}
+                        />
+                      </Badge>
+                    )}
+                    {activeSearchCriteria.supplierId && (
+                      <Badge className="bg-white border-amber-300 text-amber-950 text-xs font-mono font-bold gap-1 py-1 shadow-sm">
+                        <span>Fournisseur: {deepSearchSupplierName}</span>
+                        <X
+                          className="w-3.5 h-3.5 cursor-pointer text-slate-400 hover:text-red-600 transition-colors"
+                          onClick={() => {
+                            setDeepSearchSupplierId('all');
+                            setActiveSearchCriteria((prev) => ({ ...prev, supplierId: undefined }));
+                          }}
+                        />
+                      </Badge>
+                    )}
+                    {activeSearchCriteria.articleId && deepSearchArticle && (
+                      <Badge className="bg-white border-amber-300 text-amber-950 text-xs font-mono font-bold gap-1 py-1 shadow-sm">
+                        <span>Article: {deepSearchArticle.reference}</span>
+                        <X
+                          className="w-3.5 h-3.5 cursor-pointer text-slate-400 hover:text-red-600 transition-colors"
+                          onClick={() => {
+                            setDeepSearchArticle(null);
+                            setActiveSearchCriteria((prev) => ({ ...prev, articleId: undefined }));
+                          }}
+                        />
+                      </Badge>
+                    )}
+                    {deepSearchStartDate && deepSearchEndDate && (
+                      <Badge className="bg-white border-amber-300 text-amber-950 text-xs font-mono font-bold gap-1 py-1 shadow-sm">
+                        <CalendarRange className="w-3.5 h-3.5 text-amber-700 mr-0.5" />
+                        <span>Du {deepSearchStartDate} au {deepSearchEndDate}</span>
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleExitDeepSearch}
+                      className="h-7 text-xs text-slate-600 hover:text-slate-900 font-bold px-2.5 rounded-lg hover:bg-white/60"
+                    >
+                      Quitter la recherche
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardHeader>
 
             {/* Data Table */}
@@ -861,12 +1352,12 @@ export default function PurchasesPage() {
                             type="checkbox"
                             className="accent-amber-900 rounded cursor-pointer size-3.5"
                             checked={
-                              filteredDocuments.length > 0 &&
-                              selectedReceiptIds.length === filteredDocuments.length
+                              displayedDocuments.length > 0 &&
+                              selectedReceiptIds.length === displayedDocuments.length
                             }
                             onChange={(e) => {
                               if (e.target.checked) {
-                                setSelectedReceiptIds(filteredDocuments.map((d) => d.id));
+                                setSelectedReceiptIds(displayedDocuments.map((d) => d.id));
                               } else {
                                 setSelectedReceiptIds([]);
                               }
@@ -898,7 +1389,7 @@ export default function PurchasesPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {isLoading ? (
+                    {isListLoading ? (
                       <tr>
                         <td
                           colSpan={activeTab === 'invoice' ? 11 : activeTab === 'receipt' ? 10 : (activeTab === 'order' || activeTab === 'return') ? 8 : 7}
@@ -907,8 +1398,8 @@ export default function PurchasesPage() {
                           Chargement des documents d&apos;achat en cours...
                         </td>
                       </tr>
-                    ) : filteredDocuments.length > 0 ? (
-                      filteredDocuments.map((item) => {
+                    ) : displayedDocuments.length > 0 ? (
+                      displayedDocuments.map((item) => {
                         const isExpanded = expandedId === item.id;
 
                         // Associated children details for expanded Row
@@ -1547,16 +2038,33 @@ export default function PurchasesPage() {
                     ) : (
                       <tr>
                         <td
-                          colSpan={activeTab === 'invoice' ? 11 : activeTab === 'receipt' ? 9 : (activeTab === 'order' || activeTab === 'return') ? 8 : 7}
+                          colSpan={activeTab === 'invoice' ? 11 : activeTab === 'receipt' ? 10 : (activeTab === 'order' || activeTab === 'return') ? 8 : 7}
                           className="py-24 text-center text-slate-400 italic font-medium"
                         >
-                          Aucun document trouvé pour la période sélectionnée.
+                          {isDeepSearchActive
+                            ? 'Aucun document d’achat ne correspond à vos critères de recherche avancée.'
+                            : 'Aucun document trouvé pour la période sélectionnée.'}
                         </td>
                       </tr>
                     )}
                   </tbody>
                 </table>
               </div>
+
+              {/* Server-side Table Pagination for Deep Search */}
+              {isDeepSearchActive && (deepSearchData?.totalCount || 0) > 0 && (
+                <TablePagination
+                  currentPage={deepSearchPage}
+                  totalItems={deepSearchData?.totalCount || 0}
+                  pageSize={deepSearchPageSize}
+                  onPageChange={(page) => setDeepSearchPage(page)}
+                  onPageSizeChange={(size) => {
+                    setDeepSearchPageSize(size);
+                    setDeepSearchPage(1);
+                  }}
+                  pageSizeOptions={[15, 30, 50, 100]}
+                />
+              )}
             </CardContent>
           </Tabs>
         </Card>
