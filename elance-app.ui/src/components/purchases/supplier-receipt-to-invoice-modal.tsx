@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   X,
   ArrowRight,
@@ -8,6 +8,7 @@ import {
   Layers,
   Sparkles,
   Tag,
+  Calendar,
   Loader2,
   CheckCircle2,
   AlertTriangle,
@@ -33,6 +34,15 @@ import { useAuthStore } from '@/store/use-auth-store';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Helper to get local date formatted as YYYY-MM-DD for native HTML date input
+const getTodayDateString = (): string => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 interface SupplierReceiptToInvoiceModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -49,13 +59,31 @@ export function SupplierReceiptToInvoiceModal({
   const { user } = useAuthStore();
   const { data: stampTaxesData } = useAppVariables('Taxe');
 
-  // Form parameters
+  // Form parameters:
+  // - supplierReference: Physical invoice number from supplier
+  // - invoiceDate: Accounting date of generated invoice (defaults to today; can be backdated to receipt month)
+  // - stampTaxId: Fiscal stamp applied to invoice total
   const [supplierReference, setSupplierReference] = useState<string>('');
+  const [invoiceDate, setInvoiceDate] = useState<string>(getTodayDateString());
   const [stampTaxId, setStampTaxId] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
 
   // Filter AppVariables for active taxes
   const stampTaxes = stampTaxesData?.filter((v) => !v.isdeleted) || [];
+
+  // Helper to extract formatted date (YYYY-MM-DD) from the first selected receipt
+  // WHY: Suppliers often send invoices in the subsequent month, but accounting rules require
+  // generating the invoice in the month of the receipt documents. This allows 1-click sync.
+  const latestReceiptDate = useMemo(() => {
+    const rawDate = selectedReceipts[0]?.creationdate || selectedReceipts[0]?.updatedate;
+    if (!rawDate) return null;
+    const d = new Date(rawDate);
+    if (isNaN(d.getTime())) return null;
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, [selectedReceipts]);
 
   // Pre-fill default stamp tax (e.g. 1.000 TND or 0.600 TND)
   useEffect(() => {
@@ -65,10 +93,11 @@ export function SupplierReceiptToInvoiceModal({
     }
   }, [stampTaxesData]);
 
-  // Reset form when modal opens
+  // Reset form when modal opens: default to today's date and clear reference
   useEffect(() => {
     if (isOpen) {
       setSupplierReference('');
+      setInvoiceDate(getTodayDateString());
       if (stampTaxes.length > 0) {
         const defaultStamp = stampTaxes.find((t) => t.isdefault === true) || stampTaxes[0];
         if (defaultStamp) setStampTaxId(defaultStamp.id.toString());
@@ -103,17 +132,27 @@ export function SupplierReceiptToInvoiceModal({
       toast.warning('Veuillez saisir la référence de la facture fournisseur.');
       return;
     }
+    if (!invoiceDate) {
+      toast.warning('Veuillez choisir la date de la facture.');
+      return;
+    }
 
     setSubmitting(true);
 
     try {
+      // NOTE: C# API Contract Assumption: DocumentController.CreateInvoice maps invoiceDoc.creationdate
+      // directly to invoice.CreationDate and merchandise CreationDates.
+      // Setting midday (T12:00:00) avoids any day-shift edge cases between client local time and UTC.
+      const targetDate = invoiceDate ? new Date(`${invoiceDate}T12:00:00`) : new Date();
+      const creationDateIso = isNaN(targetDate.getTime()) ? new Date().toISOString() : targetDate.toISOString();
+
       // Build target DocumentDto for the Invoice
       const invoiceDoc: any = {
         id: 0,
         type: DocumentTypes.supplierInvoice,
         counterpart_id: selectedReceipts[0].counterpart?.id,
         counterpart: selectedReceipts[0].counterpart,
-        creationdate: new Date().toISOString(),
+        creationdate: creationDateIso,
         updatedate: new Date().toISOString(),
         sales_site_id: selectedReceipts[0].sales_site?.id || null,
         sales_site: selectedReceipts[0].sales_site || null,
@@ -199,23 +238,55 @@ export function SupplierReceiptToInvoiceModal({
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 bg-[#fdfdfd]">
-            {/* Left Column: Reference & Receipts table */}
+            {/* Left Column: Reference, Date & Receipts table */}
             <div className="lg:col-span-7 space-y-6">
-              {/* Supplier Reference */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-sand-500 uppercase tracking-wider flex items-center gap-1.5">
-                  <Tag className="w-3.5 h-3.5 text-amber-600" /> Référence Facture Fournisseur
-                </label>
-                <Input
-                  value={supplierReference}
-                  onChange={(e) => setSupplierReference(e.target.value)}
-                  placeholder="Saisir le numéro de la facture reçue (ex: FACT-2024-123)"
-                  className="border-sand-200 rounded-xl bg-white h-10 text-xs font-semibold focus-visible:ring-amber-600"
-                  required
-                />
-                <p className="text-[10px] text-sand-400 font-medium italic">
-                  Référence du document physique reçu du fournisseur
-                </p>
+              {/* Form Inputs: Reference & Accounting Invoice Date */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Supplier Reference */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-sand-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5 text-amber-600" /> Référence Facture Fournisseur
+                  </label>
+                  <Input
+                    value={supplierReference}
+                    onChange={(e) => setSupplierReference(e.target.value)}
+                    placeholder="ex: FACT-2024-123"
+                    className="border-sand-200 rounded-xl bg-white h-10 text-xs font-semibold focus-visible:ring-amber-600"
+                    required
+                  />
+                  <p className="text-[10px] text-sand-400 font-medium italic">
+                    N° du document physique reçu du fournisseur
+                  </p>
+                </div>
+
+                {/* Invoice Creation Date */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-sand-500 uppercase tracking-wider flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-amber-600" /> Date de Facturation
+                    </label>
+                    {latestReceiptDate && latestReceiptDate !== invoiceDate && (
+                      <button
+                        type="button"
+                        onClick={() => setInvoiceDate(latestReceiptDate)}
+                        className="text-[10px] font-bold text-amber-700 hover:text-amber-900 underline cursor-pointer transition-colors"
+                        title="Utiliser la date du bon de réception sélectionné"
+                      >
+                        Date du BR ({new Date(latestReceiptDate).toLocaleDateString('fr-FR')})
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    type="date"
+                    value={invoiceDate}
+                    onChange={(e) => setInvoiceDate(e.target.value)}
+                    className="border-sand-200 rounded-xl bg-white h-10 text-xs font-semibold focus-visible:ring-amber-600"
+                    required
+                  />
+                  <p className="text-[10px] text-sand-400 font-medium italic">
+                    Date comptable de la facture générée
+                  </p>
+                </div>
               </div>
 
               {/* Selected receipts */}
@@ -238,7 +309,11 @@ export function SupplierReceiptToInvoiceModal({
                         <tr key={r.id} className="hover:bg-sand-50/50 transition-colors">
                           <td className="px-4 py-3 font-bold text-sand-900">{r.docnumber}</td>
                           <td className="px-4 py-3">
-                            {r.updatedate ? new Date(r.updatedate).toLocaleDateString('fr-FR') : '--'}
+                            {r.creationdate
+                              ? new Date(r.creationdate).toLocaleDateString('fr-FR')
+                              : r.updatedate
+                              ? new Date(r.updatedate).toLocaleDateString('fr-FR')
+                              : '--'}
                           </td>
                           <td className="px-4 py-3 text-right font-mono font-semibold">
                             {fmt(r.total_ht_net_doc || 0)} DT
@@ -345,7 +420,7 @@ export function SupplierReceiptToInvoiceModal({
             </Button>
             <Button
               type="button"
-              disabled={submitting || !supplierReference.trim()}
+              disabled={submitting || !supplierReference.trim() || !invoiceDate}
               onClick={handleSubmit}
               className="bg-amber-900 hover:bg-amber-950 text-white shadow-md px-6 h-10 font-bold text-xs gap-2 flex items-center"
             >
