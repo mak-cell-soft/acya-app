@@ -33,14 +33,11 @@ import {
   AlertTriangle,
   ArrowUpRight, 
   ArrowDownRight,
-  Filter,
   Download,
   AlertCircle,
   Search,
   SlidersHorizontal,
-  ArrowUpDown,
   FileDown,
-  Check,
   X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -440,14 +437,15 @@ export default function AnalyticsPage() {
     { title: 'Alertes Stock', value: `${kpis?.stockAlertCount || 0} Articles`, icon: AlertTriangle, trend: kpis?.stockAlertCount ? 'down' : 'up', change: 'Sous seuil min', warning: !!kpis?.stockAlertCount },
   ];
 
+  // Visual render: Pie Chart for Activity by Document Type
   const renderPieChart = () => {
     if (!isMounted || isLoadingKpis) {
-      return <div className="h-full w-full bg-corp-blue-50/30 animate-pulse rounded-2xl" />;
+      return <div className="h-full w-full bg-slate-100/70 animate-pulse rounded-xl" />;
     }
     
     if (salesByCategory.length === 0) {
       return (
-        <div className="h-full w-full flex items-center justify-center bg-sand-50 rounded-2xl text-sand-400 text-sm">
+        <div className="h-full w-full flex items-center justify-center bg-slate-50/50 border border-dashed border-slate-200 rounded-xl text-slate-500 text-xs sm:text-sm">
           Aucune donnée
         </div>
       );
@@ -462,14 +460,15 @@ export default function AnalyticsPage() {
             cy="50%"
             innerRadius={65}
             outerRadius={90}
-            paddingAngle={6}
+            paddingAngle={5}
             dataKey="value"
-            stroke="none"
-            animationDuration={1500}
+            stroke="#FFFFFF"
+            strokeWidth={2}
+            animationDuration={1000}
             animationEasing="ease-out"
           >
             {salesByCategory.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} style={{ filter: 'drop-shadow(0px 4px 6px rgba(0,0,0,0.1))' }} />
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
           <Tooltip 
@@ -477,14 +476,14 @@ export default function AnalyticsPage() {
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
                 return (
-                  <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: payload[0].payload.fill }} />
-                      <span className="font-bold text-corp-blue-950">{payload[0].name}</span>
+                  <div className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-md rounded-xl p-3 min-w-[190px]">
+                    <div className="flex items-center gap-2.5 mb-1.5">
+                      <div className="w-2.5 h-2.5 rounded-full shadow-xs shrink-0" style={{ backgroundColor: payload[0].payload.fill }} />
+                      <span className="font-semibold text-slate-800 text-xs truncate">{payload[0].name}</span>
                     </div>
-                    <div className="flex items-baseline gap-1.5 pl-6">
-                      <span className="text-2xl font-black text-corp-blue-900 font-mono">{payload[0].value}</span>
-                      <span className="text-xs text-sand-500 font-medium">doc(s)</span>
+                    <div className="flex items-baseline gap-1 pl-5">
+                      <span className="text-xl font-bold text-slate-900 font-mono tabular-nums">{payload[0].value}</span>
+                      <span className="text-xs text-slate-500 font-medium">doc(s)</span>
                     </div>
                   </div>
                 );
@@ -492,24 +491,25 @@ export default function AnalyticsPage() {
               return null;
             }}
           />
-          <Legend verticalAlign="bottom" align="center" iconType="circle" wrapperStyle={{paddingTop: '20px'}} />
+          <Legend verticalAlign="bottom" align="center" iconType="circle" wrapperStyle={{ paddingTop: '16px' }} />
         </PieChart>
       </ResponsiveContainer>
     );
   };
 
+  // Visual render: Supplier Purchases vs Payments Bar Chart
   const renderSupplierChart = () => {
     if (!isMounted || isLoadingSupplierChart) {
       return (
-        <div className="h-full w-full bg-corp-blue-50/30 animate-pulse rounded-2xl flex items-center justify-center">
-          <span className="text-corp-blue-300 font-medium">Chargement des données...</span>
+        <div className="h-full w-full bg-slate-100/70 animate-pulse rounded-xl flex items-center justify-center">
+          <span className="text-slate-400 font-medium text-xs sm:text-sm">Chargement des données...</span>
         </div>
       );
     }
 
     if (!supplierChartData || supplierChartData.length === 0) {
       return (
-        <div className="h-full w-full flex items-center justify-center bg-sand-50 rounded-2xl text-sand-400 text-sm">
+        <div className="h-full w-full flex items-center justify-center bg-slate-50/50 border border-dashed border-slate-200 rounded-xl text-slate-500 text-xs sm:text-sm">
           Aucune donnée pour la période sélectionnée
         </div>
       );
@@ -517,47 +517,47 @@ export default function AnalyticsPage() {
 
     return (
       <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-        <BarChart data={supplierChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} barGap={8}>
+        <BarChart data={supplierChartData} margin={{ top: 15, right: 20, left: 10, bottom: 5 }} barGap={8}>
           <defs>
             <linearGradient id="colorPurchases" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#D97706" stopOpacity={1} />
-              <stop offset="100%" stopColor="#92400E" stopOpacity={0.8} />
+              <stop offset="100%" stopColor="#B45309" stopOpacity={0.85} />
             </linearGradient>
             <linearGradient id="colorPayments" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#10B981" stopOpacity={1} />
-              <stop offset="100%" stopColor="#059669" stopOpacity={0.8} />
+              <stop offset="100%" stopColor="#059669" stopOpacity={0.85} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.5} />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.8} />
           <XAxis 
             dataKey="name" 
             axisLine={false} 
             tickLine={false} 
             tick={{ fill: '#64748B', fontSize: 11, fontWeight: 500 }} 
-            dy={15} 
+            dy={10} 
           />
           <YAxis 
             axisLine={false} 
             tickLine={false} 
             tick={{ fill: '#64748B', fontSize: 11, fontWeight: 500 }}
             tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} 
-            dx={-10}
+            dx={-8}
           />
           <Tooltip 
-            cursor={{ fill: '#F8FAFC', opacity: 0.6 }}
+            cursor={{ fill: '#F1F5F9', opacity: 0.6 }}
             content={({ active, payload, label }) => {
               if (active && payload && payload.length) {
                 return (
-                  <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[220px] animate-in fade-in zoom-in-95 duration-200">
-                    <p className="font-bold text-corp-blue-950 mb-3 border-b border-corp-blue-50 pb-2">{label}</p>
-                    <div className="space-y-3">
+                  <div className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-md rounded-xl p-3 min-w-[210px]">
+                    <p className="font-semibold text-slate-800 text-xs mb-2 pb-1.5 border-b border-slate-100">{label}</p>
+                    <div className="space-y-2">
                       {payload.map((entry: any, index: number) => (
-                        <div key={index} className="flex flex-col gap-1">
+                        <div key={index} className="flex flex-col gap-0.5">
                           <div className="flex items-center gap-2">
-                            <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: entry.name === 'purchases' ? '#D97706' : '#10B981' }} />
-                            <span className="text-sm text-sand-500 font-medium">{entry.name === 'purchases' ? 'Achats TTC' : 'Règlements'}</span>
+                            <div className="w-2 h-2 rounded-full shadow-xs" style={{ backgroundColor: entry.name === 'purchases' ? '#D97706' : '#10B981' }} />
+                            <span className="text-xs text-slate-500 font-medium">{entry.name === 'purchases' ? 'Achats TTC' : 'Règlements'}</span>
                           </div>
-                          <span className="font-black text-corp-blue-900 font-mono text-sm pl-4">{formatCurrency(Number(entry.value || 0))}</span>
+                          <span className="font-bold text-slate-900 font-mono text-xs pl-4 tabular-nums">{formatCurrency(Number(entry.value || 0))}</span>
                         </div>
                       ))}
                     </div>
@@ -571,55 +571,63 @@ export default function AnalyticsPage() {
             verticalAlign="top" 
             align="right" 
             iconType="circle" 
-            wrapperStyle={{ paddingBottom: '30px' }} 
-            formatter={(value) => <span className="text-corp-blue-900 font-medium ml-1">{value === 'purchases' ? 'Achats TTC' : 'Règlements'}</span>}
+            wrapperStyle={{ paddingBottom: '20px' }} 
+            formatter={(value) => <span className="text-slate-700 font-medium text-xs ml-1">{value === 'purchases' ? 'Achats TTC' : 'Règlements'}</span>}
           />
-          <Bar dataKey="purchases" name="purchases" fill="url(#colorPurchases)" radius={[6, 6, 0, 0]} barSize={28} animationDuration={1200} animationEasing="ease-out" />
-          <Bar dataKey="payments" name="payments" fill="url(#colorPayments)" radius={[6, 6, 0, 0]} barSize={28} animationDuration={1200} animationEasing="ease-out" />
+          <Bar dataKey="purchases" name="purchases" fill="url(#colorPurchases)" radius={[4, 4, 0, 0]} barSize={26} animationDuration={1000} animationEasing="ease-out" />
+          <Bar dataKey="payments" name="payments" fill="url(#colorPayments)" radius={[4, 4, 0, 0]} barSize={26} animationDuration={1000} animationEasing="ease-out" />
         </BarChart>
       </ResponsiveContainer>
     );
   };
 
+  // Visual render: Top Clients list by monthly turnover
   const renderTopClients = () => {
     if (isLoadingKpis) {
       return new Array(5).fill(0).map((_, i) => (
-        <div key={`skeleton-client-${i}`} className="flex items-center justify-between p-4 bg-sand-50/50 rounded-2xl border border-corp-blue-50">
-          <Skeleton className="h-5 w-32 rounded" />
-          <Skeleton className="h-5 w-24 rounded" />
+        <div key={`skeleton-client-${i}`} className="flex items-center justify-between p-3.5 bg-slate-50/60 rounded-xl border border-slate-200">
+          <Skeleton className="h-4 w-32 rounded" />
+          <Skeleton className="h-4 w-24 rounded" />
         </div>
       ));
     }
 
     if (!kpis?.topClients || kpis.topClients.length === 0) {
-      return <div className="p-8 text-center text-sand-400 font-medium">Aucune vente ce mois-ci</div>;
+      return (
+        <div className="p-8 text-center text-slate-400 font-medium text-xs sm:text-sm border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+          Aucune vente enregistrée ce mois-ci
+        </div>
+      );
     }
 
     return kpis.topClients.map((client, i) => (
-      <div key={client.id} className="flex items-center justify-between p-4 bg-sand-50/50 rounded-2xl border border-corp-blue-50 hover:border-corp-blue-200 transition-colors">
+      <div key={client.id} className="flex items-center justify-between p-3.5 bg-slate-50/60 rounded-xl border border-slate-200/90 hover:bg-slate-50 hover:border-slate-300 transition-colors">
         <div className="flex items-center gap-3">
-          <span className="w-6 h-6 flex items-center justify-center bg-corp-blue-100 text-corp-blue-700 rounded-full text-xs font-bold">{i + 1}</span>
-          <span className="font-bold text-corp-blue-900">{client.name}</span>
+          <span className="w-6 h-6 flex items-center justify-center bg-corp-blue-100 text-corp-blue-700 rounded-lg text-xs font-bold shrink-0">{i + 1}</span>
+          <span className="font-semibold text-slate-800 text-xs sm:text-sm truncate max-w-[200px] sm:max-w-xs" title={client.name}>{client.name}</span>
         </div>
-        <div className="text-right">
-          <div className="font-bold font-mono text-corp-blue-600">{formatCurrency(client.totalAmount)}</div>
+        <div className="text-right pl-2">
+          <div className="font-bold font-mono text-corp-blue-700 text-xs sm:text-sm tabular-nums">{formatCurrency(client.totalAmount)}</div>
         </div>
       </div>
     ));
   };
 
+  // Visual render: Customer Receivables list & aging distribution
   const renderReceivables = () => {
     if (isLoadingKpis) {
       return (
-        <div className="h-[400px] w-full bg-corp-blue-50/30 animate-pulse rounded-2xl flex items-center justify-center">
-          <span className="text-corp-blue-300 font-medium">Chargement des créances...</span>
+        <div className="h-[380px] w-full bg-slate-100/70 animate-pulse rounded-xl flex items-center justify-center">
+          <span className="text-slate-400 font-medium text-xs sm:text-sm">Chargement des créances...</span>
         </div>
       );
     }
 
     if (!kpis?.customerReceivables || kpis.customerReceivables.length === 0) {
       return (
-        <div className="p-8 text-center text-sand-400 font-medium">Aucune créance client enregistrée</div>
+        <div className="p-8 text-center text-slate-400 font-medium text-xs sm:text-sm border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+          Aucune créance client enregistrée
+        </div>
       );
     }
 
@@ -628,39 +636,41 @@ export default function AnalyticsPage() {
     );
 
     const formatDays = (days: number) => {
-      if (days < 30) return <span className="text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md text-xs font-bold">&lt; 30 j</span>;
-      if (days <= 90) return <span className="text-amber-600 bg-amber-50 px-2 py-1 rounded-md text-xs font-bold">{days} j</span>;
-      return <span className="text-rose-600 bg-rose-50 px-2 py-1 rounded-md text-xs font-bold">&gt; 90 j</span>;
+      if (days < 30) return <span className="text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded text-[11px] font-semibold">&lt; 30 j</span>;
+      if (days <= 90) return <span className="text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded text-[11px] font-semibold">{days} j</span>;
+      return <span className="text-rose-700 bg-rose-50 border border-rose-200/80 px-2 py-0.5 rounded text-[11px] font-semibold">&gt; 90 j</span>;
     };
 
     if (filteredReceivables.length === 0) {
       return (
-        <div className="p-8 text-center text-sand-400 font-medium">Aucun client trouvé pour "{receivablesSearch}"</div>
+        <div className="p-8 text-center text-slate-400 font-medium text-xs sm:text-sm border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+          Aucun client trouvé pour &quot;{receivablesSearch}&quot;
+        </div>
       );
     }
 
     return (
-      <div className="grid gap-8 lg:grid-cols-2 h-full items-start">
-        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+      <div className="grid gap-6 lg:grid-cols-2 h-full items-start">
+        <div className="space-y-3 max-h-[380px] overflow-y-auto pr-2 custom-scrollbar">
           {filteredReceivables.map((client, i) => {
             const progress = client.totalInvoiced > 0 ? (client.totalPaid / client.totalInvoiced) * 100 : 0;
             return (
-              <div key={client.id} className="flex flex-col gap-2 p-4 bg-sand-50/50 rounded-2xl border border-corp-blue-50 hover:border-corp-blue-200 transition-colors">
+              <div key={client.id} className="flex flex-col gap-2 p-3.5 bg-slate-50/60 rounded-xl border border-slate-200/90 hover:bg-slate-50 hover:border-slate-300 transition-colors">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="w-6 h-6 flex items-center justify-center bg-rose-100 text-rose-700 rounded-full text-xs font-bold">{i + 1}</span>
-                    <span className="font-bold text-corp-blue-900 line-clamp-1" title={client.name}>{client.name}</span>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="w-5 h-5 flex items-center justify-center bg-slate-200 text-slate-700 rounded-md text-[11px] font-bold shrink-0">{i + 1}</span>
+                    <span className="font-semibold text-slate-800 text-xs sm:text-sm truncate" title={client.name}>{client.name}</span>
                   </div>
-                  <div className="text-right pl-2">
-                    <div className="font-bold font-mono text-rose-600">{formatCurrency(client.outstanding)}</div>
+                  <div className="text-right pl-3 shrink-0">
+                    <div className="font-bold font-mono text-rose-700 text-xs sm:text-sm tabular-nums">{formatCurrency(client.outstanding)}</div>
                   </div>
                 </div>
-                <div className="flex items-center justify-between mt-1">
-                  <div className="w-1/2 h-2 bg-rose-100 rounded-full overflow-hidden" title={`${progress.toFixed(0)}% payé`}>
-                    <div className="h-full bg-emerald-500" style={{ width: `${Math.min(progress, 100)}%` }} />
+                <div className="flex items-center justify-between gap-4 mt-0.5">
+                  <div className="flex-1 h-1.5 bg-slate-200/90 rounded-full overflow-hidden" title={`${progress.toFixed(0)}% payé`}>
+                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(progress, 100)}%` }} />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-sand-400 font-medium hidden sm:inline-block">Ancienneté:</span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-[11px] text-slate-400 font-medium hidden sm:inline-block">Ancienneté:</span>
                     {formatDays(client.oldestInvoiceDays)}
                   </div>
                 </div>
@@ -669,10 +679,10 @@ export default function AnalyticsPage() {
           })}
         </div>
         
-        <div className="h-[400px] w-full hidden lg:block">
+        <div className="h-[380px] w-full hidden lg:block border border-slate-100 rounded-xl p-3 bg-slate-50/30">
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-            <BarChart data={filteredReceivables} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }} barGap={6}>
-              <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#E2E8F0" strokeOpacity={0.5} />
+            <BarChart data={filteredReceivables} layout="vertical" margin={{ top: 5, right: 20, left: 5, bottom: 5 }} barGap={6}>
+              <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#E2E8F0" strokeOpacity={0.8} />
               <XAxis 
                 type="number" 
                 axisLine={false} 
@@ -686,18 +696,18 @@ export default function AnalyticsPage() {
                 axisLine={false} 
                 tickLine={false} 
                 tick={{ fill: '#64748B', fontSize: 11, fontWeight: 500 }}
-                width={120}
+                width={110}
               />
               <Tooltip 
-                cursor={{ fill: '#F8FAFC', opacity: 0.6 }}
+                cursor={{ fill: '#F1F5F9', opacity: 0.6 }}
                 content={({ active, payload, label }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
-                        <p className="font-bold text-corp-blue-950 mb-2 border-b border-corp-blue-50 pb-2">{label}</p>
-                        <div className="flex items-center justify-between gap-4">
-                          <span className="text-sm text-sand-500 font-medium">Reste à payer</span>
-                          <span className="font-black text-rose-600 font-mono text-sm">{formatCurrency(Number(payload[0].value || 0))}</span>
+                      <div className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-md rounded-xl p-3 min-w-[190px]">
+                        <p className="font-semibold text-slate-800 text-xs mb-1.5 border-b border-slate-100 pb-1 truncate">{label}</p>
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-xs text-slate-500 font-medium">Reste à payer</span>
+                          <span className="font-bold text-rose-700 font-mono text-xs tabular-nums">{formatCurrency(Number(payload[0].value || 0))}</span>
                         </div>
                       </div>
                     );
@@ -705,9 +715,9 @@ export default function AnalyticsPage() {
                   return null;
                 }}
               />
-              <Bar dataKey="outstanding" name="Outstanding" radius={[0, 6, 6, 0]} barSize={24} animationDuration={1200} animationEasing="ease-out">
+              <Bar dataKey="outstanding" name="Outstanding" radius={[0, 4, 4, 0]} barSize={20} animationDuration={1000} animationEasing="ease-out">
                 {filteredReceivables.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.oldestInvoiceDays > 90 ? '#E11D48' : entry.oldestInvoiceDays > 30 ? '#D97706' : '#1D9E75'} />
+                  <Cell key={`cell-${index}`} fill={entry.oldestInvoiceDays > 90 ? '#E11D48' : entry.oldestInvoiceDays > 30 ? '#D97706' : '#10B981'} />
                 ))}
               </Bar>
             </BarChart>
@@ -717,18 +727,19 @@ export default function AnalyticsPage() {
     );
   };
 
+  // Visual render: Top Sales per Sub-Category Pie Chart
   const renderTopSubCategories = () => {
     if (isLoadingTopSubCategories) {
       return (
-        <div className="h-[400px] w-full bg-corp-blue-50/30 animate-pulse rounded-2xl flex items-center justify-center">
-          <span className="text-corp-blue-300 font-medium">Chargement des données...</span>
+        <div className="h-[360px] w-full bg-slate-100/70 animate-pulse rounded-xl flex items-center justify-center">
+          <span className="text-slate-400 font-medium text-xs sm:text-sm">Chargement des données...</span>
         </div>
       );
     }
 
     if (!topSubCategories || topSubCategories.length === 0) {
       return (
-        <div className="h-[400px] w-full flex items-center justify-center bg-sand-50 rounded-2xl text-sand-400 text-sm">
+        <div className="h-[360px] w-full flex items-center justify-center bg-slate-50/50 border border-dashed border-slate-200 rounded-xl text-slate-500 text-xs sm:text-sm">
           Aucune donnée de vente pour cette période
         </div>
       );
@@ -739,43 +750,44 @@ export default function AnalyticsPage() {
 
     if (articles.length === 0) {
       return (
-        <div className="h-[400px] w-full flex items-center justify-center bg-sand-50 rounded-2xl text-sand-400 text-sm">
+        <div className="h-[360px] w-full flex items-center justify-center bg-slate-50/50 border border-dashed border-slate-200 rounded-xl text-slate-500 text-xs sm:text-sm">
           Aucun article vendu dans cette sous-catégorie
         </div>
       );
     }
 
     return (
-      <div className="h-[400px] w-full">
+      <div className="h-[360px] w-full">
         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
           <PieChart>
             <Pie
               data={articles}
               cx="50%"
               cy="50%"
-              innerRadius={75}
-              outerRadius={120}
+              innerRadius={70}
+              outerRadius={115}
               paddingAngle={4}
               dataKey="quantitySold"
               nameKey="articleName"
-              stroke="none"
-              animationDuration={1500}
+              stroke="#FFFFFF"
+              strokeWidth={2}
+              animationDuration={1000}
               animationEasing="ease-out"
-              label={({ cx, cy, midAngle, innerRadius, outerRadius, value, index, payload }: any) => {
+              label={({ cx, cy, midAngle, outerRadius, value, payload }: any) => {
                 const RADIAN = Math.PI / 180;
                 const radius = outerRadius * 1.15;
                 const x = cx + radius * Math.cos(-midAngle * RADIAN);
                 const y = cy + radius * Math.sin(-midAngle * RADIAN);
                 if (articles.length > 5 && value < (articles[0]?.quantitySold || 0) * 0.08) return null;
                 return (
-                  <text x={x} y={y} fill="#475569" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-[11px] font-bold">
-                    {payload.articleName.substring(0, 20)}{payload.articleName.length > 20 ? '...' : ''}
+                  <text x={x} y={y} fill="#475569" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-[11px] font-semibold">
+                    {payload.articleName.substring(0, 18)}{payload.articleName.length > 18 ? '...' : ''}
                   </text>
                 );
               }}
             >
               {articles.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} style={{ filter: 'drop-shadow(0px 4px 6px rgba(0,0,0,0.1))' }} />
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
             <Tooltip 
@@ -784,19 +796,19 @@ export default function AnalyticsPage() {
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
                   return (
-                    <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[220px] animate-in fade-in zoom-in-95 duration-200">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: payload[0].payload.fill }} />
-                        <span className="font-bold text-corp-blue-950 text-sm">{data.articleName}</span>
+                    <div className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-md rounded-xl p-3 min-w-[200px]">
+                      <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-slate-100">
+                        <div className="w-2.5 h-2.5 rounded-full shadow-xs shrink-0" style={{ backgroundColor: payload[0].payload.fill }} />
+                        <span className="font-semibold text-slate-800 text-xs truncate">{data.articleName}</span>
                       </div>
-                      <div className="pl-6 space-y-1">
-                        <div className="flex items-center justify-between gap-4">
-                          <span className="text-xs text-sand-500 font-medium">Quantité</span>
-                          <span className="font-black text-corp-blue-900 font-mono text-sm">{data.quantitySold}</span>
+                      <div className="space-y-1 pl-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-xs text-slate-500 font-medium">Quantité</span>
+                          <span className="font-bold text-slate-900 font-mono text-xs tabular-nums">{data.quantitySold}</span>
                         </div>
-                        <div className="flex items-center justify-between gap-4">
-                          <span className="text-xs text-sand-500 font-medium">CA TTC</span>
-                          <span className="font-black text-emerald-600 font-mono text-sm">{formatCurrency(data.revenueTTC)}</span>
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-xs text-slate-500 font-medium">CA TTC</span>
+                          <span className="font-bold text-emerald-700 font-mono text-xs tabular-nums">{formatCurrency(data.revenueTTC)}</span>
                         </div>
                       </div>
                     </div>
@@ -811,11 +823,12 @@ export default function AnalyticsPage() {
     );
   };
 
+  // Visual render: Profit Margins & Profitability Analytics
   const renderProfitMarginsAnalytics = () => {
     if (!isMounted || isLoadingProfitMargins) {
       return (
-        <div className="h-[320px] w-full bg-corp-blue-50/30 animate-pulse rounded-2xl flex items-center justify-center">
-          <span className="text-corp-blue-300 font-medium">Chargement des données de rentabilité...</span>
+        <div className="h-[320px] w-full bg-slate-100/70 animate-pulse rounded-xl flex items-center justify-center">
+          <span className="text-slate-400 font-medium text-xs sm:text-sm">Chargement des données de rentabilité...</span>
         </div>
       );
     }
@@ -823,7 +836,7 @@ export default function AnalyticsPage() {
     const items = profitMarginAnalytics?.items || [];
     if (items.length === 0) {
       return (
-        <div className="h-[320px] w-full flex items-center justify-center bg-sand-50 rounded-2xl text-sand-400 text-sm">
+        <div className="h-[320px] w-full flex items-center justify-center bg-slate-50/50 border border-dashed border-slate-200 rounded-xl text-slate-500 text-xs sm:text-sm">
           Aucune donnée de marge pour cette période
         </div>
       );
@@ -834,37 +847,37 @@ export default function AnalyticsPage() {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4 bg-emerald-50/60 border border-emerald-100 rounded-2xl">
-            <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Marge Totale HT</span>
-            <div className="text-2xl font-black text-emerald-700 mt-1 font-mono">{formatCurrency(profitMarginAnalytics?.totalMarginHT || 0)}</div>
+          <div className="p-4 bg-emerald-50/50 border border-emerald-200/90 rounded-xl shadow-xs">
+            <span className="text-[11px] font-semibold text-emerald-800 uppercase tracking-wider block">Marge Totale HT</span>
+            <div className="text-xl sm:text-2xl font-bold text-emerald-700 mt-1 font-mono tabular-nums">{formatCurrency(profitMarginAnalytics?.totalMarginHT || 0)}</div>
           </div>
-          <div className="p-4 bg-corp-blue-50/60 border border-corp-blue-100 rounded-2xl">
-            <span className="text-xs font-bold text-corp-blue-800 uppercase tracking-wider">Ventes Totales HT</span>
-            <div className="text-2xl font-black text-corp-blue-900 mt-1 font-mono">{formatCurrency(profitMarginAnalytics?.totalSalesHTNet || 0)}</div>
+          <div className="p-4 bg-slate-50/70 border border-slate-200/90 rounded-xl shadow-xs">
+            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Ventes Totales HT</span>
+            <div className="text-xl sm:text-2xl font-bold text-slate-900 mt-1 font-mono tabular-nums">{formatCurrency(profitMarginAnalytics?.totalSalesHTNet || 0)}</div>
           </div>
-          <div className="p-4 bg-slate-900 text-white rounded-2xl">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Taux de Marge Global</span>
-            <div className="text-2xl font-black text-emerald-400 mt-1 font-mono">{(profitMarginAnalytics?.globalMarginPercentage || 0).toFixed(2)} %</div>
+          <div className="p-4 bg-slate-900 border border-slate-800 text-white rounded-xl shadow-xs">
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Taux de Marge Global</span>
+            <div className="text-xl sm:text-2xl font-bold text-emerald-400 mt-1 font-mono tabular-nums">{(profitMarginAnalytics?.globalMarginPercentage || 0).toFixed(2)} %</div>
           </div>
         </div>
 
         <div className="h-[280px] w-full">
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-            <BarChart data={topItems} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.5} />
-              <XAxis dataKey="articleReference" tick={{ fill: '#64748B', fontSize: 11, fontWeight: 700 }} dy={10} />
-              <YAxis tick={{ fill: '#64748B', fontSize: 11 }} tickFormatter={(val) => `${val} DT`} />
+            <BarChart data={topItems} margin={{ top: 10, right: 20, left: 10, bottom: 15 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.8} />
+              <XAxis dataKey="articleReference" tick={{ fill: '#64748B', fontSize: 11, fontWeight: 600 }} dy={8} />
+              <YAxis tick={{ fill: '#64748B', fontSize: 11 }} tickFormatter={(val) => `${val} DT`} dx={-5} />
               <Tooltip 
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
                     return (
-                      <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[200px]">
-                        <p className="font-bold text-slate-900 text-sm">{data.articleReference}</p>
-                        <p className="text-xs text-slate-500 truncate max-w-[180px]">{data.articleDescription}</p>
-                        <div className="mt-2 space-y-1 text-xs">
-                          <div className="flex justify-between"><span className="text-slate-500">Marge HT:</span> <span className="font-bold text-emerald-600">{formatCurrency(data.marginHT)}</span></div>
-                          <div className="flex justify-between"><span className="text-slate-500">Taux Marge:</span> <span className="font-bold text-slate-900">{data.marginPercentage.toFixed(2)}%</span></div>
+                      <div className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-md rounded-xl p-3 min-w-[200px]">
+                        <p className="font-semibold text-slate-800 text-xs mb-0.5">{data.articleReference}</p>
+                        <p className="text-[11px] text-slate-400 truncate max-w-[180px] pb-1.5 mb-1.5 border-b border-slate-100">{data.articleDescription}</p>
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between gap-3"><span className="text-slate-500">Marge HT:</span> <span className="font-bold text-emerald-700 font-mono tabular-nums">{formatCurrency(data.marginHT)}</span></div>
+                          <div className="flex justify-between gap-3"><span className="text-slate-500">Taux Marge:</span> <span className="font-bold text-slate-900 font-mono tabular-nums">{data.marginPercentage.toFixed(2)}%</span></div>
                         </div>
                       </div>
                     );
@@ -872,7 +885,7 @@ export default function AnalyticsPage() {
                   return null;
                 }}
               />
-              <Bar dataKey="marginHT" name="Marge HT" fill="#10B981" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="marginHT" name="Marge HT" fill="#10B981" radius={[4, 4, 0, 0]} barSize={26} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -880,18 +893,19 @@ export default function AnalyticsPage() {
     );
   };
 
+  // Visual render: Stock Health Bar Chart and Threshold Alerts
   const renderStockHealth = () => {
     if (isLoadingStockHealth) {
       return (
-        <div className="h-[400px] w-full bg-corp-blue-50/30 animate-pulse rounded-2xl flex items-center justify-center">
-          <span className="text-corp-blue-300 font-medium">Chargement des données...</span>
+        <div className="h-[380px] w-full bg-slate-100/70 animate-pulse rounded-xl flex items-center justify-center">
+          <span className="text-slate-400 font-medium text-xs sm:text-sm">Chargement des données...</span>
         </div>
       );
     }
 
     if (!stockHealthWithMinQty || stockHealthWithMinQty.length === 0) {
       return (
-        <div className="h-[400px] w-full flex items-center justify-center bg-sand-50 rounded-2xl text-sand-400 text-sm">
+        <div className="h-[380px] w-full flex items-center justify-center bg-slate-50/50 border border-dashed border-slate-200 rounded-xl text-slate-500 text-xs sm:text-sm">
           Aucune donnée de stock trouvée
         </div>
       );
@@ -902,55 +916,55 @@ export default function AnalyticsPage() {
 
     if (articles.length === 0) {
       return (
-        <div className="h-[400px] w-full flex items-center justify-center bg-sand-50 rounded-2xl text-sand-400 text-sm">
+        <div className="h-[380px] w-full flex items-center justify-center bg-slate-50/50 border border-dashed border-slate-200 rounded-xl text-slate-500 text-xs sm:text-sm">
           Aucun article en stock dans cette sous-catégorie
         </div>
       );
     }
 
     return (
-      <div className="h-[400px] w-full flex flex-col gap-4">
-        <ResponsiveContainer width="100%" height="80%" minWidth={1} minHeight={1}>
-          <BarChart data={articles} margin={{ top: 20, right: 30, left: 20, bottom: 25 }} barGap={6}>
+      <div className="h-[380px] w-full flex flex-col gap-4">
+        <ResponsiveContainer width="100%" height="82%" minWidth={1} minHeight={1}>
+          <BarChart data={articles} margin={{ top: 15, right: 20, left: 10, bottom: 25 }} barGap={6}>
             <defs>
               <linearGradient id="colorHealthyStock" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#10B981" stopOpacity={1} />
-                <stop offset="100%" stopColor="#059669" stopOpacity={0.8} />
+                <stop offset="100%" stopColor="#059669" stopOpacity={0.85} />
               </linearGradient>
               <linearGradient id="colorWarningStock" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#FBBF24" stopOpacity={1} />
-                <stop offset="100%" stopColor="#D97706" stopOpacity={0.8} />
+                <stop offset="100%" stopColor="#D97706" stopOpacity={0.85} />
               </linearGradient>
               <linearGradient id="colorDangerStock" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#FB7185" stopOpacity={1} />
-                <stop offset="100%" stopColor="#E11D48" stopOpacity={0.8} />
+                <stop offset="100%" stopColor="#E11D48" stopOpacity={0.85} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.5} />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.8} />
             <XAxis 
               dataKey="articleName" 
               axisLine={false} 
               tickLine={false} 
               tick={{ fill: '#64748B', fontSize: 11, fontWeight: 500 }} 
-              dy={15} 
-              angle={-45}
+              dy={10} 
+              angle={-35}
               textAnchor="end"
-              height={70}
+              height={60}
             />
             <YAxis 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fill: '#64748B', fontSize: 12, fontWeight: 500 }}
-              dx={-10}
+              tick={{ fill: '#64748B', fontSize: 11, fontWeight: 500 }}
+              dx={-8}
             />
             <Tooltip 
-              cursor={{ fill: '#F8FAFC', opacity: 0.6 }}
+              cursor={{ fill: '#F1F5F9', opacity: 0.6 }}
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
-                    <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
-                      <p className="font-bold text-corp-blue-950 mb-3 border-b border-corp-blue-50 pb-2">{label}</p>
-                      <div className="space-y-2">
+                    <div className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-md rounded-xl p-3 min-w-[190px]">
+                      <p className="font-semibold text-slate-800 text-xs mb-2 pb-1.5 border-b border-slate-100 truncate">{label}</p>
+                      <div className="space-y-1.5">
                         {payload.map((entry: any, index: number) => {
                           const isCustomColor = entry.name === 'Stock Actuel' && entry.payload;
                           let dotColor = entry.color;
@@ -960,12 +974,12 @@ export default function AnalyticsPage() {
                             else dotColor = '#10B981';
                           }
                           return (
-                            <div key={index} className="flex items-center justify-between gap-6">
+                            <div key={index} className="flex items-center justify-between gap-4">
                               <div className="flex items-center gap-2">
-                                <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: dotColor }} />
-                                <span className="text-sm text-sand-500 font-medium">{entry.name}</span>
+                                <div className="w-2 h-2 rounded-full shadow-xs" style={{ backgroundColor: dotColor }} />
+                                <span className="text-xs text-slate-500 font-medium">{entry.name}</span>
                               </div>
-                              <span className="font-black text-corp-blue-900 font-mono text-sm">{entry.value}</span>
+                              <span className="font-bold text-slate-900 font-mono text-xs tabular-nums">{entry.value}</span>
                             </div>
                           );
                         })}
@@ -980,9 +994,9 @@ export default function AnalyticsPage() {
               verticalAlign="top" 
               align="right" 
               iconType="circle" 
-              wrapperStyle={{ paddingBottom: '30px' }}
+              wrapperStyle={{ paddingBottom: '20px' }}
             />
-            <Bar dataKey="currentStock" name="Stock Actuel" radius={[6, 6, 0, 0]} barSize={24} animationDuration={1200} animationEasing="ease-out">
+            <Bar dataKey="currentStock" name="Stock Actuel" radius={[4, 4, 0, 0]} barSize={22} animationDuration={1000} animationEasing="ease-out">
               {articles.map((entry, index) => {
                 let colorId = 'url(#colorHealthyStock)'; // healthy
                 if (entry.currentStock <= entry.minimumStock && entry.minimumStock > 0) {
@@ -993,14 +1007,14 @@ export default function AnalyticsPage() {
                 return <Cell key={`cell-${index}`} fill={colorId} />;
               })}
             </Bar>
-            <Bar dataKey="minimumStock" name="Stock Minimum" fill="#CBD5E1" radius={[6, 6, 0, 0]} barSize={24} opacity={0.6} animationDuration={1200} animationEasing="ease-out" />
+            <Bar dataKey="minimumStock" name="Stock Minimum" fill="#CBD5E1" radius={[4, 4, 0, 0]} barSize={22} opacity={0.7} animationDuration={1000} animationEasing="ease-out" />
           </BarChart>
         </ResponsiveContainer>
-        <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+        <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
           {articles.filter(a => a.currentStock <= a.minimumStock && a.minimumStock > 0).map(a => (
-            <div key={a.articleId} className="whitespace-nowrap bg-rose-50 border border-rose-200 text-rose-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5">
-              <AlertTriangle className="w-3 h-3" />
-              {a.articleName}: {a.currentStock} / {a.minimumStock} min
+            <div key={a.articleId} className="whitespace-nowrap bg-rose-50 border border-rose-200/90 text-rose-700 px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 shrink-0 shadow-xs">
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+              <span>{a.articleName}: <strong className="font-mono tabular-nums">{a.currentStock}</strong> / {a.minimumStock} min</span>
             </div>
           ))}
         </div>
@@ -1008,33 +1022,26 @@ export default function AnalyticsPage() {
     );
   };
 
-  // Colors mapping for Recharts Pie Charts
-  const chartColors = {
-    green: '#1D9E75',
-    orange: '#D4AF37',
-    red: '#EF5350',
-    lightGreen: '#EAF3EE',
-    lightOrange: '#FAF6EA',
-  };
-
   return (
     <DashboardLayout>
-      <div className="space-y-10 animate-in fade-in duration-700">
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="space-y-8 animate-in fade-in duration-500">
+        {/* Page Header and Filter Toolbar */}
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200/80">
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -16 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.4 }}
           >
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-corp-blue-900">Analyses Business</h1>
-            <p className="text-sand-400 mt-2 font-medium">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Analyses Business</h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1 font-normal">
               Intelligence commerciale et performance opérationnelle du parc.
             </p>
           </motion.div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-white rounded-xl border border-corp-blue-100 p-1 shadow-sm">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Filter Toolbar */}
+            <div className="inline-flex items-center gap-1.5 bg-white rounded-xl border border-slate-200 p-1 shadow-xs">
               <select 
-                className="h-9 rounded-lg bg-transparent px-3 py-1 text-sm font-bold text-corp-blue-900 outline-none cursor-pointer"
+                className="h-9 rounded-lg bg-slate-50/80 hover:bg-slate-100/90 px-3 py-1 text-xs sm:text-sm font-semibold text-slate-800 outline-none cursor-pointer border border-transparent hover:border-slate-200 transition-colors focus:ring-1 focus:ring-corp-blue-500"
                 value={chartYear}
                 onChange={(e) => setChartYear(Number(e.target.value))}
               >
@@ -1042,9 +1049,9 @@ export default function AnalyticsPage() {
                 <option value={new Date().getFullYear() - 1}>Année {new Date().getFullYear() - 1}</option>
                 <option value={new Date().getFullYear() - 2}>Année {new Date().getFullYear() - 2}</option>
               </select>
-              <div className="w-px h-5 bg-corp-blue-100"></div>
+              <div className="w-px h-5 bg-slate-200 shrink-0"></div>
               <select 
-                className="h-9 rounded-lg bg-transparent px-3 py-1 text-sm font-bold text-corp-blue-900 outline-none cursor-pointer"
+                className="h-9 rounded-lg bg-slate-50/80 hover:bg-slate-100/90 px-3 py-1 text-xs sm:text-sm font-semibold text-slate-800 outline-none cursor-pointer border border-transparent hover:border-slate-200 transition-colors focus:ring-1 focus:ring-corp-blue-500"
                 value={chartMonth}
                 onChange={(e) => setChartMonth(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
               >
@@ -1065,106 +1072,123 @@ export default function AnalyticsPage() {
             </div>
             <Button
               onClick={() => setShowReport(true)}
-              className="h-12 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20 px-6"
+              className="h-9 sm:h-10 bg-corp-blue-600 text-white hover:bg-corp-blue-700 font-semibold text-xs sm:text-sm rounded-xl shadow-xs px-4 transition-colors gap-2 shrink-0"
             >
-              <Download className="w-4 h-4 mr-2" /> Rapport Complet
+              <Download className="w-4 h-4" /> Rapport Complet
             </Button>
           </div>
         </header>
 
         {isError && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-rose-500" />
-            <p className="font-medium text-sm">Impossible de charger les données analytiques. Veuillez réessayer plus tard.</p>
+          <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-xl flex items-center gap-3 shadow-xs">
+            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+            <p className="font-medium text-xs sm:text-sm">Impossible de charger les données analytiques. Veuillez réessayer plus tard.</p>
           </div>
         )}
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+        {/* 5 Top KPI Cards — Equal Weight, Consistent Height, Clear Hierarchy */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {isLoadingKpis ? (
             new Array(5).fill(0).map((_, i) => (
-              <Card key={`skeleton-kpi-${i}`} className="border-corp-blue-100/50 bg-white shadow-xl shadow-corp-blue-900/5 rounded-xl overflow-hidden">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <Skeleton className="h-4 w-24 rounded" />
+              <Card key={`skeleton-kpi-${i}`} className="border border-slate-200 bg-white shadow-xs rounded-2xl p-5 flex flex-col justify-between h-[132px]">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-4 w-20 rounded" />
                   <Skeleton className="h-8 w-8 rounded-lg" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-8 w-32 rounded mt-1" />
-                  <Skeleton className="h-4 w-20 rounded mt-3" />
-                </CardContent>
+                </div>
+                <div>
+                  <Skeleton className="h-7 w-28 rounded" />
+                </div>
+                <Skeleton className="h-3 w-16 rounded" />
               </Card>
             ))
           ) : (
             kpiCards.map((stat, i) => (
               <motion.div
                 key={stat.title}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
+                transition={{ delay: i * 0.06, duration: 0.35 }}
+                className="h-full"
               >
                 <Card className={cn(
-                  "border-corp-blue-100/50 bg-white shadow-xl shadow-corp-blue-900/5 rounded-xl overflow-hidden group hover:border-corp-blue-600 transition-all duration-500",
-                  stat.warning && "border-amber-200 hover:border-amber-500",
-                  stat.isAchat && "border-amber-900/10 bg-amber-950/[0.02] hover:border-amber-600"
+                  "h-full bg-white border border-slate-200 rounded-2xl shadow-xs p-5 flex flex-col justify-between hover:border-slate-300 transition-all duration-200",
+                  stat.warning && "border-amber-300/90 bg-amber-50/20 hover:border-amber-400",
+                  stat.isAchat && "border-slate-200 bg-slate-50/40 hover:border-slate-300"
                 )}>
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className={cn(
-                      "text-[0.65rem] font-bold uppercase tracking-[0.2em]",
-                      stat.isAchat ? "text-amber-800/60" : "text-sand-400"
-                    )}>{stat.title}</CardTitle>
+                  {/* KPI Card Header: readable title & visible icon container */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-slate-500 line-clamp-1 truncate" title={stat.title}>
+                      {stat.title}
+                    </span>
                     <div className={cn(
-                      "p-2 rounded-lg transition-colors",
-                      stat.warning ? "bg-amber-50 text-amber-600 group-hover:bg-amber-500 group-hover:text-white" : 
-                      (stat.isAchat ? "bg-amber-50 text-amber-900 group-hover:bg-amber-600 group-hover:text-white" : "bg-corp-blue-50 text-corp-blue-600 group-hover:bg-corp-blue-600 group-hover:text-white")
+                      "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border transition-colors",
+                      stat.warning ? "bg-amber-50 text-amber-600 border-amber-200" : 
+                      stat.isAchat ? "bg-amber-50 text-amber-700 border-amber-200/80" : 
+                      "bg-corp-blue-50 text-corp-blue-600 border-corp-blue-100"
                     )}>
                       <stat.icon className="h-4 w-4" />
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className={cn(
-                      "text-2xl font-bold font-mono tracking-tight",
-                      stat.isAchat ? "text-amber-900" : "text-corp-blue-900"
-                    )}>{stat.value}</div>
-                    <div className="flex items-center gap-1 mt-2">
-                      {stat.trend === 'up' ? (
-                        <ArrowUpRight className="w-3 h-3 text-emerald-600" />
-                      ) : (
-                        <ArrowDownRight className={cn("w-3 h-3", stat.warning ? "text-amber-500" : (stat.isAchat ? "text-amber-600" : "text-rose-500"))} />
-                      )}
-                      <span className={cn(
-                        "text-xs font-bold",
-                        stat.trend === 'up' ? "text-emerald-600" : (stat.warning ? "text-amber-500" : (stat.isAchat ? "text-amber-600" : "text-rose-500"))
-                      )}>{stat.change}</span>
+                  </div>
+
+                  {/* Main KPI Value: bold, large, high-contrast numeric */}
+                  <div className="my-2.5">
+                    <div className="text-xl sm:text-2xl lg:text-[1.55rem] font-bold font-mono tracking-tight text-slate-900 tabular-nums">
+                      {stat.value}
                     </div>
-                  </CardContent>
+                  </div>
+
+                  {/* Contextual & Trend Information: crisp status pill */}
+                  <div className="flex items-center gap-1.5">
+                    <span className={cn(
+                      "inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md border",
+                      stat.trend === 'up' 
+                        ? "text-emerald-700 bg-emerald-50 border-emerald-200/70" 
+                        : (stat.warning 
+                          ? "text-amber-700 bg-amber-50 border-amber-200/70" 
+                          : (stat.isAchat 
+                            ? "text-amber-800 bg-amber-50/70 border-amber-200/70" 
+                            : "text-rose-700 bg-rose-50 border-rose-200/70"))
+                    )}>
+                      {stat.trend === 'up' ? (
+                        <ArrowUpRight className="w-3 h-3 text-emerald-600 shrink-0" />
+                      ) : (
+                        <ArrowDownRight className={cn(
+                          "w-3 h-3 shrink-0",
+                          stat.warning ? "text-amber-600" : (stat.isAchat ? "text-amber-700" : "text-rose-600")
+                        )} />
+                      )}
+                      <span>{stat.change}</span>
+                    </span>
+                  </div>
                 </Card>
               </motion.div>
             ))
           )}
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-12">
+        <div className="grid gap-6 lg:grid-cols-12">
           {/* Future Treasury Coverage Projection Chart */}
-          <Card className="lg:col-span-12 border-corp-blue-100 rounded-2xl shadow-xl shadow-corp-blue-900/2 bg-white overflow-hidden">
-            <CardHeader className="p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <Card className="lg:col-span-12 border border-slate-200 rounded-2xl shadow-xs bg-white overflow-hidden">
+            <CardHeader className="p-6 lg:p-7 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100">
               <div>
-                <CardTitle className="text-2xl text-corp-blue-900 flex items-center gap-2">
-                  <TrendingUp className="w-6 h-6 text-corp-blue-600 animate-pulse" />
+                <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2.5">
+                  <TrendingUp className="w-5 h-5 text-corp-blue-600 shrink-0" />
                   Couverture de Trésorerie Future (Projection à Échéance)
                 </CardTitle>
-                <CardDescription className="text-sand-400 font-medium">
+                <CardDescription className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">
                   Visualisation de la couverture des achats futurs (décaissements) par les règlements clients attendus (encaissements).
                 </CardDescription>
               </div>
-              <div className="flex bg-sand-100/50 p-1 rounded-xl self-end sm:self-auto">
+              <div className="inline-flex bg-slate-100/80 p-0.5 rounded-xl border border-slate-200/60 self-start sm:self-auto">
                 {([60, 90, 120, 150] as const).map((days) => (
                   <button
                     key={days}
                     onClick={() => setProjectionDays(days)}
                     className={cn(
-                      "px-4 py-1.5 rounded-lg text-sm font-bold transition-all",
+                      "px-3 py-1 rounded-lg text-xs font-semibold transition-all",
                       projectionDays === days
-                        ? "bg-white text-corp-blue-900 shadow-sm"
-                        : "text-sand-500 hover:text-corp-blue-700"
+                        ? "bg-white text-slate-900 shadow-xs"
+                        : "text-slate-600 hover:text-slate-900"
                     )}
                   >
                     {days} jours
@@ -1172,35 +1196,35 @@ export default function AnalyticsPage() {
                 ))}
               </div>
             </CardHeader>
-            <CardContent className="p-8 pt-0 space-y-6">
-              {/* KPIs indicators */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-emerald-50/40 border border-emerald-100/60 rounded-2xl p-5 shadow-sm flex items-center gap-4 group hover:border-emerald-500/30 transition-all duration-300">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
-                    <ArrowUpRight className="w-6 h-6" />
+            <CardContent className="p-6 lg:p-7 pt-5 space-y-6">
+              {/* KPIs indicators — Equal height & clear boundary */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-emerald-50/30 border border-slate-200 border-l-4 border-l-emerald-500 rounded-xl p-4 shadow-xs flex items-center gap-3.5 hover:border-slate-300 transition-colors">
+                  <div className="w-11 h-11 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-xs shrink-0">
+                    <ArrowUpRight className="w-5 h-5" />
                   </div>
-                  <div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block truncate">
                       Encaissements Prévus (Ventes)
                     </span>
-                    <div className="flex items-baseline gap-1 mt-1">
-                      <span className="text-xl font-black font-mono text-emerald-800 tracking-tight">
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span className="text-lg sm:text-xl font-bold font-mono text-emerald-800 tracking-tight tabular-nums">
                         {formatCurrency(futureTotals.sales)}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-amber-50/40 border border-amber-200/60 rounded-2xl p-5 shadow-sm flex items-center gap-4 group hover:border-amber-500/30 transition-all duration-300">
-                  <div className="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20">
-                    <ArrowDownRight className="w-6 h-6" />
+                <div className="bg-amber-50/30 border border-slate-200 border-l-4 border-l-amber-500 rounded-xl p-4 shadow-xs flex items-center gap-3.5 hover:border-slate-300 transition-colors">
+                  <div className="w-11 h-11 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-xs shrink-0">
+                    <ArrowDownRight className="w-5 h-5" />
                   </div>
-                  <div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block truncate">
                       Décaissements Prévus (Achats)
                     </span>
-                    <div className="flex items-baseline gap-1 mt-1">
-                      <span className="text-xl font-black font-mono text-amber-800 tracking-tight">
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span className="text-lg sm:text-xl font-bold font-mono text-amber-800 tracking-tight tabular-nums">
                         {formatCurrency(futureTotals.purchases)}
                       </span>
                     </div>
@@ -1208,27 +1232,25 @@ export default function AnalyticsPage() {
                 </div>
 
                 <div className={cn(
-                  "border rounded-2xl p-5 shadow-sm flex items-center gap-4 transition-all duration-300",
+                  "border border-slate-200 border-l-4 rounded-xl p-4 shadow-xs flex items-center gap-3.5 hover:border-slate-300 transition-colors",
                   futureTotals.net >= 0 
-                    ? "bg-teal-50/30 border-teal-100/60 hover:border-teal-500/30" 
-                    : "bg-rose-50/30 border-rose-100/60 hover:border-rose-500/30"
+                    ? "bg-teal-50/30 border-l-teal-500" 
+                    : "bg-rose-50/30 border-l-rose-500"
                 )}>
                   <div className={cn(
-                    "w-12 h-12 rounded-xl text-white flex items-center justify-center shadow-md",
-                    futureTotals.net >= 0 
-                      ? "bg-teal-500 shadow-teal-500/20" 
-                      : "bg-rose-500 shadow-rose-500/20"
+                    "w-11 h-11 rounded-xl text-white flex items-center justify-center shadow-xs shrink-0",
+                    futureTotals.net >= 0 ? "bg-teal-500" : "bg-rose-500"
                   )}>
-                    {futureTotals.net >= 0 ? <TrendingUp className="w-6 h-6" /> : <TrendingDown className="w-6 h-6" />}
+                    {futureTotals.net >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
                   </div>
-                  <div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block truncate">
                       Solde Net Prévisionnel
                     </span>
-                    <div className="flex items-baseline gap-1 mt-1">
+                    <div className="flex items-baseline gap-1 mt-0.5">
                       <span className={cn(
-                        "text-xl font-black font-mono tracking-tight",
-                        futureTotals.net >= 0 ? "text-teal-800" : "text-rose-800"
+                        "text-lg sm:text-xl font-bold font-mono tracking-tight tabular-nums",
+                        futureTotals.net >= 0 ? "text-teal-900" : "text-rose-900"
                       )}>
                         {formatCurrency(futureTotals.net)}
                       </span>
@@ -1238,47 +1260,47 @@ export default function AnalyticsPage() {
               </div>
 
               {/* Area Chart Container */}
-              <div className="h-[400px] w-full relative min-h-0">
+              <div className="h-[360px] w-full relative min-h-0">
                 {loadingPurchases || loadingSales ? (
-                  <div className="h-full w-full bg-corp-blue-50/30 animate-pulse rounded-2xl flex items-center justify-center">
-                    <span className="text-corp-blue-300 font-medium">Chargement des projections...</span>
+                  <div className="h-full w-full bg-slate-100/70 animate-pulse rounded-xl flex items-center justify-center">
+                    <span className="text-slate-400 font-medium text-xs sm:text-sm">Chargement des projections...</span>
                   </div>
                 ) : combinedEcheancesData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                     <AreaChart data={combinedEcheancesData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorSalesProj" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
+                          <stop offset="5%" stopColor="#10B981" stopOpacity={0.25}/>
                           <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
                         </linearGradient>
                         <linearGradient id="colorPurchProj" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3}/>
+                          <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.25}/>
                           <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.5} />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 11, fontWeight: 500}} dy={15} />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.8} />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 11, fontWeight: 500}} dy={10} />
                       <YAxis 
                         axisLine={false} 
                         tickLine={false} 
                         tick={{fill: '#64748B', fontSize: 11, fontWeight: 500}}
                         tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} 
-                        dx={-10}
+                        dx={-8}
                       />
                       <Tooltip 
                         content={({ active, payload, label }) => {
                           if (active && payload && payload.length) {
                             return (
-                              <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
-                                <p className="font-bold text-corp-blue-950 mb-3 border-b border-corp-blue-50 pb-2">Échéance du {label}</p>
-                                <div className="space-y-3">
+                              <div className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-md rounded-xl p-3 min-w-[210px]">
+                                <p className="font-semibold text-slate-800 text-xs mb-2 pb-1.5 border-b border-slate-100">Échéance du {label}</p>
+                                <div className="space-y-2">
                                   {payload.map((entry: any, index: number) => (
-                                    <div key={index} className="flex flex-col gap-1">
+                                    <div key={index} className="flex flex-col gap-0.5">
                                       <div className="flex items-center gap-2">
-                                        <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: entry.name === 'sales' ? '#10B981' : '#F59E0B' }} />
-                                        <span className="text-xs text-sand-500 font-medium">{entry.name === 'sales' ? 'Encaissements Clients' : 'Décaissements Achats'}</span>
+                                        <div className="w-2 h-2 rounded-full shadow-xs" style={{ backgroundColor: entry.name === 'sales' ? '#10B981' : '#F59E0B' }} />
+                                        <span className="text-xs text-slate-500 font-medium">{entry.name === 'sales' ? 'Encaissements Clients' : 'Décaissements Achats'}</span>
                                       </div>
-                                      <span className="font-black text-corp-blue-900 font-mono text-sm pl-4">{formatCurrency(Number(entry.value || 0))}</span>
+                                      <span className="font-bold text-slate-900 font-mono text-xs pl-4 tabular-nums">{formatCurrency(Number(entry.value || 0))}</span>
                                     </div>
                                   ))}
                                 </div>
@@ -1293,15 +1315,15 @@ export default function AnalyticsPage() {
                         align="right" 
                         iconType="circle" 
                         wrapperStyle={{ paddingBottom: '20px' }}
-                        formatter={(value) => <span className="text-corp-blue-900 font-medium ml-1">{value === 'sales' ? 'Encaissements Clients' : 'Décaissements Achats'}</span>}
+                        formatter={(value) => <span className="text-slate-700 font-medium text-xs ml-1">{value === 'sales' ? 'Encaissements Clients' : 'Décaissements Achats'}</span>}
                       />
-                      <Area type="monotone" dataKey="sales" name="sales" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorSalesProj)" />
-                      <Area type="monotone" dataKey="purchases" name="purchases" stroke="#F59E0B" strokeWidth={3} fillOpacity={1} fill="url(#colorPurchProj)" />
+                      <Area type="monotone" dataKey="sales" name="sales" stroke="#10B981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorSalesProj)" />
+                      <Area type="monotone" dataKey="purchases" name="purchases" stroke="#F59E0B" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPurchProj)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="h-full w-full flex items-center justify-center bg-sand-50/50 border border-dashed border-sand-200 rounded-2xl text-sand-400 text-sm">
-                    Aucune projection d'échéance disponible.
+                  <div className="h-full w-full flex items-center justify-center bg-slate-50/50 border border-dashed border-slate-200 rounded-xl text-slate-500 text-xs sm:text-sm">
+                    Aucune projection d&apos;échéance disponible.
                   </div>
                 )}
               </div>
@@ -1309,101 +1331,98 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* Supplier Purchases vs Payments Chart */}
-          <Card className="lg:col-span-12 border-corp-blue-100 rounded-2xl shadow-xl shadow-corp-blue-900/2 bg-white overflow-hidden">
-            <CardHeader className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <CardTitle className="text-2xl text-corp-blue-900">Achats vs Règlements par Fournisseur</CardTitle>
-                <CardDescription className="text-sand-400 font-medium">Comparaison de l'engagement financier et du niveau de règlement.</CardDescription>
-              </div>
-              <div className="flex items-center gap-3">
-                {/* Filters moved to global header */}
-              </div>
+          <Card className="lg:col-span-12 border border-slate-200 rounded-2xl shadow-xs bg-white overflow-hidden">
+            <CardHeader className="p-6 lg:p-7 pb-4 border-b border-slate-100">
+              <CardTitle className="text-lg sm:text-xl font-bold text-slate-900">Achats vs Règlements par Fournisseur</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">Comparaison de l&apos;engagement financier et du niveau de règlement.</CardDescription>
             </CardHeader>
-            <CardContent className="p-8 pt-0">
-              <div className="h-[400px] w-full relative min-h-0">
+            <CardContent className="p-6 lg:p-7 pt-5">
+              <div className="h-[360px] w-full relative min-h-0">
                 {renderSupplierChart()}
               </div>
             </CardContent>
           </Card>
 
           {/* Profit Margins Analysis Chart Card */}
-          <Card className="lg:col-span-12 border-corp-blue-100 rounded-2xl shadow-xl shadow-corp-blue-900/2 bg-white overflow-hidden">
-            <CardHeader className="p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <Card className="lg:col-span-12 border border-slate-200 rounded-2xl shadow-xs bg-white overflow-hidden">
+            <CardHeader className="p-6 lg:p-7 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100">
               <div>
-                <CardTitle className="text-2xl text-corp-blue-900 flex items-center gap-2">
-                  <TrendingUp className="w-6 h-6 text-emerald-600" />
-                  Marges Bénéficiaires & Rentabilité
+                <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-emerald-600" />
+                  Marges Bénéficiaires &amp; Rentabilité
                 </CardTitle>
-                <CardDescription className="text-sand-400 font-medium">Analyse comparative des prix de vente HT nets vs coûts d'achat HT nets par article.</CardDescription>
+                <CardDescription className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">Analyse comparative des prix de vente HT nets vs coûts d&apos;achat HT nets par article.</CardDescription>
               </div>
               <div className="flex items-center gap-2">
                 <Select
                   value={marginAnalyticsCostMethod}
                   onValueChange={(val) => val && setMarginAnalyticsCostMethod(val as 'lastPrice' | 'cmp')}
                 >
-                  <SelectTrigger className="w-[180px] h-9 text-xs font-bold border-slate-200 rounded-lg">
-                    <SelectValue placeholder="Méthode d'Achat" />
+                  <SelectTrigger className="w-auto min-w-[200px] h-9 text-xs font-semibold border-slate-200 rounded-lg bg-slate-50/80 hover:bg-slate-100">
+                    <SelectValue placeholder="Méthode d'Achat">
+                      {marginAnalyticsCostMethod === 'cmp' ? 'CMP (Coût Moyen)' : 'Dernier Prix (Par défaut)'}
+                    </SelectValue>
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="lastPrice" className="text-xs font-bold">Dernier Prix (Par défaut)</SelectItem>
-                    <SelectItem value="cmp" className="text-xs font-bold">CMP (Coût Moyen)</SelectItem>
+                  <SelectContent className="border-slate-200">
+                    <SelectItem value="lastPrice" className="text-xs font-medium">Dernier Prix (Par défaut)</SelectItem>
+                    <SelectItem value="cmp" className="text-xs font-medium">CMP (Coût Moyen)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </CardHeader>
-            <CardContent className="p-8 pt-0">
+            <CardContent className="p-6 lg:p-7 pt-5">
               {renderProfitMarginsAnalytics()}
             </CardContent>
           </Card>
 
           {/* Revenue Evolution */}
-          <Card className="lg:col-span-8 border-corp-blue-100 rounded-2xl shadow-xl shadow-corp-blue-900/2 bg-white overflow-hidden">
-            <CardHeader className="p-8">
-              <CardTitle className="text-2xl text-corp-blue-900">Évolution Revenue & Marge</CardTitle>
-              <CardDescription className="text-sand-400 font-medium">Comparaison mensuelle du chiffre d&apos;affaires et de la rentabilité brute.</CardDescription>
+          <Card className="lg:col-span-8 border border-slate-200 rounded-2xl shadow-xs bg-white overflow-hidden">
+            <CardHeader className="p-6 lg:p-7 pb-4 border-b border-slate-100">
+              <CardTitle className="text-lg sm:text-xl font-bold text-slate-900">Évolution Revenue &amp; Marge</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">Comparaison mensuelle du chiffre d&apos;affaires et de la rentabilité brute.</CardDescription>
             </CardHeader>
-            <CardContent className="p-8 pt-0">
-              <div className="h-[400px] w-full relative min-h-0">
+            <CardContent className="p-6 lg:p-7 pt-5">
+              <div className="h-[360px] w-full relative min-h-0">
                 {!isMounted || isLoadingMonthly ? (
-                  <div className="h-full w-full bg-corp-blue-50/30 animate-pulse rounded-2xl flex items-center justify-center">
-                    <span className="text-corp-blue-300 font-medium">Chargement des données...</span>
+                  <div className="h-full w-full bg-slate-100/70 animate-pulse rounded-xl flex items-center justify-center">
+                    <span className="text-slate-400 font-medium text-xs sm:text-sm">Chargement des données...</span>
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                     <AreaChart data={monthlyData || []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
+                          <stop offset="5%" stopColor="#10B981" stopOpacity={0.25}/>
                           <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
                         </linearGradient>
                         <linearGradient id="colorMargin" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3}/>
+                          <stop offset="5%" stopColor="#6366F1" stopOpacity={0.25}/>
                           <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.5} />
-                      <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 11, fontWeight: 500}} dy={15} />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.8} />
+                      <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 11, fontWeight: 500}} dy={10} />
                       <YAxis 
                         axisLine={false} 
                         tickLine={false} 
                         tick={{fill: '#64748B', fontSize: 11, fontWeight: 500}}
                         tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} 
-                        dx={-10}
+                        dx={-8}
                       />
                       <Tooltip 
                         content={({ active, payload, label }) => {
                           if (active && payload && payload.length) {
                             return (
-                              <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-2xl rounded-2xl p-4 min-w-[200px] animate-in fade-in zoom-in-95 duration-200">
-                                <p className="font-bold text-corp-blue-950 mb-3 border-b border-corp-blue-50 pb-2">{label}</p>
-                                <div className="space-y-3">
+                              <div className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-md rounded-xl p-3 min-w-[200px]">
+                                <p className="font-semibold text-slate-800 text-xs mb-2 pb-1.5 border-b border-slate-100">{label}</p>
+                                <div className="space-y-2">
                                   {payload.map((entry: any, index: number) => (
-                                    <div key={index} className="flex flex-col gap-1">
+                                    <div key={index} className="flex flex-col gap-0.5">
                                       <div className="flex items-center gap-2">
-                                        <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: entry.color }} />
-                                        <span className="text-sm text-sand-500 font-medium">{entry.name}</span>
+                                        <div className="w-2 h-2 rounded-full shadow-xs" style={{ backgroundColor: entry.color }} />
+                                        <span className="text-xs text-slate-500 font-medium">{entry.name}</span>
                                       </div>
-                                      <span className="font-black text-corp-blue-900 font-mono text-sm pl-4">{formatCurrency(Number(entry.value || 0))}</span>
+                                      <span className="font-bold text-slate-900 font-mono text-xs pl-4 tabular-nums">{formatCurrency(Number(entry.value || 0))}</span>
                                     </div>
                                   ))}
                                 </div>
@@ -1414,8 +1433,8 @@ export default function AnalyticsPage() {
                         }}
                       />
                       <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ paddingBottom: '20px' }} />
-                      <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" animationDuration={1500} animationEasing="ease-out" />
-                      <Area type="monotone" dataKey="margin" name="Marge" stroke="#6366F1" strokeWidth={3} fillOpacity={1} fill="url(#colorMargin)" animationDuration={1500} animationEasing="ease-out" />
+                      <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#10B981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRev)" animationDuration={1000} animationEasing="ease-out" />
+                      <Area type="monotone" dataKey="margin" name="Marge" stroke="#6366F1" strokeWidth={2.5} fillOpacity={1} fill="url(#colorMargin)" animationDuration={1000} animationEasing="ease-out" />
                     </AreaChart>
                   </ResponsiveContainer>
                 )}
@@ -1424,23 +1443,23 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* Sales by Category (Now by Document Type for accuracy given our API) */}
-          <Card className="lg:col-span-4 border-corp-blue-100 rounded-2xl shadow-xl shadow-corp-blue-900/2 bg-white overflow-hidden">
-            <CardHeader className="p-8">
-              <CardTitle className="text-2xl text-corp-blue-900">Activité par Document</CardTitle>
-              <CardDescription className="text-sand-400 font-medium">Répartition du volume des opérations.</CardDescription>
+          <Card className="lg:col-span-4 border border-slate-200 rounded-2xl shadow-xs bg-white overflow-hidden">
+            <CardHeader className="p-6 lg:p-7 pb-4 border-b border-slate-100">
+              <CardTitle className="text-lg sm:text-xl font-bold text-slate-900">Activité par Document</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">Répartition du volume des opérations.</CardDescription>
             </CardHeader>
-            <CardContent className="p-8 pt-0">
-              <div className="h-[320px] w-full relative min-h-0">
+            <CardContent className="p-6 lg:p-7 pt-5">
+              <div className="h-[260px] w-full relative min-h-0">
                 {renderPieChart()}
               </div>
-              <div className="mt-8 space-y-3">
+              <div className="mt-6 space-y-2">
                 {salesByCategory.map((cat, i) => (
-                  <div key={cat.name} className="flex items-center justify-between">
+                  <div key={cat.name} className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 transition-colors">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full" style={{backgroundColor: COLORS[i % COLORS.length]}} />
-                      <span className="text-xs font-bold text-corp-blue-900 capitalize">{cat.name}</span>
+                      <div className="w-2 h-2 rounded-full shadow-xs" style={{backgroundColor: COLORS[i % COLORS.length]}} />
+                      <span className="text-xs font-semibold text-slate-800 capitalize truncate">{cat.name}</span>
                     </div>
-                    <span className="text-xs font-bold text-sand-400">{cat.value} doc(s)</span>
+                    <span className="text-xs font-mono font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded tabular-nums">{cat.value} doc(s)</span>
                   </div>
                 ))}
               </div>
@@ -1449,24 +1468,25 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Top Clients & Performance */}
-        <div className="grid gap-8 md:grid-cols-2">
-          <Card className="border-corp-blue-100 rounded-2xl bg-white overflow-hidden">
-            <CardHeader className="p-8">
-              <CardTitle className="text-xl text-corp-blue-900">Top Clients (CA du mois)</CardTitle>
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card className="border border-slate-200 rounded-2xl shadow-xs bg-white overflow-hidden">
+            <CardHeader className="p-6 lg:p-7 pb-4 border-b border-slate-100">
+              <CardTitle className="text-lg sm:text-xl font-bold text-slate-900">Top Clients (CA du mois)</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">Les clients générant le plus de volume sur la période.</CardDescription>
             </CardHeader>
-            <CardContent className="p-8 pt-0">
-              <div className="space-y-4">
+            <CardContent className="p-6 lg:p-7 pt-5">
+              <div className="space-y-3">
                 {renderTopClients()}
               </div>
             </CardContent>
           </Card>
           
-          <Card className="border-corp-blue-100 rounded-2xl bg-white overflow-hidden">
-            <CardHeader className="p-8">
-              <CardTitle className="text-xl text-corp-blue-900">Clients / Fournisseurs</CardTitle>
-              <CardDescription className="text-sand-400 font-medium">Total: {customers.length + suppliers.length}</CardDescription>
+          <Card className="border border-slate-200 rounded-2xl shadow-xs bg-white overflow-hidden">
+            <CardHeader className="p-6 lg:p-7 pb-4 border-b border-slate-100">
+              <CardTitle className="text-lg sm:text-xl font-bold text-slate-900">Clients / Fournisseurs</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">Total du réseau : {customers.length + suppliers.length} partenaires</CardDescription>
             </CardHeader>
-            <CardContent className="p-8 pt-0">
+            <CardContent className="p-6 lg:p-7 pt-5">
               <div className="h-[250px] w-full flex items-center justify-center relative">
                 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                   <PieChart>
@@ -1479,24 +1499,25 @@ export default function AnalyticsPage() {
                       outerRadius={80}
                       paddingAngle={4}
                       dataKey="value"
-                      stroke="none"
-                      animationDuration={1500}
+                      stroke="#FFFFFF"
+                      strokeWidth={2}
+                      animationDuration={1000}
                       animationEasing="ease-out"
                     >
-                      <Cell fill="#10B981" style={{ filter: 'drop-shadow(0px 4px 6px rgba(0,0,0,0.1))' }} />
-                      <Cell fill="#F59E0B" style={{ filter: 'drop-shadow(0px 4px 6px rgba(0,0,0,0.1))' }} />
+                      <Cell fill="#10B981" />
+                      <Cell fill="#F59E0B" />
                     </Pie>
                     <Tooltip 
                       cursor={false}
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-xl rounded-xl p-3 min-w-[150px] animate-in fade-in duration-200">
+                            <div className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-md rounded-xl p-3 min-w-[150px]">
                               <div className="flex items-center gap-2 mb-1">
-                                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: payload[0].payload.fill }} />
-                                <span className="font-bold text-corp-blue-950 text-xs">{payload[0].name}</span>
+                                <div className="w-2.5 h-2.5 rounded-full shadow-xs" style={{ backgroundColor: payload[0].payload.fill }} />
+                                <span className="font-semibold text-slate-800 text-xs">{payload[0].name}</span>
                               </div>
-                              <p className="text-xl font-black text-corp-blue-900 font-mono pl-4">{payload[0].value}</p>
+                              <p className="text-lg font-bold text-slate-900 font-mono pl-4 tabular-nums">{payload[0].value}</p>
                             </div>
                           );
                         }
@@ -1512,41 +1533,41 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Suivi des Créances Clients */}
-        <Card className="border-rose-100 rounded-2xl bg-white overflow-hidden shadow-xl shadow-rose-900/5">
-          <CardHeader className="p-8 pb-4">
-            <div className="flex items-center justify-between">
+        <Card className="border border-slate-200 rounded-2xl bg-white overflow-hidden shadow-xs">
+          <CardHeader className="p-6 lg:p-7 pb-4 border-b border-slate-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <CardTitle className="text-2xl text-corp-blue-900">Suivi des Créances Clients</CardTitle>
+                  <CardTitle className="text-lg sm:text-xl font-bold text-slate-900">Suivi des Créances Clients</CardTitle>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setShowReceivablesDialog(true)}
-                    className="w-8 h-8 rounded-lg text-rose-500 hover:bg-rose-50 border border-rose-100/50"
+                    className="w-8 h-8 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-slate-200"
                     title="Analyse approfondie et filtres"
                   >
                     <SlidersHorizontal className="w-4 h-4" />
                   </Button>
                 </div>
-                <CardDescription className="text-sand-400 font-medium">Surveillance globale des factures impayées (Balance = Débit - Crédit)</CardDescription>
+                <CardDescription className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">Surveillance globale des factures impayées (Balance = Débit - Crédit)</CardDescription>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input 
                     placeholder="Rechercher un client..." 
                     value={receivablesSearch}
                     onChange={(e) => setReceivablesSearch(e.target.value)}
-                    className="pl-9 bg-sand-50/50 border-sand-200 rounded-xl w-[250px] focus-visible:ring-corp-blue-500"
+                    className="pl-9 bg-slate-50/80 border-slate-200 rounded-xl text-xs sm:text-sm w-[220px] sm:w-[260px] focus-visible:ring-corp-blue-500"
                   />
                 </div>
-                <div className="bg-rose-50 p-3 rounded-2xl text-rose-600 hidden sm:block">
-                  <AlertCircle className="w-6 h-6" />
+                <div className="bg-rose-50 border border-rose-200/80 p-2 rounded-xl text-rose-600 hidden sm:flex items-center justify-center shrink-0">
+                  <AlertCircle className="w-5 h-5" />
                 </div>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-8 pt-0">
+          <CardContent className="p-6 lg:p-7 pt-5">
             {renderReceivables()}
           </CardContent>
         </Card>
@@ -1564,15 +1585,15 @@ export default function AnalyticsPage() {
             setDialogSort('outstanding_desc');
           }
         }}>
-          <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-5xl xl:max-w-6xl bg-white border border-corp-blue-100 rounded-3xl overflow-hidden shadow-2xl p-0 flex flex-col max-h-[90vh]">
-            <DialogHeader className="p-6 pb-4 border-b border-corp-blue-50/60 bg-gradient-to-r from-corp-blue-50/20 to-rose-50/10">
-              <div className="flex items-center justify-between">
+          <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-5xl xl:max-w-6xl bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xl p-0 flex flex-col max-h-[90vh]">
+            <DialogHeader className="p-5 sm:p-6 pb-4 border-b border-slate-200 bg-slate-50/80">
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <DialogTitle className="text-xl font-bold text-corp-blue-950 flex items-center gap-2">
+                  <DialogTitle className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
                     <span>Analyse Approfondie des Créances Clients</span>
                   </DialogTitle>
-                  <DialogDescription className="text-xs text-sand-500">
-                    Filtrez par montant, date d'échéance et exportez les rapports complets.
+                  <DialogDescription className="text-xs text-slate-500 mt-0.5">
+                    Filtrez par montant, date d&apos;échéance et exportez les rapports complets.
                   </DialogDescription>
                 </div>
                 <Button
@@ -1580,7 +1601,7 @@ export default function AnalyticsPage() {
                   size="sm"
                   onClick={exportToCSV}
                   disabled={dialogFilteredReceivables.length === 0}
-                  className="rounded-xl border-emerald-200 text-emerald-600 hover:bg-emerald-50 font-bold text-xs gap-2 shrink-0 h-9"
+                  className="rounded-xl border-emerald-300 text-emerald-700 hover:bg-emerald-50 font-semibold text-xs gap-2 shrink-0 h-9 bg-white shadow-xs"
                 >
                   <FileDown className="w-4 h-4" />
                   Exporter en CSV
@@ -1589,78 +1610,78 @@ export default function AnalyticsPage() {
             </DialogHeader>
 
             {/* Dialog summary KPI Banner */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-slate-50/50 border-b border-slate-100">
-              <div className="bg-white p-4 rounded-2xl border border-corp-blue-50 shadow-sm flex flex-col gap-1">
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Créances totales</span>
-                <span className="text-lg font-black text-rose-600 font-mono">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-5 bg-slate-50/40 border-b border-slate-200">
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-col gap-1">
+                <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Créances totales</span>
+                <span className="text-base sm:text-lg font-bold text-rose-700 font-mono tabular-nums">
                   {formatCurrency(dialogSummaryStats.totalOutstanding)}
                 </span>
               </div>
-              <div className="bg-white p-4 rounded-2xl border border-corp-blue-50 shadow-sm flex flex-col gap-1">
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Clients en retard (&gt;90j)</span>
-                <span className="text-lg font-black text-amber-600 font-mono">
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-col gap-1">
+                <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Clients en retard (&gt;90j)</span>
+                <span className="text-base sm:text-lg font-bold text-amber-700 font-mono tabular-nums">
                   {dialogSummaryStats.criticalCount}
                 </span>
               </div>
-              <div className="bg-white p-4 rounded-2xl border border-corp-blue-50 shadow-sm flex flex-col gap-1">
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Ancienneté Moyenne</span>
-                <span className="text-lg font-black text-corp-blue-900 font-mono">
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-col gap-1">
+                <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Ancienneté Moyenne</span>
+                <span className="text-base sm:text-lg font-bold text-slate-800 font-mono tabular-nums">
                   {dialogSummaryStats.avgAge} <span className="text-xs font-normal text-slate-400">jours</span>
                 </span>
               </div>
-              <div className="bg-white p-4 rounded-2xl border border-corp-blue-50 shadow-sm flex flex-col gap-1">
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total filtré</span>
-                <span className="text-lg font-black text-emerald-600 font-mono">
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-col gap-1">
+                <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Total filtré</span>
+                <span className="text-base sm:text-lg font-bold text-emerald-700 font-mono tabular-nums">
                   {dialogSummaryStats.totalCount} <span className="text-xs font-normal text-slate-400">clients</span>
                 </span>
               </div>
             </div>
 
             {/* Filtering and sorting controls */}
-            <div className="p-6 border-b border-slate-100 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-5 border-b border-slate-200 space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {/* Search input */}
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-sand-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input 
                     placeholder="Rechercher un client..." 
                     value={dialogSearch}
                     onChange={(e) => setDialogSearch(e.target.value)}
-                    className="pl-9 bg-sand-50/50 border-sand-200 rounded-xl w-full text-sm"
+                    className="pl-9 bg-white border-slate-200 rounded-xl w-full text-xs sm:text-sm h-9"
                   />
                 </div>
 
                 {/* Min amount input */}
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold uppercase">Min DT</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 font-semibold uppercase">Min DT</span>
                   <Input 
                     type="number"
                     placeholder="0.000" 
                     value={dialogMinAmount === '' ? '' : dialogMinAmount}
                     onChange={(e) => setDialogMinAmount(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="pl-16 bg-sand-50/50 border-sand-200 rounded-xl w-full text-sm font-mono"
+                    className="pl-16 bg-white border-slate-200 rounded-xl w-full text-xs sm:text-sm font-mono h-9"
                   />
                 </div>
 
                 {/* Max amount input */}
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold uppercase">Max DT</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 font-semibold uppercase">Max DT</span>
                   <Input 
                     type="number"
                     placeholder="Filtre max..." 
                     value={dialogMaxAmount === '' ? '' : dialogMaxAmount}
                     onChange={(e) => setDialogMaxAmount(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="pl-16 bg-sand-50/50 border-sand-200 rounded-xl w-full text-sm font-mono"
+                    className="pl-16 bg-white border-slate-200 rounded-xl w-full text-xs sm:text-sm font-mono h-9"
                   />
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                 {/* Age and pay filters */}
-                <div className="flex flex-wrap gap-4 items-center">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Ancienneté</span>
-                    <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200/50">
+                <div className="flex flex-wrap gap-3 items-center">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Ancienneté</span>
+                    <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200/60">
                       {[
                         { id: 'all', label: 'Tous' },
                         { id: 'lt30', label: '< 30 j' },
@@ -1671,10 +1692,10 @@ export default function AnalyticsPage() {
                           key={opt.id}
                           onClick={() => setDialogAgeFilter(opt.id as any)}
                           className={cn(
-                            "px-3 py-1 text-[10px] font-bold rounded-lg uppercase tracking-wider transition-all",
+                            "px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all",
                             dialogAgeFilter === opt.id
-                              ? "bg-white text-corp-blue-900 shadow-sm"
-                              : "text-slate-500 hover:text-slate-800"
+                              ? "bg-white text-slate-900 shadow-xs"
+                              : "text-slate-600 hover:text-slate-900"
                           )}
                         >
                           {opt.label}
@@ -1683,9 +1704,9 @@ export default function AnalyticsPage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Taux de règlement</span>
-                    <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200/50">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Taux de règlement</span>
+                    <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200/60">
                       {[
                         { id: 'all', label: 'Tous' },
                         { id: 'lt50', label: '< 50%' },
@@ -1696,10 +1717,10 @@ export default function AnalyticsPage() {
                           key={opt.id}
                           onClick={() => setDialogPayFilter(opt.id as any)}
                           className={cn(
-                            "px-3 py-1 text-[10px] font-bold rounded-lg uppercase tracking-wider transition-all",
+                            "px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all",
                             dialogPayFilter === opt.id
-                              ? "bg-white text-corp-blue-900 shadow-sm"
-                              : "text-slate-500 hover:text-slate-800"
+                              ? "bg-white text-slate-900 shadow-xs"
+                              : "text-slate-600 hover:text-slate-900"
                           )}
                         >
                           {opt.label}
@@ -1710,10 +1731,10 @@ export default function AnalyticsPage() {
                 </div>
 
                 {/* Sort selector */}
-                <div className="flex flex-col gap-1 shrink-0 w-full sm:w-[220px]">
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Trier par</span>
+                <div className="flex flex-col gap-0.5 shrink-0 w-full sm:w-[220px]">
+                  <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Trier par</span>
                   <Select value={dialogSort} onValueChange={(val) => setDialogSort(val as any)}>
-                    <SelectTrigger className="w-full bg-sand-50/50 border-sand-200 rounded-xl text-xs font-bold h-9">
+                    <SelectTrigger className="w-full bg-white border-slate-200 rounded-xl text-xs font-semibold h-9">
                       <SelectValue placeholder="Ordre d'affichage">
                         {dialogSort === 'outstanding_desc' && "Solde restant (Décroissant)"}
                         {dialogSort === 'outstanding_asc' && "Solde restant (Croissant)"}
@@ -1722,7 +1743,7 @@ export default function AnalyticsPage() {
                         {dialogSort === 'name_asc' && "Nom du client (A-Z)"}
                       </SelectValue>
                     </SelectTrigger>
-                    <SelectContent className="bg-white border border-corp-blue-100 rounded-xl">
+                    <SelectContent className="bg-white border border-slate-200 rounded-xl">
                       <SelectItem value="outstanding_desc" className="text-xs font-medium cursor-pointer hover:bg-slate-50">Solde restant (Décroissant)</SelectItem>
                       <SelectItem value="outstanding_asc" className="text-xs font-medium cursor-pointer hover:bg-slate-50">Solde restant (Croissant)</SelectItem>
                       <SelectItem value="age_desc" className="text-xs font-medium cursor-pointer hover:bg-slate-50">Ancienneté (Plus ancien)</SelectItem>
@@ -1738,59 +1759,59 @@ export default function AnalyticsPage() {
             <div className="flex-1 overflow-y-auto max-h-[50vh] custom-scrollbar">
               {dialogFilteredReceivables.length === 0 ? (
                 <div className="p-12 text-center text-slate-400">
-                  <SlidersHorizontal className="w-8 h-8 mx-auto mb-3 text-slate-300" />
-                  <p className="text-sm font-bold">Aucun résultat ne correspond à vos filtres.</p>
+                  <SlidersHorizontal className="w-8 h-8 mx-auto mb-2.5 text-slate-300" />
+                  <p className="text-xs sm:text-sm font-semibold">Aucun résultat ne correspond à vos filtres.</p>
                 </div>
               ) : (
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-corp-blue-50/80 bg-corp-blue-50/10 sticky top-0 backdrop-blur z-10">
-                      <th className="px-6 py-3 text-[10px] font-bold text-corp-blue-800 uppercase tracking-wider">Client</th>
-                      <th className="px-6 py-3 text-[10px] font-bold text-corp-blue-800 uppercase tracking-wider text-right">Facturé</th>
-                      <th className="px-6 py-3 text-[10px] font-bold text-corp-blue-800 uppercase tracking-wider text-right">Payé</th>
-                      <th className="px-6 py-3 text-[10px] font-bold text-corp-blue-800 uppercase tracking-wider text-right">Solde Restant</th>
-                      <th className="px-6 py-3 text-[10px] font-bold text-corp-blue-800 uppercase tracking-wider text-center">Taux</th>
-                      <th className="px-6 py-3 text-[10px] font-bold text-corp-blue-800 uppercase tracking-wider text-center">Ancienneté</th>
+                    <tr className="border-b border-slate-200 bg-slate-50 sticky top-0 backdrop-blur z-10">
+                      <th className="px-5 py-3 text-[11px] font-semibold text-slate-700 uppercase tracking-wider">Client</th>
+                      <th className="px-5 py-3 text-[11px] font-semibold text-slate-700 uppercase tracking-wider text-right">Facturé</th>
+                      <th className="px-5 py-3 text-[11px] font-semibold text-slate-700 uppercase tracking-wider text-right">Payé</th>
+                      <th className="px-5 py-3 text-[11px] font-semibold text-slate-700 uppercase tracking-wider text-right">Solde Restant</th>
+                      <th className="px-5 py-3 text-[11px] font-semibold text-slate-700 uppercase tracking-wider text-center">Taux</th>
+                      <th className="px-5 py-3 text-[11px] font-semibold text-slate-700 uppercase tracking-wider text-center">Ancienneté</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {dialogFilteredReceivables.map((client: any) => {
                       const progress = client.totalInvoiced > 0 ? (client.totalPaid / client.totalInvoiced) * 100 : 0;
                       
-                      let ageColor = 'text-emerald-700 bg-emerald-50 border-emerald-100';
+                      let ageColor = 'text-emerald-700 bg-emerald-50 border-emerald-200/80';
                       let ageLabel = '< 30 j';
                       if (client.oldestInvoiceDays >= 30 && client.oldestInvoiceDays <= 90) {
-                        ageColor = 'text-amber-700 bg-amber-50 border-amber-100';
+                        ageColor = 'text-amber-700 bg-amber-50 border-amber-200/80';
                         ageLabel = `${client.oldestInvoiceDays} j`;
                       } else if (client.oldestInvoiceDays > 90) {
-                        ageColor = 'text-rose-700 bg-rose-50 border-rose-100';
+                        ageColor = 'text-rose-700 bg-rose-50 border-rose-200/80';
                         ageLabel = `> 90 j (${client.oldestInvoiceDays} j)`;
                       }
 
                       return (
                         <tr key={client.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-6 py-4 text-xs font-bold text-corp-blue-950">
+                          <td className="px-5 py-3 text-xs font-semibold text-slate-900">
                             {client.name}
                           </td>
-                          <td className="px-6 py-4 text-xs font-mono font-medium text-slate-500 text-right">
+                          <td className="px-5 py-3 text-xs font-mono font-medium text-slate-600 text-right tabular-nums">
                             {formatCurrency(client.totalInvoiced)}
                           </td>
-                          <td className="px-6 py-4 text-xs font-mono font-medium text-slate-500 text-right">
+                          <td className="px-5 py-3 text-xs font-mono font-medium text-slate-600 text-right tabular-nums">
                             {formatCurrency(client.totalPaid)}
                           </td>
-                          <td className="px-6 py-4 text-xs font-mono font-bold text-rose-600 text-right">
+                          <td className="px-5 py-3 text-xs font-mono font-bold text-rose-700 text-right tabular-nums">
                             {formatCurrency(client.outstanding)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <td className="px-5 py-3 whitespace-nowrap text-center">
                             <div className="flex flex-col items-center gap-1">
-                              <span className="text-[10px] font-bold text-slate-600">{progress.toFixed(0)}%</span>
-                              <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                <div className="h-full bg-emerald-500" style={{ width: `${Math.min(progress, 100)}%` }} />
+                              <span className="text-[10px] font-bold text-slate-600 tabular-nums">{progress.toFixed(0)}%</span>
+                              <div className="w-16 h-1.5 bg-slate-200/90 rounded-full overflow-hidden">
+                                <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(progress, 100)}%` }} />
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-center">
-                            <span className={cn("px-2 py-0.5 rounded-lg border text-[10px] font-bold inline-block", ageColor)}>
+                          <td className="px-5 py-3 text-center">
+                            <span className={cn("px-2 py-0.5 rounded-md border text-[11px] font-semibold inline-block", ageColor)}>
                               {ageLabel}
                             </span>
                           </td>
@@ -1804,17 +1825,16 @@ export default function AnalyticsPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Top Articles by SubCategory */}
         {/* Stock Health & Top SubCategories */}
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-3">
           {/* Stock Health Pie */}
-          <Card className="lg:col-span-1 border-corp-blue-100 rounded-2xl bg-white overflow-hidden shadow-xl shadow-corp-blue-900/2">
-            <CardHeader className="p-8 pb-4">
-              <CardTitle className="text-2xl text-corp-blue-900">Santé du Stock</CardTitle>
-              <CardDescription className="text-sand-400 font-medium">Répartition globale des articles</CardDescription>
+          <Card className="lg:col-span-1 border border-slate-200 rounded-2xl bg-white overflow-hidden shadow-xs">
+            <CardHeader className="p-6 lg:p-7 pb-4 border-b border-slate-100">
+              <CardTitle className="text-lg sm:text-xl font-bold text-slate-900">Santé du Stock</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">Répartition globale des articles</CardDescription>
             </CardHeader>
-            <CardContent className="p-8 pt-0">
-              <div className="h-[400px] w-full flex items-center justify-center relative">
+            <CardContent className="p-6 lg:p-7 pt-5">
+              <div className="h-[340px] w-full flex items-center justify-center relative">
                 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                   <PieChart>
                     <Pie
@@ -1823,29 +1843,30 @@ export default function AnalyticsPage() {
                         { name: 'Bas', value: stockStats?.lowStockItems ?? 0 },
                         { name: 'Rupture', value: stockStats?.outOfStockItems ?? 0 }
                       ]}
-                      outerRadius={120}
-                      innerRadius={80}
+                      outerRadius={110}
+                      innerRadius={75}
                       paddingAngle={4}
                       dataKey="value"
-                      stroke="none"
-                      animationDuration={1500}
+                      stroke="#FFFFFF"
+                      strokeWidth={2}
+                      animationDuration={1000}
                       animationEasing="ease-out"
                     >
-                      <Cell fill="#10B981" style={{ filter: 'drop-shadow(0px 4px 6px rgba(0,0,0,0.1))' }} />
-                      <Cell fill="#F59E0B" style={{ filter: 'drop-shadow(0px 4px 6px rgba(0,0,0,0.1))' }} />
-                      <Cell fill="#EF4444" style={{ filter: 'drop-shadow(0px 4px 6px rgba(0,0,0,0.1))' }} />
+                      <Cell fill="#10B981" />
+                      <Cell fill="#F59E0B" />
+                      <Cell fill="#EF4444" />
                     </Pie>
                     <Tooltip 
                       cursor={false}
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-white/95 backdrop-blur-md border border-corp-blue-100 shadow-xl rounded-xl p-3 min-w-[150px] animate-in fade-in duration-200">
+                            <div className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-md rounded-xl p-3 min-w-[150px]">
                               <div className="flex items-center gap-2 mb-1">
-                                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: payload[0].payload.fill }} />
-                                <span className="font-bold text-corp-blue-950 text-xs">{payload[0].name}</span>
+                                <div className="w-2.5 h-2.5 rounded-full shadow-xs" style={{ backgroundColor: payload[0].payload.fill }} />
+                                <span className="font-semibold text-slate-800 text-xs">{payload[0].name}</span>
                               </div>
-                              <p className="text-xl font-black text-corp-blue-900 font-mono pl-4">{payload[0].value}</p>
+                              <p className="text-lg font-bold text-slate-900 font-mono pl-4 tabular-nums">{payload[0].value}</p>
                             </div>
                           );
                         }
@@ -1859,62 +1880,65 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-2 border-corp-blue-100 rounded-2xl bg-white overflow-hidden shadow-xl shadow-corp-blue-900/2">
-            <CardHeader className="p-8 pb-4">
+          {/* Top Ventes par Sous-Catégorie */}
+          <Card className="lg:col-span-2 border border-slate-200 rounded-2xl bg-white overflow-hidden shadow-xs">
+            <CardHeader className="p-6 lg:p-7 pb-4 border-b border-slate-100">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <CardTitle className="text-2xl text-corp-blue-900">Top Ventes par Sous-Catégorie</CardTitle>
-                  <CardDescription className="text-sand-400 font-medium">Les sous-catégories les plus performantes (quantité et CA).</CardDescription>
+                  <CardTitle className="text-lg sm:text-xl font-bold text-slate-900">Top Ventes par Sous-Catégorie</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">Les sous-catégories les plus performantes (quantité et CA).</CardDescription>
                 </div>
-              <div className="flex bg-sand-100/50 p-1 rounded-xl">
-                {topSubCategories && topSubCategories.length > 0 && (
-                  <select
-                    value={selectedSalesSubCatId || ""}
-                    onChange={(e) => setSelectedSalesSubCatId(Number(e.target.value))}
-                    className="h-9 rounded-lg bg-transparent px-3 text-sm font-bold text-corp-blue-900 outline-none cursor-pointer mr-2 border-r border-sand-200"
-                  >
-                    {topSubCategories.map(c => (
-                      <option key={c.subCategoryId} value={c.subCategoryId}>{c.subCategoryName}</option>
+                <div className="flex items-center gap-2">
+                  {topSubCategories && topSubCategories.length > 0 && (
+                    <select
+                      value={selectedSalesSubCatId || ""}
+                      onChange={(e) => setSelectedSalesSubCatId(Number(e.target.value))}
+                      className="h-8 bg-slate-50/80 border border-slate-200 rounded-lg px-2.5 text-xs font-semibold text-slate-800 outline-none cursor-pointer"
+                    >
+                      {topSubCategories.map(c => (
+                        <option key={c.subCategoryId} value={c.subCategoryId}>{c.subCategoryName}</option>
+                      ))}
+                    </select>
+                  )}
+                  <div className="inline-flex bg-slate-100/80 p-0.5 rounded-xl border border-slate-200/60">
+                    {[3, 6, 12].map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => setTopSalesMonths(m)}
+                        className={cn(
+                          "px-3 py-1 rounded-lg text-xs font-semibold transition-all",
+                          topSalesMonths === m 
+                            ? "bg-white text-slate-900 shadow-xs" 
+                            : "text-slate-600 hover:text-slate-900"
+                        )}
+                      >
+                        {m} mois
+                      </button>
                     ))}
-                  </select>
-                )}
-                {[3, 6, 12].map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setTopSalesMonths(m)}
-                    className={cn(
-                      "px-4 py-1.5 rounded-lg text-sm font-bold transition-all",
-                      topSalesMonths === m 
-                        ? "bg-white text-corp-blue-900 shadow-sm" 
-                        : "text-sand-500 hover:text-corp-blue-700"
-                    )}
-                  >
-                    {m} mois
-                  </button>
-                ))}
+                  </div>
+                </div>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-8 pt-0">
-            {renderTopSubCategories()}
-          </CardContent>
+            </CardHeader>
+            <CardContent className="p-6 lg:p-7 pt-5">
+              {renderTopSubCategories()}
+            </CardContent>
           </Card>
         </div>
 
         {/* Stock Health per SubCategory */}
-        <Card className="border-corp-blue-100 rounded-2xl bg-white overflow-hidden shadow-xl shadow-corp-blue-900/2">
-          <CardHeader className="p-8 pb-4">
+        <Card className="border border-slate-200 rounded-2xl bg-white overflow-hidden shadow-xs">
+          <CardHeader className="p-6 lg:p-7 pb-4 border-b border-slate-100">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <CardTitle className="text-2xl text-corp-blue-900">Santé du Stock par Sous-Catégorie</CardTitle>
-                <CardDescription className="text-sand-400 font-medium">Comparaison du stock actuel avec le seuil d'alerte (stock minimum).</CardDescription>
+                <CardTitle className="text-lg sm:text-xl font-bold text-slate-900">Santé du Stock par Sous-Catégorie</CardTitle>
+                <CardDescription className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">Comparaison du stock actuel avec le seuil d&apos;alerte (stock minimum).</CardDescription>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2.5">
                 {stockHealthWithMinQty && stockHealthWithMinQty.length > 0 && (
                   <select
                     value={selectedStockSubCatId || ""}
                     onChange={(e) => setSelectedStockSubCatId(Number(e.target.value))}
-                    className="h-9 rounded-xl bg-sand-50/50 border-sand-200 px-3 text-sm font-bold text-corp-blue-900 outline-none cursor-pointer focus-visible:ring-corp-blue-500"
+                    className="h-9 rounded-xl bg-slate-50/80 border border-slate-200 px-3 text-xs sm:text-sm font-semibold text-slate-800 outline-none cursor-pointer focus-visible:ring-corp-blue-500"
                   >
                     {stockHealthWithMinQty.map(c => (
                       <option key={c.subCategoryId} value={c.subCategoryId}>{c.subCategoryName}</option>
@@ -1924,7 +1948,7 @@ export default function AnalyticsPage() {
                 <select
                   value={stockSiteId || ""}
                   onChange={(e) => setStockSiteId(e.target.value ? Number(e.target.value) : undefined)}
-                  className="h-9 rounded-xl bg-sand-50/50 border-sand-200 px-3 text-sm font-bold text-corp-blue-900 outline-none cursor-pointer focus-visible:ring-corp-blue-500"
+                  className="h-9 rounded-xl bg-slate-50/80 border border-slate-200 px-3 text-xs sm:text-sm font-semibold text-slate-800 outline-none cursor-pointer focus-visible:ring-corp-blue-500"
                 >
                   <option value="">Tous les sites (Entreprise)</option>
                   <option value="1">Site Principal</option>
@@ -1933,7 +1957,7 @@ export default function AnalyticsPage() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-8 pt-0">
+          <CardContent className="p-6 lg:p-7 pt-5">
             {renderStockHealth()}
           </CardContent>
         </Card>
@@ -1945,29 +1969,29 @@ export default function AnalyticsPage() {
 
       {/* ── RAPPORT COMPLET MODAL ── */}
       <Dialog open={showReport} onOpenChange={setShowReport}>
-        <DialogContent className="max-w-[95vw] sm:max-w-5xl bg-white border border-corp-blue-100 rounded-3xl overflow-hidden shadow-2xl p-0 flex flex-col max-h-[92vh]">
-          <DialogHeader className="p-6 pb-4 border-b border-corp-blue-50/60 bg-gradient-to-r from-corp-blue-50/30 to-white shrink-0">
-            <div className="flex items-center justify-between">
+        <DialogContent className="max-w-[95vw] sm:max-w-5xl bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xl p-0 flex flex-col max-h-[92vh]">
+          <DialogHeader className="p-5 sm:p-6 pb-4 border-b border-slate-200 bg-slate-50/80 shrink-0">
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <DialogTitle className="text-xl font-bold text-corp-blue-950 flex items-center gap-2">
+                <DialogTitle className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
                   <Download className="w-5 h-5 text-corp-blue-600" />
-                  Rapport Complet d'Analyse Business
+                  Rapport Complet d&apos;Analyse Business
                 </DialogTitle>
-                <DialogDescription className="text-xs text-sand-500 mt-0.5">
-                  Aperçu avant impression — Cliquez sur «&nbsp;Imprimer&nbsp;» pour lancer le dialogue d'impression.
+                <DialogDescription className="text-xs text-slate-500 mt-0.5">
+                  Aperçu avant impression — Cliquez sur «&nbsp;Imprimer&nbsp;» pour lancer le dialogue d&apos;impression.
                 </DialogDescription>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <Button
                   onClick={handlePrint}
-                  className="h-9 bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold px-5 text-sm gap-2"
+                  className="h-9 bg-corp-blue-600 text-white hover:bg-corp-blue-700 font-semibold px-4 text-xs sm:text-sm rounded-xl shadow-xs gap-2"
                 >
                   <Download className="w-4 h-4" /> Imprimer
                 </Button>
                 <Button
                   variant="ghost"
                   onClick={() => setShowReport(false)}
-                  className="h-9 px-3 text-sand-500 hover:bg-sand-50"
+                  className="h-9 w-9 p-0 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100"
                 >
                   <X className="w-4 h-4" />
                 </Button>
@@ -1976,8 +2000,8 @@ export default function AnalyticsPage() {
           </DialogHeader>
 
           {/* Scrollable report preview */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar bg-sand-50/40 p-4">
-            <div ref={printRef} className="bg-white rounded-xl shadow-sm border border-corp-blue-50/50 overflow-hidden">
+          <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/50 p-4">
+            <div ref={printRef} className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
               <AnalyticsReport
                 enterprise={enterprise}
                 chartMonth={chartMonth}
