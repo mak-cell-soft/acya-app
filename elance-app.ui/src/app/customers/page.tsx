@@ -22,7 +22,8 @@ import {
   Loader2,
   FileText,
   BadgeInfo,
-  DollarSign
+  DollarSign,
+  Printer
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQueryClient } from '@tanstack/react-query';
@@ -56,6 +57,10 @@ import { DeleteCustomerDialog } from '@/components/customers/delete-customer-dia
 import { CustomerRecouvrementDialog } from '@/components/customers/customer-recouvrement-dialog';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
+import { PrintVariantDialog } from '@/components/print/print-trigger-button';
+import { documentService } from '@/services/components/document.service';
+import { deepSearchService, PurchasedMerchandise } from '@/services/components/deep-search.service';
+import { Document } from '@/types/document';
 
 const PREFIX_LABELS: Record<string, string> = {
   ALL: 'Toutes Civilités / Formes',
@@ -87,6 +92,16 @@ export default function CustomersPage() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+
+  // Print States
+  const [isPrintListOpen, setIsPrintListOpen] = useState(false);
+  const [isPrintReportOpen, setIsPrintReportOpen] = useState(false);
+  const [reportCustomer, setReportCustomer] = useState<{
+    customer: Customer;
+    documents?: Document[];
+    purchasedMerchandise?: PurchasedMerchandise[];
+  } | null>(null);
+  const [loadingReportId, setLoadingReportId] = useState<number | null>(null);
 
   const queryClient = useQueryClient();
   const { hasPermission, hasAnyPermission } = usePermissionGuard();
@@ -178,6 +193,41 @@ export default function CustomersPage() {
     setIsDeleteOpen(true);
   };
 
+  /**
+   * Generates a comprehensive printable PDF report for the selected customer.
+   * Concurrently fetches sales documents and purchased merchandise using existing API endpoints.
+   */
+  const handlePrintCustomerReport = async (customer: Customer) => {
+    try {
+      setLoadingReportId(customer.id);
+      toast.info(`Chargement des données de vente pour ${customer.name || customer.firstname}...`);
+
+      // Retrieve customer sales documents and line details in parallel
+      const [docs, purchases] = await Promise.all([
+        documentService.getByCounterpartId(customer.id).catch((err) => {
+          console.error('[handlePrintCustomerReport] Failed to load customer documents:', err);
+          return [];
+        }),
+        deepSearchService.getCustomerPurchases(customer.id).catch((err) => {
+          console.error('[handlePrintCustomerReport] Failed to load customer purchases:', err);
+          return [];
+        }),
+      ]);
+
+      setReportCustomer({
+        customer,
+        documents: Array.isArray(docs) ? docs : [],
+        purchasedMerchandise: Array.isArray(purchases) ? purchases : [],
+      });
+      setIsPrintReportOpen(true);
+    } catch (error) {
+      console.error('[handlePrintCustomerReport] Error generating customer report:', error);
+      toast.error("Impossible de préparer le rapport pour ce client.");
+    } finally {
+      setLoadingReportId(null);
+    }
+  };
+
   const handleExport = () => {
     if (!customers || customers.length === 0) return;
 
@@ -225,9 +275,17 @@ export default function CustomersPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-corp-blue-900 tracking-tight">Gestion des Clients</h1>
-            <p className="text-sand-400 font-medium mt-1">Gérez votre base client, les soldes et l'historique des ventes.</p>
+            <p className="text-sand-400 font-medium mt-1">Gérez votre base client, les soldes et l&apos;historique des ventes.</p>
           </div>
           <div className="flex items-center gap-3">
+            <Button 
+              onClick={() => setIsPrintListOpen(true)}
+              variant="outline" 
+              disabled={filteredCustomers.length === 0}
+              className="h-11 rounded-xl border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 shadow-2xs"
+            >
+              <Printer className="w-4 h-4 mr-2" /> Imprimer Liste
+            </Button>
             {hasPermission('customers', 'canAdd') && (
               <Button 
                 onClick={() => setIsImportOpen(true)}
@@ -376,6 +434,20 @@ export default function CustomersPage() {
                               variant="ghost" 
                               size="icon" 
                               className="h-9 w-9 rounded-lg text-sand-400 hover:text-corp-blue-600 hover:bg-corp-blue-100/50"
+                              title="Imprimer Fiche / Rapport Client (PDF)"
+                              disabled={loadingReportId === item.id}
+                              onClick={(e) => { e.stopPropagation(); handlePrintCustomerReport(item); }}
+                            >
+                              {loadingReportId === item.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin text-corp-blue-600" />
+                              ) : (
+                                <Printer className="w-4 h-4" />
+                              )}
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-9 w-9 rounded-lg text-sand-400 hover:text-corp-blue-600 hover:bg-corp-blue-100/50"
                               onClick={(e) => { e.stopPropagation(); openDetails(item); }}
                             >
                               <ExternalLink className="w-4 h-4" />
@@ -387,6 +459,9 @@ export default function CustomersPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="rounded-xl border-corp-blue-100 w-44">
+                                <DropdownMenuItem onClick={() => handlePrintCustomerReport(item)} className="gap-2 font-bold text-corp-blue-900 cursor-pointer">
+                                  <Printer className="w-4 h-4 text-corp-blue-600" /> Imprimer / PDF
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => openAccount(item)} className="gap-2 font-bold text-corp-blue-900 cursor-pointer">
                                   <CreditCard className="w-4 h-4" /> État de Compte
                                 </DropdownMenuItem>
@@ -452,7 +527,7 @@ export default function CustomersPage() {
                                         <div className="text-sm font-bold text-corp-blue-900">{item.maximumdiscount}%</div>
                                       </div>
                                     </div>
-                                    {/* Shortcut trigger to directly open customer account statement */}
+                                    {/* Shortcut triggers to directly open customer actions */}
                                     <div className="pt-2 grid grid-cols-2 gap-2">
                                       <Button 
                                         variant="outline" 
@@ -475,6 +550,23 @@ export default function CustomersPage() {
                                         className="w-full text-xs font-bold border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800 transition-all rounded-xl"
                                       >
                                         <DollarSign className="w-3.5 h-3.5 mr-2" /> Recouvrement
+                                      </Button>
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        disabled={loadingReportId === item.id}
+                                        onClick={(e) => { 
+                                          e.stopPropagation(); 
+                                          handlePrintCustomerReport(item); 
+                                        }}
+                                        className="col-span-2 w-full text-xs font-bold border-corp-blue-200 text-corp-blue-800 hover:bg-corp-blue-50 transition-all rounded-xl"
+                                      >
+                                        {loadingReportId === item.id ? (
+                                          <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin text-corp-blue-600" />
+                                        ) : (
+                                          <Printer className="w-3.5 h-3.5 mr-2 text-corp-blue-600" />
+                                        )}
+                                        Fiche &amp; Ventes (PDF)
                                       </Button>
                                     </div>
                                   </div>
@@ -539,6 +631,9 @@ export default function CustomersPage() {
             setIsDetailsOpen(false); // Close details modal to prevent overlay stacking
             openAccount(customer);   // Open statement modal
           }}
+          onPrintReport={(customer) => {
+            handlePrintCustomerReport(customer);
+          }}
         />
 
         <CustomerAccountDialog 
@@ -569,6 +664,26 @@ export default function CustomersPage() {
           type="customer"
           onImportSuccess={() => queryClient.invalidateQueries({ queryKey: ['customers'] })}
           onExportXlsx={handleExport}
+        />
+
+        {/* Print Individual Customer Report Dialog */}
+        <PrintVariantDialog
+          isOpen={isPrintReportOpen}
+          onClose={() => {
+            setIsPrintReportOpen(false);
+            setReportCustomer(null);
+          }}
+          docType="customer-report"
+          customerReportData={reportCustomer}
+        />
+
+        {/* Print All Filtered Customers List Dialog */}
+        <PrintVariantDialog
+          isOpen={isPrintListOpen}
+          onClose={() => setIsPrintListOpen(false)}
+          docType="customers-list"
+          customersList={filteredCustomers}
+          customersFilterTitle={prefixFilter !== 'ALL' ? (PREFIX_LABELS[prefixFilter] || prefixFilter) : 'Tous les clients'}
         />
       </div>
     </DashboardLayout>

@@ -2502,4 +2502,471 @@ export function getStockPurchaseCostPrintStyles(): string {
   `;
 }
 
+/**
+ * Return CSS print styles for Customer Reports and Customer Lists (A4 multi-page).
+ * Optimized for multi-page tables, clear typographic hierarchy, and Tunisian corporate styling.
+ */
+export function getCustomerReportPrintStyles(): string {
+  return `
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #fff !important;
+      color: #0f172a;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      font-size: 8pt;
+      line-height: 1.35;
+    }
+
+    .customer-report-container,
+    .customers-list-container {
+      width: 100%;
+      max-width: 200mm;
+      margin: 0 auto;
+      padding: 4mm 6mm;
+      background: #fff;
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+
+    .font-bold { font-weight: 700 !important; }
+    .font-semibold { font-weight: 600 !important; }
+    .font-medium { font-weight: 500 !important; }
+    .text-right { text-align: right !important; }
+    .text-center { text-align: center !important; }
+    .text-corp-blue { color: #1e3a8a !important; }
+    .text-danger { color: #dc2626 !important; }
+    .text-success { color: #16a34a !important; }
+    .text-muted { color: #64748b !important; }
+
+    /* Corporate Tunisian Header */
+    .report-header {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 6mm;
+      margin-bottom: 4mm;
+      padding-bottom: 3mm;
+      border-bottom: 1.5px solid #0f172a;
+    }
+
+    .company-info {
+      text-align: left;
+    }
+
+    .company-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 11pt;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 1mm 0;
+      letter-spacing: -0.2px;
+    }
+
+    .company-details {
+      font-size: 6.8pt;
+      color: #334155;
+      line-height: 1.3;
+      margin: 0.5mm 0;
+    }
+
+    .center-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2mm;
+    }
+
+    .logo-box {
+      border: 1.5px solid #0f172a;
+      padding: 2mm 6mm;
+      text-align: center;
+    }
+
+    .logo-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 14pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin: 0;
+      color: #0f172a;
+    }
+
+    .location-tag {
+      font-size: 7.5pt;
+      font-weight: 700;
+      border: 1px solid #0f172a;
+      padding: 1mm 4mm;
+      text-align: center;
+    }
+
+    .arabic-info {
+      text-align: right;
+      direction: rtl;
+    }
+
+    .arabic-text {
+      font-size: 8.5pt;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0.5mm 0;
+    }
+
+    .arabic-details {
+      font-size: 6.8pt;
+      color: #475569;
+      margin: 0.5mm 0;
+    }
+
+    .report-arabic-badge {
+      display: inline-block;
+      border: 1px solid #0f172a;
+      padding: 1mm 3mm;
+      font-size: 8pt;
+      font-weight: 700;
+      margin-top: 1.5mm;
+      background: #f8fafc;
+    }
+
+    /* Title Banner */
+    .report-title-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1.5px solid #0f172a;
+      background: #f8fafc;
+      padding: 2.5mm 4mm;
+      margin-bottom: 3.5mm;
+    }
+
+    .title-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 12pt;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #0f172a;
+      margin: 0;
+    }
+
+    .subtitle-text {
+      font-size: 7pt;
+      color: #475569;
+      margin-top: 0.5mm;
+    }
+
+    .person-type-badge {
+      display: inline-block;
+      background: #0f172a;
+      color: #fff;
+      font-size: 7.5pt;
+      font-weight: 700;
+      padding: 1mm 3mm;
+      border-radius: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Customer Identification Grid */
+    .customer-card-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 3mm;
+      margin-bottom: 3.5mm;
+    }
+
+    .card-column {
+      border: 1px solid #cbd5e1;
+      padding: 2.5mm 3mm;
+      background: #fff;
+    }
+
+    .card-column.financial-column {
+      background: #fcfcfc;
+      border-color: #94a3b8;
+    }
+
+    .section-title {
+      font-size: 7pt;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #1e3a8a;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 1mm;
+      margin-bottom: 2mm;
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 2mm;
+      margin-bottom: 1.2mm;
+      font-size: 7.2pt;
+    }
+
+    .info-label {
+      color: #64748b;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .info-value {
+      color: #0f172a;
+      text-align: right;
+    }
+
+    .notes-item {
+      border-top: 1px dashed #e2e8f0;
+      padding-top: 1mm;
+      margin-top: 1.5mm;
+    }
+
+    /* KPI Summary Strip */
+    .financial-kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      border: 1.5px solid #0f172a;
+      margin-bottom: 4mm;
+      background: #f8fafc;
+    }
+
+    .kpi-cell {
+      padding: 2mm 1.5mm;
+      text-align: center;
+      border-right: 1px solid #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .kpi-cell:last-child {
+      border-right: none;
+    }
+
+    .kpi-cell.highlight-cell {
+      background: #fef2f2;
+    }
+
+    .kpi-label {
+      font-size: 5.8pt;
+      font-weight: 800;
+      color: #475569;
+      letter-spacing: 0.3px;
+      margin-bottom: 0.5mm;
+    }
+
+    .kpi-value {
+      font-size: 9.5pt;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    /* Sections and Tables */
+    .report-section {
+      margin-bottom: 4mm;
+    }
+
+    .report-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5mm;
+    }
+
+    .section-heading {
+      font-family: 'Outfit', sans-serif;
+      font-size: 8.5pt;
+      font-weight: 800;
+      color: #0f172a;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .section-badge {
+      font-size: 6.8pt;
+      font-weight: 700;
+      color: #64748b;
+      background: #f1f5f9;
+      padding: 0.5mm 2.5mm;
+      border-radius: 2px;
+    }
+
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #0f172a;
+      font-size: 7.2pt;
+    }
+
+    .report-table th {
+      background-color: #f1f5f9 !important;
+      border: 1px solid #0f172a;
+      padding: 1.8mm 2mm;
+      font-size: 6.8pt;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #0f172a;
+      letter-spacing: 0.2px;
+    }
+
+    .report-table td {
+      border: 1px solid #cbd5e1;
+      padding: 1.4mm 2mm;
+      vertical-align: middle;
+      color: #0f172a;
+    }
+
+    .report-table tbody tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    .report-table tbody tr.row-avoir {
+      background-color: #fff1f2 !important;
+    }
+
+    .table-totals-row td {
+      background-color: #f1f5f9 !important;
+      border-top: 1.5px solid #0f172a;
+      border-bottom: 1.5px solid #0f172a;
+      padding: 2mm;
+      font-weight: 700;
+    }
+
+    .status-tag {
+      display: inline-block;
+      font-size: 6.2pt;
+      font-weight: 700;
+      padding: 0.3mm 2mm;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      border-radius: 2px;
+    }
+
+    .empty-notice {
+      border: 1px dashed #cbd5e1;
+      padding: 6mm;
+      text-align: center;
+      background: #f8fafc;
+    }
+
+    .empty-text {
+      color: #64748b;
+      font-weight: 600;
+      font-size: 8pt;
+    }
+
+    /* Certification Box */
+    .certification-box {
+      border: 1px solid #0f172a;
+      background: #f8fafc;
+      padding: 2.5mm 4mm;
+      margin-top: 3mm;
+      margin-bottom: 3mm;
+      text-align: center;
+    }
+
+    .certification-text {
+      font-size: 7pt;
+      color: #475569;
+      font-weight: 600;
+    }
+
+    .certification-words {
+      font-size: 8.5pt;
+      color: #0f172a;
+      margin: 1mm 0;
+    }
+
+    .certification-sub {
+      font-size: 6.8pt;
+      color: #64748b;
+    }
+
+    /* Stamp and Signature */
+    .stamp-container {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 3mm;
+      margin-bottom: 2mm;
+      page-break-inside: avoid;
+    }
+
+    .stamp-image {
+      max-width: 45mm;
+      max-height: 35mm;
+      object-fit: contain;
+    }
+
+    /* Footer Legal */
+    .report-footer-legal {
+      border-top: 1px dashed #94a3b8;
+      padding-top: 2mm;
+      margin-top: 4mm;
+      text-align: center;
+      page-break-inside: avoid;
+    }
+
+    .legal-title {
+      font-size: 6.8pt;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .legal-address {
+      font-size: 6.2pt;
+      color: #64748b;
+      margin: 0.5mm 0;
+    }
+
+    .legal-notice {
+      font-size: 5.8pt;
+      color: #94a3b8;
+      font-style: italic;
+    }
+
+    .page-break-inside-avoid {
+      page-break-inside: avoid !important;
+    }
+
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 8mm 6mm;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        background: #fff !important;
+      }
+      .customer-report-container,
+      .customers-list-container {
+        padding: 0 !important;
+        max-width: none !important;
+        width: 100% !important;
+      }
+      thead {
+        display: table-header-group !important;
+      }
+      tr {
+        page-break-inside: avoid !important;
+      }
+    }
+  `;
+}
+
+
 

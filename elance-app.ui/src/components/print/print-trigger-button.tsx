@@ -42,6 +42,10 @@ import { paymentService } from '@/services/components/payment.service';
 import { getHalfA4PrintStyles, getDuplicatedBordereauPrintStyles, getStockInventoryPrintStyles } from './print-styles';
 import { StockInventoryListStandard, StockInventoryFilterInfo } from './stock-inventory-list-standard';
 import { StockCategoryGroup } from '@/types/stock';
+import { CustomerReportStandard } from './customer-report-standard';
+import { CustomersListStandard } from './customers-list-standard';
+import { getCustomerReportPrintStyles } from './print-styles';
+import { PurchasedMerchandise } from '@/services/components/deep-search.service';
 
 interface PrintVariantDialogProps {
   isOpen: boolean;
@@ -78,7 +82,10 @@ interface PrintVariantDialogProps {
   supplierPaymentsList?: DashboardPaymentDto[];
   stockCategoryGroups?: StockCategoryGroup[];
   stockFilterInfo?: StockInventoryFilterInfo;
-  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | 'document-list' | 'bank-statement' | 'caisse-remise' | 'supplier-payment' | 'bordereau-versement' | 'supplier-payments-list' | 'stock-inventory' | null | undefined;
+  customerReportData?: { customer: Customer; documents?: Document[]; purchasedMerchandise?: PurchasedMerchandise[] } | null;
+  customersList?: Customer[] | null;
+  customersFilterTitle?: string;
+  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | 'document-list' | 'bank-statement' | 'caisse-remise' | 'supplier-payment' | 'bordereau-versement' | 'supplier-payments-list' | 'stock-inventory' | 'customer-report' | 'customers-list' | null | undefined;
 }
 
 export function PrintVariantDialog({
@@ -116,16 +123,19 @@ export function PrintVariantDialog({
   supplierPaymentsList,
   stockCategoryGroups,
   stockFilterInfo,
+  customerReportData,
+  customersList,
+  customersFilterTitle,
   docType,
 }: PrintVariantDialogProps) {
   const { data: enterprise, isLoading } = useEnterprise();
   const { data: printLocale } = usePrintLocale();
   const [printing, setPrinting] = useState(false);
 
-  // Auto-trigger print for single-variant HR documents, statements, caisse-remise, supplier-payment, bordereau-versement, payslip, supplier-payments-list, stock-inventory as soon as enterprise settings load
+  // Auto-trigger print for single-variant HR documents, statements, caisse-remise, supplier-payment, bordereau-versement, payslip, supplier-payments-list, stock-inventory, customer-report, customers-list as soon as enterprise settings load
   React.useEffect(() => {
     if (isOpen && enterprise && !isLoading && !printing && 
-       (docType === 'leave' || docType === 'advance' || docType === 'payslip' || docType === 'customer-statement' || docType === 'supplier-statement' || docType === 'document-list' || docType === 'caisse-remise' || docType === 'supplier-payment' || docType === 'bordereau-versement' || docType === 'supplier-payments-list' || docType === 'stock-inventory')) {
+       (docType === 'leave' || docType === 'advance' || docType === 'payslip' || docType === 'customer-statement' || docType === 'supplier-statement' || docType === 'document-list' || docType === 'caisse-remise' || docType === 'supplier-payment' || docType === 'bordereau-versement' || docType === 'supplier-payments-list' || docType === 'stock-inventory' || docType === 'customer-report' || docType === 'customers-list')) {
       handlePrint('standard');
     }
   }, [isOpen, enterprise, isLoading, docType]);
@@ -144,6 +154,8 @@ export function PrintVariantDialog({
     docType !== 'bordereau-versement' &&
     docType !== 'supplier-payments-list' &&
     docType !== 'stock-inventory' &&
+    docType !== 'customer-report' &&
+    docType !== 'customers-list' &&
     (!document || !docType)
   ) return null;
   if (docType === 'transfer' && !transfer) return null;
@@ -158,6 +170,8 @@ export function PrintVariantDialog({
   if (docType === 'bordereau-versement' && (!bordereauInstruments || bordereauInstruments.length === 0)) return null;
   if (docType === 'supplier-payments-list' && !supplierPaymentsList) return null;
   if (docType === 'stock-inventory' && !stockCategoryGroups) return null;
+  if (docType === 'customer-report' && !customerReportData?.customer) return null;
+  if (docType === 'customers-list' && !customersList) return null;
 
   /**
    * Executes the print flow by generating markup, injecting it into a hidden iframe,
@@ -348,6 +362,29 @@ export function PrintVariantDialog({
             printLocale={printLocale}
           />
         );
+      } else if (docType === 'customer-report' && customerReportData?.customer) {
+        printDocNumber = `RAPPORT-CLIENT-${customerReportData.customer.name || customerReportData.customer.id}-${new Date().toISOString().slice(0, 10)}`;
+        styleCss = getCustomerReportPrintStyles();
+        contentHtml = renderToStaticMarkup(
+          <CustomerReportStandard
+            customer={customerReportData.customer}
+            documents={customerReportData.documents || []}
+            purchasedMerchandise={customerReportData.purchasedMerchandise || []}
+            enterprise={enterprise}
+            printLocale={printLocale}
+          />
+        );
+      } else if (docType === 'customers-list' && customersList) {
+        printDocNumber = `LISTE-CLIENTS-${new Date().toISOString().slice(0, 10)}`;
+        styleCss = getCustomerReportPrintStyles();
+        contentHtml = renderToStaticMarkup(
+          <CustomersListStandard
+            customersList={customersList}
+            enterprise={enterprise}
+            printLocale={printLocale}
+            filterTitle={customersFilterTitle || 'Tous les clients'}
+          />
+        );
       }
 
       // 2. Create a temporary hidden iframe to isolate print styles from the main Next.js layout
@@ -406,7 +443,14 @@ export function PrintVariantDialog({
     }
   };
 
-  const isAutoPrint = docType === 'leave' || docType === 'advance' || docType === 'customer-statement' || docType === 'supplier-statement' || docType === 'document-list';
+  const isAutoPrint = 
+    docType === 'leave' || 
+    docType === 'advance' || 
+    docType === 'customer-statement' || 
+    docType === 'supplier-statement' || 
+    docType === 'document-list' ||
+    docType === 'customer-report' ||
+    docType === 'customers-list';
 
   if (isAutoPrint) {
     return null;

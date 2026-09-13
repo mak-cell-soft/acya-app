@@ -28,7 +28,8 @@ import {
   ChevronRight,
   Info,
   BadgeInfo,
-  FileText
+  FileText,
+  Printer
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,13 +50,15 @@ interface CustomerDetailsDialogProps {
   onClose: () => void;
   customer: Customer | null;
   onOpenAccount?: (customer: Customer) => void;
+  onPrintReport?: (customer: Customer) => void;
 }
 
 export function CustomerDetailsDialog({
   isOpen,
   onClose,
   customer,
-  onOpenAccount
+  onOpenAccount,
+  onPrintReport
 }: CustomerDetailsDialogProps) {
   const [activeTab, setActiveTab] = useState("info");
   const [articleSearch, setArticleSearch] = useState("");
@@ -332,16 +335,28 @@ export function CustomerDetailsDialog({
                           <span className="text-sm font-bold text-corp-blue-900">{(customer.maximumsalesbar ?? 0).toLocaleString()} TND</span>
                         </div>
                       </div>
-                      {/* Direct shortcut to load the account ledger statement */}
-                      {onOpenAccount && (
-                        <Button
-                          onClick={() => onOpenAccount(customer)}
-                          className="w-full mt-4 h-11 rounded-xl bg-corp-blue-600 hover:bg-corp-blue-800 text-white font-bold shadow-lg shadow-corp-blue-600/20 flex items-center justify-center gap-2 transition-all"
-                        >
-                          <CreditCard className="w-4 h-4" />
-                          État de Compte
-                        </Button>
-                      )}
+                      {/* Direct shortcuts to load account ledger statement and full sales report */}
+                      <div className="w-full space-y-2.5 mt-4">
+                        {onOpenAccount && (
+                          <Button
+                            onClick={() => onOpenAccount(customer)}
+                            className="w-full h-11 rounded-xl bg-corp-blue-600 hover:bg-corp-blue-800 text-white font-bold shadow-lg shadow-corp-blue-600/20 flex items-center justify-center gap-2 transition-all"
+                          >
+                            <CreditCard className="w-4 h-4" />
+                            État de Compte
+                          </Button>
+                        )}
+                        {onPrintReport && (
+                          <Button
+                            variant="outline"
+                            onClick={() => onPrintReport(customer)}
+                            className="w-full h-11 rounded-xl border-corp-blue-200 text-corp-blue-700 hover:bg-corp-blue-50 font-bold flex items-center justify-center gap-2 transition-all"
+                          >
+                            <Printer className="w-4 h-4" />
+                            Imprimer Rapport (PDF)
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     
                     <div className="p-6 rounded-xl bg-white border border-corp-blue-50 space-y-3">
