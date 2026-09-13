@@ -19,7 +19,8 @@ import {
   Layers,
   ArrowUpCircle,
   TreeDeciduous,
-  Loader2
+  Loader2,
+  Printer
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -34,6 +35,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useArticles, useCreateArticle, useUpdateArticle, useDeleteArticle } from '@/hooks/use-articles';
 import { useStockAll } from '@/hooks/use-stock';
+import { useCategories } from '@/hooks/use-categories';
 import { ArticleFilters } from '@/components/articles/article-filters';
 import { DeleteConfirmDialog } from '@/components/articles/delete-confirm-dialog';
 import { ArticleHistoryDialog } from '@/components/articles/article-history-dialog';
@@ -44,6 +46,7 @@ import { TablePagination } from '@/components/shared/table-pagination';
 import { useQueryClient } from '@tanstack/react-query';
 import { DataImportDialog } from '@/components/shared/data-import-dialog';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
+import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 import * as XLSX from 'xlsx';
 
 export default function ArticlesPage() {
@@ -64,6 +67,7 @@ export default function ArticlesPage() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isPrintOpen, setIsPrintOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
 
   const router = useRouter();
@@ -79,10 +83,27 @@ export default function ArticlesPage() {
 
   // Queries and Mutations
   const { data: articles, isLoading: isArticlesLoading } = useArticles();
+  const { data: categories } = useCategories();
   // NOTE: Retrieve real-time stock details globally to map them to active articles dynamically
   const { data: stocks, isLoading: isStockLoading } = useStockAll();
   const createArticle = useCreateArticle();
   const updateArticle = useUpdateArticle();
+
+  // Resolve human-readable category & subcategory labels for print filter description
+  const activeCategoryName = useMemo(() => {
+    if (selectedCategory === 'all') return 'Toutes les catégories';
+    return categories?.find(c => c.id.toString() === selectedCategory)?.description || selectedCategory;
+  }, [selectedCategory, categories]);
+
+  const activeSubCategoryName = useMemo(() => {
+    if (selectedSubCategory === 'all') return 'Toutes les sous-catégories';
+    if (!categories) return selectedSubCategory;
+    for (const cat of categories) {
+      const sub = cat.firstchildren?.find(s => s.id.toString() === selectedSubCategory);
+      if (sub) return sub.description;
+    }
+    return selectedSubCategory;
+  }, [selectedSubCategory, categories]);
   const deleteArticle = useDeleteArticle();
 
   // Helper to format stock quantities depending on their unit type (e.g. cubic meters M3 need 3 decimals precision)
@@ -234,6 +255,14 @@ export default function ArticlesPage() {
             <p className="text-sand-400 font-medium mt-1">Gérez votre catalogue de bois, panneaux et accessoires.</p>
           </div>
           <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsPrintOpen(true)}
+              disabled={isArticlesLoading || filteredArticles.length === 0}
+              className="h-11 rounded-xl border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 px-6 shadow-2xs"
+            >
+              <Printer className="w-4 h-4 mr-2" /> Imprimer / PDF
+            </Button>
             {hasPermission('articles', 'canAdd') && (
               <Button 
                 variant="outline" 
@@ -543,6 +572,20 @@ export default function ArticlesPage() {
         type="article"
         onImportSuccess={() => queryClient.invalidateQueries({ queryKey: ['articles'] })}
         onExportXlsx={handleExport}
+      />
+
+      {/* Print All Filtered Articles Inventory Report Dialog */}
+      <PrintVariantDialog
+        isOpen={isPrintOpen}
+        onClose={() => setIsPrintOpen(false)}
+        docType="articles-inventory"
+        articlesList={filteredArticles}
+        articlesStockMap={stockMap}
+        articlesFilterInfo={{
+          search: searchTerm,
+          categoryName: activeCategoryName,
+          subCategoryName: activeSubCategoryName,
+        }}
       />
     </DashboardLayout>
   );

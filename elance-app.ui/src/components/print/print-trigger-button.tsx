@@ -44,7 +44,11 @@ import { StockInventoryListStandard, StockInventoryFilterInfo } from './stock-in
 import { StockCategoryGroup } from '@/types/stock';
 import { CustomerReportStandard } from './customer-report-standard';
 import { CustomersListStandard } from './customers-list-standard';
-import { getCustomerReportPrintStyles } from './print-styles';
+import { SupplierReportStandard } from './supplier-report-standard';
+import { SuppliersListStandard } from './suppliers-list-standard';
+import { getCustomerReportPrintStyles, getArticlesInventoryPrintStyles } from './print-styles';
+import { ArticlesInventoryStandard, ArticlesFilterInfo } from './articles-inventory-standard';
+import { Article } from '@/types/article';
 import { PurchasedMerchandise } from '@/services/components/deep-search.service';
 
 interface PrintVariantDialogProps {
@@ -85,7 +89,13 @@ interface PrintVariantDialogProps {
   customerReportData?: { customer: Customer; documents?: Document[]; purchasedMerchandise?: PurchasedMerchandise[] } | null;
   customersList?: Customer[] | null;
   customersFilterTitle?: string;
-  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | 'document-list' | 'bank-statement' | 'caisse-remise' | 'supplier-payment' | 'bordereau-versement' | 'supplier-payments-list' | 'stock-inventory' | 'customer-report' | 'customers-list' | null | undefined;
+  suppliersList?: Supplier[] | null;
+  supplierReportData?: { supplier: Supplier; documents?: Document[] } | null;
+  suppliersFilterTitle?: string;
+  articlesList?: Article[] | null;
+  articlesStockMap?: Map<number, { total: number; breakdown: { siteName: string; quantity: number; unit: string }[] }>;
+  articlesFilterInfo?: ArticlesFilterInfo;
+  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | 'document-list' | 'bank-statement' | 'caisse-remise' | 'supplier-payment' | 'bordereau-versement' | 'supplier-payments-list' | 'stock-inventory' | 'customer-report' | 'customers-list' | 'suppliers-list' | 'supplier-report' | 'articles-inventory' | null | undefined;
 }
 
 export function PrintVariantDialog({
@@ -126,16 +136,22 @@ export function PrintVariantDialog({
   customerReportData,
   customersList,
   customersFilterTitle,
+  suppliersList,
+  supplierReportData,
+  suppliersFilterTitle,
+  articlesList,
+  articlesStockMap,
+  articlesFilterInfo,
   docType,
 }: PrintVariantDialogProps) {
   const { data: enterprise, isLoading } = useEnterprise();
   const { data: printLocale } = usePrintLocale();
   const [printing, setPrinting] = useState(false);
 
-  // Auto-trigger print for single-variant HR documents, statements, caisse-remise, supplier-payment, bordereau-versement, payslip, supplier-payments-list, stock-inventory, customer-report, customers-list as soon as enterprise settings load
+  // Auto-trigger print for single-variant HR documents, statements, caisse-remise, supplier-payment, bordereau-versement, payslip, supplier-payments-list, stock-inventory, customer/supplier reports & lists, and articles inventory as soon as enterprise settings load
   React.useEffect(() => {
     if (isOpen && enterprise && !isLoading && !printing && 
-       (docType === 'leave' || docType === 'advance' || docType === 'payslip' || docType === 'customer-statement' || docType === 'supplier-statement' || docType === 'document-list' || docType === 'caisse-remise' || docType === 'supplier-payment' || docType === 'bordereau-versement' || docType === 'supplier-payments-list' || docType === 'stock-inventory' || docType === 'customer-report' || docType === 'customers-list')) {
+       (docType === 'leave' || docType === 'advance' || docType === 'payslip' || docType === 'customer-statement' || docType === 'supplier-statement' || docType === 'document-list' || docType === 'caisse-remise' || docType === 'supplier-payment' || docType === 'bordereau-versement' || docType === 'supplier-payments-list' || docType === 'stock-inventory' || docType === 'customer-report' || docType === 'customers-list' || docType === 'suppliers-list' || docType === 'supplier-report' || docType === 'articles-inventory')) {
       handlePrint('standard');
     }
   }, [isOpen, enterprise, isLoading, docType]);
@@ -156,6 +172,9 @@ export function PrintVariantDialog({
     docType !== 'stock-inventory' &&
     docType !== 'customer-report' &&
     docType !== 'customers-list' &&
+    docType !== 'suppliers-list' &&
+    docType !== 'supplier-report' &&
+    docType !== 'articles-inventory' &&
     (!document || !docType)
   ) return null;
   if (docType === 'transfer' && !transfer) return null;
@@ -172,6 +191,9 @@ export function PrintVariantDialog({
   if (docType === 'stock-inventory' && !stockCategoryGroups) return null;
   if (docType === 'customer-report' && !customerReportData?.customer) return null;
   if (docType === 'customers-list' && !customersList) return null;
+  if (docType === 'supplier-report' && !supplierReportData?.supplier) return null;
+  if (docType === 'suppliers-list' && !suppliersList) return null;
+  if (docType === 'articles-inventory' && !articlesList) return null;
 
   /**
    * Executes the print flow by generating markup, injecting it into a hidden iframe,
@@ -385,6 +407,40 @@ export function PrintVariantDialog({
             filterTitle={customersFilterTitle || 'Tous les clients'}
           />
         );
+      } else if (docType === 'supplier-report' && supplierReportData?.supplier) {
+        printDocNumber = `RAPPORT-FOURNISSEUR-${supplierReportData.supplier.name || supplierReportData.supplier.id}-${new Date().toISOString().slice(0, 10)}`;
+        styleCss = getCustomerReportPrintStyles();
+        contentHtml = renderToStaticMarkup(
+          <SupplierReportStandard
+            supplier={supplierReportData.supplier}
+            documents={supplierReportData.documents || []}
+            enterprise={enterprise}
+            printLocale={printLocale}
+          />
+        );
+      } else if (docType === 'suppliers-list' && suppliersList) {
+        printDocNumber = `LISTE-FOURNISSEURS-${new Date().toISOString().slice(0, 10)}`;
+        styleCss = getCustomerReportPrintStyles();
+        contentHtml = renderToStaticMarkup(
+          <SuppliersListStandard
+            suppliersList={suppliersList}
+            enterprise={enterprise}
+            printLocale={printLocale}
+            filterTitle={suppliersFilterTitle || 'Tous les fournisseurs'}
+          />
+        );
+      } else if (docType === 'articles-inventory' && articlesList) {
+        printDocNumber = `ETAT-STOCK-ARTICLES-${new Date().toISOString().slice(0, 10)}`;
+        styleCss = getArticlesInventoryPrintStyles();
+        contentHtml = renderToStaticMarkup(
+          <ArticlesInventoryStandard
+            articlesList={articlesList}
+            stockMap={articlesStockMap}
+            enterprise={enterprise}
+            filterInfo={articlesFilterInfo}
+            printLocale={printLocale}
+          />
+        );
       }
 
       // 2. Create a temporary hidden iframe to isolate print styles from the main Next.js layout
@@ -450,7 +506,9 @@ export function PrintVariantDialog({
     docType === 'supplier-statement' || 
     docType === 'document-list' ||
     docType === 'customer-report' ||
-    docType === 'customers-list';
+    docType === 'customers-list' ||
+    docType === 'suppliers-list' ||
+    docType === 'supplier-report';
 
   if (isAutoPrint) {
     return null;

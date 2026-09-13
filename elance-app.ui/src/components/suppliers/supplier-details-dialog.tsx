@@ -22,7 +22,8 @@ import {
   ExternalLink,
   Wallet,
   ArrowUpRight,
-  TrendingDown
+  TrendingDown,
+  Printer
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,12 +35,14 @@ interface SupplierDetailsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   supplier: Supplier | null;
+  onPrintReport?: (supplier: Supplier) => void;
 }
 
 export function SupplierDetailsDialog({
   isOpen,
   onClose,
-  supplier
+  supplier,
+  onPrintReport
 }: SupplierDetailsDialogProps) {
   if (!supplier) return null;
 
@@ -68,12 +71,24 @@ export function SupplierDetailsDialog({
               </p>
             </div>
           </div>
-          <button 
-            onClick={onClose}
-            className="absolute rounded-full right-6 top-6 w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="absolute right-6 top-6 flex items-center gap-2">
+            {onPrintReport && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-xl border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50"
+                onClick={() => onPrintReport(supplier)}
+              >
+                <Printer className="w-4 h-4 mr-2" /> Imprimer Rapport
+              </Button>
+            )}
+            <button 
+              onClick={onClose}
+              className="rounded-full w-8 h-8 bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-all text-foreground"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </DialogHeader>
 
         <div className="p-0">

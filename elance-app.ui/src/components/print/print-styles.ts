@@ -2968,5 +2968,376 @@ export function getCustomerReportPrintStyles(): string {
   `;
 }
 
+/**
+ * Return CSS print styles for Articles Inventory Report (Multi-page A4 Landscape).
+ * Designed for Tunisian corporate accounting standards with repeated table headers,
+ * crystal clear contrast, and compact layout for up to 11 data columns.
+ */
+export function getArticlesInventoryPrintStyles(): string {
+  return `
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #fff !important;
+      color: #0f172a;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      font-size: 7.5pt;
+      line-height: 1.3;
+    }
+
+    .articles-inventory-container {
+      width: 100%;
+      max-width: 285mm;
+      margin: 0 auto;
+      padding: 3mm 5mm;
+      background: #fff;
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+
+    .font-bold { font-weight: 700 !important; }
+    .font-semibold { font-weight: 600 !important; }
+    .font-medium { font-weight: 500 !important; }
+    .text-right { text-align: right !important; }
+    .text-center { text-align: center !important; }
+    .text-left { text-align: left !important; }
+    .text-corp-blue { color: #1e3a8a !important; }
+    .text-danger { color: #dc2626 !important; }
+    .text-warning { color: #b45309 !important; }
+    .text-success { color: #16a34a !important; }
+    .text-muted { color: #64748b !important; }
+
+    /* Corporate Tunisian Header */
+    .report-header {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 6mm;
+      margin-bottom: 3.5mm;
+      padding-bottom: 2.5mm;
+      border-bottom: 1.5px solid #0f172a;
+    }
+
+    .company-info {
+      text-align: left;
+    }
+
+    .company-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 11pt;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 1mm 0;
+      letter-spacing: -0.2px;
+    }
+
+    .company-details {
+      font-size: 6.8pt;
+      color: #334155;
+      line-height: 1.25;
+      margin: 0.4mm 0;
+    }
+
+    .center-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2mm;
+    }
+
+    .logo-box {
+      border: 1.5px solid #0f172a;
+      padding: 2mm 6mm;
+      text-align: center;
+    }
+
+    .logo-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 14pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin: 0;
+      color: #0f172a;
+    }
+
+    .location-tag {
+      font-size: 7.5pt;
+      font-weight: 700;
+      border: 1px solid #0f172a;
+      padding: 1mm 4mm;
+      text-align: center;
+    }
+
+    .arabic-info {
+      text-align: right;
+      direction: rtl;
+    }
+
+    .arabic-text {
+      font-size: 8.5pt;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0.4mm 0;
+    }
+
+    .arabic-details {
+      font-size: 6.8pt;
+      color: #475569;
+      margin: 0.4mm 0;
+    }
+
+    .report-arabic-badge {
+      display: inline-block;
+      border: 1px solid #0f172a;
+      padding: 1mm 3mm;
+      font-size: 8pt;
+      font-weight: 700;
+      margin-top: 1.5mm;
+      background: #f8fafc;
+    }
+
+    /* Document Title Banner */
+    .report-title-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1.5px solid #0f172a;
+      background: #f8fafc;
+      padding: 2mm 4mm;
+      margin-bottom: 3mm;
+    }
+
+    .title-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 11pt;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #0f172a;
+      margin: 0;
+    }
+
+    .subtitle-text {
+      font-size: 6.8pt;
+      color: #475569;
+      margin-top: 0.4mm;
+    }
+
+    .filter-badge-box {
+      font-size: 7.2pt;
+      color: #0f172a;
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      padding: 1mm 3mm;
+      border-radius: 2px;
+      max-width: 60%;
+      text-align: right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .filter-badge-label {
+      color: #64748b;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 6.5pt;
+      margin-right: 1mm;
+    }
+
+    /* KPI Summary Strip */
+    .articles-kpi-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2mm;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      padding: 1.8mm 3mm;
+      margin-bottom: 3mm;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .kpi-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.2mm 3mm;
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      border-radius: 2px;
+      min-width: 28mm;
+    }
+
+    .kpi-cell.highlight-success { border-color: #bbf7d0; background: #f0fdf4; }
+    .kpi-cell.highlight-warning { border-color: #fde68a; background: #fffbeb; }
+    .kpi-cell.highlight-danger { border-color: #fecaca; background: #fef2f2; }
+    .kpi-cell.highlight-unit { border-color: #bfdbfe; background: #eff6ff; }
+
+    .kpi-label {
+      font-size: 5.8pt;
+      font-weight: 800;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 0.3mm;
+    }
+
+    .kpi-value {
+      font-size: 9pt;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    /* Table Section */
+    .report-section {
+      margin-bottom: 3.5mm;
+    }
+
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1.5px solid #0f172a;
+      font-size: 6.8pt;
+    }
+
+    .report-table th {
+      background-color: #f1f5f9 !important;
+      border: 1px solid #0f172a;
+      padding: 1.6mm 1.8mm;
+      font-size: 6.3pt;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #0f172a;
+      letter-spacing: 0.2px;
+    }
+
+    .report-table td {
+      border: 1px solid #cbd5e1;
+      padding: 1.2mm 1.8mm;
+      vertical-align: middle;
+      color: #0f172a;
+      font-size: 6.8pt;
+    }
+
+    .report-table tbody tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    .table-totals-row td {
+      background-color: #f1f5f9 !important;
+      border-top: 1.5px solid #0f172a;
+      border-bottom: 1.5px solid #0f172a;
+      padding: 1.8mm;
+      font-weight: 700;
+    }
+
+    .wood-spec {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 6.3pt;
+      color: #1e293b;
+    }
+
+    .status-pill {
+      display: inline-block;
+      font-size: 5.8pt;
+      font-weight: 800;
+      padding: 0.3mm 2mm;
+      border-radius: 2px;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .status-normal {
+      background: #f0fdf4;
+      color: #166534;
+      border-color: #bbf7d0;
+    }
+
+    .status-alert {
+      background: #fffbeb;
+      color: #b45309;
+      border-color: #fde68a;
+    }
+
+    .status-rupture {
+      background: #fef2f2;
+      color: #b91c1c;
+      border-color: #fecaca;
+    }
+
+    .empty-cell {
+      color: #64748b;
+      font-weight: 600;
+      font-size: 8pt;
+    }
+
+    /* Legal Footer */
+    .report-footer-legal {
+      border-top: 1px dashed #94a3b8;
+      padding-top: 2mm;
+      margin-top: 3.5mm;
+      text-align: center;
+      page-break-inside: avoid;
+    }
+
+    .legal-title {
+      font-size: 6.5pt;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .legal-address {
+      font-size: 6pt;
+      color: #64748b;
+      margin: 0.4mm 0;
+    }
+
+    .legal-notice {
+      font-size: 5.5pt;
+      color: #94a3b8;
+      font-style: italic;
+    }
+
+    @media print {
+      @page {
+        size: A4 landscape;
+        margin: 6mm 6mm;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        background: #fff !important;
+      }
+      .articles-inventory-container {
+        padding: 0 !important;
+        max-width: none !important;
+        width: 100% !important;
+      }
+      thead {
+        display: table-header-group !important;
+      }
+      tr {
+        page-break-inside: avoid !important;
+      }
+    }
+  `;
+}
+
+
 
 

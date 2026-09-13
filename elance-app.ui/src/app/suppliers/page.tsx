@@ -20,7 +20,9 @@ import {
   Trash2,
   ExternalLink,
   Warehouse,
-  History
+  History,
+  Printer,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQueryClient } from '@tanstack/react-query';
@@ -44,12 +46,15 @@ import * as XLSX from 'xlsx';
 // Hooks & Types
 import { useSuppliers, useCreateSupplier, useUpdateSupplier, useDeleteSupplier } from '@/hooks/use-suppliers';
 import { Supplier, SUPPLIER_CATEGORIES, GOUVERNORATES_TN, SOCIETY_PREFIXES } from '@/types/customer';
+import { Document } from '@/types/document';
+import { documentService } from '@/services/components/document.service';
 
 // Components
 import { SupplierFormDialog } from '@/components/suppliers/supplier-form-dialog';
 import { SupplierDetailsDialog } from '@/components/suppliers/supplier-details-dialog';
 import { SupplierAccountDialog } from '@/components/suppliers/supplier-account-dialog';
 import { DeleteSupplierDialog } from '@/components/suppliers/delete-supplier-dialog';
+import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 
 export default function ProvidersPage() {
   const router = useRouter();
@@ -63,6 +68,12 @@ export default function ProvidersPage() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+
+  // Print States
+  const [isPrintListOpen, setIsPrintListOpen] = useState(false);
+  const [isPrintReportOpen, setIsPrintReportOpen] = useState(false);
+  const [isFetchingDocuments, setIsFetchingDocuments] = useState(false);
+  const [supplierReportData, setSupplierReportData] = useState<{ supplier: Supplier; documents: Document[] } | null>(null);
 
   const queryClient = useQueryClient();
   const { hasPermission, hasAnyPermission } = usePermissionGuard();
@@ -124,6 +135,37 @@ export default function ProvidersPage() {
     if (selectedSupplier) {
       await deleteMutation.mutateAsync(selectedSupplier.id);
       setIsDeleteOpen(false);
+    }
+  };
+
+  /**
+   * Triggers the A4 print preview for the full or filtered suppliers list.
+   */
+  const handlePrintList = () => {
+    setIsPrintListOpen(true);
+  };
+
+  /**
+   * Fetches purchase documents for the selected supplier and opens the A4 Supplier Activity Report.
+   * NOTE: C#/API Contract Assumption:
+   * documentService.getByCounterpartId(supplier.id) calls GET /Document/counterpart/{id}
+   * which retrieves all supplier invoices, receipts, returns and orders with calculated totals.
+   */
+  const handlePrintReport = async (supplier: Supplier) => {
+    setSelectedSupplier(supplier);
+    setIsFetchingDocuments(true);
+    try {
+      const docs = await documentService.getByCounterpartId(supplier.id);
+      setSupplierReportData({ supplier, documents: docs || [] });
+      setIsPrintReportOpen(true);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des documents du fournisseur:", error);
+      toast.error("Impossible de charger les documents d'achat. Génération du dossier avec les données du profil.");
+      // Fallback: still open report so user can print profile, tax & bank coordinates
+      setSupplierReportData({ supplier, documents: [] });
+      setIsPrintReportOpen(true);
+    } finally {
+      setIsFetchingDocuments(false);
     }
   };
 
@@ -260,6 +302,20 @@ export default function ProvidersPage() {
                 variant="ghost" 
                 size="icon" 
                 className="h-10 w-10 text-sand-400 hover:text-corp-blue-600 hover:bg-corp-blue-100/50 transition-all"
+                title="Imprimer Fiche / Achats (PDF)"
+                onClick={(e) => { e.stopPropagation(); handlePrintReport(item); }}
+                disabled={isFetchingDocuments && selectedSupplier?.id === item.id}
+              >
+                {isFetchingDocuments && selectedSupplier?.id === item.id ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-corp-blue-600" />
+                ) : (
+                  <Printer className="w-4 h-4" />
+                )}
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-10 w-10 text-sand-400 hover:text-corp-blue-600 hover:bg-corp-blue-100/50 transition-all"
                 onClick={(e) => { e.stopPropagation(); handleOpenDetails(item); }}
               >
                 <ExternalLink className="w-4 h-4" />
@@ -271,6 +327,12 @@ export default function ProvidersPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="rounded-2xl border-corp-blue-100 p-2 w-52 shadow-xl bg-white/95 backdrop-blur-md">
+                  <DropdownMenuItem 
+                    className="gap-3 font-bold text-corp-blue-900 rounded-xl p-3 cursor-pointer hover:bg-corp-blue-50"
+                    onClick={() => handlePrintReport(item)}
+                  >
+                    <Printer className="w-4 h-4 text-corp-blue-600" /> Imprimer / PDF
+                  </DropdownMenuItem>
                   <DropdownMenuItem 
                     className="gap-3 font-bold text-corp-blue-900 rounded-xl p-3 cursor-pointer hover:bg-corp-blue-50"
                     onClick={() => handleOpenAccount(item)}
@@ -375,6 +437,14 @@ export default function ProvidersPage() {
                       <div>
                         <h4 className="text-[0.65rem] font-black text-sand-400 uppercase tracking-[0.2em]">Actions Rapides</h4>
                         <div className="flex flex-wrap gap-2 mt-4">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="rounded-lg h-9 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 px-3"
+                            onClick={() => handlePrintReport(item)}
+                          >
+                            <Printer className="w-3.5 h-3.5 mr-2" /> Fiche &amp; Achats (PDF)
+                          </Button>
                           <Button size="sm" variant="outline" className="rounded-lg h-9 border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 px-3">
                             <Truck className="w-3.5 h-3.5 mr-2" /> Bons Livraison
                           </Button>
@@ -409,6 +479,13 @@ export default function ProvidersPage() {
             <p className="text-sand-400 font-medium mt-1">Gérez vos sources d&apos;approvisionnement et vos dettes fournisseurs.</p>
           </div>
           <div className="flex items-center gap-3">
+            <Button 
+              onClick={handlePrintList}
+              variant="outline" 
+              className="h-12 rounded-xl border-corp-blue-100 text-corp-blue-600 font-bold hover:bg-corp-blue-50 px-5"
+            >
+              <Printer className="w-4 h-4 mr-2" /> Imprimer Liste
+            </Button>
             {hasPermission('providers', 'canAdd') && (
               <Button 
                 onClick={() => setIsImportOpen(true)}
@@ -489,6 +566,7 @@ export default function ProvidersPage() {
           isOpen={isDetailsOpen}
           onClose={() => setIsDetailsOpen(false)}
           supplier={selectedSupplier}
+          onPrintReport={handlePrintReport}
         />
 
         <SupplierAccountDialog 
@@ -511,6 +589,25 @@ export default function ProvidersPage() {
           type="provider"
           onImportSuccess={() => queryClient.invalidateQueries({ queryKey: ['suppliers'] })}
           onExportXlsx={handleExport}
+        />
+
+        {/* Print Dialogs */}
+        <PrintVariantDialog
+          isOpen={isPrintListOpen}
+          onClose={() => setIsPrintListOpen(false)}
+          docType="suppliers-list"
+          suppliersList={filteredSuppliers}
+          suppliersFilterTitle={searchTerm ? `Recherche: "${searchTerm}"` : 'Tous les fournisseurs'}
+        />
+
+        <PrintVariantDialog
+          isOpen={isPrintReportOpen}
+          onClose={() => {
+            setIsPrintReportOpen(false);
+            setSupplierReportData(null);
+          }}
+          docType="supplier-report"
+          supplierReportData={supplierReportData}
         />
       </div>
     </DashboardLayout>
