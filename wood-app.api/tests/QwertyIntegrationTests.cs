@@ -297,5 +297,107 @@ namespace ms.webapp.api.acya.tests
             Assert.False(response!.Ok);
             Assert.Contains("Accès refusé", response.Error);
         }
+
+        [Fact]
+        public void MapPurchaseDocuments_WhenLineTvaValueIsZero_ShouldCalculateTvaFromCostDifferenceOrRate()
+        {
+            // Arrange: Reproducing the exact Socofeb tenant scenario where TvaValue on lines is 0
+            var supplier = new CounterPart
+            {
+                Id = 5243,
+                Name = "INTERBOIS",
+                TaxRegistrationNumber = "0005243Q /A/M/ 000",
+                Address = "Z.I La Charguia I",
+                PhoneNumberOne = "25870052",
+                Email = "interbois@planet.tn",
+                Type = CounterPartType.Supplier
+            };
+
+            var tva19 = new AppVariable { Id = 1, Nature = "Tva", Name = "19%", Value = 19.0 };
+            var article = new Article { Id = 10, Reference = "BOIS-CHENE", TVAs = tva19 };
+            var merch = new Merchandise { Id = 20, Articles = article };
+
+            var lines = new List<DocumentMerchandise>
+            {
+                new DocumentMerchandise
+                {
+                    Id = 501,
+                    CostNetHT = 15327.756,
+                    TvaValue = 0, // Stored as 0 in DB
+                    CostTTC = 18240.028,
+                    Merchandise = merch
+                }
+            };
+
+            var doc = new Document
+            {
+                Id = 1083,
+                Type = DocumentTypes.supplierInvoice,
+                DocNumber = "FF-26-0002",
+                SupplierReference = "A/2026/1083",
+                Description = "Facture Directe Fournisseur via Portail Élancé",
+                CreationDate = new DateTime(2026, 8, 5),
+                TotalCostHTNetDoc = 15327.756,
+                TotalCostTvaDoc = 2912.272,
+                TotalCostNetTTCDoc = 18241.028,
+                Taxes = new AppVariable { Id = 1, Nature = "Taxe", Name = "Timbre", Value = 1.0 },
+                CounterPart = supplier,
+                DocumentMerchandises = lines
+            };
+
+            // Act
+            var results = _mapper.MapPurchaseDocuments(new[] { doc });
+
+            // Assert
+            Assert.Single(results);
+            var op = results[0];
+
+            Assert.Equal("2026-08-05", op.DateOperation);
+            Assert.Equal("A/2026/1083", op.Facture);
+            Assert.Equal("FF-26-0002", op.Reference);
+            Assert.Equal("0005243Q /A/M/ 000", op.Fournisseur);
+            Assert.Equal(15327.756m, op.Montants["ht1"]);
+            Assert.Equal(2912.272m, op.Montants["tva1"]); // MUST NOT be 0!
+            Assert.Equal(1.000m, op.Montants["timbre"]);
+            Assert.Equal(18241.028m, op.Montants["ttc"]);
+        }
+
+        [Fact]
+        public void MapPurchaseDocuments_WhenNoLinesAndHeaderTvaIsZero_ShouldDeduceTvaFromHeaderDifference()
+        {
+            // Arrange
+            var supplier = new CounterPart
+            {
+                Id = 99,
+                Name = "FOURNISSEUR XYZ",
+                TaxRegistrationNumber = "9999999X",
+                Type = CounterPartType.Supplier
+            };
+
+            var doc = new Document
+            {
+                Id = 303,
+                Type = DocumentTypes.supplierInvoice,
+                DocNumber = "FF-2026-99",
+                CreationDate = new DateTime(2026, 8, 10),
+                TotalCostHTNetDoc = 1000.0,
+                TotalCostTvaDoc = 0, // Header TVA accidentally 0
+                TotalCostNetTTCDoc = 1191.0, // 1000 HT + 190 TVA + 1 Timbre
+                Taxes = new AppVariable { Id = 1, Nature = "Taxe", Name = "Timbre", Value = 1.0 },
+                CounterPart = supplier,
+                DocumentMerchandises = new List<DocumentMerchandise>() // Empty lines
+            };
+
+            // Act
+            var results = _mapper.MapPurchaseDocuments(new[] { doc });
+
+            // Assert
+            Assert.Single(results);
+            var op = results[0];
+            Assert.Equal(1000.000m, op.Montants["ht1"]);
+            Assert.Equal(190.000m, op.Montants["tva1"]);
+            Assert.Equal(1.000m, op.Montants["timbre"]);
+            Assert.Equal(1191.000m, op.Montants["ttc"]);
+        }
     }
 }

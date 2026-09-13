@@ -203,7 +203,7 @@ export function QwertyIntegrationSection() {
               </span>
               <h4 className="text-base font-extrabold text-slate-900 tracking-tight">ACYA Plateforme</h4>
               <p className="text-xs text-slate-500 mt-1 font-medium">
-                {activeTab === 'ventes' ? 'Factures de vente & TVA' : 'Factures d\'achat & réceptions'}
+                {activeTab === 'ventes' ? 'Factures de vente & TVA' : 'Factures d\'achat, TVA & réceptions'}
               </p>
 
               {/* Document tag preview */}
@@ -216,7 +216,7 @@ export function QwertyIntegrationSection() {
                   <span className="text-[9px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-bold">Prêt</span>
                 </div>
                 <div className="text-[10px] text-slate-400 font-mono">
-                  {activeTab === 'ventes' ? 'HT: 48 500 DT · TVA: 19%' : 'HT: 32 100 DT · Timbre'}
+                  {activeTab === 'ventes' ? 'HT: 48 500 DT · TVA: 19% · TTC' : 'HT: 32 100 DT · TVA: 19% · Timbre'}
                 </div>
               </div>
             </div>

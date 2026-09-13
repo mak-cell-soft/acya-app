@@ -901,6 +901,8 @@ namespace ms.webapp.api.acya.api.Controllers
                 CostNetHT = merchDto.cost_net_ht,
                 CostTTC = merchDto.cost_ttc,
                 DiscountPercentage = merchDto.discount_percentage,
+                // NOTE: Explicitly map TvaValue from DTO; fallback to TTC - NetHT if missing
+                TvaValue = merchDto.tva_value > 0 ? merchDto.tva_value : (merchDto.cost_ttc > merchDto.cost_net_ht ? Math.Round(merchDto.cost_ttc - merchDto.cost_net_ht, 3) : 0),
                 CreationDate = merchDto.creationdate ?? doc.CreationDate ?? DateTime.UtcNow,
                 UpdateDate = DateTime.UtcNow
               };
@@ -1805,6 +1807,8 @@ namespace ms.webapp.api.acya.api.Controllers
                 CostNetHT = merchDto.cost_net_ht,
                 CostTTC = merchDto.cost_ttc,
                 DiscountPercentage = merchDto.discount_percentage,
+                // NOTE: Explicitly map TvaValue from DTO; fallback to TTC - NetHT if missing
+                TvaValue = merchDto.tva_value > 0 ? merchDto.tva_value : (merchDto.cost_ttc > merchDto.cost_net_ht ? Math.Round(merchDto.cost_ttc - merchDto.cost_net_ht, 3) : 0),
                 CreationDate = merchDto.creationdate ?? doc.CreationDate ?? DateTime.UtcNow,
                 UpdateDate = DateTime.UtcNow
               };

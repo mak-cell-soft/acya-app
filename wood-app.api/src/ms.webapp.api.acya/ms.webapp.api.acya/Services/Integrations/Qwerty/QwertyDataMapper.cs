@@ -279,6 +279,8 @@ namespace ms.webapp.api.acya.Services.Integrations.Qwerty
         {
             var montants = new Dictionary<string, decimal>();
 
+            // NOTE: Qwerty webservice contract expects amounts mapped to slugified parameter names
+            // (e.g. ht1, tva1, ht2, tva2, timbre, ttc).
             // Aggregate line items if present
             if (doc.DocumentMerchandises != null && doc.DocumentMerchandises.Any())
             {
@@ -287,14 +289,16 @@ namespace ms.webapp.api.acya.Services.Integrations.Qwerty
                 // Group by TVA rate (e.g. 19%, 7%, 13%, 0%)
                 var tvaGroups = lines
                     .GroupBy(l => ExtractTvaRate(l))
-                    .OrderByDescending(g => g.Key) // 19% first, then lower
+                    .OrderByDescending(g => g.Key) // 19% first, then lower rates
                     .ToList();
 
                 int tierIndex = 1;
                 foreach (var group in tvaGroups)
                 {
                     var htSum = group.Sum(l => (decimal)l.CostNetHT);
-                    var tvaSum = group.Sum(l => (decimal)l.TvaValue);
+                    // NOTE: Line TvaValue might be 0 if saved through legacy endpoints or without explicit VAT on lines.
+                    // ExtractLineTva calculates the true VAT using CostTTC - CostNetHT or the tier VAT rate.
+                    var tvaSum = group.Sum(l => ExtractLineTva(l, group.Key));
 
                     montants[$"ht{tierIndex}"] = Math.Round(htSum * sign, 3);
                     montants[$"tva{tierIndex}"] = Math.Round(tvaSum * sign, 3);
@@ -303,21 +307,72 @@ namespace ms.webapp.api.acya.Services.Integrations.Qwerty
             }
             else
             {
-                // Fallback to document header totals
+                // Fallback to document header totals when line items are not loaded or not present
                 montants["ht1"] = Math.Round((decimal)doc.TotalCostHTNetDoc * sign, 3);
-                montants["tva1"] = Math.Round((decimal)doc.TotalCostTvaDoc * sign, 3);
+                var headerTva = (decimal)doc.TotalCostTvaDoc;
+
+                // If header TVA is 0 but TTC > HT, deduce the VAT from header difference (minus timbre)
+                if (headerTva == 0m && (decimal)doc.TotalCostNetTTCDoc > (decimal)doc.TotalCostHTNetDoc)
+                {
+                    var timbreValue = doc.Taxes?.Value ?? 0.0;
+                    headerTva = Math.Max(0m, (decimal)doc.TotalCostNetTTCDoc - (decimal)doc.TotalCostHTNetDoc - (decimal)timbreValue);
+                }
+                montants["tva1"] = Math.Round(headerTva * sign, 3);
             }
 
             // Timbre fiscal if configured
+            decimal timbreAmount = 0m;
             if (doc.Taxes != null && doc.Taxes.Value.HasValue && doc.Taxes.Value.Value > 0)
             {
-                montants["timbre"] = Math.Round((decimal)doc.Taxes.Value.Value * sign, 3);
+                timbreAmount = Math.Round((decimal)doc.Taxes.Value.Value * sign, 3);
+                montants["timbre"] = timbreAmount;
             }
 
             // TTC
             montants["ttc"] = Math.Round((decimal)doc.TotalCostNetTTCDoc * sign, 3);
 
+            // Reconcile TVA if tva1 is still 0 but document has TVA on header or TTC > HT + timbre
+            if (montants.TryGetValue("tva1", out var currentTva1) && currentTva1 == 0m)
+            {
+                if (doc.TotalCostTvaDoc > 0)
+                {
+                    montants["tva1"] = Math.Round((decimal)doc.TotalCostTvaDoc * sign, 3);
+                }
+                else if ((decimal)doc.TotalCostNetTTCDoc > (decimal)doc.TotalCostHTNetDoc + Math.Abs(timbreAmount))
+                {
+                    var deducedTva = ((decimal)doc.TotalCostNetTTCDoc - (decimal)doc.TotalCostHTNetDoc - Math.Abs(timbreAmount)) * sign;
+                    if (deducedTva > 0m)
+                    {
+                        montants["tva1"] = Math.Round(deducedTva, 3);
+                    }
+                }
+            }
+
             return montants;
+        }
+
+        /// <summary>
+        /// Safely extracts the VAT value of a document merchandise line.
+        /// Prioritizes explicit TvaValue, then difference (CostTTC - CostNetHT), then rate percentage.
+        /// </summary>
+        private static decimal ExtractLineTva(DocumentMerchandise line, decimal rate)
+        {
+            if (line.TvaValue > 0)
+            {
+                return (decimal)line.TvaValue;
+            }
+
+            if (line.CostTTC > line.CostNetHT)
+            {
+                return (decimal)(line.CostTTC - line.CostNetHT);
+            }
+
+            if (rate > 0 && line.CostNetHT > 0)
+            {
+                return Math.Round((decimal)line.CostNetHT * (rate / 100m), 3);
+            }
+
+            return 0m;
         }
 
         private static decimal ExtractTvaRate(DocumentMerchandise line)
@@ -332,6 +387,13 @@ namespace ms.webapp.api.acya.Services.Integrations.Qwerty
             if (line.CostNetHT > 0 && line.TvaValue > 0)
             {
                 var calculatedRate = (decimal)(line.TvaValue / line.CostNetHT) * 100m;
+                return Math.Round(calculatedRate, 0);
+            }
+
+            if (line.CostNetHT > 0 && line.CostTTC > line.CostNetHT)
+            {
+                var diff = line.CostTTC - line.CostNetHT;
+                var calculatedRate = (decimal)(diff / line.CostNetHT) * 100m;
                 return Math.Round(calculatedRate, 0);
             }
 

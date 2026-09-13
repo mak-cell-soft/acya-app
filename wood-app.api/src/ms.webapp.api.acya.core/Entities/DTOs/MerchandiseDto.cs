@@ -152,7 +152,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       discount_percentage = line.DiscountPercentage;
       cost_net_ht = line.CostNetHT;
       cost_discount_value = line.CostDiscountValue;
-      tva_value = line.TvaValue;
+      // NOTE: Fallback to (CostTTC - CostNetHT) if stored TvaValue is 0 for legacy records
+      tva_value = line.TvaValue > 0 ? line.TvaValue : (line.CostTTC > line.CostNetHT ? Math.Round(line.CostTTC - line.CostNetHT, 3) : 0);
       cost_ttc = line.CostTTC;
     }
   }
