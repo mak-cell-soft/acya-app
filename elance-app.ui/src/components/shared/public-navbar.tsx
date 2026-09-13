@@ -93,17 +93,30 @@ export function PublicNavbar() {
       <nav className={cn(
         "w-full transition-all duration-500",
         isScrolled 
-          ? "bg-white/85 backdrop-blur-xl border-b border-corp-blue-100/50 py-3 shadow-[0_10px_35px_-10px_rgba(37,99,235,0.06)]" 
-          : "bg-transparent py-5"
+          ? "bg-white/90 backdrop-blur-xl border-b border-slate-200/80 py-3 shadow-[0_10px_30px_-10px_rgba(15,23,42,0.08)]" 
+          : "bg-slate-950/25 backdrop-blur-md border-b border-white/10 py-4.5"
       )}>
-        <div className="max-w-[1200px] mx-auto flex items-center justify-between px-6 md:px-10">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative flex items-center justify-center">
+        <div className="max-w-[1240px] mx-auto flex items-center justify-between px-6 md:px-10">
+          <Link href="/" className="flex items-center gap-3.5 group">
+            <div className={cn(
+              "relative flex items-center justify-center p-1.5 rounded-xl transition-all duration-300",
+              isScrolled 
+                ? "bg-corp-blue-50/50" 
+                : "bg-white/[0.08] border border-white/15 shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+            )}>
               {/* Structural SVG Logo */}
-              <svg className="w-8.5 h-8.5 md:w-9.5 md:h-9.5 transition-transform duration-700 group-hover:scale-110 drop-shadow-sm" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg 
+                className={cn(
+                  "w-8 h-8 md:w-8.5 md:h-8.5 transition-transform duration-500 group-hover:scale-105 shrink-0",
+                  !isScrolled && "drop-shadow-[0_2px_8px_rgba(59,130,246,0.5)]"
+                )} 
+                viewBox="0 0 40 40" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 <defs>
                   <linearGradient id="logo_grad_1" x1="0" y1="0" x2="40" y2="40">
-                    <stop offset="0%" stopColor="#60A5FA"/>
+                    <stop offset="0%" stopColor="#93C5FD"/>
                     <stop offset="100%" stopColor="#3B82F6"/>
                   </linearGradient>
                   <linearGradient id="logo_grad_2" x1="0" y1="0" x2="40" y2="40">
@@ -120,28 +133,66 @@ export function PublicNavbar() {
                 <path d="M 28.66 18 L 36.45 22.5 L 36.45 31.5 L 28.66 36 L 20.87 31.5 L 20.87 22.5 Z" fill="url(#logo_grad_3)" />
               </svg>
             </div>
-            <span className="text-xl md:text-2xl font-bold font-heading tracking-tight text-slate-900 group-hover:text-corp-blue-600 transition-colors duration-300">
-              Élancé
-            </span>
+            
+            <div className="flex items-center gap-2">
+              <span className={cn(
+                "text-2xl md:text-[1.65rem] font-black font-heading tracking-tight transition-colors duration-300",
+                isScrolled 
+                  ? "text-slate-900 group-hover:text-corp-blue-600" 
+                  : "text-white group-hover:text-blue-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
+              )}>
+                Élancé
+              </span>
+              <span className={cn(
+                "text-[10px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded transition-colors duration-300",
+                isScrolled 
+                  ? "bg-slate-100 text-slate-600 border border-slate-200" 
+                  : "bg-blue-500/20 text-cyan-300 border border-cyan-400/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+              )}>
+                ACYA
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8 ml-auto">
+          <div className="hidden md:flex items-center gap-7 lg:gap-8 ml-auto">
             {navLinks.map((link) => (
               <Link 
                 key={link.name} 
                 href={link.href}
-                className="text-[0.88rem] font-bold text-slate-600 hover:text-corp-blue-600 transition-all duration-300 relative group/link py-1.5 px-1 flex items-center gap-1.5"
+                className={cn(
+                  "text-[0.92rem] font-semibold transition-all duration-300 relative group/link py-1.5 px-1 flex items-center gap-1.5",
+                  isScrolled 
+                    ? "text-slate-600 hover:text-corp-blue-600" 
+                    : "text-slate-200 hover:text-white"
+                )}
               >
                 {link.name}
-
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[2px] transition-all duration-300 group-hover/link:w-full rounded-full bg-corp-blue-600" />
+                {link.isNew && (
+                  <span className={cn(
+                    "text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider",
+                    isScrolled 
+                      ? "bg-corp-blue-50 text-corp-blue-600" 
+                      : "bg-cyan-500/20 text-cyan-300 border border-cyan-400/30"
+                  )}>
+                    New
+                  </span>
+                )}
+                <span className={cn(
+                  "absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[2px] transition-all duration-300 group-hover/link:w-full rounded-full",
+                  isScrolled ? "bg-corp-blue-600" : "bg-gradient-to-r from-blue-400 to-cyan-400"
+                )} />
               </Link>
             ))}
           </div>
 
-          <div className="hidden md:flex items-center gap-4 ml-10">
-            <Button asChild className="h-10 px-6 rounded-lg text-white font-bold transition-all duration-300 relative overflow-hidden group shadow-md hover:shadow-lg active:scale-95 hover:scale-[1.03] bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700">
+          <div className="hidden md:flex items-center gap-4 ml-8">
+            <Button asChild className={cn(
+              "h-10 px-6 rounded-xl font-bold transition-all duration-300 relative overflow-hidden group active:scale-[0.96] shadow-sm",
+              isScrolled
+                ? "bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 text-white hover:from-corp-blue-500 hover:to-corp-blue-700 shadow-corp-blue-900/10"
+                : "bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white shadow-[0_4px_20px_rgba(59,130,246,0.35)] border border-white/20"
+            )}>
               <Link href={isMainDomain ? "/enterprise-registration" : "/login"} className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-300 opacity-75"></span>
@@ -155,7 +206,10 @@ export function PublicNavbar() {
 
           {/* Mobile Toggle */}
           <button 
-            className="md:hidden p-2 transition-colors hover:bg-slate-100 text-slate-800"
+            className={cn(
+              "md:hidden p-2 rounded-lg transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center",
+              isScrolled ? "text-slate-800 hover:bg-slate-100" : "text-white hover:bg-white/10"
+            )}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle menu"
           >
