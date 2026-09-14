@@ -1,17 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Settings, Plus, CheckCircle2, Clock, PlayCircle, AlertCircle, Trash2, Calendar } from 'lucide-react';
+import { Plus, CheckCircle2, Clock, PlayCircle, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ChantierDetail, ChantierTaskStatus } from '@/types/chantier';
 import { useCreatePhase, useCreateTask, useUpdateTaskStatus } from '@/hooks/use-chantiers';
 import { cn } from '@/lib/utils';
+import { ChantierModal, FormFieldGroup } from '../components/ChantierModal';
 
 interface ProductionTabProps {
   site: ChantierDetail;
 }
+
+const COLOR_PRESETS = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'];
 
 export function ProductionTab({ site }: ProductionTabProps) {
   const [isAddPhaseOpen, setIsAddPhaseOpen] = useState(false);
@@ -37,7 +39,7 @@ export function ProductionTab({ site }: ProductionTabProps) {
       name: phaseName.trim(),
       color: phaseColor,
       sortOrder: phases.length + 1,
-      startDate: new Date().toISOString()
+      startDate: new Date().toISOString(),
     });
 
     setIsAddPhaseOpen(false);
@@ -52,7 +54,7 @@ export function ProductionTab({ site }: ProductionTabProps) {
       label: taskLabel.trim(),
       subLabel: taskSubLabel.trim() || undefined,
       startDate: new Date().toISOString(),
-      sortOrder: 0
+      sortOrder: 0,
     });
 
     setIsAddTaskOpen(false);
@@ -62,64 +64,83 @@ export function ProductionTab({ site }: ProductionTabProps) {
 
   const cycleStatus = (phaseId: number, taskId: number, currentStatus: ChantierTaskStatus) => {
     let nextStatus: ChantierTaskStatus = 'InProgress';
-    if (currentStatus === 'Planned' || (currentStatus as any) === 0) nextStatus = 'InProgress';
-    else if (currentStatus === 'InProgress' || (currentStatus as any) === 1) nextStatus = 'Done';
-    else if (currentStatus === 'Done' || (currentStatus as any) === 2) nextStatus = 'Planned';
+    const statusStr = String(currentStatus);
+    if (statusStr === 'Planned' || statusStr === '0') nextStatus = 'InProgress';
+    else if (statusStr === 'InProgress' || statusStr === '1') nextStatus = 'Done';
+    else if (statusStr === 'Done' || statusStr === '2') nextStatus = 'Planned';
 
     updateTaskStatus.mutate({
       taskId,
-      input: { status: nextStatus, progressPct: nextStatus === 'Done' ? 100 : nextStatus === 'InProgress' ? 50 : 0 }
+      input: {
+        status: nextStatus,
+        progressPct: nextStatus === 'Done' ? 100 : nextStatus === 'InProgress' ? 50 : 0,
+      },
     });
   };
 
   return (
-    <div className="flex flex-col gap-10 font-['Outfit',sans-serif]">
+    <div className="flex flex-col gap-6">
       {/* Top action bar */}
-      <div className="flex items-center justify-between bg-white p-5 rounded-2xl border border-black/5 shadow-sm">
-        <div>
-          <h3 className="text-base font-bold text-[#1a1a1a] m-0 [text-wrap:balance]">Phases & Tâches opérationnelles</h3>
-          <span className="text-xs text-[#888780] tabular-nums">{phases.length} phase(s) planifiée(s) pour ce chantier</span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-5 rounded-2xl border border-black/5 shadow-xs gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#eff6ff] flex items-center justify-center text-[#2563eb] ring-1 ring-black/5">
+            <Layers className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-[#0f172a] m-0 [text-wrap:balance]">
+              Phases & Tâches Opérationnelles
+            </h3>
+            <span className="text-xs text-[#64748b] tabular-nums">
+              {phases.length} étape(s) planifiée(s) pour la réalisation des travaux
+            </span>
+          </div>
         </div>
+
         <Button
           onClick={() => setIsAddPhaseOpen(true)}
-          className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl text-xs font-bold px-4 active:scale-[0.96] transition-transform min-h-[40px]"
+          className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl text-xs font-bold px-4 active:scale-[0.96] transition-transform h-9.5 shadow-xs"
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="w-4 h-4 mr-1.5" />
           Nouvelle phase
         </Button>
       </div>
 
       {phases.map((phase) => {
         const tasks = phase.tasks || [];
-        const completedTasks = tasks.filter(t => t.status === 'Done' || (t.status as any) === 2).length;
-        const phasePct = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : phase.progressPct;
+        const completedTasks = tasks.filter(
+          (t) => String(t.status) === 'Done' || String(t.status) === '2'
+        ).length;
+        const phasePct =
+          tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : phase.progressPct;
 
         return (
-          <div key={phase.id} className="flex flex-col gap-4">
+          <div key={phase.id} className="flex flex-col gap-3 bg-white p-5 rounded-2xl border border-black/5 shadow-xs">
             {/* Phase Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-black/5 pb-3 gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-black/5 pb-3 gap-3">
               <div className="flex items-center gap-3">
                 <div
-                  className="w-3.5 h-3.5 rounded-full ring-2 ring-white shadow-xs"
+                  className="w-3.5 h-3.5 rounded-full ring-2 ring-white shadow-2xs shrink-0"
                   style={{ backgroundColor: phase.color || '#2563eb' }}
                 />
-                <h4 className="text-sm font-extrabold text-[#1a1a1a] m-0">{phase.name}</h4>
-                <span className="text-[0.68rem] font-bold text-[#888780] bg-[#f8f9fa] px-2 py-0.5 rounded-md tabular-nums">
-                  {completedTasks}/{tasks.length} tâche(s) terminée(s)
+                <h4 className="text-sm font-bold text-[#0f172a] m-0">{phase.name}</h4>
+                <span className="text-[0.68rem] font-bold text-[#64748b] bg-slate-100 px-2.5 py-0.5 rounded-full tabular-nums">
+                  {completedTasks} / {tasks.length} tâche(s)
                 </span>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="w-24 bg-[#e5e7eb] h-2 rounded-full overflow-hidden">
+              <div className="flex items-center gap-3.5">
+                <div className="w-24 sm:w-28 bg-slate-200 h-2 rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-300"
                     style={{
                       width: `${phasePct}%`,
-                      backgroundColor: phase.color || '#2563eb'
+                      backgroundColor: phase.color || '#2563eb',
                     }}
                   />
                 </div>
-                <span className="text-xs font-bold text-[#1a1a1a] tabular-nums w-8 text-right">{phasePct}%</span>
+                <span className="text-xs font-extrabold text-[#0f172a] tabular-nums w-8 text-right">
+                  {phasePct}%
+                </span>
                 <Button
                   size="sm"
                   variant="outline"
@@ -127,7 +148,7 @@ export function ProductionTab({ site }: ProductionTabProps) {
                     setSelectedPhaseId(phase.id);
                     setIsAddTaskOpen(true);
                   }}
-                  className="h-8 text-xs font-bold rounded-xl border-black/10 active:scale-[0.96] transition-transform"
+                  className="h-8 text-xs font-bold rounded-xl border-black/15 active:scale-[0.96] transition-transform px-3"
                 >
                   <Plus className="w-3.5 h-3.5 mr-1" /> Tâche
                 </Button>
@@ -135,38 +156,48 @@ export function ProductionTab({ site }: ProductionTabProps) {
             </div>
 
             {/* Phase Tasks List */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 pt-1">
               {tasks.map((task) => {
-                const isTaskDone = task.status === 'Done' || (task.status as any) === 2;
-                const isTaskInProgress = task.status === 'InProgress' || (task.status as any) === 1;
-                const isTaskPlanned = task.status === 'Planned' || (task.status as any) === 0;
+                const statusStr = String(task.status);
+                const isTaskDone = statusStr === 'Done' || statusStr === '2';
+                const isTaskInProgress = statusStr === 'InProgress' || statusStr === '1';
+                const isTaskPlanned = statusStr === 'Planned' || statusStr === '0';
 
                 return (
                   <div
                     key={task.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white rounded-2xl border border-black/5 hover:border-black/10 transition-colors gap-3"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl border border-black/5 hover:border-black/15 transition-colors gap-3 bg-[#f8fafc]/50"
                   >
                     <div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
                       <button
+                        type="button"
                         onClick={() => cycleStatus(phase.id, task.id, task.status)}
-                        title="Cliquer pour changer le statut"
+                        title="Cliquer pour faire évoluer le statut"
                         className={cn(
-                          "text-[0.75rem] font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer active:scale-[0.96] transition-transform select-none min-h-[36px]",
+                          'text-[0.72rem] font-bold px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer active:scale-[0.96] transition-transform select-none min-h-[34px] shrink-0 border',
                           isTaskDone
-                            ? 'bg-[#f0fdf4] text-[#166534] border border-[#bbf7d0]'
+                            ? 'bg-[#ecfdf5] text-[#065f46] border-[#a7f3d0]'
                             : isTaskInProgress
-                            ? 'bg-[#eff6ff] text-[#2563eb] border border-[#bfdbfe]'
-                            : 'bg-[#f8f9fa] text-[#888780] border border-[#e5e7eb]'
+                            ? 'bg-[#eff6ff] text-[#1e40af] border-[#bfdbfe]'
+                            : 'bg-white text-[#64748b] border-slate-200'
                         )}
                       >
-                        {isTaskDone && <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />}
-                        {isTaskInProgress && <PlayCircle className="w-3.5 h-3.5 shrink-0" />}
-                        {isTaskPlanned && <Clock className="w-3.5 h-3.5 shrink-0" />}
-                        {isTaskDone ? 'Terminé' : isTaskInProgress ? 'En cours' : 'Planifié'}
+                        {isTaskDone && <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-[#10b981]" />}
+                        {isTaskInProgress && <PlayCircle className="w-3.5 h-3.5 shrink-0 text-[#2563eb]" />}
+                        {isTaskPlanned && <Clock className="w-3.5 h-3.5 shrink-0 text-[#94a3b8]" />}
+                        <span>{isTaskDone ? 'Terminé' : isTaskInProgress ? 'En cours' : 'Planifié'}</span>
                       </button>
+
                       <div className="min-w-0">
-                        <div className="font-bold text-[#1a1a1a] text-sm truncate">{task.label}</div>
-                        {task.subLabel && <div className="text-xs text-[#888780] font-medium truncate">{task.subLabel}</div>}
+                        <div className={cn(
+                          'font-bold text-xs sm:text-sm text-[#0f172a] truncate',
+                          isTaskDone && 'line-through text-[#94a3b8]'
+                        )}>
+                          {task.label}
+                        </div>
+                        {task.subLabel && (
+                          <div className="text-[0.7rem] text-[#64748b] truncate">{task.subLabel}</div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -174,8 +205,8 @@ export function ProductionTab({ site }: ProductionTabProps) {
               })}
 
               {tasks.length === 0 && (
-                <div className="p-6 text-center border border-dashed border-black/10 rounded-2xl text-[#888780] font-medium text-xs bg-[#fafafa]">
-                  Aucune tâche dans cette phase. Cliquez sur « Ajouter une tâche » pour commencer.
+                <div className="p-4 text-center border border-dashed border-black/10 rounded-xl text-[#94a3b8] text-xs bg-[#fafafa]">
+                  Aucune tâche dans cette phase. Cliquez sur « Tâche » pour démarrer la planification.
                 </div>
               )}
             </div>
@@ -184,105 +215,100 @@ export function ProductionTab({ site }: ProductionTabProps) {
       })}
 
       {phases.length === 0 && (
-        <div className="p-12 text-center border border-dashed border-black/10 rounded-2xl text-[#888780] bg-white">
-          <h4 className="text-base font-bold text-[#1a1a1a] mb-1 [text-wrap:balance]">Aucune phase pour ce chantier</h4>
-          <p className="text-xs text-[#888780] mb-4 [text-wrap:pretty]">Définissez les étapes clés (Gros œuvre, Électricité, Finitions...)</p>
-          <Button onClick={() => setIsAddPhaseOpen(true)} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl text-xs font-bold active:scale-[0.96] transition-transform min-h-[40px]">
+        <div className="p-12 text-center border border-dashed border-black/10 rounded-2xl text-[#64748b] bg-white">
+          <h4 className="text-base font-bold text-[#0f172a] mb-1 [text-wrap:balance]">
+            Aucune phase configurée pour ce chantier
+          </h4>
+          <p className="text-xs text-[#64748b] mb-4 [text-wrap:pretty]">
+            Définissez les étapes clés du projet (ex: Fondations, Gros œuvre, Menuiserie, Finitions).
+          </p>
+          <Button
+            onClick={() => setIsAddPhaseOpen(true)}
+            className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl text-xs font-bold active:scale-[0.96] transition-transform h-9.5 px-4 shadow-xs"
+          >
             Créer la première phase
           </Button>
         </div>
       )}
 
       {/* Modal: Ajouter une phase */}
-      <Dialog open={isAddPhaseOpen} onOpenChange={setIsAddPhaseOpen}>
-        <DialogContent className="sm:max-w-[425px] rounded-2xl font-['Outfit',sans-serif] p-6">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-[#1a1a1a]">Ajouter une phase</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleAddPhase} className="flex flex-col gap-4 mt-2">
-            <div>
-              <label className="text-xs font-bold text-[#888780] uppercase block mb-1.5">Nom de la phase</label>
-              <Input
-                type="text"
-                placeholder="Ex: Fondations et gros œuvre"
-                value={phaseName}
-                onChange={(e) => setPhaseName(e.target.value)}
-                required
-                className="rounded-xl text-xs h-10"
-              />
-            </div>
+      <ChantierModal
+        open={isAddPhaseOpen}
+        onOpenChange={setIsAddPhaseOpen}
+        title="Ajouter une phase"
+        description="Créez une nouvelle grande étape opérationnelle du chantier."
+        icon={Layers}
+        maxWidthClass="sm:max-w-[440px]"
+        onSubmit={handleAddPhase}
+        submitLabel="Créer la phase"
+        isSubmitting={createPhase.isPending}
+      >
+        <div className="space-y-4">
+          <FormFieldGroup label="Nom de la phase" required>
+            <Input
+              type="text"
+              placeholder="Ex: Fondations et gros œuvre"
+              value={phaseName}
+              onChange={(e) => setPhaseName(e.target.value)}
+              required
+              className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb]"
+            />
+          </FormFieldGroup>
 
-            <div>
-              <label className="text-xs font-bold text-[#888780] uppercase block mb-1.5">Couleur d'identification</label>
-              <div className="flex gap-2.5">
-                {['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'].map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => setPhaseColor(c)}
-                    className={cn(
-                      "w-8 h-8 rounded-xl cursor-pointer active:scale-[0.96] transition-transform ring-2 ring-offset-2",
-                      phaseColor === c ? "ring-[#1a1a1a]" : "ring-transparent"
-                    )}
-                    style={{ backgroundColor: c }}
-                  />
-                ))}
-              </div>
+          <FormFieldGroup label="Couleur d'identification">
+            <div className="flex gap-2 pt-1">
+              {COLOR_PRESETS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setPhaseColor(c)}
+                  className={cn(
+                    'w-8 h-8 rounded-xl cursor-pointer active:scale-[0.96] transition-transform ring-2 ring-offset-2',
+                    phaseColor === c ? 'ring-[#0f172a]' : 'ring-transparent'
+                  )}
+                  style={{ backgroundColor: c }}
+                />
+              ))}
             </div>
-
-            <DialogFooter className="mt-3 pt-3 border-t border-black/5 flex items-center justify-between sm:justify-between">
-              <Button type="button" variant="outline" onClick={() => setIsAddPhaseOpen(false)} className="rounded-xl text-xs font-semibold active:scale-[0.96] transition-transform min-h-[38px]">
-                Annuler
-              </Button>
-              <Button type="submit" disabled={createPhase.isPending} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl text-xs font-bold active:scale-[0.96] transition-transform min-h-[38px] px-4">
-                {createPhase.isPending ? 'Création...' : 'Créer la phase'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          </FormFieldGroup>
+        </div>
+      </ChantierModal>
 
       {/* Modal: Ajouter une tâche */}
-      <Dialog open={isAddTaskOpen} onOpenChange={setIsAddTaskOpen}>
-        <DialogContent className="sm:max-w-[425px] rounded-2xl font-['Outfit',sans-serif] p-6">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-[#1a1a1a]">Ajouter une tâche opérationnelle</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleAddTask} className="flex flex-col gap-4 mt-2">
-            <div>
-              <label className="text-xs font-bold text-[#888780] uppercase block mb-1.5">Intitulé de la tâche</label>
-              <Input
-                type="text"
-                placeholder="Ex: Coulage des semelles de fondation"
-                value={taskLabel}
-                onChange={(e) => setTaskLabel(e.target.value)}
-                required
-                className="rounded-xl text-xs h-10"
-              />
-            </div>
+      <ChantierModal
+        open={isAddTaskOpen}
+        onOpenChange={setIsAddTaskOpen}
+        title="Ajouter une tâche opérationnelle"
+        description="Détaillez une tâche spécifique à réaliser au cours de cette phase."
+        icon={Plus}
+        maxWidthClass="sm:max-w-[440px]"
+        onSubmit={handleAddTask}
+        submitLabel="Ajouter la tâche"
+        isSubmitting={createTask.isPending}
+      >
+        <div className="space-y-4">
+          <FormFieldGroup label="Intitulé de la tâche" required>
+            <Input
+              type="text"
+              placeholder="Ex: Coulage semelles béton armé"
+              value={taskLabel}
+              onChange={(e) => setTaskLabel(e.target.value)}
+              required
+              className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb]"
+            />
+          </FormFieldGroup>
 
-            <div>
-              <label className="text-xs font-bold text-[#888780] uppercase block mb-1.5">Détails ou consignes techniques</label>
-              <Input
-                type="text"
-                placeholder="Ex: Béton C25/30 avec hydrofuge de masse..."
-                value={taskSubLabel}
-                onChange={(e) => setTaskSubLabel(e.target.value)}
-                className="rounded-xl text-xs h-10"
-              />
-            </div>
-
-            <DialogFooter className="mt-3 pt-3 border-t border-black/5 flex items-center justify-between sm:justify-between">
-              <Button type="button" variant="outline" onClick={() => setIsAddTaskOpen(false)} className="rounded-xl text-xs font-semibold active:scale-[0.96] transition-transform min-h-[38px]">
-                Annuler
-              </Button>
-              <Button type="submit" disabled={createTask.isPending} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl text-xs font-bold active:scale-[0.96] transition-transform min-h-[38px] px-4">
-                {createTask.isPending ? 'Ajout...' : 'Ajouter la tâche'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          <FormFieldGroup label="Détails ou spécifications techniques">
+            <Input
+              type="text"
+              placeholder="Ex: Béton C25/30 avec adjuvant hydrofuge..."
+              value={taskSubLabel}
+              onChange={(e) => setTaskSubLabel(e.target.value)}
+              className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb]"
+            />
+          </FormFieldGroup>
+        </div>
+      </ChantierModal>
     </div>
   );
 }

@@ -321,17 +321,17 @@ function InventoryListContent() {
 
       {/* Validation Confirm Dialog */}
       <Dialog open={!!inventoryToValidate} onOpenChange={() => setInventoryToValidate(null)}>
-        <DialogContent className="bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl">
+        <DialogContent className="sm:max-w-md w-full bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl p-6">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-stone-900 dark:text-stone-50 flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
               Confirmer la validation
             </DialogTitle>
-            <DialogDescription className="text-xs text-stone-500 pt-2 leading-relaxed">
-              La validation de l'inventaire <strong>{inventoryToValidate?.docnumber}</strong> écrasera les quantités en stock actuelles par les valeurs comptées. Cette action est irréversible.
+            <DialogDescription className="text-sm text-stone-500 dark:text-stone-400 pt-2 leading-relaxed">
+              La validation de l'inventaire <strong className="text-stone-800 dark:text-stone-200 font-semibold">{inventoryToValidate?.docnumber}</strong> écrasera les quantités en stock actuelles par les valeurs comptées. Cette action est irréversible.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="mt-4 gap-2">
+          <DialogFooter className="mt-4 gap-2 sm:gap-2">
             <Button
               variant="outline"
               onClick={() => setInventoryToValidate(null)}

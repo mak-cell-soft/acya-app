@@ -1,18 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Truck, ShieldCheck, Plus, Trash2, Home, CheckCircle, Loader2, User } from 'lucide-react';
+import { Truck, ShieldCheck, Plus, Trash2, Users } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ChantierDetail } from '@/types/chantier';
 import { useAssignVehicle, useReleaseVehicle } from '@/hooks/use-chantiers';
 import { usePersons } from '@/hooks/use-team';
 import { useQuery } from '@tanstack/react-query';
 import { vehicleService } from '@/services/components/vehicle.service';
 import { Vehicle } from '@/types/vehicle';
-import { cn } from '@/lib/utils';
+import { ChantierModal, FormFieldGroup } from '../components/ChantierModal';
 
 interface MagasinTabProps {
   site: ChantierDetail;
@@ -28,11 +27,11 @@ export function MagasinTab({ site }: MagasinTabProps) {
   const releaseVehicle = useReleaseVehicle(site.id);
 
   // Fetch real vehicles and drivers for seamless selection
-  const { data: vehicles = [], isLoading: isVehiclesLoading } = useQuery<Vehicle[]>({
+  const { data: vehicles = [] } = useQuery<Vehicle[]>({
     queryKey: ['vehicles'],
     queryFn: () => vehicleService.getAll(),
   });
-  const { data: persons = [], isLoading: isPersonsLoading } = usePersons();
+  const { data: persons = [] } = usePersons();
 
   const vehicleAssignments = site.vehicleAssignments || [];
 
@@ -43,7 +42,7 @@ export function MagasinTab({ site }: MagasinTabProps) {
     await assignVehicle.mutateAsync({
       vehicleId: Number(vehicleId),
       driverPersonId: driverPersonId ? Number(driverPersonId) : undefined,
-      notes: notes.trim() || undefined
+      notes: notes.trim() || undefined,
     });
 
     setIsAssignVehicleOpen(false);
@@ -53,91 +52,138 @@ export function MagasinTab({ site }: MagasinTabProps) {
   };
 
   return (
-    <div className="flex flex-col gap-8 font-['Outfit',sans-serif]">
-      {/* Store Manager Hero Banner */}
-      <Card className="bg-[#1a1a1a] text-white border-none rounded-2xl shadow-xl overflow-hidden">
-        <CardContent className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 shrink-0">
-              <ShieldCheck className="w-7 h-7 text-[#2563eb]" />
+    <div className="flex flex-col gap-6">
+      {/* Refined Executive Logistics Dashboard Card */}
+      <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-5 sm:p-6 shadow-md border border-slate-700/40 relative overflow-hidden">
+        {/* Subtle background glow */}
+        <div className="absolute top-0 right-0 w-80 h-full bg-[#2563eb]/10 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          {/* Manager Info */}
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-[#60a5fa] shrink-0 shadow-inner">
+              <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-white/50">Responsable Magasin & Logistique</span>
-              <h3 className="text-xl font-bold m-0 mt-1 [text-wrap:balance]">
-                {site.projectManagerName || "Service Logistique Centrale"}
+              <div className="flex items-center gap-2">
+                <span className="text-[0.68rem] font-bold uppercase tracking-wider text-slate-400">
+                  Responsable Magasin & Logistique
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-white tracking-tight m-0 mt-0.5 [text-wrap:balance]">
+                {site.projectManagerName || 'Service Logistique & Matériel Central'}
               </h3>
-              <span className="text-xs text-white/70 mt-1 block">Affectation et suivi des engins et outillages</span>
+              <p className="text-xs text-slate-300 mt-0.5">
+                Supervision du parc engins, des équipements et des approvisionnements
+              </p>
             </div>
           </div>
-          <div className="flex gap-6 md:gap-10 border-t md:border-t-0 md:border-l border-white/10 pt-6 md:pt-0 md:pl-10 w-full md:w-auto justify-center">
-            <div className="text-center">
-              <span className="block text-3xl font-extrabold text-[#2563eb] tabular-nums">{vehicleAssignments.length}</span>
-              <span className="text-xs font-bold uppercase tracking-wider text-white/50 mt-1 block">Véhicules Actifs</span>
+
+          {/* Key Scannable Metrics */}
+          <div className="flex items-center gap-4 sm:gap-6 border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-6 shrink-0">
+            <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 min-w-[120px] text-center">
+              <span className="text-2xl sm:text-3xl font-extrabold text-[#60a5fa] tabular-nums block leading-none">
+                {vehicleAssignments.length}
+              </span>
+              <span className="text-[0.68rem] font-bold uppercase tracking-wider text-slate-400 mt-1 block">
+                Véhicules Actifs
+              </span>
             </div>
-            <div className="text-center">
-              <span className="block text-3xl font-extrabold text-[#10b981] tabular-nums">{site.teamMembers.length}</span>
-              <span className="text-xs font-bold uppercase tracking-wider text-white/50 mt-1 block">Équipe Site</span>
+
+            <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 min-w-[120px] text-center">
+              <span className="text-2xl sm:text-3xl font-extrabold text-[#34d399] tabular-nums block leading-none">
+                {site.teamMembers?.length || 0}
+              </span>
+              <span className="text-[0.68rem] font-bold uppercase tracking-wider text-slate-400 mt-1 block">
+                Équipe Site
+              </span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Vehicles Section */}
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between border-b border-black/5 pb-3">
+        {/* Section Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-black/5 pb-3 gap-3">
           <div className="flex items-center gap-2.5">
             <Truck className="w-5 h-5 text-[#2563eb]" />
-            <h4 className="text-lg font-bold text-[#1a1a1a] m-0 [text-wrap:balance]">Véhicules & Engins affectés</h4>
-            <span className="text-xs font-semibold text-[#888780] bg-[#f0f0f0] px-2.5 py-0.5 rounded-full tabular-nums">
+            <h4 className="text-base font-bold text-[#0f172a] m-0 [text-wrap:balance]">
+              Véhicules & Engins Affectés
+            </h4>
+            <span className="text-xs font-bold text-[#64748b] bg-slate-100 px-2.5 py-0.5 rounded-full tabular-nums">
               {vehicleAssignments.length}
             </span>
           </div>
 
           <Button
             onClick={() => setIsAssignVehicleOpen(true)}
-            className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl text-xs font-bold px-4 active:scale-[0.96] transition-transform min-h-[40px]"
+            className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl text-xs font-bold px-4 active:scale-[0.96] transition-transform h-9 shadow-xs"
           >
-            <Plus className="w-4 h-4 mr-1.5" /> Affecter un véhicule
+            <Plus className="w-4 h-4 mr-1.5" />
+            Affecter un véhicule
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {/* Vehicles Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {vehicleAssignments.map((v) => (
-            <Card key={v.id} className="border-black/5 shadow-sm rounded-2xl overflow-hidden bg-white hover:shadow-md transition-colors">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <div className="text-xs font-bold text-[#2563eb] bg-[#eff6ff] px-2.5 py-1 rounded-md w-fit mb-1.5 tabular-nums">
-                      {v.vehicleRegistration || `Véhicule #${v.vehicleId}`}
+            <Card
+              key={v.id}
+              className="border-black/5 shadow-xs rounded-2xl overflow-hidden bg-white hover:border-black/15 transition-colors"
+            >
+              <CardContent className="p-5 flex flex-col justify-between h-full">
+                <div>
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <div>
+                      <span className="text-[0.7rem] font-bold text-[#1e40af] bg-[#eff6ff] border border-[#bfdbfe] px-2.5 py-0.5 rounded-md font-mono tabular-nums inline-block mb-1.5">
+                        {v.vehicleRegistration || `Véhicule #${v.vehicleId}`}
+                      </span>
+                      <h5 className="font-bold text-[#0f172a] text-sm sm:text-base m-0 truncate">
+                        {v.vehicleModel || 'Engin / Camion Chantier'}
+                      </h5>
                     </div>
-                    <h5 className="font-bold text-[#1a1a1a] text-base m-0 truncate">
-                      {v.vehicleModel || "Engin / Utilitaire"}
-                    </h5>
+
+                    <div className="w-9 h-9 rounded-xl bg-slate-100 border border-black/5 flex items-center justify-center text-[#2563eb] shrink-0">
+                      <Truck className="w-4 h-4" />
+                    </div>
                   </div>
-                  <div className="w-9 h-9 rounded-xl bg-[#f8f9fa] ring-1 ring-black/5 flex items-center justify-center text-[#2563eb] shrink-0">
-                    <Truck className="w-4 h-4" />
+
+                  <div className="space-y-2 pt-2 border-t border-black/5">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-[#64748b]">Chauffeur / Responsable</span>
+                      <span className="font-bold text-[#0f172a] flex items-center gap-1">
+                        <Users className="w-3 h-3 text-[#94a3b8]" />
+                        <span>{v.driverPersonName || 'Non désigné'}</span>
+                      </span>
+                    </div>
+
+                    {v.notes && (
+                      <div className="text-[0.72rem] text-[#64748b] bg-[#f8fafc] p-2.5 rounded-xl border border-black/5 [text-wrap:pretty]">
+                        {v.notes}
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center text-xs border-t border-black/5 pt-3 mt-3">
-                  <span className="text-[#888780] font-medium">Chauffeur / Responsable</span>
-                  <span className="font-bold text-[#1a1a1a]">{v.driverPersonName || "Non désigné"}</span>
-                </div>
+                <div className="mt-4 pt-3 border-t border-black/5 flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1 text-[0.68rem] font-bold text-[#10b981] bg-[#ecfdf5] px-2 py-0.5 rounded-md">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" /> En service
+                  </span>
 
-                {v.notes && (
-                  <div className="text-[0.75rem] text-[#888780] bg-[#fafafa] p-2.5 rounded-xl mt-3 [text-wrap:pretty]">
-                    {v.notes}
-                  </div>
-                )}
-
-                <div className="mt-4 pt-3 border-t border-black/5 flex justify-end">
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => releaseVehicle.mutate(v.id)}
-                    className="text-xs text-red-600 hover:bg-red-50 hover:text-red-700 font-semibold active:scale-[0.96] transition-transform min-h-[36px]"
+                    onClick={() => {
+                      if (confirm('Confirmer la libération de ce véhicule du chantier ?')) {
+                        releaseVehicle.mutate(v.id);
+                      }
+                    }}
+                    className="text-xs text-red-600 hover:bg-red-50 hover:text-red-700 font-semibold active:scale-[0.96] transition-transform h-8 px-2.5 rounded-lg"
                   >
-                    <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Libérer du chantier
+                    <Trash2 className="w-3.5 h-3.5 mr-1" />
+                    Libérer
                   </Button>
                 </div>
               </CardContent>
@@ -145,7 +191,7 @@ export function MagasinTab({ site }: MagasinTabProps) {
           ))}
 
           {vehicleAssignments.length === 0 && (
-            <div className="col-span-full p-8 text-center border border-dashed border-black/10 rounded-2xl text-[#888780] font-medium text-xs bg-white">
+            <div className="col-span-full p-8 text-center border border-dashed border-black/10 rounded-2xl text-[#64748b] text-xs bg-white">
               Aucun véhicule ou engin actuellement affecté à ce chantier. Cliquez sur « Affecter un véhicule ».
             </div>
           )}
@@ -153,67 +199,63 @@ export function MagasinTab({ site }: MagasinTabProps) {
       </div>
 
       {/* Modal: Affecter un véhicule */}
-      <Dialog open={isAssignVehicleOpen} onOpenChange={setIsAssignVehicleOpen}>
-        <DialogContent className="sm:max-w-[450px] rounded-2xl font-['Outfit',sans-serif] p-6">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-[#1a1a1a]">Affecter un véhicule au chantier</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleAssignVehicle} className="flex flex-col gap-4 mt-2">
-            <div>
-              <label className="text-xs font-bold text-[#888780] uppercase block mb-1.5">Véhicule de la flotte</label>
-              <select
-                value={vehicleId}
-                onChange={(e) => setVehicleId(Number(e.target.value))}
-                className="w-full h-10 px-3 border border-black/10 rounded-xl text-xs font-medium bg-white focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
-                required
-              >
-                <option value={0}>Sélectionner un véhicule...</option>
-                {vehicles.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.serialnumber || `Véhicule #${v.id}`} {v.brand ? `- ${v.brand}` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
+      <ChantierModal
+        open={isAssignVehicleOpen}
+        onOpenChange={setIsAssignVehicleOpen}
+        title="Affecter un véhicule au chantier"
+        description="Associez un engin ou un véhicule de la flotte à ce chantier et désignez son chauffeur."
+        icon={Truck}
+        maxWidthClass="sm:max-w-[460px]"
+        onSubmit={handleAssignVehicle}
+        submitLabel="Affecter le véhicule"
+        isSubmitting={assignVehicle.isPending}
+        submitDisabled={vehicleId <= 0}
+      >
+        <div className="space-y-4">
+          <FormFieldGroup label="Véhicule de la flotte" required>
+            <select
+              value={vehicleId}
+              onChange={(e) => setVehicleId(Number(e.target.value))}
+              className="w-full h-9.5 px-3 border border-black/15 rounded-xl text-xs font-medium bg-white focus:outline-none focus:border-[#2563eb]"
+              required
+            >
+              <option value={0}>Sélectionner un véhicule disponible...</option>
+              {vehicles.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.serialnumber || `Véhicule #${v.id}`} {v.brand ? `- ${v.brand}` : ''}
+                </option>
+              ))}
+            </select>
+          </FormFieldGroup>
 
-            <div>
-              <label className="text-xs font-bold text-[#888780] uppercase block mb-1.5">Chauffeur / Responsable (Optionnel)</label>
-              <select
-                value={driverPersonId ?? ''}
-                onChange={(e) => setDriverPersonId(e.target.value ? Number(e.target.value) : undefined)}
-                className="w-full h-10 px-3 border border-black/10 rounded-xl text-xs font-medium bg-white focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
-              >
-                <option value="">Aucun chauffeur assigné pour le moment</option>
-                {persons.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.firstname} {p.lastname}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <FormFieldGroup label="Chauffeur / Responsable (Optionnel)">
+            <select
+              value={driverPersonId ?? ''}
+              onChange={(e) =>
+                setDriverPersonId(e.target.value ? Number(e.target.value) : undefined)
+              }
+              className="w-full h-9.5 px-3 border border-black/15 rounded-xl text-xs font-medium bg-white focus:outline-none focus:border-[#2563eb]"
+            >
+              <option value="">Aucun chauffeur assigné pour le moment</option>
+              {persons.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.firstname} {p.lastname}
+                </option>
+              ))}
+            </select>
+          </FormFieldGroup>
 
-            <div>
-              <label className="text-xs font-bold text-[#888780] uppercase block mb-1.5">Notes ou mission</label>
-              <Input
-                type="text"
-                placeholder="Ex: Transport personnel et outillage lourd"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="rounded-xl text-xs h-10"
-              />
-            </div>
-
-            <DialogFooter className="mt-3 pt-3 border-t border-black/5 flex items-center justify-between sm:justify-between">
-              <Button type="button" variant="outline" onClick={() => setIsAssignVehicleOpen(false)} className="rounded-xl text-xs font-semibold active:scale-[0.96] transition-transform min-h-[38px]">
-                Annuler
-              </Button>
-              <Button type="submit" disabled={vehicleId <= 0 || assignVehicle.isPending} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl text-xs font-bold active:scale-[0.96] transition-transform min-h-[38px] px-4">
-                {assignVehicle.isPending ? 'Affectation...' : 'Valider'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          <FormFieldGroup label="Mission ou consignes d'utilisation">
+            <Input
+              type="text"
+              placeholder="Ex: Transport des équipes et outillages lourds"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb]"
+            />
+          </FormFieldGroup>
+        </div>
+      </ChantierModal>
     </div>
   );
 }
