@@ -4,7 +4,9 @@
 # Stage 1: Base runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends curl \
+RUN apt-get -o Acquire::Check-Valid-Until=false update \
+    && apt-get install -y --no-install-recommends -t bullseye libnghttp2-14 \
+    && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 EXPOSE 80
 EXPOSE 443
