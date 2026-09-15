@@ -14,6 +14,17 @@ export function useInventories() {
 }
 
 /**
+ * Hook to retrieve a single inventory document by id.
+ */
+export function useInventory(id: number | null | undefined) {
+  return useQuery<Document>({
+    queryKey: ['inventory', id],
+    queryFn: () => inventoryService.getById(id!),
+    enabled: !!id && !isNaN(id),
+  });
+}
+
+/**
  * Hook to create a new physical inventory document.
  */
 export function useCreateInventory() {
@@ -55,3 +66,27 @@ export function useValidateInventory() {
     },
   });
 }
+
+/**
+ * Hook to update an existing physical inventory document.
+ */
+export function useUpdateInventory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, doc }: { id: number; doc: Partial<Document> }) => 
+      inventoryService.update(id, doc),
+    onSuccess: (response, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['inventories'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['stocks'] });
+      toast.success(`Inventaire mis à jour avec succès (Réf: ${response?.docRef || ''})`);
+    },
+    onError: (error: any) => {
+      console.error('Error updating inventory:', error);
+      const errorMsg = error.response?.data?.message || error.response?.data || 'Erreur lors de la mise à jour de l\'inventaire';
+      toast.error(typeof errorMsg === 'string' ? errorMsg : 'Erreur lors de la mise à jour de l\'inventaire');
+    },
+  });
+}
+

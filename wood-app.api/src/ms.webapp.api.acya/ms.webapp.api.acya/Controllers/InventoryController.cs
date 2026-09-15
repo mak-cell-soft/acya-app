@@ -36,6 +36,10 @@ namespace ms.webapp.api.acya.api.Controllers
                 .Include(d => d.DocumentMerchandises)
                     .ThenInclude(dm => dm.Merchandise)
                         .ThenInclude(m => m!.Articles)
+                .Include(d => d.DocumentMerchandises)
+                    .ThenInclude(dm => dm.QuantityMovements)
+                        .ThenInclude(qm => qm!.ListOfLengths)
+                            .ThenInclude(ll => ll.AppVarLength)
                 .Where(d => d.Type == DocumentTypes.inventory && !d.IsDeleted)
                 .OrderByDescending(d => d.CreationDate)
                 .ToListAsync();
@@ -50,6 +54,16 @@ namespace ms.webapp.api.acya.api.Controllers
                         packagereference = dm.Merchandise?.PackageReference,
                         quantity = dm.Quantity,
                         article = dm.Merchandise?.Articles != null ? new ArticleDto(dm.Merchandise.Articles) : null,
+                        lisoflengths = dm.QuantityMovements?.ListOfLengths?
+                            .Select(ll => new ListOflengthDto
+                            {
+                                id = ll.Id,
+                                nbpieces = ll.NumberOfPieces,
+                                quantity = ll.Quantity,
+                                customLength = ll.CustomLengthCm,
+                                totalWidth = ll.TotalWidthCm,
+                                length = ll.AppVarLength != null ? new AppVariableDto(ll.AppVarLength) : null
+                            }).ToArray()
                     };
                     
                     // Fetch current stock
@@ -62,6 +76,56 @@ namespace ms.webapp.api.acya.api.Controllers
             }).ToList();
 
             return Ok(dtos);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<DocumentDto>> GetInventoryById(int id)
+        {
+            var doc = await _context.Documents
+                .Include(d => d.SalesSite)
+                .Include(d => d.AppUsers)
+                    .ThenInclude(u => u!.Persons)
+                .Include(d => d.DocumentMerchandises)
+                    .ThenInclude(dm => dm.Merchandise)
+                        .ThenInclude(m => m!.Articles)
+                .Include(d => d.DocumentMerchandises)
+                    .ThenInclude(dm => dm.QuantityMovements)
+                        .ThenInclude(qm => qm!.ListOfLengths)
+                            .ThenInclude(ll => ll.AppVarLength)
+                .FirstOrDefaultAsync(d => d.Id == id && d.Type == DocumentTypes.inventory && !d.IsDeleted);
+
+            if (doc == null)
+            {
+                return NotFound("Inventory document not found.");
+            }
+
+            var dto = new DocumentDto(doc);
+            dto.merchandises = doc.DocumentMerchandises.Select(dm => {
+                var mDto = new MerchandiseDto
+                {
+                    id = dm.MerchandiseId,
+                    packagereference = dm.Merchandise?.PackageReference,
+                    quantity = dm.Quantity,
+                    article = dm.Merchandise?.Articles != null ? new ArticleDto(dm.Merchandise.Articles) : null,
+                    lisoflengths = dm.QuantityMovements?.ListOfLengths?
+                        .Select(ll => new ListOflengthDto
+                        {
+                            id = ll.Id,
+                            nbpieces = ll.NumberOfPieces,
+                            quantity = ll.Quantity,
+                            customLength = ll.CustomLengthCm,
+                            totalWidth = ll.TotalWidthCm,
+                            length = ll.AppVarLength != null ? new AppVariableDto(ll.AppVarLength) : null
+                        }).ToArray()
+                };
+                
+                var stock = _context.Stocks.FirstOrDefault(s => s.MerchandiseId == dm.MerchandiseId && s.SalesSiteId == doc.SalesSiteId);
+                mDto.stock_quantity = stock?.Quantity ?? 0;
+                
+                return mDto;
+            }).ToArray();
+
+            return Ok(dto);
         }
 
         [HttpPost]
@@ -208,6 +272,144 @@ namespace ms.webapp.api.acya.api.Controllers
                     await transaction.CommitAsync();
 
                     return Ok(new { docRef = doc.DocNumber, message = "Inventory created successfully" });
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return StatusCode(500, $"An error occurred: {ex.Message}");
+                }
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateInventory(int id, DocumentDto dto)
+        {
+            if (dto == null || dto.merchandises == null || !dto.merchandises.Any())
+            {
+                return BadRequest("Invalid inventory data.");
+            }
+
+            var doc = await _context.Documents
+                .Include(d => d.DocumentMerchandises)
+                    .ThenInclude(dm => dm.QuantityMovements)
+                        .ThenInclude(qm => qm!.ListOfLengths)
+                .FirstOrDefaultAsync(d => d.Id == id && d.Type == DocumentTypes.inventory && !d.IsDeleted);
+
+            if (doc == null)
+            {
+                return NotFound("Inventory document not found.");
+            }
+
+            if (doc.DocStatus == DocStatus.Validated)
+            {
+                return BadRequest("Cannot update a validated inventory.");
+            }
+
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    doc.Description = dto.description;
+                    doc.UpdateDate = DateTime.UtcNow;
+                    if (dto.updatedbyid > 0)
+                    {
+                        doc.UpdatedById = dto.updatedbyid;
+                    }
+
+                    // Remove existing DocumentMerchandises and related QuantityMovements & ListOfLengths
+                    foreach (var existingDm in doc.DocumentMerchandises.ToList())
+                    {
+                        if (existingDm.QuantityMovements != null)
+                        {
+                            if (existingDm.QuantityMovements.ListOfLengths != null && existingDm.QuantityMovements.ListOfLengths.Any())
+                            {
+                                _context.ListOfLengths.RemoveRange(existingDm.QuantityMovements.ListOfLengths);
+                            }
+                            _context.QuantityMovements.Remove(existingDm.QuantityMovements);
+                        }
+                        _context.DocumentMerchandises.Remove(existingDm);
+                    }
+                    await _context.SaveChangesAsync();
+
+                    // Re-insert new merchandise records
+                    foreach (var mDto in dto.merchandises)
+                    {
+                        var cleanDtoRef = mDto.packagereference?.Replace("\"", "").Trim();
+                        var merchandise = await _context.Merchandises
+                            .FirstOrDefaultAsync(m => m.ArticleId == mDto.article!.id && 
+                                (m.PackageReference == cleanDtoRef || 
+                                 m.PackageReference == "\"" + cleanDtoRef + "\""));
+
+                        if (merchandise == null)
+                        {
+                            merchandise = new Merchandise
+                            {
+                                ArticleId = mDto.article!.id!.Value,
+                                PackageReference = mDto.packagereference ?? "Standard",
+                                Description = mDto.description,
+                                UpdatedById = doc.UpdatedById ?? 1,
+                                IsDeleted = false
+                            };
+                            _context.Merchandises.Add(merchandise);
+                            await _context.SaveChangesAsync();
+                        }
+
+                        var docMerch = new DocumentMerchandise
+                        {
+                            DocumentId = doc.Id,
+                            MerchandiseId = merchandise.Id,
+                            Quantity = mDto.quantity,
+                            CreationDate = DateTime.UtcNow,
+                            UpdateDate = DateTime.UtcNow
+                        };
+
+                        if (mDto.lisoflengths != null && mDto.lisoflengths.Any())
+                        {
+                            var newQtyMovement = new QuantityMovement
+                            {
+                                Quantity = mDto.quantity,
+                                LengthIds = string.Join(",", mDto.lisoflengths.Select(l => l.length?.id)),
+                                CreationDate = DateTime.UtcNow,
+                                UpdateDate = DateTime.UtcNow,
+                                DocumentMerchandise = docMerch
+                            };
+
+                            foreach (var lengthDto in mDto.lisoflengths)
+                            {
+                                var newLength = new ListOfLength
+                                {
+                                    NumberOfPieces = lengthDto.nbpieces!,
+                                    Quantity = lengthDto.quantity,
+                                    CustomLengthCm = lengthDto.customLength,
+                                    TotalWidthCm = lengthDto.totalWidth,
+                                    QuantityMovements = newQtyMovement
+                                };
+
+                                if (lengthDto.length != null && lengthDto.length.id > 0)
+                                {
+                                    newLength.AppVarLength = await _context.AppVariables.FindAsync(lengthDto.length.id);
+                                    if (newLength.AppVarLength != null)
+                                    {
+                                        _context.Entry(newLength.AppVarLength).State = EntityState.Unchanged;
+                                    }
+                                }
+
+                                if (newLength.NumberOfPieces > 0)
+                                {
+                                    newQtyMovement.ListOfLengths.Add(newLength);
+                                }
+                            }
+
+                            docMerch.QuantityMovements = newQtyMovement;
+                        }
+
+                        _context.DocumentMerchandises.Add(docMerch);
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return Ok(new { docRef = doc.DocNumber, message = "Inventory updated successfully" });
                 }
                 catch (Exception ex)
                 {

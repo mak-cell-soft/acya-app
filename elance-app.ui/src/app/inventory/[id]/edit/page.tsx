@@ -1,0 +1,913 @@
+'use client';
+
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { DashboardLayout } from '@/components/shared/dashboard-layout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent
+} from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { useAuthStore } from '@/store/use-auth-store';
+import { useSites } from '@/hooks/use-enterprise';
+import { useArticles } from '@/hooks/use-articles';
+import { stockService } from '@/services/components/stock.service';
+import { merchandiseService } from '@/services/components/merchandise.service';
+import { useInventory, useUpdateInventory } from '@/hooks/use-inventory';
+import { Article } from '@/types/article';
+import { ListOfLength, Document, DocStatus } from '@/types/document';
+import { toast } from 'sonner';
+import { WoodLengthsDialog } from '@/components/sales/wood-lengths-dialog';
+import { WoodBdLengthsDialog } from '@/components/sales/wood-bd-lengths-dialog';
+import { GlassSurfaceDialog } from '@/components/shared/glass-surface-dialog';
+import { 
+  ArrowLeft, 
+  Trash2, 
+  TreeDeciduous, 
+  Layers, 
+  PlusCircle, 
+  Check, 
+  Boxes,
+  Loader2,
+  RefreshCw,
+  LayoutGrid,
+  Lock
+} from 'lucide-react';
+
+interface StockItem {
+  packageReference: string;
+  stockQuantity: number;
+}
+
+interface InventoryRow {
+  id: string;
+  selectedArticle: Article | null;
+  articleSearchInput: string;
+  filteredArticles: Article[];
+  packagereference: string;
+  quantity: number;
+  listLengths: ListOfLength[];
+  stock_quantity: number;
+  availableStocks: StockItem[]; 
+  isWoodArticle: boolean;
+  isGlassArticle?: boolean;
+  glassInputs?: { nbpieces: number; height: number; width: number };
+  isArticleDropdownOpen: boolean;
+  isGeneratingRef: boolean;
+  isCustomPackage: boolean;
+}
+
+function EditInventoryContent() {
+  const router = useRouter();
+  const params = useParams();
+  const inventoryId = Number(params?.id);
+  const { user } = useAuthStore();
+  
+  const formatQuantity = (qty: number, unit?: string | null) => {
+    const isM3 = unit?.toUpperCase().includes('M3') || unit?.toUpperCase().includes('MÈTRE 3') || unit?.toUpperCase().includes('METRE 3');
+    if (isM3) {
+      return qty.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    } else {
+      return qty.toLocaleString('fr-FR', { maximumFractionDigits: 3 });
+    }
+  };
+
+  const { data: allSites = [] } = useSites();
+  const { data: allArticles = [] } = useArticles();
+  const { data: inventory, isLoading: isLoadingInventory } = useInventory(inventoryId);
+  const { mutate: updateInventory, isPending: isSaving } = useUpdateInventory();
+
+  const [siteId, setSiteId] = useState<string>('');
+  const [notes, setNotes] = useState<string>('');
+  const [rows, setRows] = useState<InventoryRow[]>([]);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  
+  // Dialog state
+  const [lengthsDialogOpen, setLengthsDialogOpen] = useState<boolean>(false);
+  const [activeRowId, setActiveRowId] = useState<string | null>(null);
+  const [lengthsArticle, setLengthsArticle] = useState<Article | null>(null);
+  const [lengthsCurrent, setLengthsCurrent] = useState<ListOfLength[]>([]);
+
+  const [glassDialogOpen, setGlassDialogOpen] = useState<boolean>(false);
+  const [glassArticle, setGlassArticle] = useState<Article | null>(null);
+  const [glassCurrentValue, setGlassCurrentValue] = useState<{ nbpieces: number; height: number; width: number }>({ nbpieces: 0, height: 0, width: 0 });
+
+  // Guard against editing validated inventory
+  useEffect(() => {
+    if (inventory && inventory.docstatus === DocStatus.Validated) {
+      toast.error("Cet inventaire est déjà validé et ne peut plus être modifié.");
+      router.replace('/inventory');
+    }
+  }, [inventory, router]);
+
+  // Pre-populate data when inventory and articles are loaded
+  useEffect(() => {
+    if (!inventory || allArticles.length === 0 || isInitialized) return;
+
+    if (inventory.sales_site?.id) {
+      setSiteId(inventory.sales_site.id.toString());
+    }
+    setNotes(inventory.description || '');
+
+    const initRows = async () => {
+      let siteStocks: any[] = [];
+      try {
+        if (inventory.sales_site?.id) {
+          siteStocks = await stockService.getBySite({ id: inventory.sales_site.id });
+        }
+      } catch (err) {
+        console.error('Failed to load initial site stock:', err);
+      }
+
+      const preRows: InventoryRow[] = (inventory.merchandises || []).map((m: any) => {
+        const art = allArticles.find(a => a.id === m.article?.id) || m.article;
+        const isWood = art?.categoryid === 1;
+        const isGlass = art?.unit?.toUpperCase() === 'M2';
+        
+        const matches = siteStocks.filter((s: any) => s.articleId === art?.id);
+        const availableStocks: StockItem[] = matches.map((s: any) => ({
+          packageReference: s.packageReference || 'Standard',
+          stockQuantity: s.stockQuantity || 0
+        }));
+
+        const cleanRef = m.packagereference?.replace(/"/g, '').trim() || '';
+        const matchedStock = availableStocks.find(s => s.packageReference === cleanRef);
+        const stock_qty = matchedStock ? matchedStock.stockQuantity : (m.stock_quantity || 0);
+        const isCustom = !availableStocks.some(s => s.packageReference === cleanRef);
+
+        return {
+          id: Math.random().toString(36).substring(2, 9),
+          selectedArticle: art || null,
+          articleSearchInput: art?.reference || '',
+          filteredArticles: allArticles,
+          packagereference: cleanRef || (isWood ? '' : 'Standard'),
+          quantity: m.quantity || 0,
+          listLengths: (m.lisoflengths || []).map((l: any) => ({
+            id: l.id,
+            nbpieces: l.nbpieces,
+            quantity: l.quantity,
+            customLength: l.customLength,
+            totalWidth: l.totalWidth,
+            length: l.length
+          })),
+          stock_quantity: stock_qty,
+          availableStocks,
+          isWoodArticle: isWood,
+          isGlassArticle: isGlass,
+          glassInputs: { nbpieces: 1, height: m.quantity || 0, width: 1 },
+          isArticleDropdownOpen: false,
+          isGeneratingRef: false,
+          isCustomPackage: isCustom
+        };
+      });
+
+      setRows(preRows);
+      setIsInitialized(true);
+    };
+
+    initRows();
+  }, [inventory, allArticles, isInitialized]);
+
+  const addRow = () => {
+    const newRow: InventoryRow = {
+      id: Math.random().toString(36).substring(2, 9),
+      selectedArticle: null,
+      articleSearchInput: '',
+      filteredArticles: allArticles,
+      packagereference: '',
+      quantity: 0,
+      listLengths: [],
+      stock_quantity: 0,
+      availableStocks: [],
+      isWoodArticle: false,
+      isGlassArticle: false,
+      isArticleDropdownOpen: false,
+      isGeneratingRef: false,
+      isCustomPackage: false,
+    };
+    setRows([...rows, newRow]);
+  };
+
+  const removeRow = (id: string) => {
+    setRows(rows.filter((r) => r.id !== id));
+  };
+
+  const handleArticleSelect = async (rowId: string, article: Article) => {
+    const isWood = article.categoryid === 1;
+
+    let availableStocks: StockItem[] = [];
+    try {
+      if (siteId) {
+        const siteStocks = await stockService.getBySite({ id: parseInt(siteId) });
+        const matches = siteStocks.filter((s: any) => s.articleId === article.id);
+        availableStocks = matches.map((s: any) => ({
+          packageReference: s.packageReference || 'Standard',
+          stockQuantity: s.stockQuantity || 0
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to load stock:', err);
+    }
+
+    setRows(prevRows =>
+      prevRows.map(row => {
+        if (row.id === rowId) {
+          const isCustomPackage = availableStocks.length === 0;
+          return {
+            ...row,
+            selectedArticle: article,
+            articleSearchInput: article.reference,
+            isWoodArticle: isWood,
+            isGlassArticle: article.unit?.toUpperCase() === 'M2',
+            glassInputs: { nbpieces: 1, height: 0, width: 0 },
+            availableStocks,
+            packagereference: isCustomPackage ? (isWood ? '' : 'Standard') : availableStocks[0]?.packageReference,
+            stock_quantity: isCustomPackage ? 0 : availableStocks[0]?.stockQuantity || 0,
+            quantity: 0,
+            listLengths: [],
+            isArticleDropdownOpen: false,
+            isCustomPackage,
+            isGeneratingRef: false
+          };
+        }
+        return row;
+      })
+    );
+  };
+
+  const handleArticleSearchChange = (rowId: string, searchInput: string) => {
+    const q = searchInput.toLowerCase();
+    const filtered = allArticles.filter(art => 
+      art.reference.toLowerCase().includes(q) || 
+      (art.description || '').toLowerCase().includes(q)
+    );
+
+    setRows(prevRows =>
+      prevRows.map(row => {
+        if (row.id === rowId) {
+          return {
+            ...row,
+            articleSearchInput: searchInput,
+            filteredArticles: filtered,
+            isArticleDropdownOpen: true
+          };
+        }
+        return row;
+      })
+    );
+  };
+
+  const handlePackageChange = (rowId: string, val: string | null) => {
+    setRows(prevRows =>
+      prevRows.map(row => {
+        if (row.id === rowId) {
+          return { ...row, packagereference: val || '' };
+        }
+        return row;
+      })
+    );
+  };
+
+  const handleStockQuantityChange = (rowId: string, qty: number) => {
+    setRows(prevRows =>
+      prevRows.map(row => {
+        if (row.id === rowId) {
+          return { ...row, stock_quantity: qty };
+        }
+        return row;
+      })
+    );
+  };
+
+  const handleSetCustomPackage = (rowId: string, isCustom: boolean) => {
+    setRows(prevRows =>
+      prevRows.map(row => {
+        if (row.id === rowId) {
+          return { ...row, isCustomPackage: isCustom };
+        }
+        return row;
+      })
+    );
+  };
+
+  const handleGenerateReference = async (rowId: string) => {
+    const row = rows.find(r => r.id === rowId);
+    if (!row || !row.selectedArticle) return;
+
+    setRows(prevRows => prevRows.map(r => r.id === rowId ? { ...r, isGeneratingRef: true } : r));
+    try {
+      const ref = await merchandiseService.getMerchandiseReferenceAsString(row.selectedArticle.id);
+      let finalRef = ref;
+      
+      const parts = ref.split('-');
+      if (parts.length >= 3) {
+        const baseWithDate = parts.slice(0, -1).join('-');
+        let maxIncrement = parseInt(parts[parts.length - 1], 10) || 1;
+        
+        rows.forEach(r => {
+          if (r.packagereference) {
+            const cleanPackRef = r.packagereference.replace(/"/g, '').trim();
+            const rParts = cleanPackRef.split('-');
+            if (rParts.length >= 3) {
+              const rBaseWithDate = rParts.slice(0, -1).join('-');
+              if (rBaseWithDate === baseWithDate) {
+                const rInc = parseInt(rParts[rParts.length - 1], 10);
+                if (!isNaN(rInc) && rInc >= maxIncrement) {
+                  maxIncrement = rInc + 1;
+                }
+              }
+            }
+          }
+        });
+        finalRef = `${baseWithDate}-${maxIncrement}`;
+      }
+
+      setRows(prevRows => prevRows.map(r => r.id === rowId ? { ...r, packagereference: finalRef, stock_quantity: 0 } : r));
+      toast.success(`Référence générée : ${finalRef}`);
+    } catch (err) {
+      console.error('Error generating reference:', err);
+      toast.error('Échec de génération du code colis.');
+    } finally {
+      setRows(prevRows => prevRows.map(r => r.id === rowId ? { ...r, isGeneratingRef: false } : r));
+    }
+  };
+
+  const handleQuantityChange = (rowId: string, val: number) => {
+    const cleanVal = val < 0 ? 0 : val;
+    setRows(prevRows =>
+      prevRows.map(row => {
+        if (row.id === rowId) {
+          return { ...row, quantity: cleanVal };
+        }
+        return row;
+      })
+    );
+  };
+
+  const openLengthsModal = (row: InventoryRow) => {
+    if (!row.selectedArticle) return;
+    setActiveRowId(row.id);
+    setLengthsArticle(row.selectedArticle);
+    setLengthsCurrent(row.listLengths);
+    setLengthsDialogOpen(true);
+  };
+
+  const handleSaveLengths = (lengths: ListOfLength[], totalVolume: number) => {
+    if (!activeRowId) return;
+    setRows(prevRows =>
+      prevRows.map(row => {
+        if (row.id === activeRowId) {
+          return {
+            ...row,
+            listLengths: lengths,
+            quantity: totalVolume
+          };
+        }
+        return row;
+      })
+    );
+    setActiveRowId(null);
+  };
+
+  const openGlassModal = (row: InventoryRow) => {
+    if (!row.selectedArticle) return;
+    setActiveRowId(row.id);
+    setGlassArticle(row.selectedArticle);
+    setGlassCurrentValue(row.glassInputs || { nbpieces: 1, height: row.quantity || 0, width: 1 });
+    setGlassDialogOpen(true);
+  };
+
+  const handleSaveGlassSurface = (nbpieces: number, height: number, width: number, totalSurface: number) => {
+    if (!activeRowId) return;
+    setRows(prevRows =>
+      prevRows.map(row => {
+        if (row.id === activeRowId) {
+          return {
+            ...row,
+            glassInputs: { nbpieces, height, width },
+            quantity: totalSurface
+          };
+        }
+        return row;
+      })
+    );
+    setActiveRowId(null);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!siteId || isNaN(parseInt(siteId))) {
+      toast.error("Dépôt invalide.");
+      return;
+    }
+
+    if (rows.length === 0) {
+      toast.error('Veuillez ajouter au moins un article à inventorier.');
+      return;
+    }
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row.selectedArticle) {
+        toast.error(`Sélectionnez un article pour la ligne ${i + 1}.`);
+        return;
+      }
+      if (row.quantity === undefined || row.quantity === null || (row.quantity as unknown) === '') {
+        toast.error(`Veuillez saisir une quantité pour la ligne ${i + 1}.`);
+        return;
+      }
+      if (row.quantity < 0) {
+        toast.error(`La quantité doit être positive pour la ligne ${i + 1}.`);
+        return;
+      }
+      const isBb = row.selectedArticle?.subcategory?.reference?.toUpperCase() === 'BB';
+      if (row.isWoodArticle && !isBb && !row.packagereference) {
+        toast.error(`La référence colis est requise pour l'article Bois à la ligne ${i + 1}.`);
+        return;
+      }
+    }
+
+    const doc: Partial<Document> = {
+      description: notes.trim(),
+      updatedbyid: parseInt(user?.id?.toString() || '1'),
+      updatedate: new Date(),
+      merchandises: rows.map(r => ({
+        article: r.selectedArticle,
+        quantity: r.quantity,
+        packagereference: r.isWoodArticle ? r.packagereference : 'Standard',
+        lisoflengths: r.listLengths,
+        unit_price_ht: 0,
+        cost_ht: 0,
+        discount_percentage: 0,
+        cost_discount_value: 0,
+        cost_net_ht: 0,
+        tva_value: 0,
+        cost_ttc: 0,
+      })) as any,
+    };
+
+    updateInventory(
+      { id: inventoryId, doc },
+      {
+        onSuccess: () => {
+          router.push('/inventory');
+        }
+      }
+    );
+  };
+
+  const totals = useMemo(() => {
+    return rows.reduce(
+      (acc, r) => {
+        acc.items += 1;
+        acc.volume += r.isWoodArticle ? r.quantity : 0;
+        acc.units += !r.isWoodArticle ? r.quantity : 0;
+        return acc;
+      },
+      { items: 0, volume: 0, units: 0 }
+    );
+  }, [rows]);
+
+  if (isLoadingInventory || !isInitialized) {
+    return (
+      <div className="py-24 flex flex-col justify-center items-center space-y-4">
+        <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+        <span className="text-[10px] uppercase tracking-widest text-stone-400 font-bold">
+          Chargement de l'inventaire...
+        </span>
+      </div>
+    );
+  }
+
+  const currentSite = allSites.find(s => s.id.toString() === siteId) || inventory?.sales_site;
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex items-center justify-between border-b border-stone-200/40 dark:border-stone-800/40 pb-4">
+        <div className="flex items-center space-x-3">
+          <Button
+            variant="ghost"
+            onClick={() => router.push('/inventory')}
+            className="h-10 w-10 p-0 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50">
+                Modifier l'Inventaire
+              </h1>
+              <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 font-mono text-xs">
+                {inventory?.docnumber || `INV-${inventoryId}`}
+              </Badge>
+            </div>
+            <p className="text-stone-500 dark:text-stone-400 text-xs mt-0.5 leading-normal">
+              Modifier les quantités physiques constatées avant validation.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <form 
+        onSubmit={handleSubmit} 
+        onKeyDown={(e) => {
+          // Prevent accidental form submission on Enter inside text inputs
+          if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
+            e.preventDefault();
+          }
+        }}
+        className="grid grid-cols-1 lg:grid-cols-12 gap-8"
+      >
+        <div className="lg:col-span-4 space-y-6">
+          <Card className="bg-stone-50/50 dark:bg-stone-900/40 border-stone-200/60 dark:border-stone-800/60 rounded-2xl shadow-sm">
+            <CardHeader className="border-b border-stone-200/40 dark:border-stone-800/40 pb-4">
+              <CardTitle className="text-sm font-bold text-stone-900 dark:text-stone-50 uppercase tracking-wider flex items-center gap-2">
+                <Layers className="h-4 w-4 text-amber-500" /> Paramètres d'Inventaire
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 space-y-5">
+              
+              {/* Site is locked when editing */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="site" className="text-[10px] uppercase font-bold text-stone-500">Dépôt</Label>
+                  <span className="text-[10px] text-stone-400 flex items-center gap-1">
+                    <Lock className="h-3 w-3" /> Fixé
+                  </span>
+                </div>
+                <div className="h-11 px-3 py-2.5 bg-stone-100/80 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-800 rounded-lg text-xs font-semibold text-stone-700 dark:text-stone-200 flex items-center justify-between">
+                  <span>
+                    {currentSite ? `${currentSite.gov || ''} - ${currentSite.address || ''}` : 'Dépôt assigné'}
+                  </span>
+                  <Badge variant="outline" className="text-[9px] font-mono text-stone-500">
+                    Non modifiable
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="notes" className="text-[10px] uppercase font-bold text-stone-500">Notes d'inventaire</Label>
+                <textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Responsable comptage, zone spécifique..."
+                  className="flex min-h-[80px] w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs focus:ring-corp-blue-500/20 focus:bg-white focus-visible:outline-none focus-visible:border-corp-blue-500 focus-visible:ring-2 dark:border-slate-800 dark:bg-slate-950 dark:placeholder:text-slate-400 dark:focus-visible:ring-slate-300"
+                />
+              </div>
+
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 rounded-2xl shadow-md p-5 space-y-4">
+            <h3 className="text-xs font-bold text-stone-800 dark:text-stone-200 uppercase tracking-widest">
+              Résumé
+            </h3>
+            
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between py-1 border-b border-stone-100 dark:border-stone-800 text-stone-500">
+                <span>Lignes d'inventaire:</span>
+                <span className="font-bold text-stone-900 dark:text-stone-50">{totals.items}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-stone-100 dark:border-stone-800 text-stone-500">
+                <span>Volume Total Bois:</span>
+                <span className="font-bold text-amber-600 font-mono">{totals.volume.toFixed(3)} M³</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-stone-100 dark:border-stone-800 text-stone-500">
+                <span>Autres Articles:</span>
+                <span className="font-bold text-stone-900 dark:text-stone-50 font-mono">{totals.units.toLocaleString()} PCS</span>
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isSaving}
+              className="w-full h-11 bg-corp-blue-600 hover:bg-corp-blue-700 text-white rounded-lg font-semibold text-xs uppercase tracking-wider gap-2 shadow-sm transition-all"
+            >
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              Enregistrer les modifications
+            </Button>
+          </Card>
+        </div>
+
+        <div className="lg:col-span-8 space-y-6">
+          <Card className="bg-white dark:bg-stone-900/40 border-stone-200/60 dark:border-stone-800/60 rounded-2xl shadow-sm overflow-visible">
+            <CardHeader className="border-b border-stone-200/40 dark:border-stone-800/40 pb-4 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-sm font-bold text-stone-900 dark:text-stone-50 uppercase tracking-wider flex items-center gap-2">
+                  <Boxes className="h-4 w-4 text-amber-500" /> Saisie des Comptages
+                </CardTitle>
+                <CardDescription className="text-[10px] text-stone-400 lowercase mt-0.5">
+                  modifiez les articles et quantités comptées.
+                </CardDescription>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addRow}
+                className="h-9 px-3 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg gap-1.5 font-semibold text-[10px] uppercase tracking-wider transition-all"
+              >
+                <PlusCircle className="h-3.5 w-3.5" />
+                Ajouter Ligne
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0">
+              {rows.length === 0 ? (
+                <div className="p-12 text-center text-stone-400 italic text-xs">
+                  Aucune ligne. Cliquez sur "Ajouter Ligne".
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-stone-50/50 dark:bg-stone-900/40 border-b border-stone-200/50 dark:border-stone-800 text-[10px] uppercase tracking-wider font-bold text-stone-500">
+                        <th className="p-4 w-[280px]">Article</th>
+                        <th className="p-4 w-36">Colis</th>
+                        <th className="p-4 w-28 text-right">Stock (Info)</th>
+                        <th className="p-4 w-32 text-right">Compté</th>
+                        <th className="p-4 w-28 text-center">Spéc.</th>
+                        <th className="p-4 w-12"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((row) => (
+                        <tr key={row.id} className="border-b border-stone-100 dark:border-stone-850 hover:bg-stone-50/20">
+                          
+                          <td className="p-3.5">
+                            <Popover 
+                              open={row.isArticleDropdownOpen} 
+                              onOpenChange={(open) => {
+                                setRows(prev => prev.map(r => r.id === row.id ? { ...r, isArticleDropdownOpen: open } : r));
+                              }}
+                            >
+                              <PopoverTrigger asChild>
+                                <div className="relative">
+                                  <Input
+                                    value={row.articleSearchInput}
+                                    onChange={(e) => handleArticleSearchChange(row.id, e.target.value)}
+                                    placeholder="Rechercher article..."
+                                    className="h-11 bg-slate-50/50 border-slate-200 rounded-lg text-xs font-semibold focus:bg-white focus:border-corp-blue-500 focus:ring-corp-blue-500/20"
+                                    onFocus={() => {
+                                      setRows(prev => prev.map(r => r.id === row.id ? { ...r, isArticleDropdownOpen: true } : r));
+                                    }}
+                                  />
+                                </div>
+                              </PopoverTrigger>
+                              <PopoverContent 
+                                align="start"
+                                className="w-[var(--radix-popover-trigger-width)] max-h-52 overflow-y-auto bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-850 shadow-2xl rounded-xl z-50 p-1.5 divide-y divide-stone-100 dark:divide-stone-900"
+                                onOpenAutoFocus={(e) => e.preventDefault()}
+                              >
+                                {row.filteredArticles.slice(0, 10).map((art) => (
+                                  <button
+                                    key={art.id}
+                                    type="button"
+                                    onClick={() => handleArticleSelect(row.id, art)}
+                                    className="w-full text-left p-2.5 hover:bg-stone-50 dark:hover:bg-stone-900 transition-colors flex items-center justify-between rounded-lg"
+                                  >
+                                    <div className="flex-1 min-w-0">
+                                      <span className="text-xs font-mono font-bold text-stone-900 dark:text-stone-100 block truncate">{art.reference}</span>
+                                      <span className="text-[10px] text-stone-400 block truncate max-w-[220px]">{art.description}</span>
+                                    </div>
+                                    <Badge className="text-[9px] uppercase font-bold bg-stone-100 text-stone-650 dark:bg-stone-900 ml-2 shrink-0">
+                                      {art.unit}
+                                    </Badge>
+                                  </button>
+                                ))}
+                                {row.filteredArticles.length === 0 && (
+                                  <div className="p-4 text-center text-[10px] text-stone-400 italic">
+                                    Aucun article
+                                  </div>
+                                )}
+                              </PopoverContent>
+                            </Popover>
+                          </td>
+
+                          <td className="p-3.5">
+                            {row.availableStocks.length > 0 && !row.isCustomPackage ? (
+                              <div className="flex gap-1 items-center">
+                                <Select
+                                  value={row.packagereference}
+                                  onValueChange={(val) => {
+                                    if (val === '__NEW__') {
+                                      handleSetCustomPackage(row.id, true);
+                                      handlePackageChange(row.id, row.isWoodArticle ? '' : 'Standard');
+                                      handleStockQuantityChange(row.id, 0);
+                                    } else {
+                                      const stock = row.availableStocks.find(s => s.packageReference === val);
+                                      handlePackageChange(row.id, val as string);
+                                      handleStockQuantityChange(row.id, stock?.stockQuantity || 0);
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="w-[180px] h-11 text-xs bg-slate-50/50 border-slate-200 rounded-lg focus:bg-white focus:border-corp-blue-500 focus:ring-corp-blue-500/20">
+                                    <SelectValue placeholder="Choisir un colis" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {row.availableStocks.map(s => (
+                                      <SelectItem key={s.packageReference} value={s.packageReference}>
+                                        {s.packageReference} (En stock: {s.stockQuantity})
+                                      </SelectItem>
+                                    ))}
+                                    <SelectItem value="__NEW__" className="text-blue-600 font-semibold">
+                                      <div className="flex items-center gap-2">
+                                        <PlusCircle className="h-3 w-3" /> Nouveau colis...
+                                      </div>
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            ) : (
+                              <div className="flex gap-1 items-center">
+                                <Input
+                                  value={row.packagereference}
+                                  onChange={(e) => handlePackageChange(row.id, e.target.value)}
+                                  placeholder={row.isWoodArticle ? "N° Colis *" : "Standard"}
+                                  disabled={!row.selectedArticle}
+                                  className={`bg-slate-50/50 font-mono text-xs rounded-lg h-11 w-[120px] focus:bg-white focus:border-corp-blue-500 focus:ring-corp-blue-500/20 ${
+                                    row.isWoodArticle && !row.packagereference 
+                                      ? 'border-amber-300 focus:border-amber-500 bg-amber-50/20' 
+                                      : 'border-slate-200'
+                                  }`}
+                                />
+                                <Button 
+                                  variant="outline" 
+                                  size="icon" 
+                                  className="h-9 w-9 shrink-0"
+                                  onClick={() => handleGenerateReference(row.id)}
+                                  disabled={row.isGeneratingRef || !row.selectedArticle}
+                                  title="Générer code colis"
+                                >
+                                  <RefreshCw className={`h-4 w-4 ${row.isGeneratingRef ? 'animate-spin' : ''}`} />
+                                </Button>
+                                {row.availableStocks.length > 0 && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-9 w-9 shrink-0 text-stone-500"
+                                    onClick={() => {
+                                      handleSetCustomPackage(row.id, false);
+                                      const defaultStock = row.availableStocks[0];
+                                      handlePackageChange(row.id, defaultStock.packageReference);
+                                      handleStockQuantityChange(row.id, defaultStock.stockQuantity);
+                                    }}
+                                    title="Retour à la liste"
+                                  >
+                                    <ArrowLeft className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            )}
+                          </td>
+
+                          <td className="p-3.5 text-right font-mono font-bold text-stone-600 dark:text-stone-300 opacity-60">
+                            {row.selectedArticle ? (
+                              <span>
+                                {formatQuantity(row.stock_quantity, row.selectedArticle.unit)}
+                                <span className="text-[10px] text-stone-400 font-sans font-medium ml-1">{row.selectedArticle.unit}</span>
+                              </span>
+                            ) : (
+                              <span className="text-stone-300">—</span>
+                            )}
+                          </td>
+
+                          <td className="p-3.5">
+                            <Input
+                              type="number"
+                              step="0.001"
+                              value={row.quantity || ''}
+                              onChange={(e) => handleQuantityChange(row.id, parseFloat(e.target.value) || 0)}
+                              placeholder="0.00"
+                              disabled={!row.selectedArticle || row.isWoodArticle || row.isGlassArticle}
+                              className="h-11 bg-slate-50/50 text-right font-mono font-bold text-xs border-slate-200 rounded-lg focus:bg-white focus:border-corp-blue-500 focus:ring-corp-blue-500/20"
+                            />
+                          </td>
+
+                          <td className="p-3.5 text-center">
+                            {row.isWoodArticle && (
+                              <div className="flex flex-col items-center">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => openLengthsModal(row)}
+                                  className={`h-11 px-3 rounded-lg gap-1.5 font-bold text-[10px] uppercase tracking-wider border-slate-200 shadow-sm transition-all ${
+                                    row.listLengths.length > 0 
+                                      ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' 
+                                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                                  }`}
+                                >
+                                  <TreeDeciduous className="h-3.5 w-3.5" />
+                                  {row.listLengths.length > 0 ? `${row.listLengths.length} Long.` : 'Saisir'}
+                                </Button>
+                                {row.listLengths.length > 0 && (
+                                  <span className="text-[9px] text-amber-600 font-bold mt-1">
+                                    {row.listLengths.reduce((acc, l) => acc + (l.nbpieces || 0), 0)} pcs
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            {row.isGlassArticle && (
+                              <div className="flex flex-col items-center">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => openGlassModal(row)}
+                                  className={`h-11 px-3 rounded-lg gap-1.5 font-bold text-[10px] uppercase tracking-wider border-slate-200 shadow-sm transition-all ${
+                                    row.quantity > 0 
+                                      ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' 
+                                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                                  }`}
+                                >
+                                  <LayoutGrid className="h-3.5 w-3.5" />
+                                  {row.quantity > 0 ? 'Détails' : 'Saisir'}
+                                </Button>
+                              </div>
+                            )}
+                          </td>
+
+                          <td className="p-3.5 text-right">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              onClick={() => removeRow(row.id)}
+                              className="h-8 w-8 p-0 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </form>
+
+      {/* Wood Lengths Dialog */}
+      {lengthsArticle && lengthsDialogOpen && (
+        lengthsArticle.subcategory?.reference?.toUpperCase() === 'BD' ? (
+          <WoodBdLengthsDialog
+            isOpen={lengthsDialogOpen}
+            onClose={() => setLengthsDialogOpen(false)}
+            onSave={handleSaveLengths}
+            article={lengthsArticle}
+            currentLengths={lengthsCurrent}
+            isPurchase={true}
+          />
+        ) : (
+          <WoodLengthsDialog
+            isOpen={lengthsDialogOpen}
+            onClose={() => setLengthsDialogOpen(false)}
+            onSave={handleSaveLengths}
+            article={lengthsArticle}
+            currentLengths={lengthsCurrent}
+            availableStockDetails={[]}
+            isPurchase={true}
+          />
+        )
+      )}
+
+      {/* Glass Surface Dialog */}
+      {glassArticle && glassDialogOpen && (
+        <GlassSurfaceDialog
+          isOpen={glassDialogOpen}
+          onClose={() => setGlassDialogOpen(false)}
+          onSave={handleSaveGlassSurface}
+          article={glassArticle}
+          currentValue={glassCurrentValue}
+        />
+      )}
+    </div>
+  );
+}
+
+export default function EditInventoryPage() {
+  return (
+    <DashboardLayout>
+      <Suspense fallback={
+        <div className="py-24 flex flex-col justify-center items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+          <span className="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Chargement...</span>
+        </div>
+      }>
+        <EditInventoryContent />
+      </Suspense>
+    </DashboardLayout>
+  );
+}

@@ -20,7 +20,8 @@ import {
   AlertTriangle,
   Loader2,
   SearchCode,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Pencil
 } from 'lucide-react';
 import { useAuthStore } from '@/store/use-auth-store';
 import { format } from 'date-fns';
@@ -178,6 +179,7 @@ function InventoryListContent() {
                   <th className="p-4 pl-6">Référence</th>
                   <th className="p-4">Site de Vente</th>
                   <th className="p-4">Date</th>
+                  <th className="p-4">Créé par</th>
                   <th className="p-4 text-center">Statut</th>
                   <th className="p-4 pr-6 text-right">Actions</th>
                 </tr>
@@ -205,6 +207,11 @@ function InventoryListContent() {
                         <td className="p-4 text-stone-500">
                           {format(new Date(inv.creationdate), 'dd/MM/yyyy HH:mm', { locale: fr })}
                         </td>
+                        <td className="p-4 text-stone-600 dark:text-stone-300">
+                          {inv.appuser?.person 
+                            ? `${inv.appuser.person.firstname || ''} ${inv.appuser.person.lastname || ''}`.trim() 
+                            : (inv.appuser?.login || '—')}
+                        </td>
                         <td className="p-4 text-center">
                           {isValidated ? (
                             <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 text-[9px] uppercase font-bold tracking-wider">
@@ -218,6 +225,20 @@ function InventoryListContent() {
                         </td>
                         <td className="p-4 pr-6 text-right">
                           <div className="flex items-center justify-end gap-2">
+                            {!isValidated && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  router.push(`/inventory/${inv.id}/edit`);
+                                }}
+                                className="h-7 text-[10px] uppercase font-bold tracking-wider border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800 gap-1"
+                              >
+                                <Pencil className="h-3 w-3 text-slate-500" />
+                                Éditer
+                              </Button>
+                            )}
                             {!isValidated && isManager && (
                               <Button
                                 size="sm"
@@ -246,7 +267,7 @@ function InventoryListContent() {
                       <AnimatePresence>
                         {isExpanded && (
                           <tr>
-                            <td colSpan={5} className="p-0 border-b border-stone-200/50 dark:border-stone-800">
+                            <td colSpan={6} className="p-0 border-b border-stone-200/50 dark:border-stone-800">
                               <motion.div
                                 initial={{ height: 0, opacity: 0 }}
                                 animate={{ height: 'auto', opacity: 1 }}
