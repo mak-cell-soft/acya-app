@@ -93,14 +93,14 @@ namespace ms.admin.api.acya.infrastructure.Services
                         INSERT INTO tbl_enterprise (
                             id, name, enterpriseguid, description, email, phone, mobileone, mobiletwo, 
                             matriculefiscal, devise, nameresponsable, surnameresponsable, positionresponsable, 
-                            siegeaddress, commercialregister, capital, issalingwood, ismanagingconstructions, 
+                            siegeaddress, commercialregister, capital, issalingwood, ismanagingconstructions, ismanagingproduction, 
                             logourl, faviconurl, primarycolor, secondarycolor, customdomain, language, currency, 
                             auditretentionmonths, documentnumberingconfig
                         )
                         VALUES (
                             1, @name, @guid, @description, @email, @phone, @mobileone, @mobiletwo, 
                             @matriculefiscal, @devise, @nameresponsable, @surnameresponsable, @positionresponsable, 
-                            @siegeaddress, @commercialregister, @capital, @issalingwood, @ismanagingconstructions, 
+                            @siegeaddress, @commercialregister, @capital, @issalingwood, @ismanagingconstructions, @ismanagingproduction, 
                             @logourl, @faviconurl, @primarycolor, @secondarycolor, @customdomain, @language, @currency, 
                             12, @documentnumberingconfig
                         )
@@ -123,6 +123,7 @@ namespace ms.admin.api.acya.infrastructure.Services
                         cmd.Parameters.AddWithValue("capital", (object?)details.Capital ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("issalingwood", enterprise.IsSalingWood);
                         cmd.Parameters.AddWithValue("ismanagingconstructions", enterprise.IsManagingConstructions);
+                        cmd.Parameters.AddWithValue("ismanagingproduction", enterprise.IsManagingProduction);
                         cmd.Parameters.AddWithValue("logourl", (object?)enterprise.LogoUrl ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("faviconurl", (object?)enterprise.FaviconUrl ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("primarycolor", (object?)enterprise.PrimaryColor ?? DBNull.Value);

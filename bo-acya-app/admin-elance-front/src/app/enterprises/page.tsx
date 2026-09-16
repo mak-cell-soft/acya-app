@@ -39,6 +39,7 @@ interface Enterprise {
   currency?: string | null;
   isSalingWood?: boolean;
   isManagingConstructions?: boolean;
+  isManagingProduction?: boolean;
   planPrice?: number;
   rneDocumentUrl?: string | null;
 }
@@ -89,6 +90,7 @@ export default function EnterprisesPage() {
   const [notes, setNotes] = useState("");
   const [isSalingWood, setIsSalingWood] = useState(false);
   const [isManagingConstructions, setIsManagingConstructions] = useState(false);
+  const [isManagingProduction, setIsManagingProduction] = useState(false);
   
   // Branding Customization (Optional)
   const [logoUrl, setLogoUrl] = useState("");
@@ -133,6 +135,7 @@ export default function EnterprisesPage() {
     setNotes("");
     setIsSalingWood(false);
     setIsManagingConstructions(false);
+    setIsManagingProduction(false);
     setLogoUrl("");
     setFaviconUrl("");
     setPrimaryColor("#3B82F6");
@@ -224,6 +227,7 @@ export default function EnterprisesPage() {
       currency,
       isSalingWood,
       isManagingConstructions,
+      isManagingProduction,
       adminUsername,
       adminEmail: adminEmail || email || `admin@${slug || "tenant"}.acya.site`,
       adminPassword: adminPassword || "AdminPass123!",
@@ -311,6 +315,7 @@ export default function EnterprisesPage() {
     setCurrency(ent.currency || "TND");
     setIsSalingWood(ent.isSalingWood || false);
     setIsManagingConstructions(ent.isManagingConstructions || false);
+    setIsManagingProduction(ent.isManagingProduction || false);
     
     let parsedRne = ent.rneDocumentUrl || "";
     if (!parsedRne && ent.notes) {
@@ -425,6 +430,7 @@ export default function EnterprisesPage() {
         const payload = JSON.parse(ent.notes);
         setIsSalingWood(payload.issalingwood ?? payload.isSalingWood ?? false);
         setIsManagingConstructions(payload.ismanagingconstructions ?? payload.isManagingConstructions ?? false);
+        setIsManagingProduction(payload.ismanagingproduction ?? payload.isManagingProduction ?? false);
         
         setDescription(payload.description || "");
         setMobileOne(payload.mobileOne || "");
@@ -456,6 +462,7 @@ export default function EnterprisesPage() {
       } catch (e) {
         setIsSalingWood(false);
         setIsManagingConstructions(false);
+        setIsManagingProduction(false);
         setDescription("");
         setMobileOne("");
         setMobileTwo("");
@@ -476,6 +483,7 @@ export default function EnterprisesPage() {
     } else {
       setIsSalingWood(false);
       setIsManagingConstructions(false);
+      setIsManagingProduction(false);
       setDescription("");
       setMobileOne("");
       setMobileTwo("");
@@ -621,6 +629,7 @@ export default function EnterprisesPage() {
             setNotes("");
             setIsSalingWood(false);
             setIsManagingConstructions(false);
+            setIsManagingProduction(false);
             setLogoUrl("");
             setFaviconUrl("");
             setPrimaryColor("#3B82F6");
@@ -1263,6 +1272,20 @@ export default function EnterprisesPage() {
                     />
                     <label htmlFor="isManagingConstructions" className="text-sm font-medium text-slate-200 cursor-pointer select-none">
                       Activer la gestion des chantiers (Module Chantiers)
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-3 py-1">
+                    <input
+                      type="checkbox"
+                      id="isManagingProduction"
+                      className="w-4 h-4 bg-slate-950 border border-slate-800 rounded text-primary focus:ring-primary focus:ring-opacity-50 cursor-pointer"
+                      checked={isManagingProduction}
+                      onChange={(e) => setIsManagingProduction(e.target.checked)}
+                      disabled={provisioningLoading}
+                    />
+                    <label htmlFor="isManagingProduction" className="text-sm font-medium text-slate-200 cursor-pointer select-none">
+                      Activer la gestion de la production (Module Production)
                     </label>
                   </div>
 

@@ -78,6 +78,9 @@ namespace ms.admin.api.acya.infrastructure.Configurations
             builder.Property(x => x.IsManagingConstructions)
                 .HasDefaultValue(false);
 
+            builder.Property(x => x.IsManagingProduction)
+                .HasDefaultValue(false);
+
             builder.Property(x => x.PlanPrice)
                 .HasColumnName("PlanPrice")
                 .HasColumnType("numeric(18,2)")

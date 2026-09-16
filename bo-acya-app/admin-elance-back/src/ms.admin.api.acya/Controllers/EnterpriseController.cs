@@ -32,6 +32,7 @@ namespace ms.admin.api.acya.Controllers
         public string? Currency { get; set; }
         public bool IsSalingWood { get; set; }
         public bool IsManagingConstructions { get; set; }
+        public bool IsManagingProduction { get; set; }
 
         public string? Description { get; set; }
         public string? MobileOne { get; set; }
@@ -73,6 +74,7 @@ namespace ms.admin.api.acya.Controllers
         public string? Currency { get; set; }
         public bool IsSalingWood { get; set; }
         public bool IsManagingConstructions { get; set; }
+        public bool IsManagingProduction { get; set; }
         public decimal? PlanPrice { get; set; }
         public string? RneDocumentUrl { get; set; }
     }
@@ -207,6 +209,7 @@ namespace ms.admin.api.acya.Controllers
                 existing.Currency = request.Currency ?? "TND";
                 existing.IsSalingWood = request.IsSalingWood;
                 existing.IsManagingConstructions = request.IsManagingConstructions;
+                existing.IsManagingProduction = request.IsManagingProduction;
                 existing.PlanPrice = request.PlanPrice ?? (request.Plan switch
                 {
                     TenantPlan.Starter => 90.00m,
@@ -252,6 +255,7 @@ namespace ms.admin.api.acya.Controllers
                     Currency = request.Currency ?? "TND",
                     IsSalingWood = request.IsSalingWood,
                     IsManagingConstructions = request.IsManagingConstructions,
+                    IsManagingProduction = request.IsManagingProduction,
                     PlanPrice = planPrice
                 };
 
@@ -400,6 +404,7 @@ namespace ms.admin.api.acya.Controllers
             enterprise.Currency = request.Currency ?? "TND";
             enterprise.IsSalingWood = request.IsSalingWood;
             enterprise.IsManagingConstructions = request.IsManagingConstructions;
+            enterprise.IsManagingProduction = request.IsManagingProduction;
             enterprise.PlanPrice = request.PlanPrice ?? (request.Plan switch
             {
                 TenantPlan.Starter => 90.00m,
@@ -433,7 +438,8 @@ namespace ms.admin.api.acya.Controllers
                                 language = @language,
                                 currency = @currency,
                                 issalingwood = @issalingwood,
-                                ismanagingconstructions = @ismanagingconstructions
+                                ismanagingconstructions = @ismanagingconstructions,
+                                ismanagingproduction = @ismanagingproduction
                             WHERE id = 1 OR enterpriseguid IS NOT NULL;";
 
                         using (var cmd = new Npgsql.NpgsqlCommand(updateTenantSql, conn))
@@ -450,6 +456,7 @@ namespace ms.admin.api.acya.Controllers
                             cmd.Parameters.AddWithValue("currency", (object?)enterprise.Currency ?? "TND");
                             cmd.Parameters.AddWithValue("issalingwood", enterprise.IsSalingWood);
                             cmd.Parameters.AddWithValue("ismanagingconstructions", enterprise.IsManagingConstructions);
+                            cmd.Parameters.AddWithValue("ismanagingproduction", enterprise.IsManagingProduction);
 
                             await cmd.ExecuteNonQueryAsync();
                         }
