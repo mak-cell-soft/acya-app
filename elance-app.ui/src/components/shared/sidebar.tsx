@@ -24,6 +24,7 @@ import {
   Landmark,
   HelpCircle,
   ArrowLeftRight,
+  Factory,
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -89,6 +90,7 @@ const saleNavGroups: NavGroup[] = [
   {
     title: 'Opérations',
     items: [
+      { name: 'Production', href: '/production', icon: Factory, module: 'production' },
       { name: 'Chantiers', href: '/chantiers', icon: ClipboardList, module: 'chantier' },
       { name: 'Véhicules', href: '/vehicles', icon: Car, module: 'vehicles' },
       { name: 'Équipe & RH', href: '/team', icon: UserCheck, module: 'hr' },
@@ -131,6 +133,7 @@ const depotNavGroups: NavGroup[] = [
   {
     title: 'Opérations',
     items: [
+      { name: 'Production', href: '/production', icon: Factory, module: 'production' },
       { name: 'Chantiers', href: '/chantiers', icon: ClipboardList, module: 'chantier' },
       { name: 'Véhicules', href: '/vehicles', icon: Car, module: 'vehicles' },
       { name: 'Équipe & RH', href: '/team', icon: UserCheck, module: 'hr' },
@@ -187,11 +190,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   // Choose the correct nav group set based on site type
   const baseNavGroups = isDepot ? depotNavGroups : saleNavGroups;
 
-  // Filter out Chantiers if the enterprise doesn't manage constructions
+  // Filter out Chantiers / Production if the enterprise doesn't manage them
   const showChantiers = user?.isManagingConstructions === true;
+  const showProduction = user?.isManagingProduction === true;
   const navGroups = baseNavGroups.map(group => ({
     ...group,
-    items: group.items.filter(item => item.name !== 'Chantiers' || showChantiers)
+    items: group.items.filter(item => 
+      (item.name !== 'Chantiers' || showChantiers) &&
+      (item.name !== 'Production' || showProduction)
+    )
   }));
 
   const handleLogout = () => {

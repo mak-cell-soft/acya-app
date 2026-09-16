@@ -34,6 +34,8 @@ export interface Enterprise {
   issalingwood: boolean;
   ismanagingconstructions?: boolean;
   isManagingConstructions?: boolean;
+  ismanagingproduction?: boolean;
+  isManagingProduction?: boolean;
   auditRetentionMonths: number;
   documentNumberingConfig?: string; // Stored as JSON string in DB
   sites?: Site[];

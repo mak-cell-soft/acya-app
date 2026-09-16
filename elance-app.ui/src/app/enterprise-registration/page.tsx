@@ -56,6 +56,7 @@ const registrationSchema = z.object({
   selectedRole: z.string().min(1, "Le rôle est requis"),
   isWoodSelling: z.boolean().optional(),
   isManagingConstructions: z.boolean().optional(),
+  isManagingProduction: z.boolean().optional(),
 
   // Sites
   sites: z.array(siteSchema).min(1, "Au moins un site de vente est requis"),
@@ -134,6 +135,7 @@ export default function EnterpriseRegistrationPage() {
       sites: [],
       isWoodSelling: false,
       isManagingConstructions: false,
+      isManagingProduction: false,
       selectedRole: "20",
       devise: "TND",
       rneDocumentUrl: ""
@@ -219,6 +221,7 @@ export default function EnterpriseRegistrationPage() {
         positionResponsable: data.positionResponsable,
         issalingwood: data.isWoodSelling ?? false,
         ismanagingconstructions: data.isManagingConstructions ?? false,
+        ismanagingproduction: data.isManagingProduction ?? false,
         sites: data.sites.map(s => ({
           gov: s.gov,
           address: s.address,
@@ -707,6 +710,20 @@ export default function EnterpriseRegistrationPage() {
                             <span className="text-slate-700 font-bold group-hover:text-corp-blue-700 transition-colors flex items-center gap-2">
                               <Building2 size={16} className="text-corp-blue-600" /> 
                               Activer la gestion des chantiers (Module Chantiers)
+                            </span>
+                          </label>
+                        </div>
+
+                        <div className="pt-2 pb-1">
+                          <label className="flex items-center space-x-3 cursor-pointer group">
+                            <Checkbox 
+                              checked={watch("isManagingProduction") || false}
+                              onCheckedChange={(checked) => setValue("isManagingProduction", checked === true)}
+                              className="h-5 w-5 border-corp-blue-300 data-[state=checked]:bg-corp-blue-600 rounded" 
+                            />
+                            <span className="text-slate-700 font-bold group-hover:text-corp-blue-700 transition-colors flex items-center gap-2">
+                              <Factory size={16} className="text-corp-blue-600" /> 
+                              Activer la gestion de production (Module Production & Transformation)
                             </span>
                           </label>
                         </div>

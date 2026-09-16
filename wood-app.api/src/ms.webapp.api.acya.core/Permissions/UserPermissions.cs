@@ -39,5 +39,6 @@ namespace ms.webapp.api.acya.core.Permissions
         public ModulePermissions HR { get; set; } = new ModulePermissions();
         public ModulePermissions Configuration { get; set; } = new ModulePermissions();
         public ModulePermissions Chantier { get; set; } = new ModulePermissions();
+        public ModulePermissions Production { get; set; } = new ModulePermissions();
     }
 }

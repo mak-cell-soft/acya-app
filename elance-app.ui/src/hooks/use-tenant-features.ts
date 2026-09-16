@@ -33,6 +33,16 @@ export function useTenantFeatures() {
     return Boolean(user?.isManagingConstructions);
   }, [enterprise, user?.isManagingConstructions]);
 
+  const isManagingProduction = useMemo(() => {
+    if (enterprise?.ismanagingproduction !== undefined) {
+      return Boolean(enterprise.ismanagingproduction);
+    }
+    if (enterprise?.isManagingProduction !== undefined) {
+      return Boolean(enterprise.isManagingProduction);
+    }
+    return Boolean(user?.isManagingProduction);
+  }, [enterprise, user?.isManagingProduction]);
+
   /**
    * Checks whether a specific feature flag is active for the current tenant.
    */
@@ -43,13 +53,15 @@ export function useTenantFeatures() {
       switch (featureKey) {
         case 'isManagingConstructions':
           return isManagingConstructions;
+        case 'isManagingProduction':
+          return isManagingProduction;
         case 'isSalingWood':
           return Boolean(enterprise?.issalingwood ?? true);
         default:
           return true;
       }
     },
-    [isManagingConstructions, enterprise?.issalingwood]
+    [isManagingConstructions, isManagingProduction, enterprise?.issalingwood]
   );
 
   /**
@@ -73,6 +85,7 @@ export function useTenantFeatures() {
 
   return {
     isManagingConstructions,
+    isManagingProduction,
     isFeatureActive,
     isModuleAvailable,
     availableModules,

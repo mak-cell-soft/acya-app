@@ -15,6 +15,7 @@ interface User {
   // Sourced from the JWT claim 'DefaultSiteIsForSale' added in TokenService.
   defaultSiteIsForSale?: boolean;
   isManagingConstructions?: boolean;
+  isManagingProduction?: boolean;
   permissions?: AppPermissionsMap | null;
 }
 

@@ -19,6 +19,7 @@ export interface AppPermissionsMap {
   vehicles: ModulePermissions;
   configuration: ModulePermissions;
   chantier: ModulePermissions;
+  production: ModulePermissions;
 }
 
 export interface UserPermissionsDto {
@@ -34,7 +35,7 @@ export interface PermissionModuleDefinition {
   label: string;
   icon: string;
   // NOTE: Optional tenant feature key required to activate this module in UI/Permissions dialog
-  requiredFeature?: 'isManagingConstructions' | 'isSalingWood';
+  requiredFeature?: 'isManagingConstructions' | 'isSalingWood' | 'isManagingProduction';
 }
 
 export const PERMISSION_MODULES: readonly PermissionModuleDefinition[] = [
@@ -51,4 +52,5 @@ export const PERMISSION_MODULES: readonly PermissionModuleDefinition[] = [
   { key: 'hr',            label: 'RH & Équipe',       icon: 'Briefcase' },
   { key: 'configuration', label: 'Configuration',     icon: 'Settings' },
   { key: 'chantier',      label: 'Chantiers',         icon: 'HardHat', requiredFeature: 'isManagingConstructions' },
+  { key: 'production',    label: 'Production',        icon: 'Factory', requiredFeature: 'isManagingProduction' },
 ] as const;

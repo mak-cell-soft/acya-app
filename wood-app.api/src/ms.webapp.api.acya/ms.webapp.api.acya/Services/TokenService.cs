@@ -121,10 +121,12 @@ namespace ms.webapp.api.acya.api.Services
       if (user.Enterprise != null)
       {
         claims.Add(new Claim("IsManagingConstructions", (user.Enterprise.IsManagingConstructions ?? false).ToString().ToLower()));
+        claims.Add(new Claim("IsManagingProduction", (user.Enterprise.IsManagingProduction ?? false).ToString().ToLower()));
       }
       else
       {
         claims.Add(new Claim("IsManagingConstructions", "false"));
+        claims.Add(new Claim("IsManagingProduction", "false"));
       }
 
       // Add permissions claim

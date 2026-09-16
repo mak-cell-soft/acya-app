@@ -6,6 +6,7 @@ using ms.webapp.api.acya.infrastructure.Core;
 using ms.webapp.api.acya.infrastructure.Configurations.Audit;
 using ms.webapp.api.acya.core.Entities.Notifications;
 using ms.webapp.api.acya.core.Entities.Chantier;
+using ms.webapp.api.acya.core.Entities.Production;
 
 namespace ms.webapp.api.acya.infrastructure
 {
@@ -102,6 +103,11 @@ namespace ms.webapp.api.acya.infrastructure
     public virtual DbSet<ChantierAlert> ChantierAlerts { get; set; }
     public virtual DbSet<ChantierVehicleAssignment> ChantierVehicleAssignments { get; set; }
     public virtual DbSet<ChantierCaisseTransaction> ChantierCaisseTransactions { get; set; }
+
+    // Production Module (Additive Domain Aggregate)
+    public virtual DbSet<ProductionOrder> ProductionOrders { get; set; }
+    public virtual DbSet<ProductionStep> ProductionSteps { get; set; }
+    public virtual DbSet<ProductionInput> ProductionInputs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

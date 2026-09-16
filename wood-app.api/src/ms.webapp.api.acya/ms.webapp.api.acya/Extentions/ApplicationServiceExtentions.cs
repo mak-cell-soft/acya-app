@@ -59,6 +59,9 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<EmployeeAdvanceRepository>();
       services.AddScoped<IChantierRepository, ChantierRepository>();
       services.AddScoped<ChantierRepository>();
+      services.AddScoped<IProductionRepository, ProductionRepository>();
+      services.AddScoped<ProductionRepository>();
+      services.AddScoped<IProductionService, ProductionService>();
       services.AddScoped<IStockService, StockService>();
       services.AddScoped<IAccountService, AccountService>();
       services.AddScoped<IPaymentRepository, PaymentRepository>();

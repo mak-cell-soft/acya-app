@@ -21,7 +21,8 @@ import {
   Loader2,
   SearchCode,
   FileSpreadsheet,
-  Pencil
+  Pencil,
+  Printer
 } from 'lucide-react';
 import { useAuthStore } from '@/store/use-auth-store';
 import { format } from 'date-fns';
@@ -38,6 +39,7 @@ import { DocStatus, Document } from '@/types/document';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
+import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 import { cn } from '@/lib/utils';
 
 function InventoryListContent() {
@@ -59,6 +61,13 @@ function InventoryListContent() {
   const [inventoryToValidate, setInventoryToValidate] = useState<Document | null>(null);
   const [isUncountedDialogOpen, setIsUncountedDialogOpen] = useState(false);
   const [isExcelDialogOpen, setIsExcelDialogOpen] = useState(false);
+  const [selectedInventoryForPrint, setSelectedInventoryForPrint] = useState<Document | null>(null);
+  const [isPrintOpen, setIsPrintOpen] = useState(false);
+
+  const handlePrintInventory = (inv: Document) => {
+    setSelectedInventoryForPrint(inv);
+    setIsPrintOpen(true);
+  };
 
   const expandedInventory = inventories.find(inv => inv.id === expandedId);
   const { data: siteStock = [], isLoading: isLoadingStock } = useStockBySite(
@@ -225,6 +234,19 @@ function InventoryListContent() {
                         </td>
                         <td className="p-4 pr-6 text-right">
                           <div className="flex items-center justify-end gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePrintInventory(inv);
+                              }}
+                              className="h-7 text-[10px] uppercase font-bold tracking-wider border-corp-blue-200 text-corp-blue-700 hover:bg-corp-blue-50 dark:border-corp-blue-800 dark:text-corp-blue-300 dark:hover:bg-corp-blue-900/30 gap-1 shadow-2xs"
+                              title="Imprimer / Exporter la fiche d'inventaire en PDF"
+                            >
+                              <Printer className="h-3 w-3 text-corp-blue-600" />
+                              Imprimer
+                            </Button>
                             {!isValidated && (
                               <Button
                                 size="sm"
@@ -276,7 +298,21 @@ function InventoryListContent() {
                                 className="overflow-hidden bg-stone-50/80 dark:bg-stone-900/30"
                               >
                                 <div className="p-6 space-y-4">
-                                  <h4 className="text-[10px] uppercase tracking-widest font-bold text-stone-400">Détails des articles</h4>
+                                  <div className="flex items-center justify-between">
+                                    <h4 className="text-[10px] uppercase tracking-widest font-bold text-stone-400">Détails des articles</h4>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlePrintInventory(inv);
+                                      }}
+                                      className="h-7 text-[10px] uppercase font-bold tracking-wider border-corp-blue-200 text-corp-blue-700 hover:bg-corp-blue-50 dark:border-corp-blue-800 dark:text-corp-blue-300 dark:hover:bg-corp-blue-900/30 gap-1.5"
+                                    >
+                                      <Printer className="h-3.5 w-3.5 text-corp-blue-600" />
+                                      Imprimer / PDF
+                                    </Button>
+                                  </div>
                                   <table className="w-full text-xs text-left">
                                     <thead>
                                       <tr className="text-[10px] uppercase tracking-wider text-stone-500 border-b border-stone-200 dark:border-stone-800 pb-2">
@@ -383,6 +419,17 @@ function InventoryListContent() {
       <ExcelInventoryDialog 
         isOpen={isExcelDialogOpen}
         onClose={() => setIsExcelDialogOpen(false)}
+      />
+
+      {/* Print Registered Physical Inventory PDF Dialog */}
+      <PrintVariantDialog
+        isOpen={isPrintOpen}
+        onClose={() => {
+          setIsPrintOpen(false);
+          setSelectedInventoryForPrint(null);
+        }}
+        docType="inventory"
+        document={selectedInventoryForPrint}
       />
     </div>
   );

@@ -27,6 +27,7 @@ import {
   Briefcase,
   Settings,
   HardHat,
+  Factory,
   LucideIcon
 } from 'lucide-react';
 import { AppUser } from '@/types/team';
@@ -58,6 +59,7 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   Briefcase,
   Settings,
   HardHat,
+  Factory,
 };
 
 const DEFAULT_PERMISSIONS: AppPermissionsMap = {
@@ -72,6 +74,7 @@ const DEFAULT_PERMISSIONS: AppPermissionsMap = {
   accounting: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
   vehicles: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
   chantier: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
+  production: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
   hr: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
   configuration: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
 };

@@ -44,7 +44,7 @@ namespace ms.webapp.api.acya.Controllers
                 }
             }
 
-            // NOTE: Defense-in-depth: if enterprise does not manage constructions, zero out Chantier permissions
+            // NOTE: Defense-in-depth: if enterprise does not manage constructions or production, zero out module permissions
             var enterprise = await _context.Enterprises.AsNoTracking().FirstOrDefaultAsync();
             if (enterprise != null && enterprise.IsManagingConstructions != true && dto.Permissions?.Chantier != null)
             {
@@ -52,6 +52,13 @@ namespace ms.webapp.api.acya.Controllers
                 dto.Permissions.Chantier.CanAdd = false;
                 dto.Permissions.Chantier.CanUpdate = false;
                 dto.Permissions.Chantier.CanDelete = false;
+            }
+            if (enterprise != null && enterprise.IsManagingProduction != true && dto.Permissions?.Production != null)
+            {
+                dto.Permissions.Production.CanRead = false;
+                dto.Permissions.Production.CanAdd = false;
+                dto.Permissions.Production.CanUpdate = false;
+                dto.Permissions.Production.CanDelete = false;
             }
             
             return Ok(dto);
@@ -66,7 +73,7 @@ namespace ms.webapp.api.acya.Controllers
                 return BadRequest("User ID mismatch");
             }
 
-            // NOTE: Defense-in-depth: if enterprise does not manage constructions, force Chantier permissions to false
+            // NOTE: Defense-in-depth: if enterprise does not manage constructions or production, force permissions to false
             var enterprise = await _context.Enterprises.AsNoTracking().FirstOrDefaultAsync();
             if (enterprise != null && enterprise.IsManagingConstructions != true && updateDto.Permissions?.Chantier != null)
             {
@@ -74,6 +81,13 @@ namespace ms.webapp.api.acya.Controllers
                 updateDto.Permissions.Chantier.CanAdd = false;
                 updateDto.Permissions.Chantier.CanUpdate = false;
                 updateDto.Permissions.Chantier.CanDelete = false;
+            }
+            if (enterprise != null && enterprise.IsManagingProduction != true && updateDto.Permissions?.Production != null)
+            {
+                updateDto.Permissions.Production.CanRead = false;
+                updateDto.Permissions.Production.CanAdd = false;
+                updateDto.Permissions.Production.CanUpdate = false;
+                updateDto.Permissions.Production.CanDelete = false;
             }
 
             var permissionsJson = JsonSerializer.Serialize(updateDto.Permissions, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });

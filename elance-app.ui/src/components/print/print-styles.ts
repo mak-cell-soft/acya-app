@@ -3338,6 +3338,451 @@ export function getArticlesInventoryPrintStyles(): string {
   `;
 }
 
+/**
+ * Return CSS print styles specifically designed for individual registered physical inventory documents.
+ * Formats A4 Portrait with corporate header, status badges, counted merchandise table, and formal signature blocks.
+ */
+export function getRegisteredInventoryPrintStyles(): string {
+  return `
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;600;700;800&display=swap');
 
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
+    @page {
+      size: A4 portrait;
+      margin: 8mm;
+    }
 
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #fff !important;
+      color: #0f172a;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      font-size: 7.5pt;
+      line-height: 1.3;
+    }
+
+    .print-container.registered-inventory-print-page {
+      width: 100%;
+      max-width: 194mm;
+      margin: 0 auto;
+      background: #fff !important;
+      font-size: 7.5pt;
+      color: #0f172a;
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    }
+
+    .font-bold { font-weight: 700 !important; }
+    .font-semibold { font-weight: 600 !important; }
+    .font-medium { font-weight: 500 !important; }
+    .text-right { text-align: right !important; }
+    .text-center { text-align: center !important; }
+    .text-left { text-align: left !important; }
+    .text-corp-blue { color: #1e3a8a !important; }
+    .text-muted { color: #64748b !important; }
+
+    /* 1. Header Section */
+    .header {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 6mm;
+      margin-bottom: 4mm;
+      padding-bottom: 3mm;
+      border-bottom: 1.5px solid #0f172a;
+    }
+
+    .company-info {
+      text-align: left;
+    }
+
+    .company-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 11pt;
+      font-weight: 800;
+      margin: 0 0 1.5mm 0;
+      color: #0f172a;
+      letter-spacing: -0.2px;
+    }
+
+    .company-details {
+      font-size: 6.8pt;
+      margin: 0.8mm 0;
+      line-height: 1.25;
+      color: #334155;
+    }
+
+    .center-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2.5mm;
+    }
+
+    .logo {
+      padding: 2.5mm 8mm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1.8px solid #0f172a;
+      background: #f8fafc;
+    }
+
+    .logo-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 15pt;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #0f172a;
+      margin: 0;
+    }
+
+    .location {
+      text-align: center;
+      font-weight: bold;
+      font-size: 7.5pt;
+      border: 1px solid #0f172a;
+      padding: 1.2mm 4mm;
+      background: #f1f5f9;
+    }
+
+    .arabic-info {
+      text-align: right;
+      direction: rtl;
+    }
+
+    .arabic-text {
+      font-size: 8.5pt;
+      font-weight: bold;
+      margin: 0.8mm 0;
+      color: #0f172a;
+    }
+
+    .arabic-details {
+      font-size: 6.8pt;
+      margin: 0.8mm 0;
+      color: #334155;
+    }
+
+    .original-label {
+      font-size: 8pt;
+      font-weight: bold;
+      border: 1.5px solid #0f172a;
+      padding: 1mm 3mm;
+      display: inline-block;
+      text-align: center;
+      background: #f8fafc;
+      margin-top: 1mm;
+    }
+
+    /* 2. Document Title Banner */
+    .inventory-doc-header {
+      margin-bottom: 3.5mm;
+    }
+
+    .inventory-title-box {
+      border: 1.5px solid #0f172a;
+      background: #f8fafc;
+      padding: 2.5mm 4mm;
+      border-radius: 4px;
+    }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px dashed #cbd5e1;
+      padding-bottom: 2mm;
+      margin-bottom: 2mm;
+    }
+
+    .inventory-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 11pt;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    .status-badge-validated {
+      font-size: 7pt;
+      font-weight: 800;
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+      padding: 1mm 3mm;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-badge-pending {
+      font-size: 7pt;
+      font-weight: 800;
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fcd34d;
+      padding: 1mm 3mm;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .inventory-metadata-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2mm 4mm;
+      font-size: 7pt;
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5mm;
+    }
+
+    .meta-item.full-width {
+      grid-column: 1 / -1;
+      flex-direction: row;
+      gap: 2mm;
+      padding-top: 1mm;
+      border-top: 1px dotted #e2e8f0;
+    }
+
+    .meta-label {
+      font-size: 6.5pt;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+    }
+
+    .meta-value {
+      color: #0f172a;
+    }
+
+    /* 3. KPI Grid */
+    .inventory-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(28mm, 1fr));
+      gap: 2mm;
+      margin-bottom: 3.5mm;
+      page-break-inside: avoid;
+    }
+
+    .kpi-card {
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      border-radius: 3px;
+      padding: 1.5mm 2.5mm;
+      text-align: center;
+    }
+
+    .kpi-card.highlight {
+      border-color: #1e3a8a;
+      background: #eff6ff;
+    }
+
+    .kpi-label {
+      font-size: 6pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #64748b;
+      letter-spacing: 0.3px;
+    }
+
+    .kpi-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 9.5pt;
+      font-weight: 800;
+      color: #0f172a;
+      margin-top: 0.5mm;
+    }
+
+    .kpi-unit {
+      font-size: 6.5pt;
+      font-weight: 600;
+      color: #1e3a8a;
+    }
+
+    /* 4. Table */
+    .inventory-table-container {
+      margin-bottom: 4mm;
+    }
+
+    .inventory-items-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #cbd5e1;
+      font-size: 7pt;
+    }
+
+    .inventory-items-table thead tr {
+      background: #0f172a;
+      color: #ffffff;
+    }
+
+    .inventory-items-table th {
+      padding: 2mm 2.5mm;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 6.5pt;
+      letter-spacing: 0.4px;
+      border: 1px solid #1e293b;
+      text-align: left;
+    }
+
+    .inventory-items-table th.text-right {
+      text-align: right;
+    }
+
+    .inventory-items-table td {
+      padding: 1.8mm 2.5mm;
+      border: 1px solid #cbd5e1;
+      vertical-align: middle;
+    }
+
+    .inventory-items-table tr.row-alt {
+      background: #f8fafc;
+    }
+
+    .inventory-items-table tr {
+      page-break-inside: avoid;
+    }
+
+    .th-index { width: 5%; text-align: center; }
+    .td-index { text-align: center; color: #64748b; font-size: 6.5pt; }
+
+    .th-ref { width: 15%; }
+    .th-designation { width: 33%; }
+    .th-package { width: 14%; }
+    .th-details { width: 15%; }
+    .th-unit { width: 6%; text-align: center; }
+    .td-unit { text-align: center; }
+    .th-quantity { width: 12%; }
+
+    .art-desc {
+      color: #0f172a;
+      line-height: 1.2;
+    }
+
+    .wood-spec-pill {
+      display: inline-block;
+      font-size: 6pt;
+      font-weight: 600;
+      color: #b45309;
+      background: #fef3c7;
+      padding: 0.3mm 1.5mm;
+      border-radius: 2px;
+      margin-top: 0.8mm;
+    }
+
+    .lengths-badge-list {
+      font-size: 6pt;
+      color: #1e3a8a;
+      font-weight: 500;
+    }
+
+    .td-empty {
+      text-align: center;
+      padding: 6mm;
+      font-style: italic;
+      color: #64748b;
+    }
+
+    /* 5. Signatures */
+    .inventory-signatures-section {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4mm;
+      margin-top: 5mm;
+      page-break-inside: avoid;
+    }
+
+    .signature-box {
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      padding: 2.5mm;
+      background: #f8fafc;
+      text-align: center;
+      min-height: 24mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .sign-title {
+      font-size: 7pt;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #0f172a;
+    }
+
+    .sign-sub {
+      font-size: 6pt;
+      color: #64748b;
+      margin-top: 0.5mm;
+    }
+
+    .sign-space {
+      flex: 1;
+      min-height: 10mm;
+    }
+
+    .sign-mention {
+      font-size: 5.8pt;
+      color: #94a3b8;
+      border-top: 1px dashed #cbd5e1;
+      padding-top: 1mm;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    /* 6. Footer */
+    .inventory-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid #cbd5e1;
+      padding-top: 2mm;
+      margin-top: 4mm;
+      font-size: 6pt;
+      color: #64748b;
+      page-break-inside: avoid;
+    }
+
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 8mm;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        background: #fff !important;
+      }
+      .print-container.registered-inventory-print-page {
+        padding: 0 !important;
+        max-width: none !important;
+        width: 100% !important;
+      }
+      thead {
+        display: table-header-group !important;
+      }
+      tr {
+        page-break-inside: avoid !important;
+      }
+    }
+  `;
+}

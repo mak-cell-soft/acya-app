@@ -25,6 +25,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? capital { get; set; }
     public bool? issalingwood { get; set; }
     public bool? ismanagingconstructions { get; set; }
+    public bool? ismanagingproduction { get; set; }
     public int auditRetentionMonths { get; set; }
     public string? documentNumberingConfig { get; set; }
     public string? logoUrl { get; set; }
@@ -68,6 +69,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       capital = entity.Capital;
       issalingwood = entity.IsSalingWood;
       ismanagingconstructions = entity.IsManagingConstructions;
+      ismanagingproduction = entity.IsManagingProduction;
       auditRetentionMonths = entity.AuditRetentionMonths;
       documentNumberingConfig = entity.DocumentNumberingConfig;
       logoUrl = entity.LogoUrl;

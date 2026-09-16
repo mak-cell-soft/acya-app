@@ -18,6 +18,7 @@ interface CustomJwtPayload {
   //      an extra API call — value is 'true' or 'false' as a string claim.
   DefaultSiteIsForSale?: string;
   IsManagingConstructions?: string;
+  IsManagingProduction?: string;
   exp?: number;
 }
 
@@ -49,7 +50,8 @@ export const authService = {
         // Parse string claim ('true'/'false') into a boolean — default to true
         // when claim is absent so existing sale-site users are unaffected.
         defaultSiteIsForSale: decodedToken.DefaultSiteIsForSale !== 'false',
-        isManagingConstructions: decodedToken.IsManagingConstructions === 'true'
+        isManagingConstructions: decodedToken.IsManagingConstructions === 'true',
+        isManagingProduction: decodedToken.IsManagingProduction === 'true'
       };
     } catch (error) {
       console.error('Error decoding token:', error);
