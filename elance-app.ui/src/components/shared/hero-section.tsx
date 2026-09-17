@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import {
   ArrowRight, CheckCircle2, TrendingUp, Package, ShoppingCart,
-  Users, BarChart3, Truck, FileText, Zap, Shield, Globe, ChevronLeft, ChevronRight
+  Users, BarChart3, Truck, FileText, Zap, Shield, Globe, ChevronLeft, ChevronRight, Factory
 } from 'lucide-react';
 
 // ─── Animated bar chart ───────────────────────────────────────────────────────
@@ -163,7 +163,7 @@ export function HeroSection() {
 
             {/* Subtitle - Increased contrast & readability */}
             <p className="text-base sm:text-lg leading-relaxed max-w-xl font-normal text-slate-200/90 [text-wrap:pretty]">
-              ACYA centralise vos ventes, achats, stocks, chantiers, équipe et flotte logistique, avec une connexion directe vers votre expert-comptable sur Qwerty.
+              ACYA centralise vos ventes, achats, stocks, production, chantiers, équipe et flotte logistique, avec une connexion directe vers votre expert-comptable sur Qwerty.
             </p>
 
             {/* Trust checks (Feature points) */}
@@ -290,11 +290,11 @@ export function HeroSection() {
                   {[
                     { icon: BarChart3, label: 'Tableau de bord', active: true },
                     { icon: ShoppingCart, label: 'Ventes', active: false },
-                    { icon: Package, label: 'Achats', active: false },
+                    { icon: Package, label: 'Achats & Stock', active: false },
+                    { icon: Factory, label: 'Production', active: false },
                     { icon: Truck, label: 'Livraisons', active: false },
                     { icon: FileText, label: 'Facturation', active: false },
-                    { icon: Users, label: 'Équipe', active: false },
-                    { icon: TrendingUp, label: 'Analytics', active: false },
+                    { icon: Users, label: 'Équipe & RH', active: false },
                   ].map(({ icon: Icon, label, active }) => (
                     <div
                       key={label}
@@ -370,9 +370,9 @@ export function HeroSection() {
                     >
                       <span className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-300">Activité récente</span>
                       <ActivityItem icon={ShoppingCart} text="Commande #2847 — SICOUB" badge="Vente" badgeColor="bg-blue-500/20 text-blue-300 border border-blue-400/20" delay={0.8} />
-                      <ActivityItem icon={Truck} text="BL #1204 — 24 m³ Chêne" badge="Achat" badgeColor="bg-amber-500/20 text-amber-300 border border-amber-400/20" delay={0.88} />
-                      <ActivityItem icon={FileText} text="Facture #5582 — 3 200 TND" badge="Finance" badgeColor="bg-emerald-500/20 text-emerald-300 border border-emerald-400/20" delay={0.96} />
-                      <ActivityItem icon={Zap} text="Alerte stock — Seuil Min" badge="Stock" badgeColor="bg-rose-500/20 text-rose-300 border border-rose-400/20" delay={1.04} />
+                      <ActivityItem icon={Factory} text="OF #084 — 35 Portes massives" badge="Production" badgeColor="bg-cyan-500/20 text-cyan-300 border border-cyan-400/20" delay={0.88} />
+                      <ActivityItem icon={Truck} text="BL #1204 — 24 m³ Chêne" badge="Achat" badgeColor="bg-amber-500/20 text-amber-300 border border-amber-400/20" delay={0.96} />
+                      <ActivityItem icon={FileText} text="Facture #5582 — 3 200 TND" badge="Finance" badgeColor="bg-emerald-500/20 text-emerald-300 border border-emerald-400/20" delay={1.04} />
                     </motion.div>
                   </div>
                 </div>

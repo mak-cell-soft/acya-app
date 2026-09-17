@@ -10,9 +10,26 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Élancé | ERP Nouvelle Génération",
-  description: "Solution ERP premium spécialisée pour l'industrie du bois et des matériaux de construction. Optimisez vos processus avec Élancé.",
-  keywords: ["ERP", "Gestion de stock", "Bois", "Construction", "Élancé", "Software as a Service"],
+  title: "Élancé | ERP Nouvelle Génération — Gestion, Chantiers & Production",
+  description: "Solution ERP SaaS tout-en-un pour le négoce bois, la gestion de production d'atelier et les chantiers en Tunisie. Connectez achats, stocks, fabrication, ventes et comptabilité avec Élancé.",
+  keywords: [
+    "ERP",
+    "Gestion de stock",
+    "Gestion de production",
+    "Logiciel de gestion de production",
+    "Production industrielle",
+    "Suivi de production",
+    "Gestion des matières premières",
+    "Ordre de fabrication",
+    "ERP production Tunisie",
+    "Logiciel ERP Tunisie",
+    "Bois",
+    "Construction",
+    "Chantiers BTP",
+    "Élancé",
+    "ACYA",
+    "Software as a Service"
+  ],
   authors: [{ name: "ACYA Consulting" }],
 };
 

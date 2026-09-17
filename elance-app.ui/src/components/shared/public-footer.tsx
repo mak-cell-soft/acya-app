@@ -156,6 +156,7 @@ export function PublicFooter() {
               {[
                 { name: 'Articles & M³', href: '#modules' },
                 { name: 'Achats & Ventes', href: '#modules' },
+                { name: 'Production & Atelier', href: '#production' },
                 { name: 'Gestion Chantiers', href: '#chantiers' },
                 { name: 'Intégration Qwerty', href: '#integration-qwerty' },
                 { name: 'Tarifs (450 DT)', href: '#tarifs' }
@@ -172,7 +173,7 @@ export function PublicFooter() {
               Secteurs
             </h4>
             <div className="flex flex-col gap-4">
-              {['Négoce bois', 'Matériaux BTP', 'Construction', 'Menuiserie'].map(item => (
+              {['Négoce bois', 'Matériaux BTP', 'Construction', 'Menuiserie', 'Transformation & Usinage'].map(item => (
                 <Link key={item} href="#" className="text-[0.92rem] text-slate-500 hover:text-corp-blue-600 hover:translate-x-1 transition-all duration-300 w-max font-semibold">
                   {item}
                 </Link>

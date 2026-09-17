@@ -16,7 +16,11 @@ const faqs = [
   },
   {
     question: "Que comprend exactement l'offre à 450 DT / an ?",
-    answer: "L'offre annuelle de 450 DT (soit seulement 1,23 DT par jour) inclut l'accès illimité à l'intégralité des modules ACYA : gestion commerciale, facturation, ventes, achats, gestion des stocks multi-dépôts (avec calculs M³), module chantiers BTP, flotte logistique, sauvegardes automatiques et l'accès à la passerelle comptable Qwerty."
+    answer: "L'offre annuelle de 450 DT (soit seulement 1,23 DT par jour) inclut l'accès illimité à l'intégralité des modules ACYA : gestion commerciale, facturation, ventes, achats, gestion des stocks multi-dépôts (avec calculs M³), gestion de la production d'atelier, module chantiers BTP, flotte logistique, sauvegardes automatiques et l'accès à la passerelle comptable Qwerty."
+  },
+  {
+    question: "Comment le module Production s'intègre-t-il avec le stock et les chantiers ?",
+    answer: "Le module Production d'Élancé est nativement interconnecté : dès le lancement d'un ordre de fabrication (OF), les matières premières nécessaires (bois en M³, quincaillerie) sont automatiquement réservées puis déstockées en temps réel selon les consommations effectives. Une fois fabriqués, les produits finis valorisés sont soit réintégrés en stock pour la vente commerciale, soit directement affectés à un chantier BTP en cours, avec un calcul automatisé du coût de revient complet (matière + main-d'œuvre + machine)."
   },
   {
     question: "Comment Élancé s'intègre-t-il avec mon système de facturation existant ?",

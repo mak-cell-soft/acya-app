@@ -1,6 +1,7 @@
 import { HeroSection } from "@/components/shared/hero-section";
 import { PublicNavbar } from "@/components/shared/public-navbar";
 import { ModulesSection } from "@/components/shared/modules-section";
+import { ProductionSection } from "@/components/shared/production-section";
 import { ChantierSection } from "@/components/shared/chantier-section";
 import { QwertyIntegrationSection } from "@/components/shared/qwerty-integration-section";
 import { WhySection } from "@/components/shared/why-section";
@@ -17,6 +18,7 @@ export default function Home() {
       <PublicNavbar />
       <HeroSection />
       <ModulesSection />
+      <ProductionSection />
       <ChantierSection />
       <QwertyIntegrationSection />
       <WhySection />

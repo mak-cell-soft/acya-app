@@ -22,6 +22,7 @@ const includedFeatures = [
   'Gestion complète des ventes, devis & bons de commande',
   'Gestion des achats, réceptions & catalogue fournisseurs',
   'Gestion du stock en temps réel & multi-dépôts (calcul M³ intégré)',
+  'Module Production d’atelier & ordres de fabrication (OF)',
   'Module spécialisé Gestion de Chantiers BTP & suivi ouvriers',
   'Gestion de flotte automobile & missions logistiques',
   'Intégration directe avec l\'écosystème comptable Qwerty',
