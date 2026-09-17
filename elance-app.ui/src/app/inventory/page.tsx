@@ -22,7 +22,10 @@ import {
   SearchCode,
   FileSpreadsheet,
   Pencil,
-  Printer
+  Printer,
+  Filter,
+  RotateCcw,
+  Calendar
 } from 'lucide-react';
 import { useAuthStore } from '@/store/use-auth-store';
 import { format } from 'date-fns';
@@ -41,6 +44,35 @@ import { toast } from 'sonner';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+
+/**
+ * Calculates the exact start and end date of the previous calendar month.
+ * 
+ * Why:
+ * The requirement specifies that upon opening the inventory page, the view defaults to the previous calendar month.
+ * Using JS Date mechanics:
+ * - `new Date(year, month - 1, 1)` calculates the first day of the prior month.
+ * - `new Date(year, month, 0)` calculates the last day of the prior month (day 0 wraps to previous month end).
+ * Negative month values (e.g. month 0 - 1 in January) automatically decrement the year to December of the previous year.
+ * 
+ * Returns strings formatted as 'yyyy-MM-dd' for HTML date inputs.
+ */
+function getDefaultPreviousMonthRange(): { start: string; end: string } {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth(); // 0-indexed: 0 = January, 8 = September
+
+  const firstDay = new Date(currentYear, currentMonth - 1, 1);
+  const lastDay = new Date(currentYear, currentMonth, 0);
+
+  return {
+    start: format(firstDay, 'yyyy-MM-dd'),
+    end: format(lastDay, 'yyyy-MM-dd')
+  };
+}
 
 function InventoryListContent() {
   const router = useRouter();
@@ -54,9 +86,25 @@ function InventoryListContent() {
     }
   }, [hasAnyPermission, router]);
 
+  // NOTE: C# API InventoryController.GetInventories() returns all non-deleted inventories without server-side filter params.
+  // We perform client-side filtering on the returned collection to preserve backend contract and caching.
   const { data: inventories = [], isLoading } = useInventories();
   const { mutate: validateInventory, isPending: isValidating } = useValidateInventory();
   
+  // Compute the default previous calendar month scope once upon mount
+  const defaultDateRange = React.useMemo(() => getDefaultPreviousMonthRange(), []);
+
+  // Filter 1: Show / Hide validated inventories (default: enabled)
+  const [showValidated, setShowValidated] = useState<boolean>(true);
+
+  // Filter 2 & 3: Date inputs state (bound to user date pickers)
+  const [startDate, setStartDate] = useState<string>(defaultDateRange.start);
+  const [endDate, setEndDate] = useState<string>(defaultDateRange.end);
+
+  // Applied date filters (committed on "Appliquer" or "Réinitialiser")
+  const [appliedStartDate, setAppliedStartDate] = useState<string>(defaultDateRange.start);
+  const [appliedEndDate, setAppliedEndDate] = useState<string>(defaultDateRange.end);
+
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [inventoryToValidate, setInventoryToValidate] = useState<Document | null>(null);
   const [isUncountedDialogOpen, setIsUncountedDialogOpen] = useState(false);
@@ -75,6 +123,62 @@ function InventoryListContent() {
   );
 
   const isManager = user?.role?.toLowerCase() === 'manager' || user?.role?.toLowerCase() === 'admin';
+
+  // Apply custom date filter with validation
+  const handleApplyFilter = () => {
+    // Validate that Date début <= Date fin
+    if (startDate && endDate && startDate > endDate) {
+      toast.error('La date de début doit être antérieure ou égale à la date de fin.');
+      return;
+    }
+    setAppliedStartDate(startDate);
+    setAppliedEndDate(endDate);
+  };
+
+  // Reset filter scope to previous calendar month and re-enable validated records
+  const handleResetFilter = () => {
+    const range = getDefaultPreviousMonthRange();
+    setStartDate(range.start);
+    setEndDate(range.end);
+    setAppliedStartDate(range.start);
+    setAppliedEndDate(range.end);
+    setShowValidated(true);
+    toast.info('Filtres réinitialisés au mois précédent.');
+  };
+
+  // Memoized filtered inventory collection according to status and date scope
+  const filteredInventories = React.useMemo(() => {
+    return inventories.filter((inv) => {
+      // 1. Status Filter: Hide validated if showValidated is toggled off
+      // NOTE: C# backend DocStatus enum: DocStatus.Validated = 12
+      const isValidated = inv.docstatus === DocStatus.Validated;
+      if (!showValidated && isValidated) {
+        return false;
+      }
+
+      // 2. Date Scope Filter: Compare creation date to applied range
+      if (!inv.creationdate) {
+        return false;
+      }
+
+      const invDate = new Date(inv.creationdate);
+      if (isNaN(invDate.getTime())) {
+        return false;
+      }
+
+      // Convert to local YYYY-MM-DD string to avoid timezone day-shift errors
+      const invDateStr = format(invDate, 'yyyy-MM-dd');
+
+      if (appliedStartDate && invDateStr < appliedStartDate) {
+        return false;
+      }
+      if (appliedEndDate && invDateStr > appliedEndDate) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [inventories, showValidated, appliedStartDate, appliedEndDate]);
 
   const handleValidate = () => {
     if (inventoryToValidate) {
@@ -111,7 +215,7 @@ function InventoryListContent() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-stone-200/40 dark:border-stone-800/40 pb-4">
         <div className="flex items-center space-x-3">
@@ -160,6 +264,88 @@ function InventoryListContent() {
         </div>
       </div>
 
+      {/* Filters Toolbar */}
+      <div className="bg-white dark:bg-stone-900/60 border border-stone-200/80 dark:border-stone-800 rounded-xl p-3.5 sm:p-4 shadow-2xs">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          {/* Left Controls: Switch & Date Range Pickers */}
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            {/* 1. Afficher les inventaires validés Switch */}
+            <div className="flex items-center space-x-2.5">
+              <Switch
+                id="filter-show-validated"
+                checked={showValidated}
+                onCheckedChange={setShowValidated}
+              />
+              <Label
+                htmlFor="filter-show-validated"
+                className="text-xs font-medium text-stone-700 dark:text-stone-300 cursor-pointer select-none"
+              >
+                Afficher les inventaires validés
+              </Label>
+            </div>
+
+            <div className="hidden sm:block h-4 w-px bg-stone-200 dark:bg-stone-800" />
+
+            {/* 2 & 3. Custom Date Range Pickers */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="filter-start-date" className="text-xs font-medium text-stone-500 dark:text-stone-400 whitespace-nowrap">
+                  Date début :
+                </Label>
+                <Input
+                  id="filter-start-date"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleApplyFilter()}
+                  className="h-9 w-38 text-xs font-mono rounded-lg border-slate-200 dark:border-slate-800 bg-white dark:bg-stone-900"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Label htmlFor="filter-end-date" className="text-xs font-medium text-stone-500 dark:text-stone-400 whitespace-nowrap">
+                  Date fin :
+                </Label>
+                <Input
+                  id="filter-end-date"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleApplyFilter()}
+                  className="h-9 w-38 text-xs font-mono rounded-lg border-slate-200 dark:border-slate-800 bg-white dark:bg-stone-900"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Right Controls: Actions & Count */}
+          <div className="flex items-center gap-2 self-start sm:self-end lg:self-auto">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleApplyFilter}
+              className="h-9 px-4 bg-corp-blue-600 hover:bg-corp-blue-700 text-white rounded-lg text-xs font-semibold uppercase tracking-wider shadow-2xs gap-1.5"
+            >
+              <Filter className="h-3.5 w-3.5" />
+              Appliquer
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResetFilter}
+              className="h-9 px-3 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 text-xs font-medium gap-1.5"
+              title="Réinitialiser au mois précédent"
+            >
+              <RotateCcw className="h-3.5 w-3.5 text-slate-400" />
+              Réinitialiser
+            </Button>
+            <span className="text-[11px] text-stone-400 dark:text-stone-500 font-mono ml-1">
+              ({filteredInventories.length} / {inventories.length})
+            </span>
+          </div>
+        </div>
+      </div>
+
       {inventories.length === 0 ? (
         <Card className="bg-stone-50/50 dark:bg-stone-900/10 border-dashed border-2 border-stone-200 dark:border-stone-800">
           <CardContent className="flex flex-col items-center justify-center py-24 text-center space-y-4">
@@ -181,22 +367,46 @@ function InventoryListContent() {
         </Card>
       ) : (
         <Card className="bg-white dark:bg-stone-900/40 border-stone-200/60 dark:border-stone-800/60 rounded-2xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-stone-50/50 dark:bg-stone-900/40 border-b border-stone-200/50 dark:border-stone-800 text-[10px] uppercase tracking-wider font-bold text-stone-500">
-                  <th className="p-4 pl-6">Référence</th>
-                  <th className="p-4">Site de Vente</th>
-                  <th className="p-4">Date</th>
-                  <th className="p-4">Créé par</th>
-                  <th className="p-4 text-center">Statut</th>
-                  <th className="p-4 pr-6 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100 dark:divide-stone-850">
-                {inventories.map((inv) => {
-                  const isExpanded = expandedId === inv.id;
-                  const isValidated = inv.docstatus === DocStatus.Validated;
+          {filteredInventories.length === 0 ? (
+            <div className="py-16 flex flex-col items-center justify-center text-center space-y-3">
+              <div className="h-10 w-10 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-stone-400">
+                <Filter className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold text-stone-800 dark:text-stone-200">
+                  Aucun inventaire trouvé
+                </h3>
+                <p className="text-xs text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
+                  Aucun inventaire ne correspond à la période sélectionnée ou aux critères de filtrage.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResetFilter}
+                className="h-8 px-3 text-xs font-medium border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 rounded-lg gap-1.5"
+              >
+                <RotateCcw className="h-3 w-3 text-slate-400" />
+                Réinitialiser les filtres
+              </Button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-stone-50/50 dark:bg-stone-900/40 border-b border-stone-200/50 dark:border-stone-800 text-[10px] uppercase tracking-wider font-bold text-stone-500">
+                    <th className="p-4 pl-6">Référence</th>
+                    <th className="p-4">Site de Vente</th>
+                    <th className="p-4">Date</th>
+                    <th className="p-4">Créé par</th>
+                    <th className="p-4 text-center">Statut</th>
+                    <th className="p-4 pr-6 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100 dark:divide-stone-850">
+                  {filteredInventories.map((inv) => {
+                    const isExpanded = expandedId === inv.id;
+                    const isValidated = inv.docstatus === DocStatus.Validated;
                   
                   return (
                     <React.Fragment key={inv.id}>
@@ -373,8 +583,9 @@ function InventoryListContent() {
               </tbody>
             </table>
           </div>
-        </Card>
-      )}
+        )}
+      </Card>
+    )}
 
       {/* Validation Confirm Dialog */}
       <Dialog open={!!inventoryToValidate} onOpenChange={() => setInventoryToValidate(null)}>
