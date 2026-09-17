@@ -49,30 +49,30 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
 /**
- * Calculates the exact start and end date of the previous calendar month.
+ * Calculates the exact start and end date of the current calendar month.
  * 
  * Why:
- * The requirement specifies that upon opening the inventory page, the view defaults to the previous calendar month.
+ * The requirement specifies that upon opening the inventory page, the view defaults to the current calendar month.
  * Using JS Date mechanics:
- * - `new Date(year, month - 1, 1)` calculates the first day of the prior month.
- * - `new Date(year, month, 0)` calculates the last day of the prior month (day 0 wraps to previous month end).
- * Negative month values (e.g. month 0 - 1 in January) automatically decrement the year to December of the previous year.
+ * - `new Date(year, month, 1)` calculates the first day of the current month.
+ * - `new Date(year, month + 1, 0)` calculates the last day of the current month (day 0 of next month wraps to current month end).
  * 
  * Returns strings formatted as 'yyyy-MM-dd' for HTML date inputs.
  */
-function getDefaultPreviousMonthRange(): { start: string; end: string } {
+function getDefaultCurrentMonthRange(): { start: string; end: string } {
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth(); // 0-indexed: 0 = January, 8 = September
 
-  const firstDay = new Date(currentYear, currentMonth - 1, 1);
-  const lastDay = new Date(currentYear, currentMonth, 0);
+  const firstDay = new Date(currentYear, currentMonth, 1);
+  const lastDay = new Date(currentYear, currentMonth + 1, 0);
 
   return {
     start: format(firstDay, 'yyyy-MM-dd'),
     end: format(lastDay, 'yyyy-MM-dd')
   };
 }
+
 
 function InventoryListContent() {
   const router = useRouter();
@@ -91,8 +91,8 @@ function InventoryListContent() {
   const { data: inventories = [], isLoading } = useInventories();
   const { mutate: validateInventory, isPending: isValidating } = useValidateInventory();
   
-  // Compute the default previous calendar month scope once upon mount
-  const defaultDateRange = React.useMemo(() => getDefaultPreviousMonthRange(), []);
+  // Compute the default current calendar month scope once upon mount
+  const defaultDateRange = React.useMemo(() => getDefaultCurrentMonthRange(), []);
 
   // Filter 1: Show / Hide validated inventories (default: enabled)
   const [showValidated, setShowValidated] = useState<boolean>(true);
@@ -135,15 +135,15 @@ function InventoryListContent() {
     setAppliedEndDate(endDate);
   };
 
-  // Reset filter scope to previous calendar month and re-enable validated records
+  // Reset filter scope to current calendar month and re-enable validated records
   const handleResetFilter = () => {
-    const range = getDefaultPreviousMonthRange();
+    const range = getDefaultCurrentMonthRange();
     setStartDate(range.start);
     setEndDate(range.end);
     setAppliedStartDate(range.start);
     setAppliedEndDate(range.end);
     setShowValidated(true);
-    toast.info('Filtres réinitialisés au mois précédent.');
+    toast.info('Filtres réinitialisés au mois en cours.');
   };
 
   // Memoized filtered inventory collection according to status and date scope
@@ -334,7 +334,7 @@ function InventoryListContent() {
               size="sm"
               onClick={handleResetFilter}
               className="h-9 px-3 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 text-xs font-medium gap-1.5"
-              title="Réinitialiser au mois précédent"
+              title="Réinitialiser au mois en cours"
             >
               <RotateCcw className="h-3.5 w-3.5 text-slate-400" />
               Réinitialiser
