@@ -39,5 +39,15 @@ export const appVariableService = {
   saveImpression: async (data: any) => {
     const response = await api.put('/AppVariable/impression', data);
     return response.data;
+  },
+
+  getEmployeeRoles: async () => {
+    const response = await api.get('/AppVariable/roles');
+    return response.data;
+  },
+
+  saveEmployeeRoles: async (data: any) => {
+    const response = await api.put('/AppVariable/roles', data);
+    return response.data;
   }
 };

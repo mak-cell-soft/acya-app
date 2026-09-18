@@ -10,7 +10,8 @@ import { NumberingTab } from '@/components/settings/numbering-tab';
 import { AuditTab } from '@/components/settings/audit-tab';
 import { PrintTab } from '@/components/settings/print-tab';
 import { DailyCeilingTab } from '@/components/settings/daily-ceiling-tab';
-import { Building2, Settings2, Hash, ShieldCheck, Cog, Printer, TrendingUp } from 'lucide-react';
+import { RolesTab } from '@/components/settings/roles-tab';
+import { Building2, Settings2, Hash, ShieldCheck, Cog, Printer, TrendingUp, Briefcase } from 'lucide-react';
 import { useAuthStore } from '@/store/use-auth-store';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -102,6 +103,12 @@ export default function SettingsPage() {
               >
                 <Printer className="w-5 h-5" /> Impression
               </TabsTrigger>
+              <TabsTrigger 
+                value="roles" 
+                className="rounded-[18px] px-8 py-3.5 data-[state=active]:bg-corp-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-corp-blue-600/20 font-bold gap-3 transition-all duration-300"
+              >
+                <Briefcase className="w-5 h-5" /> Fonctions / Postes
+              </TabsTrigger>
               {isAdmin && (
                 <TabsTrigger 
                   value="ceiling" 
@@ -141,6 +148,11 @@ export default function SettingsPage() {
                 {/* NOTE: Impression tab — renders the full print-ar.json editor */}
                 <TabsContent value="print" className="m-0 focus-visible:outline-none">
                   <PrintTab />
+                </TabsContent>
+
+                {/* Configurable Employee Roles / Functions */}
+                <TabsContent value="roles" className="m-0 focus-visible:outline-none">
+                  <RolesTab />
                 </TabsContent>
 
                 {isAdmin && (

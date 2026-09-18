@@ -55,6 +55,7 @@ import {
   useUpdateAppUser 
 } from '@/hooks/use-team';
 import { useSites } from '@/hooks/use-enterprise';
+import { useEmployeeRoles } from '@/hooks/use-employee-roles';
 import { Person, AppUser, ROLE_LABELS, ROLE_COLORS } from '@/types/team';
 
 // Form Dialogs
@@ -113,6 +114,7 @@ export default function TeamPage() {
   const deletePerson = useDeletePerson();
   const createAppUser = useCreateAppUser();
   const updateAppUser = useUpdateAppUser();
+  const { getRoleLabel } = useEmployeeRoles();
   const currentUser = useAuthStore(state => state.user);
   const isAdmin = currentUser?.role === 'Admin' || currentUser?.role === '20' || currentUser?.role === 'SuperAdmin' || currentUser?.role === '10';
 
@@ -121,7 +123,7 @@ export default function TeamPage() {
     if (!persons) return [];
     return persons.filter((p) => {
       const fullname = `${p.firstname || ''} ${p.lastname || ''}`.toLowerCase();
-      const roleName = ROLE_LABELS[p.role]?.toLowerCase() || '';
+      const roleName = getRoleLabel(p.role).toLowerCase();
       const matchText = searchTerm.toLowerCase();
       
       return (
@@ -131,7 +133,7 @@ export default function TeamPage() {
         p.phonenumber?.includes(matchText)
       );
     });
-  }, [persons, searchTerm]);
+  }, [persons, searchTerm, getRoleLabel]);
 
   const filteredUsers = useMemo(() => {
     if (!appUsers) return [];
@@ -331,7 +333,7 @@ export default function TeamPage() {
                                       )}
                                     </div>
                                     <div className="text-[0.75rem] text-sand-400 font-bold tracking-wide mt-0.5 uppercase">
-                                      {ROLE_LABELS[item.role] || `Rôle ${item.role}`}
+                                      {getRoleLabel(item.role)}
                                     </div>
                                   </div>
                                 </div>
@@ -552,12 +554,12 @@ export default function TeamPage() {
                               </td>
                               <td className="p-5">
                                 {item.person?.role ? (
-                                  <Badge 
-                                    className="rounded-lg px-2.5 py-1 font-bold text-[0.7rem] border-none text-white shadow-sm"
-                                    style={{ backgroundColor: ROLE_COLORS[item.person.role] || 'var(--color-corp-blue-600)' }}
-                                  >
-                                    {ROLE_LABELS[item.person.role] || 'Inconnu'}
-                                  </Badge>
+                                    <Badge 
+                                      className="rounded-lg px-2.5 py-1 font-bold text-[0.7rem] border-none text-white shadow-sm"
+                                      style={{ backgroundColor: ROLE_COLORS[item.person.role] || 'var(--color-corp-blue-600)' }}
+                                    >
+                                      {getRoleLabel(item.person.role)}
+                                    </Badge>
                                 ) : (
                                   <span className="text-sand-400 text-xs">-</span>
                                 )}

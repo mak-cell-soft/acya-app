@@ -59,7 +59,12 @@ namespace ms.webapp.api.acya.core.Entities
       BirthDate = dto.birthdate;
       Cin = dto.cin;
       IdCnss = dto.idcnss;
-      if (Enum.TryParse(dto.role.ToString(), out Roles parsedRole) && Enum.IsDefined(typeof(Roles), parsedRole))
+      // NOTE: Support dynamic/tenant-configured employee roles (codes >= 100) as well as standard Roles
+      if (dto.role > 0)
+      {
+        Role = (Roles)dto.role;
+      }
+      else if (Enum.TryParse(dto.role.ToString(), out Roles parsedRole))
       {
         Role = parsedRole;
       }

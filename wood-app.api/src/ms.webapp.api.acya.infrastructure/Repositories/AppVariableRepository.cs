@@ -44,5 +44,17 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       return await context.AppVariables
           .FirstOrDefaultAsync(av => av.Nature == "Impression" && av.isDeleted == false);
     }
+
+    public async Task<AppVariable?> GetRolesAsync()
+    {
+      return await context.AppVariables
+          .FirstOrDefaultAsync(av => av.Name == "ROLES" && av.isDeleted == false);
+    }
+
+    public async Task<bool> IsRoleInUseAsync(int roleCode)
+    {
+      return await context.Persons
+          .AnyAsync(p => !p.IsDeleted && (int)p.Role == roleCode);
+    }
   }
 }

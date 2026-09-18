@@ -41,8 +41,9 @@ import {
   Mail,
   Lock
 } from "lucide-react";
-import { AppUser, SYSTEM_ROLES, FUNCTION_ROLES, ROLE_LABELS } from "@/types/team";
+import { AppUser, SELECTABLE_SYSTEM_ROLES } from "@/types/team";
 import { useSites } from "@/hooks/use-enterprise";
+import { useEmployeeRoles } from "@/hooks/use-employee-roles";
 
 const appUserSchema = z.object({
   login: z.string().min(1, "L'identifiant est requis"),
@@ -71,6 +72,7 @@ export function EditUserDialog({
   isLoading
 }: EditUserDialogProps) {
   const { data: sites } = useSites();
+  const { activeRoles, getRoleLabel } = useEmployeeRoles();
 
   const form = useForm<AppUserFormValues>({
     resolver: zodResolver(appUserSchema) as any,
@@ -219,22 +221,36 @@ export function EditUserDialog({
                       <FormControl>
                         <SelectTrigger className="font-bold text-corp-blue-900">
                           <SelectValue placeholder="Choisir un rôle">
-                            {field.value ? ROLE_LABELS[parseInt(field.value.toString())] : undefined}
+                            {field.value ? getRoleLabel(field.value) : undefined}
                           </SelectValue>
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl">
                         <SelectGroup>
                           <SelectLabel className="font-bold text-corp-blue-900">Niveau d'Accès Système</SelectLabel>
-                          {SYSTEM_ROLES.map((role) => (
+                          {SELECTABLE_SYSTEM_ROLES.map((role) => (
                             <SelectItem key={role.value} value={role.value.toString()}>{role.label}</SelectItem>
                           ))}
                         </SelectGroup>
                         <SelectSeparator />
                         <SelectGroup>
                           <SelectLabel className="font-bold text-corp-blue-900">Fonction / Poste</SelectLabel>
-                          {FUNCTION_ROLES.map((role) => (
-                            <SelectItem key={role.value} value={role.value.toString()}>{role.label}</SelectItem>
+                          {/* If current role is an inactive function or legacy role, still display it */}
+                          {field.value !== undefined && field.value !== null && (() => {
+                            const valStr = field.value.toString();
+                            const isKnownActive = activeRoles.some(r => r.code?.toString() === valStr || r.id === valStr);
+                            const isSystemRole = SELECTABLE_SYSTEM_ROLES.some(r => r.value.toString() === valStr);
+                            if (!isKnownActive && !isSystemRole) {
+                              return (
+                                <SelectItem value={valStr}>
+                                  {getRoleLabel(field.value)} (Inactif)
+                                </SelectItem>
+                              );
+                            }
+                            return null;
+                          })()}
+                          {activeRoles.map((role) => (
+                            <SelectItem key={role.id} value={(role.code ?? role.id).toString()}>{role.name}</SelectItem>
                           ))}
                         </SelectGroup>
                       </SelectContent>
