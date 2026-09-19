@@ -151,10 +151,10 @@ namespace ms.webapp.api.acya.Services
                 .Select(v => new AppVariableExportRow { Nature = v.Nature ?? "", Name = v.Name ?? "", Value = v.Value ?? 0 })
                 .OrderBy(v => v.Nature).ToList();
 
-            var parents = await _context.Parents.ToListAsync();
+            var parents = await _context.Parents.Where(p => !p.IsDeleted).ToListAsync();
             data.Categories = parents.Select(p => new CategoryExportRow { Reference = p.Reference ?? "", Description = p.Description ?? "" }).ToList();
 
-            var children = await _context.FirstChildren.Include(c => c.Parents).ToListAsync();
+            var children = await _context.FirstChildren.Include(c => c.Parents).Where(c => !c.IsDeleted && (c.Parents == null || !c.Parents.IsDeleted)).ToListAsync();
             data.SubCategories = children.Select(c => new SubCategoryExportRow { 
                 Category = c.Parents?.Description ?? "", 
                 Reference = c.Reference ?? "", 

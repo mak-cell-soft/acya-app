@@ -63,13 +63,14 @@ namespace ms.webapp.api.acya.api.Controllers.AppConfiguration
       return NoContent();
     }
 
+    [HttpDelete("{id}")]
     [HttpDelete("DeleteSoft/{id}")]
     public async Task<ActionResult> DeleteSoft(int id)
     {
       var child = await _repository.Get(id);
-      if (child == null)
+      if (child == null || child.IsDeleted)
       {
-        return NotFound();
+        return NotFound("Sous-catégorie introuvable.");
       }
       string[] systemRefs = { "BD", "BB", "BR" };
       if (child.Reference != null && systemRefs.Contains(child.Reference.Trim().ToUpperInvariant()))
@@ -77,8 +78,9 @@ namespace ms.webapp.api.acya.api.Controllers.AppConfiguration
         return BadRequest("Les sous-catégories système (BD, BB, BR) ne peuvent pas être supprimées.");
       }
       child.IsDeleted = true;
+      child.UpdateDate = DateTime.UtcNow;
       var updateDel = await _repository.Update(child);
-      return Ok();
+      return NoContent();
     }
   }
 }

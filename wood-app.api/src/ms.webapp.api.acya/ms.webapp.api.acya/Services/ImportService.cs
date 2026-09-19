@@ -89,10 +89,10 @@ namespace ms.webapp.api.acya.Services
 
             report.TotalRows = items.Count;
 
-            var parentsList = await _context.Parents.Where(x => x.Description != null).ToListAsync();
+            var parentsList = await _context.Parents.Where(x => x.Description != null && !x.IsDeleted).ToListAsync();
             var categories = parentsList.GroupBy(x => NormalizeString(x.Description)).ToDictionary(g => g.Key, g => g.First().Id);
             
-            var childrenList = await _context.FirstChildren.Where(x => x.Description != null).ToListAsync();
+            var childrenList = await _context.FirstChildren.Where(x => x.Description != null && !x.IsDeleted).ToListAsync();
             var subCategories = childrenList.GroupBy(x => NormalizeString(x.Description)).ToDictionary(g => g.Key, g => g.First().Id);
             
             var tvas = await _context.AppVariables.Where(x => x.Nature != null && x.Nature.ToLower() == "tva").ToListAsync();
@@ -722,6 +722,8 @@ namespace ms.webapp.api.acya.Services
                         if (existing != null)
                         {
                             existing.Reference = reference;
+                            existing.IsDeleted = false;
+                            existing.UpdateDate = DateTime.UtcNow;
                             _context.Parents.Update(existing);
                         }
                         else
@@ -743,7 +745,7 @@ namespace ms.webapp.api.acya.Services
                 // Import SubCategories
                 if (workbook.TryGetWorksheet("Sous-catégories", out var wsSubCategories))
                 {
-                    var parents = await _context.Parents.ToListAsync();
+                    var parents = await _context.Parents.Where(p => !p.IsDeleted).ToListAsync();
                     var rows = wsSubCategories.RowsUsed().Skip(1);
                     foreach (var row in rows)
                     {

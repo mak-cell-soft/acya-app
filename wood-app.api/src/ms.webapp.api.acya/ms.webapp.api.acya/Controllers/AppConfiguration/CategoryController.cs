@@ -22,7 +22,16 @@ namespace ms.webapp.api.acya.api.Controllers.AppConfiguration
       var existingCategory = await _repositroy.GetByReferenceAsync(category.reference!);
       if (existingCategory != null)
       {
-        return Conflict("Category with the given Reference already exists."); // Return 409 Conflict if category exists
+        if (existingCategory.IsDeleted)
+        {
+          // Re-activate previously soft-deleted category
+          existingCategory.IsDeleted = false;
+          existingCategory.Description = category.description;
+          existingCategory.UpdateDate = DateTime.UtcNow;
+          await _repositroy.Update(existingCategory);
+          return Ok(new CategoryDto(existingCategory));
+        }
+        return Conflict("Category with the given Reference already exists."); // Return 409 Conflict if active category exists
       }
       var _category = new Parent(category);
       var addedcategory = await _repositroy.Add(_category);
@@ -31,20 +40,20 @@ namespace ms.webapp.api.acya.api.Controllers.AppConfiguration
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult> Get(int id)
+    public async Task<ActionResult<CategoryDto>> Get(int id)
     {
-      var _category = await _repositroy.Get(id);
-      if (_category == null)
+      var _category = await _repositroy.GetByIdAsync(id);
+      if (_category == null || _category.IsDeleted)
       {
         return NotFound();
       }
-      return Ok();
+      return Ok(new CategoryDto(_category));
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAll()
     {
-      // GetAllAsync is already modified in Repository (new GetAllAsync)
+      // GetAllAsync returns all active categories and active sub-categories
       var allCatDtos = await _repositroy.GetAllAsync();
       return Ok(allCatDtos);
     }
@@ -54,7 +63,7 @@ namespace ms.webapp.api.acya.api.Controllers.AppConfiguration
     {
       // Fetch the existing entity by id
       var existingEntity = await _repositroy.Get(id);
-      if (existingEntity == null)
+      if (existingEntity == null || existingEntity.IsDeleted)
       {
         return NotFound();
       }
@@ -101,18 +110,27 @@ namespace ms.webapp.api.acya.api.Controllers.AppConfiguration
     }
 
     [HttpDelete("{id}")]
+    [HttpDelete("DeleteSoft/{id}")]
     public async Task<ActionResult> Delete(int id)
     {
-      var category = await _repositroy.Get(id);
-      if (category == null)
+      var category = await _repositroy.GetByIdAsync(id);
+      if (category == null || category.IsDeleted)
       {
-        return NotFound();
+        return NotFound("Catégorie introuvable.");
       }
+
+      // System category protection: BOIS reference cannot be deleted
       if (category.Reference != null && category.Reference.Trim().Equals("BOIS", StringComparison.OrdinalIgnoreCase))
       {
         return BadRequest("La catégorie système BOIS ne peut pas être supprimée.");
       }
-      await _repositroy.Delete(id);
+
+      var deleted = await _repositroy.SoftDeleteAsync(id);
+      if (!deleted)
+      {
+        return NotFound("Catégorie introuvable ou déjà supprimée.");
+      }
+
       return NoContent();
     }
 

@@ -34,6 +34,7 @@ namespace ms.webapp.api.acya.core.Entities.Dtos.Config
       if (entity.FirstChildren != null && entity.FirstChildren.Any())
       {
         firstchildren = entity.FirstChildren
+            .Where(child => !child.IsDeleted)
             .Select(child => new FirstChildDto(child))
             .ToArray();
       }

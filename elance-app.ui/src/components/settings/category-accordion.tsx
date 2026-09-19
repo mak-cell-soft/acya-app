@@ -9,6 +9,16 @@ import { Plus, Trash2, Edit2, Check, X, FolderTree, Tag, Loader2 } from 'lucide-
 import { CategoryFormDialog } from './category-form-dialog';
 
 import { TablePagination } from '@/components/shared/table-pagination';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export function CategoryAccordion() {
   const { data: categories, isLoading } = useCategories();
@@ -25,6 +35,10 @@ export function CategoryAccordion() {
   // Dialog State
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [selectedCategory, setSelectedCategory] = React.useState<any>(null);
+
+  // Deletion Confirmation State
+  const [catToDelete, setCatToDelete] = React.useState<any>(null);
+  const [subToDelete, setSubToDelete] = React.useState<any>(null);
 
   // Pagination State
   const [currentPage, setCurrentPage] = React.useState(1);
@@ -134,8 +148,17 @@ export function CategoryAccordion() {
                     <Button onClick={(e) => { e.stopPropagation(); setEditingCatId(cat.id); setEditValues(cat); }} variant="ghost" size="icon" className="h-8 w-8 text-corp-blue-400">
                       <Edit2 className="w-4 h-4" />
                     </Button>
-                    {cat.reference?.toUpperCase() !== 'BOIS' && (
-                      <Button onClick={(e) => { e.stopPropagation(); deleteCat.mutate(cat.id); }} variant="ghost" size="icon" className="h-8 w-8 text-red-400">
+                    {cat.reference?.trim().toUpperCase() !== 'BOIS' && (
+                      <Button 
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          setCatToDelete(cat); 
+                        }} 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                        title="Supprimer la catégorie"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     )}
@@ -196,7 +219,16 @@ export function CategoryAccordion() {
                               <Edit2 className="w-3.5 h-3.5" />
                             </Button>
                             {!isSystemSub && (
-                              <Button onClick={() => deleteSub.mutate(sub.id)} variant="ghost" size="icon" className="h-7 w-7 text-sand-300 hover:text-red-500">
+                              <Button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSubToDelete(sub);
+                                }} 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-7 w-7 text-sand-300 hover:text-red-500 hover:bg-red-50 rounded-lg"
+                                title="Supprimer la sous-catégorie"
+                              >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </Button>
                             )}
@@ -234,6 +266,66 @@ export function CategoryAccordion() {
         onClose={() => setIsDialogOpen(false)}
         category={selectedCategory}
       />
+
+      {/* Category Deletion Confirmation Dialog */}
+      <AlertDialog open={!!catToDelete} onOpenChange={(open) => !open && setCatToDelete(null)}>
+        <AlertDialogContent className="rounded-2xl border-corp-blue-100 bg-white p-6 max-w-md shadow-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-corp-blue-900 font-bold text-lg">
+              Supprimer la catégorie ?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sand-500 font-medium text-sm mt-2 leading-relaxed">
+              Êtes-vous sûr de vouloir supprimer la catégorie « <span className="font-bold text-corp-blue-900">{catToDelete?.reference}</span> » ? Ses sous-catégories associées seront également désactivées. Les articles existants conserveront leur historique.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-6 flex gap-3 justify-end">
+            <AlertDialogCancel className="rounded-xl border-corp-blue-100 text-corp-blue-700 font-bold">
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (catToDelete) {
+                  deleteCat.mutate(catToDelete.id);
+                  setCatToDelete(null);
+                }
+              }}
+              className="rounded-xl bg-red-600 text-white hover:bg-red-700 font-bold"
+            >
+              {deleteCat.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Supprimer'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Sub-Category Deletion Confirmation Dialog */}
+      <AlertDialog open={!!subToDelete} onOpenChange={(open) => !open && setSubToDelete(null)}>
+        <AlertDialogContent className="rounded-2xl border-corp-blue-100 bg-white p-6 max-w-md shadow-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-corp-blue-900 font-bold text-lg">
+              Supprimer la sous-catégorie ?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sand-500 font-medium text-sm mt-2 leading-relaxed">
+              Êtes-vous sûr de vouloir supprimer la sous-catégorie « <span className="font-bold text-corp-blue-900">{subToDelete?.reference}</span> » ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-6 flex gap-3 justify-end">
+            <AlertDialogCancel className="rounded-xl border-corp-blue-100 text-corp-blue-700 font-bold">
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (subToDelete) {
+                  deleteSub.mutate(subToDelete.id);
+                  setSubToDelete(null);
+                }
+              }}
+              className="rounded-xl bg-red-600 text-white hover:bg-red-700 font-bold"
+            >
+              {deleteSub.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Supprimer'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

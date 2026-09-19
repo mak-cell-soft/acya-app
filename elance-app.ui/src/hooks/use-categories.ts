@@ -55,7 +55,11 @@ export function useDeleteCategory() {
     },
     onError: (error: any) => {
       console.error('Error deleting category:', error);
-      toast.error('Erreur lors de la suppression de la catégorie');
+      const message =
+        error?.response?.data?.message ||
+        (typeof error?.response?.data === 'string' ? error.response.data : null) ||
+        'Erreur lors de la suppression de la catégorie';
+      toast.error(message);
     },
   });
 }
@@ -105,7 +109,11 @@ export function useDeleteSubCategory() {
     },
     onError: (error: any) => {
       console.error('Error deleting sub-category:', error);
-      toast.error('Erreur lors de la suppression de la sous-catégorie');
+      const message =
+        error?.response?.data?.message ||
+        (typeof error?.response?.data === 'string' ? error.response.data : null) ||
+        'Erreur lors de la suppression de la sous-catégorie';
+      toast.error(message);
     },
   });
 }
