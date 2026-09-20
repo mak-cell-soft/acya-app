@@ -96,5 +96,18 @@ export const documentService = {
   searchPurchases: async (filter: PurchaseSearchFilter): Promise<PagedResult<Document>> => {
     const response = await api.post('/Document/search-purchases', filter);
     return response.data;
+  },
+
+  sendToAccountant: async (
+    id: number,
+    payload: {
+      accountantEmail: string;
+      subject: string;
+      message: string;
+      saveAsDefault: boolean;
+    }
+  ) => {
+    const response = await api.post(`/Document/${id}/send-to-accountant`, payload);
+    return response.data;
   }
 };

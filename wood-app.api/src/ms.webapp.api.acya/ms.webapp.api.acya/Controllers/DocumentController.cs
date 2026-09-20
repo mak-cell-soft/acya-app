@@ -10,6 +10,7 @@ using ms.webapp.api.acya.core.Entities.Product;
 using ms.webapp.api.acya.infrastructure;
 using ms.webapp.api.acya.infrastructure.Repositories;
 using ms.webapp.api.acya.core.Interfaces;
+using ms.webapp.api.acya.core.Entities.Notifications;
 using Document = ms.webapp.api.acya.core.Entities.Document;
 
 namespace ms.webapp.api.acya.api.Controllers
@@ -25,7 +26,8 @@ namespace ms.webapp.api.acya.api.Controllers
     private readonly IApprovalService _approvalService;
     private readonly IPdfGenerationService _pdfService;
     private readonly IAppNotificationService _notificationService;
-    public DocumentController(DocumentRepository repository, MerchandiseRepository merchandiseRepository, StockRepository stockRepository, WoodAppContext context, IAccountService accountService, IBalanceService balanceService, IApprovalService approvalService, IPdfGenerationService pdfService, IAppNotificationService notificationService)
+    private readonly IEmailService _emailService;
+    public DocumentController(DocumentRepository repository, MerchandiseRepository merchandiseRepository, StockRepository stockRepository, WoodAppContext context, IAccountService accountService, IBalanceService balanceService, IApprovalService approvalService, IPdfGenerationService pdfService, IAppNotificationService notificationService, IEmailService emailService)
     {
       _repository = repository;
       _merchandiseRepository = merchandiseRepository;
@@ -36,6 +38,7 @@ namespace ms.webapp.api.acya.api.Controllers
       _approvalService = approvalService;
       _pdfService = pdfService;
       _notificationService = notificationService;
+      _emailService = emailService;
     }
 
     [HttpGet("_type")]
@@ -246,6 +249,142 @@ namespace ms.webapp.api.acya.api.Controllers
       
       string fileName = $"{document.Type}_{document.DocNumber}.pdf";
       return File(pdfBytes, "application/pdf", fileName);
+    }
+
+    [HttpPost("{id}/send-to-accountant")]
+    public async Task<IActionResult> SendToAccountant(int id, [FromBody] SendAccountantEmailDto dto)
+    {
+      if (!ModelState.IsValid)
+      {
+        return BadRequest(ModelState);
+      }
+
+      var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+      var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+      int.TryParse(userIdStr, out int userId);
+
+      // Fetch document with all necessary navigation properties for authoritative PDF generation
+      var document = await _context.Documents
+          .AsNoTracking()
+          .AsSplitQuery()
+          .Include(d => d.CounterPart).ThenInclude(cp => cp!.Transporter).ThenInclude(t => t!.Vehicle)
+          .Include(d => d.SalesSite)
+          .Include(d => d.HoldingTaxes)
+          .Include(d => d.Payments)
+          .Include(d => d.Taxes)
+          .Include(d => d.AppUsers)
+              .ThenInclude(u => u!.Persons)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.Merchandise)
+                  .ThenInclude(m => m!.Articles)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.QuantityMovements)
+                  .ThenInclude(qm => qm!.ListOfLengths)
+                      .ThenInclude(ll => ll.AppVarLength)
+          .FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted);
+
+      if (document == null)
+      {
+        return NotFound(new { message = "Facture introuvable ou non disponible." });
+      }
+
+      if (document.Type != DocumentTypes.customerInvoice)
+      {
+        return BadRequest(new { message = "Seules les factures de vente peuvent être transmises au comptable via cette action." });
+      }
+
+      // Authoritative server-side PDF generation via QuestPdfDocumentReportService
+      var documentDto = new DocumentDto(document);
+      var pdfBytes = _pdfService.GenerateCommercialDocumentPdf(documentDto);
+      if (pdfBytes == null || pdfBytes.Length == 0)
+      {
+        return StatusCode(500, new { message = "Impossible de générer le document PDF de la facture." });
+      }
+
+      string cleanInvoiceNum = !string.IsNullOrWhiteSpace(document.DocNumber) 
+          ? document.DocNumber.Replace("/", "_").Replace("\\", "_") 
+          : $"FAC_{document.Id}";
+      string pdfFileName = $"{cleanInvoiceNum}.pdf";
+
+      // Dispatch Email with Attachment via MailKit pipeline
+      try
+      {
+        await _emailService.SendEmailWithAttachmentAsync(
+            to: dto.AccountantEmail.Trim(),
+            subject: dto.Subject.Trim(),
+            body: dto.Message.Trim(),
+            attachmentBytes: pdfBytes,
+            fileName: pdfFileName,
+            contentType: "application/pdf",
+            isHtml: false
+        );
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(500, new { message = $"Erreur lors de l'envoi de l'email : {ex.Message}" });
+      }
+
+      // Mark any existing pending invoice update notification as read
+      var pendingNotifs = await _context.AppNotifications
+          .Where(n => n.RelatedEntityId == id.ToString() && n.RelatedEntityType == "SalesInvoice" && !n.IsRead)
+          .ToListAsync();
+
+      foreach (var notif in pendingNotifs)
+      {
+        notif.IsRead = true;
+        notif.ViewedAt = DateTime.UtcNow;
+      }
+
+      // Audit in AppNotifications table (Type = Email)
+      var emailNotification = new AppNotification
+      {
+        Title = dto.Subject.Trim(),
+        Message = $"Facture {document.DocNumber} envoyée par email au comptable ({dto.AccountantEmail.Trim()}).",
+        Type = NotificationType.Email,
+        Priority = NotificationPriority.Normal,
+        TargetUserId = userId > 0 ? userId : null,
+        EmailRecipient = dto.AccountantEmail.Trim(),
+        EmailSent = true,
+        EmailSentAt = DateTime.UtcNow,
+        RelatedEntityId = id.ToString(),
+        RelatedEntityType = "SalesInvoice",
+        CreatedAt = DateTime.UtcNow
+      };
+      _context.AppNotifications.Add(emailNotification);
+
+      // Persist accountant email as default in AppVariable if requested
+      if (dto.SaveAsDefault)
+      {
+        var existingConfig = await _context.AppVariables
+            .FirstOrDefaultAsync(v => v.Nature == "AccountantConfig" && v.Name == "AccountantEmail");
+
+        if (existingConfig != null)
+        {
+          existingConfig.ValueText = dto.AccountantEmail.Trim();
+          existingConfig.isActive = true;
+        }
+        else
+        {
+          var newVar = new AppVariable
+          {
+            Nature = "AccountantConfig",
+            Name = "AccountantEmail",
+            ValueText = dto.AccountantEmail.Trim(),
+            isActive = true
+          };
+          _context.AppVariables.Add(newVar);
+        }
+      }
+
+      await _context.SaveChangesAsync();
+
+      return Ok(new
+      {
+        success = true,
+        message = "Facture et pièce jointe PDF envoyées avec succès au comptable.",
+        accountantEmail = dto.AccountantEmail.Trim(),
+        pdfFileName = pdfFileName
+      });
     }
 
     [HttpPost("_typefiltered")]

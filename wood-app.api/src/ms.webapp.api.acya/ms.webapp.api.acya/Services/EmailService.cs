@@ -58,5 +58,49 @@ namespace ms.webapp.api.acya.api.Services
                 throw; // Rethrow to let the caller handle persistence/retry
             }
         }
+
+        public async Task SendEmailWithAttachmentAsync(string to, string subject, string body, byte[] attachmentBytes, string fileName, string contentType = "application/pdf", bool isHtml = true)
+        {
+            try
+            {
+                var message = new MimeMessage();
+                message.From.Add(new MailboxAddress(_settings.SenderName, _settings.SenderEmail));
+                message.To.Add(MailboxAddress.Parse(to));
+                message.Subject = subject;
+
+                var bodyBuilder = new BodyBuilder
+                {
+                    TextBody = isHtml ? null : body,
+                    HtmlBody = isHtml ? body : null
+                };
+
+                if (attachmentBytes != null && attachmentBytes.Length > 0)
+                {
+                    var mediaType = ContentType.Parse(contentType);
+                    bodyBuilder.Attachments.Add(fileName, attachmentBytes, mediaType);
+                }
+
+                message.Body = bodyBuilder.ToMessageBody();
+
+                using var client = new SmtpClient();
+                await client.ConnectAsync(_settings.Server, _settings.Port, 
+                    _settings.EnableSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None);
+
+                if (!string.IsNullOrEmpty(_settings.Username))
+                {
+                    await client.AuthenticateAsync(_settings.Username, _settings.Password);
+                }
+
+                await client.SendAsync(message);
+                await client.DisconnectAsync(true);
+
+                _logger.LogInformation("Email with attachment '{FileName}' sent successfully to {Recipient}", fileName, to);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending email with attachment to {Recipient}", to);
+                throw;
+            }
+        }
     }
 }

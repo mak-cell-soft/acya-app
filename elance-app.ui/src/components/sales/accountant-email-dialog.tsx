@@ -81,6 +81,7 @@ export function AccountantEmailDialog({
   // 2. Fresh Document State (Reload latest invoice data to avoid stale notification data)
   const [freshInvoice, setFreshInvoice] = useState<Document | null>(initialInvoice || null);
   const [isLoadingInvoice, setIsLoadingInvoice] = useState<boolean>(false);
+  const [invoiceLoadError, setInvoiceLoadError] = useState<boolean>(false);
 
   // 3. Form State
   const [accountantEmail, setAccountantEmail] = useState<string>('');
@@ -153,6 +154,7 @@ export function AccountantEmailDialog({
 
     setLifecycleState('idle');
     setErrorMessage(null);
+    setInvoiceLoadError(false);
 
     // 1. Resolve prefilled accountant email:
     // Priority 1: AppVariable 'AccountantEmail' under 'AccountantConfig'
@@ -194,6 +196,7 @@ export function AccountantEmailDialog({
       })
       .catch((err) => {
         console.error('Failed to reload latest invoice data:', err);
+        if (!isCancelled) setInvoiceLoadError(true);
       })
       .finally(() => {
         if (!isCancelled) setIsLoadingInvoice(false);
@@ -266,42 +269,25 @@ export function AccountantEmailDialog({
     const cleanEmail = accountantEmail.trim();
 
     try {
-      // 1. Persist accountant email if requested
+      // 1. Client-side local persistence if requested
+      if (saveEmailForFuture && typeof window !== 'undefined') {
+        localStorage.setItem('acya_accountant_email', cleanEmail);
+      }
+
+      // 2. Dispatch email via Phase 3 backend endpoint
+      const response = await documentService.sendToAccountant(invoiceId, {
+        accountantEmail: cleanEmail,
+        subject: subject.trim(),
+        message: message.trim(),
+        saveAsDefault: saveEmailForFuture
+      });
+
       if (saveEmailForFuture) {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('acya_accountant_email', cleanEmail);
-        }
-
-        const existingVar = accountantConfigs.find(
-          (v) => v.name.toLowerCase() === 'accountantemail'
-        );
-
-        if (existingVar) {
-          if (existingVar.value !== cleanEmail) {
-            await appVariableService.put(existingVar.id, {
-              ...existingVar,
-              value: cleanEmail,
-              isactive: true
-            });
-          }
-        } else {
-          await appVariableService.addAppVariable({
-            name: 'AccountantEmail',
-            value: cleanEmail,
-            nature: 'AccountantConfig',
-            isactive: true
-          });
-        }
         refetchAccountantConfig();
       }
 
-      // 2. Architectural slot for Phase 3:
-      // In Phase 3, trigger backend accountant email dispatch:
-      // await salesInvoiceService.sendToAccountant(invoiceId, { recipient: cleanEmail, subject, message, ... });
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
       setLifecycleState('success');
-      toast.success("Confirmation effectuée. L'email au comptable est prêt.");
+      toast.success(response?.message || "Facture envoyée avec succès au comptable.");
 
       if (onEmailConfirmed) {
         onEmailConfirmed({
@@ -312,10 +298,10 @@ export function AccountantEmailDialog({
         });
       }
     } catch (err: any) {
-      console.error('Error confirming accountant email:', err);
+      console.error('Error sending accountant email:', err);
       setLifecycleState('error');
       setErrorMessage(
-        err?.message || "Une erreur est survenue lors de la préparation de l'email."
+        err?.response?.data?.message || err?.message || "Une erreur est survenue lors de l'envoi de l'email."
       );
     }
   };
@@ -369,20 +355,33 @@ export function AccountantEmailDialog({
                 </div>
                 <div className="space-y-1.5 max-w-md mx-auto">
                   <h3 className="text-base font-extrabold text-emerald-950">
-                    ✓ Email au comptable prêt à être envoyé
+                    ✓ Facture transmise au comptable
                   </h3>
-                  <p className="text-xs text-emerald-800 leading-relaxed">
-                    La facture de vente <span className="font-mono font-bold text-slate-900">{effectiveInvoiceNumber}</span> sera adressée à <span className="font-semibold underline text-slate-900">{accountantEmail}</span>.
+                  <p className="text-xs text-emerald-800 font-medium">
+                    La facture de vente et sa pièce jointe PDF ont été envoyées avec succès.
                   </p>
                 </div>
 
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white border border-emerald-200 text-xs text-slate-700 font-medium shadow-2xs">
-                  <FileText className="w-4 h-4 text-emerald-600" />
-                  <span>Pièce jointe : <strong className="font-mono">{pdfFileName}</strong></span>
+                <div className="max-w-md mx-auto bg-white/90 border border-emerald-200 rounded-xl p-3.5 text-left space-y-2.5 text-xs shadow-2xs">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                      Destinataire :
+                    </span>
+                    <span className="font-semibold text-slate-900 block mt-0.5">{accountantEmail}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                      Pièce jointe transmise :
+                    </span>
+                    <span className="font-mono font-medium text-slate-800 flex items-center gap-1.5 mt-0.5">
+                      <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                      {pdfFileName}
+                    </span>
+                  </div>
                 </div>
 
                 <p className="text-[11px] text-slate-400 italic">
-                  Confirmation enregistrée. L&apos;envoi automatique sera déclenché via le service de messagerie existant.
+                  L&apos;email et le PDF généré ont été transmis avec succès via le service SMTP de l&apos;entreprise.
                 </p>
 
                 <div className="pt-2">
@@ -431,6 +430,17 @@ export function AccountantEmailDialog({
             ) : (
               /* C. FORM VIEW */
               <>
+                {/* Invoice Load Error Warning */}
+                {invoiceLoadError && !freshInvoice && (
+                  <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="font-bold block">Impossible de charger la facture.</strong>
+                      <p className="mt-0.5 text-amber-800 font-medium">La facture n&apos;est peut-être plus disponible.</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* 1. Compact Invoice Information Card */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/70 text-xs">
                   <div>
@@ -478,7 +488,7 @@ export function AccountantEmailDialog({
                     </label>
                     {accountantEmail && !isValidEmail && (
                       <span className="text-[11px] text-rose-500 font-medium flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" /> Adresse email invalide
+                        <AlertCircle className="w-3 h-3" /> Veuillez saisir une adresse email valide.
                       </span>
                     )}
                     {isValidEmail && (
@@ -504,8 +514,8 @@ export function AccountantEmailDialog({
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   </div>
                   {!accountantEmail.trim() && (
-                    <p className="text-[11px] text-slate-400">
-                      L&apos;adresse email du comptable est requise pour la transmission des pièces comptables.
+                    <p className="text-[11px] text-rose-500 font-medium flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> L&apos;adresse email du comptable est requise.
                     </p>
                   )}
                 </div>
@@ -644,12 +654,12 @@ export function AccountantEmailDialog({
                 {lifecycleState === 'sending' ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-white" />
-                    Préparation en cours...
+                    Envoi en cours...
                   </>
                 ) : (
                   <>
                     <Send className="w-4 h-4 text-indigo-200" />
-                    Confirmer l&apos;email
+                    Envoyer au comptable
                   </>
                 )}
               </Button>
