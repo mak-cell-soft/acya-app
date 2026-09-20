@@ -382,9 +382,10 @@ function NavbarSearch() {
 }
 
 import { useNotifications } from '@/hooks/use-notifications';
-import { Truck as TruckIcon, AlertTriangle as AlertIcon, Info as InfoIcon, Check as CheckIcon, RefreshCw, Eye } from 'lucide-react';
+import { Truck as TruckIcon, AlertTriangle as AlertIcon, Info as InfoIcon, Check as CheckIcon, RefreshCw, Eye, Mail as MailIcon } from 'lucide-react';
 
 function NavbarNotifications() {
+  const router = useRouter();
   const { 
     notifications, 
     systemNotifications, 
@@ -566,6 +567,23 @@ function NavbarNotifications() {
                       <p className="text-[10px] text-zinc-500 mt-0.5 leading-normal">
                         {notif.message}
                       </p>
+
+                      {notif.relatedEntityType === 'SalesInvoice' && notif.relatedEntityId && (
+                        <div className="mt-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markAsRead(notif.id);
+                              router.push(`/sales/invoice/${notif.relatedEntityId}/edit?action=accountant-email`);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-semibold rounded-lg bg-corp-blue-600 hover:bg-corp-blue-700 text-white shadow-xs transition cursor-pointer"
+                          >
+                            <MailIcon className="h-3 w-3" /> Confirmer l'email du comptable
+                          </button>
+                        </div>
+                      )}
+
                       <span className="text-[9px] text-zinc-400 font-medium block mt-1">
                         {new Date(notif.createdAt).toLocaleDateString('fr-FR')} à {new Date(notif.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                       </span>

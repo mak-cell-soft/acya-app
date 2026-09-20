@@ -238,10 +238,42 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         message: notif.message,
         type: notif.type || NotificationType.Info,
         createdAt: notif.createdAt || new Date().toISOString(),
-        isRead: false
+        isRead: false,
+        relatedEntityId: notif.relatedEntityId,
+        relatedEntityType: notif.relatedEntityType
       };
 
       setSystemNotifications(prev => [appNotif, ...prev]);
+
+      // If SalesInvoice accountant notification, show action toast
+      if (appNotif.relatedEntityType === 'SalesInvoice' && appNotif.relatedEntityId) {
+        toast.custom((t) => (
+          <div className="flex w-full max-w-md items-start justify-between rounded-xl border border-corp-blue-800/10 bg-white p-4 shadow-xl ring-1 ring-black/5 dark:bg-zinc-950">
+            <div className="flex-1 pr-2">
+              <h4 className="font-semibold text-corp-blue-800 dark:text-corp-blue-400 text-sm">{appNotif.title}</h4>
+              <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1">{appNotif.message}</p>
+            </div>
+            <div className="flex flex-col gap-1.5 shrink-0">
+              <button
+                onClick={() => {
+                  toast.dismiss(t);
+                  window.location.href = `/sales/invoice/${appNotif.relatedEntityId}/edit?action=accountant-email`;
+                }}
+                className="rounded-lg bg-corp-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-corp-blue-700 transition"
+              >
+                Confirmer l'email
+              </button>
+              <button
+                onClick={() => toast.dismiss(t)}
+                className="rounded-lg border border-zinc-200 px-2.5 py-1 text-[11px] font-medium text-zinc-500 hover:bg-zinc-50 transition"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        ), { duration: 10000 });
+        return;
+      }
 
       switch (appNotif.type) {
         case NotificationType.Success:

@@ -27,7 +27,8 @@ import {
   Coins,
   AlertCircle,
   UserCheck,
-  RotateCcw
+  RotateCcw,
+  Mail
 } from 'lucide-react';
 import { useDocumentById, useUpdateDocument } from '@/hooks/use-documents';
 import { Button } from '@/components/ui/button';
@@ -83,6 +84,7 @@ import { PaymentModal } from '@/components/sales/payment-modal';
 import { GlassSurfaceDialog } from '@/components/shared/glass-surface-dialog';
 import { PassengerCustomerModal } from '@/components/sales/passenger-customer-modal';
 import { TransporterModal } from '@/components/sales/transporter-modal';
+import { AccountantEmailDialog } from '@/components/sales/accountant-email-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /**
@@ -175,6 +177,16 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
     workflowVars.some(v => v.name === 'AutoPaymentOnInvoice' && v.isactive);
 
   const isRSBlockingEnabled = workflowVars.some(v => v.name === 'InvoiceWithoutRSBlocking' && v.isactive);
+
+  // Accountant Email Confirmation Dialog state (triggered by notification or manual action)
+  const actionParam = searchParams.get('action');
+  const [isAccountantEmailOpen, setIsAccountantEmailOpen] = useState(actionParam === 'accountant-email');
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'accountant-email') {
+      setIsAccountantEmailOpen(true);
+    }
+  }, [searchParams]);
 
   // 2. Active Site Selection based on logged-in user default site ID
   const activeUserSite = useMemo(() => {
@@ -1383,9 +1395,23 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                 </p>
               </div>
             </div>
-            <Badge variant="outline" className="bg-amber-100 text-amber-900 border-amber-300 font-bold text-xs">
-              {editingDoc?.docstatus === DocStatus.Validated ? 'Validé' : 'Brouillon'}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-amber-100 text-amber-900 border-amber-300 font-bold text-xs">
+                {editingDoc?.docstatus === DocStatus.Validated ? 'Validé' : 'Brouillon'}
+              </Badge>
+              {docType === DocumentTypes.customerInvoice && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsAccountantEmailOpen(true)}
+                  className="h-8 gap-1.5 bg-white hover:bg-amber-50 text-amber-900 border-amber-300 font-bold text-xs shadow-xs cursor-pointer"
+                >
+                  <Mail className="w-3.5 h-3.5 text-amber-600" />
+                  Envoyer au comptable
+                </Button>
+              )}
+            </div>
           </div>
         )}
 
@@ -2563,6 +2589,16 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
           );
         }}
       />
+
+      {/* Accountant Email Confirmation Dialog */}
+      {docType === DocumentTypes.customerInvoice && editDocumentId && editDocumentId > 0 && (
+        <AccountantEmailDialog
+          isOpen={isAccountantEmailOpen}
+          onClose={() => setIsAccountantEmailOpen(false)}
+          invoiceId={editDocumentId}
+          initialInvoice={editingDoc}
+        />
+      )}
 
     </DashboardLayout>
   );

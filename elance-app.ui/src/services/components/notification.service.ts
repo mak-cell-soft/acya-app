@@ -14,6 +14,8 @@ export interface AppNotification {
   type: NotificationType;
   createdAt: string;
   isRead: boolean;
+  relatedEntityId?: string;
+  relatedEntityType?: string;
 }
 
 export interface TransferNotification {

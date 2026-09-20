@@ -24,7 +24,8 @@ namespace ms.webapp.api.acya.api.Controllers
     private readonly IBalanceService _balanceService;
     private readonly IApprovalService _approvalService;
     private readonly IPdfGenerationService _pdfService;
-    public DocumentController(DocumentRepository repository, MerchandiseRepository merchandiseRepository, StockRepository stockRepository, WoodAppContext context, IAccountService accountService, IBalanceService balanceService, IApprovalService approvalService, IPdfGenerationService pdfService)
+    private readonly IAppNotificationService _notificationService;
+    public DocumentController(DocumentRepository repository, MerchandiseRepository merchandiseRepository, StockRepository stockRepository, WoodAppContext context, IAccountService accountService, IBalanceService balanceService, IApprovalService approvalService, IPdfGenerationService pdfService, IAppNotificationService notificationService)
     {
       _repository = repository;
       _merchandiseRepository = merchandiseRepository;
@@ -34,6 +35,7 @@ namespace ms.webapp.api.acya.api.Controllers
       _balanceService = balanceService;
       _approvalService = approvalService;
       _pdfService = pdfService;
+      _notificationService = notificationService;
     }
 
     [HttpGet("_type")]
@@ -1914,6 +1916,45 @@ namespace ms.webapp.api.acya.api.Controllers
                   await _balanceService.UpdateCustomerBalanceAsync(doc.CounterPartId ?? 0, lastTxType, DateTime.UtcNow);
               else
                   await _balanceService.UpdateSupplierBalanceAsync(doc.CounterPartId ?? 0, lastTxType, DateTime.UtcNow);
+          }
+
+          // Trigger admin notification if a customer sales invoice was updated
+          if (doc.Type == DocumentTypes.customerInvoice)
+          {
+              try
+              {
+                  string invoiceRef = !string.IsNullOrWhiteSpace(doc.DocNumber) ? doc.DocNumber : $"FAC-#{doc.Id}";
+                  string title = "Facture de vente mise à jour";
+                  string message = $"La facture N° {invoiceRef} a été mise à jour. Un email doit être envoyé au comptable. Veuillez confirmer son adresse email.";
+
+                  // Deduplication: check if an unread notification for this specific invoice already exists
+                  var existingNotif = await _context.AppNotifications
+                      .FirstOrDefaultAsync(n => n.RelatedEntityId == doc.Id.ToString() && n.RelatedEntityType == "SalesInvoice" && !n.IsRead);
+
+                  if (existingNotif != null)
+                  {
+                      existingNotif.Title = title;
+                      existingNotif.Message = message;
+                      existingNotif.CreatedAt = DateTime.UtcNow;
+                      await _context.SaveChangesAsync();
+                  }
+                  else
+                  {
+                      await _notificationService.NotifyAsync(
+                          title: title,
+                          message: message,
+                          type: NotificationType.Info,
+                          priority: NotificationPriority.Normal,
+                          targetRole: "Admin",
+                          relatedEntityId: doc.Id.ToString(),
+                          relatedEntityType: "SalesInvoice"
+                      );
+                  }
+              }
+              catch
+              {
+                  // Non-blocking: notification dispatch failure must not fail the invoice update transaction
+              }
           }
 
           return Ok(new { message = "Document updated successfully" });
