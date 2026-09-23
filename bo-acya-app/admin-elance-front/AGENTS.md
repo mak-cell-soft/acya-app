@@ -1,5 +1,10 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
+# Admin Frontend Agent Context
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
+> [!NOTE]
+> The primary agent instruction file for the Backoffice suite (both admin frontend and backend) is located at **[../AGENTS.md](../AGENTS.md)**.
+> Please refer to `../AGENTS.md` for platform architecture, provisioning workflows, and commands.
+
+## Quick Summary
+- **Framework:** Next.js 16 (App Router), React 19, Tailwind CSS 4, Lucide React.
+- **Role:** SuperAdmin UI for tenant provisioning, billing, and system monitoring.
+- **Commands:** `npm run dev`, `npm run build`, `npm run lint`.
