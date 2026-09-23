@@ -45,6 +45,24 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+/**
+ * Calculates the display status for a stock item based on current business rules.
+ * Centralized logic reused for dynamic status options, filtering, and table status rendering.
+ */
+export function getStockStatus(stock: Stock | any): string {
+  if (!stock) return '—';
+  if (stock.status && typeof stock.status === 'string') return stock.status;
+  if (stock.statut && typeof stock.statut === 'string') return stock.statut;
+
+  const isAlert = typeof stock.minimumstock === 'number' && stock.minimumstock > 0 && typeof stock.quantity === 'number' && stock.quantity <= stock.minimumstock;
+  const isCritical = stock.quantity === 0;
+
+  if (isCritical) return 'Rupture';
+  if (isAlert) return 'Seuil Alerte';
+  if (typeof stock.quantity === 'number') return 'Optimal';
+  return '—';
+}
+
 export function StockListByCategory() {
   const queryClient = useQueryClient();
   const { data: allStocks = [], isLoading, error } = useStockAll();
@@ -62,10 +80,32 @@ export function StockListByCategory() {
     }
   };
 
-  // Search input filtering
+  // Search and status input filtering
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSiteId, setSelectedSiteId] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [hideZeroStock, setHideZeroStock] = useState<boolean>(true);
+
+  // Dynamic distinct status options derived from actual stock data
+  const statusOptions = useMemo(() => {
+    const set = new Set<string>();
+    allStocks.forEach((s: any) => {
+      const status = getStockStatus(s);
+      if (status && status !== '—') {
+        set.add(status);
+      }
+    });
+
+    const preferredOrder = ['Optimal', 'Seuil Alerte', 'Rupture'];
+    return Array.from(set).sort((a, b) => {
+      const idxA = preferredOrder.indexOf(a);
+      const idxB = preferredOrder.indexOf(b);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return a.localeCompare(b);
+    });
+  }, [allStocks]);
 
   // Fetch sales sites list for select dropdown
   const { data: allSites = [] } = useSites();
@@ -99,8 +139,16 @@ export function StockListByCategory() {
         return false;
       }
 
-      // 3. Hide zero stock filter
-      if (hideZeroStock && s.quantity === 0) {
+      // 3. Status filter
+      if (selectedStatus !== 'all') {
+        const itemStatus = getStockStatus(s);
+        if (itemStatus !== selectedStatus) {
+          return false;
+        }
+      }
+
+      // 4. Hide zero stock filter (unless Rupture status is specifically selected)
+      if (hideZeroStock && s.quantity === 0 && selectedStatus !== 'Rupture') {
         return false;
       }
 
@@ -137,14 +185,14 @@ export function StockListByCategory() {
         unitTotals
       };
     });
-  }, [allStocks, searchQuery, selectedSiteId, hideZeroStock]);
+  }, [allStocks, searchQuery, selectedSiteId, hideZeroStock, selectedStatus]);
 
   // Total count of current filtered stock rows
   const totalFilteredItemsCount = useMemo(() => {
     return groupedCategories.reduce((acc, g) => acc + g.stocks.length, 0);
   }, [groupedCategories]);
 
-  const isFiltered = searchQuery.trim() !== '' || selectedSiteId !== 'all' || !hideZeroStock;
+  const isFiltered = searchQuery.trim() !== '' || selectedSiteId !== 'all' || !hideZeroStock || selectedStatus !== 'all';
 
   // Handle printing the whole (or filtered) stock inventory
   const handlePrintWholeStock = async () => {
@@ -392,6 +440,32 @@ export function StockListByCategory() {
             </Select>
           </div>
 
+          {/* STATUT Selection Filter */}
+          <div className="w-full sm:w-[185px]">
+            <Select value={selectedStatus} onValueChange={(val: string | null) => setSelectedStatus(val || 'all')}>
+              <SelectTrigger className="h-10 text-xs bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-850 rounded-xl font-semibold focus:ring-amber-500/20">
+                <SelectValue placeholder="STATUT : Tous">
+                  <span className="flex items-center gap-1.5 truncate">
+                    <span className="text-stone-400 font-normal uppercase text-[10px] tracking-wider">Statut :</span>
+                    <span className="font-semibold text-stone-800 dark:text-stone-200">
+                      {selectedStatus === 'all' ? 'Tous' : selectedStatus}
+                    </span>
+                  </span>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="text-xs font-semibold">
+                  Tous
+                </SelectItem>
+                {statusOptions.map((st) => (
+                  <SelectItem key={st} value={st} className="text-xs font-semibold">
+                    {st}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Hide Zero Stock Toggle */}
           <Button
             type="button"
@@ -529,8 +603,9 @@ export function StockListByCategory() {
                     </thead>
                     <tbody className="divide-y divide-stone-100 dark:divide-stone-850">
                       {group.stocks.map((stock) => {
-                        const isAlert = stock.minimumstock > 0 && stock.quantity <= stock.minimumstock;
-                        const isCritical = stock.quantity === 0;
+                        const itemStatus = getStockStatus(stock);
+                        const isAlert = itemStatus === 'Seuil Alerte';
+                        const isCritical = itemStatus === 'Rupture';
 
                         return (
                           <tr 
@@ -596,10 +671,16 @@ export function StockListByCategory() {
                                 <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-900 text-[9px] uppercase font-bold tracking-wider">
                                   Seuil Alerte
                                 </Badge>
-                              ) : (
+                              ) : itemStatus === 'Optimal' ? (
                                 <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 text-[9px] uppercase font-bold tracking-wider">
                                   Optimal
                                 </Badge>
+                              ) : itemStatus !== '—' ? (
+                                <Badge className="bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 border border-stone-200 dark:border-stone-700 text-[9px] uppercase font-bold tracking-wider">
+                                  {itemStatus}
+                                </Badge>
+                              ) : (
+                                <span className="text-stone-300 italic">—</span>
                               )}
                             </td>
 
