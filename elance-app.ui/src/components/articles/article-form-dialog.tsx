@@ -38,16 +38,19 @@ import {
   TreeDeciduous, 
   Calculator,
   LayoutGrid,
-  Info
+  Info,
+  Layers,
+  Wrench
 } from "lucide-react";
 import { useCategories } from "@/hooks/use-categories";
 import { useAppVariables } from "@/hooks/use-app-variables";
 import { useAuthStore } from "@/store/use-auth-store";
-import { Article, QuantityUnits } from "@/types/article";
+import { Article, ArticleType, QuantityUnits } from "@/types/article";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 const articleSchema = z.object({
+  type: z.coerce.number().default(ArticleType.Merchandise),
   reference: z.string().min(1, "La référence est requise"),
   description: z.string().min(1, "La désignation est requise"),
   categoryid: z.string().min(1, "La catégorie est requise"),
@@ -91,6 +94,7 @@ export function ArticleFormDialog({
   const form = useForm<ArticleFormValues>({
     resolver: zodResolver(articleSchema) as any,
     defaultValues: {
+      type: ArticleType.Merchandise,
       reference: "",
       description: "",
       categoryid: "",
@@ -106,6 +110,8 @@ export function ArticleFormDialog({
     },
   });
 
+  const selectedType = form.watch("type");
+  const isService = Number(selectedType) === ArticleType.Service;
   const selectedCategoryId = form.watch("categoryid");
   const selectedPriceTTC = form.watch("sellprice_ttc");
   const selectedTvaId = form.watch("tvaid");
@@ -113,7 +119,7 @@ export function ArticleFormDialog({
   // Derive whether the selected category is a wood category by checking its description,
   // NOT by hardcoded ID. This prevents false-positives on new tenants whose non-wood
   // categories happen to get ID=1 in a freshly-created table.
-  const isWoodCategory = !!(
+  const isWoodCategory = !isService && !!(
     selectedCategoryId &&
     categories?.find(c => c.id.toString() === selectedCategoryId)
               ?.description?.toLowerCase().includes('bois')
@@ -124,6 +130,7 @@ export function ArticleFormDialog({
     if (isOpen) {
       if (editArticle) {
         form.reset({
+          type: editArticle.type ?? ArticleType.Merchandise,
           reference: editArticle.reference,
           description: editArticle.description,
           categoryid: editArticle.categoryid.toString(),
@@ -150,6 +157,7 @@ export function ArticleFormDialog({
         }
       } else {
         form.reset({
+          type: ArticleType.Merchandise,
           reference: "",
           description: "",
           categoryid: "",
@@ -240,17 +248,20 @@ export function ArticleFormDialog({
 
   const onSubmit = (values: ArticleFormValues) => {
     const isBd = isBdSubcategory;
+    const isServiceArt = Number(values.type) === ArticleType.Service;
     const model = {
       ...values,
       id: editArticle?.id,
+      type: Number(values.type),
       categoryid: parseInt(values.categoryid),
       subcategoryid: parseInt(values.subcategoryid),
       tvaid: parseInt(values.tvaid),
-      thicknessid: values.thicknessid ? parseInt(values.thicknessid) : null,
-      widthid: isBd ? null : (values.widthid ? parseInt(values.widthid) : null),
+      thicknessid: isServiceArt ? null : (values.thicknessid ? parseInt(values.thicknessid) : null),
+      widthid: isServiceArt ? null : (isBd ? null : (values.widthid ? parseInt(values.widthid) : null)),
       sellprice_ht: calculatedHT,
-      iswood: isWoodCategory,
-      lengths: (isWoodCategory && !isBd) ? `[${selectedLengths.join(', ')}]` : "[]",
+      iswood: isServiceArt ? false : isWoodCategory,
+      lengths: (!isServiceArt && isWoodCategory && !isBd) ? `[${selectedLengths.join(', ')}]` : "[]",
+      minquantity: isServiceArt ? 0 : values.minquantity,
       updatedby: currentUserId,
     };
     onSave(model);
@@ -332,6 +343,63 @@ export function ArticleFormDialog({
 
                 {/* Form Fields */}
                 <div className="md:col-span-4 space-y-6">
+                  {/* Article Type Selector */}
+                  <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem className="space-y-2">
+                        <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Type d'Article</FormLabel>
+                        <div className="grid grid-cols-2 gap-4">
+                          <label
+                            className={cn(
+                              "flex items-center justify-center gap-2.5 p-3 rounded-xl border cursor-pointer font-bold text-xs transition-all",
+                              Number(field.value) === ArticleType.Merchandise
+                                ? "bg-corp-blue-50/80 border-corp-blue-600 text-corp-blue-900 shadow-sm"
+                                : "bg-white border-corp-blue-100 text-sand-500 hover:bg-corp-blue-50/20"
+                            )}
+                          >
+                            <input
+                              type="radio"
+                              name="articleTypeSelection"
+                              className="sr-only"
+                              checked={Number(field.value) === ArticleType.Merchandise}
+                              onChange={() => {
+                                field.onChange(ArticleType.Merchandise);
+                                form.setValue("unit", "PCS");
+                              }}
+                            />
+                            <Package className="w-4 h-4 text-corp-blue-600" />
+                            <span>Marchandise <small className="text-sand-400 font-normal">(avec stock)</small></span>
+                          </label>
+
+                          <label
+                            className={cn(
+                              "flex items-center justify-center gap-2.5 p-3 rounded-xl border cursor-pointer font-bold text-xs transition-all",
+                              Number(field.value) === ArticleType.Service
+                                ? "bg-indigo-50 border-indigo-600 text-indigo-900 shadow-sm"
+                                : "bg-white border-corp-blue-100 text-sand-500 hover:bg-indigo-50/20"
+                            )}
+                          >
+                            <input
+                              type="radio"
+                              name="articleTypeSelection"
+                              className="sr-only"
+                              checked={Number(field.value) === ArticleType.Service}
+                              onChange={() => {
+                                field.onChange(ArticleType.Service);
+                                form.setValue("unit", "FORFAIT");
+                              }}
+                            />
+                            <Layers className="w-4 h-4 text-indigo-600" />
+                            <span>Service <small className="text-indigo-400 font-normal">(sans stock)</small></span>
+                          </label>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
@@ -605,38 +673,59 @@ export function ArticleFormDialog({
                   name="unit"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Unité</FormLabel>
+                      <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">
+                        {isService ? "Unité de facturation" : "Unité"}
+                      </FormLabel>
                       <Select onValueChange={field.onChange} value={field.value} disabled={isWoodCategory}>
                         <FormControl>
                           <SelectTrigger className="font-bold">
                             <SelectValue placeholder="Unité">
-                              {field.value ? Object.values(QuantityUnits).find(u => u.split(" - ")[0].toUpperCase() === field.value) : undefined}
+                              {field.value}
                             </SelectValue>
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl">
-                          {Object.values(QuantityUnits).map((unit) => (
-                            <SelectItem key={unit} value={unit.split(" - ")[0].toUpperCase()}>{unit}</SelectItem>
-                          ))}
+                          {isService ? (
+                            <>
+                              <SelectItem value="FORFAIT">FORFAIT - Forfait</SelectItem>
+                              <SelectItem value="HEURE">HEURE - Heure</SelectItem>
+                              <SelectItem value="JOUR">JOUR - Jour</SelectItem>
+                              <SelectItem value="PCS">PCS - Pièces</SelectItem>
+                              <SelectItem value="PRESTATION">PRESTATION - Prestation</SelectItem>
+                              <SelectItem value="MOIS">MOIS - Mois</SelectItem>
+                              <SelectItem value="KM">KM - Kilomètre</SelectItem>
+                            </>
+                          ) : (
+                            Object.values(QuantityUnits).map((unit) => (
+                              <SelectItem key={unit} value={unit.split(" - ")[0].toUpperCase()}>{unit}</SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="minquantity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Quantité Min.</FormLabel>
-                      <FormControl>
-                        <Input type="number" className="font-bold" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {!isService ? (
+                  <FormField
+                    control={form.control}
+                    name="minquantity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Quantité Min.</FormLabel>
+                        <FormControl>
+                          <Input type="number" className="font-bold" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <div className="flex flex-col justify-center rounded-2xl bg-indigo-50/50 border border-indigo-100/60 p-3">
+                    <span className="text-[0.65rem] font-bold uppercase tracking-wider text-indigo-700">Stock & Réappro</span>
+                    <span className="text-xs font-medium text-indigo-900 mt-0.5">Non géré en stock (Service)</span>
+                  </div>
+                )}
                 <FormField
                   control={form.control}
                   name="profitmarginpercentage"

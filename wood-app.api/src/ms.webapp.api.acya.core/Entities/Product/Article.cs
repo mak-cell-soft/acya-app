@@ -1,4 +1,5 @@
 using System.Collections;
+using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities.Categories;
 using ms.webapp.api.acya.core.Entities.DTOs;
 using ms.webapp.api.acya.core.Interfaces;
@@ -8,6 +9,7 @@ namespace ms.webapp.api.acya.core.Entities.Product
   public class Article : IEntity, IAuditable
   {
     public int Id { get; set; }
+    public ArticleType Type { get; set; } = ArticleType.Merchandise;
     public string? Reference { get; set; }
     public string? Description { get; set; }
     public bool IsWood { get; set; }
@@ -97,6 +99,7 @@ namespace ms.webapp.api.acya.core.Entities.Product
       ParentId = dto.categoryid;
       FirstChildId = dto.subcategoryid;
       ImageUrl = dto.imageurl;
+      Type = dto.type;
     }
 
   }

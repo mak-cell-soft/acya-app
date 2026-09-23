@@ -76,7 +76,7 @@ import { useArticles } from '@/hooks/use-articles';
 import { TablePagination } from '@/components/shared/table-pagination';
 import { documentService } from '@/services/components/document.service';
 import { DocumentTypes, DocStatus, BillingStatus, Document, PurchaseSearchFilter } from '@/types/document';
-import { Article } from '@/types/article';
+import { Article, ArticleType } from '@/types/article';
 
 // Shared / Modular Components
 import { DocumentDetailDrawer } from '@/components/sales/document-detail-drawer';
@@ -238,7 +238,11 @@ export default function PurchasesPage() {
   const { data: suppliers = [] } = useSuppliers();
 
   // Fetch catalog articles for Deep Search article/merchandise picker
-  const { data: allArticles = [] } = useArticles();
+  const { data: rawArticles = [] } = useArticles();
+  const allArticles = useMemo(
+    () => rawArticles.filter(art => Number(art.type) !== ArticleType.Service),
+    [rawArticles]
+  );
 
   // Filtered articles list based on user search term in Deep Search panel
   const filteredArticlesForSearch = useMemo(() => {

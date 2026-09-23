@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities.Dtos.Config;
 using ms.webapp.api.acya.core.Entities.DTOs.Authentication;
 using ms.webapp.api.acya.core.Entities.DTOs.Config;
@@ -10,6 +11,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public class ArticleDto
   {
     public int? id { get; set; }
+    public ArticleType type { get; set; } = ArticleType.Merchandise;
     public string? reference { get; set; }
     public string? description { get; set; }
     public int categoryid { get; set; }
@@ -47,6 +49,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public void UpdateFromEntity(Article entity)
     {
       id = entity.Id;
+      type = entity.Type;
       reference = entity.Reference;
       description = entity.Description;
       iswood = entity.IsWood; 

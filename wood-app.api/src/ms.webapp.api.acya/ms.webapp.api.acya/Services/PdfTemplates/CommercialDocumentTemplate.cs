@@ -131,8 +131,15 @@ namespace ms.webapp.api.acya.api.Services.PdfTemplates
                 {
                     foreach (var item in _model.merchandises)
                     {
-                        table.Cell().Element(CellStyle).Text(item.packagereference ?? "-");
-                        table.Cell().Element(CellStyle).Text(item.description ?? "-");
+                        string refText = (!string.IsNullOrEmpty(item.packagereference) && item.packagereference != "SERVICE") 
+                            ? item.packagereference 
+                            : (item.article?.reference ?? item.packagereference ?? "-");
+                        string descText = !string.IsNullOrEmpty(item.description) 
+                            ? item.description 
+                            : (item.article?.description ?? "-");
+
+                        table.Cell().Element(CellStyle).Text(refText);
+                        table.Cell().Element(CellStyle).Text(descText);
                         table.Cell().Element(CellStyle).AlignRight().Text(item.quantity.ToString("N3"));
                         table.Cell().Element(CellStyle).AlignRight().Text(item.unit_price_ht.ToString("N3"));
                         table.Cell().Element(CellStyle).AlignRight().Text($"{item.tva_value:N3}");

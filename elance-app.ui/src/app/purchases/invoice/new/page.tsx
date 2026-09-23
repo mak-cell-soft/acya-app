@@ -51,7 +51,7 @@ import { merchandiseService } from '@/services/components/merchandise.service';
 import { exchangeRateService } from '@/services/components/exchange-rate.service';
 import { DocumentTypes, DocStatus, BillingStatus, LineType, ListOfLength } from '@/types/document';
 import { DEVISES } from '@/lib/constants/settings';
-import { Article } from '@/types/article';
+import { Article, ArticleType } from '@/types/article';
 import { Supplier } from '@/types/customer';
 import { Transporter } from '@/types/settings';
 import { toast } from 'sonner';
@@ -109,7 +109,11 @@ function NewSupplierInvoicePageContent() {
   // 1. Core Data Hooks
   const { data: allSuppliers = [], isLoading: isLoadingSuppliers } = useSuppliers();
   const { data: allTransporters = [], isLoading: isLoadingTransporters } = useTransporters();
-  const { data: allArticles = [], isLoading: isLoadingArticles } = useArticles();
+  const { data: rawArticles = [], isLoading: isLoadingArticles } = useArticles();
+  const allArticles = useMemo(
+    () => rawArticles.filter(art => Number(art.type) !== ArticleType.Service),
+    [rawArticles]
+  );
   const { data: allSites = [] } = useSites();
   const { data: allTvas = [] } = useAppVariables('Tva');
 

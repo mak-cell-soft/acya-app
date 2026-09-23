@@ -932,6 +932,28 @@ namespace ms.webapp.api.acya.api.Controllers
               return BadRequest("All merchandise lines must have an article ID.");
             }
 
+            var isSupplierDoc = doc.Type == DocumentTypes.supplierOrder 
+                || doc.Type == DocumentTypes.supplierReceipt 
+                || doc.Type == DocumentTypes.supplierInvoice 
+                || doc.Type == DocumentTypes.supplierInvoiceReturn 
+                || doc.Type == DocumentTypes.supplierMerchandiseReturn;
+
+            var articleIds = dto.merchandises
+                .Where(m => m.article?.id > 0)
+                .Select(m => m.article!.id!.Value)
+                .Distinct()
+                .ToList();
+
+            var articlesDict = await _context.Articles
+                .Where(a => articleIds.Contains(a.Id))
+                .ToDictionaryAsync(a => a.Id, a => a);
+
+            if (isSupplierDoc && dto.merchandises.Any(m => m.article?.id > 0 && articlesDict.TryGetValue(m.article!.id!.Value, out var art) && art.Type == ArticleType.Service))
+            {
+                await transaction.RollbackAsync();
+                return BadRequest("Un article de type Service ne peut pas faire l'objet d'un achat ou d'un document fournisseur.");
+            }
+
             // Get existing merchandises by matching ArticleId and PackageReference
             var existingMerchandiseIds = await _merchandiseRepository.GetIdsByPackageReference(dto);
             var existingMerchandises = await _merchandiseRepository.GetByIdsAsync(existingMerchandiseIds);
@@ -954,6 +976,20 @@ namespace ms.webapp.api.acya.api.Controllers
             {
               // Skip if no article (should be validated earlier)
               if (merchDto.article == null) continue;
+
+              bool isService = (merchDto.article.type == ArticleType.Service) || 
+                               (articlesDict.TryGetValue(merchDto.article.id!.Value, out var matchedArt) && matchedArt.Type == ArticleType.Service);
+
+              if (isService)
+              {
+                if (string.IsNullOrWhiteSpace(merchDto.packagereference))
+                {
+                  merchDto.packagereference = "SERVICE";
+                }
+                merchDto.allownegativstock = true;
+                merchDto.isinvoicible = true;
+                merchDto.lisoflengths = new ListOflengthDto[0];
+              }
 
               Merchandise? merchandise;
 
@@ -1819,6 +1855,29 @@ namespace ms.webapp.api.acya.api.Controllers
         return BadRequest("Invalid updatedbyid: The specified user does not exist.");
       }
 
+      var isSupplierDoc = dto.type == DocumentTypes.supplierOrder 
+          || dto.type == DocumentTypes.supplierReceipt 
+          || dto.type == DocumentTypes.supplierInvoice 
+          || dto.type == DocumentTypes.supplierInvoiceReturn 
+          || dto.type == DocumentTypes.supplierMerchandiseReturn;
+
+      if (dto.merchandises != null && isSupplierDoc)
+      {
+          var articleIds = dto.merchandises
+              .Where(m => m.article?.id > 0)
+              .Select(m => m.article!.id!.Value)
+              .Distinct()
+              .ToList();
+
+          var hasService = await _context.Articles
+              .AnyAsync(a => articleIds.Contains(a.Id) && a.Type == ArticleType.Service);
+
+          if (hasService || dto.merchandises.Any(m => m.article?.type == ArticleType.Service))
+          {
+              return BadRequest("Un article de type Service ne peut pas faire l'objet d'un achat ou d'un document fournisseur.");
+          }
+      }
+
       using (var transaction = await _context.Database.BeginTransactionAsync())
       {
         try
@@ -1911,6 +1970,24 @@ namespace ms.webapp.api.acya.api.Controllers
             if (merchDto.updatedbyid == 0)
             {
                 merchDto.updatedbyid = dto.updatedbyid;
+            }
+
+            bool isService = (merchDto.article?.type == ArticleType.Service);
+            if (!isService && merchDto.article?.id > 0)
+            {
+              var art = await _context.Articles.FindAsync(merchDto.article.id.Value);
+              isService = art?.Type == ArticleType.Service;
+            }
+
+            if (isService)
+            {
+              if (string.IsNullOrWhiteSpace(merchDto.packagereference))
+              {
+                merchDto.packagereference = "SERVICE";
+              }
+              merchDto.allownegativstock = true;
+              merchDto.isinvoicible = true;
+              merchDto.lisoflengths = new ListOflengthDto[0];
             }
 
             Merchandise? merchandise = null;

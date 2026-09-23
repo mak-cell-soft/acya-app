@@ -112,6 +112,17 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
       foreach (var merchandise in document.DocumentMerchandises.Where(dm => dm.Type == LineType.Merchandise))
       {
+        if (merchandise.Merchandise == null) continue;
+
+        // Skip stock operations for Service articles
+        var isService = merchandise.Merchandise.Articles?.Type == ArticleType.Service;
+        if (!isService && merchandise.Merchandise.Articles == null && merchandise.Merchandise.ArticleId > 0)
+        {
+          var art = await context.Articles.FindAsync(merchandise.Merchandise.ArticleId);
+          isService = art?.Type == ArticleType.Service;
+        }
+        if (isService) continue;
+
         var stockTransaction = new Stock
         {
           Id = 0,
@@ -146,6 +157,17 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
         foreach (var merchandise in document.DocumentMerchandises.Where(dm => dm.Type == LineType.Merchandise))
         {
+            if (merchandise.Merchandise == null) continue;
+
+            // Skip stock operations for Service articles
+            var isService = merchandise.Merchandise.Articles?.Type == ArticleType.Service;
+            if (!isService && merchandise.Merchandise.Articles == null && merchandise.Merchandise.ArticleId > 0)
+            {
+                var art = await context.Articles.FindAsync(merchandise.Merchandise.ArticleId);
+                isService = art?.Type == ArticleType.Service;
+            }
+            if (isService) continue;
+
             var stockTransaction = new Stock
             {
                 Id = 0,

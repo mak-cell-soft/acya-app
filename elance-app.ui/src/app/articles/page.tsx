@@ -20,7 +20,8 @@ import {
   ArrowUpCircle,
   TreeDeciduous,
   Loader2,
-  Printer
+  Printer,
+  Wrench
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -40,7 +41,7 @@ import { ArticleFilters } from '@/components/articles/article-filters';
 import { DeleteConfirmDialog } from '@/components/articles/delete-confirm-dialog';
 import { ArticleHistoryDialog } from '@/components/articles/article-history-dialog';
 import { ArticleFormDialog } from '@/components/articles/article-form-dialog';
-import { Article } from '@/types/article';
+import { Article, ArticleType } from '@/types/article';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TablePagination } from '@/components/shared/table-pagination';
 import { useQueryClient } from '@tanstack/react-query';
@@ -52,6 +53,7 @@ import * as XLSX from 'xlsx';
 export default function ArticlesPage() {
   // State for filtering
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedType, setSelectedType] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubCategory, setSelectedSubCategory] = useState('all');
   
@@ -154,12 +156,17 @@ export default function ArticlesPage() {
         article.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
         article.description.toLowerCase().includes(searchTerm.toLowerCase());
         
+      const isService = article.type === ArticleType.Service || (article.type as any) === 1;
+      const matchesType = selectedType === 'all' ||
+        (selectedType === 'service' && isService) ||
+        (selectedType === 'merchandise' && !isService);
+
       const matchesCategory = selectedCategory === 'all' || article.categoryid.toString() === selectedCategory;
       const matchesSubCategory = selectedSubCategory === 'all' || article.subcategoryid.toString() === selectedSubCategory;
       
-      return matchesSearch && matchesCategory && matchesSubCategory;
+      return matchesSearch && matchesType && matchesCategory && matchesSubCategory;
     });
-  }, [articles, searchTerm, selectedCategory, selectedSubCategory]);
+  }, [articles, searchTerm, selectedType, selectedCategory, selectedSubCategory]);
 
   // Paginated articles
   const paginatedArticles = useMemo(() => {
@@ -198,6 +205,7 @@ export default function ArticlesPage() {
 
   const handleResetFilters = () => {
     setSearchTerm('');
+    setSelectedType('all');
     setSelectedCategory('all');
     setSelectedSubCategory('all');
     setCurrentPage(1);
@@ -288,6 +296,8 @@ export default function ArticlesPage() {
           <ArticleFilters 
             searchTerm={searchTerm}
             onSearchChange={(val) => { setSearchTerm(val); setCurrentPage(1); }}
+            selectedType={selectedType}
+            onTypeChange={(val) => { setSelectedType(val); setCurrentPage(1); }}
             selectedCategory={selectedCategory}
             onCategoryChange={(val) => { setSelectedCategory(val); setCurrentPage(1); }}
             selectedSubCategory={selectedSubCategory}
@@ -328,7 +338,18 @@ export default function ArticlesPage() {
                           onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
                         >
                           <td className="p-5 pl-8">
-                            <span className="font-bold text-corp-blue-900">{item.reference}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-corp-blue-900">{item.reference}</span>
+                              {item.type === ArticleType.Service ? (
+                                <Badge className="bg-indigo-50 text-indigo-700 border border-indigo-200/80 font-bold text-[0.65rem] px-2 py-0.5 rounded-md">
+                                  Service
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-sand-50/50 text-sand-500 border-sand-200 font-medium text-[0.65rem] px-1.5 py-0.5 rounded-md">
+                                  Marchandise
+                                </Badge>
+                              )}
+                            </div>
                           </td>
                           <td className="p-5">
                             <div className="font-medium text-sand-800">{item.description}</div>
@@ -406,110 +427,164 @@ export default function ArticlesPage() {
                                   className="overflow-hidden bg-gradient-to-b from-corp-blue-50/50 to-transparent border-b border-corp-blue-50"
                                 >
                                   <div className="p-10 grid grid-cols-1 md:grid-cols-3 gap-12 ml-4">
-                                    {item.iswood ? (
-                                      <div className="space-y-4">
-                                        <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
-                                          <TreeDeciduous className="w-3 h-3" /> Propriétés Bois
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-8">
-                                          <div className="bg-white p-4 rounded-2xl border border-corp-blue-100 shadow-sm">
-                                            <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-tighter">Épaisseur</div>
-                                            <div className="text-lg font-bold text-corp-blue-900 mt-1">{item.thickness?.name || '--'} <small className="text-sand-300 font-medium">mm</small></div>
+                                    {Number(item.type) === ArticleType.Service ? (
+                                      <>
+                                        <div className="space-y-4">
+                                          <div className="flex items-center gap-2 text-[0.7rem] font-bold text-amber-600 uppercase tracking-widest">
+                                            <Wrench className="w-3 h-3" /> Propriétés Prestation / Service
                                           </div>
-                                          <div className="bg-white p-4 rounded-2xl border border-corp-blue-100 shadow-sm">
-                                            <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-tighter">Largeur</div>
-                                            <div className="text-lg font-bold text-corp-blue-900 mt-1">{item.width?.name || '--'} <small className="text-sand-300 font-medium">mm</small></div>
+                                          <div className="bg-white p-5 rounded-2xl border border-corp-blue-100 shadow-sm flex items-center justify-between">
+                                            <div>
+                                              <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-wider">Unité de facturation</div>
+                                              <div className="text-xl font-bold text-corp-blue-900 mt-1">{item.unit || 'FORFAIT'}</div>
+                                            </div>
+                                            <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center">
+                                              <Wrench className="w-6 h-6 text-amber-600" />
+                                            </div>
                                           </div>
-                                        </div>
-                                        <div className="bg-white p-4 rounded-2xl border border-corp-blue-100 shadow-sm">
-                                          <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-tighter">Longueurs</div>
-                                          <div className="text-sm font-bold text-corp-blue-900 mt-2 flex flex-wrap gap-2">
-                                            {item.lengths?.replace('[', '').replace(']', '').split(',').map((l, i) => (
-                                              <Badge key={i} className="bg-corp-blue-50 text-corp-blue-600 border-corp-blue-100 rounded-lg">{l.trim()} cm</Badge>
-                                            )) || '--'}
+                                          <div className="bg-amber-50/60 p-4 rounded-2xl border border-amber-200/50 text-xs text-amber-800 leading-relaxed font-medium">
+                                            Cet article est un service / main-d&apos;œuvre. Il ne génère aucun mouvement de stock et peut être directement ajouté aux devis, bons de livraison et factures clients.
                                           </div>
                                         </div>
-                                      </div>
+
+                                        <div className="space-y-4 border-l border-corp-blue-100/50 pl-12">
+                                          <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
+                                            <AlertCircle className="w-3 h-3" /> Tarification & TVA
+                                          </div>
+                                          <div className="space-y-4">
+                                            <div className="flex items-center justify-between p-4 bg-corp-blue-50/50 rounded-2xl border border-corp-blue-100">
+                                              <span className="text-sm font-bold text-corp-blue-700">Taux TVA</span>
+                                              <span className="text-lg font-bold text-corp-blue-600">{item.tva?.value ?? '19%'}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between p-4 bg-corp-blue-50/50 rounded-2xl border border-corp-blue-100">
+                                              <span className="text-sm font-bold text-corp-blue-700">Marge Profit</span>
+                                              <span className="text-lg font-bold text-corp-blue-600">{item.profitmarginpercentage || 0}%</span>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        <div className="space-y-4 border-l border-corp-blue-100/50 pl-12">
+                                          <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
+                                            <History className="w-3 h-3" /> Suivi Stock
+                                          </div>
+                                          <div className="flex flex-col items-center justify-center py-6 bg-white rounded-3xl border border-corp-blue-50 shadow-sm text-center px-4">
+                                            <div className="text-2xl font-bold tracking-tighter text-sand-400">
+                                              Sans stock
+                                            </div>
+                                            <div className="text-[0.65rem] font-bold text-sand-400 uppercase mt-1 tracking-widest">
+                                              Prestation non stockable
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </>
                                     ) : (
-                                      <div className="space-y-4">
-                                        <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
-                                          <Package className="w-3 h-3" /> Unité & Stock
-                                        </div>
-                                        <div className="bg-white p-5 rounded-2xl border border-corp-blue-100 shadow-sm flex items-center justify-between">
-                                          <div>
-                                            <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Unité de vente</div>
-                                            <div className="text-xl font-bold text-corp-blue-900 mt-1">{item.unit}</div>
-                                          </div>
-                                          <div className="w-12 h-12 rounded-xl bg-corp-blue-50 flex items-center justify-center">
-                                            <Layers className="w-6 h-6 text-corp-blue-600" />
-                                          </div>
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    <div className="space-y-4 border-l border-corp-blue-100/50 pl-12">
-                                      <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
-                                        <AlertCircle className="w-3 h-3" /> Seuil & Profit
-                                      </div>
-                                      <div className="space-y-4">
-                                        <div className="flex items-center justify-between p-4 bg-amber-50/50 rounded-2xl border border-amber-100">
-                                          <span className="text-sm font-bold text-amber-700">Seuil d&apos;alerte</span>
-                                          <span className="text-lg font-bold text-amber-600">{item.minquantity} <small className="text-[0.6rem]">{item.unit}</small></span>
-                                        </div>
-                                        <div className="flex items-center justify-between p-4 bg-corp-blue-50/50 rounded-2xl border border-corp-blue-100">
-                                          <span className="text-sm font-bold text-corp-blue-700">Marge Profit</span>
-                                          <span className="text-lg font-bold text-corp-blue-600">{item.profitmarginpercentage}%</span>
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    <div className="space-y-4 border-l border-corp-blue-100/50 pl-12">
-                                      <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
-                                        <History className="w-3 h-3" /> Aperçu Stock
-                                      </div>
-                                      
-                                      <div className="flex flex-col items-center justify-center py-4 bg-white rounded-3xl border border-corp-blue-50 shadow-sm">
-                                        {isStockLoading ? (
-                                          <div className="flex flex-col items-center gap-2 py-4">
-                                            <Loader2 className="w-5 h-5 animate-spin text-corp-blue-600" />
-                                            <span className="text-[0.6rem] font-bold text-sand-300 uppercase tracking-widest">Chargement...</span>
+                                      <>
+                                        {item.iswood ? (
+                                          <div className="space-y-4">
+                                            <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
+                                              <TreeDeciduous className="w-3 h-3" /> Propriétés Bois
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-8">
+                                              <div className="bg-white p-4 rounded-2xl border border-corp-blue-100 shadow-sm">
+                                                <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-tighter">Épaisseur</div>
+                                                <div className="text-lg font-bold text-corp-blue-900 mt-1">{item.thickness?.name || '--'} <small className="text-sand-300 font-medium">mm</small></div>
+                                              </div>
+                                              <div className="bg-white p-4 rounded-2xl border border-corp-blue-100 shadow-sm">
+                                                <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-tighter">Largeur</div>
+                                                <div className="text-lg font-bold text-corp-blue-900 mt-1">{item.width?.name || '--'} <small className="text-sand-300 font-medium">mm</small></div>
+                                              </div>
+                                            </div>
+                                            <div className="bg-white p-4 rounded-2xl border border-corp-blue-100 shadow-sm">
+                                              <div className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-tighter">Longueurs</div>
+                                              <div className="text-sm font-bold text-corp-blue-900 mt-2 flex flex-wrap gap-2">
+                                                {item.lengths?.replace('[', '').replace(']', '').split(',').map((l, i) => (
+                                                  <Badge key={i} className="bg-corp-blue-50 text-corp-blue-600 border-corp-blue-100 rounded-lg">{l.trim()} cm</Badge>
+                                                )) || '--'}
+                                              </div>
+                                            </div>
                                           </div>
                                         ) : (
-                                          <>
-                                            <div className={cn(
-                                              "text-3xl font-bold tracking-tighter transition-colors duration-300",
-                                              (stockMap.get(item.id)?.total || 0) === 0 ? "text-rose-500" : "text-corp-blue-900"
-                                            )}>
-                                              {formatQuantity(stockMap.get(item.id)?.total || 0, item.unit)}
+                                          <div className="space-y-4">
+                                            <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
+                                              <Package className="w-3 h-3" /> Unité & Stock
                                             </div>
-                                            <div className="text-[0.65rem] font-bold text-sand-300 uppercase mt-1 tracking-widest">
-                                              Stock Total ({item.unit})
+                                            <div className="bg-white p-5 rounded-2xl border border-corp-blue-100 shadow-sm flex items-center justify-between">
+                                              <div>
+                                                <div className="text-[0.65rem] font-bold text-sand-400 uppercase">Unité de vente</div>
+                                                <div className="text-xl font-bold text-corp-blue-900 mt-1">{item.unit}</div>
+                                              </div>
+                                              <div className="w-12 h-12 rounded-xl bg-corp-blue-50 flex items-center justify-center">
+                                                <Layers className="w-6 h-6 text-corp-blue-600" />
+                                              </div>
                                             </div>
-                                          </>
+                                          </div>
                                         )}
-                                      </div>
 
-                                      {!isStockLoading && (stockMap.get(item.id)?.breakdown || []).length > 0 && (
-                                        <div className="space-y-2 mt-3 max-h-36 overflow-y-auto pr-1">
-                                          {(stockMap.get(item.id)?.breakdown || []).map((b, idx) => (
-                                            <div key={idx} className="flex justify-between items-center bg-sand-50/50 hover:bg-sand-50 p-2.5 rounded-xl border border-corp-blue-50/40 text-[0.75rem] transition-colors">
-                                              <span className="text-sand-600 font-medium truncate max-w-[150px]" title={b.siteName}>
-                                                {b.siteName}
-                                              </span>
-                                              <span className="font-bold text-corp-blue-900 font-mono">
-                                                {formatQuantity(b.quantity, b.unit)} <span className="text-[0.65rem] font-sans font-medium text-sand-450">{b.unit}</span>
-                                              </span>
+                                        <div className="space-y-4 border-l border-corp-blue-100/50 pl-12">
+                                          <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
+                                            <AlertCircle className="w-3 h-3" /> Seuil & Profit
+                                          </div>
+                                          <div className="space-y-4">
+                                            <div className="flex items-center justify-between p-4 bg-amber-50/50 rounded-2xl border border-amber-100">
+                                              <span className="text-sm font-bold text-amber-700">Seuil d&apos;alerte</span>
+                                              <span className="text-lg font-bold text-amber-600">{item.minquantity} <small className="text-[0.6rem]">{item.unit}</small></span>
                                             </div>
-                                          ))}
+                                            <div className="flex items-center justify-between p-4 bg-corp-blue-50/50 rounded-2xl border border-corp-blue-100">
+                                              <span className="text-sm font-bold text-corp-blue-700">Marge Profit</span>
+                                              <span className="text-lg font-bold text-corp-blue-600">{item.profitmarginpercentage}%</span>
+                                            </div>
+                                          </div>
                                         </div>
-                                      )}
-                                      
-                                      {!isStockLoading && (stockMap.get(item.id)?.breakdown || []).length === 0 && (
-                                        <div className="text-center py-4 text-xs italic text-sand-300 bg-sand-50/30 rounded-2xl border border-dashed border-corp-blue-100">
-                                          Aucun stock disponible
+
+                                        <div className="space-y-4 border-l border-corp-blue-100/50 pl-12">
+                                          <div className="flex items-center gap-2 text-[0.7rem] font-bold text-timber-400 uppercase tracking-widest">
+                                            <History className="w-3 h-3" /> Aperçu Stock
+                                          </div>
+                                          
+                                          <div className="flex flex-col items-center justify-center py-4 bg-white rounded-3xl border border-corp-blue-50 shadow-sm">
+                                            {isStockLoading ? (
+                                              <div className="flex flex-col items-center gap-2 py-4">
+                                                <Loader2 className="w-5 h-5 animate-spin text-corp-blue-600" />
+                                                <span className="text-[0.6rem] font-bold text-sand-300 uppercase tracking-widest">Chargement...</span>
+                                              </div>
+                                            ) : (
+                                              <>
+                                                <div className={cn(
+                                                  "text-3xl font-bold tracking-tighter transition-colors duration-300",
+                                                  (stockMap.get(item.id)?.total || 0) === 0 ? "text-rose-500" : "text-corp-blue-900"
+                                                )}>
+                                                  {formatQuantity(stockMap.get(item.id)?.total || 0, item.unit)}
+                                                </div>
+                                                <div className="text-[0.65rem] font-bold text-sand-300 uppercase mt-1 tracking-widest">
+                                                  Stock Total ({item.unit})
+                                                </div>
+                                              </>
+                                            )}
+                                          </div>
+
+                                          {!isStockLoading && (stockMap.get(item.id)?.breakdown || []).length > 0 && (
+                                            <div className="space-y-2 mt-3 max-h-36 overflow-y-auto pr-1">
+                                              {(stockMap.get(item.id)?.breakdown || []).map((b, idx) => (
+                                                <div key={idx} className="flex justify-between items-center bg-sand-50/50 hover:bg-sand-50 p-2.5 rounded-xl border border-corp-blue-50/40 text-[0.75rem] transition-colors">
+                                                  <span className="text-sand-600 font-medium truncate max-w-[150px]" title={b.siteName}>
+                                                    {b.siteName}
+                                                  </span>
+                                                  <span className="font-bold text-corp-blue-900 font-mono">
+                                                    {formatQuantity(b.quantity, b.unit)} <span className="text-[0.65rem] font-sans font-medium text-sand-450">{b.unit}</span>
+                                                  </span>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
+                                          
+                                          {!isStockLoading && (stockMap.get(item.id)?.breakdown || []).length === 0 && (
+                                            <div className="text-center py-4 text-xs italic text-sand-300 bg-sand-50/30 rounded-2xl border border-dashed border-corp-blue-100">
+                                              Aucun stock disponible
+                                            </div>
+                                          )}
                                         </div>
-                                      )}
-                                    </div>
+                                      </>
+                                    )}
                                   </div>
                                 </motion.div>
                               </td>

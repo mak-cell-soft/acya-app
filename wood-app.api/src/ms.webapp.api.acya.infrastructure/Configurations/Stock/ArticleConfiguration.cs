@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities.Product;
 
 namespace ms.webapp.api.acya.infrastructure.Configurations.Stock
@@ -10,6 +11,7 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Stock
         {
             entity.ToTable("tbl_article");
             entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Type).HasColumnName("articletype").HasDefaultValue(ArticleType.Merchandise).IsRequired();
             entity.Property(e => e.Reference).HasColumnName("reference");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.IsWood).HasColumnName("iswood");

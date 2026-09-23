@@ -362,6 +362,7 @@ CREATE TABLE tbl_article (
     idappuser integer NOT NULL,
     idthickness integer NULL,
     idwidth integer NULL,
+    articletype integer NOT NULL DEFAULT 0,
     CONSTRAINT "PK_tbl_article" PRIMARY KEY (id),
     CONSTRAINT "FK_tbl_article_tbl_app_user_idappuser" FOREIGN KEY (idappuser) REFERENCES tbl_app_user (id) ON DELETE CASCADE,
     CONSTRAINT "FK_tbl_article_tbl_appvariable_idthickness" FOREIGN KEY (idthickness) REFERENCES tbl_appvariable (id),
@@ -1306,6 +1307,11 @@ CREATE TABLE IF NOT EXISTS tbl_vehicle_expense (
 
 CREATE INDEX IF NOT EXISTS idx_tbl_vehicle_expense_vehicleid ON tbl_vehicle_expense (vehicleid);
 CREATE INDEX IF NOT EXISTS idx_tbl_vehicle_expense_date ON tbl_vehicle_expense (date);
+
+-- From V0.29__add_article_type.sql
+-- Add articletype column to tbl_article (0 = Merchandise, 1 = Service)
+ALTER TABLE "tbl_article"
+  ADD COLUMN IF NOT EXISTS "articletype" INTEGER NOT NULL DEFAULT 0;
 
 
 

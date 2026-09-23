@@ -38,8 +38,14 @@ export interface Category {
   firstchildren: SubCategory[];
 }
 
+export enum ArticleType {
+  Merchandise = 0,
+  Service = 1,
+}
+
 export interface Article {
   id: number;
+  type?: ArticleType;
   reference: string;
   description: string;
   categoryid: number;

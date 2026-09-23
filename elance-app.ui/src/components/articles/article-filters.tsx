@@ -16,6 +16,8 @@ import { useMemo } from 'react';
 interface ArticleFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
+  selectedType?: string;
+  onTypeChange?: (value: string) => void;
   selectedCategory: string;
   onCategoryChange: (value: string) => void;
   selectedSubCategory: string;
@@ -27,6 +29,8 @@ interface ArticleFiltersProps {
 export function ArticleFilters({
   searchTerm,
   onSearchChange,
+  selectedType = 'all',
+  onTypeChange,
   selectedCategory,
   onCategoryChange,
   selectedSubCategory,
@@ -63,6 +67,23 @@ export function ArticleFilters({
       </div>
       
       <div className="flex flex-wrap items-center gap-3">
+        {onTypeChange && (
+          <Select value={selectedType} onValueChange={(val) => { if (val) onTypeChange(val); }}>
+            <SelectTrigger className="w-[180px] h-11 rounded-xl border-corp-blue-50 bg-white font-bold text-corp-blue-900">
+              <SelectValue placeholder="Tous les types">
+                {selectedType === 'all' && 'Tous les types'}
+                {selectedType === 'merchandise' && 'Marchandises'}
+                {selectedType === 'service' && 'Services'}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-corp-blue-100 shadow-xl">
+              <SelectItem value="all" className="font-bold">Tous les types</SelectItem>
+              <SelectItem value="merchandise" className="font-medium">Marchandises</SelectItem>
+              <SelectItem value="service" className="font-medium">Services</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+
         <Select value={selectedCategory} onValueChange={(val) => { if (val) onCategoryChange(val); onSubCategoryChange('all'); }}>
           <SelectTrigger className="w-[200px] h-11 rounded-xl border-corp-blue-50 bg-white font-bold text-corp-blue-900">
             <SelectValue placeholder="Toutes les catégories">

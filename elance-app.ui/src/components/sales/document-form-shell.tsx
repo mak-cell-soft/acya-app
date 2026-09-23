@@ -28,7 +28,8 @@ import {
   AlertCircle,
   UserCheck,
   RotateCcw,
-  Mail
+  Mail,
+  Wrench
 } from 'lucide-react';
 import { useDocumentById, useUpdateDocument } from '@/hooks/use-documents';
 import { Button } from '@/components/ui/button';
@@ -74,7 +75,7 @@ import { stockService } from '@/services/components/stock.service';
 import { exchangeRateService } from '@/services/components/exchange-rate.service';
 import { DocumentTypes, DocStatus, BillingStatus, LineType, ListOfLength } from '@/types/document';
 import { DEVISES } from '@/lib/constants/settings';
-import { Article } from '@/types/article';
+import { Article, ArticleType } from '@/types/article';
 import { Customer, PassagerInfo, getCustomerDisplayName } from '@/types/customer';
 import { Transporter } from '@/types/settings';
 import { toast } from 'sonner';
@@ -920,10 +921,16 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
           row.filteredArticles = allArticles;
           
           // Match matching stocks in our cached state for active site
-          const matches = siteStocks.filter(s => s.articleId === article.id);
+          const isService = Number(article.type) === ArticleType.Service;
+          const matches = isService ? [] : siteStocks.filter(s => s.articleId === article.id);
           row.selectedStock = matches.length >= 1 ? matches[0] : null;
 
-          if (docType !== DocumentTypes.customerQuote && docType !== DocumentTypes.customerOrder && docType !== DocumentTypes.customerInvoiceReturn) {
+          if (isService) {
+            // Service lines have no stock tracking; default quantity to 1 if not set
+            if (row.quantity === 0) {
+              row.quantity = 1;
+            }
+          } else if (docType !== DocumentTypes.customerQuote && docType !== DocumentTypes.customerOrder && docType !== DocumentTypes.customerInvoiceReturn) {
             // Reset quantity if stock not available
             if (matches.length === 0) {
               row.quantity = 0;
@@ -1182,10 +1189,11 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
         } else {
           item.article = r.selectedArticle;
           item.lisoflengths = r.listLengths;
-          item.packagereference = r.selectedStock?.packageReference || '';
-          item.isinvoicible = r.selectedStock?.isInvoicible ?? true;
-          item.allownegativstock = r.selectedStock?.allowNegativeStock ?? false;
-          item.ismergedwith = r.selectedStock?.isMergedWith ?? false;
+          const isService = Number(r.selectedArticle?.type) === ArticleType.Service;
+          item.packagereference = isService ? 'SERVICE' : (r.selectedStock?.packageReference || '');
+          item.isinvoicible = true;
+          item.allownegativstock = isService ? true : (r.selectedStock?.allowNegativeStock ?? false);
+          item.ismergedwith = isService ? false : (r.selectedStock?.isMergedWith ?? false);
         }
         return item;
       });
@@ -1978,9 +1986,10 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                   ) : (
                     rows.map((row, index) => {
                       const isFee = row.line_type === LineType.TransportFee;
-                      const matchingStocks = row.selectedArticle ? siteStocks.filter(s => s.articleId === row.selectedArticle!.id) : [];
+                      const isService = Number(row.selectedArticle?.type) === ArticleType.Service;
+                      const matchingStocks = (!isService && row.selectedArticle) ? siteStocks.filter(s => s.articleId === row.selectedArticle!.id) : [];
                       let isQuantityDisabled = false;
-                      if (docType !== DocumentTypes.customerQuote && docType !== DocumentTypes.customerOrder && docType !== DocumentTypes.customerInvoiceReturn) {
+                      if (!isService && docType !== DocumentTypes.customerQuote && docType !== DocumentTypes.customerOrder && docType !== DocumentTypes.customerInvoiceReturn) {
                         if (!isFee && row.selectedArticle) {
                           if (matchingStocks.length === 0) {
                             isQuantityDisabled = true;
@@ -2079,6 +2088,7 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                                   >
                                     {row.filteredArticles.map(art => {
                                       const isSelected = row.selectedArticle?.id === art.id;
+                                      const isArtService = Number(art.type) === ArticleType.Service;
                                       return (
                                         <button
                                           key={art.id}
@@ -2094,9 +2104,23 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                                             setActiveRowArticleDropdown(null);
                                           }}
                                         >
-                                          <Layers className={cn("w-3.5 h-3.5 shrink-0", isSelected ? "text-white" : "text-corp-blue-500")} />
+                                          {isArtService ? (
+                                            <Wrench className={cn("w-3.5 h-3.5 shrink-0", isSelected ? "text-white" : "text-amber-500")} />
+                                          ) : (
+                                            <Layers className={cn("w-3.5 h-3.5 shrink-0", isSelected ? "text-white" : "text-corp-blue-500")} />
+                                          )}
                                           <div className="flex-1 min-w-0">
-                                            <div className="font-bold truncate">{art.reference}</div>
+                                            <div className="font-bold truncate flex items-center gap-1.5">
+                                              <span>{art.reference}</span>
+                                              {isArtService && (
+                                                <span className={cn(
+                                                  "text-[9px] px-1 py-0.2 rounded font-semibold tracking-wide uppercase",
+                                                  isSelected ? "bg-white/20 text-white" : "bg-amber-100 text-amber-800"
+                                                )}>
+                                                  Service
+                                                </span>
+                                              )}
+                                            </div>
                                             <div className={cn("text-[0.65rem] truncate", isSelected ? "text-corp-blue-200" : "text-sand-400")}>
                                               {art.description}
                                             </div>
@@ -2120,6 +2144,18 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
 
                                 {row.selectedArticle && (
                                   (() => {
+                                    const isService = Number(row.selectedArticle.type) === ArticleType.Service;
+                                    if (isService) {
+                                      return (
+                                        <div className="flex items-center gap-1.5 mt-1.5 text-[0.7rem] font-bold text-amber-700 bg-amber-50/80 border border-amber-200/60 rounded-lg px-2.5 py-1.5 w-fit shadow-sm">
+                                          <Wrench className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                          <span>Prestation / Service</span>
+                                          <span className="text-amber-300 font-normal">|</span>
+                                          <span className="text-amber-800">Sans stock</span>
+                                        </div>
+                                      );
+                                    }
+
                                     const matchingStocks = siteStocks.filter(s => s.articleId === row.selectedArticle!.id);
                                     if (matchingStocks.length === 0) {
                                       return (
