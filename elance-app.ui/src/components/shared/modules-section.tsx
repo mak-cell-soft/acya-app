@@ -15,17 +15,21 @@ import {
   Sparkles,
   Factory,
   Warehouse,
-  ArrowRight
+  ArrowRight,
+  Package,
+  CheckCircle2,
+  Receipt
 } from 'lucide-react';
 
 // NOTE: Master list of all 12 interconnected Elancé modules.
-// Preserves all original 9 modules and elevates Production and Stock as first-class business capabilities.
+// Elevates Products & Services and Production as first-class business capabilities.
 const modules = [
   { 
-    icon: <TreePine size={22} />, 
-    title: 'Articles & Bois', 
-    desc: 'Gestion des articles avec calcul automatique du M³, des unités et des conversions spécifiques au secteur bois.', 
-    tag: 'Calcul M³ intégré' 
+    icon: <Package size={22} className="text-corp-blue-600" />, 
+    title: 'Produits & Services', 
+    desc: 'Catalogue unifié pour vos marchandises physiques (bois, découpes, quincaillerie) et vos prestations de services (pose, transport, usinage).', 
+    tag: 'Marchandises & Services',
+    highlighted: true
   },
   { 
     icon: <Building2 size={22} />, 
@@ -54,9 +58,9 @@ const modules = [
   },
   { 
     icon: <TrendingUp size={22} />, 
-    title: 'Ventes', 
-    desc: 'Devis, bons de commande, facturation et suivi des livraisons. Tableau de bord commercial intégré.', 
-    tag: 'Devis → Facture' 
+    title: 'Ventes & Facturation', 
+    desc: 'Devis, bons de commande, facturation mixte et bons de livraison. Combinez articles du stock et prestations de service sur la même facture.', 
+    tag: 'Devis → Facture mixte' 
   },
   { 
     icon: <UserCheck size={22} />, 
@@ -123,9 +127,9 @@ const ecosystemSteps = [
   },
   {
     step: '04',
-    title: 'Ventes & Chantiers',
-    subtitle: 'Expédition & Pose',
-    detail: 'Livraison au client ou affectation directe des produits finis sur chantier BTP.',
+    title: 'Ventes & Facturation',
+    subtitle: 'Produits & Services',
+    detail: 'Facturation unifiée combinant articles en stock et prestations de services (pose, transport).',
     icon: TrendingUp,
   },
   {
@@ -188,9 +192,9 @@ export function ModulesSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-[1.02rem] leading-relaxed text-slate-600 max-w-[680px] font-medium"
+            className="text-[1.02rem] leading-relaxed text-slate-600 max-w-[680px] font-medium [text-wrap:pretty]"
           >
-            De l’approvisionnement des grumes à la transformation en atelier, du stock multi-dépôts aux chantiers et à la pré-analyse comptable, chaque module est connecté en temps réel sans rupture d’information.
+            De l’approvisionnement des grumes à la transformation en atelier, du catalogue unifié produits & services aux chantiers et à la pré-analyse comptable, chaque module est connecté en temps réel sans rupture d’information.
           </motion.p>
         </div>
 
@@ -275,6 +279,274 @@ export function ModulesSection() {
                 </div>
               );
             })}
+          </div>
+        </motion.div>
+
+        {/* ── Spotlight Feature Showcase: Catalogue Unifié Marchandises & Services + Facture Mixte ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="mb-16 rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white via-slate-50/40 to-white p-6 sm:p-8 lg:p-10 shadow-[0_15px_35px_rgba(37,99,235,0.04)] overflow-hidden relative"
+        >
+          {/* Subtle ambient lighting meshes */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-[radial-gradient(circle,rgba(37,99,235,0.05)_0%,transparent_70%)] pointer-events-none blur-2xl" />
+          <div className="absolute bottom-0 left-0 w-80 h-80 bg-[radial-gradient(circle,rgba(6,182,212,0.04)_0%,transparent_70%)] pointer-events-none blur-2xl" />
+
+          {/* Section Header inside the Showcase */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-8 border-b border-slate-200/80 mb-8 relative z-10">
+            <div className="space-y-2 max-w-2xl">
+              <div className="inline-flex items-center gap-2 bg-corp-blue-500/10 border border-corp-blue-500/20 rounded-full px-3.5 py-1 text-xs font-bold tracking-wide text-corp-blue-700 uppercase">
+                <Sparkles size={13} className="text-corp-blue-600" />
+                Catalogue Unifié & Facturation Mixte
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight [text-wrap:balance]">
+                Gérez vos produits et vos services au même endroit.
+              </h3>
+              <p className="text-sm sm:text-[0.95rem] text-slate-600 font-medium leading-relaxed [text-wrap:pretty]">
+                Centralisez vos articles, qu&apos;il s&apos;agisse de marchandises physiques ou de prestations. Établissez des factures complètes réunissant produits du stock et services réalisés — sans gestion de stock superflue pour vos services.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-3.5 py-1.5 rounded-full shadow-xs">
+                <CheckCircle2 size={14} className="text-emerald-600" />
+                Une seule facture · Deux univers
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative z-10">
+            {/* Left Column: Visual distinction between MERCHANDISE and SERVICE (lg:col-span-5) */}
+            <div className="lg:col-span-5 flex flex-col gap-4">
+              
+              {/* MERCHANDISE CARD */}
+              <div className="group rounded-xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs hover:shadow-md hover:border-corp-blue-300 transition-all duration-300">
+                <div className="flex items-center justify-between mb-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-corp-blue-50 border border-corp-blue-100 flex items-center justify-center text-corp-blue-600 group-hover:scale-105 transition-transform duration-200">
+                      <Package size={20} />
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Typologie</div>
+                      <div className="text-base font-extrabold text-slate-900 tracking-tight">Marchandise</div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-700 border border-blue-400/25 tracking-wide">
+                    Produit physique
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 font-medium mb-4 leading-relaxed">
+                  Produits physiques avec suivi complet : approvisionnements fournisseurs, valorisation au M³ et inventaires multi-dépôts.
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-700 pt-1 border-t border-slate-100">
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 size={13} className="text-corp-blue-600 shrink-0" />
+                    <span>Stock & dépôts M³</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 size={13} className="text-corp-blue-600 shrink-0" />
+                    <span>Achats fournisseurs</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 size={13} className="text-corp-blue-600 shrink-0" />
+                    <span>Inventaires tournants</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 size={13} className="text-corp-blue-600 shrink-0" />
+                    <span>Vente & expédition</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* SERVICE CARD */}
+              <div className="group rounded-xl border border-cyan-200/90 bg-gradient-to-br from-white to-cyan-50/30 p-5 sm:p-6 shadow-xs hover:shadow-md hover:border-cyan-400 transition-all duration-300">
+                <div className="flex items-center justify-between mb-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-cyan-50 border border-cyan-200/80 flex items-center justify-center text-cyan-600 group-hover:scale-105 transition-transform duration-200">
+                      <Sparkles size={20} />
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-cyan-700">Typologie</div>
+                      <div className="text-base font-extrabold text-slate-900 tracking-tight">Service</div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-md bg-cyan-500/15 text-cyan-800 border border-cyan-400/30 tracking-wide">
+                    Prestation directe
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 font-medium mb-4 leading-relaxed">
+                  Prestations vendues directement : pose sur chantier, transport, sciage, usinage. Vos services ne passent pas par l&apos;inventaire.
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-700 pt-1 border-t border-cyan-100/60">
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 size={13} className="text-cyan-600 shrink-0" />
+                    <span>Sans stock requis</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 size={13} className="text-cyan-600 shrink-0" />
+                    <span>Prix & TVA dédiés</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 size={13} className="text-cyan-600 shrink-0" />
+                    <span>Pose, transport, usinage</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 size={13} className="text-cyan-600 shrink-0" />
+                    <span>Vente & facturation</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Right Column: Realistic Mixed Invoice Mockup (lg:col-span-7) */}
+            <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/90 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col">
+              
+              {/* Invoice Window Topbar */}
+              <div className="px-5 sm:px-6 py-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-3 border-b border-slate-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-corp-blue-600/40 border border-corp-blue-400/30 flex items-center justify-center text-white shrink-0">
+                    <Receipt size={18} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono font-bold text-white tracking-wide">Facture FAC-2026-0842</span>
+                      <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                        Validée
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-400 font-medium">Client : Société Menuiserie Moderne & Chantiers</div>
+                  </div>
+                </div>
+                <div className="text-left sm:text-right">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Date d&apos;émission</span>
+                  <span className="text-xs font-mono font-semibold text-slate-200">23 Septembre 2026</span>
+                </div>
+              </div>
+
+              {/* Invoice Sub-banner highlighting the feature value */}
+              <div className="bg-corp-blue-50/80 border-b border-corp-blue-100 px-5 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span className="font-semibold text-corp-blue-900 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-corp-blue-600 animate-pulse" />
+                  Facture mixte : Marchandises du stock + Prestations de services
+                </span>
+                <span className="text-[11px] font-mono font-bold text-corp-blue-700 bg-white px-2 py-0.5 rounded border border-corp-blue-200/80">
+                  4 Lignes combinées
+                </span>
+              </div>
+
+              {/* Line Items Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[500px]">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/70 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                      <th className="py-2.5 px-5">Désignation article</th>
+                      <th className="py-2.5 px-3">Type</th>
+                      <th className="py-2.5 px-3 text-right">Qté</th>
+                      <th className="py-2.5 px-3 text-right">Prix Unit. HT</th>
+                      <th className="py-2.5 px-5 text-right">Total HT</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-xs">
+                    
+                    {/* Item 1: Merchandise - Wooden Door */}
+                    <tr className="hover:bg-slate-50/60 transition-colors">
+                      <td className="py-3 px-5 font-semibold text-slate-900">
+                        Porte Isoplane Massif (Chêne)
+                        <span className="block text-[10px] text-slate-400 font-normal">Réf : ART-BOIS-042 · Stock Dépôt Principal</span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                          <Package size={10} />
+                          Marchandise
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-right font-mono text-slate-600 tabular-nums">1 U</td>
+                      <td className="py-3 px-3 text-right font-mono text-slate-600 tabular-nums">800,000 DT</td>
+                      <td className="py-3 px-5 text-right font-mono font-bold text-slate-900 tabular-nums">800,000 DT</td>
+                    </tr>
+
+                    {/* Item 2: Service - Installation */}
+                    <tr className="bg-cyan-50/25 hover:bg-cyan-50/45 transition-colors">
+                      <td className="py-3 px-5 font-semibold text-slate-900">
+                        Pose & Installation sur site
+                        <span className="block text-[10px] text-cyan-700 font-normal">Prestation réalisée · Aucune sortie de stock</span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-cyan-100/70 text-cyan-800 border border-cyan-300">
+                          <Sparkles size={10} />
+                          Service
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-right font-mono text-slate-600 tabular-nums">1 Forfait</td>
+                      <td className="py-3 px-3 text-right font-mono text-slate-600 tabular-nums">150,000 DT</td>
+                      <td className="py-3 px-5 text-right font-mono font-bold text-slate-900 tabular-nums">150,000 DT</td>
+                    </tr>
+
+                    {/* Item 3: Merchandise - Handle */}
+                    <tr className="hover:bg-slate-50/60 transition-colors">
+                      <td className="py-3 px-5 font-semibold text-slate-900">
+                        Poignée Design Inox brossé
+                        <span className="block text-[10px] text-slate-400 font-normal">Réf : QUI-POIG-08 · Stock Quincaillerie</span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                          <Package size={10} />
+                          Marchandise
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-right font-mono text-slate-600 tabular-nums">1 U</td>
+                      <td className="py-3 px-3 text-right font-mono text-slate-600 tabular-nums">50,000 DT</td>
+                      <td className="py-3 px-5 text-right font-mono font-bold text-slate-900 tabular-nums">50,000 DT</td>
+                    </tr>
+
+                    {/* Item 4: Service - Transport */}
+                    <tr className="bg-cyan-50/25 hover:bg-cyan-50/45 transition-colors">
+                      <td className="py-3 px-5 font-semibold text-slate-900">
+                        Transport & Livraison Express
+                        <span className="block text-[10px] text-cyan-700 font-normal">Prestation logistique · Facturation directe</span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-cyan-100/70 text-cyan-800 border border-cyan-300">
+                          <Sparkles size={10} />
+                          Service
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-right font-mono text-slate-600 tabular-nums">1 Course</td>
+                      <td className="py-3 px-3 text-right font-mono text-slate-600 tabular-nums">50,000 DT</td>
+                      <td className="py-3 px-5 text-right font-mono font-bold text-slate-900 tabular-nums">50,000 DT</td>
+                    </tr>
+
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Invoice Totals & Explanatory Summary */}
+              <div className="p-4 sm:p-5 bg-slate-50/80 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-auto">
+                <div className="text-xs text-slate-500 font-medium max-w-sm">
+                  <p className="font-bold text-slate-700 mb-0.5">Rapprochement automatique :</p>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Seules les marchandises ont décrémenté l&apos;inventaire. Les services sont immédiatement comptabilisés sans mouvement de stock inutile.
+                  </p>
+                </div>
+                <div className="w-full sm:w-auto bg-white border border-slate-200/90 rounded-lg p-3 min-w-[220px] space-y-1.5 shadow-xs">
+                  <div className="flex justify-between text-xs text-slate-500 font-mono">
+                    <span>Total Marchandises :</span>
+                    <span className="font-bold text-slate-700 tabular-nums">850,000 DT</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-cyan-700 font-mono">
+                    <span>Total Services :</span>
+                    <span className="font-bold tabular-nums">200,000 DT</span>
+                  </div>
+                  <div className="border-t border-slate-100 pt-1.5 flex justify-between text-sm font-bold text-slate-900 font-mono">
+                    <span>Total Facture HT :</span>
+                    <span className="text-corp-blue-700 font-black tabular-nums">1 050,000 DT</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
           </div>
         </motion.div>
 

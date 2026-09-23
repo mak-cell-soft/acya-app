@@ -163,14 +163,14 @@ export function HeroSection() {
 
             {/* Subtitle - Increased contrast & readability */}
             <p className="text-base sm:text-lg leading-relaxed max-w-xl font-normal text-slate-200/90 [text-wrap:pretty]">
-              ACYA centralise vos ventes, achats, stocks, production, chantiers, équipe et flotte logistique, avec une connexion directe vers votre expert-comptable sur Qwerty.
+              Élancé centralise vos produits et services, ventes, achats, stocks, production, chantiers, équipe et flotte logistique, avec une connexion directe vers votre expert-comptable sur Qwerty.
             </p>
 
             {/* Trust checks (Feature points) */}
             <div className="grid sm:grid-cols-2 gap-x-6 gap-y-3 pt-1">
               {[
                 'Gestion M³ & Chantiers BTP',
-                'Facturation & Écosystème Qwerty',
+                'Facturation mixte Produits & Services',
                 'Stock multi-dépôts',
                 'Zéro double-saisie',
               ].map(item => (
@@ -372,7 +372,7 @@ export function HeroSection() {
                       <ActivityItem icon={ShoppingCart} text="Commande #2847 — SICOUB" badge="Vente" badgeColor="bg-blue-500/20 text-blue-300 border border-blue-400/20" delay={0.8} />
                       <ActivityItem icon={Factory} text="OF #084 — 35 Portes massives" badge="Production" badgeColor="bg-cyan-500/20 text-cyan-300 border border-cyan-400/20" delay={0.88} />
                       <ActivityItem icon={Truck} text="BL #1204 — 24 m³ Chêne" badge="Achat" badgeColor="bg-amber-500/20 text-amber-300 border border-amber-400/20" delay={0.96} />
-                      <ActivityItem icon={FileText} text="Facture #5582 — 3 200 TND" badge="Finance" badgeColor="bg-emerald-500/20 text-emerald-300 border border-emerald-400/20" delay={1.04} />
+                      <ActivityItem icon={FileText} text="Facture #5582 — Portes & Pose" badge="Mixte" badgeColor="bg-emerald-500/20 text-emerald-300 border border-emerald-400/20" delay={1.04} />
                     </motion.div>
                   </div>
                 </div>

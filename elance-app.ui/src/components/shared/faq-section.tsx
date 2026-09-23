@@ -23,6 +23,10 @@ const faqs = [
     answer: "Le module Production d'Élancé est nativement interconnecté : dès le lancement d'un ordre de fabrication (OF), les matières premières nécessaires (bois en M³, quincaillerie) sont automatiquement réservées puis déstockées en temps réel selon les consommations effectives. Une fois fabriqués, les produits finis valorisés sont soit réintégrés en stock pour la vente commerciale, soit directement affectés à un chantier BTP en cours, avec un calcul automatisé du coût de revient complet (matière + main-d'œuvre + machine)."
   },
   {
+    question: "Comment fonctionne la gestion des articles et de la facturation mixte (produits et services) ?",
+    answer: "Élancé intègre un catalogue unifié gérant à la fois les marchandises physiques (soumises aux achats, au stock et au calcul M³) et les prestations de service (pose, transport, usinage, main-d'œuvre). Vous pouvez combiner librement produits en stock et prestations sur un même devis ou une même facture client, sans imposer de passage en stock inutile pour vos services."
+  },
+  {
     question: "Comment Élancé s'intègre-t-il avec mon système de facturation existant ?",
     answer: "Élancé propose une transition en douceur. Notre module comptable est compatible avec les formats standards (Factur-X) et permet des exports compatibles avec la majorité des logiciels comptables du marché (Sage, Cegid, EBP, Qwerty)."
   },

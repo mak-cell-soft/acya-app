@@ -19,9 +19,11 @@ import Link from 'next/link';
 // NOTE: Standard Core ERP features included across all subscription plans
 const coreFeatures = [
   'Gestion commerciale & facturation certifiée',
+  'Catalogue unifié : Marchandises (stock & M³) et Services',
+  'Facturation mixte : produits et prestations sur la même facture',
   'Ventes, devis clients & bons de commande',
   'Achats, fournisseurs & réceptions de marchandises',
-  'Stock multi-dépôts en temps réel & calculs M³ bois',
+  'Stock multi-dépôts en temps réel & alertes de seuil',
   'Flotte automobile & gestion des missions logistiques',
   'Passerelle directe avec la comptabilité Qwerty',
   'Multi-utilisateurs & contrôle fin des autorisations',

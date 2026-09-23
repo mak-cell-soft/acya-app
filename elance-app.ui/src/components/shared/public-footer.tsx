@@ -154,7 +154,7 @@ export function PublicFooter() {
             </h4>
             <div className="flex flex-col gap-4">
               {[
-                { name: 'Articles & M³', href: '#modules' },
+                { name: 'Produits & Services', href: '#modules' },
                 { name: 'Achats & Ventes', href: '#modules' },
                 { name: 'Production & Atelier', href: '#production' },
                 { name: 'Gestion Chantiers', href: '#chantiers' },

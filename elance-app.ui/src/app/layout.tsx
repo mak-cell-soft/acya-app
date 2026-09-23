@@ -10,10 +10,17 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Élancé | ERP Nouvelle Génération — Gestion, Chantiers & Production",
-  description: "Solution ERP SaaS tout-en-un pour le négoce bois, la gestion de production d'atelier et les chantiers en Tunisie. Connectez achats, stocks, fabrication, ventes et comptabilité avec Élancé.",
+  title: "Élancé | ERP Nouvelle Génération — Produits, Services, Chantiers & Production",
+  description: "Solution ERP SaaS tout-en-un pour le négoce bois, la gestion des produits et services, la production d'atelier et les chantiers en Tunisie. Connectez achats, stocks, prestations, ventes et comptabilité avec Élancé.",
   keywords: [
     "ERP",
+    "Gestion des articles",
+    "Produits et services",
+    "Articles de service",
+    "Facturation des services",
+    "Facturation produits et services",
+    "Facture mixte",
+    "Gestion des ventes",
     "Gestion de stock",
     "Gestion de production",
     "Logiciel de gestion de production",
