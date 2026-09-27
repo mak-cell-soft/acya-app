@@ -659,6 +659,138 @@ namespace ms.webapp.api.acya.tests
         }
 
         [Fact]
+        public async Task UpdateBuildStatus_ToSucceededWithoutArtifact_ShouldFail()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry
+            {
+                Id = 1,
+                Slug = "socofeb",
+                Name = "SOCOFEB",
+                IsActive = true
+            });
+
+            var build = new MobileBuild
+            {
+                Id = 10,
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 10,
+                Status = MobileBuildStatus.Building,
+                StartedAt = DateTime.UtcNow,
+                IsActive = true,
+                ArtifactPath = null,
+                ArtifactSize = null,
+                Sha256 = null
+            };
+            masterDb.MobileBuilds.Add(build);
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var loggerMock = new Mock<ILogger<MobileBuildService>>();
+
+            var buildService = new MobileBuildService(masterDb, woodDb, storageMock.Object, tokenService, configService, loggerMock.Object);
+
+            var invalidUpdateDto = new UpdateMobileBuildStatusDto
+            {
+                Status = MobileBuildStatus.Succeeded
+            };
+
+            // Act & Assert: Service layer throws InvalidOperationException
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                buildService.UpdateBuildStatusAsync(build.Id, invalidUpdateDto));
+
+            Assert.Contains("Cannot mark mobile build as Succeeded without an uploaded artifact", ex.Message);
+
+            // Verify database was not updated to Succeeded
+            var reloaded = await masterDb.MobileBuilds.FindAsync(build.Id);
+            Assert.NotNull(reloaded);
+            Assert.Equal(MobileBuildStatus.Building, reloaded!.Status);
+
+            // Act & Assert: Controller layer catches InvalidOperationException and returns BadRequest
+            var dispatcherMock = new Mock<IGitHubBuildDispatcher>();
+            var controllerLogger = new Mock<ILogger<AdminMobileBuildsController>>();
+            var controller = new AdminMobileBuildsController(buildService, configService, dispatcherMock.Object, controllerLogger.Object);
+
+            var actionResult = await controller.UpdateBuildStatus(build.Id, invalidUpdateDto);
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
+            Assert.NotNull(badRequestResult.Value);
+        }
+
+        [Fact]
+        public async Task UpdateBuildStatus_ToSucceededWithArtifact_ShouldSucceed()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry
+            {
+                Id = 1,
+                Slug = "socofeb",
+                Name = "SOCOFEB",
+                IsActive = true
+            });
+
+            var build = new MobileBuild
+            {
+                Id = 11,
+                TenantId = "socofeb",
+                Version = "1.0.1",
+                BuildNumber = 11,
+                Status = MobileBuildStatus.Building,
+                StartedAt = DateTime.UtcNow,
+                IsActive = true,
+                ArtifactPath = null,
+                ArtifactSize = null,
+                Sha256 = null
+            };
+            masterDb.MobileBuilds.Add(build);
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var loggerMock = new Mock<ILogger<MobileBuildService>>();
+
+            var buildService = new MobileBuildService(masterDb, woodDb, storageMock.Object, tokenService, configService, loggerMock.Object);
+
+            var validUpdateDto = new UpdateMobileBuildStatusDto
+            {
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = "socofeb/11/app-socofeb-release.apk",
+                ArtifactSize = 52428800,
+                Sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            };
+
+            // Act
+            var updated = await buildService.UpdateBuildStatusAsync(build.Id, validUpdateDto);
+
+            // Assert
+            Assert.NotNull(updated);
+            Assert.Equal(MobileBuildStatus.Succeeded, updated!.Status);
+            Assert.Equal("socofeb/11/app-socofeb-release.apk", updated.ArtifactPath);
+            Assert.Equal(52428800, updated.ArtifactSize);
+            Assert.Equal("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", updated.Sha256);
+            Assert.NotNull(updated.CompletedAt);
+
+            // Verify database persisted the state
+            var reloaded = await masterDb.MobileBuilds.FindAsync(build.Id);
+            Assert.NotNull(reloaded);
+            Assert.Equal(MobileBuildStatus.Succeeded, reloaded!.Status);
+            Assert.Equal("socofeb/11/app-socofeb-release.apk", reloaded.ArtifactPath);
+        }
+
+        [Fact]
         public async Task DownloadArtifact_WithValidToken_ShouldStreamApkFile()
         {
             // Arrange

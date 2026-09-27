@@ -163,8 +163,6 @@ namespace ms.webapp.api.acya.Services.Mobile
                 throw new ArgumentException($"Invalid status: '{dto.Status}'", nameof(dto.Status));
             }
 
-            build.Status = dto.Status;
-
             if (!string.IsNullOrWhiteSpace(dto.ArtifactPath))
             {
                 build.ArtifactPath = dto.ArtifactPath.Trim();
@@ -194,6 +192,18 @@ namespace ms.webapp.api.acya.Services.Mobile
             {
                 build.WorkflowRunId = dto.WorkflowRunId.Trim();
             }
+
+            if (dto.Status == MobileBuildStatus.Succeeded)
+            {
+                if (string.IsNullOrWhiteSpace(build.ArtifactPath) ||
+                    !build.ArtifactSize.HasValue || build.ArtifactSize.Value <= 0 ||
+                    string.IsNullOrWhiteSpace(build.Sha256))
+                {
+                    throw new InvalidOperationException("Cannot mark mobile build as Succeeded without an uploaded artifact (valid ArtifactPath, positive ArtifactSize, and Sha256 are required).");
+                }
+            }
+
+            build.Status = dto.Status;
 
             if (dto.Status == MobileBuildStatus.Building && build.StartedAt == null)
             {

@@ -173,6 +173,10 @@ namespace ms.webapp.api.acya.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         /// <summary>
