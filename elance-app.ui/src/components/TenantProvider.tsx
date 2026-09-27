@@ -6,12 +6,28 @@ import api from '@/lib/axios';
 import { useTenantStore } from '@/store/use-tenant-store';
 import { Loader2 } from 'lucide-react';
 
+// Public marketing / informational routes that do not depend on tenant configuration
+// and MUST render their full content during SSR for search engines and performance.
+const isPublicPathname = (path: string | null): boolean => {
+  if (!path) return false;
+  return (
+    path === '/' ||
+    path.startsWith('/solutions') ||
+    path === '/contact' ||
+    path === '/privacy' ||
+    path === '/mentions-legales' ||
+    path === '/enterprise-registration'
+  );
+};
+
 export function TenantProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const setBranding = useTenantStore((state: any) => state.setBranding);
   const status = useTenantStore((state: any) => state.status);
-  const [loading, setLoading] = useState(true);
+  const isPublic = isPublicPathname(pathname);
+  // On public pages, start unblocked so SSR outputs the real HTML (H1, text, sections).
+  const [loading, setLoading] = useState(!isPublic);
 
   useEffect(() => {
     const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
@@ -114,7 +130,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     }
   }, [status, pathname, router]);
 
-  if (loading) {
+  if (loading && !isPublic) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">

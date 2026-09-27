@@ -19,6 +19,7 @@ import {
   HelpCircle,
   Layers,
   AlertTriangle,
+  Truck,
 } from "lucide-react";
 
 // ─── SEO Metadata ──────────────────────────────────────────────────────────────
@@ -44,6 +45,12 @@ export const metadata: Metadata = {
     "suivi avancement chantier",
     "budget chantier",
     "caisse chantier",
+    "véhicules de chantier",
+    "engins de chantier",
+    "matériel de chantier",
+    "logistique chantier",
+    "camions chantier",
+    "affectation des véhicules",
     "Élancé chantier",
   ],
   alternates: {
@@ -177,6 +184,22 @@ const jsonLd = {
             text: "Oui. L'onglet Statistiques de chaque chantier présente des graphiques d'avancement (prévu vs réel), la répartition budgétaire par phase (gros œuvre, second œuvre, finitions) et l'évolution de la main-d'œuvre semaine par semaine.",
           },
         },
+        {
+          "@type": "Question",
+          name: "Comment gérer les achats et commandes fournisseurs liés à un chantier ?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Dans Élancé, les achats sont étroitement connectés aux chantiers. Depuis le module Achats, vous pouvez émettre des bons de commande auprès de vos fournisseurs en ciblant directement les matériaux requis pour un chantier spécifique (bois en M³, quincaillerie, acier ou consommables). Dès la réception des marchandises, les quantités approvisionnées peuvent être imputées au besoin du chantier, assurant un contrôle rigoureux des coûts d'achat et évitant les surplus non budgétisés.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Comment gérer les véhicules et engins affectés à un chantier ?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Grâce à l'onglet Magasin du module Chantier, vous pouvez affecter des véhicules, camions et engins de votre parc matériel à chaque projet de construction. Vous sélectionnez l'équipement dans votre registre de véhicules, lui désignez un conducteur attitré parmi vos équipiers et précisez des notes de mission. Les affectations actives sont visibles en temps réel, permettant de suivre la disponibilité de votre matériel de chantier et de libérer les engins dès la fin des opérations logistiques.",
+          },
+        },
       ],
     },
   ],
@@ -226,6 +249,13 @@ const features = [
     color: "text-rose-600",
     bg: "bg-rose-50",
   },
+  {
+    icon: Truck,
+    title: "Logistique, véhicules & engins de chantier",
+    desc: "Supervisez votre matériel de chantier et votre flotte logistique via l'onglet Magasin. Affectez camions, véhicules utilitaires et engins de chantier à chaque projet avec conducteur attitré, notes de mission et suivi en temps réel des équipements mobilisés.",
+    color: "text-cyan-600",
+    bg: "bg-cyan-50",
+  },
 ];
 
 // ─── FAQ items ─────────────────────────────────────────────────────────────────
@@ -257,6 +287,14 @@ const faqs = [
   {
     q: "Peut-on voir les statistiques de rentabilité d'un chantier ?",
     a: "Oui. L'onglet Statistiques présente des graphiques d'avancement (prévu vs réel), la répartition budgétaire par phase de travaux et l'évolution de la main-d'œuvre semaine par semaine, pour une vision claire de la santé financière de chaque chantier.",
+  },
+  {
+    q: "Comment gérer les achats et commandes fournisseurs liés à un chantier ?",
+    a: "Dans Élancé, les achats sont étroitement connectés aux chantiers. Depuis le module Achats, vous pouvez émettre des bons de commande auprès de vos fournisseurs en ciblant directement les matériaux requis pour un chantier spécifique (bois en M³, quincaillerie, acier ou consommables). Dès la réception des marchandises, les quantités approvisionnées peuvent être imputées au besoin du chantier, assurant un contrôle rigoureux des coûts d'achat et évitant les surplus non budgétisés.",
+  },
+  {
+    q: "Comment gérer les véhicules et engins affectés à un chantier ?",
+    a: "Grâce à l'onglet Magasin du module Chantier, vous pouvez affecter des véhicules, camions et engins de votre parc matériel à chaque projet de construction. Vous sélectionnez l'équipement dans votre registre de véhicules, lui désignez un conducteur attitré parmi vos équipiers et précisez des notes de mission. Les affectations actives sont visibles en temps réel, permettant de suivre la disponibilité de votre matériel de chantier et de libérer les engins dès la fin des opérations logistiques.",
   },
 ];
 

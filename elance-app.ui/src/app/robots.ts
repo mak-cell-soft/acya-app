@@ -48,9 +48,8 @@ export default function robots(): MetadataRoute.Robots {
           '/suspended',
           '/tenant-not-found',
 
-          // Next.js internals & API
+          // Next.js internals & API (static assets under /_next/static/ remain crawlable)
           '/api/',
-          '/_next/',
           '/api/print-locale',
         ],
       },
