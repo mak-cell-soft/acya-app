@@ -47,7 +47,7 @@ export function PublicNavbar() {
   // NOTE: Navigation configuration. 'isNew' flags represent recently launched modules.
   const navLinks = [
     { name: 'Modules', href: '#modules' },
-    { name: 'Chantiers', href: '#chantiers' },
+    { name: 'Gestion Chantier', href: '/solutions/gestion-chantier', isNew: false },
     { name: 'Intégration Qwerty', href: '#integration-qwerty', isNew: true },
     { name: 'App Mobile', href: '#mobile-app', isNew: true },
     { name: 'Tarifs', href: '#tarifs' },

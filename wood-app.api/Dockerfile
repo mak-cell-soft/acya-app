@@ -5,8 +5,11 @@
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
 WORKDIR /app
 RUN apt-get -o Acquire::Check-Valid-Until=false update \
-    && apt-get install -y --no-install-recommends -t bullseye libnghttp2-14 \
-    && apt-get install -y --no-install-recommends curl \
+    && apt-get install -y --no-install-recommends \
+        -o APT::Get::AllowUnauthenticated=true \
+        -o Acquire::http::No-Cache=true \
+        libnghttp2-14/bullseye \
+        curl/bullseye \
     && rm -rf /var/lib/apt/lists/*
 EXPOSE 80
 EXPOSE 443

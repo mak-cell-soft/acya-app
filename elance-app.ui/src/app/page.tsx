@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { HeroSection } from "@/components/shared/hero-section";
 import { PublicNavbar } from "@/components/shared/public-navbar";
 import { ModulesSection } from "@/components/shared/modules-section";
@@ -7,10 +8,25 @@ import { QwertyIntegrationSection } from "@/components/shared/qwerty-integration
 import { WhySection } from "@/components/shared/why-section";
 import { MobileAppSection } from "@/components/shared/mobile-app-section";
 import { PricingSection } from "@/components/shared/pricing-section";
-import { TestimonialSection } from "@/components/shared/testimonial-section";
 import { FAQSection } from "@/components/shared/faq-section";
 import { CTASection } from "@/components/shared/cta-section";
 import { PublicFooter } from "@/components/shared/public-footer";
+
+export const metadata: Metadata = {
+  title: "Élancé — ERP SaaS pour le bois, les chantiers et la production en Tunisie",
+  description:
+    "Élancé centralise vos ventes, achats, stocks, gestion de chantier BTP, production d'atelier et comptabilité dans un ERP SaaS tout-en-un. Conçu pour les entreprises du bois, du négoce et de la construction en Tunisie.",
+  alternates: {
+    canonical: "https://acya.site",
+  },
+  openGraph: {
+    title: "Élancé — ERP SaaS pour le bois, les chantiers et la production en Tunisie",
+    description:
+      "Centralisez vos ventes, achats, stocks, gestion de chantier BTP et production en un seul logiciel. À partir de 450 DT/an.",
+    url: "https://acya.site",
+    type: "website",
+  },
+};
 
 export default function Home() {
   return (
@@ -32,4 +48,3 @@ export default function Home() {
     </main>
   );
 }
-

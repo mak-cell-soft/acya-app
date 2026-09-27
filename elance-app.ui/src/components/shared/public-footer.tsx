@@ -157,7 +157,7 @@ export function PublicFooter() {
                 { name: 'Produits & Services', href: '#modules' },
                 { name: 'Achats & Ventes', href: '#modules' },
                 { name: 'Production & Atelier', href: '#production' },
-                { name: 'Gestion Chantiers', href: '#chantiers' },
+                { name: 'Gestion de chantier', href: '/solutions/gestion-chantier' },
                 { name: 'Intégration Qwerty', href: '#integration-qwerty' },
                 { name: 'Tarifs (450 DT)', href: '#tarifs' }
               ].map(item => (
