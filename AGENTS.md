@@ -58,6 +58,8 @@ When locating code or adding features, follow this mapping:
 - **Backend Domain Entities:** [wood-app.api/src/ms.webapp.api.acya.core/Entities/](file:///c:/Users/amine/source/repos/acya.app/acya-app/wood-app.api/src/ms.webapp.api.acya.core/Entities/)
 - **Backend DTOs:** [wood-app.api/src/ms.webapp.api.acya.core/Entities/DTOs/](file:///c:/Users/amine/source/repos/acya.app/acya-app/wood-app.api/src/ms.webapp.api.acya.core/Entities/DTOs/)
 - **Backend Data Context & Repositories:** [wood-app.api/src/ms.webapp.api.acya.infrastructure/](file:///c:/Users/amine/source/repos/acya.app/acya-app/wood-app.api/src/ms.webapp.api.acya.infrastructure/)
+- **Mobile Releases & Builds Specification:** [docs/MOBILE_RELEASES.md](file:///c:/Users/amine/source/repos/acya.app/acya-app/docs/MOBILE_RELEASES.md)
+- **Mobile Build & Release CI/CD Pipeline:** [docs/BUILD_AND_RELEASE.md](file:///c:/Users/amine/source/repos/acya.app/acya-app/docs/BUILD_AND_RELEASE.md)
 - **Database Migrations:** [wood-app.api/db/wood/](file:///c:/Users/amine/source/repos/acya.app/acya-app/wood-app.api/db/wood/)
 - **Baseline Schema Provisioning:** [wood-app.api/db/FullDb_Migration/](file:///c:/Users/amine/source/repos/acya.app/acya-app/wood-app.api/db/FullDb_Migration/)
 - **Docker Orchestration:** [docker-compose.yml](file:///c:/Users/amine/source/repos/acya.app/acya-app/docker-compose.yml) and [docker-compose.n8n.yml](file:///c:/Users/amine/source/repos/acya.app/acya-app/docker-compose.n8n.yml)

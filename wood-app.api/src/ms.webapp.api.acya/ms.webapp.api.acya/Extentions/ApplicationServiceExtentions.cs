@@ -111,6 +111,13 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<ms.webapp.api.acya.core.Integrations.Qwerty.Interfaces.IQwertyDataProvider, ms.webapp.api.acya.Services.Integrations.Qwerty.QwertyDataProvider>();
       services.AddScoped<ms.webapp.api.acya.core.Integrations.Qwerty.Interfaces.IQwertyDataMapper, ms.webapp.api.acya.Services.Integrations.Qwerty.QwertyDataMapper>();
 
+      // Mobile Release & Build Infrastructure
+      services.AddSingleton<IMobileArtifactStorage, ms.webapp.api.acya.Services.Mobile.LocalFileSystemMobileArtifactStorage>();
+      services.AddSingleton<IMobileDownloadTokenService, ms.webapp.api.acya.Services.Mobile.MobileDownloadTokenService>();
+      services.AddScoped<IMobileTenantConfigService, ms.webapp.api.acya.Services.Mobile.MobileTenantConfigService>();
+      services.AddScoped<IMobileBuildService, ms.webapp.api.acya.Services.Mobile.MobileBuildService>();
+      services.AddHttpClient<IGitHubBuildDispatcher, ms.webapp.api.acya.Services.Mobile.GitHubBuildDispatcher>();
+
       // Multi-Tenancy Registration
       var multiTenantEnabled = config.GetValue<bool>("MultiTenancy:Enabled");
 
@@ -118,10 +125,12 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<TenantContext>();
       services.AddScoped<ITenantResolver, SubdomainTenantResolver>();
 
-      if (multiTenantEnabled)
+      var masterConn = config.GetConnectionString("MasterConnection") 
+                    ?? config.GetConnectionString("WoodAppContextConnection");
+      if (!string.IsNullOrEmpty(masterConn))
       {
         services.AddDbContext<MasterDbContext>(options =>
-          options.UseNpgsql(config.GetConnectionString("MasterConnection")));
+          options.UseNpgsql(masterConn));
       }
 
       services.AddDbContext<WoodAppContext>((sp, options) =>

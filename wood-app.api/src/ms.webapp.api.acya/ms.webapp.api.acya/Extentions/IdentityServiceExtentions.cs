@@ -34,6 +34,10 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddAuthorization(options =>
       {
           options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("SuperAdmin", "Admin"));
+          options.AddPolicy("MobileApp.CanView", policy => policy.Requirements.Add(new ms.webapp.api.acya.PermissionsHelper.PermissionRequirement("MobileApp", "CanView")));
+          options.AddPolicy("MobileApp.CanDownload", policy => policy.Requirements.Add(new ms.webapp.api.acya.PermissionsHelper.PermissionRequirement("MobileApp", "CanDownload")));
+          options.AddPolicy("MobileApp.CanManage", policy => policy.Requirements.Add(new ms.webapp.api.acya.PermissionsHelper.PermissionRequirement("MobileApp", "CanManage")));
+          options.AddPolicy("MobileApp.CanBuild", policy => policy.Requirements.Add(new ms.webapp.api.acya.PermissionsHelper.PermissionRequirement("MobileApp", "CanBuild")));
       });
 
       services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, ms.webapp.api.acya.PermissionsHelper.PermissionHandler>();

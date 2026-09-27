@@ -24,6 +24,24 @@ namespace ms.webapp.api.acya.core.Permissions
         public bool CanDelete { get; set; }
     }
 
+    public class MobileAppPermissions
+    {
+        public bool CanView { get; set; }
+        public bool CanDownload { get; set; }
+        public bool CanManage { get; set; }
+        public bool CanBuild { get; set; }
+        public bool CanRelease { get; set; }
+
+        /// <summary>
+        /// Alias CanRead to CanView for backwards compatibility with general module checkers.
+        /// </summary>
+        public bool CanRead
+        {
+            get => CanView;
+            set => CanView = value;
+        }
+    }
+
     public class AppPermissionsMap
     {
         public ModulePermissions Analytics { get; set; } = new ModulePermissions();
@@ -40,5 +58,6 @@ namespace ms.webapp.api.acya.core.Permissions
         public ModulePermissions Configuration { get; set; } = new ModulePermissions();
         public ModulePermissions Chantier { get; set; } = new ModulePermissions();
         public ModulePermissions Production { get; set; } = new ModulePermissions();
+        public MobileAppPermissions MobileApp { get; set; } = new MobileAppPermissions();
     }
 }

@@ -123,7 +123,24 @@ Database changes are managed via versioned SQL scripts located in `db/wood/`:
 
 ---
 
-## 6. Build, Test & Validation Commands
+## 6. Mobile Application Release & Build Engine
+
+The ACYA API provides a secure, tenant-isolated mobile application release and build system.
+
+### Key Architecture:
+- **Builds & Releases Registry:** Stored centrally in `public.bo_tbl_mobile_builds` mapped via `MasterDbContext.MobileBuilds` (and accessible via `WoodAppContext.MobileBuilds`).
+- **Strict Tenant Isolation:** All tenant endpoints (`/api/mobile/releases`) resolve the active tenant from `_tenantContext` and cross-verify with JWT claims. Cross-tenant release requests are strictly denied (HTTP 403 / 404).
+- **Private Artifact Storage:** APK binaries are saved to private storage (`IMobileArtifactStorage` -> `LocalFileSystemMobileArtifactStorage`), never stored directly in the database or exposed via public web server folders.
+- **Short-Lived Signed Download Tokens:** Secure download URLs use tamper-proof HMAC-SHA256 tokens (`IMobileDownloadTokenService`) valid for 15 minutes.
+- **Mobile Authorization Policies:**
+  - `MobileApp.CanView`: View releases for own tenant.
+  - `MobileApp.CanDownload`: Request signed temporary download URL.
+  - `RequireAdminRole`: Manage builds and configuration across tenants (`/api/admin/mobile/builds`).
+- **Tenant Configuration Generation:** `IMobileTenantConfigService` dynamically generates mobile app configs from `bo_tbl_enterprise` and `tbl_enterprise`.
+
+---
+
+## 7. Build, Test & Validation Commands
 
 All commands can be run from `wood-app.api/`:
 
@@ -131,5 +148,6 @@ All commands can be run from `wood-app.api/`:
 | :--- | :--- |
 | **Build Solution** | `dotnet build ms.webapp.api.acya.sln` |
 | **Run Unit & Integration Tests** | `dotnet test tests/ms.webapp.api.acya.tests.csproj` |
+| **Run Mobile Releases Tests** | `dotnet test tests/ms.webapp.api.acya.tests.csproj --filter "FullyQualifiedName~MobileReleasesTests"` |
 | **Run Specific Test** | `dotnet test tests/ms.webapp.api.acya.tests.csproj --filter "FullyQualifiedName~StockTransferTests"` |
 | **Run API Locally** | `dotnet run --project src/ms.webapp.api.acya/ms.webapp.api.acya/ms.webapp.api.acya.csproj` |

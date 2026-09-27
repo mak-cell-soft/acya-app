@@ -109,6 +109,9 @@ namespace ms.webapp.api.acya.infrastructure
     public virtual DbSet<ProductionStep> ProductionSteps { get; set; }
     public virtual DbSet<ProductionInput> ProductionInputs { get; set; }
 
+    // Mobile Application Releases & Builds
+    public virtual DbSet<MobileBuild> MobileBuilds { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       base.OnModelCreating(modelBuilder);

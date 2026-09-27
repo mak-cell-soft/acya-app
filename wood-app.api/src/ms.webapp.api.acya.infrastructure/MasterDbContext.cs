@@ -15,10 +15,13 @@ namespace ms.webapp.api.acya.infrastructure
 
     public DbSet<TenantRegistry> TenantRegistries { get; set; }
     public DbSet<PlatformSetting> PlatformSettings { get; set; }
+    public DbSet<MobileBuild> MobileBuilds { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       base.OnModelCreating(modelBuilder);
+
+      modelBuilder.ApplyConfiguration(new Configurations.MobileBuildConfiguration());
 
       // Force Master Registry to map explicitly to the public schema and bo_tbl_enterprise
       modelBuilder.Entity<TenantRegistry>(entity =>
