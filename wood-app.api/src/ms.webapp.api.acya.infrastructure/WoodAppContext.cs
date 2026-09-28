@@ -111,6 +111,7 @@ namespace ms.webapp.api.acya.infrastructure
 
     // Mobile Application Releases & Builds
     public virtual DbSet<MobileBuild> MobileBuilds { get; set; }
+    public virtual DbSet<MobileRelease> MobileReleases { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

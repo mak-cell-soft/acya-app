@@ -61,6 +61,10 @@ namespace ms.webapp.api.acya.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
 
             // Dispatch build to GitHub Actions runner
             try
@@ -207,6 +211,37 @@ namespace ms.webapp.api.acya.Controllers
                 }
 
                 return Ok(updated);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Publishes a succeeded mobile build as the current release for its tenant.
+        /// Demotes any previous current release atomically.
+        /// </summary>
+        [HttpPost("{id:int}/publish")]
+        [Authorize(Policy = "RequireAdminRole")]
+        public async Task<ActionResult<MobileReleaseDto>> PublishBuild(int id)
+        {
+            var adminUser = User.FindFirst(ClaimTypes.Name)?.Value 
+                         ?? User.FindFirst(ClaimTypes.Email)?.Value 
+                         ?? "Admin";
+
+            try
+            {
+                var release = await _buildService.PublishReleaseAsync(id, adminUser);
+                return Ok(release);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
             catch (ArgumentException ex)
             {

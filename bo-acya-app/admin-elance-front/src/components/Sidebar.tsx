@@ -18,7 +18,9 @@ import {
   Settings,
   Eye,
   EyeOff,
-  Mail
+  Mail,
+  Smartphone,
+  Sparkles
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -254,6 +256,24 @@ export default function Sidebar() {
         >
           <Shield className="w-4.5 h-4.5 shrink-0" />
           {(!isCollapsed || !mounted) && <span>Enterprises Registry</span>}
+        </Link>
+
+        <Link 
+          href="/mobile/builds" 
+          className={getLinkClasses('/mobile/builds')}
+          title={isCollapsed ? "Mobile Builds" : undefined}
+        >
+          <Smartphone className="w-4.5 h-4.5 shrink-0" />
+          {(!isCollapsed || !mounted) && <span>Mobile Builds</span>}
+        </Link>
+
+        <Link 
+          href="/mobile/releases" 
+          className={getLinkClasses('/mobile/releases')}
+          title={isCollapsed ? "Mobile Releases" : undefined}
+        >
+          <Sparkles className="w-4.5 h-4.5 shrink-0" />
+          {(!isCollapsed || !mounted) && <span>Mobile Releases</span>}
         </Link>
 
         <Link 

@@ -70,6 +70,28 @@ namespace ms.webapp.api.acya.Controllers
         }
 
         /// <summary>
+        /// Retrieves the current published mobile release for the authenticated user's tenant.
+        /// </summary>
+        [HttpGet("current")]
+        [Authorize(Policy = "MobileApp.CanView")]
+        public async Task<ActionResult<MobileReleaseDto>> GetCurrentRelease()
+        {
+            var tenantSlug = ResolveAuthenticatedTenantSlug();
+            if (string.IsNullOrEmpty(tenantSlug))
+            {
+                return Forbid();
+            }
+
+            var current = await _buildService.GetCurrentReleaseForTenantAsync(tenantSlug);
+            if (current == null)
+            {
+                return NotFound(new { message = $"No current release found for tenant '{tenantSlug}'." });
+            }
+
+            return Ok(current);
+        }
+
+        /// <summary>
         /// Retrieves release details by ID, verifying tenant ownership.
         /// </summary>
         [HttpGet("{id:int}")]

@@ -1339,6 +1339,28 @@ CREATE TABLE IF NOT EXISTS public.bo_tbl_mobile_builds (
 CREATE INDEX IF NOT EXISTS idx_bo_tbl_mobile_builds_tenant_id ON public.bo_tbl_mobile_builds ("TenantId");
 CREATE INDEX IF NOT EXISTS idx_bo_tbl_mobile_builds_tenant_status ON public.bo_tbl_mobile_builds ("TenantId", "Status");
 CREATE INDEX IF NOT EXISTS idx_bo_tbl_mobile_builds_tenant_build ON public.bo_tbl_mobile_builds ("TenantId", "BuildNumber");
+CREATE UNIQUE INDEX IF NOT EXISTS uq_bo_tbl_mobile_builds_active_tenant ON public.bo_tbl_mobile_builds ("TenantId") WHERE "Status" IN ('Pending', 'Building') AND "IsActive" = TRUE;
+
+CREATE TABLE IF NOT EXISTS public.bo_tbl_mobile_releases (
+    "Id" SERIAL PRIMARY KEY,
+    "TenantId" VARCHAR(100) NOT NULL,
+    "MobileBuildId" INTEGER NOT NULL REFERENCES public.bo_tbl_mobile_builds("Id") ON DELETE RESTRICT,
+    "Version" VARCHAR(50) NOT NULL,
+    "BuildNumber" INTEGER NOT NULL,
+    "Status" VARCHAR(50) NOT NULL DEFAULT 'Published',
+    "IsCurrent" BOOLEAN NOT NULL DEFAULT TRUE,
+    "PublishedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "PublishedBy" VARCHAR(200),
+    "ReleaseNotes" TEXT,
+    "CreatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "UpdatedAt" TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_bo_tbl_mobile_releases_tenant_id ON public.bo_tbl_mobile_releases ("TenantId");
+CREATE INDEX IF NOT EXISTS idx_bo_tbl_mobile_releases_build_id ON public.bo_tbl_mobile_releases ("MobileBuildId");
+CREATE INDEX IF NOT EXISTS idx_bo_tbl_mobile_releases_tenant_current ON public.bo_tbl_mobile_releases ("TenantId", "IsCurrent");
+CREATE UNIQUE INDEX IF NOT EXISTS uq_bo_tbl_mobile_releases_current_tenant ON public.bo_tbl_mobile_releases ("TenantId") WHERE "IsCurrent" = TRUE;
+
 
 
 

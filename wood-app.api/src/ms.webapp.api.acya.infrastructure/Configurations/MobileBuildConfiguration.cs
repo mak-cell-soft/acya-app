@@ -33,6 +33,10 @@ namespace ms.webapp.api.acya.infrastructure.Configurations
             builder.HasIndex(e => e.TenantId).HasDatabaseName("idx_bo_tbl_mobile_builds_tenant_id");
             builder.HasIndex(e => new { e.TenantId, e.Status }).HasDatabaseName("idx_bo_tbl_mobile_builds_tenant_status");
             builder.HasIndex(e => new { e.TenantId, e.BuildNumber }).HasDatabaseName("idx_bo_tbl_mobile_builds_tenant_build");
+            builder.HasIndex(e => e.TenantId)
+                .HasDatabaseName("uq_bo_tbl_mobile_builds_active_tenant")
+                .HasFilter("\"Status\" IN ('Pending', 'Building') AND \"IsActive\" = TRUE")
+                .IsUnique();
         }
     }
 }

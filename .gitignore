@@ -44,3 +44,7 @@ postgres-data/
 **/postgres-data/
 pgdata/
 **/pgdata/
+
+# ===== Mobile private storage / build artifacts =====
+/storage/private/mobile/
+

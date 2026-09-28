@@ -12,6 +12,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
+using ms.webapp.api.acya.api.Interfaces;
+using ms.webapp.api.acya.api.Middleware;
 using ms.webapp.api.acya.Controllers;
 using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs.Mobile;
@@ -1244,5 +1246,975 @@ namespace ms.webapp.api.acya.tests
         }
 
         #endregion
+
+        #region 7. Concurrency & Active Build Invariant Tests
+
+        private (AdminMobileBuildsController controller, Mock<IGitHubBuildDispatcher> dispatcherMock, MasterDbContext masterDb) CreateAdminMobileBuildsController(string dbName)
+        {
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var loggerMock = new Mock<ILogger<MobileBuildService>>();
+            var buildService = new MobileBuildService(masterDb, woodDb, storageMock.Object, tokenService, configService, loggerMock.Object);
+
+            var dispatcherMock = new Mock<IGitHubBuildDispatcher>();
+            dispatcherMock.Setup(d => d.DispatchBuildAsync(It.IsAny<MobileBuildDto>(), It.IsAny<string?>(), default))
+                          .ReturnsAsync(true);
+
+            var controllerLogger = new Mock<ILogger<AdminMobileBuildsController>>();
+            var controller = new AdminMobileBuildsController(buildService, configService, dispatcherMock.Object, controllerLogger.Object);
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                    {
+                        new Claim(ClaimTypes.Name, "AdminUser"),
+                        new Claim(ClaimTypes.Role, "Admin")
+                    }, "TestAuth"))
+                }
+            };
+
+            return (controller, dispatcherMock, masterDb);
+        }
+
+        [Fact]
+        public async Task CreateBuild_WhenNoActiveBuildExists_ShouldSucceedAndDispatchCI()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var (controller, dispatcherMock, masterDb) = CreateAdminMobileBuildsController(dbName);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+            await masterDb.SaveChangesAsync();
+
+            var dto = new CreateMobileBuildDto
+            {
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                Environment = "production"
+            };
+
+            // Act
+            var actionResult = await controller.CreateBuild(dto);
+            var createdResult = actionResult.Result as CreatedAtActionResult;
+
+            // Assert
+            Assert.NotNull(createdResult);
+            var resultDto = createdResult!.Value as MobileBuildDto;
+            Assert.NotNull(resultDto);
+            Assert.Equal("Pending", resultDto!.Status);
+            dispatcherMock.Verify(d => d.DispatchBuildAsync(It.IsAny<MobileBuildDto>(), "production", default), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateBuild_WhenExistingPendingBuildForSameTenant_ShouldReturnConflictAndNotDispatchCI()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var (controller, dispatcherMock, masterDb) = CreateAdminMobileBuildsController(dbName);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 1,
+                Status = MobileBuildStatus.Pending,
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var dto = new CreateMobileBuildDto
+            {
+                TenantId = "socofeb",
+                Version = "1.0.1",
+                Environment = "production"
+            };
+
+            // Act
+            var actionResult = await controller.CreateBuild(dto);
+            var conflictResult = actionResult.Result as ConflictObjectResult;
+
+            // Assert
+            Assert.NotNull(conflictResult);
+            Assert.Equal(409, conflictResult!.StatusCode);
+
+            var message = conflictResult.Value?.GetType().GetProperty("message")?.GetValue(conflictResult.Value)?.ToString();
+            Assert.Contains("already in progress for tenant 'socofeb'", message);
+
+            // Verify CI was NOT dispatched
+            dispatcherMock.Verify(d => d.DispatchBuildAsync(It.IsAny<MobileBuildDto>(), It.IsAny<string?>(), default), Times.Never);
+        }
+
+        [Fact]
+        public async Task CreateBuild_WhenExistingBuildingBuildForSameTenant_ShouldReturnConflictAndNotDispatchCI()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var (controller, dispatcherMock, masterDb) = CreateAdminMobileBuildsController(dbName);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 1,
+                Status = MobileBuildStatus.Building,
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var dto = new CreateMobileBuildDto
+            {
+                TenantId = "socofeb",
+                Version = "1.0.1",
+                Environment = "production"
+            };
+
+            // Act
+            var actionResult = await controller.CreateBuild(dto);
+            var conflictResult = actionResult.Result as ConflictObjectResult;
+
+            // Assert
+            Assert.NotNull(conflictResult);
+            Assert.Equal(409, conflictResult!.StatusCode);
+
+            var message = conflictResult.Value?.GetType().GetProperty("message")?.GetValue(conflictResult.Value)?.ToString();
+            Assert.Contains("already in progress for tenant 'socofeb'", message);
+
+            // Verify CI was NOT dispatched
+            dispatcherMock.Verify(d => d.DispatchBuildAsync(It.IsAny<MobileBuildDto>(), It.IsAny<string?>(), default), Times.Never);
+        }
+
+        [Fact]
+        public async Task CreateBuild_WhenExistingFailedBuildForSameTenant_ShouldSucceed()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var (controller, dispatcherMock, masterDb) = CreateAdminMobileBuildsController(dbName);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 1,
+                Status = MobileBuildStatus.Failed,
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var dto = new CreateMobileBuildDto
+            {
+                TenantId = "socofeb",
+                Version = "1.0.1",
+                Environment = "production"
+            };
+
+            // Act
+            var actionResult = await controller.CreateBuild(dto);
+            var createdResult = actionResult.Result as CreatedAtActionResult;
+
+            // Assert
+            Assert.NotNull(createdResult);
+            var resultDto = createdResult!.Value as MobileBuildDto;
+            Assert.NotNull(resultDto);
+            Assert.Equal("Pending", resultDto!.Status);
+            Assert.Equal(2, resultDto.BuildNumber); // Automatically incremented
+            dispatcherMock.Verify(d => d.DispatchBuildAsync(It.IsAny<MobileBuildDto>(), "production", default), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateBuild_WhenExistingSucceededBuildForSameTenant_ShouldSucceed()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var (controller, dispatcherMock, masterDb) = CreateAdminMobileBuildsController(dbName);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 3,
+                Status = MobileBuildStatus.Succeeded,
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var dto = new CreateMobileBuildDto
+            {
+                TenantId = "socofeb",
+                Version = "1.0.1",
+                Environment = "production"
+            };
+
+            // Act
+            var actionResult = await controller.CreateBuild(dto);
+            var createdResult = actionResult.Result as CreatedAtActionResult;
+
+            // Assert
+            Assert.NotNull(createdResult);
+            var resultDto = createdResult!.Value as MobileBuildDto;
+            Assert.NotNull(resultDto);
+            Assert.Equal("Pending", resultDto!.Status);
+            Assert.Equal(4, resultDto.BuildNumber);
+            dispatcherMock.Verify(d => d.DispatchBuildAsync(It.IsAny<MobileBuildDto>(), "production", default), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateBuild_WhenActiveBuildExistsForTenantA_TenantBCanStillCreateBuild()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var (controller, dispatcherMock, masterDb) = CreateAdminMobileBuildsController(dbName);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "tenant-a", Name = "Tenant A", IsActive = true });
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "tenant-b", Name = "Tenant B", IsActive = true });
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                TenantId = "tenant-a",
+                Version = "1.0.0",
+                BuildNumber = 1,
+                Status = MobileBuildStatus.Building,
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var dtoTenantB = new CreateMobileBuildDto
+            {
+                TenantId = "tenant-b",
+                Version = "1.0.0",
+                Environment = "production"
+            };
+
+            // Act
+            var actionResult = await controller.CreateBuild(dtoTenantB);
+            var createdResult = actionResult.Result as CreatedAtActionResult;
+
+            // Assert
+            Assert.NotNull(createdResult);
+            var resultDto = createdResult!.Value as MobileBuildDto;
+            Assert.NotNull(resultDto);
+            Assert.Equal("tenant-b", resultDto!.TenantId);
+            Assert.Equal("Pending", resultDto.Status);
+            dispatcherMock.Verify(d => d.DispatchBuildAsync(It.Is<MobileBuildDto>(b => b.TenantId == "tenant-b"), "production", default), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateBuild_ConcurrentSimultaneousRequests_ShouldAllowOnlyOneAndRejectOther()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var (controller, dispatcherMock, masterDb) = CreateAdminMobileBuildsController(dbName);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+            await masterDb.SaveChangesAsync();
+
+            var dto1 = new CreateMobileBuildDto
+            {
+                TenantId = "socofeb",
+                Version = "1.0.1",
+                Environment = "production"
+            };
+
+            var dto2 = new CreateMobileBuildDto
+            {
+                TenantId = "socofeb",
+                Version = "1.0.1",
+                Environment = "production"
+            };
+
+            // Act: Run both creation requests concurrently
+            var task1 = controller.CreateBuild(dto1);
+            var task2 = controller.CreateBuild(dto2);
+
+            var results = await Task.WhenAll(task1, task2);
+
+            // Assert: Exactly one 201 Created and one 409 Conflict
+            var createdCount = results.Count(r => r.Result is CreatedAtActionResult);
+            var conflictCount = results.Count(r => r.Result is ConflictObjectResult);
+
+            Assert.Equal(1, createdCount);
+            Assert.Equal(1, conflictCount);
+
+            // Verify CI was dispatched exactly once
+            dispatcherMock.Verify(d => d.DispatchBuildAsync(It.IsAny<MobileBuildDto>(), "production", default), Times.Once);
+        }
+
+        #endregion
+
+        #region 4. Release Management & Publishing Tests
+
+        private AdminMobileBuildsController CreateAdminBuildsController(
+            MasterDbContext masterDb, 
+            WoodAppContext woodDb, 
+            Mock<IMobileArtifactStorage> storageMock,
+            Mock<IGitHubBuildDispatcher>? dispatcherMock = null,
+            string adminRole = "Admin")
+        {
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var loggerMock = new Mock<ILogger<MobileBuildService>>();
+            var buildService = new MobileBuildService(masterDb, woodDb, storageMock.Object, tokenService, configService, loggerMock.Object);
+
+            dispatcherMock ??= new Mock<IGitHubBuildDispatcher>();
+            var controllerLogger = new Mock<ILogger<AdminMobileBuildsController>>();
+
+            var controller = new AdminMobileBuildsController(buildService, configService, dispatcherMock.Object, controllerLogger.Object);
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                    {
+                        new Claim(ClaimTypes.Role, adminRole),
+                        new Claim(ClaimTypes.Name, "admin@acya.site")
+                    }, "TestAuth"))
+                }
+            };
+
+            return controller;
+        }
+
+        [Fact]
+        public async Task PublishBuild_SucceededBuild_ShouldPublishSuccessfully()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            var build = new MobileBuild
+            {
+                Id = 1,
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 3,
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = "socofeb/3/SOCOFEB-1.0.0-3.apk",
+                ArtifactSize = 58698477,
+                Sha256 = "a6b339528789821b35cac56d83b4122f46b1ee8d1b85c3f4f15b1ae62af47005",
+                IsActive = true
+            };
+            masterDb.MobileBuilds.Add(build);
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            storageMock.Setup(s => s.ArtifactExistsAsync("socofeb/3/SOCOFEB-1.0.0-3.apk", default)).ReturnsAsync(true);
+
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+
+            // Act
+            var actionResult = await controller.PublishBuild(1);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var release = Assert.IsType<MobileReleaseDto>(okResult.Value);
+
+            Assert.Equal("socofeb", release.TenantId);
+            Assert.Equal("1.0.0", release.Version);
+            Assert.Equal(3, release.BuildNumber);
+            Assert.Equal(1, release.MobileBuildId);
+            Assert.True(release.IsCurrent);
+            Assert.Equal("Published", release.Status);
+            Assert.Equal("SOCOFEB-1.0.0-3.apk", release.ArtifactFileName);
+            Assert.Equal(58698477, release.ArtifactSize);
+            Assert.Equal("a6b339528789821b35cac56d83b4122f46b1ee8d1b85c3f4f15b1ae62af47005", release.Sha256);
+        }
+
+        [Fact]
+        public async Task PublishBuild_PendingBuild_ShouldReturnBadRequest()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 2,
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 1,
+                Status = MobileBuildStatus.Pending,
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+
+            // Act
+            var actionResult = await controller.PublishBuild(2);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(actionResult.Result);
+        }
+
+        [Fact]
+        public async Task PublishBuild_BuildingBuild_ShouldReturnBadRequest()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 3,
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 2,
+                Status = MobileBuildStatus.Building,
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+
+            // Act
+            var actionResult = await controller.PublishBuild(3);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(actionResult.Result);
+        }
+
+        [Fact]
+        public async Task PublishBuild_FailedBuild_ShouldReturnBadRequest()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 4,
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 1,
+                Status = MobileBuildStatus.Failed,
+                ErrorMessage = "Gradle compilation failure",
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+
+            // Act
+            var actionResult = await controller.PublishBuild(4);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(actionResult.Result);
+        }
+
+        [Fact]
+        public async Task PublishBuild_NonExistentBuild_ShouldReturnNotFound()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+
+            // Act
+            var actionResult = await controller.PublishBuild(99999);
+
+            // Assert
+            Assert.IsType<NotFoundObjectResult>(actionResult.Result);
+        }
+
+        [Fact]
+        public async Task PublishBuild_AlreadyCurrentRelease_ShouldBeIdempotent()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 5,
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 3,
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = "socofeb/3/SOCOFEB-1.0.0-3.apk",
+                ArtifactSize = 50000000,
+                Sha256 = "validsha256",
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            storageMock.Setup(s => s.ArtifactExistsAsync("socofeb/3/SOCOFEB-1.0.0-3.apk", default)).ReturnsAsync(true);
+
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+
+            // Act: Publish twice
+            var result1 = await controller.PublishBuild(5);
+            var result2 = await controller.PublishBuild(5);
+
+            // Assert: Both return Ok
+            var ok1 = Assert.IsType<OkObjectResult>(result1.Result);
+            var ok2 = Assert.IsType<OkObjectResult>(result2.Result);
+
+            var rel1 = Assert.IsType<MobileReleaseDto>(ok1.Value);
+            var rel2 = Assert.IsType<MobileReleaseDto>(ok2.Value);
+
+            Assert.Equal(rel1.Id, rel2.Id);
+
+            // Exactly ONE release row in the database
+            var releaseCount = await masterDb.MobileReleases.CountAsync(r => r.TenantId == "socofeb");
+            Assert.Equal(1, releaseCount);
+        }
+
+        [Fact]
+        public async Task PublishBuild_NewRelease_ReplacesPreviousCurrentRelease()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.AddRange(
+                new MobileBuild
+                {
+                    Id = 10,
+                    TenantId = "socofeb",
+                    Version = "1.0.0",
+                    BuildNumber = 1,
+                    Status = MobileBuildStatus.Succeeded,
+                    ArtifactPath = "socofeb/1/app.apk",
+                    ArtifactSize = 50000000,
+                    Sha256 = "sha1",
+                    IsActive = true
+                },
+                new MobileBuild
+                {
+                    Id = 11,
+                    TenantId = "socofeb",
+                    Version = "1.0.1",
+                    BuildNumber = 2,
+                    Status = MobileBuildStatus.Succeeded,
+                    ArtifactPath = "socofeb/2/app.apk",
+                    ArtifactSize = 51000000,
+                    Sha256 = "sha2",
+                    IsActive = true
+                }
+            );
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            storageMock.Setup(s => s.ArtifactExistsAsync(It.IsAny<string>(), default)).ReturnsAsync(true);
+
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+
+            // Act: Publish build 10, then publish build 11
+            await controller.PublishBuild(10);
+            var result = await controller.PublishBuild(11);
+
+            // Assert
+            var ok = Assert.IsType<OkObjectResult>(result.Result);
+            var currentRelease = Assert.IsType<MobileReleaseDto>(ok.Value);
+
+            Assert.Equal(11, currentRelease.MobileBuildId);
+            Assert.Equal("1.0.1", currentRelease.Version);
+            Assert.True(currentRelease.IsCurrent);
+
+            // Verify in DB that previous release is no longer Current
+            var releases = await masterDb.MobileReleases.Where(r => r.TenantId == "socofeb").ToListAsync();
+            Assert.Equal(2, releases.Count);
+
+            var oldRelease = releases.First(r => r.MobileBuildId == 10);
+            Assert.False(oldRelease.IsCurrent);
+            Assert.Equal("Previous", oldRelease.Status);
+
+            var newRelease = releases.First(r => r.MobileBuildId == 11);
+            Assert.True(newRelease.IsCurrent);
+            Assert.Equal("Published", newRelease.Status);
+        }
+
+        [Fact]
+        public async Task PublishBuild_TenantA_DoesNotAffectTenantB()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.AddRange(
+                new MobileBuild
+                {
+                    Id = 20,
+                    TenantId = "socofeb",
+                    Version = "1.0.0",
+                    BuildNumber = 3,
+                    Status = MobileBuildStatus.Succeeded,
+                    ArtifactPath = "socofeb/3/app.apk",
+                    ArtifactSize = 50000000,
+                    Sha256 = "sha_socofeb",
+                    IsActive = true
+                },
+                new MobileBuild
+                {
+                    Id = 21,
+                    TenantId = "mansour-construction",
+                    Version = "1.0.1",
+                    BuildNumber = 1,
+                    Status = MobileBuildStatus.Succeeded,
+                    ArtifactPath = "mansour/1/app.apk",
+                    ArtifactSize = 50000000,
+                    Sha256 = "sha_mansour",
+                    IsActive = true
+                }
+            );
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            storageMock.Setup(s => s.ArtifactExistsAsync(It.IsAny<string>(), default)).ReturnsAsync(true);
+
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+
+            // Act: Publish both
+            await controller.PublishBuild(20);
+            await controller.PublishBuild(21);
+
+            // Assert: Both tenants have their own current release
+            var socofebCurrent = await masterDb.MobileReleases.FirstOrDefaultAsync(r => r.TenantId == "socofeb" && r.IsCurrent);
+            var mansourCurrent = await masterDb.MobileReleases.FirstOrDefaultAsync(r => r.TenantId == "mansour-construction" && r.IsCurrent);
+
+            Assert.NotNull(socofebCurrent);
+            Assert.Equal(20, socofebCurrent!.MobileBuildId);
+            Assert.Equal("1.0.0", socofebCurrent.Version);
+
+            Assert.NotNull(mansourCurrent);
+            Assert.Equal(21, mansourCurrent!.MobileBuildId);
+            Assert.Equal("1.0.1", mansourCurrent.Version);
+        }
+
+        [Fact]
+        public void PublishBuild_HasRequireAdminRolePolicyAttribute()
+        {
+            // Assert: Verify controller method has [Authorize(Policy = "RequireAdminRole")]
+            var method = typeof(AdminMobileBuildsController).GetMethod("PublishBuild");
+            Assert.NotNull(method);
+
+            var authAttr = Attribute.GetCustomAttribute(method!, typeof(AuthorizeAttribute)) as AuthorizeAttribute;
+            Assert.NotNull(authAttr);
+            Assert.Equal("RequireAdminRole", authAttr!.Policy);
+        }
+
+        [Fact]
+        public async Task PublishBuild_MissingArtifactFile_ShouldReturnBadRequest()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 30,
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 1,
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = "socofeb/1/nonexistent.apk",
+                ArtifactSize = 50000000,
+                Sha256 = "sha",
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            // Physical file not found
+            storageMock.Setup(s => s.ArtifactExistsAsync("socofeb/1/nonexistent.apk", default)).ReturnsAsync(false);
+
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+
+            // Act
+            var actionResult = await controller.PublishBuild(30);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(actionResult.Result);
+        }
+
+        [Theory]
+        [InlineData(null, 50000000, "validsha")]
+        [InlineData("", 50000000, "validsha")]
+        [InlineData("path.apk", 0, "validsha")]
+        [InlineData("path.apk", -100, "validsha")]
+        [InlineData("path.apk", 50000000, null)]
+        [InlineData("path.apk", 50000000, "")]
+        public async Task PublishBuild_InvalidArtifactMetadata_ShouldReturnBadRequest(string? artifactPath, long artifactSize, string? sha256)
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 35,
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 1,
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = artifactPath,
+                ArtifactSize = artifactSize,
+                Sha256 = sha256,
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            storageMock.Setup(s => s.ArtifactExistsAsync(It.IsAny<string>(), default)).ReturnsAsync(true);
+
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+
+            // Act
+            var actionResult = await controller.PublishBuild(35);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(actionResult.Result);
+        }
+
+        [Fact]
+        public async Task PublishBuild_OnlyOneCurrentReleaseExistsAfterMultiplePublishes()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.AddRange(
+                new MobileBuild { Id = 41, TenantId = "socofeb", Version = "1.0.0", BuildNumber = 1, Status = MobileBuildStatus.Succeeded, ArtifactPath = "p1.apk", ArtifactSize = 100, Sha256 = "s1", IsActive = true },
+                new MobileBuild { Id = 42, TenantId = "socofeb", Version = "1.0.1", BuildNumber = 2, Status = MobileBuildStatus.Succeeded, ArtifactPath = "p2.apk", ArtifactSize = 100, Sha256 = "s2", IsActive = true },
+                new MobileBuild { Id = 43, TenantId = "socofeb", Version = "1.0.2", BuildNumber = 3, Status = MobileBuildStatus.Succeeded, ArtifactPath = "p3.apk", ArtifactSize = 100, Sha256 = "s3", IsActive = true }
+            );
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            storageMock.Setup(s => s.ArtifactExistsAsync(It.IsAny<string>(), default)).ReturnsAsync(true);
+
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+
+            // Act: Publish 41, then 42, then 43
+            await controller.PublishBuild(41);
+            await controller.PublishBuild(42);
+            await controller.PublishBuild(43);
+
+            // Assert: Exactly ONE current release exists for socofeb
+            var currentReleases = await masterDb.MobileReleases.Where(r => r.TenantId == "socofeb" && r.IsCurrent).ToListAsync();
+            Assert.Single(currentReleases);
+            Assert.Equal(43, currentReleases[0].MobileBuildId);
+        }
+
+        [Fact]
+        public async Task PublishBuild_ReleaseSwitch_IsAtomic()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 50,
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 1,
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = "socofeb/1/app.apk",
+                ArtifactSize = 100,
+                Sha256 = "s1",
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            storageMock.Setup(s => s.ArtifactExistsAsync(It.IsAny<string>(), default)).ReturnsAsync(true);
+
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+
+            // Publish first build
+            await controller.PublishBuild(50);
+            var firstRelease = await masterDb.MobileReleases.FirstAsync(r => r.MobileBuildId == 50);
+            Assert.True(firstRelease.IsCurrent);
+
+            // Attempt to publish an invalid build (Pending)
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 51,
+                TenantId = "socofeb",
+                Version = "1.1.0",
+                BuildNumber = 2,
+                Status = MobileBuildStatus.Pending,
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var failedResult = await controller.PublishBuild(51);
+            Assert.IsType<BadRequestObjectResult>(failedResult.Result);
+
+            // Assert: Initial release remains untouched and current (atomic state preserved)
+            var current = await masterDb.MobileReleases.FirstOrDefaultAsync(r => r.TenantId == "socofeb" && r.IsCurrent);
+            Assert.NotNull(current);
+            Assert.Equal(50, current!.MobileBuildId);
+        }
+
+        [Fact]
+        public async Task PublishBuild_ConcurrentPublishes_DoNotCreateMultipleCurrentReleases()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.AddRange(
+                new MobileBuild { Id = 61, TenantId = "socofeb", Version = "1.0.0", BuildNumber = 1, Status = MobileBuildStatus.Succeeded, ArtifactPath = "a.apk", ArtifactSize = 100, Sha256 = "s1", IsActive = true },
+                new MobileBuild { Id = 62, TenantId = "socofeb", Version = "1.0.1", BuildNumber = 2, Status = MobileBuildStatus.Succeeded, ArtifactPath = "b.apk", ArtifactSize = 100, Sha256 = "s2", IsActive = true }
+            );
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            storageMock.Setup(s => s.ArtifactExistsAsync(It.IsAny<string>(), default)).ReturnsAsync(true);
+
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+
+            // Act: Run concurrent publish calls for the same tenant
+            var task1 = controller.PublishBuild(61);
+            var task2 = controller.PublishBuild(62);
+
+            await Task.WhenAll(task1, task2);
+
+            // Assert: Exactly ONE current release exists
+            var currentReleases = await masterDb.MobileReleases.Where(r => r.TenantId == "socofeb" && r.IsCurrent).ToListAsync();
+            Assert.Single(currentReleases);
+        }
+
+        [Fact]
+        public async Task RequestDownload_OnPublishedRelease_ShouldReturnTemporaryDownloadUrl()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 70,
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 3,
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = "socofeb/3/SOCOFEB-1.0.0-3.apk",
+                ArtifactSize = 58698477,
+                Sha256 = "a6b339528789821b35cac56d83b4122f46b1ee8d1b85c3f4f15b1ae62af47005",
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            storageMock.Setup(s => s.ArtifactExistsAsync("socofeb/3/SOCOFEB-1.0.0-3.apk", default)).ReturnsAsync(true);
+
+            var adminController = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+
+            // Publish build 70
+            var publishResult = await adminController.PublishBuild(70);
+            var okPublish = Assert.IsType<OkObjectResult>(publishResult.Result);
+            var releaseDto = Assert.IsType<MobileReleaseDto>(okPublish.Value);
+
+            // Act: Request download on the resulting MobileRelease.Id
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var loggerMock = new Mock<ILogger<MobileBuildService>>();
+            var buildService = new MobileBuildService(masterDb, woodDb, storageMock.Object, tokenService, configService, loggerMock.Object);
+
+            var tenantController = new MobileReleasesController(buildService, tenantContext, new Mock<ILogger<MobileReleasesController>>().Object);
+            tenantController.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, "99"),
+                        new Claim("tenant_slug", "socofeb")
+                    }, "TestAuth"))
+                }
+            };
+
+            var downloadResult = await tenantController.RequestDownload(releaseDto.Id);
+
+            // Assert
+            var okDownload = Assert.IsType<OkObjectResult>(downloadResult.Result);
+            var downloadResponse = Assert.IsType<MobileDownloadResponseDto>(okDownload.Value);
+
+            Assert.Equal("socofeb", downloadResponse.TenantId);
+            Assert.Equal("1.0.0", downloadResponse.Version);
+            Assert.Contains("/api/mobile/releases/download?token=", downloadResponse.DownloadUrl);
+        }
+
+        [Theory]
+        [InlineData("/api/admin/mobile/releases/current")]
+        [InlineData("/api/admin/mobile/releases")]
+        [InlineData("/api/admin/mobile/builds")]
+        [InlineData("/api/mobile/releases/download")]
+        public async Task TenantMiddleware_BypassesTenantResolution_ForAdminMobileAndDownloadRoutes(string path)
+        {
+            // Arrange
+            var nextCalled = false;
+            RequestDelegate next = (ctx) =>
+            {
+                nextCalled = true;
+                return Task.CompletedTask;
+            };
+
+            var loggerMock = new Mock<ILogger<TenantMiddleware>>();
+            var middleware = new TenantMiddleware(next, loggerMock.Object);
+
+            var context = new DefaultHttpContext();
+            context.Request.Path = path;
+
+            var resolverMock = new Mock<ITenantResolver>();
+            var tenantContext = new TenantContext();
+            var masterDb = CreateInMemoryMasterDb(Guid.NewGuid().ToString());
+
+            // Act
+            await middleware.InvokeAsync(context, resolverMock.Object, tenantContext, masterDb);
+
+            // Assert: next was invoked directly without needing resolver
+            Assert.True(nextCalled);
+            resolverMock.Verify(r => r.ResolveTenantSlug(It.IsAny<HttpContext>()), Times.Never);
+        }
+
+        #endregion
     }
 }
+
+
