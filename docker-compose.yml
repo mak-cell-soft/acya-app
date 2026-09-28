@@ -59,8 +59,13 @@ services:
       - SmtpSettings__EnableSsl=${SMTP_ENABLE_SSL:-true}
       - Tej__Username=${TEJ_USERNAME}
       - Tej__Password=${TEJ_PASSWORD}
+      - MobileBuild__CiToken=${MOBILE_BUILD_CI_TOKEN}
+      - MobileBuild__GitHubToken=${MOBILE_BUILD_GITHUB_TOKEN}
+      - MobileStorage__BasePath=/app/storage/private/mobile
     ports:
       - "8080:80"
+    volumes:
+      - ./storage/private/mobile:/app/storage/private/mobile
     depends_on:
       postgres:
         condition: service_healthy

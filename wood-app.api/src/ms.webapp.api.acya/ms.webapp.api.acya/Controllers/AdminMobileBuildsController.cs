@@ -185,6 +185,8 @@ namespace ms.webapp.api.acya.Controllers
         /// </summary>
         [HttpPost("{id:int}/artifact")]
         [AuthorizeAdminOrCiToken]
+        [RequestSizeLimit(104_857_600)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 104_857_600)]
         public async Task<ActionResult<MobileBuildDto>> UploadArtifact(
             int id,
             IFormFile file,
