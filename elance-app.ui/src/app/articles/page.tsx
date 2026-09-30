@@ -21,7 +21,10 @@ import {
   TreeDeciduous,
   Loader2,
   Printer,
-  Wrench
+  Wrench,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -37,7 +40,7 @@ import { cn } from '@/lib/utils';
 import { useArticles, useCreateArticle, useUpdateArticle, useDeleteArticle } from '@/hooks/use-articles';
 import { useStockAll } from '@/hooks/use-stock';
 import { useCategories } from '@/hooks/use-categories';
-import { ArticleFilters } from '@/components/articles/article-filters';
+import { ArticleFilters, SortDirection } from '@/components/articles/article-filters';
 import { DeleteConfirmDialog } from '@/components/articles/delete-confirm-dialog';
 import { ArticleHistoryDialog } from '@/components/articles/article-history-dialog';
 import { ArticleFormDialog } from '@/components/articles/article-form-dialog';
@@ -51,11 +54,13 @@ import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 import * as XLSX from 'xlsx';
 
 export default function ArticlesPage() {
-  // State for filtering
-  const [searchTerm, setSearchTerm] = useState('');
+  // State for filtering & sorting
+  const [referenceSearch, setReferenceSearch] = useState('');
+  const [designationSearch, setDesignationSearch] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubCategory, setSelectedSubCategory] = useState('all');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('none');
   
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -147,26 +152,40 @@ export default function ArticlesPage() {
     return map;
   }, [stocks]);
 
-  // Client-side filtering
+  // Client-side filtering & sorting
   const filteredArticles = useMemo(() => {
     if (!articles) return [];
     
-    return articles.filter(article => {
-      const matchesSearch = 
-        article.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        article.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const result = articles.filter(article => {
+      const matchesReference = !referenceSearch.trim() || 
+        (article.reference || '').toLowerCase().includes(referenceSearch.trim().toLowerCase());
+
+      const matchesDesignation = !designationSearch.trim() || 
+        (article.description || '').toLowerCase().includes(designationSearch.trim().toLowerCase());
         
       const isService = article.type === ArticleType.Service || (article.type as any) === 1;
       const matchesType = selectedType === 'all' ||
         (selectedType === 'service' && isService) ||
         (selectedType === 'merchandise' && !isService);
 
-      const matchesCategory = selectedCategory === 'all' || article.categoryid.toString() === selectedCategory;
-      const matchesSubCategory = selectedSubCategory === 'all' || article.subcategoryid.toString() === selectedSubCategory;
+      const matchesCategory = selectedCategory === 'all' || article.categoryid?.toString() === selectedCategory;
+      const matchesSubCategory = selectedSubCategory === 'all' || article.subcategoryid?.toString() === selectedSubCategory;
       
-      return matchesSearch && matchesType && matchesCategory && matchesSubCategory;
+      return matchesReference && matchesDesignation && matchesType && matchesCategory && matchesSubCategory;
     });
-  }, [articles, searchTerm, selectedType, selectedCategory, selectedSubCategory]);
+
+    if (sortDirection === 'asc') {
+      return [...result].sort((a, b) => 
+        (a.reference || '').localeCompare(b.reference || '', 'fr', { numeric: true, sensitivity: 'base' })
+      );
+    } else if (sortDirection === 'desc') {
+      return [...result].sort((a, b) => 
+        (b.reference || '').localeCompare(a.reference || '', 'fr', { numeric: true, sensitivity: 'base' })
+      );
+    }
+
+    return result;
+  }, [articles, referenceSearch, designationSearch, selectedType, selectedCategory, selectedSubCategory, sortDirection]);
 
   // Paginated articles
   const paginatedArticles = useMemo(() => {
@@ -175,6 +194,12 @@ export default function ArticlesPage() {
   }, [filteredArticles, currentPage, pageSize]);
 
   // Handlers
+  const handleToggleSort = () => {
+    const nextSort: SortDirection = sortDirection === 'none' ? 'asc' : sortDirection === 'asc' ? 'desc' : 'none';
+    setSortDirection(nextSort);
+    setCurrentPage(1);
+  };
+
   const handleCreate = (model: any) => {
     createArticle.mutate(model, {
       onSuccess: () => setIsFormOpen(false)
@@ -204,10 +229,12 @@ export default function ArticlesPage() {
   };
 
   const handleResetFilters = () => {
-    setSearchTerm('');
+    setReferenceSearch('');
+    setDesignationSearch('');
     setSelectedType('all');
     setSelectedCategory('all');
     setSelectedSubCategory('all');
+    setSortDirection('none');
     setCurrentPage(1);
   };
 
@@ -294,14 +321,18 @@ export default function ArticlesPage() {
         {/* Filters and Table Card */}
         <Card className="border-corp-blue-100/50 shadow-2xl shadow-corp-blue-900/5 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-md">
           <ArticleFilters 
-            searchTerm={searchTerm}
-            onSearchChange={(val) => { setSearchTerm(val); setCurrentPage(1); }}
+            referenceSearch={referenceSearch}
+            onReferenceSearchChange={(val) => { setReferenceSearch(val); setCurrentPage(1); }}
+            designationSearch={designationSearch}
+            onDesignationSearchChange={(val) => { setDesignationSearch(val); setCurrentPage(1); }}
             selectedType={selectedType}
             onTypeChange={(val) => { setSelectedType(val); setCurrentPage(1); }}
             selectedCategory={selectedCategory}
             onCategoryChange={(val) => { setSelectedCategory(val); setCurrentPage(1); }}
             selectedSubCategory={selectedSubCategory}
             onSubCategoryChange={(val) => { setSelectedSubCategory(val); setCurrentPage(1); }}
+            sortDirection={sortDirection}
+            onSortDirectionChange={(val) => { setSortDirection(val); setCurrentPage(1); }}
             onReset={handleResetFilters}
             count={filteredArticles.length}
           />
@@ -311,8 +342,32 @@ export default function ArticlesPage() {
               <table className="w-full min-w-[1000px] text-left border-collapse">
                 <thead>
                   <tr className="bg-sand-50/50 border-b border-corp-blue-50">
-                    <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest pl-8">
-                      <div className="flex items-center gap-2"><QrCode className="w-3 h-3" /> Référence</div>
+                    <th 
+                      className="p-5 text-[0.7rem] font-bold uppercase tracking-widest pl-8 cursor-pointer select-none transition-colors group/sort hover:text-corp-blue-600"
+                      onClick={handleToggleSort}
+                      aria-sort={sortDirection === 'asc' ? 'ascending' : sortDirection === 'desc' ? 'descending' : 'none'}
+                      role="columnheader"
+                      title="Cliquer pour trier par référence"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <QrCode className="w-3.5 h-3.5 text-sand-400 group-hover/sort:text-corp-blue-600 transition-colors" />
+                        <span className={cn(sortDirection !== 'none' ? "text-corp-blue-700 font-extrabold" : "text-sand-400")}>
+                          Référence
+                        </span>
+                        {sortDirection === 'asc' && (
+                          <span className="flex items-center text-corp-blue-600 font-extrabold text-[0.75rem]">
+                            ↑
+                          </span>
+                        )}
+                        {sortDirection === 'desc' && (
+                          <span className="flex items-center text-corp-blue-600 font-extrabold text-[0.75rem]">
+                            ↓
+                          </span>
+                        )}
+                        {sortDirection === 'none' && (
+                          <ArrowUpDown className="w-3 h-3 text-sand-300 opacity-0 group-hover/sort:opacity-100 transition-opacity" />
+                        )}
+                      </div>
                     </th>
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Désignation</th>
                     <th className="p-5 text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Catégorie</th>
@@ -657,7 +712,10 @@ export default function ArticlesPage() {
         articlesList={filteredArticles}
         articlesStockMap={stockMap}
         articlesFilterInfo={{
-          search: searchTerm,
+          search: [
+            referenceSearch ? `Réf: ${referenceSearch}` : null,
+            designationSearch ? `Désig: ${designationSearch}` : null
+          ].filter(Boolean).join(' | ') || undefined,
           categoryName: activeCategoryName,
           subCategoryName: activeSubCategoryName,
         }}
