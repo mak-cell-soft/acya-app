@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Bell, Search, User, Settings, LogOut, CreditCard, Menu, Calendar, Store, MapPin, X, LayoutDashboard, Package, ShoppingBag, ShoppingCart, Users, Truck, Warehouse, Calculator, BarChart3, ClipboardList, Car, UserCheck, ArrowRight } from 'lucide-react';
+import { Bell, Search, User, Settings, LogOut, CreditCard, Menu, Calendar, Store, MapPin, X, LayoutDashboard, Package, ShoppingBag, ShoppingCart, Users, Truck, Warehouse, Calculator, BarChart3, ClipboardList, Car, UserCheck, ArrowRight, Smartphone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { 
@@ -152,6 +152,12 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                     <Settings className="h-4 w-4 text-corp-blue-400" /> Paramètres
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem 
+                  className="gap-3 px-3 py-2.5 rounded-xl cursor-pointer hover:bg-corp-blue-50 transition-colors font-bold text-sm text-corp-blue-700 focus:bg-corp-blue-50"
+                  onClick={() => router.push('/mobile-app')}
+                >
+                  <Smartphone className="h-4 w-4 text-corp-blue-400" /> Application Mobile
+                </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator className="bg-corp-blue-100" />
               <DropdownMenuItem className="text-rose-500 gap-3 px-3 py-2.5 rounded-xl cursor-pointer hover:bg-rose-50 transition-colors font-bold text-sm focus:bg-rose-50" onClick={handleLogout}>
@@ -195,6 +201,7 @@ const SEARCH_SHORTCUTS: SearchShortcut[] = [
   { name: 'Véhicules & Flotte', href: '/vehicles', icon: Car, module: 'vehicles', keywords: ['vehicule', 'camion', 'flotte', 'transport'] },
   { name: 'Équipe & RH', href: '/team', icon: UserCheck, module: 'hr', keywords: ['equipe', 'rh', 'employe', 'personnel', 'utilisateur'] },
   { name: 'Paramètres', href: '/settings', icon: Settings, module: 'configuration', keywords: ['parametre', 'option', 'configuration', 'tva', 'unite'] },
+  { name: 'Application Mobile', href: '/mobile-app', icon: Smartphone, module: 'mobileApp', keywords: ['mobile', 'app', 'android', 'apk', 'application', 'telephone'] },
 ];
 
 function NavbarSearch() {

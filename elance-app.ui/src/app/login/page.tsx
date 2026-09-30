@@ -97,7 +97,15 @@ export default function LoginPage() {
       const response = await authService.login({ login: email, password });
       if (response.isSuccess) {
         toast.success(`Authentification avec succès à ${response.enterpriseName || ''}`);
-        router.push('/dashboard');
+        let target = '/dashboard';
+        if (typeof window !== 'undefined') {
+          const params = new URLSearchParams(window.location.search);
+          const redirect = params.get('redirect') || params.get('returnUrl');
+          if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
+            target = redirect;
+          }
+        }
+        router.push(target);
       } else {
         toast.warning(response.message || "Identifiants invalides");
       }

@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { MobileBuild, MobileRelease, CreateMobileBuildInput, MobileTenantSummary } from "@/types/mobile";
+import { MobileBuild, MobileRelease, CreateMobileBuildInput, MobileTenantSummary, MobileTenantUser, SendMobileAppResult } from "@/types/mobile";
 
 interface TokenCache {
   token: string;
@@ -477,6 +477,82 @@ export async function fetchCurrentMobileReleases(
   if (!res || !res.ok) {
     const errorText = await res?.text().catch(() => "");
     throw new Error(`Failed to load current releases (${res?.status || "unknown"}): ${errorText || res?.statusText}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Fetches authorized users for a specific tenant to invite them to download the mobile app.
+ */
+export async function fetchTenantUsersForMobile(
+  coreToken: string,
+  tenantId: string
+): Promise<MobileTenantUser[]> {
+  const { coreBase } = await getBackendUrls();
+  let url = `${coreBase}admin/mobile/releases/tenants/${encodeURIComponent(tenantId)}/users`;
+
+  let res = await fetch(url, {
+    headers: {
+      "Authorization": `Bearer ${coreToken}`,
+      "Accept": "application/json",
+    },
+  }).catch(() => null);
+
+  if (!res) {
+    url = `http://localhost:8080/api/admin/mobile/releases/tenants/${encodeURIComponent(tenantId)}/users`;
+    res = await fetch(url, {
+      headers: {
+        "Authorization": `Bearer ${coreToken}`,
+        "Accept": "application/json",
+      },
+    });
+  }
+
+  if (!res || !res.ok) {
+    const errorText = await res?.text().catch(() => "");
+    throw new Error(`Failed to load tenant users (${res?.status || "unknown"}): ${errorText || res?.statusText}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Dispatches an email invitation to a tenant user with their dedicated mobile app portal link.
+ */
+export async function sendMobileAppInvitation(
+  coreToken: string,
+  payload: { tenantId: string; userId: number }
+): Promise<SendMobileAppResult> {
+  const { coreBase } = await getBackendUrls();
+  let url = `${coreBase}admin/mobile/releases/send`;
+
+  let res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${coreToken}`,
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+    },
+    body: JSON.stringify(payload),
+  }).catch(() => null);
+
+  if (!res) {
+    url = `http://localhost:8080/api/admin/mobile/releases/send`;
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${coreToken}`,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  if (!res || !res.ok) {
+    const errorText = await res?.text().catch(() => "");
+    throw new Error(`Failed to send mobile app invitation (${res?.status || "unknown"}): ${errorText || res?.statusText}`);
   }
 
   return res.json();

@@ -67,3 +67,22 @@ export interface CreateMobileBuildInput {
   gitBranch?: string;
   environment?: string;
 }
+
+export interface MobileTenantUser {
+  id: number;
+  login?: string;
+  userName?: string;
+  name?: string;
+  fullName?: string;
+  email: string;
+  canView?: boolean;
+  canDownload?: boolean;
+}
+
+export interface SendMobileAppResult {
+  success: boolean;
+  message: string;
+  recipientEmail?: string;
+  recipientName?: string;
+  portalUrl?: string;
+}

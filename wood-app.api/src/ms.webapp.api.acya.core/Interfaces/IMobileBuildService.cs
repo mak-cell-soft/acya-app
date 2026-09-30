@@ -29,5 +29,10 @@ namespace ms.webapp.api.acya.core.Interfaces
 
         // Worker artifact upload
         Task<MobileBuildDto?> UploadArtifactAsync(int id, string fileName, Stream content, string? expectedSha256 = null, CancellationToken cancellationToken = default);
+
+        // Distribution operations
+        Task<IEnumerable<MobileTenantUserDto>> GetTenantUsersAsync(string tenantId, CancellationToken cancellationToken = default);
+        Task<SendMobileAppResultDto> SendMobileAppToUserAsync(string tenantId, int userId, string? customEmail, string? initiatedBy, CancellationToken cancellationToken = default);
     }
 }
+

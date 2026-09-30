@@ -18,6 +18,7 @@ const routeMap: Record<string, string> = {
   vehicles: 'Véhicules',
   team: 'Équipe & RH',
   settings: 'Paramètres',
+  'mobile-app': 'Application Mobile',
   new: 'Nouveau',
 };
 

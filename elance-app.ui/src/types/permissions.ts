@@ -5,6 +5,14 @@ export interface ModulePermissions {
   canDelete: boolean;
 }
 
+export interface MobileAppPermissions extends ModulePermissions {
+  canView?: boolean;
+  canDownload?: boolean;
+  canManage?: boolean;
+  canBuild?: boolean;
+  canRelease?: boolean;
+}
+
 export interface AppPermissionsMap {
   analytics: ModulePermissions;
   articles: ModulePermissions;
@@ -20,6 +28,7 @@ export interface AppPermissionsMap {
   configuration: ModulePermissions;
   chantier: ModulePermissions;
   production: ModulePermissions;
+  mobileApp: MobileAppPermissions;
 }
 
 export interface UserPermissionsDto {

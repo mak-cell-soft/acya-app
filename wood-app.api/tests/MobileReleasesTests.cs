@@ -2214,6 +2214,636 @@ namespace ms.webapp.api.acya.tests
         }
 
         #endregion
+
+        #region 6. Tenant Portal Current Release Tests (Phase 5)
+
+        [Fact]
+        public async Task GetCurrentRelease_TenantA_ReturnsTenantACurrentRelease()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            var build = new MobileBuild
+            {
+                Id = 101,
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 3,
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = "socofeb/3/SOCOFEB-1.0.0-3.apk",
+                ArtifactSize = 58698477,
+                Sha256 = "a6b339528789821b35cac56d83b4122f46b1ee8d1b85c3f4f15b1ae62af47005",
+                IsActive = true
+            };
+            masterDb.MobileBuilds.Add(build);
+            masterDb.MobileReleases.Add(new MobileRelease
+            {
+                Id = 1,
+                TenantId = "socofeb",
+                MobileBuildId = 101,
+                Version = "1.0.0",
+                BuildNumber = 3,
+                Status = "Published",
+                IsCurrent = true,
+                PublishedAt = DateTime.UtcNow
+            });
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var loggerMock = new Mock<ILogger<MobileBuildService>>();
+            var buildService = new MobileBuildService(masterDb, woodDb, storageMock.Object, tokenService, configService, loggerMock.Object);
+
+            var controller = new MobileReleasesController(buildService, tenantContext, new Mock<ILogger<MobileReleasesController>>().Object);
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, "1"),
+                        new Claim("tenant_slug", "socofeb")
+                    }, "TestAuth"))
+                }
+            };
+
+            // Act
+            var result = await controller.GetCurrentRelease();
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var releaseDto = Assert.IsType<MobileReleaseDto>(okResult.Value);
+            Assert.Equal("socofeb", releaseDto.TenantId);
+            Assert.Equal("1.0.0", releaseDto.Version);
+            Assert.Equal(3, releaseDto.BuildNumber);
+            Assert.True(releaseDto.IsCurrent);
+            Assert.Equal("SOCOFEB-1.0.0-3.apk", releaseDto.ArtifactFileName);
+            Assert.Equal(58698477, releaseDto.ArtifactSize);
+            Assert.Equal("a6b339528789821b35cac56d83b4122f46b1ee8d1b85c3f4f15b1ae62af47005", releaseDto.Sha256);
+        }
+
+        [Fact]
+        public async Task GetCurrentRelease_TenantB_ReturnsTenantBCurrentRelease()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "mansour-construction" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 201,
+                TenantId = "mansour-construction",
+                Version = "1.0.1",
+                BuildNumber = 1,
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = "mansour-construction/1/Mansour_Construction-1.0.1-1.apk",
+                ArtifactSize = 58698501,
+                Sha256 = "41678f95343cd350a3c45282da3f73984a1fff8173270078e4bf6ff48a4f8bda",
+                IsActive = true
+            });
+            masterDb.MobileReleases.Add(new MobileRelease
+            {
+                Id = 2,
+                TenantId = "mansour-construction",
+                MobileBuildId = 201,
+                Version = "1.0.1",
+                BuildNumber = 1,
+                Status = "Published",
+                IsCurrent = true,
+                PublishedAt = DateTime.UtcNow
+            });
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var loggerMock = new Mock<ILogger<MobileBuildService>>();
+            var buildService = new MobileBuildService(masterDb, woodDb, storageMock.Object, tokenService, configService, loggerMock.Object);
+
+            var controller = new MobileReleasesController(buildService, tenantContext, new Mock<ILogger<MobileReleasesController>>().Object);
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, "2"),
+                        new Claim("tenant_slug", "mansour-construction")
+                    }, "TestAuth"))
+                }
+            };
+
+            // Act
+            var result = await controller.GetCurrentRelease();
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var releaseDto = Assert.IsType<MobileReleaseDto>(okResult.Value);
+            Assert.Equal("mansour-construction", releaseDto.TenantId);
+            Assert.Equal("1.0.1", releaseDto.Version);
+            Assert.Equal(1, releaseDto.BuildNumber);
+            Assert.True(releaseDto.IsCurrent);
+            Assert.Equal("Mansour_Construction-1.0.1-1.apk", releaseDto.ArtifactFileName);
+            Assert.Equal(58698501, releaseDto.ArtifactSize);
+            Assert.Equal("41678f95343cd350a3c45282da3f73984a1fff8173270078e4bf6ff48a4f8bda", releaseDto.Sha256);
+        }
+
+        [Fact]
+        public async Task GetCurrentRelease_TenantACannotRetrieveTenantBRelease()
+        {
+            // Arrange: Only Tenant B has a current release
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 301,
+                TenantId = "mansour-construction",
+                Version = "1.0.1",
+                BuildNumber = 1,
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = "mansour-construction/1/app.apk",
+                IsActive = true
+            });
+            masterDb.MobileReleases.Add(new MobileRelease
+            {
+                Id = 3,
+                TenantId = "mansour-construction",
+                MobileBuildId = 301,
+                Version = "1.0.1",
+                BuildNumber = 1,
+                Status = "Published",
+                IsCurrent = true,
+                PublishedAt = DateTime.UtcNow
+            });
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var loggerMock = new Mock<ILogger<MobileBuildService>>();
+            var buildService = new MobileBuildService(masterDb, woodDb, storageMock.Object, tokenService, configService, loggerMock.Object);
+
+            var controller = new MobileReleasesController(buildService, tenantContext, new Mock<ILogger<MobileReleasesController>>().Object);
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, "1"),
+                        new Claim("tenant_slug", "socofeb")
+                    }, "TestAuth"))
+                }
+            };
+
+            // Act
+            var result = await controller.GetCurrentRelease();
+
+            // Assert: Must return 404 NotFound for socofeb, never leak mansour-construction
+            var notFound = Assert.IsType<NotFoundObjectResult>(result.Result);
+            Assert.Contains("socofeb", notFound.Value?.ToString() ?? "");
+        }
+
+        [Fact]
+        public async Task GetCurrentRelease_WhenNoPublishedReleaseExists_ReturnsNotFound()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var loggerMock = new Mock<ILogger<MobileBuildService>>();
+            var buildService = new MobileBuildService(masterDb, woodDb, storageMock.Object, tokenService, configService, loggerMock.Object);
+
+            var controller = new MobileReleasesController(buildService, tenantContext, new Mock<ILogger<MobileReleasesController>>().Object);
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                    {
+                        new Claim("tenant_slug", "socofeb")
+                    }, "TestAuth"))
+                }
+            };
+
+            // Act
+            var result = await controller.GetCurrentRelease();
+
+            // Assert
+            Assert.IsType<NotFoundObjectResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task DownloadArtifact_WithValidToken_ReturnsCorrectArtifactStream()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 401,
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 3,
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = "socofeb/3/SOCOFEB-1.0.0-3.apk",
+                ArtifactSize = 1024,
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var fakeApkBytes = Encoding.UTF8.GetBytes("PKfakeapkcontent");
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            storageMock.Setup(s => s.ArtifactExistsAsync("socofeb/3/SOCOFEB-1.0.0-3.apk", default)).ReturnsAsync(true);
+            storageMock.Setup(s => s.GetArtifactStreamAsync("socofeb/3/SOCOFEB-1.0.0-3.apk", default))
+                .ReturnsAsync(new MemoryStream(fakeApkBytes));
+
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var loggerMock = new Mock<ILogger<MobileBuildService>>();
+            var buildService = new MobileBuildService(masterDb, woodDb, storageMock.Object, tokenService, configService, loggerMock.Object);
+
+            var token = tokenService.GenerateToken(401, "socofeb", 1);
+            var controller = new MobileReleasesController(buildService, tenantContext, new Mock<ILogger<MobileReleasesController>>().Object);
+
+            // Act
+            var downloadResult = await controller.DownloadArtifact(token);
+
+            // Assert: FileStreamResult with preserved filename
+            var fileResult = Assert.IsType<FileStreamResult>(downloadResult);
+            Assert.Equal("application/vnd.android.package-archive", fileResult.ContentType);
+            Assert.Equal("acya-socofeb-1.0.0.apk", fileResult.FileDownloadName);
+            Assert.NotNull(fileResult.FileStream);
+        }
+
+        #endregion
+
+        #region Phase 6: Mobile App Distribution & Installation UX Tests
+
+        [Fact]
+        public async Task SendMobileApp_GeneratesCorrectPortalUrl_AndDispatchesN8n()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry
+            {
+                Id = 1,
+                Slug = "socofeb",
+                Name = "SOCOFEB",
+                SchemaName = "tenant_socofeb",
+                IsActive = true
+            });
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 101,
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 3,
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = "socofeb/3/SOCOFEB-1.0.0-3.apk",
+                IsActive = true
+            });
+
+            masterDb.MobileReleases.Add(new MobileRelease
+            {
+                Id = 1,
+                TenantId = "socofeb",
+                MobileBuildId = 101,
+                Version = "1.0.0",
+                BuildNumber = 3,
+                Status = "Published",
+                IsCurrent = true,
+                PublishedAt = DateTime.UtcNow
+            });
+            await masterDb.SaveChangesAsync();
+
+            var testUser = new AppUser
+            {
+                Login = "hassen.feidi",
+                Email = "socofeb.hassen@gmail.com",
+                IsActive = true,
+                Persons = new Person
+                {
+                    Firstname = "Hassen",
+                    Lastname = "FEIDI",
+                    FullName = "Hassen FEIDI"
+                }
+            };
+            woodDb.AppUsers.Add(testUser);
+            await woodDb.SaveChangesAsync();
+
+            var n8nMock = new Mock<IN8nEmailService>();
+            string capturedUrl = "";
+            string capturedVersion = "";
+            int capturedBuildNumber = 0;
+            n8nMock.Setup(n => n.SendMobileAppInvitationAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                default
+            )).Callback<string, string, string, string, string, int, string, CancellationToken>(
+                (to, name, slug, user, ver, bnum, url, ct) =>
+                {
+                    capturedUrl = url;
+                    capturedVersion = ver;
+                    capturedBuildNumber = bnum;
+                }
+            ).ReturnsAsync(true);
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var buildService = new MobileBuildService(
+                masterDb, woodDb, storageMock.Object, tokenService, configService,
+                n8nMock.Object, null, _configuration, new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            // Act
+            var result = await buildService.SendMobileAppToUserAsync("socofeb", testUser.Id, null, "admin");
+
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal("socofeb.hassen@gmail.com", result.Recipient);
+            Assert.Equal("1.0.0", result.Version);
+            Assert.Equal(3, result.BuildNumber);
+            Assert.Equal("https://socofeb.acya.site/mobile-app", result.PortalUrl);
+            Assert.Equal("https://socofeb.acya.site/mobile-app", capturedUrl);
+            Assert.Equal("1.0.0", capturedVersion);
+            Assert.Equal(3, capturedBuildNumber);
+        }
+
+        [Fact]
+        public async Task SendMobileApp_DoesNotCreateBuildOrRelease()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry
+            {
+                Id = 1,
+                Slug = "socofeb",
+                Name = "SOCOFEB",
+                SchemaName = "tenant_socofeb",
+                IsActive = true
+            });
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 101,
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 3,
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = "socofeb/3/SOCOFEB-1.0.0-3.apk",
+                IsActive = true
+            });
+
+            masterDb.MobileReleases.Add(new MobileRelease
+            {
+                Id = 1,
+                TenantId = "socofeb",
+                MobileBuildId = 101,
+                Version = "1.0.0",
+                BuildNumber = 3,
+                Status = "Published",
+                IsCurrent = true,
+                PublishedAt = DateTime.UtcNow
+            });
+            await masterDb.SaveChangesAsync();
+
+            var appUser = new AppUser
+            {
+                Login = "hassen.feidi",
+                Email = "socofeb.hassen@gmail.com",
+                IsActive = true,
+                Persons = new Person
+                {
+                    Firstname = "Hassen",
+                    Lastname = "FEIDI"
+                }
+            };
+            woodDb.AppUsers.Add(appUser);
+            await woodDb.SaveChangesAsync();
+
+
+            var initialBuildCount = await masterDb.MobileBuilds.CountAsync();
+            var initialReleaseCount = await masterDb.MobileReleases.CountAsync();
+
+            var n8nMock = new Mock<IN8nEmailService>();
+            n8nMock.Setup(n => n.SendMobileAppInvitationAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), default
+            )).ReturnsAsync(true);
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var buildService = new MobileBuildService(
+                masterDb, woodDb, storageMock.Object, tokenService, configService,
+                n8nMock.Object, null, _configuration, new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            // Act
+            await buildService.SendMobileAppToUserAsync("socofeb", appUser.Id, null, "admin");
+
+
+            // Assert: Builds and Releases counts MUST remain unchanged
+            var finalBuildCount = await masterDb.MobileBuilds.CountAsync();
+            var finalReleaseCount = await masterDb.MobileReleases.CountAsync();
+
+            Assert.Equal(initialBuildCount, finalBuildCount);
+            Assert.Equal(initialReleaseCount, finalReleaseCount);
+        }
+
+        [Fact]
+        public async Task SendMobileApp_WhenTargetUserNotFoundInTenant_ThrowsKeyNotFoundException()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry
+            {
+                Id = 1,
+                Slug = "socofeb",
+                Name = "SOCOFEB",
+                SchemaName = "tenant_socofeb",
+                IsActive = true
+            });
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 101,
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 3,
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = "socofeb/3/SOCOFEB-1.0.0-3.apk",
+                IsActive = true
+            });
+
+            masterDb.MobileReleases.Add(new MobileRelease
+            {
+                Id = 1,
+                TenantId = "socofeb",
+                MobileBuildId = 101,
+                Version = "1.0.0",
+                BuildNumber = 3,
+                Status = "Published",
+                IsCurrent = true,
+                PublishedAt = DateTime.UtcNow
+            });
+            await masterDb.SaveChangesAsync();
+
+            // woodDb has no user with ID 999
+            var n8nMock = new Mock<IN8nEmailService>();
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var buildService = new MobileBuildService(
+                masterDb, woodDb, storageMock.Object, tokenService, configService,
+                n8nMock.Object, null, _configuration, new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            // Act & Assert
+            await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+                buildService.SendMobileAppToUserAsync("socofeb", 999, null, "admin"));
+        }
+
+        [Fact]
+        public async Task SendMobileApp_WhenNoCurrentRelease_ThrowsInvalidOperationException()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry
+            {
+                Id = 1,
+                Slug = "socofeb",
+                Name = "SOCOFEB",
+                SchemaName = "tenant_socofeb",
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            woodDb.AppUsers.Add(new AppUser
+            {
+                Id = 1,
+                Login = "test",
+                Email = "test@example.com",
+                IsActive = true
+            });
+            await woodDb.SaveChangesAsync();
+
+            var n8nMock = new Mock<IN8nEmailService>();
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var buildService = new MobileBuildService(
+                masterDb, woodDb, storageMock.Object, tokenService, configService,
+                n8nMock.Object, null, _configuration, new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            // Act & Assert: No release exists for socofeb
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                buildService.SendMobileAppToUserAsync("socofeb", 1, null, "admin"));
+        }
+
+        [Fact]
+        public async Task GetTenantUsers_ReturnsUsersWithPermissions()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry
+            {
+                Id = 1,
+                Slug = "socofeb",
+                Name = "SOCOFEB",
+                SchemaName = "tenant_socofeb",
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            woodDb.AppUsers.Add(new AppUser
+            {
+                Id = 1,
+                Login = "amine.klabi",
+                Email = "klabiamine@gmail.com",
+                IsActive = true,
+                Persons = new Person { Firstname = "Amine", Lastname = "KLABI" }
+            });
+            woodDb.AppUsers.Add(new AppUser
+            {
+                Id = 2,
+                Login = "socofeb.user",
+                Email = "user@socofeb.tn",
+                IsActive = true,
+                Persons = new Person { Firstname = "Tenant", Lastname = "USER" }
+            });
+            woodDb.UserPermissions.Add(new UserPermissions
+            {
+                Id = 1,
+                UserId = 1,
+                Permissions = "{\"MobileApp\": {\"CanView\": true, \"CanDownload\": true}}"
+            });
+            await woodDb.SaveChangesAsync();
+
+            var n8nMock = new Mock<IN8nEmailService>();
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var buildService = new MobileBuildService(
+                masterDb, woodDb, storageMock.Object, tokenService, configService,
+                n8nMock.Object, null, _configuration, new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            // Act
+            var users = (await buildService.GetTenantUsersAsync("socofeb")).ToList();
+
+            // Assert
+            Assert.Equal(2, users.Count);
+            var amine = users.FirstOrDefault(u => u.Id == 1);
+            Assert.NotNull(amine);
+            Assert.Equal("Amine KLABI", amine.Name);
+            Assert.True(amine.CanView);
+            Assert.True(amine.CanDownload);
+        }
+
+        #endregion
     }
 }
 

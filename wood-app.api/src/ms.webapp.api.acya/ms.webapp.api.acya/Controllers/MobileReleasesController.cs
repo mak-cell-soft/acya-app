@@ -183,5 +183,66 @@ namespace ms.webapp.api.acya.Controllers
 
             return File(result.Value.Stream, result.Value.ContentType, result.Value.FileName, enableRangeProcessing: true);
         }
+
+        /// <summary>
+        /// Lists authorized users of the current tenant to whom the mobile app can be sent.
+        /// </summary>
+        [HttpGet("users")]
+        [Authorize(Policy = "MobileApp.CanManage")]
+        public async Task<ActionResult<IEnumerable<MobileTenantUserDto>>> GetTenantUsers()
+        {
+            var tenantSlug = ResolveAuthenticatedTenantSlug();
+            if (string.IsNullOrEmpty(tenantSlug))
+            {
+                return Forbid();
+            }
+
+            var users = await _buildService.GetTenantUsersAsync(tenantSlug);
+            return Ok(users);
+        }
+
+        /// <summary>
+        /// Sends mobile application download email invitation to an authorized tenant user.
+        /// </summary>
+        [HttpPost("send")]
+        [Authorize(Policy = "MobileApp.CanManage")]
+        public async Task<ActionResult<SendMobileAppResultDto>> SendMobileApp([FromBody] TenantSendMobileAppDto dto)
+        {
+            var tenantSlug = ResolveAuthenticatedTenantSlug();
+            if (string.IsNullOrEmpty(tenantSlug))
+            {
+                return Forbid();
+            }
+
+            if (dto == null || dto.UserId <= 0)
+            {
+                return BadRequest(new { message = "Valid UserId is required." });
+            }
+
+            try
+            {
+                var initiatedBy = User.Identity?.Name ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "TenantAdmin";
+                var result = await _buildService.SendMobileAppToUserAsync(tenantSlug, dto.UserId, dto.Email, initiatedBy);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error dispatching mobile app for tenant '{Tenant}' to user {UserId}", tenantSlug, dto.UserId);
+                return StatusCode(500, new { message = "An error occurred while sending the mobile application." });
+            }
+        }
     }
 }
+

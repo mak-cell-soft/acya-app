@@ -77,6 +77,7 @@ const DEFAULT_PERMISSIONS: AppPermissionsMap = {
   production: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
   hr: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
   configuration: { canRead: true, canAdd: false, canUpdate: false, canDelete: false },
+  mobileApp: { canRead: true, canAdd: false, canUpdate: false, canDelete: false, canView: true, canDownload: false },
 };
 
 export function PermissionsDialog({ isOpen, onClose, user }: PermissionsDialogProps) {

@@ -7,10 +7,13 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs.Mobile;
 using ms.webapp.api.acya.core.Interfaces;
+using ms.webapp.api.acya.core.Permissions;
 using ms.webapp.api.acya.infrastructure;
 
 namespace ms.webapp.api.acya.Services.Mobile
@@ -24,6 +27,9 @@ namespace ms.webapp.api.acya.Services.Mobile
         private readonly IMobileArtifactStorage _artifactStorage;
         private readonly IMobileDownloadTokenService _tokenService;
         private readonly IMobileTenantConfigService _configService;
+        private readonly IN8nEmailService? _n8nEmailService;
+        private readonly IServiceProvider? _serviceProvider;
+        private readonly IConfiguration? _configuration;
         private readonly ILogger<MobileBuildService> _logger;
 
         public MobileBuildService(
@@ -33,12 +39,29 @@ namespace ms.webapp.api.acya.Services.Mobile
             IMobileDownloadTokenService tokenService,
             IMobileTenantConfigService configService,
             ILogger<MobileBuildService> logger)
+            : this(masterDb, woodAppDb, artifactStorage, tokenService, configService, null, null, null, logger)
+        {
+        }
+
+        public MobileBuildService(
+            MasterDbContext masterDb,
+            WoodAppContext woodAppDb,
+            IMobileArtifactStorage artifactStorage,
+            IMobileDownloadTokenService tokenService,
+            IMobileTenantConfigService configService,
+            IN8nEmailService? n8nEmailService,
+            IServiceProvider? serviceProvider,
+            IConfiguration? configuration,
+            ILogger<MobileBuildService> logger)
         {
             _masterDb = masterDb;
             _woodAppDb = woodAppDb;
             _artifactStorage = artifactStorage;
             _tokenService = tokenService;
             _configService = configService;
+            _n8nEmailService = n8nEmailService;
+            _serviceProvider = serviceProvider;
+            _configuration = configuration;
             _logger = logger;
         }
 
@@ -742,5 +765,253 @@ namespace ms.webapp.api.acya.Services.Mobile
 
             return new MobileBuildDto(build);
         }
+
+        public async Task<IEnumerable<MobileTenantUserDto>> GetTenantUsersAsync(string tenantId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(tenantId))
+            {
+                return Enumerable.Empty<MobileTenantUserDto>();
+            }
+
+            var cleanTenant = tenantId.Trim().ToLowerInvariant();
+            var tenant = await _masterDb.TenantRegistries
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Slug.ToLower() == cleanTenant, cancellationToken);
+
+            if (tenant == null)
+            {
+                return Enumerable.Empty<MobileTenantUserDto>();
+            }
+
+            List<AppUser> users;
+            List<UserPermissions> perms;
+
+            if (_serviceProvider != null && _woodAppDb.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var tenantCtx = scope.ServiceProvider.GetRequiredService<TenantContext>();
+                tenantCtx.IsEnabled = true;
+                tenantCtx.Slug = tenant.Slug;
+                tenantCtx.SchemaName = tenant.SchemaName;
+                tenantCtx.ConnectionString = (!string.IsNullOrEmpty(tenant.ConnectionString)
+                    ? tenant.ConnectionString
+                    : _configuration?.GetConnectionString("WoodAppContextConnection")) ?? "";
+
+                var scopedDb = scope.ServiceProvider.GetRequiredService<WoodAppContext>();
+                users = await scopedDb.AppUsers
+                    .AsNoTracking()
+                    .Include(u => u.Persons)
+                    .Where(u => u.IsActive)
+                    .ToListAsync(cancellationToken);
+
+                var userIds = users.Select(u => u.Id).ToList();
+                perms = await scopedDb.UserPermissions
+                    .AsNoTracking()
+                    .Where(p => userIds.Contains(p.UserId))
+                    .ToListAsync(cancellationToken);
+            }
+            else
+            {
+                users = await _woodAppDb.AppUsers
+                    .AsNoTracking()
+                    .Include(u => u.Persons)
+                    .Where(u => u.IsActive)
+                    .ToListAsync(cancellationToken);
+
+                var userIds = users.Select(u => u.Id).ToList();
+                perms = await _woodAppDb.UserPermissions
+                    .AsNoTracking()
+                    .Where(p => userIds.Contains(p.UserId))
+                    .ToListAsync(cancellationToken);
+            }
+
+            var permMap = perms.ToDictionary(p => p.UserId, p => p.Permissions);
+
+            var result = new List<MobileTenantUserDto>();
+            foreach (var user in users)
+            {
+                bool canView = true;
+                bool canDownload = false;
+
+                if (permMap.TryGetValue(user.Id, out var permJson) && !string.IsNullOrWhiteSpace(permJson))
+                {
+                    try
+                    {
+                        var parsed = JsonSerializer.Deserialize<AppPermissionsMap>(
+                            permJson,
+                            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                        );
+                        if (parsed?.MobileApp != null)
+                        {
+                            canView = parsed.MobileApp.CanView;
+                            canDownload = parsed.MobileApp.CanDownload;
+                        }
+                    }
+                    catch
+                    {
+                        // Fall back to default permissions if JSON parsing fails
+                    }
+                }
+
+                var fullName = user.Persons != null 
+                    ? $"{user.Persons.Firstname} {user.Persons.Lastname}".Trim() 
+                    : (user.Login ?? string.Empty);
+                if (string.IsNullOrWhiteSpace(fullName))
+                {
+                    fullName = user.Login ?? $"Utilisateur #{user.Id}";
+                }
+
+                result.Add(new MobileTenantUserDto
+                {
+                    Id = user.Id,
+                    Login = user.Login ?? string.Empty,
+                    Name = fullName,
+                    Email = user.Email ?? string.Empty,
+                    CanView = canView,
+                    CanDownload = canDownload
+                });
+            }
+
+            return result.OrderBy(u => u.Name).ToList();
+        }
+
+        public async Task<SendMobileAppResultDto> SendMobileAppToUserAsync(string tenantId, int userId, string? customEmail, string? initiatedBy, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(tenantId))
+            {
+                throw new ArgumentException("TenantId is required.", nameof(tenantId));
+            }
+
+            var cleanTenant = tenantId.Trim().ToLowerInvariant();
+            var tenant = await _masterDb.TenantRegistries
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Slug.ToLower() == cleanTenant, cancellationToken);
+
+            if (tenant == null)
+            {
+                throw new ArgumentException($"Tenant '{tenantId}' does not exist.", nameof(tenantId));
+            }
+
+            // 1. Current release must exist for this tenant
+            var currentRelease = await GetCurrentReleaseForTenantAsync(cleanTenant, cancellationToken);
+            if (currentRelease == null)
+            {
+                throw new InvalidOperationException($"No published mobile release available for tenant '{cleanTenant}'.");
+            }
+
+            // 2. Resolve the target user belonging strictly to this tenant
+            AppUser? user;
+            if (_serviceProvider != null && _woodAppDb.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var tenantCtx = scope.ServiceProvider.GetRequiredService<TenantContext>();
+                tenantCtx.IsEnabled = true;
+                tenantCtx.Slug = tenant.Slug;
+                tenantCtx.SchemaName = tenant.SchemaName;
+                tenantCtx.ConnectionString = (!string.IsNullOrEmpty(tenant.ConnectionString)
+                    ? tenant.ConnectionString
+                    : _configuration?.GetConnectionString("WoodAppContextConnection")) ?? "";
+
+                var scopedDb = scope.ServiceProvider.GetRequiredService<WoodAppContext>();
+                user = await scopedDb.AppUsers
+                    .AsNoTracking()
+                    .Include(u => u.Persons)
+                    .FirstOrDefaultAsync(u => u.Id == userId && u.IsActive, cancellationToken);
+            }
+            else
+            {
+                user = await _woodAppDb.AppUsers
+                    .AsNoTracking()
+                    .Include(u => u.Persons)
+                    .FirstOrDefaultAsync(u => u.Id == userId && u.IsActive, cancellationToken);
+            }
+
+            if (user == null)
+            {
+                throw new KeyNotFoundException($"Active user with ID {userId} not found in tenant '{cleanTenant}'.");
+            }
+
+            // 3. Resolve recipient email
+            var recipientEmail = !string.IsNullOrWhiteSpace(customEmail) ? customEmail.Trim() : user.Email?.Trim();
+            if (string.IsNullOrWhiteSpace(recipientEmail) || !recipientEmail.Contains("@"))
+            {
+                throw new ArgumentException("Recipient has no valid email address.", nameof(customEmail));
+            }
+
+            var tenantName = tenant.Name ?? cleanTenant.ToUpperInvariant();
+            var userFullName = user.Persons != null 
+                ? $"{user.Persons.Firstname} {user.Persons.Lastname}".Trim() 
+                : (user.Login ?? string.Empty);
+            if (string.IsNullOrWhiteSpace(userFullName))
+            {
+                userFullName = user.Login ?? recipientEmail;
+            }
+
+            // Target URL strictly points to the tenant's authenticated mobile app portal
+            var portalUrl = $"https://{cleanTenant}.acya.site/mobile-app";
+
+            bool sent = false;
+            if (_n8nEmailService != null)
+            {
+                sent = await _n8nEmailService.SendMobileAppInvitationAsync(
+                    recipientEmail,
+                    tenantName,
+                    cleanTenant,
+                    userFullName,
+                    currentRelease.Version,
+                    currentRelease.BuildNumber,
+                    portalUrl,
+                    cancellationToken
+                );
+            }
+            else
+            {
+                _logger.LogWarning("IN8nEmailService is not registered. Mobile invitation email not dispatched.");
+            }
+
+            // 4. Record audit entry
+            try
+            {
+                var auditLog = new AuditLog
+                {
+                    Action = "MobileAppInvitationSent",
+                    TableName = "bo_tbl_mobile_releases",
+                    Timestamp = DateTime.UtcNow,
+                    UserName = initiatedBy ?? "system",
+                    KeyValues = JsonSerializer.Serialize(new { Id = currentRelease.Id }),
+                    NewValues = JsonSerializer.Serialize(new
+                    {
+                        TenantId = cleanTenant,
+                        UserId = userId,
+                        Recipient = recipientEmail,
+                        currentRelease.Version,
+                        currentRelease.BuildNumber,
+                        PortalUrl = portalUrl,
+                        InitiatedBy = initiatedBy,
+                        Dispatched = sent
+                    })
+                };
+                _woodAppDb.AuditLogs.Add(auditLog);
+                await _woodAppDb.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to persist audit log for mobile app invitation for tenant '{Tenant}'", cleanTenant);
+            }
+
+
+            return new SendMobileAppResultDto
+            {
+                Success = sent,
+                Recipient = recipientEmail,
+                Version = currentRelease.Version,
+                BuildNumber = currentRelease.BuildNumber,
+                PortalUrl = portalUrl,
+                Message = sent 
+                    ? $"Mobile app download link sent successfully to {recipientEmail}." 
+                    : "Mobile app invitation could not be dispatched via email notification service."
+            };
+        }
     }
 }
+

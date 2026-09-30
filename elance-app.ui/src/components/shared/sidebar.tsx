@@ -25,6 +25,7 @@ import {
   HelpCircle,
   ArrowLeftRight,
   Factory,
+  Smartphone,
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -99,6 +100,7 @@ const saleNavGroups: NavGroup[] = [
   {
     title: 'Système',
     items: [
+      { name: 'Application Mobile', href: '/mobile-app', icon: Smartphone, module: 'mobileApp' },
       { name: 'Paramètres', href: '/settings', icon: Settings, module: 'configuration' },
       { name: 'Aide & Support', href: '/contact', icon: HelpCircle },
     ],
@@ -142,6 +144,7 @@ const depotNavGroups: NavGroup[] = [
   {
     title: 'Système',
     items: [
+      { name: 'Application Mobile', href: '/mobile-app', icon: Smartphone, module: 'mobileApp' },
       { name: 'Paramètres', href: '/settings', icon: Settings, module: 'configuration' },
       { name: 'Aide & Support', href: '/contact', icon: HelpCircle },
     ],

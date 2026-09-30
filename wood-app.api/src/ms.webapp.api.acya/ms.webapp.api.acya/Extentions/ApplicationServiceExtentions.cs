@@ -117,6 +117,7 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<IMobileTenantConfigService, ms.webapp.api.acya.Services.Mobile.MobileTenantConfigService>();
       services.AddScoped<IMobileBuildService, ms.webapp.api.acya.Services.Mobile.MobileBuildService>();
       services.AddHttpClient<IGitHubBuildDispatcher, ms.webapp.api.acya.Services.Mobile.GitHubBuildDispatcher>();
+      services.AddHttpClient<IN8nEmailService, ms.webapp.api.acya.Services.Mobile.N8nEmailService>();
 
       // Multi-Tenancy Registration
       var multiTenantEnabled = config.GetValue<bool>("MultiTenancy:Enabled");
