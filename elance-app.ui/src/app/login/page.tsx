@@ -63,6 +63,33 @@ function ActivityRow({ icon: Icon, text, badge, badgeColor, delay }: { icon: any
   );
 }
 
+/**
+ * Validate that a redirect path is strictly an internal application path.
+ * Prevents open redirects (e.g. //evil.com, https://evil.com, /\evil.com, protocol schemes).
+ */
+function getValidInternalRedirect(rawPath: string | null | undefined): string | null {
+  if (!rawPath) return null;
+  const trimmed = rawPath.trim();
+  try {
+    const decoded = decodeURIComponent(trimmed);
+    if (
+      decoded.startsWith('/') &&
+      !decoded.startsWith('//') &&
+      !decoded.startsWith('/\\') &&
+      !decoded.includes('://') &&
+      !/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(decoded)
+    ) {
+      if (decoded === '/login' || decoded.startsWith('/login?')) {
+        return null;
+      }
+      return decoded;
+    }
+  } catch {
+    // Decoding failed
+  }
+  return null;
+}
+
 // ─── Main Login Page ──────────────────────────────────────────────────────────
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -75,6 +102,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
+  const isAuthenticated = useAuthStore((state: any) => state.isAuthenticated);
   const logoUrl = useTenantStore((state: any) => state.logoUrl);
   const tenantStatus = useTenantStore((state: any) => state.status);
   const isTenantInactive = tenantStatus === 'Suspended' || tenantStatus === 'Expired';
@@ -86,9 +114,43 @@ export default function LoginPage() {
       const token = params.get('token');
       if (token) {
         router.push(`/forgot-password?token=${token}`);
+        return;
+      }
+
+      // Pre-capture redirect or returnUrl parameter if present
+      const rawRedirect = params.get('redirect') || params.get('returnUrl');
+      const validRedirect = getValidInternalRedirect(rawRedirect);
+      if (validRedirect) {
+        try {
+          sessionStorage.setItem('acya_auth_redirect', validRedirect);
+        } catch {}
       }
     }
   }, [router]);
+
+  // If already authenticated, redirect immediately to intended destination
+  useEffect(() => {
+    if (mounted && isAuthenticated) {
+      let redirectPath: string | null = null;
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        redirectPath = getValidInternalRedirect(params.get('redirect') || params.get('returnUrl'));
+        if (!redirectPath) {
+          try {
+            redirectPath = getValidInternalRedirect(sessionStorage.getItem('acya_auth_redirect'));
+          } catch {}
+        }
+        try {
+          sessionStorage.removeItem('acya_auth_redirect');
+        } catch {}
+      }
+      if (redirectPath) {
+        router.replace(redirectPath);
+      } else {
+        router.replace('/dashboard');
+      }
+    }
+  }, [mounted, isAuthenticated, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,15 +159,31 @@ export default function LoginPage() {
       const response = await authService.login({ login: email, password });
       if (response.isSuccess) {
         toast.success(`Authentification avec succès à ${response.enterpriseName || ''}`);
-        let target = '/dashboard';
+        
+        let redirectPath: string | null = null;
         if (typeof window !== 'undefined') {
           const params = new URLSearchParams(window.location.search);
-          const redirect = params.get('redirect') || params.get('returnUrl');
-          if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
-            target = redirect;
+          const rawRedirect = params.get('redirect') || params.get('returnUrl');
+          redirectPath = getValidInternalRedirect(rawRedirect);
+
+          if (!redirectPath) {
+            try {
+              const cached = sessionStorage.getItem('acya_auth_redirect');
+              redirectPath = getValidInternalRedirect(cached);
+            } catch {}
           }
+
+          // Clean up stored redirect
+          try {
+            sessionStorage.removeItem('acya_auth_redirect');
+          } catch {}
         }
-        router.push(target);
+
+        if (redirectPath) {
+          router.replace(redirectPath);
+        } else {
+          router.replace('/dashboard');
+        }
       } else {
         toast.warning(response.message || "Identifiants invalides");
       }

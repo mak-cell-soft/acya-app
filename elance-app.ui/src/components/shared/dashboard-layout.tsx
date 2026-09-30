@@ -24,7 +24,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   useEffect(() => {
     if (mounted && !isAuthenticated) {
       const timer = setTimeout(() => {
-        router.replace('/login');
+        const currentPath = typeof window !== 'undefined' ? (window.location.pathname + window.location.search) : '';
+        if (currentPath && currentPath.startsWith('/') && !currentPath.startsWith('//') && !currentPath.startsWith('/login')) {
+          try {
+            sessionStorage.setItem('acya_auth_redirect', currentPath);
+          } catch {}
+          router.replace(`/login?redirect=${encodeURIComponent(currentPath)}`);
+        } else {
+          router.replace('/login');
+        }
       }, 0);
       return () => clearTimeout(timer);
     }

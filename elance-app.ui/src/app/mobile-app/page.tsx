@@ -66,6 +66,9 @@ export default function MobileAppPortalPage() {
   // Redirect unauthenticated users through tenant login with returnUrl
   useEffect(() => {
     if (mounted && !isAuthenticated) {
+      try {
+        sessionStorage.setItem('acya_auth_redirect', '/mobile-app');
+      } catch {}
       router.replace('/login?redirect=/mobile-app');
     }
   }, [mounted, isAuthenticated, router]);

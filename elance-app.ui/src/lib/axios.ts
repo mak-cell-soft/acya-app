@@ -85,7 +85,15 @@ api.interceptors.response.use(
         // Don't toast if we're already on the login page
         if (!window.location.pathname.includes('/login')) {
           toast.error('Session expirée. Veuillez vous reconnecter.');
-          window.location.href = '/login';
+          const currentPath = window.location.pathname + window.location.search;
+          if (currentPath && currentPath.startsWith('/') && !currentPath.startsWith('//') && !currentPath.startsWith('/login')) {
+            try {
+              sessionStorage.setItem('acya_auth_redirect', currentPath);
+            } catch {}
+            window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+          } else {
+            window.location.href = '/login';
+          }
         }
       }
     }
