@@ -1,11 +1,15 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Http;
-using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-
 using ms.webapp.api.acya.infrastructure;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
+[Authorize]
 public class NotificationHub : Hub
 {
   private readonly IHttpContextAccessor _httpContextAccessor;
@@ -24,9 +28,46 @@ public class NotificationHub : Hub
 
   public override async Task OnConnectedAsync()
   {
+    var tenantSlug = Context.User?.FindFirst("tenant_slug")?.Value?.Trim().ToLowerInvariant();
+
+    if (string.IsNullOrEmpty(tenantSlug))
+    {
+      _logger.LogWarning("NotificationHub: Connection {ConnectionId} rejected. Missing tenant_slug claim.", Context.ConnectionId);
+      Context.Abort();
+      return;
+    }
+
+    _logger.LogInformation("NotificationHub: New connection {ConnectionId} authenticated for tenant '{TenantSlug}'",
+        Context.ConnectionId, tenantSlug);
+
+    // 1. Join Tenant-wide group (strictly isolated to this tenant)
+    await Groups.AddToGroupAsync(Context.ConnectionId, $"tenant:{tenantSlug}");
+    _logger.LogInformation("Added connection {ConnectionId} to group tenant:{TenantSlug}",
+        Context.ConnectionId, tenantSlug);
+
+    // 2. Join User-specific group within tenant
+    var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    if (!string.IsNullOrEmpty(userId))
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"tenant:{tenantSlug}:user-{userId}");
+        _logger.LogInformation("Added connection {ConnectionId} to group tenant:{TenantSlug}:user-{UserId}",
+            Context.ConnectionId, tenantSlug, userId);
+    }
+
+    // 3. Join Role-specific groups within tenant
+    var roles = Context.User?.FindAll(ClaimTypes.Role).Select(c => c.Value);
+    if (roles != null)
+    {
+        foreach (var role in roles)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"tenant:{tenantSlug}:role-{role}");
+            _logger.LogInformation("Added connection {ConnectionId} to group tenant:{TenantSlug}:role-{Role}",
+                Context.ConnectionId, tenantSlug, role);
+        }
+    }
+
+    // 4. Join Site-specific group within tenant
     var siteId = Context.User?.FindFirst("DefaultSiteId")?.Value;
-    
-    // Fallback for old tokens: Try to find ID by Address
     if (string.IsNullOrEmpty(siteId))
     {
          var siteAddress = Context.User?.FindFirst("DefaultSite")?.Value;
@@ -36,108 +77,29 @@ public class NotificationHub : Hub
              if (site != null) 
              {
                  siteId = site.Id.ToString();
-                 _logger.LogInformation("Resolved SiteId {SiteId} from Address {SiteAddress} for connection {ConnectionId}", 
-                     siteId, siteAddress, Context.ConnectionId);
              }
          }
     }
 
-    _logger.LogInformation("New connection from site {SiteId}. Connection ID: {ConnectionId}",
-        siteId, Context.ConnectionId);
-
     if (!string.IsNullOrEmpty(siteId))
     {
-      await Groups.AddToGroupAsync(Context.ConnectionId, siteId);
-      _logger.LogInformation("Added connection {ConnectionId} to group site-{SiteId}",
-          Context.ConnectionId, siteId);
-    }
-
-    // Add to User-specific group
-    var userId = Context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-    if (!string.IsNullOrEmpty(userId))
-    {
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"user-{userId}");
-        _logger.LogInformation("Added connection {ConnectionId} to group user-{UserId}",
-            Context.ConnectionId, userId);
-    }
-
-    // Add to Role-specific groups
-    var roles = Context.User?.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value);
-    if (roles != null)
-    {
-        foreach (var role in roles)
-        {
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"role-{role}");
-            _logger.LogInformation("Added connection {ConnectionId} to group role-{Role}",
-                Context.ConnectionId, role);
-        }
+      await Groups.AddToGroupAsync(Context.ConnectionId, $"tenant:{tenantSlug}:site-{siteId}");
+      _logger.LogInformation("Added connection {ConnectionId} to group tenant:{TenantSlug}:site-{SiteId}",
+          Context.ConnectionId, tenantSlug, siteId);
     }
 
     await base.OnConnectedAsync();
   }
 
-  //public override async Task OnConnectedAsync()
-  //{
-  //  try
-  //  {
-  //    _logger.LogInformation($"New connection established: {Context.ConnectionId}");
-
-  //    // Debug: Log all claims for the connected user
-  //    if (_httpContextAccessor.HttpContext?.User?.Claims != null)
-  //    {
-  //      _logger.LogInformation("User claims:");
-  //      foreach (var claim in _httpContextAccessor.HttpContext.User.Claims)
-  //      {
-  //        _logger.LogInformation($"{claim.Type}: {claim.Value}");
-  //      }
-  //    }
-
-  //    var siteId = _httpContextAccessor.HttpContext?.User?.FindFirst("DefaultSite")?.Value;
-
-  //    _logger.LogInformation($"Attempting to add connection to group for site: {siteId}");
-
-  //    if (!string.IsNullOrEmpty(siteId))
-  //    {
-  //      await Groups.AddToGroupAsync(Context.ConnectionId, siteId);
-  //      _logger.LogInformation($"Successfully added connection {Context.ConnectionId} to group {siteId}");
-  //    }
-  //    else
-  //    {
-  //      _logger.LogWarning("No DefaultSite claim found for connected user");
-  //    }
-  //  }
-  //  catch (Exception ex)
-  //  {
-  //    _logger.LogError(ex, "Error in OnConnectedAsync");
-  //    throw;
-  //  }
-
-  //  await base.OnConnectedAsync();
-  //}
-
-  public override async Task OnDisconnectedAsync(Exception exception)
+  public override async Task OnDisconnectedAsync(Exception? exception)
   {
-    try
+    var tenantSlug = Context.User?.FindFirst("tenant_slug")?.Value?.Trim().ToLowerInvariant();
+    _logger.LogInformation("NotificationHub: Connection {ConnectionId} disconnected (Tenant: '{TenantSlug}')",
+        Context.ConnectionId, tenantSlug ?? "unknown");
+
+    if (exception != null)
     {
-      var siteId = _httpContextAccessor.HttpContext?.User?.FindFirst("DefaultSiteId")?.Value;
-
-      _logger.LogInformation($"Connection {Context.ConnectionId} disconnecting from group {siteId}");
-
-      if (!string.IsNullOrEmpty(siteId))
-      {
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, siteId);
-        _logger.LogInformation($"Successfully removed connection {Context.ConnectionId} from group {siteId}");
-      }
-
-      if (exception != null)
-      {
-        _logger.LogError(exception, "Connection closed with error");
-      }
-    }
-    catch (Exception ex)
-    {
-      _logger.LogError(ex, "Error in OnDisconnectedAsync");
-      throw;
+      _logger.LogWarning(exception, "NotificationHub: Connection {ConnectionId} closed with error", Context.ConnectionId);
     }
 
     await base.OnDisconnectedAsync(exception);
@@ -145,12 +107,18 @@ public class NotificationHub : Hub
 
   public async Task JoinGroup(string siteIdentifier)
   {
+    var tenantSlug = Context.User?.FindFirst("tenant_slug")?.Value?.Trim().ToLowerInvariant();
+    if (string.IsNullOrEmpty(tenantSlug))
+    {
+      _logger.LogWarning("JoinGroup rejected: Connection {ConnectionId} has no tenant_slug claim.", Context.ConnectionId);
+      return;
+    }
+
     var groupId = siteIdentifier;
     
-    // Try to parse as ID first
+    // If not numeric, try to resolve by address within the tenant's context
     if (!int.TryParse(siteIdentifier, out _))
     {
-        // It's likely an address, try to resolve to ID
         var site = await _context.SalesSites.FirstOrDefaultAsync(s => s.Address == siteIdentifier);
         if (site != null)
         {
@@ -159,10 +127,10 @@ public class NotificationHub : Hub
         }
     }
 
-    await Groups.AddToGroupAsync(Context.ConnectionId, groupId);
-    _logger.LogInformation("JoinGroup: Connection {ConnectionId} joined group {GroupId} (requested: {Requested})", 
-        Context.ConnectionId, groupId, siteIdentifier);
+    // ALWAYS scope to tenant: the client cannot join any group outside its authenticated tenant
+    var tenantSiteGroup = $"tenant:{tenantSlug}:site-{groupId}";
+    await Groups.AddToGroupAsync(Context.ConnectionId, tenantSiteGroup);
+    _logger.LogInformation("JoinGroup: Connection {ConnectionId} joined tenant group {TenantGroup} (requested: {Requested})", 
+        Context.ConnectionId, tenantSiteGroup, siteIdentifier);
   }
-
-  
 }

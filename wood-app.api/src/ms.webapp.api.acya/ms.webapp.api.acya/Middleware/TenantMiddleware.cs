@@ -33,7 +33,6 @@ namespace ms.webapp.api.acya.api.Middleware
       if (path.StartsWith("/swagger") || 
           path.StartsWith("/api/health") || 
           path.StartsWith("/api/apihealth") || 
-          path.Contains("/hub/notification") || 
           path.StartsWith("/api/register") || 
           path.StartsWith("/api/tenant/register") ||
           path.Contains("/api/enterprise/register") ||
@@ -46,8 +45,31 @@ namespace ms.webapp.api.acya.api.Middleware
         return;
       }
 
-      // 2. Resolve the tenant slug
+      // 2. Resolve the tenant slug from request or authenticated JWT claims
       var slug = resolver.ResolveTenantSlug(context);
+
+      // If user is authenticated, check for tenant mismatch early or fallback to authenticated tenant claim
+      if (context.User.Identity?.IsAuthenticated == true)
+      {
+        var jwtTenantSlug = context.User.FindFirst("tenant_slug")?.Value;
+        if (!string.IsNullOrEmpty(jwtTenantSlug))
+        {
+          if (!string.IsNullOrEmpty(slug) && !string.Equals(jwtTenantSlug, slug, StringComparison.OrdinalIgnoreCase))
+          {
+            _logger.LogWarning("Security Violation: Authenticated user with token for tenant '{JwtTenant}' attempted to access tenant '{RequestTenant}'", jwtTenantSlug, slug);
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            await context.Response.WriteAsJsonAsync(new { error = "Access denied: Tenant mismatch." });
+            return;
+          }
+
+          // If request header/subdomain was missing, fallback to authenticated JWT claim
+          if (string.IsNullOrEmpty(slug))
+          {
+            slug = jwtTenantSlug;
+          }
+        }
+      }
+
       TenantRegistry? tenant = null;
 
       if (!string.IsNullOrEmpty(slug))

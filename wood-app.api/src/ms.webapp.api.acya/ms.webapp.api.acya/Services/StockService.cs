@@ -21,6 +21,8 @@ namespace ms.webapp.api.acya.api.Services
         private readonly NotificationService _notificationService;
         private readonly ILogger<StockService> _logger;
 
+        private readonly TenantContext? _tenantContext;
+
         public StockService(
             StockRepository repository,
             WoodAppContext context,
@@ -28,6 +30,18 @@ namespace ms.webapp.api.acya.api.Services
             IHubContext<NotificationHub> hubContext,
             NotificationService notificationService,
             ILogger<StockService> logger)
+            : this(repository, context, docRepository, hubContext, notificationService, logger, null)
+        {
+        }
+
+        public StockService(
+            StockRepository repository,
+            WoodAppContext context,
+            DocumentRepository docRepository,
+            IHubContext<NotificationHub> hubContext,
+            NotificationService notificationService,
+            ILogger<StockService> logger,
+            TenantContext? tenantContext)
         {
             _repository = repository;
             _context = context;
@@ -35,6 +49,22 @@ namespace ms.webapp.api.acya.api.Services
             _hubContext = hubContext;
             _notificationService = notificationService;
             _logger = logger;
+            _tenantContext = tenantContext;
+        }
+
+        private string? GetTenantSlug()
+        {
+            if (_tenantContext != null && !string.IsNullOrEmpty(_tenantContext.Slug))
+                return _tenantContext.Slug.Trim().ToLowerInvariant();
+            if (!string.IsNullOrEmpty(_context.SchemaName) && _context.SchemaName.StartsWith("tenant_"))
+                return _context.SchemaName.Substring("tenant_".Length).Trim().ToLowerInvariant();
+            return null;
+        }
+
+        private string GetSiteGroupName(int siteId)
+        {
+            var slug = GetTenantSlug();
+            return !string.IsNullOrEmpty(slug) ? $"tenant:{slug}:site-{siteId}" : siteId.ToString();
         }
 
         #region Transactional Operations
@@ -213,7 +243,12 @@ namespace ms.webapp.api.acya.api.Services
 
                     _context.DocumentMerchandises.Add(exitDM);
                     _context.DocumentMerchandises.Add(receiptDM);
+                    exitDoc.DocumentMerchandises.Add(exitDM);
+                    receiptDoc.DocumentMerchandises.Add(receiptDM);
                 }
+
+                exitDoc.SalesSite = originSite;
+                receiptDoc.SalesSite = destinationSite;
 
                 _context.Documents.Add(exitDoc);
                 _context.Documents.Add(receiptDoc);
@@ -384,7 +419,7 @@ namespace ms.webapp.api.acya.api.Services
                 // Notify Origin
                 if (transfer.ExitDocument != null && transfer.Status == TransferStatus.Pending)
                 {
-                    await _hubContext.Clients.Group(transfer.ExitDocument.SalesSiteId.ToString())
+                    await _hubContext.Clients.Group(GetSiteGroupName(transfer.ExitDocument.SalesSiteId))
                         .SendAsync("TransferRejected", new
                         {
                             TransferId = transfer.Id,
@@ -674,7 +709,7 @@ namespace ms.webapp.api.acya.api.Services
 
             try
             {
-                await _hubContext.Clients.Group(destination.Id.ToString())
+                await _hubContext.Clients.Group(GetSiteGroupName(destination.Id))
                     .SendAsync("ReceiveTransferNotification", new
                     {
                         TransferId = transfer.Id,
@@ -701,7 +736,7 @@ namespace ms.webapp.api.acya.api.Services
                 var notification = new NotificationDto
                 {
                     NotificationType = "TransferCreated",
-                    TargetGroup = destination.Id.ToString(),
+                    TargetGroup = GetSiteGroupName(destination.Id),
                     TransferId = transfer.Id,
                     Reference = transfer.Reference,
                     OriginSite = origin.Address,
@@ -732,7 +767,7 @@ namespace ms.webapp.api.acya.api.Services
                 if (stock != null && stock.MinimumStock > 0 && stock.Quantity <= stock.MinimumStock)
                 {
                     // Send real-time notification
-                    await _hubContext.Clients.Group(siteId.ToString()).SendAsync("ReceiveStockAlert", new
+                    await _hubContext.Clients.Group(GetSiteGroupName(siteId)).SendAsync("ReceiveStockAlert", new
                     {
                         ArticleReference = stock.Merchandises!.Articles!.Reference,
                         Quantity = stock.Quantity,

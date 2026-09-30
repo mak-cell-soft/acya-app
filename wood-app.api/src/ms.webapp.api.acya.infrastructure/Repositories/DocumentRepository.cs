@@ -189,6 +189,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
     */
     public async Task<bool> updateListOfIdsListOfLengths(Document document)
     {
+      if (document?.DocumentMerchandises == null) return true;
+
       foreach (var merchandise in document.DocumentMerchandises.Where(dm => dm.Type == LineType.Merchandise))
       {
         if (merchandise.QuantityMovements != null)

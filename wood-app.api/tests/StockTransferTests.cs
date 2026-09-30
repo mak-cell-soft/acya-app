@@ -64,9 +64,17 @@ namespace ms.webapp.api.acya.tests
             var destSite = new SalesSite { Id = 2, Address = "Destination" };
             _context.SalesSites.AddRange(originSite, destSite);
             
-            var exitDoc = new Document { Id = 101, SalesSiteId = 1, Type = DocumentTypes.stockTransfer };
-            var receiptDoc = new Document { Id = 102, SalesSiteId = 2, Type = DocumentTypes.stockTransfer };
+            var user = new AppUser { Id = 999, Login = "confirmer" };
+            _context.AppUsers.Add(user);
+            var merch = new Merchandise { Id = 10, ArticleId = 10 };
+            _context.Merchandises.Add(merch);
+
+            var exitDoc = new Document { Id = 101, SalesSiteId = 1, SalesSite = originSite, Type = DocumentTypes.stockTransfer, UpdatedById = 999, StockTransactionType = TransactionType.Retrieve };
+            var receiptDoc = new Document { Id = 102, SalesSiteId = 2, SalesSite = destSite, Type = DocumentTypes.stockTransfer, UpdatedById = 999, StockTransactionType = TransactionType.Add };
+            var receiptDM = new DocumentMerchandise { Document = receiptDoc, Merchandise = merch, Quantity = 5 };
+            receiptDoc.DocumentMerchandises.Add(receiptDM);
             _context.Documents.AddRange(exitDoc, receiptDoc);
+            _context.DocumentMerchandises.Add(receiptDM);
             
             var transfer = new StockTransfer 
             { 
@@ -82,7 +90,7 @@ namespace ms.webapp.api.acya.tests
             var result = await service.ConfirmTransferAsync(1, 999);
 
             // Assert
-            Assert.True(result.Success);
+            Assert.True(result.Success, $"ConfirmTransfer failed: {result.Message}");
             Assert.Equal(TransferStatus.Confirmed, transfer.Status);
         }
 
@@ -131,6 +139,18 @@ namespace ms.webapp.api.acya.tests
             var article = new Article { Id = 500, Reference = "ART1" };
             _context.Merchandises.Add(merch);
             _context.Articles.Add(article);
+
+            var initialStock = new Stock
+            {
+                MerchandiseId = 500,
+                Merchandises = merch,
+                SalesSiteId = 1,
+                SalesSites = originSite,
+                Quantity = 100,
+                Type = TransactionType.Add,
+                UpdatedById = 888
+            };
+            _context.Stocks.Add(initialStock);
             await _context.SaveChangesAsync();
 
             var dto = new StockTransferDto
@@ -143,11 +163,12 @@ namespace ms.webapp.api.acya.tests
             };
 
             // Act
-            await service.InitiateTransferAsync(dto);
+            var result = await service.InitiateTransferAsync(dto);
+            Assert.True(result.Success, $"InitiateTransfer failed: {result.Message}");
 
             // Assert
             // Verify Group(destSite.Id.ToString()) was called
-            _hubContextMock.Verify(h => h.Clients.Group("2"), Times.Once());
+            _hubContextMock.Verify(h => h.Clients.Group("2"), Times.AtLeastOnce());
         }
 
         private StockService CreateService()

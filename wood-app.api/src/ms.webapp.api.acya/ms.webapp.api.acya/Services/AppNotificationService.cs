@@ -4,6 +4,11 @@ using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities.Notifications;
 using ms.webapp.api.acya.core.Interfaces;
 using ms.webapp.api.acya.infrastructure;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace ms.webapp.api.acya.api.Services
 {
@@ -13,17 +18,44 @@ namespace ms.webapp.api.acya.api.Services
         private readonly IHubContext<NotificationHub> _hubContext;
         private readonly IEmailService _emailService;
         private readonly ILogger<AppNotificationService> _logger;
+        private readonly TenantContext? _tenantContext;
 
         public AppNotificationService(
             WoodAppContext context, 
             IHubContext<NotificationHub> hubContext,
             IEmailService emailService,
             ILogger<AppNotificationService> logger)
+            : this(context, hubContext, emailService, logger, null)
+        {
+        }
+
+        public AppNotificationService(
+            WoodAppContext context, 
+            IHubContext<NotificationHub> hubContext,
+            IEmailService emailService,
+            ILogger<AppNotificationService> logger,
+            TenantContext? tenantContext)
         {
             _context = context;
             _hubContext = hubContext;
             _emailService = emailService;
             _logger = logger;
+            _tenantContext = tenantContext;
+        }
+
+        private string? GetTenantSlug()
+        {
+            if (_tenantContext != null && !string.IsNullOrEmpty(_tenantContext.Slug))
+            {
+                return _tenantContext.Slug.Trim().ToLowerInvariant();
+            }
+
+            if (!string.IsNullOrEmpty(_context.SchemaName) && _context.SchemaName.StartsWith("tenant_"))
+            {
+                return _context.SchemaName.Substring("tenant_".Length).Trim().ToLowerInvariant();
+            }
+
+            return null;
         }
 
         public async Task<AppNotification> NotifyAsync(string title, string message, NotificationType type = NotificationType.Info, 
@@ -49,7 +81,7 @@ namespace ms.webapp.api.acya.api.Services
             _context.AppNotifications.Add(notification);
             await _context.SaveChangesAsync();
 
-            // Push via SignalR
+            // Push via SignalR with strict tenant scoping
             await PushToSignalR(notification);
 
             return notification;
@@ -86,15 +118,18 @@ namespace ms.webapp.api.acya.api.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task MarkAsReadAsync(int notificationId)
+        public async Task<bool> MarkAsReadAsync(int notificationId)
         {
             var notification = await _context.AppNotifications.FindAsync(notificationId);
-            if (notification != null)
+            if (notification == null)
             {
-                notification.IsRead = true;
-                notification.ViewedAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
+                return false;
             }
+
+            notification.IsRead = true;
+            notification.ViewedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<IEnumerable<AppNotification>> GetUnreadNotificationsAsync(int userId, int? siteId = null, string? role = null)
@@ -105,7 +140,7 @@ namespace ms.webapp.api.acya.api.Services
                 .Where(n => (n.TargetUserId == userId) || 
                             (n.TargetRole != null && n.TargetRole == role) ||
                             (n.TargetSiteId != null && n.TargetSiteId == siteId) ||
-                            (n.TargetUserId == null && n.TargetRole == null && n.TargetSiteId == null)) // Global
+                            (n.TargetUserId == null && n.TargetRole == null && n.TargetSiteId == null)) // Global within tenant
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
         }
@@ -114,23 +149,31 @@ namespace ms.webapp.api.acya.api.Services
         {
             try
             {
+                var tenantSlug = GetTenantSlug();
+                if (string.IsNullOrEmpty(tenantSlug))
+                {
+                    _logger.LogWarning("PushToSignalR: Suppressing broadcast because tenant context is missing. Cross-tenant leakage prevented.");
+                    return;
+                }
+
                 IClientProxy? target = null;
 
                 if (notification.TargetUserId.HasValue)
                 {
-                    target = _hubContext.Clients.Group($"user-{notification.TargetUserId}");
+                    target = _hubContext.Clients.Group($"tenant:{tenantSlug}:user-{notification.TargetUserId}");
                 }
                 else if (!string.IsNullOrEmpty(notification.TargetRole))
                 {
-                    target = _hubContext.Clients.Group($"role-{notification.TargetRole}");
+                    target = _hubContext.Clients.Group($"tenant:{tenantSlug}:role-{notification.TargetRole}");
                 }
                 else if (notification.TargetSiteId.HasValue)
                 {
-                    target = _hubContext.Clients.Group(notification.TargetSiteId.Value.ToString());
+                    target = _hubContext.Clients.Group($"tenant:{tenantSlug}:site-{notification.TargetSiteId}");
                 }
                 else
                 {
-                    target = _hubContext.Clients.All;
+                    // Strictly isolate tenant-wide broadcast to this tenant's group
+                    target = _hubContext.Clients.Group($"tenant:{tenantSlug}");
                 }
 
                 if (target != null)
@@ -146,6 +189,9 @@ namespace ms.webapp.api.acya.api.Services
                         relatedEntityId = notification.RelatedEntityId,
                         relatedEntityType = notification.RelatedEntityType
                     });
+                    
+                    _logger.LogInformation("SignalR notification pushed for tenant '{TenantSlug}' (NotificationId: {NotificationId})",
+                        tenantSlug, notification.Id);
                 }
             }
             catch (Exception ex)

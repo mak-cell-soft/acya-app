@@ -135,8 +135,16 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         hubConnectionRef.current = null;
         setIsConnected(false);
       }
+      setNotifications([]);
+      setSystemNotifications([]);
+      setStockAlerts([]);
       return;
     }
+
+    // Reset state on tenant/user session change to prevent cross-session cache retention
+    setNotifications([]);
+    setSystemNotifications([]);
+    setStockAlerts([]);
 
     const apiUrl = getBaseApiUrl();
     const hubUrl = apiUrl.endsWith('/')
@@ -333,6 +341,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         connection.stop();
         setIsConnected(false);
       }
+      setNotifications([]);
+      setSystemNotifications([]);
+      setStockAlerts([]);
     };
   }, [isAuthenticated, token, user?.defaultSiteId]);
 

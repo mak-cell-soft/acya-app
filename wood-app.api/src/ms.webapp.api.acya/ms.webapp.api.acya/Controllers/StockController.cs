@@ -191,6 +191,13 @@ namespace ms.webapp.api.acya.api.Controllers
     {
       try
       {
+        // Enforce authenticated user from JWT if available
+        var authUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(authUserIdStr, out var authUserId) && authUserId > 0)
+        {
+          userId = authUserId;
+        }
+
         string? siteId = null;
         var user = await _context.AppUsers.Include(u => u.SalesSite).FirstOrDefaultAsync(u => u.Id == userId);
         if (user?.SalesSite != null) siteId = user.SalesSite.Id.ToString();
@@ -207,11 +214,16 @@ namespace ms.webapp.api.acya.api.Controllers
 
         if (string.IsNullOrEmpty(siteId)) return Ok(new List<PendingNotification>());
 
+        var slug = !string.IsNullOrEmpty(_context.SchemaName) && _context.SchemaName.StartsWith("tenant_") 
+            ? _context.SchemaName.Substring("tenant_".Length) 
+            : null;
+        var tenantSiteGroup = !string.IsNullOrEmpty(slug) ? $"tenant:{slug}:site-{siteId}" : null;
+
         var notifications = await _context.PendingNotifications
             .Where(n => n.Status != TransferStatus.Confirmed && 
                         n.Status != TransferStatus.Rejected && 
                         n.Status != TransferStatus.Cancelled && 
-                        n.TargetGroup == siteId)
+                        (n.TargetGroup == siteId || (tenantSiteGroup != null && n.TargetGroup == tenantSiteGroup)))
             .OrderByDescending(n => n.CreatedAt)
             .ToListAsync();
 

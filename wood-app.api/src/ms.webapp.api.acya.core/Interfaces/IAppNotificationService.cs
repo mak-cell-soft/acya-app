@@ -19,9 +19,9 @@ namespace ms.webapp.api.acya.core.Interfaces
         Task SendEmailNotificationAsync(string to, string subject, string body, int? targetUserId = null);
 
         /// <summary>
-        /// Marks a notification as read.
+        /// Marks a notification as read. Returns true if updated, false if not found.
         /// </summary>
-        Task MarkAsReadAsync(int notificationId);
+        Task<bool> MarkAsReadAsync(int notificationId);
 
         /// <summary>
         /// Fetches unread notifications for a specific user, considering their site and role.

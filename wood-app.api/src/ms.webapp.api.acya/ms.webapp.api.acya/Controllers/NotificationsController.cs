@@ -32,8 +32,12 @@ namespace ms.webapp.api.acya.api.Controllers
     [HttpPut("{id}/read")]
     public async Task<IActionResult> MarkAsRead(int id)
     {
-      await _appNotificationService.MarkAsReadAsync(id);
-      return Ok();
+      var updated = await _appNotificationService.MarkAsReadAsync(id);
+      if (!updated)
+      {
+        return NotFound(new { message = "Notification non trouvée." });
+      }
+      return Ok(new { success = true });
     }
 
     [HttpPost("retry-failed")]

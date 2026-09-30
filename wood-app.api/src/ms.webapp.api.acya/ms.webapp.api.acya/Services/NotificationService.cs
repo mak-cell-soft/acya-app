@@ -1,6 +1,11 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using ms.webapp.api.acya.api.Controllers;
 using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities;
@@ -15,12 +20,40 @@ namespace ms.webapp.api.acya.api.Services
     private readonly WoodAppContext _context;
     private readonly IHubContext<NotificationHub> _hubContext;
     private readonly ILogger<StockController> _logger;
+    private readonly TenantContext? _tenantContext;
 
     public NotificationService(WoodAppContext context, IHubContext<NotificationHub> hubContext, ILogger<StockController> logger)
+      : this(context, hubContext, logger, null)
     {
-      _context= context;
-      _hubContext= hubContext;
-      _logger= logger;
+    }
+
+    public NotificationService(
+        WoodAppContext context, 
+        IHubContext<NotificationHub> hubContext, 
+        ILogger<StockController> logger,
+        TenantContext? tenantContext)
+    {
+      _context = context;
+      _hubContext = hubContext;
+      _logger = logger;
+      _tenantContext = tenantContext;
+    }
+
+    private string? GetTenantSlug()
+    {
+      if (_tenantContext != null && !string.IsNullOrEmpty(_tenantContext.Slug))
+        return _tenantContext.Slug.Trim().ToLowerInvariant();
+      if (!string.IsNullOrEmpty(_context.SchemaName) && _context.SchemaName.StartsWith("tenant_"))
+        return _context.SchemaName.Substring("tenant_".Length).Trim().ToLowerInvariant();
+      return null;
+    }
+
+    private string ResolveTenantGroup(string targetGroup)
+    {
+      if (string.IsNullOrEmpty(targetGroup)) return targetGroup;
+      if (targetGroup.StartsWith("tenant:")) return targetGroup;
+      var slug = GetTenantSlug();
+      return !string.IsNullOrEmpty(slug) ? $"tenant:{slug}:site-{targetGroup}" : targetGroup;
     }
 
     public async Task QueueNotification(core.Entities.DTOs.NotificationDto notification)
@@ -44,11 +77,6 @@ namespace ms.webapp.api.acya.api.Services
 
     private async Task TryDeliver(PendingNotification pendingNotification)
     {
-      //if (pendingNotification.LastAttemptAt > DateTime.UtcNow.AddMinutes(-5))
-      //{
-      //  return; // Skip if retried recently
-      //}
-
       try
       {
         // Deserialize with proper error handling
@@ -67,7 +95,9 @@ namespace ms.webapp.api.acya.api.Services
         // Construct the complete transfer data
         var additionalData = JsonSerializer.Deserialize<Dictionary<string, string>>(content.AdditionalData?.ToString() ?? "{}");
 
-        await _hubContext.Clients.Group(pendingNotification.TargetGroup)
+        var deliveryGroup = ResolveTenantGroup(pendingNotification.TargetGroup);
+
+        await _hubContext.Clients.Group(deliveryGroup)
            .SendAsync("RetryReceiveNotification", new
            {
              transferId = content.TransferId,
@@ -79,15 +109,12 @@ namespace ms.webapp.api.acya.api.Services
              destinationSiteId = content.TargetGroup // Assuming TargetGroup is the site ID
            });
 
-        _logger.LogInformation("****************************************************************");
-        _logger.LogInformation("****************************************************************");
-        _logger.LogInformation("Successfully delivered RetryReceiveNotification {NotificationId}", pendingNotification.Id);
+        _logger.LogInformation("Successfully delivered RetryReceiveNotification {NotificationId} to group {DeliveryGroup}", 
+            pendingNotification.Id, deliveryGroup);
 
         // Mark as pushed but keep Pending status until user action
         pendingNotification.DeliveredAt = DateTime.UtcNow;
         pendingNotification.ErrorMessage = null;
-
-        _logger.LogInformation("Successfully delivered notification {NotificationId}", pendingNotification.Id);
       }
       catch (Exception ex)
       {
@@ -120,10 +147,11 @@ namespace ms.webapp.api.acya.api.Services
 
     public async Task UpdateStatusByTransferId(int transferId, string targetGroup, TransferStatus newStatus)
     {
+       var resolvedGroup = ResolveTenantGroup(targetGroup);
+
        // Fetch all notifications for this group and verify content in memory
-       // This handles cases where multiple notifications might exist for the same transfer
        var candidates = await _context!.PendingNotifications
-           .Where(n => n.TargetGroup == targetGroup && 
+           .Where(n => (n.TargetGroup == targetGroup || n.TargetGroup == resolvedGroup) && 
                       (n.Status == TransferStatus.Pending || n.Status == TransferStatus.Delivered))
            .ToListAsync();
 
@@ -138,8 +166,8 @@ namespace ms.webapp.api.acya.api.Services
                    
                    if (newStatus == TransferStatus.Confirmed || newStatus == TransferStatus.Rejected)
                    {
-                       // Finalized
-                       await _hubContext.Clients.Group(notification.TargetGroup!)
+                       var groupToSend = ResolveTenantGroup(notification.TargetGroup!);
+                       await _hubContext.Clients.Group(groupToSend)
                             .SendAsync("NotificationFinalized", new { id = transferId, status = newStatus.ToString() });
                    }
                }
@@ -155,12 +183,6 @@ namespace ms.webapp.api.acya.api.Services
 
     public async Task DeleteNotificationByTransferId(int transferId, string targetGroup)
     {
-        // For backwards compatibility or explicit dismissal, we can either delete or mark as Rejected/Cancelled
-        // Let's stick to the directive: "Status should only change to Delivered, Confirmed, or Rejected"
-        // But if explicitly "Deleted" from UI, maybe mark as Rejected or similar if we want to keep it.
-        // Or actually delete it if it's meant to be a transient queue.
-        // Given the requirement "Consider adding a ViewedAt timestamp for analytics", keeping them is better.
-        
         await UpdateStatusByTransferId(transferId, targetGroup, TransferStatus.Rejected); 
     }
   }
