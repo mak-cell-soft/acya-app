@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, CheckCircle2, Clock, PlayCircle, Layers, Pencil, Trash2, AlertTriangle } from 'lucide-react';
+import { Plus, CheckCircle2, Clock, PlayCircle, Layers, Pencil, Trash2, AlertTriangle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ChantierDetail, ChantierTaskStatus, ChantierPhase, ChantierTask } from '@/types/chantier';
@@ -16,17 +16,19 @@ import {
 } from '@/hooks/use-chantiers';
 import { cn } from '@/lib/utils';
 import { ChantierModal, FormFieldGroup } from '../components/ChantierModal';
+import { PHASE_COLOR_PRESETS, getAutomaticPhaseColor } from '@/lib/chantier-utils';
 
 interface ProductionTabProps {
   site: ChantierDetail;
 }
 
-const COLOR_PRESETS = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'];
+const COLOR_PRESETS = PHASE_COLOR_PRESETS;
 
 export function ProductionTab({ site }: ProductionTabProps) {
   const [isAddPhaseOpen, setIsAddPhaseOpen] = useState(false);
   const [phaseName, setPhaseName] = useState('');
   const [phaseColor, setPhaseColor] = useState('#2563eb');
+  const [isColorAutoAssigned, setIsColorAutoAssigned] = useState(true);
 
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
   const [selectedPhaseId, setSelectedPhaseId] = useState<number>(0);
@@ -57,6 +59,14 @@ export function ProductionTab({ site }: ProductionTabProps) {
   const updateTaskStatus = useUpdateTaskStatus(site.id, selectedPhaseId);
 
   const phases = site.phases || [];
+
+  const handleOpenAddPhase = () => {
+    const autoColor = getAutomaticPhaseColor(phases);
+    setPhaseColor(autoColor);
+    setIsColorAutoAssigned(true);
+    setPhaseName('');
+    setIsAddPhaseOpen(true);
+  };
 
   const handleAddPhase = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,7 +199,7 @@ export function ProductionTab({ site }: ProductionTabProps) {
         </div>
 
         <Button
-          onClick={() => setIsAddPhaseOpen(true)}
+          onClick={handleOpenAddPhase}
           className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl text-xs font-bold px-4 active:scale-[0.96] transition-transform h-9.5 shadow-xs"
         >
           <Plus className="w-4 h-4 mr-1.5" />
@@ -350,7 +360,7 @@ export function ProductionTab({ site }: ProductionTabProps) {
             Définissez les étapes clés du projet (ex: Fondations, Gros œuvre, Menuiserie, Finitions).
           </p>
           <Button
-            onClick={() => setIsAddPhaseOpen(true)}
+            onClick={handleOpenAddPhase}
             className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl text-xs font-bold active:scale-[0.96] transition-transform h-9.5 px-4 shadow-xs"
           >
             Créer la première phase
@@ -361,7 +371,13 @@ export function ProductionTab({ site }: ProductionTabProps) {
       {/* Modal: Ajouter une phase */}
       <ChantierModal
         open={isAddPhaseOpen}
-        onOpenChange={setIsAddPhaseOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsAddPhaseOpen(false);
+          } else {
+            handleOpenAddPhase();
+          }
+        }}
         title="Ajouter une phase"
         description="Créez une nouvelle grande étape opérationnelle du chantier."
         icon={Layers}
@@ -388,7 +404,10 @@ export function ProductionTab({ site }: ProductionTabProps) {
                 <button
                   key={c}
                   type="button"
-                  onClick={() => setPhaseColor(c)}
+                  onClick={() => {
+                    setPhaseColor(c);
+                    setIsColorAutoAssigned(false);
+                  }}
                   className={cn(
                     'w-8 h-8 rounded-xl cursor-pointer active:scale-[0.96] transition-transform ring-2 ring-offset-2',
                     phaseColor === c ? 'ring-[#0f172a]' : 'ring-transparent'
@@ -397,6 +416,16 @@ export function ProductionTab({ site }: ProductionTabProps) {
                 />
               ))}
             </div>
+            {isColorAutoAssigned ? (
+              <p className="text-[0.68rem] text-[#64748b] mt-1.5 flex items-center gap-1.5 leading-normal">
+                <Sparkles className="w-3.5 h-3.5 text-[#2563eb] shrink-0" />
+                <span>Couleur attribuée automatiquement — vous pouvez la modifier.</span>
+              </p>
+            ) : (
+              <p className="text-[0.68rem] text-[#64748b] mt-1.5 flex items-center gap-1.5 leading-normal">
+                <span>Couleur sélectionnée manuellement.</span>
+              </p>
+            )}
           </FormFieldGroup>
         </div>
       </ChantierModal>

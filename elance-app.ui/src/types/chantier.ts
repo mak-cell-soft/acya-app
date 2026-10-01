@@ -21,12 +21,12 @@ export interface ChantierListItem {
   healthFlag: ChantierFlag;
   progressPct: number;
   budgetTotal?: number;
-  clientCounterPartId?: number;
-  clientName?: string;
-  architectPersonId?: number;
-  architectName?: string;
-  projectManagerPersonId?: number;
-  projectManagerName?: string;
+  clientCounterPartId?: number | null;
+  clientName?: string | null;
+  architectPersonId?: number | null;
+  architectName?: string | null;
+  projectManagerPersonId?: number | null;
+  projectManagerName?: string | null;
   activeTeamCount: number;
   openAlertsCount: number;
   creationDate: string;
@@ -52,9 +52,9 @@ export interface CreateChantierInput {
   startDate: string;
   plannedEndDate?: string;
   budgetTotal?: number;
-  architectPersonId?: number;
-  projectManagerPersonId?: number;
-  clientCounterPartId?: number;
+  architectPersonId?: number | null;
+  projectManagerPersonId?: number | null;
+  clientCounterPartId?: number | null;
 }
 
 export interface UpdateChantierInput {
@@ -67,9 +67,9 @@ export interface UpdateChantierInput {
   plannedEndDate?: string;
   actualEndDate?: string;
   budgetTotal?: number;
-  architectPersonId?: number;
-  projectManagerPersonId?: number;
-  clientCounterPartId?: number;
+  architectPersonId?: number | null;
+  projectManagerPersonId?: number | null;
+  clientCounterPartId?: number | null;
   status: ChantierStatus;
   healthFlag: ChantierFlag;
   progressPct: number;

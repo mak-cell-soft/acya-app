@@ -61,6 +61,15 @@ export function StatsTab({ site }: StatsTabProps) {
           },
         ];
 
+  const totalPhaseBudget = budgetData.reduce(
+    (acc, curr) => acc + (Number(curr.value) || 0),
+    0
+  );
+
+  const nonZeroBudgetData = budgetData.filter(
+    (d) => (Number(d.value) || 0) > 0
+  );
+
   const workforceData =
     stats?.workforceEvolution && stats.workforceEvolution.length > 0
       ? stats.workforceEvolution
@@ -190,51 +199,114 @@ export function StatsTab({ site }: StatsTabProps) {
         {/* Budget Pie Chart */}
         <Card className="border-black/5 shadow-xs rounded-2xl overflow-hidden bg-white">
           <CardHeader className="bg-[#f8fafc] border-b border-black/5 pb-3.5 pt-4 px-6">
-            <div className="flex items-center gap-2">
-              <Wallet className="w-4 h-4 text-[#10b981]" />
-              <CardTitle className="text-base font-bold text-[#0f172a] [text-wrap:balance]">
-                Répartition du Budget par Phase
-              </CardTitle>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Wallet className="w-4 h-4 text-[#10b981]" />
+                <CardTitle className="text-base font-bold text-[#0f172a] [text-wrap:balance]">
+                  Répartition du Budget par Phase
+                </CardTitle>
+              </div>
+              {totalPhaseBudget > 0 && (
+                <span className="text-[0.72rem] font-bold text-[#0f172a] bg-slate-100 px-2.5 py-1 rounded-full tabular-nums shrink-0">
+                  Total : {totalPhaseBudget.toLocaleString('fr-FR')} TND
+                </span>
+              )}
             </div>
           </CardHeader>
-          <CardContent className="p-6 h-[320px] flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={budgetData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={92}
-                  paddingAngle={4}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {budgetData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <RechartsTooltip
-                  formatter={(value: unknown) => [
-                    `${Number(value).toLocaleString('fr-FR')} TND`,
-                    'Budget',
-                  ]}
-                  contentStyle={{
-                    borderRadius: '12px',
-                    border: '1px solid #e2e8f0',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-                  }}
-                  itemStyle={{ fontWeight: 'bold' }}
-                />
-                <Legend
-                  layout="vertical"
-                  verticalAlign="middle"
-                  align="right"
-                  iconType="circle"
-                  wrapperStyle={{ fontSize: '12px', fontWeight: '600' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+          <CardContent className="p-5 h-[320px] flex items-center justify-center">
+            {nonZeroBudgetData.length === 0 || totalPhaseBudget <= 0 ? (
+              <div className="h-full w-full flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-3 text-[#94a3b8]">
+                  <Wallet className="w-6 h-6" />
+                </div>
+                <h4 className="text-sm font-bold text-[#0f172a] mb-1">
+                  Aucun budget alloué par phase
+                </h4>
+                <p className="text-xs text-[#64748b] max-w-xs [text-wrap:pretty]">
+                  Définissez le budget global ou les phases du chantier pour visualiser la répartition financière.
+                </p>
+              </div>
+            ) : (
+              <div className="w-full h-full flex flex-col sm:flex-row items-center gap-4 sm:gap-6 min-w-0">
+                {/* Left: Donut Chart */}
+                <div className="w-full sm:w-[190px] h-[150px] sm:h-full shrink-0 flex items-center justify-center relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={nonZeroBudgetData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={48}
+                        outerRadius={74}
+                        paddingAngle={nonZeroBudgetData.length > 1 ? 3 : 0}
+                        dataKey="value"
+                        stroke="#fff"
+                        strokeWidth={2}
+                      >
+                        {nonZeroBudgetData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip
+                        formatter={(value: unknown, _name: unknown, entry: { payload?: { name?: string } }) => [
+                          `${Number(value).toLocaleString('fr-FR')} TND (${
+                            totalPhaseBudget > 0
+                              ? Math.round(((Number(value) || 0) / totalPhaseBudget) * 100)
+                              : 0
+                          }%)`,
+                          entry?.payload?.name || 'Budget',
+                        ]}
+                        contentStyle={{
+                          borderRadius: '12px',
+                          border: '1px solid #e2e8f0',
+                          boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+                          fontSize: '12px',
+                        }}
+                        itemStyle={{ fontWeight: 'bold' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Right: Clean readable legend list */}
+                <div className="flex-1 min-w-0 w-full flex flex-col justify-center gap-1.5 max-h-[260px] overflow-y-auto pr-1">
+                  {budgetData.map((entry, index) => {
+                    const val = Number(entry.value) || 0;
+                    const pct =
+                      totalPhaseBudget > 0
+                        ? Math.round((val / totalPhaseBudget) * 100)
+                        : 0;
+
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between gap-2.5 py-1.5 px-2 rounded-xl hover:bg-slate-50 transition-colors group cursor-default"
+                        title={`${entry.name} : ${val.toLocaleString('fr-FR')} TND (${pct}%)`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <span
+                            className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-white shadow-2xs"
+                            style={{ backgroundColor: entry.color }}
+                          />
+                          <span className="truncate text-xs font-semibold text-[#1e293b] group-hover:text-[#0f172a]">
+                            {entry.name}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0 tabular-nums">
+                          <span className="text-[0.7rem] text-[#64748b] hidden md:inline">
+                            {val.toLocaleString('fr-FR')} TND
+                          </span>
+                          <span className="font-bold text-[#0f172a] bg-slate-100 px-2 py-0.5 rounded-md text-[0.7rem]">
+                            {pct}%
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

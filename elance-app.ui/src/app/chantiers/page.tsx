@@ -49,6 +49,10 @@ import {
 } from '@/hooks/use-chantiers';
 import { useCustomers } from '@/hooks/use-customers';
 import { CreateChantierInput, UpdateChantierInput, ChantierStatus, ChantierFlag } from '@/types/chantier';
+import {
+  formatChantierClientOptionLabel,
+  resolveChantierClientDisplay
+} from '@/lib/chantier-utils';
 
 const TABS = [
   { id: 0, label: 'Général', icon: Info },
@@ -138,7 +142,7 @@ export default function ChantiersPage() {
       startDate: new Date(editStartDate).toISOString(),
       plannedEndDate: editEndDate ? new Date(editEndDate).toISOString() : undefined,
       budgetTotal: editBudget > 0 ? Number(editBudget) : undefined,
-      clientCounterPartId: editClientId ?? undefined,
+      clientCounterPartId: editClientId ?? null,
       architectPersonId: selectedDetail.architectPersonId,
       projectManagerPersonId: selectedDetail.projectManagerPersonId,
       status: selectedDetail.status,
@@ -172,7 +176,7 @@ export default function ChantiersPage() {
       startDate: new Date(newStartDate).toISOString(),
       plannedEndDate: newEndDate ? new Date(newEndDate).toISOString() : undefined,
       budgetTotal: newBudget > 0 ? Number(newBudget) : undefined,
-      clientCounterPartId: newClientId ?? undefined,
+      clientCounterPartId: newClientId ?? null,
     };
 
     const created = await createChantier.mutateAsync(input);
@@ -412,17 +416,21 @@ export default function ChantiersPage() {
                             </span>
                           </>
                         )}
-                        {selectedDetail.clientName && (
-                          <>
-                            <span>•</span>
-                            <span className="inline-flex items-center gap-1">
-                              <Briefcase className="w-3.5 h-3.5 text-[#8b5cf6]" />
-                              <span>
-                                Client : <strong className="text-[#0f172a]">{selectedDetail.clientName}</strong>
+                        {(() => {
+                          const headerClientDisplay = resolveChantierClientDisplay(selectedDetail, customers);
+                          if (!headerClientDisplay) return null;
+                          return (
+                            <>
+                              <span>•</span>
+                              <span className="inline-flex items-center gap-1">
+                                <Briefcase className="w-3.5 h-3.5 text-[#8b5cf6]" />
+                                <span>
+                                  Client : <strong className="text-[#0f172a]">{headerClientDisplay}</strong>
+                                </span>
                               </span>
-                            </span>
-                          </>
-                        )}
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
 
@@ -612,7 +620,7 @@ export default function ChantiersPage() {
                 <option value="">-- Aucun client associé --</option>
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name} {c.taxregistrationnumber ? `(${c.taxregistrationnumber})` : ''}
+                    {formatChantierClientOptionLabel(c)}
                   </option>
                 ))}
               </select>
@@ -714,9 +722,14 @@ export default function ChantiersPage() {
                 className="w-full rounded-xl text-xs h-9.5 border border-black/15 bg-white px-3 focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
               >
                 <option value="">-- Aucun client associé --</option>
+                {editClientId && !customers.some((c) => c.id === editClientId) && (
+                  <option value={editClientId}>
+                    {resolveChantierClientDisplay(selectedDetail, customers) || `Client #${editClientId}`}
+                  </option>
+                )}
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name} {c.taxregistrationnumber ? `(${c.taxregistrationnumber})` : ''}
+                    {formatChantierClientOptionLabel(c)}
                   </option>
                 ))}
               </select>

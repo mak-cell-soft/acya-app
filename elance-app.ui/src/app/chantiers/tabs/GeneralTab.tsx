@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   MapPin,
   UserPlus,
@@ -27,6 +27,11 @@ import { useCustomers } from '@/hooks/use-customers';
 import { ROLE_LABELS } from '@/types/team';
 import { cn } from '@/lib/utils';
 import { ChantierModal } from '../components/ChantierModal';
+import {
+  formatChantierClientName,
+  resolveChantierClientDisplay,
+  matchesChantierCustomerSearch
+} from '@/lib/chantier-utils';
 
 interface GeneralTabProps {
   site: ChantierDetail;
@@ -46,6 +51,15 @@ export function GeneralTab({ site }: GeneralTabProps) {
   const { data: customers = [], isLoading: isCustomersLoading } = useCustomers('Customer');
   const updateChantier = useUpdateChantier(site.id);
 
+  // Keep modal selection states in sync with site prop changes
+  useEffect(() => {
+    setSelectedClientId(site.clientCounterPartId ?? null);
+  }, [site.clientCounterPartId]);
+
+  useEffect(() => {
+    setSelectedPersonId(site.architectPersonId ?? null);
+  }, [site.architectPersonId]);
+
   // Filter persons by name, role or phone
   const filteredPersons = useMemo(() => {
     const q = searchPerson.toLowerCase().trim();
@@ -58,16 +72,10 @@ export function GeneralTab({ site }: GeneralTabProps) {
     });
   }, [persons, searchPerson]);
 
-  // Filter customers by name, matricule or phone
+  // Filter customers by display name, company name, first/last name, matricule, phone or CIN
   const filteredCustomers = useMemo(() => {
-    const q = searchCustomer.toLowerCase().trim();
-    if (!q) return customers;
-    return customers.filter((c) => {
-      const name = (c.name || '').toLowerCase();
-      const mf = (c.taxregistrationnumber || '').toLowerCase();
-      const phone = (c.phonenumberone || '').toLowerCase();
-      return name.includes(q) || mf.includes(q) || phone.includes(q);
-    });
+    if (!searchCustomer.trim()) return customers;
+    return customers.filter((c) => matchesChantierCustomerSearch(c, searchCustomer));
   }, [customers, searchCustomer]);
 
   const handleOpenModal = () => {
@@ -87,17 +95,17 @@ export function GeneralTab({ site }: GeneralTabProps) {
 
     await updateChantier.mutateAsync({
       name: site.name,
-      description: site.description,
-      internalNote: site.internalNote,
-      location: site.location,
-      gouvernorate: site.gouvernorate,
+      description: site.description || undefined,
+      internalNote: site.internalNote || undefined,
+      location: site.location || undefined,
+      gouvernorate: site.gouvernorate || undefined,
       startDate: site.startDate,
-      plannedEndDate: site.plannedEndDate,
-      actualEndDate: site.actualEndDate,
-      budgetTotal: site.budgetTotal,
-      architectPersonId: selectedPersonId ?? undefined,
-      projectManagerPersonId: site.projectManagerPersonId,
-      clientCounterPartId: site.clientCounterPartId,
+      plannedEndDate: site.plannedEndDate || undefined,
+      actualEndDate: site.actualEndDate || undefined,
+      budgetTotal: site.budgetTotal ?? undefined,
+      architectPersonId: selectedPersonId ?? null,
+      projectManagerPersonId: site.projectManagerPersonId ?? null,
+      clientCounterPartId: site.clientCounterPartId ?? null,
       status: site.status,
       healthFlag: site.healthFlag,
       progressPct: site.progressPct,
@@ -111,17 +119,17 @@ export function GeneralTab({ site }: GeneralTabProps) {
 
     await updateChantier.mutateAsync({
       name: site.name,
-      description: site.description,
-      internalNote: site.internalNote,
-      location: site.location,
-      gouvernorate: site.gouvernorate,
+      description: site.description || undefined,
+      internalNote: site.internalNote || undefined,
+      location: site.location || undefined,
+      gouvernorate: site.gouvernorate || undefined,
       startDate: site.startDate,
-      plannedEndDate: site.plannedEndDate,
-      actualEndDate: site.actualEndDate,
-      budgetTotal: site.budgetTotal,
-      architectPersonId: site.architectPersonId,
-      projectManagerPersonId: site.projectManagerPersonId,
-      clientCounterPartId: selectedClientId ?? undefined,
+      plannedEndDate: site.plannedEndDate || undefined,
+      actualEndDate: site.actualEndDate || undefined,
+      budgetTotal: site.budgetTotal ?? undefined,
+      architectPersonId: site.architectPersonId ?? null,
+      projectManagerPersonId: site.projectManagerPersonId ?? null,
+      clientCounterPartId: selectedClientId ?? null,
       status: site.status,
       healthFlag: site.healthFlag,
       progressPct: site.progressPct,
@@ -266,61 +274,67 @@ export function GeneralTab({ site }: GeneralTabProps) {
         </Card>
 
         {/* Client & Commanditaire Card */}
-        <Card className="border-black/5 shadow-xs rounded-2xl overflow-hidden bg-white">
-          <CardHeader className="bg-[#f8fafc] border-b border-black/5 pb-3.5 pt-4 px-6 flex flex-row items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Briefcase className="w-4 h-4 text-[#8b5cf6]" />
-              <CardTitle className="text-base font-bold text-[#0f172a] [text-wrap:balance]">
-                Client & Maîtrise d&apos;Ouvrage
-              </CardTitle>
-            </div>
-            {site.clientName ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleOpenClientModal}
-                className="text-xs font-bold text-[#8b5cf6] border-[#ddd6fe] bg-[#f5f3ff] hover:bg-[#ede9fe] rounded-xl active:scale-[0.96] transition-transform h-8"
-              >
-                Changer de client
-              </Button>
-            ) : null}
-          </CardHeader>
-          <CardContent className="p-6 space-y-4">
-            {site.clientName ? (
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-[#f8fafc] border border-black/5">
-                <div className="w-12 h-12 rounded-xl bg-[#f5f3ff] border border-[#ddd6fe] flex items-center justify-center text-[#8b5cf6] text-base font-extrabold shadow-2xs shrink-0">
-                  <Briefcase className="w-5 h-5" />
+        {(() => {
+          const siteClientDisplay = resolveChantierClientDisplay(site, customers);
+
+          return (
+            <Card className="border-black/5 shadow-xs rounded-2xl overflow-hidden bg-white">
+              <CardHeader className="bg-[#f8fafc] border-b border-black/5 pb-3.5 pt-4 px-6 flex flex-row items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 text-[#8b5cf6]" />
+                  <CardTitle className="text-base font-bold text-[#0f172a] [text-wrap:balance]">
+                    Client & Maîtrise d&apos;Ouvrage
+                  </CardTitle>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-sm sm:text-base text-[#0f172a] truncate">
-                    {site.clientName}
+                {siteClientDisplay ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleOpenClientModal}
+                    className="text-xs font-bold text-[#8b5cf6] border-[#ddd6fe] bg-[#f5f3ff] hover:bg-[#ede9fe] rounded-xl active:scale-[0.96] transition-transform h-8"
+                  >
+                    Changer de client
+                  </Button>
+                ) : null}
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                {siteClientDisplay ? (
+                  <div className="flex items-center gap-4 p-4 rounded-xl bg-[#f8fafc] border border-black/5">
+                    <div className="w-12 h-12 rounded-xl bg-[#f5f3ff] border border-[#ddd6fe] flex items-center justify-center text-[#8b5cf6] text-base font-extrabold shadow-2xs shrink-0">
+                      <Briefcase className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-sm sm:text-base text-[#0f172a] truncate">
+                        {siteClientDisplay}
+                      </div>
+                      <div className="text-xs text-[#64748b]">Client / Commanditaire officiel du chantier</div>
+                      <span className="inline-flex items-center gap-1 text-[0.68rem] font-bold text-[#10b981] bg-[#ecfdf5] px-2 py-0.5 rounded-md mt-1">
+                        <Check className="w-3 h-3" /> Compte client lié
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-xs text-[#64748b]">Client / Commanditaire officiel du chantier</div>
-                  <span className="inline-flex items-center gap-1 text-[0.68rem] font-bold text-[#10b981] bg-[#ecfdf5] px-2 py-0.5 rounded-md mt-1">
-                    <Check className="w-3 h-3" /> Compte client lié
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-6 text-[#64748b] text-center">
-                <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-2 ring-1 ring-black/5">
-                  <Briefcase className="w-6 h-6" />
-                </div>
-                <span className="font-bold mb-1 text-sm text-[#0f172a]">Aucun client associé</span>
-                <span className="text-xs text-[#64748b] mb-4 max-w-[280px] [text-wrap:pretty]">
-                  Associez un compte client pour lier ce chantier à sa facturation et ses devis.
-                </span>
-                <Button
-                  onClick={handleOpenClientModal}
-                  className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-bold rounded-xl px-4 text-xs active:scale-[0.96] transition-transform h-9"
-                >
-                  <Briefcase className="w-4 h-4 mr-1.5" />
-                  Associer un client
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-6 text-[#64748b] text-center">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-2 ring-1 ring-black/5">
+                      <Briefcase className="w-6 h-6" />
+                    </div>
+                    <span className="font-bold mb-1 text-sm text-[#0f172a]">Aucun client associé</span>
+                    <span className="text-xs text-[#64748b] mb-4 max-w-[280px] [text-wrap:pretty]">
+                      Associez un compte client pour lier ce chantier à sa facturation et ses devis.
+                    </span>
+                    <Button
+                      onClick={handleOpenClientModal}
+                      className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-bold rounded-xl px-4 text-xs active:scale-[0.96] transition-transform h-9"
+                    >
+                      <Briefcase className="w-4 h-4 mr-1.5" />
+                      Associer un client
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Schedule & Budget */}
         <Card className="border-black/5 shadow-xs rounded-2xl overflow-hidden bg-white">
@@ -538,6 +552,9 @@ export function GeneralTab({ site }: GeneralTabProps) {
             {!isCustomersLoading &&
               filteredCustomers.map((c) => {
                 const isSelected = selectedClientId === c.id;
+                const displayName = formatChantierClientName(c) || `Client #${c.id}`;
+                const initial = displayName.charAt(0).toUpperCase() || 'C';
+
                 return (
                   <div
                     key={c.id}
@@ -556,11 +573,11 @@ export function GeneralTab({ site }: GeneralTabProps) {
                           isSelected ? 'bg-[#8b5cf6] text-white' : 'bg-[#f1f5f9] text-[#0f172a]'
                         )}
                       >
-                        {c.name?.[0]?.toUpperCase()}
+                        {initial}
                       </div>
                       <div className="min-w-0">
                         <div className="font-bold text-xs sm:text-sm text-[#0f172a] truncate">
-                          {c.name}
+                          {displayName}
                         </div>
                         <div className="text-[0.7rem] text-[#64748b] flex items-center gap-2">
                           {c.taxregistrationnumber && <span>MF: {c.taxregistrationnumber}</span>}
@@ -584,14 +601,26 @@ export function GeneralTab({ site }: GeneralTabProps) {
               })}
           </div>
 
-          {/* Dissocier option */}
+          {/* Selected client summary & Dissocier option */}
           {selectedClientId !== null && (
-            <div className="flex items-center justify-between px-1 pt-1">
-              <span className="text-xs text-[#64748b]">Client sélectionné</span>
+            <div className="flex items-center justify-between px-1 pt-1 border-t border-black/5">
+              <span className="text-xs text-[#64748b] truncate mr-2">
+                Sélectionné :{' '}
+                <strong className="text-[#0f172a]">
+                  {(() => {
+                    const sel = customers.find((c) => c.id === selectedClientId);
+                    return sel
+                      ? formatChantierClientName(sel)
+                      : (site.clientCounterPartId === selectedClientId
+                        ? resolveChantierClientDisplay(site, customers)
+                        : `Client #${selectedClientId}`);
+                  })()}
+                </strong>
+              </span>
               <button
                 type="button"
                 onClick={() => setSelectedClientId(null)}
-                className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1 p-1"
+                className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1 p-1 shrink-0"
               >
                 <X className="w-3.5 h-3.5" /> Dissocier le client
               </button>

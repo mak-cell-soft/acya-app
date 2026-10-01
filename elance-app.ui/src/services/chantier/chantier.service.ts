@@ -176,6 +176,8 @@ export function normalizeChantierListItem(item: any): ChantierListItem {
   if (!item) return item;
   return {
     ...item,
+    clientCounterPartId: item.clientCounterPartId ?? item.ClientCounterPartId ?? null,
+    clientName: item.clientName ?? item.ClientName ?? null,
     status: typeof item.status === 'number'
       ? (CHANTIER_STATUS_MAP[item.status] ?? 'Planned')
       : item.status,
@@ -219,12 +221,20 @@ export const chantierService = {
   },
 
   create: async (data: CreateChantierInput): Promise<ChantierDetail> => {
-    const response = await api.post('/chantier', data);
+    const payload = {
+      ...data,
+      clientCounterPartId: data.clientCounterPartId !== undefined ? data.clientCounterPartId : null,
+    };
+    const response = await api.post('/chantier', payload);
     return normalizeChantierDetail(response.data);
   },
 
   update: async (id: number, data: UpdateChantierInput): Promise<void> => {
-    await api.put(`/chantier/${id}`, data);
+    const payload = {
+      ...data,
+      clientCounterPartId: data.clientCounterPartId !== undefined ? data.clientCounterPartId : null,
+    };
+    await api.put(`/chantier/${id}`, payload);
   },
 
   updateStatus: async (id: number, status: ChantierStatus, healthFlag?: ChantierFlag): Promise<void> => {
