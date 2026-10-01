@@ -15,8 +15,12 @@ namespace ms.webapp.api.acya.core.Entities.Chantier
     public int ChantierId { get; set; }
     public Chantier? Chantier { get; set; }
 
-    // NOTE: Links to core Merchandise entity.
-    public int MerchandiseId { get; set; }
+    // Link to catalogue Article entity.
+    public int ArticleId { get; set; }
+    public Product.Article? Article { get; set; }
+
+    // Optional link to physical Merchandise if assigned from stock
+    public int? MerchandiseId { get; set; }
     public Merchandise? Merchandise { get; set; }
 
     public string MerchandiseRef { get; set; } = string.Empty;

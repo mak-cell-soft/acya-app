@@ -277,6 +277,28 @@ namespace ms.webapp.api.acya.api.Controllers
       return Ok(phase);
     }
 
+    [HttpPut("{id}/phases/{phaseId}")]
+    public async Task<IActionResult> UpdatePhase(int id, int phaseId, [FromBody] UpdateChantierPhaseDto dto)
+    {
+      if (!await IsModuleActiveAsync())
+      {
+        return StatusCode(StatusCodes.Status403Forbidden, "Module Chantier non activé.");
+      }
+
+      if (string.IsNullOrWhiteSpace(dto.Name))
+      {
+        return BadRequest("Le nom de la phase est obligatoire.");
+      }
+
+      var success = await _chantierRepo.UpdatePhaseAsync(phaseId, dto);
+      if (!success)
+      {
+        return NotFound();
+      }
+
+      return NoContent();
+    }
+
     [HttpDelete("{id}/phases/{phaseId}")]
     public async Task<IActionResult> DeletePhase(int id, int phaseId)
     {
@@ -314,6 +336,28 @@ namespace ms.webapp.api.acya.api.Controllers
       }
 
       return Ok(task);
+    }
+
+    [HttpPut("{id}/phases/{phaseId}/tasks/{taskId}")]
+    public async Task<IActionResult> UpdateTask(int id, int phaseId, int taskId, [FromBody] UpdateChantierTaskDto dto)
+    {
+      if (!await IsModuleActiveAsync())
+      {
+        return StatusCode(StatusCodes.Status403Forbidden, "Module Chantier non activé.");
+      }
+
+      if (string.IsNullOrWhiteSpace(dto.Label))
+      {
+        return BadRequest("Le libellé de la tâche est obligatoire.");
+      }
+
+      var success = await _chantierRepo.UpdateTaskAsync(taskId, dto);
+      if (!success)
+      {
+        return NotFound();
+      }
+
+      return NoContent();
     }
 
     [HttpPatch("{id}/phases/{phaseId}/tasks/{taskId}/status")]
@@ -374,7 +418,7 @@ namespace ms.webapp.api.acya.api.Controllers
         return StatusCode(StatusCodes.Status403Forbidden, "Module Chantier non activé.");
       }
 
-      if (dto.MerchandiseId <= 0 || dto.RequiredQty <= 0)
+      if (dto.ArticleId <= 0 || dto.RequiredQty <= 0)
       {
         return BadRequest("Article et quantité requise valides sont obligatoires.");
       }
@@ -425,7 +469,7 @@ namespace ms.webapp.api.acya.api.Controllers
         return StatusCode(StatusCodes.Status403Forbidden, "Module Chantier non activé.");
       }
 
-      if (dto.MerchandiseId <= 0 || dto.ConsumedQty <= 0)
+      if ((dto.ArticleId.GetValueOrDefault() <= 0 && dto.MerchandiseId.GetValueOrDefault() <= 0) || dto.ConsumedQty <= 0)
       {
         return BadRequest("Article et quantité consommée valides sont obligatoires.");
       }

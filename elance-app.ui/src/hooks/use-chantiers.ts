@@ -7,10 +7,16 @@ import {
   CreateChantierInput,
   UpdateChantierInput,
   AssignTeamMemberInput,
+  ChantierPhase,
   CreateChantierPhaseInput,
+  UpdateChantierPhaseInput,
+  ChantierTask,
   CreateChantierTaskInput,
+  UpdateChantierTaskInput,
   UpdateTaskStatusInput,
+  ChantierMaterialRequirement,
   CreateMaterialRequirementInput,
+  ChantierMaterialConsumption,
   LogMaterialConsumptionInput,
   CreateProgressEntryInput,
   CreateChantierAlertInput,
@@ -30,6 +36,7 @@ export const CHANTIER_QUERY_KEYS = {
   details: () => [...CHANTIER_QUERY_KEYS.all, 'detail'] as const,
   detail: (id: number) => [...CHANTIER_QUERY_KEYS.details(), id] as const,
   statistics: (id: number) => [...CHANTIER_QUERY_KEYS.detail(id), 'statistics'] as const,
+  consumptions: (id: number) => [...CHANTIER_QUERY_KEYS.detail(id), 'consumptions'] as const,
   caisse: (id: number) => [...CHANTIER_QUERY_KEYS.detail(id), 'caisse'] as const,
   caisseTransactions: (id: number, params?: { type?: number; status?: number }) =>
     [...CHANTIER_QUERY_KEYS.caisse(id), 'transactions', params] as const,
@@ -58,6 +65,14 @@ export function useChantierStatistics(id?: number) {
   });
 }
 
+export function useChantierConsumptions(id?: number) {
+  return useQuery<ChantierMaterialConsumption[]>({
+    queryKey: CHANTIER_QUERY_KEYS.consumptions(id ?? 0),
+    queryFn: () => chantierService.getConsumptions(id!),
+    enabled: !!id && id > 0,
+  });
+}
+
 export function useCreateChantier() {
   const queryClient = useQueryClient();
 
@@ -69,6 +84,22 @@ export function useCreateChantier() {
     },
     onError: () => {
       toast.error("Erreur lors de la création du chantier.");
+    },
+  });
+}
+
+export function useDeleteChantier() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => chantierService.deleteSoft(id),
+    onSuccess: (_, deletedId) => {
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.lists() });
+      queryClient.removeQueries({ queryKey: CHANTIER_QUERY_KEYS.detail(deletedId) });
+      toast.success("Chantier supprimé avec succès.");
+    },
+    onError: () => {
+      toast.error("Erreur lors de la suppression du chantier.");
     },
   });
 }
@@ -143,10 +174,47 @@ export function useCreatePhase(chantierId: number) {
     mutationFn: (input: CreateChantierPhaseInput) => chantierService.createPhase(chantierId, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.detail(chantierId) });
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.lists() });
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.statistics(chantierId) });
       toast.success("Phase ajoutée.");
     },
     onError: () => {
       toast.error("Erreur lors de la création de la phase.");
+    },
+  });
+}
+
+export function useUpdatePhase(chantierId: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ phaseId, input }: { phaseId: number; input: UpdateChantierPhaseInput }) =>
+      chantierService.updatePhase(chantierId, phaseId, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.detail(chantierId) });
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.lists() });
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.statistics(chantierId) });
+      toast.success("Phase mise à jour.");
+    },
+    onError: () => {
+      toast.error("Erreur lors de la mise à jour de la phase.");
+    },
+  });
+}
+
+export function useDeletePhase(chantierId: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (phaseId: number) => chantierService.deletePhase(chantierId, phaseId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.detail(chantierId) });
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.lists() });
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.statistics(chantierId) });
+      toast.success("Phase supprimée.");
+    },
+    onError: () => {
+      toast.error("Erreur lors de la suppression de la phase.");
     },
   });
 }
@@ -158,10 +226,30 @@ export function useCreateTask(chantierId: number, phaseId: number) {
     mutationFn: (input: CreateChantierTaskInput) => chantierService.createTask(chantierId, phaseId, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.detail(chantierId) });
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.lists() });
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.statistics(chantierId) });
       toast.success("Tâche créée.");
     },
     onError: () => {
       toast.error("Erreur lors de la création de la tâche.");
+    },
+  });
+}
+
+export function useUpdateTask(chantierId: number, phaseId: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ taskId, input }: { taskId: number; input: UpdateChantierTaskInput }) =>
+      chantierService.updateTask(chantierId, phaseId, taskId, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.detail(chantierId) });
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.lists() });
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.statistics(chantierId) });
+      toast.success("Tâche mise à jour.");
+    },
+    onError: () => {
+      toast.error("Erreur lors de la mise à jour de la tâche.");
     },
   });
 }
@@ -174,9 +262,28 @@ export function useUpdateTaskStatus(chantierId: number, phaseId: number) {
       chantierService.updateTaskStatus(chantierId, phaseId, taskId, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.detail(chantierId) });
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.lists() });
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.statistics(chantierId) });
     },
     onError: () => {
       toast.error("Erreur lors de la mise à jour de la tâche.");
+    },
+  });
+}
+
+export function useDeleteTask(chantierId: number, phaseId: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (taskId: number) => chantierService.deleteTask(chantierId, phaseId, taskId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.detail(chantierId) });
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.lists() });
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.statistics(chantierId) });
+      toast.success("Tâche supprimée.");
+    },
+    onError: () => {
+      toast.error("Erreur lors de la suppression de la tâche.");
     },
   });
 }
@@ -204,6 +311,7 @@ export function useLogMaterialConsumption(chantierId: number) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.detail(chantierId) });
       queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.statistics(chantierId) });
+      queryClient.invalidateQueries({ queryKey: CHANTIER_QUERY_KEYS.consumptions(chantierId) });
       toast.success("Consommation enregistrée.");
     },
     onError: () => {

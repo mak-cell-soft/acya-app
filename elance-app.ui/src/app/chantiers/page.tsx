@@ -17,7 +17,11 @@ import {
   Building2,
   Coins,
   X,
-  UserCheck
+  UserCheck,
+  Pencil,
+  Trash2,
+  Briefcase,
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,8 +40,15 @@ import { StatsTab } from './tabs/StatsTab';
 import { ChantierModal, FormFieldGroup, FormSection } from './components/ChantierModal';
 import { ChantierStatusBadge, ChantierHealthIndicator } from './components/ChantierStatusBadge';
 
-import { useChantiersList, useChantierDetail, useCreateChantier } from '@/hooks/use-chantiers';
-import { CreateChantierInput } from '@/types/chantier';
+import {
+  useChantiersList,
+  useChantierDetail,
+  useCreateChantier,
+  useUpdateChantier,
+  useDeleteChantier,
+} from '@/hooks/use-chantiers';
+import { useCustomers } from '@/hooks/use-customers';
+import { CreateChantierInput, UpdateChantierInput, ChantierStatus, ChantierFlag } from '@/types/chantier';
 
 const TABS = [
   { id: 0, label: 'Général', icon: Info },
@@ -65,10 +76,13 @@ export default function ChantiersPage() {
   const [newBudget, setNewBudget] = useState<number>(0);
   const [newStartDate, setNewStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [newEndDate, setNewEndDate] = useState('');
+  const [newClientId, setNewClientId] = useState<number | null>(null);
 
   // Fetch real list from API
   const { data: chantiers = [], isLoading: isListLoading } = useChantiersList({ search: searchTerm });
+  const { data: customers = [] } = useCustomers('Customer');
   const createChantier = useCreateChantier();
+  const deleteChantier = useDeleteChantier();
 
   // Auto-select first chantier if none selected yet
   const effectiveId = useMemo(() => {
@@ -80,6 +94,70 @@ export default function ChantiersPage() {
 
   // Fetch full detail of the selected chantier
   const { data: selectedDetail, isLoading: isDetailLoading } = useChantierDetail(effectiveId ?? undefined);
+  const updateChantier = useUpdateChantier(effectiveId ?? 0);
+
+  // Edit chantier modal state
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editInternalNote, setEditInternalNote] = useState('');
+  const [editLocation, setEditLocation] = useState('');
+  const [editGouv, setEditGouv] = useState('Tunis');
+  const [editStartDate, setEditStartDate] = useState('');
+  const [editEndDate, setEditEndDate] = useState('');
+  const [editBudget, setEditBudget] = useState<number>(0);
+  const [editClientId, setEditClientId] = useState<number | null>(null);
+
+  // Delete confirmation state
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+
+  const handleOpenEdit = () => {
+    if (!selectedDetail) return;
+    setEditName(selectedDetail.name || '');
+    setEditDesc(selectedDetail.description || '');
+    setEditInternalNote(selectedDetail.internalNote || '');
+    setEditLocation(selectedDetail.location || '');
+    setEditGouv(selectedDetail.gouvernorate || 'Tunis');
+    setEditStartDate(selectedDetail.startDate ? selectedDetail.startDate.split('T')[0] : '');
+    setEditEndDate(selectedDetail.plannedEndDate ? selectedDetail.plannedEndDate.split('T')[0] : '');
+    setEditBudget(selectedDetail.budgetTotal || 0);
+    setEditClientId(selectedDetail.clientCounterPartId ?? null);
+    setIsEditOpen(true);
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedDetail || !editName.trim()) return;
+
+    const input: UpdateChantierInput = {
+      name: editName.trim(),
+      description: editDesc.trim() || undefined,
+      internalNote: editInternalNote.trim() || undefined,
+      location: editLocation.trim() || undefined,
+      gouvernorate: editGouv,
+      startDate: new Date(editStartDate).toISOString(),
+      plannedEndDate: editEndDate ? new Date(editEndDate).toISOString() : undefined,
+      budgetTotal: editBudget > 0 ? Number(editBudget) : undefined,
+      clientCounterPartId: editClientId ?? undefined,
+      architectPersonId: selectedDetail.architectPersonId,
+      projectManagerPersonId: selectedDetail.projectManagerPersonId,
+      status: selectedDetail.status,
+      healthFlag: selectedDetail.healthFlag,
+      progressPct: selectedDetail.progressPct,
+    };
+
+    await updateChantier.mutateAsync(input);
+    setIsEditOpen(false);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedDetail) return;
+    const deletingId = selectedDetail.id;
+    await deleteChantier.mutateAsync(deletingId);
+    setIsDeleteConfirmOpen(false);
+    const remaining = chantiers.filter((c) => c.id !== deletingId);
+    setSelectedId(remaining.length > 0 ? remaining[0].id : null);
+  };
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,6 +172,7 @@ export default function ChantiersPage() {
       startDate: new Date(newStartDate).toISOString(),
       plannedEndDate: newEndDate ? new Date(newEndDate).toISOString() : undefined,
       budgetTotal: newBudget > 0 ? Number(newBudget) : undefined,
+      clientCounterPartId: newClientId ?? undefined,
     };
 
     const created = await createChantier.mutateAsync(input);
@@ -107,6 +186,7 @@ export default function ChantiersPage() {
     setNewDesc('');
     setNewBudget(0);
     setNewEndDate('');
+    setNewClientId(null);
   };
 
   // Compute active badge counts for tabs
@@ -332,24 +412,59 @@ export default function ChantiersPage() {
                             </span>
                           </>
                         )}
+                        {selectedDetail.clientName && (
+                          <>
+                            <span>•</span>
+                            <span className="inline-flex items-center gap-1">
+                              <Briefcase className="w-3.5 h-3.5 text-[#8b5cf6]" />
+                              <span>
+                                Client : <strong className="text-[#0f172a]">{selectedDetail.clientName}</strong>
+                              </span>
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
 
-                    {/* Progress summary banner */}
-                    <div className="flex items-center gap-4 bg-[#f8fafc] p-3.5 rounded-xl border border-slate-200/70 shrink-0">
-                      <div>
-                        <div className="text-[0.68rem] font-bold uppercase tracking-wider text-[#64748b]">
-                          Avancement global
+                    <div className="flex flex-wrap items-center gap-3 shrink-0">
+                      {/* Progress summary banner */}
+                      <div className="flex items-center gap-4 bg-[#f8fafc] p-3 rounded-xl border border-slate-200/70 shrink-0">
+                        <div>
+                          <div className="text-[0.68rem] font-bold uppercase tracking-wider text-[#64748b]">
+                            Avancement global
+                          </div>
+                          <div className="text-2xl font-extrabold text-[#2563eb] tabular-nums leading-none mt-0.5">
+                            {selectedDetail.progressPct}%
+                          </div>
                         </div>
-                        <div className="text-2xl font-extrabold text-[#2563eb] tabular-nums leading-none mt-0.5">
-                          {selectedDetail.progressPct}%
+                        <div className="w-24 sm:w-28 bg-[#e2e8f0] h-2.5 rounded-full overflow-hidden">
+                          <div
+                            className="bg-[#2563eb] h-full rounded-full transition-all duration-500"
+                            style={{ width: `${selectedDetail.progressPct}%` }}
+                          />
                         </div>
                       </div>
-                      <div className="w-28 bg-[#e2e8f0] h-2.5 rounded-full overflow-hidden">
-                        <div
-                          className="bg-[#2563eb] h-full rounded-full transition-all duration-500"
-                          style={{ width: `${selectedDetail.progressPct}%` }}
-                        />
+
+                      {/* Header action buttons */}
+                      <div className="flex items-center gap-1.5">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleOpenEdit}
+                          className="h-9 rounded-xl text-xs font-bold border-black/15 text-[#0f172a] hover:bg-[#f1f5f9] active:scale-[0.96] transition-transform px-3 flex items-center gap-1.5 shadow-2xs"
+                        >
+                          <Pencil className="w-3.5 h-3.5 text-[#64748b]" />
+                          Modifier
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsDeleteConfirmOpen(true)}
+                          className="h-9 rounded-xl text-xs font-bold border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 active:scale-[0.96] transition-transform px-3 flex items-center gap-1.5 shadow-2xs"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                          Supprimer
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -487,6 +602,21 @@ export default function ChantiersPage() {
                 />
               </FormFieldGroup>
             </div>
+
+            <FormFieldGroup label="Client / Commanditaire" className="pt-1">
+              <select
+                value={newClientId ?? ''}
+                onChange={(e) => setNewClientId(e.target.value ? Number(e.target.value) : null)}
+                className="w-full rounded-xl text-xs h-9.5 border border-black/15 bg-white px-3 focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
+              >
+                <option value="">-- Aucun client associé --</option>
+                {customers.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} {c.taxregistrationnumber ? `(${c.taxregistrationnumber})` : ''}
+                  </option>
+                ))}
+              </select>
+            </FormFieldGroup>
           </FormSection>
 
           <FormSection title="Planning & Budget">
@@ -531,6 +661,141 @@ export default function ChantiersPage() {
               />
             </FormFieldGroup>
           </FormSection>
+        </div>
+      </ChantierModal>
+
+      {/* Modal: Modifier le Chantier */}
+      <ChantierModal
+        open={isEditOpen}
+        onOpenChange={setIsEditOpen}
+        title="Modifier le chantier"
+        description="Mettez à jour les informations générales, le client ou le planning du chantier."
+        icon={Pencil}
+        maxWidthClass="sm:max-w-[560px]"
+        onSubmit={handleEditSubmit}
+        submitLabel="Enregistrer les modifications"
+        isSubmitting={updateChantier.isPending}
+      >
+        <div className="space-y-4">
+          <FormSection title="Identification">
+            <FormFieldGroup label="Nom du chantier" required>
+              <Input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                required
+                className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb]"
+              />
+            </FormFieldGroup>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <FormFieldGroup label="Adresse / Localisation">
+                <Input
+                  type="text"
+                  value={editLocation}
+                  onChange={(e) => setEditLocation(e.target.value)}
+                  className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb]"
+                />
+              </FormFieldGroup>
+              <FormFieldGroup label="Gouvernorat">
+                <Input
+                  type="text"
+                  value={editGouv}
+                  onChange={(e) => setEditGouv(e.target.value)}
+                  className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb]"
+                />
+              </FormFieldGroup>
+            </div>
+
+            <FormFieldGroup label="Client / Commanditaire" className="pt-1">
+              <select
+                value={editClientId ?? ''}
+                onChange={(e) => setEditClientId(e.target.value ? Number(e.target.value) : null)}
+                className="w-full rounded-xl text-xs h-9.5 border border-black/15 bg-white px-3 focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
+              >
+                <option value="">-- Aucun client associé --</option>
+                {customers.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} {c.taxregistrationnumber ? `(${c.taxregistrationnumber})` : ''}
+                  </option>
+                ))}
+              </select>
+            </FormFieldGroup>
+          </FormSection>
+
+          <FormSection title="Planning & Budget">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <FormFieldGroup label="Date début" required>
+                <Input
+                  type="date"
+                  value={editStartDate}
+                  onChange={(e) => setEditStartDate(e.target.value)}
+                  required
+                  className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb] tabular-nums"
+                />
+              </FormFieldGroup>
+              <FormFieldGroup label="Fin estimée">
+                <Input
+                  type="date"
+                  value={editEndDate}
+                  onChange={(e) => setEditEndDate(e.target.value)}
+                  className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb] tabular-nums"
+                />
+              </FormFieldGroup>
+              <FormFieldGroup label="Budget prévu (TND)">
+                <Input
+                  type="number"
+                  value={editBudget || ''}
+                  onChange={(e) => setEditBudget(Number(e.target.value))}
+                  className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb] tabular-nums font-bold"
+                />
+              </FormFieldGroup>
+            </div>
+          </FormSection>
+
+          <FormSection title="Notes & Description">
+            <FormFieldGroup label="Description des travaux">
+              <Input
+                type="text"
+                value={editDesc}
+                onChange={(e) => setEditDesc(e.target.value)}
+                placeholder="Description des travaux..."
+                className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb]"
+              />
+            </FormFieldGroup>
+            <FormFieldGroup label="Note ou consigne interne">
+              <Input
+                type="text"
+                value={editInternalNote}
+                onChange={(e) => setEditInternalNote(e.target.value)}
+                placeholder="Consignes internes d'accès, sécurité..."
+                className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb]"
+              />
+            </FormFieldGroup>
+          </FormSection>
+        </div>
+      </ChantierModal>
+
+      {/* Modal: Confirmation de suppression */}
+      <ChantierModal
+        open={isDeleteConfirmOpen}
+        onOpenChange={setIsDeleteConfirmOpen}
+        title="Supprimer le chantier"
+        description="Cette action désactivera le chantier et archivera ses données associées (suppression logique)."
+        icon={AlertTriangle}
+        iconColor="text-red-600"
+        iconBg="bg-red-50"
+        maxWidthClass="sm:max-w-[440px]"
+        onSubmit={handleDeleteConfirm}
+        submitLabel="Confirmer la suppression"
+        cancelLabel="Annuler"
+        danger={true}
+        isSubmitting={deleteChantier.isPending}
+      >
+        <div className="py-2 text-xs text-[#64748b]">
+          Êtes-vous certain de vouloir supprimer le chantier{' '}
+          <strong className="text-[#0f172a]">&laquo;&nbsp;{selectedDetail?.name}&nbsp;&raquo;</strong> ?
+          Les données historiques seront préservées en base de données.
         </div>
       </ChantierModal>
     </DashboardLayout>

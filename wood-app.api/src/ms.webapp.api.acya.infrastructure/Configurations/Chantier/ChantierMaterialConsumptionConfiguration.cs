@@ -14,7 +14,8 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Chantier
 
       entity.Property(e => e.Id).HasColumnName("Id").ValueGeneratedOnAdd();
       entity.Property(e => e.ChantierId).HasColumnName("ChantierId").IsRequired();
-      entity.Property(e => e.MerchandiseId).HasColumnName("MerchandiseId").IsRequired();
+      entity.Property(e => e.ArticleId).HasColumnName("ArticleId");
+      entity.Property(e => e.MerchandiseId).HasColumnName("MerchandiseId");
       entity.Property(e => e.SourceStockMovementId).HasColumnName("SourceStockMovementId");
       entity.Property(e => e.ChantierTaskId).HasColumnName("ChantierTaskId");
       entity.Property(e => e.ConsumedQty).HasColumnName("ConsumedQty").HasPrecision(18, 3).IsRequired();
@@ -23,15 +24,25 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Chantier
       entity.Property(e => e.ConsumedAt).HasColumnName("ConsumedAt").IsRequired();
       entity.Property(e => e.RecordedById).HasColumnName("RecordedById").IsRequired();
 
+      entity.HasOne(e => e.Article)
+            .WithMany()
+            .HasForeignKey(e => e.ArticleId)
+            .OnDelete(DeleteBehavior.SetNull);
+
       entity.HasOne(e => e.Merchandise)
             .WithMany()
             .HasForeignKey(e => e.MerchandiseId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull);
 
       entity.HasOne(e => e.ChantierTask)
             .WithMany()
             .HasForeignKey(e => e.ChantierTaskId)
             .OnDelete(DeleteBehavior.SetNull);
+
+      entity.HasOne(e => e.RecordedBy)
+            .WithMany()
+            .HasForeignKey(e => e.RecordedById)
+            .OnDelete(DeleteBehavior.Restrict);
 
       entity.HasIndex(e => e.ChantierId);
       entity.HasIndex(e => e.MerchandiseId);

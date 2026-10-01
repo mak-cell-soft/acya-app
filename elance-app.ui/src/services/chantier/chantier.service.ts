@@ -8,8 +8,10 @@ import {
   AssignTeamMemberInput,
   ChantierPhase,
   CreateChantierPhaseInput,
+  UpdateChantierPhaseInput,
   ChantierTask,
   CreateChantierTaskInput,
+  UpdateChantierTaskInput,
   UpdateTaskStatusInput,
   ChantierMaterialRequirement,
   CreateMaterialRequirementInput,
@@ -267,12 +269,22 @@ export const chantierService = {
     return normalizePhase(response.data);
   },
 
+  updatePhase: async (id: number, phaseId: number, input: UpdateChantierPhaseInput): Promise<ChantierPhase> => {
+    const response = await api.put(`/chantier/${id}/phases/${phaseId}`, input);
+    return normalizePhase(response.data);
+  },
+
   deletePhase: async (id: number, phaseId: number): Promise<void> => {
     await api.delete(`/chantier/${id}/phases/${phaseId}`);
   },
 
   createTask: async (id: number, phaseId: number, input: CreateChantierTaskInput): Promise<ChantierTask> => {
     const response = await api.post(`/chantier/${id}/phases/${phaseId}/tasks`, input);
+    return normalizeTask(response.data);
+  },
+
+  updateTask: async (id: number, phaseId: number, taskId: number, input: UpdateChantierTaskInput): Promise<ChantierTask> => {
+    const response = await api.put(`/chantier/${id}/phases/${phaseId}/tasks/${taskId}`, input);
     return normalizeTask(response.data);
   },
 

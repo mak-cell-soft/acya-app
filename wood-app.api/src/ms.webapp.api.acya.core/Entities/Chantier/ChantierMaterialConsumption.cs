@@ -15,7 +15,10 @@ namespace ms.webapp.api.acya.core.Entities.Chantier
     public int ChantierId { get; set; }
     public Chantier? Chantier { get; set; }
 
-    public int MerchandiseId { get; set; }
+    public int? ArticleId { get; set; }
+    public Product.Article? Article { get; set; }
+
+    public int? MerchandiseId { get; set; }
     public Merchandise? Merchandise { get; set; }
 
     // NOTE: Optional audit link to core StockMovement. Logical FK, no direct DB constraint.
@@ -30,5 +33,6 @@ namespace ms.webapp.api.acya.core.Entities.Chantier
 
     public DateTime ConsumedAt { get; set; } = DateTime.UtcNow;
     public int RecordedById { get; set; }
+    public AppUser? RecordedBy { get; set; }
   }
 }

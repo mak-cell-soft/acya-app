@@ -1361,6 +1361,194 @@ CREATE INDEX IF NOT EXISTS idx_bo_tbl_mobile_releases_build_id ON public.bo_tbl_
 CREATE INDEX IF NOT EXISTS idx_bo_tbl_mobile_releases_tenant_current ON public.bo_tbl_mobile_releases ("TenantId", "IsCurrent");
 CREATE UNIQUE INDEX IF NOT EXISTS uq_bo_tbl_mobile_releases_current_tenant ON public.bo_tbl_mobile_releases ("TenantId") WHERE "IsCurrent" = TRUE;
 
+-- =====================================================================
+-- Chantier Module Baseline (v0.26 + v0.33 stabilization)
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS chantier_projects (
+    "Id"                     SERIAL       PRIMARY KEY,
+    "Guid"                   UUID         NOT NULL DEFAULT gen_random_uuid() UNIQUE,
+    "Reference"              VARCHAR(50)  NOT NULL,
+    "Name"                   VARCHAR(255) NOT NULL,
+    "Description"            TEXT,
+    "InternalNote"           TEXT,
+    "Location"               VARCHAR(500),
+    "Gouvernorate"           VARCHAR(100),
+    "Status"                 SMALLINT     NOT NULL DEFAULT 0,
+    "HealthFlag"             SMALLINT     NOT NULL DEFAULT 0,
+    "ProgressPct"            INT          NOT NULL DEFAULT 0 CHECK ("ProgressPct" BETWEEN 0 AND 100),
+    "BudgetTotal"            NUMERIC(18,3),
+    "StartDate"              TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    "PlannedEndDate"         TIMESTAMP WITHOUT TIME ZONE,
+    "ActualEndDate"          TIMESTAMP WITHOUT TIME ZONE,
+    "ArchitectPersonId"      INT          REFERENCES tbl_person(id) ON DELETE SET NULL,
+    "ProjectManagerPersonId" INT          REFERENCES tbl_person(id) ON DELETE SET NULL,
+    "ClientCounterPartId"    INT,
+    "CreatedById"            INT          NOT NULL,
+    "UpdatedById"            INT,
+    "CreationDate"           TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    "UpdateDate"             TIMESTAMP WITHOUT TIME ZONE,
+    "IsDeleted"              BOOLEAN      NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX IF NOT EXISTS idx_chantier_projects_status ON chantier_projects("Status", "IsDeleted");
+CREATE INDEX IF NOT EXISTS idx_chantier_projects_dates  ON chantier_projects("StartDate", "PlannedEndDate");
+CREATE INDEX IF NOT EXISTS idx_chantier_projects_guid   ON chantier_projects("Guid");
+
+CREATE TABLE IF NOT EXISTS chantier_team_members (
+    "Id"           SERIAL       PRIMARY KEY,
+    "ChantierId"   INT          NOT NULL REFERENCES chantier_projects("Id") ON DELETE CASCADE,
+    "PersonId"     INT          NOT NULL REFERENCES tbl_person(id) ON DELETE RESTRICT,
+    "ChantierRole" VARCHAR(100) NOT NULL,
+    "AssignedAt"   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    "ReleasedAt"   TIMESTAMP WITHOUT TIME ZONE,
+    "IsActive"     BOOLEAN      NOT NULL DEFAULT TRUE,
+    "AssignedById" INT          NOT NULL,
+    "CreationDate" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    UNIQUE ("ChantierId", "PersonId", "IsActive")
+);
+
+CREATE INDEX IF NOT EXISTS idx_chantier_team_chantier ON chantier_team_members("ChantierId");
+CREATE INDEX IF NOT EXISTS idx_chantier_team_person   ON chantier_team_members("PersonId");
+
+CREATE TABLE IF NOT EXISTS chantier_phases (
+    "Id"             SERIAL       PRIMARY KEY,
+    "ChantierId"     INT          NOT NULL REFERENCES chantier_projects("Id") ON DELETE CASCADE,
+    "Name"           VARCHAR(200) NOT NULL,
+    "Description"    TEXT,
+    "SortOrder"      INT          NOT NULL DEFAULT 0,
+    "ProgressPct"    INT          NOT NULL DEFAULT 0 CHECK ("ProgressPct" BETWEEN 0 AND 100),
+    "Color"          VARCHAR(20),
+    "Status"         SMALLINT     NOT NULL DEFAULT 0,
+    "StartDate"      TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    "PlannedEndDate" TIMESTAMP WITHOUT TIME ZONE,
+    "ActualEndDate"  TIMESTAMP WITHOUT TIME ZONE,
+    "CreationDate"   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    "IsDeleted"      BOOLEAN      NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS chantier_tasks (
+    "Id"                  SERIAL       PRIMARY KEY,
+    "PhaseId"             INT          NOT NULL REFERENCES chantier_phases("Id") ON DELETE CASCADE,
+    "Label"               VARCHAR(200) NOT NULL,
+    "SubLabel"            VARCHAR(200),
+    "Description"         TEXT,
+    "Status"              SMALLINT     NOT NULL DEFAULT 0,
+    "ProgressPct"         INT          NOT NULL DEFAULT 0 CHECK ("ProgressPct" BETWEEN 0 AND 100),
+    "StartDate"           TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    "PlannedEndDate"      TIMESTAMP WITHOUT TIME ZONE,
+    "ActualEndDate"       TIMESTAMP WITHOUT TIME ZONE,
+    "ResponsiblePersonId" INT          REFERENCES tbl_person(id) ON DELETE SET NULL,
+    "SortOrder"           INT          NOT NULL DEFAULT 0,
+    "CreationDate"        TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    "UpdateDate"          TIMESTAMP WITHOUT TIME ZONE,
+    "IsDeleted"           BOOLEAN      NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX IF NOT EXISTS idx_chantier_phases_cid  ON chantier_phases("ChantierId", "IsDeleted");
+CREATE INDEX IF NOT EXISTS idx_chantier_tasks_phase ON chantier_tasks("PhaseId", "IsDeleted");
+
+CREATE TABLE IF NOT EXISTS chantier_material_requirements (
+    "Id"                     SERIAL        PRIMARY KEY,
+    "ChantierId"             INT           NOT NULL REFERENCES chantier_projects("Id") ON DELETE CASCADE,
+    "ArticleId"              INT           NOT NULL REFERENCES tbl_article(id) ON DELETE RESTRICT,
+    "MerchandiseId"          INT           REFERENCES tbl_merchandise(id) ON DELETE RESTRICT,
+    "MerchandiseRef"         VARCHAR(100)  NOT NULL,
+    "MerchandiseDesignation" VARCHAR(500)  NOT NULL,
+    "Category"               VARCHAR(100)  NOT NULL DEFAULT 'Principal',
+    "MaterialType"           VARCHAR(50)   NOT NULL DEFAULT 'Principal',
+    "RequiredQty"            NUMERIC(18,3) NOT NULL DEFAULT 0,
+    "Unit"                   VARCHAR(50)   NOT NULL DEFAULT 'Unite',
+    "MinimumQty"             NUMERIC(18,3) NOT NULL DEFAULT 0,
+    "CreationDate"           TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    "IsDeleted"              BOOLEAN       NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX IF NOT EXISTS idx_chantier_matreq_cid     ON chantier_material_requirements("ChantierId", "IsDeleted");
+CREATE INDEX IF NOT EXISTS idx_chantier_matreq_artid   ON chantier_material_requirements("ArticleId");
+
+CREATE TABLE IF NOT EXISTS chantier_material_consumptions (
+    "Id"                    SERIAL        PRIMARY KEY,
+    "ChantierId"            INT           NOT NULL REFERENCES chantier_projects("Id") ON DELETE CASCADE,
+    "ArticleId"             INT           REFERENCES tbl_article(id) ON DELETE SET NULL,
+    "MerchandiseId"         INT           REFERENCES tbl_merchandise(id) ON DELETE RESTRICT,
+    "SourceStockMovementId" INT,
+    "ChantierTaskId"        INT           REFERENCES chantier_tasks("Id") ON DELETE SET NULL,
+    "ConsumedQty"           NUMERIC(18,3) NOT NULL,
+    "Unit"                  VARCHAR(50)   NOT NULL DEFAULT 'Unite',
+    "Notes"                 TEXT,
+    "ConsumedAt"            TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    "RecordedById"          INT           NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_chantier_consumption_cid   ON chantier_material_consumptions("ChantierId");
+CREATE INDEX IF NOT EXISTS idx_chantier_consumption_artid ON chantier_material_consumptions("ArticleId");
+CREATE INDEX IF NOT EXISTS idx_chantier_consumption_mid   ON chantier_material_consumptions("MerchandiseId");
+
+CREATE TABLE IF NOT EXISTS chantier_vehicle_assignments (
+    "Id"             SERIAL       PRIMARY KEY,
+    "ChantierId"     INT          NOT NULL REFERENCES chantier_projects("Id") ON DELETE CASCADE,
+    "VehicleId"      INT          NOT NULL REFERENCES tbl_vehicle(id) ON DELETE CASCADE,
+    "DriverPersonId" INT          REFERENCES tbl_person(id) ON DELETE SET NULL,
+    "AssignedAt"     TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    "ReleasedAt"     TIMESTAMP WITHOUT TIME ZONE,
+    "IsActive"       BOOLEAN      NOT NULL DEFAULT TRUE,
+    "Notes"          TEXT,
+    "CreationDate"   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_chantier_vehicles_cid ON chantier_vehicle_assignments("ChantierId");
+CREATE INDEX IF NOT EXISTS idx_chantier_vehicles_vid ON chantier_vehicle_assignments("VehicleId");
+
+CREATE TABLE IF NOT EXISTS chantier_progress_entries (
+    "Id"           SERIAL       PRIMARY KEY,
+    "ChantierId"   INT          NOT NULL REFERENCES chantier_projects("Id") ON DELETE CASCADE,
+    "Title"        VARCHAR(300) NOT NULL,
+    "Description"  TEXT,
+    "EntryType"    SMALLINT     NOT NULL DEFAULT 0,
+    "EntryStatus"  SMALLINT     NOT NULL DEFAULT 0,
+    "EntryDate"    TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    "RecordedById" INT          NOT NULL,
+    "CreationDate" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    "IsDeleted"    BOOLEAN      NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS chantier_alerts (
+    "Id"         SERIAL       PRIMARY KEY,
+    "ChantierId" INT          NOT NULL REFERENCES chantier_projects("Id") ON DELETE CASCADE,
+    "Message"    TEXT         NOT NULL,
+    "AlertType"  SMALLINT     NOT NULL DEFAULT 1,
+    "IsResolved" BOOLEAN      NOT NULL DEFAULT FALSE,
+    "CreatedAt"  TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    "ResolvedAt" TIMESTAMP WITHOUT TIME ZONE
+);
+
+CREATE INDEX IF NOT EXISTS idx_chantier_progress_cid ON chantier_progress_entries("ChantierId", "IsDeleted");
+CREATE INDEX IF NOT EXISTS idx_chantier_alerts_cid   ON chantier_alerts("ChantierId", "IsResolved");
+
+CREATE TABLE IF NOT EXISTS chantier_caisse_transactions (
+    "Id"                  SERIAL       PRIMARY KEY,
+    "Guid"                UUID         NOT NULL DEFAULT gen_random_uuid() UNIQUE,
+    "ChantierId"          INT          NOT NULL REFERENCES chantier_projects("Id") ON DELETE CASCADE,
+    "Type"                SMALLINT     NOT NULL DEFAULT 0,
+    "Status"              SMALLINT     NOT NULL DEFAULT 0,
+    "Amount"              NUMERIC(18,3) NOT NULL CHECK ("Amount" > 0),
+    "TransactionDate"     TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    "Reason"              VARCHAR(300) NOT NULL,
+    "Reference"           VARCHAR(100),
+    "BeneficiaryPersonId" INT          REFERENCES tbl_person(id) ON DELETE SET NULL,
+    "CreatedById"         INT          NOT NULL,
+    "ValidatedById"       INT,
+    "ValidationDate"      TIMESTAMP WITHOUT TIME ZONE,
+    "Notes"               TEXT,
+    "CreationDate"        TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    "IsDeleted"           BOOLEAN      NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX IF NOT EXISTS idx_chantier_caisse_cid_status ON chantier_caisse_transactions("ChantierId", "Status", "IsDeleted");
+CREATE INDEX IF NOT EXISTS idx_chantier_caisse_date ON chantier_caisse_transactions("ChantierId", "TransactionDate");
+
+
 
 
 

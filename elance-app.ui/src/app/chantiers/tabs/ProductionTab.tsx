@@ -1,11 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, CheckCircle2, Clock, PlayCircle, Layers } from 'lucide-react';
+import { Plus, CheckCircle2, Clock, PlayCircle, Layers, Pencil, Trash2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChantierDetail, ChantierTaskStatus } from '@/types/chantier';
-import { useCreatePhase, useCreateTask, useUpdateTaskStatus } from '@/hooks/use-chantiers';
+import { ChantierDetail, ChantierTaskStatus, ChantierPhase, ChantierTask } from '@/types/chantier';
+import {
+  useCreatePhase,
+  useUpdatePhase,
+  useDeletePhase,
+  useCreateTask,
+  useUpdateTask,
+  useUpdateTaskStatus,
+  useDeleteTask,
+} from '@/hooks/use-chantiers';
 import { cn } from '@/lib/utils';
 import { ChantierModal, FormFieldGroup } from '../components/ChantierModal';
 
@@ -25,8 +33,27 @@ export function ProductionTab({ site }: ProductionTabProps) {
   const [taskLabel, setTaskLabel] = useState('');
   const [taskSubLabel, setTaskSubLabel] = useState('');
 
+  // Phase edit and delete state
+  const [editingPhase, setEditingPhase] = useState<ChantierPhase | null>(null);
+  const [editPhaseName, setEditPhaseName] = useState('');
+  const [editPhaseDesc, setEditPhaseDesc] = useState('');
+  const [editPhaseColor, setEditPhaseColor] = useState('#2563eb');
+  const [deletingPhase, setDeletingPhase] = useState<ChantierPhase | null>(null);
+
+  // Task edit and delete state
+  const [editingTask, setEditingTask] = useState<{ task: ChantierTask; phaseId: number } | null>(null);
+  const [editTaskLabel, setEditTaskLabel] = useState('');
+  const [editTaskSubLabel, setEditTaskSubLabel] = useState('');
+  const [editTaskDesc, setEditTaskDesc] = useState('');
+  const [deletingTask, setDeletingTask] = useState<{ task: ChantierTask; phaseId: number } | null>(null);
+
   const createPhase = useCreatePhase(site.id);
+  const updatePhase = useUpdatePhase(site.id);
+  const deletePhase = useDeletePhase(site.id);
+
   const createTask = useCreateTask(site.id, selectedPhaseId);
+  const updateTask = useUpdateTask(site.id, editingTask?.phaseId ?? 0);
+  const deleteTask = useDeleteTask(site.id, deletingTask?.phaseId ?? 0);
   const updateTaskStatus = useUpdateTaskStatus(site.id, selectedPhaseId);
 
   const phases = site.phases || [];
@@ -46,6 +73,38 @@ export function ProductionTab({ site }: ProductionTabProps) {
     setPhaseName('');
   };
 
+  const handleOpenEditPhase = (phase: ChantierPhase) => {
+    setEditingPhase(phase);
+    setEditPhaseName(phase.name || '');
+    setEditPhaseDesc(phase.description || '');
+    setEditPhaseColor(phase.color || '#2563eb');
+  };
+
+  const handleEditPhaseSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPhase || !editPhaseName.trim()) return;
+
+    await updatePhase.mutateAsync({
+      phaseId: editingPhase.id,
+      input: {
+        name: editPhaseName.trim(),
+        description: editPhaseDesc.trim() || undefined,
+        color: editPhaseColor,
+        sortOrder: editingPhase.sortOrder,
+        startDate: editingPhase.startDate,
+        plannedEndDate: editingPhase.plannedEndDate,
+      },
+    });
+
+    setEditingPhase(null);
+  };
+
+  const handleDeletePhaseConfirm = async () => {
+    if (!deletingPhase) return;
+    await deletePhase.mutateAsync(deletingPhase.id);
+    setDeletingPhase(null);
+  };
+
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!taskLabel.trim() || selectedPhaseId <= 0) return;
@@ -60,6 +119,39 @@ export function ProductionTab({ site }: ProductionTabProps) {
     setIsAddTaskOpen(false);
     setTaskLabel('');
     setTaskSubLabel('');
+  };
+
+  const handleOpenEditTask = (task: ChantierTask, phaseId: number) => {
+    setEditingTask({ task, phaseId });
+    setEditTaskLabel(task.label || '');
+    setEditTaskSubLabel(task.subLabel || '');
+    setEditTaskDesc(task.description || '');
+  };
+
+  const handleEditTaskSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTask || !editTaskLabel.trim()) return;
+
+    await updateTask.mutateAsync({
+      taskId: editingTask.task.id,
+      input: {
+        label: editTaskLabel.trim(),
+        subLabel: editTaskSubLabel.trim() || undefined,
+        description: editTaskDesc.trim() || undefined,
+        startDate: editingTask.task.startDate,
+        plannedEndDate: editingTask.task.plannedEndDate,
+        responsiblePersonId: editingTask.task.responsiblePersonId,
+        sortOrder: editingTask.task.sortOrder,
+      },
+    });
+
+    setEditingTask(null);
+  };
+
+  const handleDeleteTaskConfirm = async () => {
+    if (!deletingTask) return;
+    await deleteTask.mutateAsync(deletingTask.task.id);
+    setDeletingTask(null);
   };
 
   const cycleStatus = (phaseId: number, taskId: number, currentStatus: ChantierTaskStatus) => {
@@ -152,6 +244,22 @@ export function ProductionTab({ site }: ProductionTabProps) {
                 >
                   <Plus className="w-3.5 h-3.5 mr-1" /> Tâche
                 </Button>
+                <button
+                  type="button"
+                  onClick={() => handleOpenEditPhase(phase)}
+                  title="Modifier la phase"
+                  className="p-1.5 rounded-lg text-[#64748b] hover:text-[#0f172a] hover:bg-slate-100 active:scale-[0.96] transition-transform"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeletingPhase(phase)}
+                  title="Supprimer la phase"
+                  className="p-1.5 rounded-lg text-[#64748b] hover:text-red-600 hover:bg-red-50 active:scale-[0.96] transition-transform"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
 
@@ -199,6 +307,25 @@ export function ProductionTab({ site }: ProductionTabProps) {
                           <div className="text-[0.7rem] text-[#64748b] truncate">{task.subLabel}</div>
                         )}
                       </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0 self-end sm:self-center">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditTask(task, phase.id)}
+                        title="Modifier la tâche"
+                        className="p-1.5 rounded-lg text-[#94a3b8] hover:text-[#0f172a] hover:bg-slate-200/60 active:scale-[0.96] transition-colors"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeletingTask({ task, phaseId: phase.id })}
+                        title="Supprimer la tâche"
+                        className="p-1.5 rounded-lg text-[#94a3b8] hover:text-red-600 hover:bg-red-50 active:scale-[0.96] transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 );
@@ -307,6 +434,147 @@ export function ProductionTab({ site }: ProductionTabProps) {
               className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb]"
             />
           </FormFieldGroup>
+        </div>
+      </ChantierModal>
+
+      {/* Modal: Modifier une phase */}
+      <ChantierModal
+        open={editingPhase !== null}
+        onOpenChange={(open) => !open && setEditingPhase(null)}
+        title="Modifier la phase"
+        description="Ajustez le nom, la description ou la couleur distinctive de la phase."
+        icon={Pencil}
+        maxWidthClass="sm:max-w-[440px]"
+        onSubmit={handleEditPhaseSubmit}
+        submitLabel="Enregistrer les modifications"
+        isSubmitting={updatePhase.isPending}
+      >
+        <div className="space-y-4">
+          <FormFieldGroup label="Nom de la phase" required>
+            <Input
+              type="text"
+              value={editPhaseName}
+              onChange={(e) => setEditPhaseName(e.target.value)}
+              required
+              className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb]"
+            />
+          </FormFieldGroup>
+
+          <FormFieldGroup label="Description">
+            <Input
+              type="text"
+              value={editPhaseDesc}
+              onChange={(e) => setEditPhaseDesc(e.target.value)}
+              placeholder="Description des opérations de cette phase..."
+              className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb]"
+            />
+          </FormFieldGroup>
+
+          <FormFieldGroup label="Couleur distinctive">
+            <div className="flex items-center gap-2 pt-1">
+              {COLOR_PRESETS.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => setEditPhaseColor(color)}
+                  className={cn(
+                    'w-7 h-7 rounded-full transition-transform active:scale-95 cursor-pointer ring-offset-2',
+                    editPhaseColor === color ? 'ring-2 ring-[#0f172a] scale-110' : 'hover:scale-105'
+                  )}
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+            </div>
+          </FormFieldGroup>
+        </div>
+      </ChantierModal>
+
+      {/* Modal: Confirmer la suppression de phase */}
+      <ChantierModal
+        open={deletingPhase !== null}
+        onOpenChange={(open) => !open && setDeletingPhase(null)}
+        title="Supprimer la phase"
+        description="Cette phase et ses tâches associées seront archivées (suppression logique)."
+        icon={AlertTriangle}
+        iconColor="text-red-600"
+        iconBg="bg-red-50"
+        maxWidthClass="sm:max-w-[420px]"
+        onSubmit={handleDeletePhaseConfirm}
+        submitLabel="Supprimer la phase"
+        danger={true}
+        isSubmitting={deletePhase.isPending}
+      >
+        <div className="py-2 text-xs text-[#64748b]">
+          Êtes-vous sûr de vouloir supprimer la phase{' '}
+          <strong className="text-[#0f172a]">&laquo;&nbsp;{deletingPhase?.name}&nbsp;&raquo;</strong> ?
+          Toutes les tâches rattachées seront également archivées.
+        </div>
+      </ChantierModal>
+
+      {/* Modal: Modifier une tâche */}
+      <ChantierModal
+        open={editingTask !== null}
+        onOpenChange={(open) => !open && setEditingTask(null)}
+        title="Modifier la tâche"
+        description="Mettez à jour le libellé ou les détails de cette tâche."
+        icon={Pencil}
+        maxWidthClass="sm:max-w-[440px]"
+        onSubmit={handleEditTaskSubmit}
+        submitLabel="Enregistrer les modifications"
+        isSubmitting={updateTask.isPending}
+      >
+        <div className="space-y-4">
+          <FormFieldGroup label="Intitulé de la tâche" required>
+            <Input
+              type="text"
+              value={editTaskLabel}
+              onChange={(e) => setEditTaskLabel(e.target.value)}
+              required
+              className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb]"
+            />
+          </FormFieldGroup>
+
+          <FormFieldGroup label="Détails ou sous-titre">
+            <Input
+              type="text"
+              value={editTaskSubLabel}
+              onChange={(e) => setEditTaskSubLabel(e.target.value)}
+              placeholder="Ex: Épaisseur 20cm, dosage 350kg/m3..."
+              className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb]"
+            />
+          </FormFieldGroup>
+
+          <FormFieldGroup label="Description détaillée">
+            <Input
+              type="text"
+              value={editTaskDesc}
+              onChange={(e) => setEditTaskDesc(e.target.value)}
+              placeholder="Remarques ou consignes particulières..."
+              className="rounded-xl text-xs h-9.5 border-black/15 focus:border-[#2563eb]"
+            />
+          </FormFieldGroup>
+        </div>
+      </ChantierModal>
+
+      {/* Modal: Confirmer la suppression de tâche */}
+      <ChantierModal
+        open={deletingTask !== null}
+        onOpenChange={(open) => !open && setDeletingTask(null)}
+        title="Supprimer la tâche"
+        description="Cette tâche sera retirée de la phase (suppression logique)."
+        icon={AlertTriangle}
+        iconColor="text-red-600"
+        iconBg="bg-red-50"
+        maxWidthClass="sm:max-w-[420px]"
+        onSubmit={handleDeleteTaskConfirm}
+        submitLabel="Supprimer la tâche"
+        danger={true}
+        isSubmitting={deleteTask.isPending}
+      >
+        <div className="py-2 text-xs text-[#64748b]">
+          Êtes-vous sûr de vouloir supprimer la tâche{' '}
+          <strong className="text-[#0f172a]">&laquo;&nbsp;{deletingTask?.task.label}&nbsp;&raquo;</strong> ?
+          L&apos;avancement global du chantier sera automatiquement recalculé.
         </div>
       </ChantierModal>
     </div>

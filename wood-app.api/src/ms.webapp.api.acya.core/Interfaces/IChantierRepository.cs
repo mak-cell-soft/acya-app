@@ -29,10 +29,13 @@ namespace ms.webapp.api.acya.core.Interfaces
     // Production (Phases & Tasks)
     Task<List<ChantierPhaseDto>> GetPhasesAsync(int chantierId);
     Task<ChantierPhaseDto?> CreatePhaseAsync(int chantierId, CreateChantierPhaseDto dto);
+    Task<bool> UpdatePhaseAsync(int phaseId, UpdateChantierPhaseDto dto);
     Task<bool> DeletePhaseAsync(int phaseId);
     Task<ChantierTaskDto?> CreateTaskAsync(int phaseId, CreateChantierTaskDto dto);
+    Task<bool> UpdateTaskAsync(int taskId, UpdateChantierTaskDto dto);
     Task<bool> UpdateTaskStatusAsync(int taskId, UpdateTaskStatusDto dto);
     Task<bool> DeleteTaskAsync(int taskId);
+    Task<int> RecalculateProgressAsync(int chantierId);
 
     // Materials (Option C dedicated ledger)
     Task<List<ChantierMaterialRequirementDto>> GetMaterialRequirementsAsync(int chantierId);

@@ -21,6 +21,8 @@ export interface ChantierListItem {
   healthFlag: ChantierFlag;
   progressPct: number;
   budgetTotal?: number;
+  clientCounterPartId?: number;
+  clientName?: string;
   architectPersonId?: number;
   architectName?: string;
   projectManagerPersonId?: number;
@@ -32,7 +34,6 @@ export interface ChantierListItem {
 
 export interface ChantierDetail extends ChantierListItem {
   internalNote?: string;
-  clientCounterPartId?: number;
   teamMembers: ChantierTeamMember[];
   phases: ChantierPhase[];
   materialRequirements: ChantierMaterialRequirement[];
@@ -117,6 +118,15 @@ export interface CreateChantierPhaseInput {
   plannedEndDate?: string;
 }
 
+export interface UpdateChantierPhaseInput {
+  name: string;
+  description?: string;
+  sortOrder?: number;
+  color?: string;
+  startDate?: string;
+  plannedEndDate?: string;
+}
+
 export interface ChantierTask {
   id: number;
   phaseId: number;
@@ -143,6 +153,16 @@ export interface CreateChantierTaskInput {
   sortOrder: number;
 }
 
+export interface UpdateChantierTaskInput {
+  label: string;
+  subLabel?: string;
+  description?: string;
+  startDate?: string;
+  plannedEndDate?: string;
+  responsiblePersonId?: number | null;
+  sortOrder?: number;
+}
+
 export interface UpdateTaskStatusInput {
   status: ChantierTaskStatus;
   progressPct?: number;
@@ -151,7 +171,8 @@ export interface UpdateTaskStatusInput {
 export interface ChantierMaterialRequirement {
   id: number;
   chantierId: number;
-  merchandiseId: number;
+  articleId: number;
+  merchandiseId?: number | null;
   merchandiseRef: string;
   merchandiseDesignation: string;
   category: string;
@@ -165,7 +186,8 @@ export interface ChantierMaterialRequirement {
 }
 
 export interface CreateMaterialRequirementInput {
-  merchandiseId: number;
+  articleId: number;
+  merchandiseId?: number | null;
   category: string;
   materialType: string;
   requiredQty: number;
@@ -176,21 +198,26 @@ export interface CreateMaterialRequirementInput {
 export interface ChantierMaterialConsumption {
   id: number;
   chantierId: number;
-  merchandiseId: number;
+  articleId: number;
+  articleCode?: string;
+  articleDesignation?: string;
+  merchandiseId?: number | null;
   merchandiseRef?: string;
   merchandiseDesignation?: string;
-  sourceStockMovementId?: number;
-  chantierTaskId?: number;
+  sourceStockMovementId?: number | null;
+  chantierTaskId?: number | null;
   taskLabel?: string;
   consumedQty: number;
   unit: string;
   notes?: string;
   consumedAt: string;
   recordedById: number;
+  recordedByName?: string;
 }
 
 export interface LogMaterialConsumptionInput {
-  merchandiseId: number;
+  articleId: number;
+  merchandiseId?: number | null;
   consumedQty: number;
   unit: string;
   consumedAt?: string;

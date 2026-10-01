@@ -47,6 +47,12 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Chantier
             .HasForeignKey(e => e.ProjectManagerPersonId)
             .OnDelete(DeleteBehavior.SetNull);
 
+      // Relationship with CounterPart (client)
+      entity.HasOne(e => e.ClientCounterPart)
+            .WithMany()
+            .HasForeignKey(e => e.ClientCounterPartId)
+            .OnDelete(DeleteBehavior.SetNull);
+
       // Owned navigation collections
       entity.HasMany(e => e.TeamMembers)
             .WithOne(m => m.Chantier)

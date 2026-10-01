@@ -62,9 +62,9 @@ namespace ms.webapp.api.acya.core.Entities.Chantier
     public int? ProjectManagerPersonId { get; set; }
     public Person? ProjectManagerPerson { get; set; }
 
-    // NOTE: Logical FK to CounterPart (client). Kept without a strict database constraint
-    // following the existing ACYA ERP loose-coupling pattern across modules.
+    // Foreign key to CounterPart (client).
     public int? ClientCounterPartId { get; set; }
+    public CounterPart? ClientCounterPart { get; set; }
 
     public int CreatedById { get; set; }
     public int? UpdatedById { get; set; }

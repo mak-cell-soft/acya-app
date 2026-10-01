@@ -14,7 +14,8 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Chantier
 
       entity.Property(e => e.Id).HasColumnName("Id").ValueGeneratedOnAdd();
       entity.Property(e => e.ChantierId).HasColumnName("ChantierId").IsRequired();
-      entity.Property(e => e.MerchandiseId).HasColumnName("MerchandiseId").IsRequired();
+      entity.Property(e => e.ArticleId).HasColumnName("ArticleId").IsRequired();
+      entity.Property(e => e.MerchandiseId).HasColumnName("MerchandiseId");
       entity.Property(e => e.MerchandiseRef).HasColumnName("MerchandiseRef").HasMaxLength(100).IsRequired();
       entity.Property(e => e.MerchandiseDesignation).HasColumnName("MerchandiseDesignation").HasMaxLength(500).IsRequired();
       entity.Property(e => e.Category).HasColumnName("Category").HasMaxLength(100).IsRequired();
@@ -25,10 +26,15 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Chantier
       entity.Property(e => e.CreationDate).HasColumnName("CreationDate").IsRequired();
       entity.Property(e => e.IsDeleted).HasColumnName("IsDeleted").IsRequired();
 
+      entity.HasOne(e => e.Article)
+            .WithMany()
+            .HasForeignKey(e => e.ArticleId)
+            .OnDelete(DeleteBehavior.Restrict);
+
       entity.HasOne(e => e.Merchandise)
             .WithMany()
             .HasForeignKey(e => e.MerchandiseId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull);
 
       entity.HasIndex(e => new { e.ChantierId, e.IsDeleted });
     }

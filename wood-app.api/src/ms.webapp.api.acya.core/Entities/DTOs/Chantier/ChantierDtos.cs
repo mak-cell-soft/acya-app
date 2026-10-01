@@ -27,6 +27,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
     public string? ArchitectName { get; set; }
     public int? ProjectManagerPersonId { get; set; }
     public string? ProjectManagerName { get; set; }
+    public int? ClientCounterPartId { get; set; }
+    public string? ClientName { get; set; }
     public int ActiveTeamCount { get; set; }
     public int OpenAlertsCount { get; set; }
     public DateTime CreationDate { get; set; }
@@ -53,6 +55,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
       ArchitectName = c.ArchitectPerson?.FullName;
       ProjectManagerPersonId = c.ProjectManagerPersonId;
       ProjectManagerName = c.ProjectManagerPerson?.FullName;
+      ClientCounterPartId = c.ClientCounterPartId;
+      ClientName = c.ClientCounterPart?.Fullname;
       ActiveTeamCount = c.TeamMembers?.Count(m => m.IsActive) ?? 0;
       OpenAlertsCount = c.Alerts?.Count(a => !a.IsResolved) ?? 0;
       CreationDate = c.CreationDate;
@@ -62,7 +66,6 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
   public class ChantierDetailDto : ChantierListItemDto
   {
     public string? InternalNote { get; set; }
-    public int? ClientCounterPartId { get; set; }
     public List<ChantierTeamMemberDto> TeamMembers { get; set; } = new();
     public List<ChantierPhaseDto> Phases { get; set; } = new();
     public List<ChantierMaterialRequirementDto> MaterialRequirements { get; set; } = new();
@@ -75,7 +78,6 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
     public ChantierDetailDto(Entities.Chantier.Chantier c) : base(c)
     {
       InternalNote = c.InternalNote;
-      ClientCounterPartId = c.ClientCounterPartId;
       TeamMembers = c.TeamMembers?.Where(m => m.IsActive).Select(m => new ChantierTeamMemberDto(m)).ToList() ?? new();
       Phases = c.Phases?.Where(p => !p.IsDeleted).OrderBy(p => p.SortOrder).Select(p => new ChantierPhaseDto(p)).ToList() ?? new();
       MaterialRequirements = c.MaterialRequirements?.Where(m => !m.IsDeleted).Select(m => new ChantierMaterialRequirementDto(m)).ToList() ?? new();
@@ -207,11 +209,20 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
 
   public record CreateChantierPhaseDto(
     string Name,
-    string? Description,
-    int SortOrder,
-    string? Color,
-    DateTime StartDate,
-    DateTime? PlannedEndDate
+    string? Description = null,
+    int SortOrder = 0,
+    string? Color = null,
+    DateTime StartDate = default,
+    DateTime? PlannedEndDate = null
+  );
+
+  public record UpdateChantierPhaseDto(
+    string Name,
+    string? Description = null,
+    int SortOrder = 0,
+    string? Color = null,
+    DateTime StartDate = default,
+    DateTime? PlannedEndDate = null
   );
 
   public class ChantierTaskDto
@@ -252,12 +263,22 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
 
   public record CreateChantierTaskDto(
     string Label,
-    string? SubLabel,
-    string? Description,
-    DateTime StartDate,
-    DateTime? PlannedEndDate,
-    int? ResponsiblePersonId,
-    int SortOrder
+    string? SubLabel = null,
+    string? Description = null,
+    DateTime StartDate = default,
+    DateTime? PlannedEndDate = null,
+    int? ResponsiblePersonId = null,
+    int SortOrder = 0
+  );
+
+  public record UpdateChantierTaskDto(
+    string Label,
+    string? SubLabel = null,
+    string? Description = null,
+    DateTime StartDate = default,
+    DateTime? PlannedEndDate = null,
+    int? ResponsiblePersonId = null,
+    int SortOrder = 0
   );
 
   public record UpdateTaskStatusDto(
@@ -273,7 +294,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
   {
     public int Id { get; set; }
     public int ChantierId { get; set; }
-    public int MerchandiseId { get; set; }
+    public int ArticleId { get; set; }
+    public int? MerchandiseId { get; set; }
     public string MerchandiseRef { get; set; } = string.Empty;
     public string MerchandiseDesignation { get; set; } = string.Empty;
     public string Category { get; set; } = "Principal";
@@ -291,6 +313,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
     {
       Id = r.Id;
       ChantierId = r.ChantierId;
+      ArticleId = r.ArticleId;
       MerchandiseId = r.MerchandiseId;
       MerchandiseRef = r.MerchandiseRef;
       MerchandiseDesignation = r.MerchandiseDesignation;
@@ -304,19 +327,21 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
   }
 
   public record CreateMaterialRequirementDto(
-    int MerchandiseId,
-    string Category,
-    string MaterialType,
-    double RequiredQty,
-    string Unit,
-    double MinimumQty
+    int ArticleId,
+    int? MerchandiseId = null,
+    string Category = "Principal",
+    string MaterialType = "Principal",
+    double RequiredQty = 0,
+    string Unit = "Unité",
+    double MinimumQty = 0
   );
 
   public class ChantierMaterialConsumptionDto
   {
     public int Id { get; set; }
     public int ChantierId { get; set; }
-    public int MerchandiseId { get; set; }
+    public int? ArticleId { get; set; }
+    public int? MerchandiseId { get; set; }
     public string? MerchandiseRef { get; set; }
     public string? MerchandiseDesignation { get; set; }
     public int? SourceStockMovementId { get; set; }
@@ -327,6 +352,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
     public string? Notes { get; set; }
     public DateTime ConsumedAt { get; set; }
     public int RecordedById { get; set; }
+    public string? RecordedByName { get; set; }
 
     public ChantierMaterialConsumptionDto() { }
 
@@ -334,9 +360,10 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
     {
       Id = c.Id;
       ChantierId = c.ChantierId;
+      ArticleId = c.ArticleId;
       MerchandiseId = c.MerchandiseId;
-      MerchandiseRef = c.Merchandise?.PackageReference;
-      MerchandiseDesignation = c.Merchandise?.Description;
+      MerchandiseRef = c.Merchandise?.PackageReference ?? c.Article?.Reference;
+      MerchandiseDesignation = c.Merchandise?.Description ?? c.Article?.Description;
       SourceStockMovementId = c.SourceStockMovementId;
       ChantierTaskId = c.ChantierTaskId;
       TaskLabel = c.ChantierTask?.Label;
@@ -345,11 +372,13 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Chantier
       Notes = c.Notes;
       ConsumedAt = c.ConsumedAt;
       RecordedById = c.RecordedById;
+      RecordedByName = c.RecordedBy?.Persons?.FullName;
     }
   }
 
   public record LogMaterialConsumptionDto(
-    int MerchandiseId,
+    int? ArticleId,
+    int? MerchandiseId,
     double ConsumedQty,
     string Unit,
     DateTime? ConsumedAt,

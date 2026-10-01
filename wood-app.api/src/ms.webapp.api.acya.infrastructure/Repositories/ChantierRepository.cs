@@ -28,6 +28,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         .Where(c => !c.IsDeleted)
         .Include(c => c.ArchitectPerson)
         .Include(c => c.ProjectManagerPerson)
+        .Include(c => c.ClientCounterPart)
         .Include(c => c.TeamMembers)
         .Include(c => c.Alerts)
         .AsQueryable();
@@ -67,6 +68,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         .Where(c => c.Id == id && !c.IsDeleted)
         .Include(c => c.ArchitectPerson)
         .Include(c => c.ProjectManagerPerson)
+        .Include(c => c.ClientCounterPart)
         .Include(c => c.TeamMembers)
           .ThenInclude(m => m.Person)
         .Include(c => c.Phases)
@@ -85,16 +87,16 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
       var dto = new ChantierDetailDto(chantier);
 
-      // Compute actual consumption for requirements
+      // Compute actual consumption for requirements (by ArticleId)
       var consumptions = await context.ChantierMaterialConsumptions
         .Where(c => c.ChantierId == id)
-        .GroupBy(c => c.MerchandiseId)
-        .Select(g => new { MerchandiseId = g.Key, Total = g.Sum(x => x.ConsumedQty) })
-        .ToDictionaryAsync(k => k.MerchandiseId, v => v.Total);
+        .GroupBy(c => c.ArticleId ?? 0)
+        .Select(g => new { ArticleId = g.Key, Total = g.Sum(x => x.ConsumedQty) })
+        .ToDictionaryAsync(k => k.ArticleId, v => v.Total);
 
       foreach (var req in dto.MaterialRequirements)
       {
-        if (consumptions.TryGetValue(req.MerchandiseId, out var consumed))
+        if (consumptions.TryGetValue(req.ArticleId, out var consumed))
         {
           req.ConsumedQty = consumed;
         }
@@ -240,6 +242,73 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
     #region Production (Phases & Tasks)
 
+    public async Task<int> RecalculateProgressAsync(int chantierId)
+    {
+      var chantier = await context.Chantiers
+        .Include(c => c.Phases.Where(p => !p.IsDeleted))
+          .ThenInclude(p => p.Tasks.Where(t => !t.IsDeleted))
+        .FirstOrDefaultAsync(c => c.Id == chantierId && !c.IsDeleted);
+
+      if (chantier == null) return 0;
+
+      var activePhases = chantier.Phases.Where(p => !p.IsDeleted).ToList();
+      var allActiveTasks = activePhases.SelectMany(p => p.Tasks.Where(t => !t.IsDeleted)).ToList();
+
+      // 1. Recalculate each phase progress based on its active tasks
+      foreach (var phase in activePhases)
+      {
+        var phaseTasks = phase.Tasks.Where(t => !t.IsDeleted).ToList();
+        if (phaseTasks.Count == 0)
+        {
+          phase.ProgressPct = 0;
+        }
+        else
+        {
+          var sumProgress = phaseTasks.Sum(t => t.Status == ChantierTaskStatus.Done ? 100 : t.ProgressPct);
+          phase.ProgressPct = (int)Math.Clamp(Math.Round((double)sumProgress / phaseTasks.Count), 0, 100);
+
+          var completedCount = phaseTasks.Count(t => t.Status == ChantierTaskStatus.Done);
+          if (completedCount == phaseTasks.Count)
+          {
+            phase.Status = ChantierPhaseStatus.Completed;
+          }
+          else if (completedCount > 0 || phaseTasks.Any(t => t.Status == ChantierTaskStatus.InProgress))
+          {
+            phase.Status = ChantierPhaseStatus.InProgress;
+          }
+        }
+      }
+
+      // 2. Recalculate Chantier global progress based on ALL active tasks (completed tasks / total active tasks)
+      if (allActiveTasks.Count == 0)
+      {
+        chantier.ProgressPct = 0;
+      }
+      else
+      {
+        var sumAllProgress = allActiveTasks.Sum(t => t.Status == ChantierTaskStatus.Done ? 100 : t.ProgressPct);
+        chantier.ProgressPct = (int)Math.Clamp(Math.Round((double)sumAllProgress / allActiveTasks.Count), 0, 100);
+
+        var completedCount = allActiveTasks.Count(t => t.Status == ChantierTaskStatus.Done);
+        if (completedCount == allActiveTasks.Count)
+        {
+          if (chantier.Status == ChantierStatus.InProgress)
+          {
+            chantier.Status = ChantierStatus.Completed;
+          }
+        }
+        else if (chantier.ProgressPct > 0 && chantier.Status == ChantierStatus.Planned)
+        {
+          chantier.Status = ChantierStatus.InProgress;
+        }
+      }
+
+      chantier.UpdateDate = DateTime.UtcNow;
+      await context.SaveChangesAsync();
+
+      return chantier.ProgressPct;
+    }
+
     public async Task<List<ChantierPhaseDto>> GetPhasesAsync(int chantierId)
     {
       var phases = await context.ChantierPhases
@@ -272,16 +341,44 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       await context.ChantierPhases.AddAsync(phase);
       await context.SaveChangesAsync();
 
+      await RecalculateProgressAsync(chantierId);
+
       return new ChantierPhaseDto(phase);
     }
 
-    public async Task<bool> DeletePhaseAsync(int phaseId)
+    public async Task<bool> UpdatePhaseAsync(int phaseId, UpdateChantierPhaseDto dto)
     {
       var phase = await context.ChantierPhases.FirstOrDefaultAsync(p => p.Id == phaseId && !p.IsDeleted);
       if (phase == null) return false;
 
-      phase.IsDeleted = true;
+      phase.Name = dto.Name;
+      phase.Description = dto.Description;
+      phase.SortOrder = dto.SortOrder;
+      phase.Color = dto.Color;
+      phase.StartDate = dto.StartDate;
+      phase.PlannedEndDate = dto.PlannedEndDate;
+
       await context.SaveChangesAsync();
+      await RecalculateProgressAsync(phase.ChantierId);
+      return true;
+    }
+
+    public async Task<bool> DeletePhaseAsync(int phaseId)
+    {
+      var phase = await context.ChantierPhases
+        .Include(p => p.Tasks)
+        .FirstOrDefaultAsync(p => p.Id == phaseId && !p.IsDeleted);
+      if (phase == null) return false;
+
+      phase.IsDeleted = true;
+      foreach (var task in phase.Tasks)
+      {
+        task.IsDeleted = true;
+        task.UpdateDate = DateTime.UtcNow;
+      }
+
+      await context.SaveChangesAsync();
+      await RecalculateProgressAsync(phase.ChantierId);
       return true;
     }
 
@@ -313,38 +410,86 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         await context.Entry(task).Reference(t => t.ResponsiblePerson).LoadAsync();
       }
 
+      await RecalculateProgressAsync(phase.ChantierId);
+
       return new ChantierTaskDto(task);
+    }
+
+    public async Task<bool> UpdateTaskAsync(int taskId, UpdateChantierTaskDto dto)
+    {
+      var task = await context.ChantierTasks
+        .Include(t => t.Phase)
+        .FirstOrDefaultAsync(t => t.Id == taskId && !t.IsDeleted);
+      if (task == null) return false;
+
+      task.Label = dto.Label;
+      task.SubLabel = dto.SubLabel;
+      task.Description = dto.Description;
+      task.StartDate = dto.StartDate;
+      task.PlannedEndDate = dto.PlannedEndDate;
+      task.ResponsiblePersonId = dto.ResponsiblePersonId;
+      task.SortOrder = dto.SortOrder;
+      task.UpdateDate = DateTime.UtcNow;
+
+      await context.SaveChangesAsync();
+      if (task.Phase != null)
+      {
+        await RecalculateProgressAsync(task.Phase.ChantierId);
+      }
+      return true;
     }
 
     public async Task<bool> UpdateTaskStatusAsync(int taskId, UpdateTaskStatusDto dto)
     {
-      var task = await context.ChantierTasks.FirstOrDefaultAsync(t => t.Id == taskId && !t.IsDeleted);
+      var task = await context.ChantierTasks
+        .Include(t => t.Phase)
+        .FirstOrDefaultAsync(t => t.Id == taskId && !t.IsDeleted);
       if (task == null) return false;
 
       task.Status = dto.Status;
       if (dto.ProgressPct.HasValue)
       {
         task.ProgressPct = Math.Clamp(dto.ProgressPct.Value, 0, 100);
+        if (dto.ProgressPct.Value == 100)
+        {
+          task.ActualEndDate = DateTime.UtcNow;
+        }
       }
       else if (dto.Status == ChantierTaskStatus.Done)
       {
         task.ProgressPct = 100;
         task.ActualEndDate = DateTime.UtcNow;
       }
+      else if (dto.Status == ChantierTaskStatus.Planned)
+      {
+        task.ProgressPct = 0;
+        task.ActualEndDate = null;
+      }
       task.UpdateDate = DateTime.UtcNow;
 
       await context.SaveChangesAsync();
+      if (task.Phase != null)
+      {
+        await RecalculateProgressAsync(task.Phase.ChantierId);
+      }
       return true;
     }
 
     public async Task<bool> DeleteTaskAsync(int taskId)
     {
-      var task = await context.ChantierTasks.FirstOrDefaultAsync(t => t.Id == taskId && !t.IsDeleted);
+      var task = await context.ChantierTasks
+        .Include(t => t.Phase)
+        .FirstOrDefaultAsync(t => t.Id == taskId && !t.IsDeleted);
       if (task == null) return false;
 
       task.IsDeleted = true;
       task.UpdateDate = DateTime.UtcNow;
       await context.SaveChangesAsync();
+
+      if (task.Phase != null)
+      {
+        await RecalculateProgressAsync(task.Phase.ChantierId);
+      }
       return true;
     }
 
@@ -361,32 +506,34 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
       var consumptions = await context.ChantierMaterialConsumptions
         .Where(c => c.ChantierId == chantierId)
-        .GroupBy(c => c.MerchandiseId)
-        .Select(g => new { MerchandiseId = g.Key, Total = g.Sum(x => x.ConsumedQty) })
-        .ToDictionaryAsync(k => k.MerchandiseId, v => v.Total);
+        .GroupBy(c => c.ArticleId ?? 0)
+        .Select(g => new { ArticleId = g.Key, Total = g.Sum(x => x.ConsumedQty) })
+        .ToDictionaryAsync(k => k.ArticleId, v => v.Total);
 
       return requirements.Select(r =>
       {
-        consumptions.TryGetValue(r.MerchandiseId, out var consumed);
+        consumptions.TryGetValue(r.ArticleId, out var consumed);
         return new ChantierMaterialRequirementDto(r, consumed);
       }).ToList();
     }
 
     public async Task<ChantierMaterialRequirementDto?> AddMaterialRequirementAsync(int chantierId, CreateMaterialRequirementDto dto)
     {
-      var merchandise = await context.Merchandises.Include(m => m.Articles).FirstOrDefaultAsync(m => m.Id == dto.MerchandiseId);
-      if (merchandise == null) return null;
+      // Identify the catalogue Article (zero automatic Merchandise creation)
+      var article = await context.Articles.FirstOrDefaultAsync(a => a.Id == dto.ArticleId && !a.IsDeleted);
+      if (article == null) return null;
 
       var req = new ChantierMaterialRequirement
       {
         ChantierId = chantierId,
+        ArticleId = article.Id,
         MerchandiseId = dto.MerchandiseId,
-        MerchandiseRef = merchandise.PackageReference ?? string.Empty,
-        MerchandiseDesignation = merchandise.Description ?? string.Empty,
+        MerchandiseRef = article.Reference ?? string.Empty,
+        MerchandiseDesignation = article.Description ?? string.Empty,
         Category = dto.Category,
         MaterialType = dto.MaterialType,
         RequiredQty = dto.RequiredQty,
-        Unit = dto.Unit,
+        Unit = !string.IsNullOrWhiteSpace(dto.Unit) ? dto.Unit : (article.Unit ?? "Unité"),
         MinimumQty = dto.MinimumQty,
         CreationDate = DateTime.UtcNow
       };
@@ -412,8 +559,11 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       var consumptions = await context.ChantierMaterialConsumptions
         .AsNoTracking()
         .Where(c => c.ChantierId == chantierId)
+        .Include(c => c.Article)
         .Include(c => c.Merchandise)
         .Include(c => c.ChantierTask)
+        .Include(c => c.RecordedBy)
+          .ThenInclude(u => u!.Persons)
         .OrderByDescending(c => c.ConsumedAt)
         .ToListAsync();
 
@@ -425,9 +575,17 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       var chantier = await context.Chantiers.FirstOrDefaultAsync(c => c.Id == chantierId && !c.IsDeleted);
       if (chantier == null) return null;
 
+      int? resolvedArticleId = dto.ArticleId;
+      if (!resolvedArticleId.HasValue && dto.MerchandiseId.HasValue)
+      {
+        var merch = await context.Merchandises.FirstOrDefaultAsync(m => m.Id == dto.MerchandiseId.Value);
+        resolvedArticleId = merch?.ArticleId;
+      }
+
       var entry = new ChantierMaterialConsumption
       {
         ChantierId = chantierId,
+        ArticleId = resolvedArticleId,
         MerchandiseId = dto.MerchandiseId,
         ConsumedQty = dto.ConsumedQty,
         Unit = dto.Unit,
@@ -441,10 +599,22 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       await context.ChantierMaterialConsumptions.AddAsync(entry);
       await context.SaveChangesAsync();
 
-      await context.Entry(entry).Reference(c => c.Merchandise).LoadAsync();
+      if (entry.ArticleId.HasValue)
+      {
+        await context.Entry(entry).Reference(c => c.Article).LoadAsync();
+      }
+      if (entry.MerchandiseId.HasValue)
+      {
+        await context.Entry(entry).Reference(c => c.Merchandise).LoadAsync();
+      }
       if (entry.ChantierTaskId.HasValue)
       {
         await context.Entry(entry).Reference(c => c.ChantierTask).LoadAsync();
+      }
+      await context.Entry(entry).Reference(c => c.RecordedBy).LoadAsync();
+      if (entry.RecordedBy != null)
+      {
+        await context.Entry(entry.RecordedBy).Reference(u => u.Persons).LoadAsync();
       }
 
       return new ChantierMaterialConsumptionDto(entry);
