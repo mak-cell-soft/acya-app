@@ -20,6 +20,7 @@ namespace ms.webapp.api.acya.core.Interfaces
         Task<IEnumerable<StockDto>> GetAllStocksAsync();
         
         // Complex Read Operations
+        Task<StockTransferInfoDto?> GetStockTransferByIdAsync(int transferId);
         Task<IEnumerable<StockTransferInfoDto>> GetStockTransfersInfosAsync(int? siteId = null);
         Task<IEnumerable<StockTransferDetailsDto>> GetStockTransfersDetailsAsync(string? originDoc, string? receiptDoc);
         Task<IEnumerable<StockTransferInfoDto>> GetFilteredStockTransfersAsync(DateTime? fromDate, DateTime? toDate, int? originSiteId, int? destinationSiteId);

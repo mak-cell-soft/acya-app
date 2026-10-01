@@ -63,12 +63,20 @@ export interface StockTransferInfo {
   id: number;
   docSortie: string;
   docReception: string;
-  originSiteAddress: string;
-  destinationSiteAddress: string;
+  originSiteAddress?: string;
+  destinationSiteAddress?: string;
   origine?: string;
   destination?: string;
+  originGov?: string;
+  originAddress?: string;
+  destinationGov?: string;
+  destinationAddress?: string;
   transferDate: string;
   transporter: string;
+  vehicleSerialNumber?: string;
+  notes?: string;
+  reference?: string;
+  confirmationCode?: string;
   status: TransferStatus;
 }
 
@@ -82,6 +90,17 @@ export interface StockTransferDetails {
   quantity: number;
   unit: string;
   confirmationCode?: string;
+  vehicleSerialNumber?: string;
+  transporter?: string;
+  origine?: string;
+  destination?: string;
+  originGov?: string;
+  originAddress?: string;
+  destinationGov?: string;
+  destinationAddress?: string;
+  notes?: string;
+  reference?: string;
+  exitDocLengths?: any[];
 }
 
 export interface StockMovementTimeline {

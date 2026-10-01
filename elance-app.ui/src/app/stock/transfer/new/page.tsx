@@ -488,40 +488,126 @@ function NewStockTransferContent() {
       };
 
       const result = await stockService.transferStock(payload);
-      toast.success(`Le Bon de Sortie ${result.ExitDocumentNumber || ''} a été créé avec succès.`);
+      toast.success(`Le Bon de Sortie ${result.ExitDocumentNumber || result.exitDocumentNumber || ''} a été créé avec succès.`);
       
-      // Construct transfer and details for printing
-      const transferInfo: StockTransferInfo = {
-        // Fallback for casing variations from the C# API response serialization
-        id: result.transferId || result.TransferId || result.id || 0,
-        docSortie: result.exitDocumentNumber || result.ExitDocumentNumber || '',
-        docReception: '',
-        originSiteAddress: allSites.find(s => s.id.toString() === originSiteId)?.address || '',
-        destinationSiteAddress: allSites.find(s => s.id.toString() === destinationSiteId)?.address || '',
-        origine: allSites.find(s => s.id.toString() === originSiteId)?.gov || '',
-        destination: allSites.find(s => s.id.toString() === destinationSiteId)?.gov || '',
-        transferDate: new Date(transferDate).toISOString(),
-        transporter: allTransporters.find(t => t.id.toString() === transporterId)?.fullname || 'Non spécifié',
-        status: 1 // Pending
-      };
-      
-      // Inject the confirmationCode to the transfer metadata for immediate display
-      (transferInfo as any).confirmationCode = result.confirmationCode || result.ConfirmationCode || '';
+      const transferId = result.transferId || result.TransferId || result.id || 0;
+      const exitDocNum = result.exitDocumentNumber || result.ExitDocumentNumber || '';
+      const receiptDocNum = result.receiptDocumentNumber || result.ReceiptDocumentNumber || '';
 
-      // Populate transferDetails. Maintain dual property mappings (description/articleDescription and refPaquet/packageReference)
-      // to satisfy both database-loaded history records and newly created transfer prints.
-      const transferDetails: StockTransferDetails[] = rows.map((row, idx) => ({
-        id: idx,
-        articleReference: row.selectedArticle?.reference || '',
-        articleDescription: row.selectedArticle?.description || '',
-        description: row.selectedArticle?.description || '',
-        packageReference: row.packagereference || 'Standard',
-        refPaquet: row.packagereference || 'Standard',
-        quantity: row.quantity,
-        unit: row.selectedArticle?.unit || 'PCS',
-        confirmationCode: result.confirmationCode || result.ConfirmationCode || '',
-        exitDocLengths: row.listLengths // Include wood lengths specifications
-      } as any));
+      // Reload authoritative persisted transfer data with all relations from backend
+      let transferInfo: StockTransferInfo | null = result.transfer || result.Transfer || null;
+      if (!transferInfo && transferId > 0) {
+        try {
+          transferInfo = await stockService.getStockTransferById(transferId);
+        } catch (e) {
+          console.warn('Could not reload transfer by ID:', e);
+        }
+      }
+
+      // Selected transporter from local state for fallback / vehicle resolution
+      const selectedTransporter = allTransporters.find(t => t.id.toString() === transporterId);
+      const vehicleSerial = selectedTransporter?.car && typeof selectedTransporter.car === 'object'
+        ? (selectedTransporter.car as any).serialnumber
+        : (typeof selectedTransporter?.car === 'string' && selectedTransporter.car !== 'Sans matricule' ? selectedTransporter.car : undefined);
+
+      const originSite = allSites.find(s => s.id.toString() === originSiteId);
+      const destSite = allSites.find(s => s.id.toString() === destinationSiteId);
+      const originLocation = originSite ? (originSite.gov && originSite.address ? `${originSite.gov} - ${originSite.address}` : originSite.address || originSite.gov || '') : '';
+      const destLocation = destSite ? (destSite.gov && destSite.address ? `${destSite.gov} - ${destSite.address}` : destSite.address || destSite.gov || '') : '';
+
+      if (!transferInfo) {
+        transferInfo = {
+          id: transferId,
+          docSortie: exitDocNum,
+          docReception: receiptDocNum,
+          originSiteAddress: originSite?.address || '',
+          destinationSiteAddress: destSite?.address || '',
+          originGov: originSite?.gov,
+          destinationGov: destSite?.gov,
+          origine: originLocation,
+          destination: destLocation,
+          transferDate: new Date(transferDate).toISOString(),
+          transporter: selectedTransporter?.fullname || 'Non spécifié',
+          vehicleSerialNumber: vehicleSerial,
+          notes: notes.trim(),
+          status: 1, // Pending
+          reference: payload.reference,
+          confirmationCode: result.confirmationCode || result.ConfirmationCode || ''
+        };
+      } else {
+        // Guarantee vehicleSerialNumber, notes, and full locations are populated
+        if (!transferInfo.vehicleSerialNumber && vehicleSerial) {
+          transferInfo.vehicleSerialNumber = vehicleSerial;
+        }
+        if (!transferInfo.notes && notes.trim()) {
+          transferInfo.notes = notes.trim();
+        }
+        if (!transferInfo.originGov && originSite?.gov) {
+          transferInfo.originGov = originSite.gov;
+        }
+        if (!transferInfo.originAddress && originSite?.address) {
+          transferInfo.originAddress = originSite.address;
+        }
+        if (!transferInfo.destinationGov && destSite?.gov) {
+          transferInfo.destinationGov = destSite.gov;
+        }
+        if (!transferInfo.destinationAddress && destSite?.address) {
+          transferInfo.destinationAddress = destSite.address;
+        }
+        if (!transferInfo.origine && originLocation) {
+          transferInfo.origine = originLocation;
+        }
+        if (!transferInfo.destination && destLocation) {
+          transferInfo.destination = destLocation;
+        }
+        if (!transferInfo.confirmationCode) {
+          transferInfo.confirmationCode = result.confirmationCode || result.ConfirmationCode || '';
+        }
+      }
+
+      // Reload authoritative persisted transfer details
+      let transferDetails: StockTransferDetails[] = [];
+      try {
+        if (exitDocNum) {
+          const fetchedDetails = await stockService.getStockTransferDetails(exitDocNum, receiptDocNum);
+          if (fetchedDetails && fetchedDetails.length > 0) {
+            transferDetails = fetchedDetails;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not reload transfer details from backend:', e);
+      }
+
+      if (transferDetails.length === 0) {
+        // Fallback to rows from form with full relationships
+        transferDetails = rows.map((row, idx) => ({
+          id: idx,
+          articleReference: row.selectedArticle?.reference || '',
+          articleDescription: row.selectedArticle?.description || '',
+          description: row.selectedArticle?.description || '',
+          packageReference: row.packagereference || 'Standard',
+          refPaquet: row.packagereference || 'Standard',
+          quantity: row.quantity,
+          unit: row.selectedArticle?.unit || 'PCS',
+          confirmationCode: result.confirmationCode || result.ConfirmationCode || '',
+          vehicleSerialNumber: transferInfo?.vehicleSerialNumber || vehicleSerial,
+          transporter: transferInfo?.transporter || selectedTransporter?.fullname,
+          origine: transferInfo?.origine || originLocation,
+          destination: transferInfo?.destination || destLocation,
+          originGov: originSite?.gov,
+          destinationGov: destSite?.gov,
+          notes: notes.trim(),
+          exitDocLengths: row.listLengths
+        } as any));
+      } else {
+        // Ensure confirmationCode, vehicleSerialNumber, and notes are present on details items
+        transferDetails = transferDetails.map(d => ({
+          ...d,
+          confirmationCode: d.confirmationCode || result.confirmationCode || result.ConfirmationCode || '',
+          vehicleSerialNumber: d.vehicleSerialNumber || transferInfo?.vehicleSerialNumber || vehicleSerial,
+          notes: d.notes || transferInfo?.notes || notes.trim()
+        }));
+      }
 
       setPrintTransfer(transferInfo);
       setPrintDetails(transferDetails);

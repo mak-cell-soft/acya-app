@@ -321,14 +321,64 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
     public async Task<bool> DocTransferRefExists(string ref1, string ref2)
     {
-      var transfer = await context.StockTransfers
+      var query = context.StockTransfers
           .Include(st => st.ExitDocument)
           .Include(st => st.ReceiptDocument)
-          .Where(st => st.ExitDocument!.DocNumber!.Equals(ref1) && st.ReceiptDocument!.DocNumber!.Equals(ref2))
-          .FirstOrDefaultAsync();
+          .AsQueryable();
 
+      if (!string.IsNullOrEmpty(ref1))
+      {
+        query = query.Where(st => st.ExitDocument!.DocNumber == ref1);
+      }
+      if (!string.IsNullOrEmpty(ref2))
+      {
+        query = query.Where(st => st.ReceiptDocument!.DocNumber == ref2);
+      }
+
+      var transfer = await query.FirstOrDefaultAsync();
       return transfer != null;
     }
+
+    public async Task<StockTransferInfoDto?> GetStockTransferInfoById(int transferId)
+    {
+      var query = from st in context.StockTransfers
+                  join docexit in context.Documents on st.ExitDocumentId equals docexit.Id
+                  join docreceipt in context.Documents on st.ReceiptDocumentId equals docreceipt.Id
+                  join ssexit in context.SalesSites on docexit.SalesSiteId equals ssexit.Id
+                  join ssreceipt in context.SalesSites on docreceipt.SalesSiteId equals ssreceipt.Id
+                  join tr in context.Transporters on st.TransporterId equals tr.Id into trGroup
+                  from tr in trGroup.DefaultIfEmpty()
+                  join vehicle in context.Vehicles on (tr != null ? tr.VehicleId : null) equals vehicle.Id into vehicleGroup
+                  from vehicle in vehicleGroup.DefaultIfEmpty()
+                  where st.Id == transferId
+                  select new StockTransferInfoDto
+                  {
+                    Id = st.Id,
+                    DocSortie = docexit.DocNumber ?? string.Empty,
+                    DocReception = docreceipt.DocNumber ?? string.Empty,
+                    Origine = (!string.IsNullOrEmpty(ssexit.Gouvernorate) && !string.IsNullOrEmpty(ssexit.Address))
+                        ? ssexit.Gouvernorate + " - " + ssexit.Address
+                        : (ssexit.Address ?? ssexit.Gouvernorate ?? string.Empty),
+                    Destination = (!string.IsNullOrEmpty(ssreceipt.Gouvernorate) && !string.IsNullOrEmpty(ssreceipt.Address))
+                        ? ssreceipt.Gouvernorate + " - " + ssreceipt.Address
+                        : (ssreceipt.Address ?? ssreceipt.Gouvernorate ?? string.Empty),
+                    OriginGov = ssexit.Gouvernorate,
+                    OriginAddress = ssexit.Address,
+                    DestinationGov = ssreceipt.Gouvernorate,
+                    DestinationAddress = ssreceipt.Address,
+                    TransferDate = st.TransferDate,
+                    Transporter = tr != null ? (tr.FullName ?? (tr.FirstName + " " + tr.LastName)) : string.Empty,
+                    VehicleSerialNumber = vehicle != null ? vehicle.SerialNumber : null,
+                    RefPaquet = string.Empty,
+                    Status = st.Status,
+                    ConfirmationCode = st.ConfirmationCode,
+                    Notes = st.Notes,
+                    Reference = st.Reference
+                  };
+
+      return await query.FirstOrDefaultAsync();
+    }
+
     /**
      * Retourner les détails du Transfert : les marchandises transférés
      */
@@ -358,14 +408,24 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         Id = x.st.Id,
         DocSortie = x.docexit.DocNumber!,
         DocReception = x.docreceipt.DocNumber!,
-        Origine = x.ssexit.Address!,
-        Destination = x.ssreceipt.Address!,
+        Origine = (!string.IsNullOrEmpty(x.ssexit.Gouvernorate) && !string.IsNullOrEmpty(x.ssexit.Address))
+            ? x.ssexit.Gouvernorate + " - " + x.ssexit.Address
+            : (x.ssexit.Address ?? x.ssexit.Gouvernorate ?? string.Empty),
+        Destination = (!string.IsNullOrEmpty(x.ssreceipt.Gouvernorate) && !string.IsNullOrEmpty(x.ssreceipt.Address))
+            ? x.ssreceipt.Gouvernorate + " - " + x.ssreceipt.Address
+            : (x.ssreceipt.Address ?? x.ssreceipt.Gouvernorate ?? string.Empty),
+        OriginGov = x.ssexit.Gouvernorate,
+        OriginAddress = x.ssexit.Address,
+        DestinationGov = x.ssreceipt.Gouvernorate,
+        DestinationAddress = x.ssreceipt.Address,
         TransferDate = x.st.TransferDate,
-        Transporter = x.tr != null ? x.tr.FirstName + " " + x.tr.LastName : string.Empty,
+        Transporter = x.tr != null ? (x.tr.FullName ?? (x.tr.FirstName + " " + x.tr.LastName)) : string.Empty,
         VehicleSerialNumber = x.vehicle != null ? x.vehicle.SerialNumber : null,
         RefPaquet = x.merexit.Merchandise!.PackageReference!,
         Status = x.st.Status,
-        ConfirmationCode = x.st.ConfirmationCode
+        ConfirmationCode = x.st.ConfirmationCode,
+        Notes = x.st.Notes,
+        Reference = x.st.Reference
       });
 
       // Group by DocSortie and DocReception and select the first item from each group
@@ -398,8 +458,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                          from thickness in thickGroup.DefaultIfEmpty()
                          join width in context.AppVariables on article.WidthId equals width.Id into widthGroup
                          from width in widthGroup.DefaultIfEmpty()
-                         where (originDoc == null || exitDoc.DocNumber == originDoc) &&
-                               (receipt_Doc == null || receiptDoc.DocNumber == receipt_Doc)
+                         where (string.IsNullOrEmpty(originDoc) || exitDoc.DocNumber == originDoc) &&
+                               (string.IsNullOrEmpty(receipt_Doc) || receiptDoc.DocNumber == receipt_Doc)
                          group new { exitMerch, exitDoc, receiptDoc, exitSite, receiptSite, st, transporter, vehicle, merchandise, article, category, subcategory, thickness, width }
                          by new { st.Id, exitMerch.MerchandiseId, exitMerch.Quantity } into grouped
                          select new
@@ -446,10 +506,18 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         Id = r.St.Id,
         DocSortie = r.ExitDoc.DocNumber!,
         DocReception = r.ReceiptDoc.DocNumber!,
-        Origine = r.ExitSite.Address,
-        Destination = r.ReceiptSite.Address,
+        Origine = (!string.IsNullOrEmpty(r.ExitSite.Gouvernorate) && !string.IsNullOrEmpty(r.ExitSite.Address))
+            ? r.ExitSite.Gouvernorate + " - " + r.ExitSite.Address
+            : (r.ExitSite.Address ?? r.ExitSite.Gouvernorate ?? string.Empty),
+        Destination = (!string.IsNullOrEmpty(r.ReceiptSite.Gouvernorate) && !string.IsNullOrEmpty(r.ReceiptSite.Address))
+            ? r.ReceiptSite.Gouvernorate + " - " + r.ReceiptSite.Address
+            : (r.ReceiptSite.Address ?? r.ReceiptSite.Gouvernorate ?? string.Empty),
+        OriginGov = r.ExitSite.Gouvernorate,
+        OriginAddress = r.ExitSite.Address,
+        DestinationGov = r.ReceiptSite.Gouvernorate,
+        DestinationAddress = r.ReceiptSite.Address,
         TransferDate = r.St.TransferDate,
-        Transporter = r.Transporter != null ? r.Transporter.FullName : null,
+        Transporter = r.Transporter != null ? (r.Transporter.FullName ?? (r.Transporter.FirstName + " " + r.Transporter.LastName)) : null,
         VehicleSerialNumber = r.VehicleSerialNumber,
         RefPaquet = r.Merchandise.PackageReference,
         ArticleId = r.Article.Id,
@@ -463,7 +531,9 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         Unit = r.Article?.Unit ?? string.Empty,
         Quantity = r.Quantity,
         ConfirmationCode = r.ConfirmationCode,
-        ExitDocLengths = exitLengthsDict[r.ExitMerch.Id],
+        Notes = r.St.Notes,
+        Reference = r.St.Reference,
+        ExitDocLengths = exitLengthsDict.TryGetValue(r.ExitMerch.Id, out var lengths) ? lengths : Enumerable.Empty<ListOflengthDto>(),
       }).ToList();
     }
 
@@ -548,14 +618,24 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         Id = x.StockTransfer.Id,
         DocSortie = x.ExitDoc.DocNumber!,
         DocReception = x.ReceiptDoc.DocNumber!,
-        Origine = x.OriginSite.Address!,
-        Destination = x.DestinationSite.Address!,
+        Origine = (!string.IsNullOrEmpty(x.OriginSite.Gouvernorate) && !string.IsNullOrEmpty(x.OriginSite.Address))
+            ? x.OriginSite.Gouvernorate + " - " + x.OriginSite.Address
+            : (x.OriginSite.Address ?? x.OriginSite.Gouvernorate ?? string.Empty),
+        Destination = (!string.IsNullOrEmpty(x.DestinationSite.Gouvernorate) && !string.IsNullOrEmpty(x.DestinationSite.Address))
+            ? x.DestinationSite.Gouvernorate + " - " + x.DestinationSite.Address
+            : (x.DestinationSite.Address ?? x.DestinationSite.Gouvernorate ?? string.Empty),
+        OriginGov = x.OriginSite.Gouvernorate,
+        OriginAddress = x.OriginSite.Address,
+        DestinationGov = x.DestinationSite.Gouvernorate,
+        DestinationAddress = x.DestinationSite.Address,
         TransferDate = x.StockTransfer.TransferDate,
-        Transporter = x.Transporter != null ? x.Transporter.FirstName + " " + x.Transporter.LastName : string.Empty,
+        Transporter = x.Transporter != null ? (x.Transporter.FullName ?? (x.Transporter.FirstName + " " + x.Transporter.LastName)) : string.Empty,
         VehicleSerialNumber = x.Vehicle != null ? x.Vehicle.SerialNumber : null,
         RefPaquet = x.Merchandise.Merchandise!.PackageReference!,
         Status = x.StockTransfer.Status,
-        ConfirmationCode = x.StockTransfer.ConfirmationCode
+        ConfirmationCode = x.StockTransfer.ConfirmationCode,
+        Notes = x.StockTransfer.Notes,
+        Reference = x.StockTransfer.Reference
       }).ToListAsync();
 
       return result;

@@ -124,6 +124,14 @@ namespace ms.webapp.api.acya.api.Controllers
       }
     }
 
+    [HttpGet("transfers/{id:int}")]
+    public async Task<ActionResult<StockTransferInfoDto>> GetStockTransferById(int id)
+    {
+      var transfer = await _stockService.GetStockTransferByIdAsync(id);
+      if (transfer == null) return NotFound("Transfer not found.");
+      return Ok(transfer);
+    }
+
     [HttpPost("process-transfer")]
     public async Task<ActionResult> PreocessStockTransfer(StockTransferDto dto)
     {
@@ -131,7 +139,9 @@ namespace ms.webapp.api.acya.api.Controllers
        var result = await _stockService.InitiateTransferAsync(dto, autoConfirm: false);
        if (!result.Success) return BadRequest(result.Message);
 
-       // NOTE: We must return the generated ConfirmationCode here so the frontend print layout can display it right after creation
+       var transferInfo = await _stockService.GetStockTransferByIdAsync(result.TransferId);
+
+       // NOTE: We return the complete persisted transfer with relationships alongside ConfirmationCode so the frontend print layout can display it right after creation
        return Ok(new
        {
          ExitDocumentNumber = result.ExitDocumentNumber,
@@ -140,7 +150,8 @@ namespace ms.webapp.api.acya.api.Controllers
          TransferRef = result.TransferRef,
          ConfirmationCode = result.ConfirmationCode,
          Status = result.Status,
-         Message = result.Message
+         Message = result.Message,
+         Transfer = transferInfo
        });
     }
 

@@ -29,12 +29,18 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string DocReception { get; set; } = string.Empty;
     public string Origine { get; set; } = string.Empty;
     public string Destination { get; set; } = string.Empty;
+    public string? OriginGov { get; set; }
+    public string? OriginAddress { get; set; }
+    public string? DestinationGov { get; set; }
+    public string? DestinationAddress { get; set; }
     public DateTime TransferDate { get; set; }
     public string Transporter { get; set; } = string.Empty;
     public string RefPaquet { get; set; } = string.Empty;
     public TransferStatus Status { get; set; }
     public string? ConfirmationCode { get; set; }
     public string? VehicleSerialNumber { get; set; }
+    public string? Notes { get; set; }
+    public string? Reference { get; set; }
   }
 
   public class StockTransferDetailsDto
@@ -44,6 +50,10 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? DocReception { get; set; }
     public string? Origine { get; set; }
     public string? Destination { get; set; }
+    public string? OriginGov { get; set; }
+    public string? OriginAddress { get; set; }
+    public string? DestinationGov { get; set; }
+    public string? DestinationAddress { get; set; }
     public DateTime TransferDate { get; set; }
     public string? Transporter { get; set; }
     public string? RefPaquet { get; set; }
@@ -60,6 +70,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public double? TotalWeight { get; set; }
     public string? ConfirmationCode { get; set; }
     public string? VehicleSerialNumber { get; set; }
+    public string? Notes { get; set; }
+    public string? Reference { get; set; }
     public IEnumerable<ListOflengthDto>? ExitDocLengths { get; set; }
   }
 

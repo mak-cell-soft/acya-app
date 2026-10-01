@@ -197,8 +197,25 @@ export function StockTransferDetailsDialog({
                     <Truck className="h-4 w-4 text-stone-400" />
                     <span className="font-semibold text-stone-800 dark:text-stone-200">Transporteur:</span>
                     <span>{transfer.transporter || 'Non spécifié'}</span>
+                    {(transfer.vehicleSerialNumber || (details[0] as any)?.vehicleSerialNumber) && (
+                      <span className="font-mono text-stone-400 font-medium ml-1">
+                        ({transfer.vehicleSerialNumber || (details[0] as any)?.vehicleSerialNumber})
+                      </span>
+                    )}
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Notes / Instructions if present */}
+            {transfer && (transfer.notes || (details[0] as any)?.notes) && (
+              <div className="p-3 bg-stone-100/60 dark:bg-stone-800/40 rounded-xl border border-stone-200/50 dark:border-stone-700/50 space-y-1">
+                <span className="text-[10px] uppercase font-bold text-stone-400 dark:text-stone-500 tracking-wider flex items-center gap-1.5">
+                  <MessageSquare className="h-3.5 w-3.5 text-amber-500" /> Instructions & Notes
+                </span>
+                <p className="text-xs text-stone-700 dark:text-stone-300 font-medium whitespace-pre-wrap">
+                  {transfer.notes || (details[0] as any)?.notes}
+                </p>
               </div>
             )}
 

@@ -226,6 +226,11 @@ export function StockTransfersList() {
                         <Truck className="h-3.5 w-3.5 text-stone-450" />
                         {tr.transporter || 'Non spécifié'}
                       </span>
+                      {tr.vehicleSerialNumber && (
+                        <span className="text-[9px] font-mono font-medium text-stone-400 dark:text-stone-500 block pl-5">
+                          Mat: {tr.vehicleSerialNumber}
+                        </span>
+                      )}
                     </td>
 
                     {/* Status */}
@@ -276,7 +281,7 @@ export function StockTransfersList() {
           </DialogHeader>
 
           {/* Core Info summary grid */}
-          <div className="grid grid-cols-2 gap-4 text-xs py-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs py-4 border-b border-stone-200/40 dark:border-stone-800/40">
             <div className="space-y-1">
               <span className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">Dépôt Expéditeur</span>
               <div className="font-semibold text-stone-800 dark:text-stone-200">{selectedTransfer?.origine || selectedTransfer?.originSiteAddress}</div>
@@ -285,7 +290,29 @@ export function StockTransfersList() {
               <span className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">Dépôt Réceptionnaire</span>
               <div className="font-semibold text-stone-800 dark:text-stone-200">{selectedTransfer?.destination || selectedTransfer?.destinationSiteAddress}</div>
             </div>
+            <div className="space-y-1">
+              <span className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">Transporteur</span>
+              <div className="font-semibold text-stone-800 dark:text-stone-200">{selectedTransfer?.transporter || 'Non spécifié'}</div>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">Véhicule</span>
+              <div className="font-semibold font-mono text-stone-800 dark:text-stone-200">
+                {selectedTransfer?.vehicleSerialNumber || (transferDetails?.[0] as any)?.vehicleSerialNumber || '---'}
+              </div>
+            </div>
           </div>
+
+          {/* Notes / Instructions section if present */}
+          {(selectedTransfer?.notes || (transferDetails?.[0] as any)?.notes) && (
+            <div className="p-3 bg-stone-50 dark:bg-stone-900/40 rounded-xl border border-stone-200/50 dark:border-stone-850 space-y-1">
+              <span className="text-[10px] uppercase font-bold text-stone-400 tracking-wider flex items-center gap-1.5">
+                <FileText className="h-3.5 w-3.5 text-amber-500" /> Instructions & Notes
+              </span>
+              <p className="text-xs text-stone-700 dark:text-stone-300 font-medium whitespace-pre-wrap">
+                {selectedTransfer?.notes || (transferDetails?.[0] as any)?.notes}
+              </p>
+            </div>
+          )}
 
           {/* Items list */}
           <div className="space-y-3">
@@ -339,7 +366,11 @@ export function StockTransfersList() {
               <Button
                 type="button"
                 onClick={() => setPrintTransfer({
-                  transfer: selectedTransfer,
+                  transfer: {
+                    ...selectedTransfer,
+                    vehicleSerialNumber: selectedTransfer.vehicleSerialNumber || (transferDetails?.[0] as any)?.vehicleSerialNumber,
+                    notes: selectedTransfer.notes || (transferDetails?.[0] as any)?.notes
+                  },
                   details: transferDetails
                 })}
                 className="h-10 text-xs font-bold bg-stone-900 hover:bg-stone-800 text-white rounded-xl gap-2 transition-all px-4"

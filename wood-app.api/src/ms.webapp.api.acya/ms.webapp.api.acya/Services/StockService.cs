@@ -572,6 +572,11 @@ namespace ms.webapp.api.acya.api.Services
             return await _repository.GetStocks();
         }
 
+        public async Task<StockTransferInfoDto?> GetStockTransferByIdAsync(int transferId)
+        {
+            return await _repository.GetStockTransferInfoById(transferId);
+        }
+
         public async Task<IEnumerable<StockTransferInfoDto>> GetStockTransfersInfosAsync(int? siteId = null)
         {
             return await _repository.GetStockTransfersInfos(siteId);

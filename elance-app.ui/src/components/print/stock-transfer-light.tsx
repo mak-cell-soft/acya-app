@@ -19,6 +19,9 @@ export function StockTransferLight({ transfer, details, enterprise, printLocale 
                            (transfer as any).confirmationCode || 
                            '';
 
+  // Resolve notes from transfer or details
+  const notes = transfer.notes || (details && details.length > 0 && (details[0] as any).notes) || '';
+
   // Helper to extract vehicle info
   const getVehicleInfo = () => {
     if ((transfer as any).vehicleSerialNumber) {
@@ -28,6 +31,32 @@ export function StockTransferLight({ transfer, details, enterprise, printLocale 
       return (details[0] as any).vehicleSerialNumber;
     }
     return '---';
+  };
+
+  const getOriginDisplay = () => {
+    if (transfer.originGov && transfer.originAddress) {
+      if (transfer.originAddress.toLowerCase().includes(transfer.originGov.toLowerCase())) {
+        return transfer.originAddress;
+      }
+      return `${transfer.originGov} - ${transfer.originAddress}`;
+    }
+    if (transfer.origine && transfer.originSiteAddress && transfer.origine !== transfer.originSiteAddress) {
+      return `${transfer.origine} - ${transfer.originSiteAddress}`;
+    }
+    return transfer.origine || transfer.originSiteAddress || '---';
+  };
+
+  const getDestinationDisplay = () => {
+    if (transfer.destinationGov && transfer.destinationAddress) {
+      if (transfer.destinationAddress.toLowerCase().includes(transfer.destinationGov.toLowerCase())) {
+        return transfer.destinationAddress;
+      }
+      return `${transfer.destinationGov} - ${transfer.destinationAddress}`;
+    }
+    if (transfer.destination && transfer.destinationSiteAddress && transfer.destination !== transfer.destinationSiteAddress) {
+      return `${transfer.destination} - ${transfer.destinationSiteAddress}`;
+    }
+    return transfer.destination || transfer.destinationSiteAddress || '---';
   };
 
   return (
@@ -75,12 +104,18 @@ export function StockTransferLight({ transfer, details, enterprise, printLocale 
         <div className="client-box" style={{ width: '45%' }}>
           <div className="info-row">
             <span className="info-label">Origine: </span>
-            <span>{transfer.origine || transfer.originSiteAddress}</span>
+            <span>{getOriginDisplay()}</span>
           </div>
           <div className="info-row">
             <span className="info-label">Destin: </span>
-            <span>{transfer.destination || transfer.destinationSiteAddress}</span>
+            <span>{getDestinationDisplay()}</span>
           </div>
+          {notes && (
+            <div className="info-row">
+              <span className="info-label">Notes: </span>
+              <span style={{ fontSize: '7pt', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{notes}</span>
+            </div>
+          )}
         </div>
       </div>
 

@@ -40,6 +40,11 @@ export const stockService = {
     return response.data;
   },
 
+  getStockTransferById: async (id: number) => {
+    const response = await api.get(`/Stock/transfers/${id}`);
+    return response.data;
+  },
+
   getStockTransferDetails: async (originDoc?: string, receiptDoc?: string) => {
     const response = await api.get('/Stock/transfers/details', {
       params: { originDoc, receiptDoc }
