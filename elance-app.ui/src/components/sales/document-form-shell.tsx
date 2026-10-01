@@ -94,6 +94,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface MerchandRow {
   selectedArticle: Article | null;
   selectedStock: any | null;
+  merchandiseId?: number;
+  packagereference?: string;
+  allownegativstock?: boolean;
   articleSearchInput: string;
   filteredArticles: Article[];
   unit_price_ht: number;
@@ -195,6 +198,12 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
     const defaultSiteId = user?.defaultSiteId;
     return allSites.find(s => s.id.toString() === defaultSiteId?.toString()) || allSites[0];
   }, [allSites, user?.defaultSiteId]);
+
+  // Effective site for document: when editing, use document's existing sales_site
+  const effectiveSite = useMemo(() => {
+    if (editingDoc?.sales_site?.id) return editingDoc.sales_site;
+    return activeUserSite;
+  }, [editingDoc?.sales_site, activeUserSite]);
 
   // 3. Document Level state
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -453,20 +462,71 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
     }
   };
 
-  // 4. Fetch stock list for the active sales site
+  // 4. Fetch stock list for the effective sales site
   useEffect(() => {
-    if (!activeUserSite) return;
+    if (!effectiveSite) return;
     setIsStockLoading(true);
-    stockService.getBySite(activeUserSite)
+    stockService.getBySite(effectiveSite)
       .then(res => {
         setSiteStocks(res || []);
       })
       .catch(err => {
-        console.error('Error loading stocks for active site:', err);
+        console.error('Error loading stocks for site:', err);
         toast.error('Erreur lors du chargement du stock du site.');
       })
       .finally(() => setIsStockLoading(false));
-  }, [activeUserSite]);
+  }, [effectiveSite]);
+
+  // 4b. Calculate available stocks for validation:
+  // For an existing document being edited, the quantities already consumed/reserved
+  // by this document are added back to the site's available stock so this document
+  // does not compete against itself for stock.
+  const effectiveSiteStocks = useMemo(() => {
+    if (!editDocumentId || !editingDoc?.merchandises?.length) {
+      return siteStocks;
+    }
+
+    const docImpactsStock = docType === DocumentTypes.customerDeliveryNote || docType === DocumentTypes.customerInvoice;
+    if (!docImpactsStock) {
+      return siteStocks;
+    }
+
+    // Clone siteStocks to avoid mutating state
+    const stocks = siteStocks.map(s => ({ ...s }));
+
+    editingDoc.merchandises.forEach((m: any) => {
+      if (!m.article || m.line_type === LineType.TransportFee) return;
+      const isService = Number(m.article.type) === ArticleType.Service;
+      if (isService) return;
+
+      const qty = parseFloat(m.quantity || 0);
+      if (qty <= 0) return;
+
+      // Find stock matching merchandiseId or articleId + packagereference
+      let stockItem = stocks.find(s => 
+        (m.id > 0 && s.merchandiseId === m.id) ||
+        (s.articleId === m.article.id && (!m.packagereference || s.packageReference === m.packagereference))
+      );
+
+      if (stockItem) {
+        stockItem.stockQuantity = parseFloat(stockItem.stockQuantity || 0) + qty;
+      } else {
+        stocks.push({
+          articleId: m.article.id,
+          merchandiseId: m.id || 0,
+          packageReference: m.packagereference || 'Standard',
+          stockQuantity: qty,
+          minimumStock: 0,
+          siteId: editingDoc.sales_site?.id || effectiveSite?.id,
+          allowNegativeStock: m.allownegativstock ?? false,
+          isMergedWith: m.ismergedwith ?? false,
+          merchandiseDescription: m.description
+        });
+      }
+    });
+
+    return stocks;
+  }, [siteStocks, editDocumentId, editingDoc, docType, effectiveSite]);
 
   // 5. Fetch negotiated prices grid when customer selection changes
   useEffect(() => {
@@ -504,6 +564,40 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
     } else {
       return qty.toLocaleString('fr-TN', { maximumFractionDigits: 3 });
     }
+  };
+
+  // Helper to compute unit price TTC for display on article information row
+  const getRowUnitPriceTtc = (row: MerchandRow): string | null => {
+    if (!row.selectedArticle) return null;
+    if (row.unit_price_ht === undefined || row.unit_price_ht === null || isNaN(row.unit_price_ht)) return null;
+
+    let tvaRate: number | null = null;
+    const tvaObj = row.selectedArticle.tva || allTvas.find(t => t.id === row.selectedArticle?.tvaid);
+    if (tvaObj && tvaObj.value !== undefined && tvaObj.value !== null && tvaObj.value !== '') {
+      if (typeof tvaObj.value === 'string') {
+        const parsed = parseFloat(tvaObj.value.replace('%', '').trim());
+        if (!isNaN(parsed)) tvaRate = parsed;
+      } else {
+        const parsed = Number(tvaObj.value);
+        if (!isNaN(parsed)) tvaRate = parsed;
+      }
+    }
+
+    if (tvaRate === null) return null;
+
+    let unitTtc: number;
+    if (
+      row.selectedArticle.sellprice_ttc != null &&
+      row.selectedArticle.sellprice_ttc > 0 &&
+      Math.abs(row.unit_price_ht - (row.selectedArticle.sellprice_ht || 0)) < 0.0001
+    ) {
+      unitTtc = row.selectedArticle.sellprice_ttc;
+    } else {
+      unitTtc = row.unit_price_ht * (1 + tvaRate / 100);
+    }
+
+    const roundedTtc = parseFloat(unitTtc.toFixed(3));
+    return `${roundedTtc.toLocaleString('fr-TN', { minimumFractionDigits: 2, maximumFractionDigits: 3 })} ${docCurrency || 'TND'}`;
   };
 
   // Helper helper function to assign discounts
@@ -553,7 +647,7 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
 
       // Retrieve VAT rate safely
       let tvaRate = 0;
-      const tvaObj = row.selectedArticle.tva;
+      const tvaObj = row.selectedArticle.tva || allTvas.find(t => t.id === row.selectedArticle?.tvaid);
       if (tvaObj?.value) {
         if (typeof tvaObj.value === 'string') {
           tvaRate = parseFloat(tvaObj.value.replace('%', '').trim());
@@ -789,6 +883,9 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
         const r: MerchandRow = {
           selectedArticle: m.article,
           selectedStock: null,
+          merchandiseId: m.id || 0,
+          packagereference: m.packagereference || 'Standard',
+          allownegativstock: m.allownegativstock ?? false,
           articleSearchInput: m.article ? `${m.article.reference} - ${m.article.description || ''}` : '',
           filteredArticles: allArticles,
           unit_price_ht: m.unit_price_ht || 0,
@@ -809,9 +906,14 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
           transporter_name: m.transporter_name
         };
 
-        if (m.article && siteStocks.length > 0) {
-          const matchedStocks = siteStocks.filter(s => s.articleId === m.article.id);
-          r.selectedStock = matchedStocks.length === 1 ? matchedStocks[0] : null;
+        if (m.article && effectiveSiteStocks.length > 0) {
+          const matchedStocks = effectiveSiteStocks.filter(s => s.articleId === m.article.id);
+          r.selectedStock = matchedStocks.find(s => s.merchandiseId === m.id) || (matchedStocks.length === 1 ? matchedStocks[0] : null);
+          if (r.selectedStock) {
+            r.merchandiseId = r.selectedStock.merchandiseId;
+            r.packagereference = r.selectedStock.packageReference;
+            r.allownegativstock = r.selectedStock.allowNegativeStock;
+          }
         }
 
         return r;
@@ -822,7 +924,7 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
     if (typeof editingDoc.total_net_ttc === 'number') {
       setManualNetTTC(editingDoc.total_net_ttc.toFixed(3));
     }
-  }, [editingDoc, editDocumentId, allArticles, allCustomers, siteStocks, appvariablesTaxes, appvariablesRS, docType, router]);
+  }, [editingDoc, editDocumentId, allArticles, allCustomers, effectiveSiteStocks, appvariablesTaxes, appvariablesRS, docType, router]);
 
   // 9. Dynamic Row additions & changes
   const addMerchandiseRow = () => {
@@ -922,8 +1024,17 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
           
           // Match matching stocks in our cached state for active site
           const isService = Number(article.type) === ArticleType.Service;
-          const matches = isService ? [] : siteStocks.filter(s => s.articleId === article.id);
+          const matches = isService ? [] : effectiveSiteStocks.filter(s => s.articleId === article.id);
           row.selectedStock = matches.length >= 1 ? matches[0] : null;
+          if (row.selectedStock) {
+            row.merchandiseId = row.selectedStock.merchandiseId;
+            row.packagereference = row.selectedStock.packageReference;
+            row.allownegativstock = row.selectedStock.allowNegativeStock;
+          } else {
+            row.merchandiseId = 0;
+            row.packagereference = undefined;
+            row.allownegativstock = undefined;
+          }
 
           if (isService) {
             // Service lines have no stock tracking; default quantity to 1 if not set
@@ -961,6 +1072,9 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
           row.isGlassArticle = false;
           row.glassInputs = undefined;
           row.selectedStock = null;
+          row.merchandiseId = 0;
+          row.packagereference = undefined;
+          row.allownegativstock = undefined;
           row.articleSearchInput = '';
           row.filteredArticles = allArticles;
           row.unit_price_ht = 0;
@@ -973,6 +1087,14 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
 
       if (field === 'selectedStock') {
         const stock = value as any;
+        if (stock) {
+          row.merchandiseId = stock.merchandiseId;
+          row.packagereference = stock.packageReference;
+          row.allownegativstock = stock.allowNegativeStock;
+        } else {
+          row.merchandiseId = 0;
+        }
+
         if (docType !== DocumentTypes.customerQuote && docType !== DocumentTypes.customerOrder && docType !== DocumentTypes.customerInvoiceReturn) {
           if (stock) {
             const stockQty = parseFloat(stock.stockQuantity || 0);
@@ -1047,8 +1169,8 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
     // Get specific stock details for lengths
     const woodParams = {
       merchandiseRef: row.selectedArticle.reference,
-      salesSiteId: activeUserSite?.id || 1,
-      merchandiseId: row.selectedStock?.merchandiseId || 0
+      salesSiteId: effectiveSite?.id || 1,
+      merchandiseId: row.selectedStock?.merchandiseId || row.merchandiseId || 0
     };
 
     setIsLoading(true);
@@ -1165,7 +1287,7 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
       // Map rows structure exactly to C# Merchandise backend model structure
       const merchandisesPayload = rows.map(r => {
         const item: any = {
-          id: r.selectedStock?.merchandiseId || 0,
+          id: r.selectedStock?.merchandiseId || r.merchandiseId || 0,
           unit_price_ht: r.unit_price_ht,
           cost_ht: parseFloat(((r.unit_price_ht || 0) * (r.quantity || 0)).toFixed(3)),
           quantity: r.quantity,
@@ -1190,9 +1312,9 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
           item.article = r.selectedArticle;
           item.lisoflengths = r.listLengths;
           const isService = Number(r.selectedArticle?.type) === ArticleType.Service;
-          item.packagereference = isService ? 'SERVICE' : (r.selectedStock?.packageReference || '');
+          item.packagereference = isService ? 'SERVICE' : (r.selectedStock?.packageReference || r.packagereference || 'Standard');
           item.isinvoicible = true;
-          item.allownegativstock = isService ? true : (r.selectedStock?.allowNegativeStock ?? false);
+          item.allownegativstock = isService ? true : (r.selectedStock?.allowNegativeStock ?? r.allownegativstock ?? false);
           item.ismergedwith = isService ? false : (r.selectedStock?.isMergedWith ?? false);
         }
         return item;
@@ -1253,7 +1375,7 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
           ...selectedCustomer,
           transporterid: selectedTransporter?.id || null
         } : null,
-        sales_site: activeUserSite,
+        sales_site: effectiveSite || activeUserSite,
         creationdate: editingDoc?.creationdate ? new Date(editingDoc.creationdate) : new Date(docDate),
         updatedate: new Date(),
         updatedbyid: parseInt(user?.id || '0'),
@@ -1330,6 +1452,7 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
 
     } catch (err: any) {
       console.error('Error submitting document:', err);
+      const serverMsg = err.response?.data?.message;
       if (err.response?.status === 422 && err.response?.data?.code === 'DAILY_CEILING_EXCEEDED') {
         const data = err.response.data;
         toast.error('Plafond journalier de facturation dépassé', {
@@ -1338,8 +1461,10 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
         });
       } else if (err.response?.status === 409) {
         toast.error('Un document avec la même référence existe déjà.');
+      } else if (serverMsg) {
+        toast.error(serverMsg);
       } else {
-        toast.error(`La création du document a échoué. Veuillez vérifier l'état du stock.`);
+        toast.error(editDocumentId ? `La modification du document a échoué.` : `La création du document a échoué. Veuillez vérifier l'état du stock.`);
       }
     } finally {
       setIsLoading(false);
@@ -1367,10 +1492,10 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {activeUserSite && (
+            {effectiveSite && (
               <Badge className="bg-corp-blue-900/10 hover:bg-corp-blue-900/20 text-corp-blue-800 border border-corp-blue-100 font-bold px-3 py-1.5 rounded-lg flex items-center gap-2">
                 <Layers className="w-3.5 h-3.5" />
-                Site actif : {activeUserSite.gov} - {activeUserSite.address}
+                Site : {effectiveSite.gov} - {effectiveSite.address}
               </Badge>
             )}
             {sourceDocumentId > 0 && (
@@ -1987,7 +2112,7 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                     rows.map((row, index) => {
                       const isFee = row.line_type === LineType.TransportFee;
                       const isService = Number(row.selectedArticle?.type) === ArticleType.Service;
-                      const matchingStocks = (!isService && row.selectedArticle) ? siteStocks.filter(s => s.articleId === row.selectedArticle!.id) : [];
+                      const matchingStocks = (!isService && row.selectedArticle) ? effectiveSiteStocks.filter(s => s.articleId === row.selectedArticle!.id) : [];
                       let isQuantityDisabled = false;
                       if (!isService && docType !== DocumentTypes.customerQuote && docType !== DocumentTypes.customerOrder && docType !== DocumentTypes.customerInvoiceReturn) {
                         if (!isFee && row.selectedArticle) {
@@ -2009,7 +2134,7 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                       if (isFee) {
                         tvaRate = 19;
                       } else if (row.selectedArticle) {
-                        const tvaObj = row.selectedArticle.tva;
+                        const tvaObj = row.selectedArticle.tva || allTvas.find(t => t.id === row.selectedArticle?.tvaid);
                         if (tvaObj?.value) {
                           if (typeof tvaObj.value === 'string') {
                             tvaRate = parseFloat(tvaObj.value.replace('%', '').trim());
@@ -2018,6 +2143,8 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                           }
                         }
                       }
+
+                      const unitPriceTtcDisplay = getRowUnitPriceTtc(row);
 
                       return (
                         <tr key={index} className="group hover:bg-corp-blue-50/20 transition-all duration-200">
@@ -2152,16 +2279,29 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                                           <span>Prestation / Service</span>
                                           <span className="text-amber-300 font-normal">|</span>
                                           <span className="text-amber-800">Sans stock</span>
+                                          {unitPriceTtcDisplay && (
+                                            <>
+                                              <span className="text-amber-300 font-normal">|</span>
+                                              <span className="text-amber-800">Prix TTC: {unitPriceTtcDisplay}</span>
+                                            </>
+                                          )}
                                         </div>
                                       );
                                     }
 
-                                    const matchingStocks = siteStocks.filter(s => s.articleId === row.selectedArticle!.id);
+                                    const matchingStocks = effectiveSiteStocks.filter(s => s.articleId === row.selectedArticle!.id);
                                     if (matchingStocks.length === 0) {
                                       return (
-                                        <Badge className="bg-rose-50 text-rose-700 border border-rose-100 font-bold text-[0.65rem] px-2 py-0.5 rounded flex items-center gap-1 mt-1.5 w-fit">
-                                          <Info className="w-3 h-3 text-rose-500" /> Aucun stock disponible
-                                        </Badge>
+                                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                          <Badge className="bg-rose-50 text-rose-700 border border-rose-100 font-bold text-[0.65rem] px-2 py-0.5 rounded flex items-center gap-1 w-fit">
+                                            <Info className="w-3 h-3 text-rose-500 shrink-0" /> Aucun stock disponible
+                                          </Badge>
+                                          {unitPriceTtcDisplay && (
+                                            <div className="flex items-center gap-1.5 text-[0.7rem] font-bold text-corp-blue-700 bg-corp-blue-50/70 border border-corp-blue-100/50 rounded-lg px-2.5 py-0.5 w-fit shadow-sm">
+                                              <span className="text-corp-blue-600">Prix TTC: {unitPriceTtcDisplay}</span>
+                                            </div>
+                                          )}
+                                        </div>
                                       );
                                     }
                                     
@@ -2174,13 +2314,19 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                                       }
                                       return (
                                         <div className="flex items-center gap-1.5 mt-1.5 text-[0.7rem] font-bold text-corp-blue-700 bg-corp-blue-50/70 border border-corp-blue-100/50 rounded-lg px-2.5 py-1.5 w-fit shadow-sm">
-                                          <Layers className="w-3.5 h-3.5 text-corp-blue-600" />
+                                          <Layers className="w-3.5 h-3.5 text-corp-blue-600 shrink-0" />
                                           <span className="truncate max-w-[200px]">
                                             Réf: {stock.packageReference || 'Standard'}
                                             {stock.MerchandiseDescription ? ` • ${stock.MerchandiseDescription}` : ''}
                                           </span>
                                           <span className="text-sand-400">|</span>
                                           <span className="text-corp-blue-600">Stock: {formatQuantity(parseFloat(stock.stockQuantity || 0), row.selectedArticle?.unit)}</span>
+                                          {unitPriceTtcDisplay && (
+                                            <>
+                                              <span className="text-sand-400">|</span>
+                                              <span className="text-corp-blue-600">Prix TTC: {unitPriceTtcDisplay}</span>
+                                            </>
+                                          )}
                                         </div>
                                       );
                                     }
@@ -2223,10 +2369,27 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                                             ))}
                                           </SelectContent>
                                         </Select>
-                                        {!row.selectedStock && (
-                                          <p className="text-[9px] text-amber-600 font-bold flex items-center gap-1 animate-pulse">
-                                            ⚠️ Sélectionner une référence
-                                          </p>
+                                        {row.selectedStock ? (
+                                          <div className="flex items-center gap-1.5 text-[0.7rem] font-bold text-corp-blue-700 bg-corp-blue-50/70 border border-corp-blue-100/50 rounded-lg px-2.5 py-1 w-fit shadow-sm">
+                                            <span className="text-corp-blue-600">Stock: {formatQuantity(parseFloat(row.selectedStock.stockQuantity || 0), row.selectedArticle?.unit)}</span>
+                                            {unitPriceTtcDisplay && (
+                                              <>
+                                                <span className="text-sand-400">|</span>
+                                                <span className="text-corp-blue-600">Prix TTC: {unitPriceTtcDisplay}</span>
+                                              </>
+                                            )}
+                                          </div>
+                                        ) : (
+                                          <div className="flex items-center gap-2">
+                                            <p className="text-[9px] text-amber-600 font-bold flex items-center gap-1 animate-pulse">
+                                              ⚠️ Sélectionner une référence
+                                            </p>
+                                            {unitPriceTtcDisplay && (
+                                              <div className="flex items-center gap-1.5 text-[0.7rem] font-bold text-corp-blue-700 bg-corp-blue-50/70 border border-corp-blue-100/50 rounded-lg px-2.5 py-0.5 w-fit shadow-sm">
+                                                <span className="text-corp-blue-600">Prix TTC: {unitPriceTtcDisplay}</span>
+                                              </div>
+                                            )}
+                                          </div>
                                         )}
                                       </div>
                                     );

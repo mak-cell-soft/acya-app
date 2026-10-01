@@ -52,7 +52,10 @@ namespace ms.webapp.api.acya.core.Entities
 
     public void UpdateFromDto(MerchandiseDto dto)
     {
-      Id = (int)dto.id!;
+      if (dto.id.HasValue && dto.id.Value > 0)
+      {
+        Id = (int)dto.id.Value;
+      }
       PackageReference = dto.packagereference;
       Description = dto.description;
       IsInvoicible = dto.isinvoicible;

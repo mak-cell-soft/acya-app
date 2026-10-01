@@ -127,12 +127,12 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
        * 2- Même Marchandise.
        * 3- Même Site de vente.
        */
+      var merchId = transaction.MerchandiseId > 0 ? transaction.MerchandiseId : (transaction.Merchandises?.Id ?? 0);
+      var siteId = transaction.SalesSiteId > 0 ? transaction.SalesSiteId : (transaction.SalesSites?.Id ?? 0);
+
       var stock = await context.Stocks
-          .Where(s => s.Merchandises != null &&
-                     s.Merchandises.ArticleId == transaction.Merchandises.ArticleId &&
-                     s.Merchandises.Id == transaction.Merchandises.Id &&
-                     s.SalesSites != null &&
-                     s.SalesSites.Id == transaction.SalesSites.Id)
+          .Where(s => (s.MerchandiseId == merchId || (s.Merchandises != null && s.Merchandises.Id == merchId)) &&
+                      (s.SalesSiteId == siteId || (s.SalesSites != null && s.SalesSites.Id == siteId)))
           .FirstOrDefaultAsync();
 
       if (stock == null)

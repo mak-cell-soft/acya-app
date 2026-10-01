@@ -1960,7 +1960,8 @@ namespace ms.webapp.api.acya.api.Controllers
           }
 
           // Process Merchandises
-          // Remove existing DocumentMerchandises (they will be re-added from the DTO)
+          // Keep a reference to original merchandises before clearing, in case DTO items have id == 0 or missing id
+          var originalDocMerchandises = doc.DocumentMerchandises.ToList();
           _context.DocumentMerchandises.RemoveRange(doc.DocumentMerchandises);
           doc.DocumentMerchandises.Clear(); // Ensure collection is cleared to avoid duplicates during processing
 
@@ -1996,11 +1997,29 @@ namespace ms.webapp.api.acya.api.Controllers
               if (merchDto.id > 0)
               {
                 merchandise = await _context.Merchandises.FindAsync(merchDto.id);
-                if (merchandise != null)
-                {
-                  merchandise.UpdateFromDto(merchDto);
-                  _context.Entry(merchandise).State = EntityState.Modified;
-                }
+              }
+
+              // Fallback 1: If id was 0 or not found, try to match from original document merchandises for this article
+              if (merchandise == null && merchDto.article?.id > 0)
+              {
+                merchandise = originalDocMerchandises
+                  .FirstOrDefault(odm => odm.Merchandise != null && odm.Merchandise.ArticleId == merchDto.article.id.Value)?
+                  .Merchandise;
+              }
+
+              // Fallback 2: Check database for existing merchandise matching article and package reference
+              if (merchandise == null && merchDto.article?.id > 0)
+              {
+                var pkgRef = merchDto.packagereference ?? "Standard";
+                merchandise = await _context.Merchandises
+                  .FirstOrDefaultAsync(m => m.ArticleId == merchDto.article.id.Value && m.PackageReference == pkgRef && !m.IsDeleted);
+              }
+
+              if (merchandise != null)
+              {
+                merchDto.id = merchandise.Id;
+                merchandise.UpdateFromDto(merchDto);
+                _context.Entry(merchandise).State = EntityState.Modified;
               }
               else
               {
@@ -2174,6 +2193,11 @@ namespace ms.webapp.api.acya.api.Controllers
           }
 
           return Ok(new { message = "Document updated successfully" });
+        }
+        catch (InvalidOperationException ex)
+        {
+          await transaction.RollbackAsync();
+          return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {

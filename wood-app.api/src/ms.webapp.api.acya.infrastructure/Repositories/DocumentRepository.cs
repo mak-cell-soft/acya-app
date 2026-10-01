@@ -123,14 +123,22 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         }
         if (isService) continue;
 
+        if (document.SalesSite == null && document.SalesSiteId > 0)
+        {
+          document.SalesSite = await context.SalesSites.FindAsync(document.SalesSiteId);
+        }
+
         var stockTransaction = new Stock
         {
           Id = 0,
           Quantity = merchandise.Quantity,
           Type = transactionType,  // Use the determined type : Add or Retrieve
           Merchandises = merchandise.Merchandise,
+          MerchandiseId = merchandise.Merchandise.Id,
           SalesSites = document.SalesSite,
-          AppUsers = appuser
+          SalesSiteId = document.SalesSiteId,
+          AppUsers = appuser,
+          UpdatedById = appuser?.Id ?? document.UpdatedById ?? 0
         };
 
         await _stockRepository.HandleTransaction(stockTransaction);
@@ -155,6 +163,11 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         var originalType = Helpers.GetTransactionType((DocumentTypes)document.Type!);
         var reverseType = originalType == TransactionType.Add ? TransactionType.Retrieve : TransactionType.Add;
 
+        if (document.SalesSite == null && document.SalesSiteId > 0)
+        {
+            document.SalesSite = await context.SalesSites.FindAsync(document.SalesSiteId);
+        }
+
         foreach (var merchandise in document.DocumentMerchandises.Where(dm => dm.Type == LineType.Merchandise))
         {
             if (merchandise.Merchandise == null) continue;
@@ -174,8 +187,11 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                 Quantity = merchandise.Quantity,
                 Type = reverseType,
                 Merchandises = merchandise.Merchandise,
+                MerchandiseId = merchandise.Merchandise.Id,
                 SalesSites = document.SalesSite,
-                AppUsers = appuser
+                SalesSiteId = document.SalesSiteId,
+                AppUsers = appuser,
+                UpdatedById = appuser?.Id ?? document.UpdatedById ?? 0
             };
 
             await _stockRepository.HandleTransaction(stockTransaction, true);
