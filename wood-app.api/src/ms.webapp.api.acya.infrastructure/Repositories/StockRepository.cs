@@ -373,7 +373,10 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                     Status = st.Status,
                     ConfirmationCode = st.ConfirmationCode,
                     Notes = st.Notes,
-                    Reference = st.Reference
+                    Reference = st.Reference,
+                    RevisionNumber = st.RevisionNumber,
+                    UpdateDate = st.UpdateDate,
+                    RejectionReason = st.RejectionReason
                   };
 
       return await query.FirstOrDefaultAsync();
@@ -425,7 +428,10 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         Status = x.st.Status,
         ConfirmationCode = x.st.ConfirmationCode,
         Notes = x.st.Notes,
-        Reference = x.st.Reference
+        Reference = x.st.Reference,
+        RevisionNumber = x.st.RevisionNumber,
+        UpdateDate = x.st.UpdateDate,
+        RejectionReason = x.st.RejectionReason
       });
 
       // Group by DocSortie and DocReception and select the first item from each group
@@ -479,6 +485,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                            Thickness = grouped.First().thickness,
                            Width = grouped.First().width,
                            ConfirmationCode = grouped.First().st.ConfirmationCode,
+                           RejectionReason = grouped.First().st.RejectionReason,
                            Quantity = grouped.Key.Quantity
                          };
 
@@ -533,6 +540,9 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         ConfirmationCode = r.ConfirmationCode,
         Notes = r.St.Notes,
         Reference = r.St.Reference,
+        RevisionNumber = r.St.RevisionNumber,
+        UpdateDate = r.St.UpdateDate,
+        RejectionReason = r.RejectionReason,
         ExitDocLengths = exitLengthsDict.TryGetValue(r.ExitMerch.Id, out var lengths) ? lengths : Enumerable.Empty<ListOflengthDto>(),
       }).ToList();
     }
@@ -635,7 +645,10 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         Status = x.StockTransfer.Status,
         ConfirmationCode = x.StockTransfer.ConfirmationCode,
         Notes = x.StockTransfer.Notes,
-        Reference = x.StockTransfer.Reference
+        Reference = x.StockTransfer.Reference,
+        RevisionNumber = x.StockTransfer.RevisionNumber,
+        UpdateDate = x.StockTransfer.UpdateDate,
+        RejectionReason = x.StockTransfer.RejectionReason
       }).ToListAsync();
 
       return result;

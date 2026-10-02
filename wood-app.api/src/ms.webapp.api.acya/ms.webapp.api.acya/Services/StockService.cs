@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using ms.webapp.api.acya.api.Controllers; // For NotificationHub
 using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities;
@@ -417,7 +418,7 @@ namespace ms.webapp.api.acya.api.Services
                 }
 
                 // Notify Origin
-                if (transfer.ExitDocument != null && transfer.Status == TransferStatus.Pending)
+                if (transfer.ExitDocument != null)
                 {
                     await _hubContext.Clients.Group(GetSiteGroupName(transfer.ExitDocument.SalesSiteId))
                         .SendAsync("TransferRejected", new
@@ -442,6 +443,10 @@ namespace ms.webapp.api.acya.api.Services
          * Update a stock transfer
          * @param transferId The ID of the transfer to update
          * @param request The update request
+        /**
+         * Update an existing pending stock transfer (P1: Pending -> Edit -> Pending)
+         * @param transferId The ID of the transfer to update
+         * @param request The update payload containing metadata and optional merchandise items
          * @returns The result of the update
          */
         public async Task<StockTransferResult> UpdateTransferAsync(int transferId, UpdateTransferRequest request)
@@ -452,89 +457,843 @@ namespace ms.webapp.api.acya.api.Services
                 var transfer = await _context.StockTransfers
                     .Include(t => t.ExitDocument)
                         .ThenInclude(d => d!.DocumentMerchandises)
+                            .ThenInclude(dm => dm.QuantityMovements)
+                                .ThenInclude(qm => qm!.ListOfLengths)
                     .Include(t => t.ReceiptDocument)
                         .ThenInclude(d => d!.DocumentMerchandises)
+                            .ThenInclude(dm => dm.QuantityMovements)
+                                .ThenInclude(qm => qm!.ListOfLengths)
                     .FirstOrDefaultAsync(t => t.Id == transferId);
 
-                if (transfer == null) return StockTransferResult.Fail("Transfer not found");
-                if (transfer.Status != TransferStatus.Pending) return StockTransferResult.Fail("Only pending transfers can be edited");
+                if (transfer == null)
+                    return StockTransferResult.Fail("Transfer not found");
 
-                // 1. Restore previous stock at origin
-                await _repository.RestoreStockForTransfer(transfer.ExitDocumentId);
+                // Strict Status checks
+                if (transfer.Status == TransferStatus.Confirmed)
+                    return StockTransferResult.Fail("Confirmed transfers cannot be edited. Confirmed transfers are immutable.");
 
-                // 2. Update Transfer details
+                if (transfer.Status == TransferStatus.Rejected)
+                    return StockTransferResult.Fail("Rejected transfers cannot be edited via this endpoint. Resending rejected transfers is handled separately.");
+
+                if (transfer.Status != TransferStatus.Pending)
+                    return StockTransferResult.Fail("Only pending transfers can be edited");
+
+                if (transfer.ExitDocument == null || transfer.ReceiptDocument == null)
+                    return StockTransferResult.Fail("Transfer documents not found");
+
+                // Immutability checks: Origin and Destination sites MUST NEVER be editable
+                if (request.OriginSiteId.HasValue && request.OriginSiteId.Value != transfer.ExitDocument.SalesSiteId)
+                    return StockTransferResult.Fail("Origin site cannot be changed. Please create a new transfer instead.");
+
+                if (request.DestinationSiteId.HasValue && request.DestinationSiteId.Value != transfer.ReceiptDocument.SalesSiteId)
+                    return StockTransferResult.Fail("Destination site cannot be changed. Please create a new transfer instead.");
+
+                // Authorization: Only sender / authorized user from the origin site may edit
+                if (request.UpdatedByUserId.HasValue && request.UpdatedByUserId.Value > 0)
+                {
+                    var user = await _context.AppUsers
+                        .Include(u => u.SalesSite)
+                        .FirstOrDefaultAsync(u => u.Id == request.UpdatedByUserId.Value);
+
+                    if (user == null)
+                        return StockTransferResult.Fail("User not found.");
+
+                    // If user has an assigned site, it must match the origin site
+                    if (user.IdSalesSite.HasValue && user.IdSalesSite.Value != transfer.ExitDocument.SalesSiteId)
+                    {
+                        return StockTransferResult.Fail("User is not authorized to edit this transfer. Only authorized users from the origin site can edit.");
+                    }
+                }
+
+                // Determine whether edit is metadata-only or stock-affecting
+                var oldMerchMap = transfer.ExitDocument.DocumentMerchandises
+                    .Where(dm => dm.MerchandiseId.HasValue)
+                    .GroupBy(dm => dm.MerchandiseId!.Value)
+                    .ToDictionary(g => g.Key, g => g.Sum(dm => dm.Quantity));
+
+                bool isStockAffecting = false;
+                Dictionary<int, double> newMerchMap = new Dictionary<int, double>();
+
+                if (request.MerchandisesItems != null)
+                {
+                    foreach (var item in request.MerchandisesItems)
+                    {
+                        if (!item.id.HasValue) continue;
+                        int mId = item.id.Value;
+                        if (newMerchMap.ContainsKey(mId))
+                            newMerchMap[mId] += item.quantity;
+                        else
+                            newMerchMap[mId] = item.quantity;
+                    }
+
+                    // Compare oldMerchMap vs newMerchMap
+                    if (oldMerchMap.Count != newMerchMap.Count)
+                    {
+                        isStockAffecting = true;
+                    }
+                    else
+                    {
+                        foreach (var kvp in oldMerchMap)
+                        {
+                            if (!newMerchMap.TryGetValue(kvp.Key, out var newQty) || Math.Abs(kvp.Value - newQty) > 0.0001)
+                            {
+                                isStockAffecting = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Also check if any lengths changed for wood items
+                    if (!isStockAffecting)
+                    {
+                        foreach (var item in request.MerchandisesItems)
+                        {
+                            var existingDm = transfer.ExitDocument.DocumentMerchandises.FirstOrDefault(dm => dm.MerchandiseId == item.id);
+                            var existingLengths = existingDm?.QuantityMovements?.ListOfLengths?.ToList();
+                            var newLengths = item.lisoflengths?.ToList();
+
+                            if ((existingLengths?.Count ?? 0) != (newLengths?.Count ?? 0))
+                            {
+                                isStockAffecting = true;
+                                break;
+                            }
+                            if (existingLengths != null && newLengths != null)
+                            {
+                                for (int i = 0; i < existingLengths.Count; i++)
+                                {
+                                    if (existingLengths[i].AppVarLengthId != newLengths[i].length?.id ||
+                                        existingLengths[i].NumberOfPieces != newLengths[i].nbpieces ||
+                                        Math.Abs(existingLengths[i].Quantity - newLengths[i].quantity) > 0.0001)
+                                    {
+                                        isStockAffecting = true;
+                                        break;
+                                    }
+                                }
+                                if (isStockAffecting) break;
+                            }
+                        }
+                    }
+                }
+
+                // If stock-affecting, perform stock delta validation and updates
+                if (isStockAffecting)
+                {
+                    int originSiteId = transfer.ExitDocument.SalesSiteId;
+                    var allMerchIds = oldMerchMap.Keys.Union(newMerchMap.Keys).Distinct().ToList();
+
+                    // Step 1: Pre-validation of stock availability for all positive deltas
+                    foreach (var merchId in allMerchIds)
+                    {
+                        double oldQty = oldMerchMap.GetValueOrDefault(merchId, 0.0);
+                        double newQty = newMerchMap.GetValueOrDefault(merchId, 0.0);
+                        double delta = newQty - oldQty;
+
+                        if (delta > 0)
+                        {
+                            var stock = await _context.Stocks
+                                .Include(s => s.Merchandises)
+                                .FirstOrDefaultAsync(s => s.SalesSiteId == originSiteId && s.MerchandiseId == merchId);
+
+                            var merchandise = stock?.Merchandises ?? await _context.Merchandises.FindAsync(merchId);
+                            if (merchandise == null)
+                            {
+                                await transaction.RollbackAsync();
+                                return StockTransferResult.Fail($"Merchandise {merchId} not found");
+                            }
+
+                            if (!merchandise.AllowNegativStock)
+                            {
+                                double available = stock?.Quantity ?? 0.0;
+                                if (available < delta)
+                                {
+                                    await transaction.RollbackAsync();
+                                    return StockTransferResult.Fail($"Insufficient stock for merchandise {merchId}. Available: {available:F2}, additional required: {delta:F2}");
+                                }
+                            }
+                        }
+                    }
+
+                    // Step 2: Apply stock adjustments
+                    foreach (var merchId in allMerchIds)
+                    {
+                        double oldQty = oldMerchMap.GetValueOrDefault(merchId, 0.0);
+                        double newQty = newMerchMap.GetValueOrDefault(merchId, 0.0);
+                        double delta = newQty - oldQty;
+
+                        if (Math.Abs(delta) < 0.0001) continue;
+
+                        var stock = await _context.Stocks
+                            .Include(s => s.Merchandises)
+                            .FirstOrDefaultAsync(s => s.SalesSiteId == originSiteId && s.MerchandiseId == merchId);
+
+                        if (delta > 0)
+                        {
+                            // Deduct delta from origin stock
+                            if (stock == null)
+                            {
+                                stock = new Stock
+                                {
+                                    SalesSiteId = originSiteId,
+                                    MerchandiseId = merchId,
+                                    Quantity = -delta,
+                                    CreationDate = DateTime.UtcNow,
+                                    UpdateDate = DateTime.UtcNow,
+                                    Type = TransactionType.Retrieve
+                                };
+                                _context.Stocks.Add(stock);
+                            }
+                            else
+                            {
+                                stock.Quantity -= delta;
+                                stock.UpdateDate = DateTime.UtcNow;
+                                stock.Type = TransactionType.Retrieve;
+                                if (stock.Quantity == 0)
+                                {
+                                    _context.Stocks.Remove(stock);
+                                }
+                            }
+                        }
+                        else // delta < 0
+                        {
+                            // Restore abs(delta) to origin stock
+                            double toRestore = Math.Abs(delta);
+                            if (stock == null)
+                            {
+                                stock = new Stock
+                                {
+                                    SalesSiteId = originSiteId,
+                                    MerchandiseId = merchId,
+                                    Quantity = toRestore,
+                                    CreationDate = DateTime.UtcNow,
+                                    UpdateDate = DateTime.UtcNow,
+                                    Type = TransactionType.Add
+                                };
+                                _context.Stocks.Add(stock);
+                            }
+                            else
+                            {
+                                stock.Quantity += toRestore;
+                                stock.UpdateDate = DateTime.UtcNow;
+                                stock.Type = TransactionType.Add;
+                            }
+                        }
+                    }
+
+                    // Step 3: Synchronize DocumentMerchandises in-place on ExitDocument and ReceiptDocument
+                    var exitDocMerch = transfer.ExitDocument.DocumentMerchandises.ToList();
+                    var receiptDocMerch = transfer.ReceiptDocument.DocumentMerchandises.ToList();
+
+                    var newItems = request.MerchandisesItems!.Where(i => i.id.HasValue).ToList();
+                    var newMerchIdSet = newItems.Select(i => i.id!.Value).ToHashSet();
+
+                    // 3a. Remove lines that are no longer in the request
+                    foreach (var exitDm in exitDocMerch)
+                    {
+                        if (exitDm.MerchandiseId.HasValue && !newMerchIdSet.Contains(exitDm.MerchandiseId.Value))
+                        {
+                            _context.DocumentMerchandises.Remove(exitDm);
+                            transfer.ExitDocument.DocumentMerchandises.Remove(exitDm);
+                        }
+                    }
+                    foreach (var receiptDm in receiptDocMerch)
+                    {
+                        if (receiptDm.MerchandiseId.HasValue && !newMerchIdSet.Contains(receiptDm.MerchandiseId.Value))
+                        {
+                            _context.DocumentMerchandises.Remove(receiptDm);
+                            transfer.ReceiptDocument.DocumentMerchandises.Remove(receiptDm);
+                        }
+                    }
+
+                    // 3b. Update existing lines or add new lines
+                    foreach (var item in newItems)
+                    {
+                        int mId = item.id!.Value;
+                        var exitDm = exitDocMerch.FirstOrDefault(dm => dm.MerchandiseId == mId);
+                        var receiptDm = receiptDocMerch.FirstOrDefault(dm => dm.MerchandiseId == mId);
+
+                        if (exitDm != null && receiptDm != null)
+                        {
+                            exitDm.Quantity = item.quantity;
+                            exitDm.UpdateDate = DateTime.UtcNow;
+
+                            receiptDm.Quantity = item.quantity;
+                            receiptDm.UpdateDate = DateTime.UtcNow;
+
+                            if (item.lisoflengths != null && item.lisoflengths.Any())
+                            {
+                                if (exitDm.QuantityMovements != null)
+                                    _context.QuantityMovements.Remove(exitDm.QuantityMovements);
+                                if (receiptDm.QuantityMovements != null)
+                                    _context.QuantityMovements.Remove(receiptDm.QuantityMovements);
+
+                                exitDm.QuantityMovements = CreateQuantityMovement(exitDm, -item.quantity, item.lisoflengths);
+                                receiptDm.QuantityMovements = CreateQuantityMovement(receiptDm, item.quantity, item.lisoflengths);
+                            }
+                        }
+                        else
+                        {
+                            var merchandise = await _context.Merchandises.FindAsync(mId);
+
+                            if (merchandise == null)
+                            {
+                                await transaction.RollbackAsync();
+                                return StockTransferResult.Fail($"Merchandise {mId} not found");
+                            }
+
+                            var newExitDm = new DocumentMerchandise
+                            {
+                                DocumentId = transfer.ExitDocumentId,
+                                MerchandiseId = merchandise.Id,
+                                Quantity = item.quantity,
+                                CreationDate = DateTime.UtcNow,
+                                UpdateDate = DateTime.UtcNow
+                            };
+
+                            var newReceiptDm = new DocumentMerchandise
+                            {
+                                DocumentId = transfer.ReceiptDocumentId,
+                                MerchandiseId = merchandise.Id,
+                                Quantity = item.quantity,
+                                CreationDate = DateTime.UtcNow,
+                                UpdateDate = DateTime.UtcNow
+                            };
+
+                            if (item.lisoflengths != null && item.lisoflengths.Any())
+                            {
+                                newExitDm.QuantityMovements = CreateQuantityMovement(newExitDm, -item.quantity, item.lisoflengths);
+                                newReceiptDm.QuantityMovements = CreateQuantityMovement(newReceiptDm, item.quantity, item.lisoflengths);
+                            }
+
+                            _context.DocumentMerchandises.Add(newExitDm);
+                            _context.DocumentMerchandises.Add(newReceiptDm);
+                            transfer.ExitDocument.DocumentMerchandises.Add(newExitDm);
+                            transfer.ReceiptDocument.DocumentMerchandises.Add(newReceiptDm);
+                        }
+                    }
+
+                    // Step 4: PIN code invalidation & regeneration for stock-affecting edit
+                    string newPin = new Random().Next(0, 10000).ToString("D4");
+                    while (newPin == transfer.ConfirmationCode)
+                    {
+                        newPin = new Random().Next(0, 10000).ToString("D4");
+                    }
+                    transfer.ConfirmationCode = newPin;
+                }
+
+                // Step 5: Update metadata fields
                 if (request.TransferDate.HasValue) transfer.TransferDate = request.TransferDate.Value;
                 if (request.Notes != null) transfer.Notes = request.Notes;
                 if (request.TransporterId.HasValue) transfer.TransporterId = request.TransporterId.Value;
-                if (request.UpdatedByUserId.HasValue) transfer.CreatedById = request.UpdatedByUserId.Value; // Track last editor
 
-                // 3. Update Merchandises if provided
-                if (request.MerchandisesItems != null && request.MerchandisesItems.Any())
+                // Vehicle update if provided
+                if (request.VehicleId.HasValue && transfer.TransporterId.HasValue)
                 {
-                    // Clear existing items in docs
-                    _context.DocumentMerchandises.RemoveRange(transfer.ExitDocument!.DocumentMerchandises);
-                    _context.DocumentMerchandises.RemoveRange(transfer.ReceiptDocument!.DocumentMerchandises);
-
-                    // Re-add new items
-                    foreach (var merchItem in request.MerchandisesItems)
+                    var transporter = await _context.Transporters.FindAsync(transfer.TransporterId.Value);
+                    if (transporter != null)
                     {
-                        var merchandise = await _context.Merchandises.FindAsync(merchItem.id);
-                        if (merchandise == null)
-                        {
-                            await transaction.RollbackAsync();
-                            return StockTransferResult.Fail($"Merchandise {merchItem.id} not found");
-                        }
-
-                        var exitDM = new DocumentMerchandise
-                        {
-                            DocumentId = transfer.ExitDocumentId,
-                            MerchandiseId = merchandise.Id,
-                            Quantity = merchItem.quantity,
-                            CreationDate = DateTime.UtcNow,
-                            UpdateDate = DateTime.UtcNow
-                        };
-
-                        var receiptDM = new DocumentMerchandise
-                        {
-                            DocumentId = transfer.ReceiptDocumentId,
-                            MerchandiseId = merchandise.Id,
-                            Quantity = merchItem.quantity,
-                            CreationDate = DateTime.UtcNow,
-                            UpdateDate = DateTime.UtcNow
-                        };
-
-                        // Handle movements/lengths if needed (simplified for brevity here, should mirror InitiateTransferAsync)
-                         if (merchItem.lisoflengths != null && merchItem.lisoflengths.Any())
-                        {
-                            exitDM.QuantityMovements = CreateQuantityMovement(exitDM, -merchItem.quantity, merchItem.lisoflengths);
-                            receiptDM.QuantityMovements = CreateQuantityMovement(receiptDM, merchItem.quantity, merchItem.lisoflengths);
-                        }
-
-                        _context.DocumentMerchandises.Add(exitDM);
-                        _context.DocumentMerchandises.Add(receiptDM);
+                        transporter.VehicleId = request.VehicleId.Value;
                     }
+                }
+
+                // Step 6: Increment revision & update audit fields
+                transfer.RevisionNumber += 1;
+                transfer.UpdateDate = DateTime.UtcNow;
+                if (request.UpdatedByUserId.HasValue)
+                {
+                    transfer.UpdatedById = request.UpdatedByUserId.Value;
+                }
+
+                transfer.ExitDocument.UpdateDate = DateTime.UtcNow;
+                transfer.ReceiptDocument.UpdateDate = DateTime.UtcNow;
+                if (request.UpdatedByUserId.HasValue)
+                {
+                    transfer.ExitDocument.UpdatedById = request.UpdatedByUserId.Value;
+                    transfer.ReceiptDocument.UpdatedById = request.UpdatedByUserId.Value;
                 }
 
                 await _context.SaveChangesAsync();
 
-                // 4. Re-apply stock reduction at origin site
-                await _repository.UpdateStockForTransfer(transfer.ExitDocumentId, null);
+                if (isStockAffecting)
+                {
+                    await _docRepository.updateListOfIdsListOfLengths(transfer.ExitDocument);
+                    await _context.SaveChangesAsync();
+                }
 
+                // Commit the entire atomic transaction
                 await transaction.CommitAsync();
 
-                // 5. Notify destination site of the update
-                var originSite = await _context.SalesSites.FindAsync(transfer.ExitDocument!.SalesSiteId);
-                var destinationSite = await _context.SalesSites.FindAsync(transfer.ReceiptDocument!.SalesSiteId);
-                
-                await SendTransferNotificationAsync(destinationSite!, originSite!, transfer, request.MerchandisesItems?.Length ?? 0, transfer.ExitDocument!.DocNumber!, transfer.ReceiptDocument!.DocNumber!);
+                // Step 7: Update existing PendingNotification.Content and emit SignalR event
+                int itemsCount = transfer.ExitDocument.DocumentMerchandises.Count;
+                var pendingNotifications = await _context.PendingNotifications
+                    .Where(n => n.Status == TransferStatus.Pending || n.Status == TransferStatus.Delivered)
+                    .ToListAsync();
 
-                return StockTransferResult.Ok("Transfer updated successfully", transfer.Id, transfer.Reference ?? "", transfer.ExitDocument.DocNumber!, transfer.ReceiptDocument.DocNumber!, "Pending", transfer.ConfirmationCode);
+                foreach (var notif in pendingNotifications)
+                {
+                    try
+                    {
+                        var content = JsonSerializer.Deserialize<NotificationDto>(notif.Content ?? "{}");
+                        if (content != null && content.TransferId == transfer.Id)
+                        {
+                            content.ItemsCount = itemsCount;
+                            content.Reference = transfer.Reference;
+                            content.ConfirmationCode = transfer.ConfirmationCode;
+                            content.AdditionalData = new
+                            {
+                                ExitDocNumber = transfer.ExitDocument.DocNumber,
+                                ReceiptDocNumber = transfer.ReceiptDocument.DocNumber,
+                                RevisionNumber = transfer.RevisionNumber,
+                                UpdateDate = transfer.UpdateDate
+                            };
+                            notif.Content = JsonSerializer.Serialize(content);
+                        }
+                    }
+                    catch { }
+                }
+                await _context.SaveChangesAsync();
+
+                // SignalR: Broadcast TransferUpdated to destination site group
+                var destSiteGroup = GetSiteGroupName(transfer.ReceiptDocument.SalesSiteId);
+                await _hubContext.Clients.Group(destSiteGroup).SendAsync("TransferUpdated", new
+                {
+                    TransferId = transfer.Id,
+                    Reference = transfer.Reference,
+                    ItemsCount = itemsCount,
+                    RevisionNumber = transfer.RevisionNumber,
+                    OriginSiteId = transfer.ExitDocument.SalesSiteId,
+                    DestinationSiteId = transfer.ReceiptDocument.SalesSiteId,
+                    UpdateDate = transfer.UpdateDate,
+                    Message = $"Le transfert {transfer.Reference} a été modifié par l'expéditeur (Révision {transfer.RevisionNumber})."
+                });
+
+                return StockTransferResult.Ok(
+                    "Transfer updated successfully",
+                    transfer.Id,
+                    transfer.Reference ?? "",
+                    transfer.ExitDocument.DocNumber!,
+                    transfer.ReceiptDocument.DocNumber!,
+                    "Pending",
+                    transfer.ConfirmationCode,
+                    transfer.RevisionNumber,
+                    isStockAffecting
+                );
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                _logger.LogError(ex, "Error updating transfer");
+                _logger.LogError(ex, "Error updating transfer {TransferId}", transferId);
                 return StockTransferResult.Fail($"Error updating transfer: {ex.Message}");
+            }
+        }
+
+        /**
+         * Resend a previously rejected stock transfer (P2: Rejected -> Modifier et Renvoyer -> Pending)
+         * @param transferId The ID of the rejected transfer to resend
+         * @param request The update payload containing metadata and merchandise items
+         * @returns The result of the resend
+         */
+        public async Task<StockTransferResult> ResendTransferAsync(int transferId, UpdateTransferRequest request)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var transfer = await _context.StockTransfers
+                    .Include(t => t.ExitDocument)
+                        .ThenInclude(d => d!.DocumentMerchandises)
+                            .ThenInclude(dm => dm.QuantityMovements)
+                                .ThenInclude(qm => qm!.ListOfLengths)
+                    .Include(t => t.ReceiptDocument)
+                        .ThenInclude(d => d!.DocumentMerchandises)
+                            .ThenInclude(dm => dm.QuantityMovements)
+                                .ThenInclude(qm => qm!.ListOfLengths)
+                    .FirstOrDefaultAsync(t => t.Id == transferId);
+
+                if (transfer == null)
+                    return StockTransferResult.Fail("Transfer not found");
+
+                // Strict Status checks: Resend is allowed ONLY when transfer.Status == Rejected
+                if (transfer.Status == TransferStatus.Pending)
+                    return StockTransferResult.Fail("Pending transfers cannot be resent. Please use the edit endpoint to modify pending transfers.");
+
+                if (transfer.Status == TransferStatus.Confirmed)
+                    return StockTransferResult.Fail("Confirmed transfers cannot be resent. Confirmed transfers are immutable.");
+
+                if (transfer.Status != TransferStatus.Rejected)
+                    return StockTransferResult.Fail("Only rejected transfers can be resent via this endpoint.");
+
+                if (transfer.ExitDocument == null || transfer.ReceiptDocument == null)
+                    return StockTransferResult.Fail("Transfer documents not found");
+
+                // Immutability checks: Origin and Destination sites MUST NEVER be editable
+                if (request.OriginSiteId.HasValue && request.OriginSiteId.Value != transfer.ExitDocument.SalesSiteId)
+                    return StockTransferResult.Fail("Origin site cannot be changed. Please create a new transfer instead.");
+
+                if (request.DestinationSiteId.HasValue && request.DestinationSiteId.Value != transfer.ReceiptDocument.SalesSiteId)
+                    return StockTransferResult.Fail("Destination site cannot be changed. Please create a new transfer instead.");
+
+                // Authorization: Only sender / authorized user from the origin site may resend
+                if (request.UpdatedByUserId.HasValue && request.UpdatedByUserId.Value > 0)
+                {
+                    var user = await _context.AppUsers
+                        .Include(u => u.SalesSite)
+                        .FirstOrDefaultAsync(u => u.Id == request.UpdatedByUserId.Value);
+
+                    if (user == null)
+                        return StockTransferResult.Fail("User not found.");
+
+                    // If user has an assigned site, it must match the origin site
+                    if (user.IdSalesSite.HasValue && user.IdSalesSite.Value != transfer.ExitDocument.SalesSiteId)
+                    {
+                        return StockTransferResult.Fail("Forbidden: You are not authorized to resend this transfer. Only authorized users from the origin site can resend.");
+                    }
+                }
+
+                int originSiteId = transfer.ExitDocument.SalesSiteId;
+
+                // Determine merchandise items to send
+                List<MerchandiseDto> itemsToSend;
+                if (request.MerchandisesItems != null && request.MerchandisesItems.Length > 0)
+                {
+                    itemsToSend = request.MerchandisesItems.Where(i => i.id.HasValue && i.quantity > 0).ToList();
+                }
+                else
+                {
+                    itemsToSend = transfer.ExitDocument.DocumentMerchandises
+                        .Where(dm => dm.MerchandiseId.HasValue && dm.Quantity > 0)
+                        .Select(dm => new MerchandiseDto
+                        {
+                            id = dm.MerchandiseId,
+                            quantity = dm.Quantity,
+                            packagereference = dm.Merchandise?.PackageReference ?? "Standard",
+                            lisoflengths = dm.QuantityMovements?.ListOfLengths?.Select(l => new ListOflengthDto
+                            {
+                                nbpieces = l.NumberOfPieces,
+                                quantity = l.Quantity,
+                                length = l.AppVarLengthId > 0 ? new AppVariableDto { id = l.AppVarLengthId } : null
+                            }).ToArray()
+                        }).ToList();
+                }
+
+                if (itemsToSend.Count == 0)
+                {
+                    await transaction.RollbackAsync();
+                    return StockTransferResult.Fail("Transfer must contain at least one merchandise item with positive quantity.");
+                }
+
+                // STEP 1: Pre-validate FULL STOCK AVAILABILITY at the origin depot for 100% of the requested items
+                // (Because when the transfer was rejected, the previous stock deduction was completely restored)
+                var merchQuantities = itemsToSend
+                    .GroupBy(i => i.id!.Value)
+                    .ToDictionary(g => g.Key, g => g.Sum(i => i.quantity));
+
+                foreach (var kvp in merchQuantities)
+                {
+                    int merchId = kvp.Key;
+                    double requiredQty = kvp.Value;
+
+                    var stock = await _context.Stocks
+                        .Include(s => s.Merchandises)
+                        .FirstOrDefaultAsync(s => s.SalesSiteId == originSiteId && s.MerchandiseId == merchId);
+
+                    var merchandise = stock?.Merchandises ?? await _context.Merchandises.FindAsync(merchId);
+                    if (merchandise == null)
+                    {
+                        await transaction.RollbackAsync();
+                        return StockTransferResult.Fail($"Merchandise {merchId} not found");
+                    }
+
+                    if (!merchandise.AllowNegativStock)
+                    {
+                        double available = stock?.Quantity ?? 0.0;
+                        if (available < requiredQty)
+                        {
+                            await transaction.RollbackAsync();
+                            return StockTransferResult.Fail($"Insufficient stock for merchandise {merchId}. Available: {available:F2}, required: {requiredQty:F2}");
+                        }
+                    }
+                }
+
+                // STEP 2: Deduct FULL requested quantities from origin stock in tbl_stock
+                foreach (var kvp in merchQuantities)
+                {
+                    int merchId = kvp.Key;
+                    double requiredQty = kvp.Value;
+
+                    var stock = await _context.Stocks
+                        .Include(s => s.Merchandises)
+                        .FirstOrDefaultAsync(s => s.SalesSiteId == originSiteId && s.MerchandiseId == merchId);
+
+                    if (stock == null)
+                    {
+                        stock = new Stock
+                        {
+                            SalesSiteId = originSiteId,
+                            MerchandiseId = merchId,
+                            Quantity = -requiredQty,
+                            CreationDate = DateTime.UtcNow,
+                            UpdateDate = DateTime.UtcNow,
+                            Type = TransactionType.Retrieve
+                        };
+                        _context.Stocks.Add(stock);
+                    }
+                    else
+                    {
+                        stock.Quantity -= requiredQty;
+                        stock.UpdateDate = DateTime.UtcNow;
+                        stock.Type = TransactionType.Retrieve;
+                        if (stock.Quantity == 0)
+                        {
+                            _context.Stocks.Remove(stock);
+                        }
+                    }
+                }
+
+                // STEP 3: Synchronize DocumentMerchandises in-place on ExitDocument and ReceiptDocument
+                var exitDocMerch = transfer.ExitDocument.DocumentMerchandises.ToList();
+                var receiptDocMerch = transfer.ReceiptDocument.DocumentMerchandises.ToList();
+                var newMerchIdSet = itemsToSend.Select(i => i.id!.Value).ToHashSet();
+
+                // 3a. Remove lines that are no longer in the request
+                foreach (var exitDm in exitDocMerch)
+                {
+                    if (exitDm.MerchandiseId.HasValue && !newMerchIdSet.Contains(exitDm.MerchandiseId.Value))
+                    {
+                        _context.DocumentMerchandises.Remove(exitDm);
+                        transfer.ExitDocument.DocumentMerchandises.Remove(exitDm);
+                    }
+                }
+                foreach (var receiptDm in receiptDocMerch)
+                {
+                    if (receiptDm.MerchandiseId.HasValue && !newMerchIdSet.Contains(receiptDm.MerchandiseId.Value))
+                    {
+                        _context.DocumentMerchandises.Remove(receiptDm);
+                        transfer.ReceiptDocument.DocumentMerchandises.Remove(receiptDm);
+                    }
+                }
+
+                // 3b. Update existing lines or add new lines
+                foreach (var item in itemsToSend)
+                {
+                    int mId = item.id!.Value;
+                    var exitDm = exitDocMerch.FirstOrDefault(dm => dm.MerchandiseId == mId);
+                    var receiptDm = receiptDocMerch.FirstOrDefault(dm => dm.MerchandiseId == mId);
+
+                    if (exitDm != null && receiptDm != null)
+                    {
+                        exitDm.Quantity = item.quantity;
+                        exitDm.UpdateDate = DateTime.UtcNow;
+
+                        receiptDm.Quantity = item.quantity;
+                        receiptDm.UpdateDate = DateTime.UtcNow;
+
+                        if (item.lisoflengths != null && item.lisoflengths.Any())
+                        {
+                            if (exitDm.QuantityMovements != null)
+                                _context.QuantityMovements.Remove(exitDm.QuantityMovements);
+                            if (receiptDm.QuantityMovements != null)
+                                _context.QuantityMovements.Remove(receiptDm.QuantityMovements);
+
+                            exitDm.QuantityMovements = CreateQuantityMovement(exitDm, -item.quantity, item.lisoflengths);
+                            receiptDm.QuantityMovements = CreateQuantityMovement(receiptDm, item.quantity, item.lisoflengths);
+                        }
+                    }
+                    else
+                    {
+                        var merchandise = await _context.Merchandises.FindAsync(mId);
+                        if (merchandise == null)
+                        {
+                            await transaction.RollbackAsync();
+                            return StockTransferResult.Fail($"Merchandise {mId} not found");
+                        }
+
+                        var newExitDm = new DocumentMerchandise
+                        {
+                            DocumentId = transfer.ExitDocumentId,
+                            MerchandiseId = merchandise.Id,
+                            Quantity = item.quantity,
+                            CreationDate = DateTime.UtcNow,
+                            UpdateDate = DateTime.UtcNow
+                        };
+
+                        var newReceiptDm = new DocumentMerchandise
+                        {
+                            DocumentId = transfer.ReceiptDocumentId,
+                            MerchandiseId = merchandise.Id,
+                            Quantity = item.quantity,
+                            CreationDate = DateTime.UtcNow,
+                            UpdateDate = DateTime.UtcNow
+                        };
+
+                        if (item.lisoflengths != null && item.lisoflengths.Any())
+                        {
+                            newExitDm.QuantityMovements = CreateQuantityMovement(newExitDm, -item.quantity, item.lisoflengths);
+                            newReceiptDm.QuantityMovements = CreateQuantityMovement(newReceiptDm, item.quantity, item.lisoflengths);
+                        }
+
+                        _context.DocumentMerchandises.Add(newExitDm);
+                        _context.DocumentMerchandises.Add(newReceiptDm);
+                        transfer.ExitDocument.DocumentMerchandises.Add(newExitDm);
+                        transfer.ReceiptDocument.DocumentMerchandises.Add(newReceiptDm);
+                    }
+                }
+
+                // STEP 4: State Transition & Mandatory PIN Regeneration
+                string newPin = new Random().Next(0, 10000).ToString("D4");
+                while (newPin == transfer.ConfirmationCode)
+                {
+                    newPin = new Random().Next(0, 10000).ToString("D4");
+                }
+                transfer.ConfirmationCode = newPin;
+
+                transfer.Status = TransferStatus.Pending;
+                transfer.RevisionNumber += 1;
+                transfer.UpdateDate = DateTime.UtcNow;
+                if (request.UpdatedByUserId.HasValue)
+                {
+                    transfer.UpdatedById = request.UpdatedByUserId.Value;
+                }
+
+                // Reset confirmation & rejection tracking fields on active transfer
+                transfer.ConfirmedById = null;
+                transfer.ConfirmationDate = null;
+                transfer.RejectionReason = null;
+
+                // Update metadata fields if provided
+                if (request.TransferDate.HasValue) transfer.TransferDate = request.TransferDate.Value;
+                if (request.Notes != null) transfer.Notes = request.Notes;
+                if (request.TransporterId.HasValue) transfer.TransporterId = request.TransporterId.Value;
+
+                if (request.VehicleId.HasValue && transfer.TransporterId.HasValue)
+                {
+                    var transporter = await _context.Transporters.FindAsync(transfer.TransporterId.Value);
+                    if (transporter != null)
+                    {
+                        transporter.VehicleId = request.VehicleId.Value;
+                    }
+                }
+
+                transfer.ExitDocument.UpdateDate = DateTime.UtcNow;
+                transfer.ReceiptDocument.UpdateDate = DateTime.UtcNow;
+                if (request.UpdatedByUserId.HasValue)
+                {
+                    transfer.ExitDocument.UpdatedById = request.UpdatedByUserId.Value;
+                    transfer.ReceiptDocument.UpdatedById = request.UpdatedByUserId.Value;
+                }
+
+                await _context.SaveChangesAsync();
+                await _docRepository.updateListOfIdsListOfLengths(transfer.ExitDocument);
+                await _context.SaveChangesAsync();
+
+                // STEP 5: Notification Persistence
+                // Find existing notification or create new one so destination has active Pending notification
+                var destinationSiteId = transfer.ReceiptDocument.SalesSiteId;
+                var allGroupNotifications = await _context.PendingNotifications
+                    .Where(n => n.TargetGroup == destinationSiteId.ToString() || 
+                                n.TargetGroup == GetSiteGroupName(destinationSiteId))
+                    .ToListAsync();
+
+                PendingNotification? existingNotif = null;
+                foreach (var notif in allGroupNotifications)
+                {
+                    try
+                    {
+                        var c = JsonSerializer.Deserialize<NotificationDto>(notif.Content ?? "{}");
+                        if (c != null && c.TransferId == transfer.Id)
+                        {
+                            existingNotif = notif;
+                            break;
+                        }
+                    }
+                    catch { }
+                }
+
+                var notifPayload = new NotificationDto
+                {
+                    NotificationType = "TransferResent",
+                    TargetGroup = GetSiteGroupName(destinationSiteId),
+                    TransferId = transfer.Id,
+                    Reference = transfer.Reference,
+                    OriginSite = transfer.ExitDocument.SalesSite?.Address ?? "Origine",
+                    ItemsCount = transfer.ExitDocument.DocumentMerchandises.Count,
+                    ConfirmationCode = transfer.ConfirmationCode,
+                    AdditionalData = new
+                    {
+                        ExitDocNumber = transfer.ExitDocument.DocNumber,
+                        ReceiptDocNumber = transfer.ReceiptDocument.DocNumber,
+                        RevisionNumber = transfer.RevisionNumber
+                    }
+                };
+
+                if (existingNotif != null)
+                {
+                    existingNotif.Status = TransferStatus.Pending;
+                    existingNotif.DeliveredAt = null;
+                    existingNotif.RetryCount = 0;
+                    existingNotif.Content = JsonSerializer.Serialize(notifPayload);
+                }
+                else
+                {
+                    var newNotif = new PendingNotification
+                    {
+                        Content = JsonSerializer.Serialize(notifPayload),
+                        TargetGroup = GetSiteGroupName(destinationSiteId),
+                        CreatedAt = DateTime.UtcNow,
+                        Status = TransferStatus.Pending,
+                        RetryCount = 0
+                    };
+                    _context.PendingNotifications.Add(newNotif);
+                }
+
+                await _context.SaveChangesAsync();
+
+                // Commit the atomic database transaction
+                await transaction.CommitAsync();
+
+                // STEP 6: SignalR Broadcast (After Commit)
+                var destGroupName = GetSiteGroupName(destinationSiteId);
+
+                // Broadcast ReceiveTransferNotification to ensure receiver UI adds it back to pending drawer
+                await _hubContext.Clients.Group(destGroupName)
+                    .SendAsync("ReceiveTransferNotification", new
+                    {
+                        transferId = transfer.Id,
+                        reference = transfer.Reference,
+                        originSite = transfer.ExitDocument.SalesSite?.Address ?? "Origine",
+                        itemsCount = transfer.ExitDocument.DocumentMerchandises.Count,
+                        exitDocNumber = transfer.ExitDocument.DocNumber,
+                        receiptDocNumber = transfer.ReceiptDocument.DocNumber,
+                        destinationSiteId = destinationSiteId.ToString(),
+                        revisionNumber = transfer.RevisionNumber,
+                        isResent = true
+                    });
+
+                // Also broadcast TransferResent for explicit toast display
+                await _hubContext.Clients.Group(destGroupName)
+                    .SendAsync("TransferResent", new
+                    {
+                        TransferId = transfer.Id,
+                        Reference = transfer.Reference,
+                        RevisionNumber = transfer.RevisionNumber,
+                        OriginSite = transfer.ExitDocument.SalesSite?.Address ?? "Origine"
+                    });
+
+                return StockTransferResult.Ok(
+                    "Transfer resent successfully",
+                    transfer.Id,
+                    transfer.Reference!,
+                    transfer.ExitDocument.DocNumber!,
+                    transfer.ReceiptDocument.DocNumber!,
+                    "Pending",
+                    newPin,
+                    transfer.RevisionNumber,
+                    true
+                );
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error resending transfer {TransferId}", transferId);
+                return StockTransferResult.Fail($"Error resending transfer: {ex.Message}");
             }
         }
 

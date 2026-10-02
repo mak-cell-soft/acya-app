@@ -32,16 +32,26 @@ import {
   Loader2,
   Lock,
   PlusCircle,
-  Printer
+  Printer,
+  Pencil,
+  RotateCcw,
+  AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PrintVariantDialog } from '@/components/print/print-trigger-button';
+import { StockTransferEditDialog } from './stock-transfer-edit-dialog';
 
 export function StockTransfersList() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin';
+
+  const isOriginUser = (tr: StockTransferInfo) => {
+    if (isAdmin) return true;
+    if (!tr.originSiteId || !user?.defaultSiteId) return true;
+    return Number(user.defaultSiteId) === Number(tr.originSiteId);
+  };
 
   const formatQuantity = (qty: number, unit?: string | null) => {
     const isM3 = unit?.toUpperCase().includes('M3') || unit?.toUpperCase().includes('MÈTRE 3') || unit?.toUpperCase().includes('METRE 3');
@@ -59,6 +69,9 @@ export function StockTransfersList() {
   
   // State for printing transfer
   const [printTransfer, setPrintTransfer] = useState<{ transfer: StockTransferInfo; details: any[] } | null>(null);
+
+  // State for editing pending transfer
+  const [editTransfer, setEditTransfer] = useState<StockTransferInfo | null>(null);
   
   // Confirmation / Rejection form state
   const [isConfirmingMode, setIsConfirmingMode] = useState(false);
@@ -252,13 +265,35 @@ export function StockTransfersList() {
 
                     {/* Action buttons */}
                     <td className="p-4 pr-5 text-center">
-                      <Button
-                        variant="ghost"
-                        onClick={() => handleOpenDetails(tr)}
-                        className="h-8 px-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-600 dark:text-stone-400 gap-1 font-semibold text-[10px] uppercase tracking-wider"
-                      >
-                        <Eye className="h-3.5 w-3.5" /> Voir
-                      </Button>
+                      <div className="flex items-center justify-center gap-1">
+                        <Button
+                          variant="ghost"
+                          onClick={() => handleOpenDetails(tr)}
+                          className="h-8 px-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-600 dark:text-stone-400 gap-1 font-semibold text-[10px] uppercase tracking-wider"
+                        >
+                          <Eye className="h-3.5 w-3.5" /> Voir
+                        </Button>
+
+                        {tr.status === TransferStatus.Pending && (
+                          <Button
+                            variant="ghost"
+                            onClick={() => setEditTransfer(tr)}
+                            className="h-8 px-2 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-950/30 text-amber-700 dark:text-amber-400 gap-1 font-semibold text-[10px] uppercase tracking-wider"
+                          >
+                            <Pencil className="h-3.5 w-3.5" /> Modifier
+                          </Button>
+                        )}
+
+                        {tr.status === TransferStatus.Rejected && isOriginUser(tr) && (
+                          <Button
+                            variant="ghost"
+                            onClick={() => setEditTransfer(tr)}
+                            className="h-8 px-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-700 dark:text-rose-400 gap-1 font-semibold text-[10px] uppercase tracking-wider"
+                          >
+                            <RotateCcw className="h-3.5 w-3.5" /> Modifier et Renvoyer
+                          </Button>
+                        )}
+                      </div>
                     </td>
 
                   </tr>
@@ -301,6 +336,19 @@ export function StockTransfersList() {
               </div>
             </div>
           </div>
+
+          {/* Rejection Notice if transfer is Rejected */}
+          {selectedTransfer?.status === TransferStatus.Rejected && (
+            <div className="p-3.5 bg-rose-50 dark:bg-rose-950/30 rounded-xl border border-rose-200 dark:border-rose-900/60 space-y-1">
+              <span className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400 tracking-wider flex items-center gap-1.5">
+                <AlertTriangle className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
+                Ce transfert a été rejeté par la destination
+              </span>
+              <p className="text-xs text-rose-850 dark:text-rose-200 font-medium">
+                {selectedTransfer.rejectionReason ? `« ${selectedTransfer.rejectionReason} »` : 'Aucun motif de rejet renseigné.'}
+              </p>
+            </div>
+          )}
 
           {/* Notes / Instructions section if present */}
           {(selectedTransfer?.notes || (transferDetails?.[0] as any)?.notes) && (
@@ -362,6 +410,20 @@ export function StockTransfersList() {
 
 
           <DialogFooter className="border-t border-stone-100 dark:border-stone-900 pt-4 gap-2">
+            {selectedTransfer?.status === TransferStatus.Rejected && isOriginUser(selectedTransfer) && (
+              <Button
+                type="button"
+                onClick={() => {
+                  const tr = selectedTransfer;
+                  setSelectedTransfer(null);
+                  setEditTransfer(tr);
+                }}
+                className="h-10 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-xl gap-2 transition-all px-4"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Modifier et Renvoyer
+              </Button>
+            )}
             {selectedTransfer && !isLoadingDetails && (
               <Button
                 type="button"
@@ -397,6 +459,13 @@ export function StockTransfersList() {
         transfer={printTransfer?.transfer}
         transferDetails={printTransfer?.details}
         docType="transfer"
+      />
+
+      {/* Edit Pending Transfer Dialog */}
+      <StockTransferEditDialog
+        isOpen={editTransfer !== null}
+        onClose={() => setEditTransfer(null)}
+        transfer={editTransfer}
       />
     </div>
   );

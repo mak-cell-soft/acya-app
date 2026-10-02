@@ -184,8 +184,24 @@ namespace ms.webapp.api.acya.api.Controllers
     [HttpPut("transfers/{transferId}")]
     public async Task<ActionResult> UpdateTransfer(int transferId, [FromBody] UpdateTransferRequest request)
     {
+        // Enforce authenticated user from JWT if available
+        var authUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(authUserIdStr, out var authUserId) && authUserId > 0)
+        {
+            request.UpdatedByUserId = authUserId;
+        }
+
         var result = await _stockService.UpdateTransferAsync(transferId, request);
-        if (!result.Success) return BadRequest(result.Message);
+        if (!result.Success)
+        {
+            if (result.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+                return NotFound(new { Message = result.Message });
+            if (result.Message.Contains("authorized", StringComparison.OrdinalIgnoreCase))
+                return StatusCode(403, new { Message = result.Message });
+            if (result.Message.Contains("Confirmed", StringComparison.OrdinalIgnoreCase))
+                return Conflict(new { Message = result.Message });
+            return BadRequest(new { Message = result.Message });
+        }
 
         return Ok(new
         {
@@ -193,7 +209,47 @@ namespace ms.webapp.api.acya.api.Controllers
             TransferId = result.TransferId,
             TransferRef = result.TransferRef,
             ExitDocNumber = result.ExitDocumentNumber,
-            ReceiptDocNumber = result.ReceiptDocumentNumber
+            ReceiptDocNumber = result.ReceiptDocumentNumber,
+            ConfirmationCode = result.ConfirmationCode,
+            RevisionNumber = result.RevisionNumber,
+            PinRegenerated = result.PinRegenerated,
+            Status = result.Status
+        });
+    }
+
+    [HttpPost("transfers/{transferId}/resend")]
+    public async Task<ActionResult> ResendTransfer(int transferId, [FromBody] UpdateTransferRequest request)
+    {
+        // Enforce authenticated user from JWT if available
+        var authUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(authUserIdStr, out var authUserId) && authUserId > 0)
+        {
+            request.UpdatedByUserId = authUserId;
+        }
+
+        var result = await _stockService.ResendTransferAsync(transferId, request);
+        if (!result.Success)
+        {
+            if (result.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+                return NotFound(new { Message = result.Message });
+            if (result.Message.Contains("authorized", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("Forbidden", StringComparison.OrdinalIgnoreCase))
+                return StatusCode(403, new { Message = result.Message });
+            if (result.Message.Contains("Confirmed", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("Pending", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("Only rejected", StringComparison.OrdinalIgnoreCase))
+                return Conflict(new { Message = result.Message });
+            return BadRequest(new { Message = result.Message });
+        }
+
+        return Ok(new
+        {
+            Message = result.Message,
+            TransferId = result.TransferId,
+            TransferRef = result.TransferRef,
+            ExitDocNumber = result.ExitDocumentNumber,
+            ReceiptDocNumber = result.ReceiptDocumentNumber,
+            ConfirmationCode = result.ConfirmationCode,
+            RevisionNumber = result.RevisionNumber,
+            PinRegenerated = result.PinRegenerated,
+            Status = result.Status
         });
     }
 

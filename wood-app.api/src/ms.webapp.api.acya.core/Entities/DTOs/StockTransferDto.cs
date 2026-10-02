@@ -41,6 +41,9 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? VehicleSerialNumber { get; set; }
     public string? Notes { get; set; }
     public string? Reference { get; set; }
+    public int RevisionNumber { get; set; } = 1;
+    public DateTime? UpdateDate { get; set; }
+    public string? RejectionReason { get; set; }
   }
 
   public class StockTransferDetailsDto
@@ -72,6 +75,9 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? VehicleSerialNumber { get; set; }
     public string? Notes { get; set; }
     public string? Reference { get; set; }
+    public int RevisionNumber { get; set; } = 1;
+    public DateTime? UpdateDate { get; set; }
+    public string? RejectionReason { get; set; }
     public IEnumerable<ListOflengthDto>? ExitDocLengths { get; set; }
   }
 
@@ -81,6 +87,10 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? Notes { get; set; }
     public DateTime? TransferDate { get; set; }
     public int? TransporterId { get; set; }
+    public int? VehicleId { get; set; }
+    public string? VehicleSerialNumber { get; set; }
+    public int? OriginSiteId { get; set; }
+    public int? DestinationSiteId { get; set; }
     public int? UpdatedByUserId { get; set; }
   }
 

@@ -10,6 +10,7 @@ namespace ms.webapp.api.acya.core.Interfaces
         Task<StockTransferResult> ConfirmTransferAsync(int transferId, int confirmedByUserId, string? confirmationCode = null, string? comment = null);
         Task<StockTransferResult> RejectTransferAsync(int transferId, int rejectedByUserId, string reason);
         Task<StockTransferResult> UpdateTransferAsync(int transferId, UpdateTransferRequest request);
+        Task<StockTransferResult> ResendTransferAsync(int transferId, UpdateTransferRequest request);
         
         // Handling Transactions (Single stock update)
         Task HandleTransactionAsync(Stock transaction);

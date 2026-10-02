@@ -118,6 +118,18 @@ namespace ms.webapp.api.acya.api.Services
                 .Where(r => movementDocumentIds.Contains(r.ParentDocumentId) || movementDocumentIds.Contains(r.ChildDocumentId))
                 .ToListAsync();
 
+            // Resolve transfers in bulk for movement filtering and display
+            var transferIds = movements.Where(m => m.Type == DocumentTypes.stockTransfer).Select(m => m.DocumentId).Distinct().ToList();
+            var transfers = new List<StockTransfer>();
+            if (transferIds.Any())
+            {
+                transfers = await _context.StockTransfers
+                    .Include(st => st.ExitDocument).ThenInclude(ed => ed!.SalesSite)
+                    .Include(st => st.ReceiptDocument).ThenInclude(rd => rd!.SalesSite)
+                    .Where(st => transferIds.Contains(st.ExitDocumentId) || transferIds.Contains(st.ReceiptDocumentId))
+                    .ToListAsync();
+            }
+
             var filteredMovements = movements.Where(mov => 
             {
                 if (mov.Type == DocumentTypes.customerInvoice || mov.Type == DocumentTypes.supplierInvoice)
@@ -139,23 +151,35 @@ namespace ms.webapp.api.acya.api.Services
                         return false;
                     }
                 }
+
+                if (mov.Type == DocumentTypes.stockTransfer)
+                {
+                    var transfer = transfers.FirstOrDefault(st => st.ExitDocumentId == mov.DocumentId || st.ReceiptDocumentId == mov.DocumentId);
+                    if (transfer != null)
+                    {
+                        // P0-2: Rejected or Cancelled transfers:
+                        // Source stock was restored in tbl_stock, and destination stock was never added.
+                        // Neither the exit document nor receipt document represents an effective stock movement.
+                        if (transfer.Status == TransferStatus.Rejected || transfer.Status == TransferStatus.Cancelled)
+                        {
+                            return false;
+                        }
+
+                        // P0-1: Pending transfers at destination:
+                        // The receipt document is created during initiation, but destination stock is NOT increased until confirmation.
+                        // Therefore, a receipt document belonging to a StockTransfer only contributes a positive movement when Confirmed.
+                        if (transfer.ReceiptDocumentId == mov.DocumentId && transfer.Status != TransferStatus.Confirmed)
+                        {
+                            return false;
+                        }
+                    }
+                }
+
                 return true;
             }).ToList();
 
             var result = new List<StockMovementTimelineDto>();
             double runningTotal = 0;
-
-            // Resolve transfers in bulk
-            var transferIds = filteredMovements.Where(m => m.Type == DocumentTypes.stockTransfer).Select(m => m.DocumentId).Distinct().ToList();
-            var transfers = new List<StockTransfer>();
-            if (transferIds.Any())
-            {
-                transfers = await _context.StockTransfers
-                    .Include(st => st.ExitDocument).ThenInclude(ed => ed!.SalesSite)
-                    .Include(st => st.ReceiptDocument).ThenInclude(rd => rd!.SalesSite)
-                    .Where(st => transferIds.Contains(st.ExitDocumentId) || transferIds.Contains(st.ReceiptDocumentId))
-                    .ToListAsync();
-            }
 
             foreach (var mov in filteredMovements)
             {

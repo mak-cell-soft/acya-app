@@ -33,6 +33,11 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
             entity.Property(e => e.ConfirmationCode)
                   .HasColumnName("confirmationcode")
                   .HasMaxLength(10);
+            entity.Property(e => e.RevisionNumber)
+                  .HasColumnName("revisionnumber")
+                  .HasDefaultValue(1);
+            entity.Property(e => e.UpdateDate).HasColumnName("updatedate");
+            entity.Property(e => e.UpdatedById).HasColumnName("updatedbyid");
             // Relationships
             entity.HasOne(e => e.ExitDocument)
                   .WithMany()
@@ -53,6 +58,11 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
                   .WithMany()
                   .HasForeignKey(e => e.CreatedById)
                   .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.UpdatedBy)
+                  .WithMany()
+                  .HasForeignKey(e => e.UpdatedById)
+                  .OnDelete(DeleteBehavior.SetNull);
 
             // Indexes
             entity.HasIndex(e => e.TransferDate)

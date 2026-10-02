@@ -113,7 +113,19 @@ export function StockTransferStandard({ transfer, details, enterprise, printLoca
       {/* Document Title and Transfer Info Box */}
       <div className="document-header">
         <div className="document-title-section" style={{ width: '100%' }}>
-          <h2 className="document-title">ORDRE DE TRANSFERT INTERDEPOTS</h2>
+          <h2 className="document-title">
+            ORDRE DE TRANSFERT INTERDEPOTS
+            {transfer.revisionNumber && transfer.revisionNumber > 1 ? (
+              <span className="text-xs font-bold text-zinc-600 block mt-0.5">
+                REV {transfer.revisionNumber.toString().padStart(2, '0')}
+                {transfer.updateDate && (
+                  <span className="font-normal text-zinc-500 ml-2">
+                    — Modifié le: {new Date(transfer.updateDate).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}
+                  </span>
+                )}
+              </span>
+            ) : null}
+          </h2>
         </div>
 
         <div className="client-info">

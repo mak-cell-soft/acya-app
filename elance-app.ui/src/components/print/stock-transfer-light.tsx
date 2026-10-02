@@ -78,8 +78,13 @@ export function StockTransferLight({ transfer, details, enterprise, printLocale 
       <div className="separator" />
 
       {/* Document Type Label */}
-      <div className="document-type-header">
-        TRANSFERT INTER-DEPOTS (SORTIE)
+      <div className="document-type-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+        <span>TRANSFERT INTER-DEPOTS (SORTIE)</span>
+        {(transfer.revisionNumber && transfer.revisionNumber > 1) ? (
+          <span style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '1px' }}>
+            REV {transfer.revisionNumber.toString().padStart(2, '0')}
+          </span>
+        ) : null}
       </div>
 
       {/* Meta & client details box */}
@@ -89,6 +94,12 @@ export function StockTransferLight({ transfer, details, enterprise, printLocale 
             <span className="info-label">{ar.labels.date}: </span>
             <span>{utils.formatDate(transfer.transferDate)}</span>
           </div>
+          {transfer.updateDate && transfer.revisionNumber && transfer.revisionNumber > 1 && (
+            <div className="info-row">
+              <span className="info-label">Modifié le: </span>
+              <span>{new Date(transfer.updateDate).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}</span>
+            </div>
+          )}
           <div className="info-row">
             <span className="info-label">N° SORTIE: </span>
             <span>{transfer.docSortie || 'BROUILLON'}</span>

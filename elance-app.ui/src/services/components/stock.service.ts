@@ -71,6 +71,24 @@ export const stockService = {
     return response.data;
   },
 
+  updateTransfer: async (transferId: number, model: any) => {
+    const userId = useAuthStore.getState().user?.id;
+    const response = await api.put(`/Stock/transfers/${transferId}`, {
+      ...model,
+      updatedByUserId: userId
+    });
+    return response.data;
+  },
+
+  resendTransfer: async (transferId: number, model: any) => {
+    const userId = useAuthStore.getState().user?.id;
+    const response = await api.post(`/Stock/transfers/${transferId}/resend`, {
+      ...model,
+      updatedByUserId: userId
+    });
+    return response.data;
+  },
+
   getWoodStockWithLengthDetails: async (woodParams: any) => {
     const response = await api.post('/Stock/wood/details', woodParams);
     return response.data;

@@ -10,8 +10,10 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public string? ReceiptDocumentNumber { get; set; }
         public string? Status { get; set; }
         public string? ConfirmationCode { get; set; }
+        public int RevisionNumber { get; set; } = 1;
+        public bool PinRegenerated { get; set; }
 
-        public static StockTransferResult Ok(string message, int transferId, string reference, string exitDoc, string receiptDoc, string status, string? confirmationCode = null)
+        public static StockTransferResult Ok(string message, int transferId, string reference, string exitDoc, string receiptDoc, string status, string? confirmationCode = null, int revisionNumber = 1, bool pinRegenerated = false)
         {
             return new StockTransferResult
             {
@@ -22,7 +24,9 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
                 ExitDocumentNumber = exitDoc,
                 ReceiptDocumentNumber = receiptDoc,
                 Status = status,
-                ConfirmationCode = confirmationCode
+                ConfirmationCode = confirmationCode,
+                RevisionNumber = revisionNumber,
+                PinRegenerated = pinRegenerated
             };
         }
 

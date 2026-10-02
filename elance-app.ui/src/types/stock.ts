@@ -78,10 +78,18 @@ export interface StockTransferInfo {
   reference?: string;
   confirmationCode?: string;
   status: TransferStatus;
+  revisionNumber?: number;
+  updateDate?: string;
+  rejectionReason?: string;
+  originSiteId?: number;
+  destinationSiteId?: number;
 }
 
 export interface StockTransferDetails {
   id: number;
+  articleId?: number;
+  merchandiseId?: number;
+  refMerchandise?: string;
   articleReference: string;
   articleDescription: string;
   description?: string;
@@ -100,7 +108,22 @@ export interface StockTransferDetails {
   destinationAddress?: string;
   notes?: string;
   reference?: string;
+  revisionNumber?: number;
+  updateDate?: string;
+  rejectionReason?: string;
   exitDocLengths?: any[];
+}
+
+export interface UpdateTransferRequest {
+  merchandisesItems?: any[];
+  notes?: string;
+  transferDate?: string;
+  transporterId?: number;
+  vehicleId?: number;
+  vehicleSerialNumber?: string;
+  originSiteId?: number;
+  destinationSiteId?: number;
+  updatedByUserId?: number;
 }
 
 export interface StockMovementTimeline {

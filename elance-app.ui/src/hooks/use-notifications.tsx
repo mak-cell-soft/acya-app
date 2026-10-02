@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import * as signalR from '@microsoft/signalr';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/use-auth-store';
 import { getBaseApiUrl } from '@/lib/axios';
 import { notificationService, TransferNotification, AppNotification, NotificationType } from '@/services/components/notification.service';
@@ -25,6 +26,7 @@ interface NotificationContextProps {
 const NotificationContext = createContext<NotificationContextProps | undefined>(undefined);
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = useQueryClient();
   const { user, token, isAuthenticated } = useAuthStore();
   const [notifications, setNotifications] = useState<TransferNotification[]>([]);
   const [systemNotifications, setSystemNotifications] = useState<AppNotification[]>([]);
@@ -301,6 +303,73 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     connection.on('NotificationDeleted', (data: any) => {
       setNotifications(prev => prev.filter(n => n.id !== data.id));
+    });
+
+    connection.on('TransferRejected', (data: any) => {
+      console.log('[SignalR] TransferRejected:', data);
+      const ref = data.reference || data.Reference || `Transfert #${data.transferId || data.TransferId}`;
+      const reason = data.reason || data.Reason;
+      toast.error(`Transfert rejeté : ${ref}`, {
+        description: reason ? `Motif du rejet : ${reason}` : 'Le transfert inter-sites a été rejeté par le destinataire.'
+      });
+      queryClient.invalidateQueries({ queryKey: ['stock-transfers'] });
+      queryClient.invalidateQueries({ queryKey: ['stocks'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-movements'] });
+    });
+
+    connection.on('TransferUpdated', (data: any) => {
+      console.log('[SignalR] TransferUpdated:', data);
+      const transferId = data.transferId || data.TransferId;
+      const ref = data.reference || data.Reference || `Transfert #${transferId}`;
+      const rev = data.revisionNumber || data.RevisionNumber || 2;
+      const itemsCount = data.itemsCount !== undefined ? data.itemsCount : (data.ItemsCount !== undefined ? data.ItemsCount : 0);
+
+      // Update notifications list in state so it does not display stale items count
+      setNotifications(prev => prev.map(n => {
+        if (n.id === transferId) {
+          return {
+            ...n,
+            itemsCount,
+            transferRef: ref
+          };
+        }
+        return n;
+      }));
+
+      toast.info(`Le transfert ${ref} a été modifié par l'expéditeur (Révision ${rev}).`, {
+        description: `${itemsCount} article(s) dans le transfert mis à jour.`
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['stocks'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-movements'] });
+    });
+
+    connection.on('TransferResent', (data: any) => {
+      console.log('[SignalR] TransferResent:', data);
+      const transferId = data.transferId || data.TransferId;
+      const ref = data.reference || data.Reference || `Transfert #${transferId}`;
+      const rev = data.revisionNumber || data.RevisionNumber || 1;
+      const itemsCount = data.itemsCount !== undefined ? data.itemsCount : (data.ItemsCount !== undefined ? data.ItemsCount : 0);
+
+      toast.info(`Le transfert ${ref} a été renvoyé par l'expéditeur — Révision ${rev}`, {
+        description: `${itemsCount} article(s) dans le transfert réémis.`
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['stock-transfers'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-transfer-details'] });
+      queryClient.invalidateQueries({ queryKey: ['stocks'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-movements'] });
+    });
+
+    connection.on('NotificationFinalized', (data: any) => {
+      console.log('[SignalR] NotificationFinalized:', data);
+      const transferId = data.id || data.Id;
+      if (transferId) {
+        setNotifications(prev => prev.filter(n => n.id !== transferId));
+      }
+      queryClient.invalidateQueries({ queryKey: ['stock-transfers'] });
+      queryClient.invalidateQueries({ queryKey: ['stocks'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-movements'] });
     });
 
     connection.onclose(() => {

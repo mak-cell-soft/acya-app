@@ -333,8 +333,12 @@ CREATE TABLE tbl_stock_transfer (
     confirmationdate timestamp without time zone NULL,
     rejectionreason text NULL,
     confirmationcode character varying(10) NULL,
+    revisionnumber integer NOT NULL DEFAULT 1,
+    updatedate timestamp without time zone NULL,
+    updatedbyid integer NULL,
     CONSTRAINT "PK_tbl_stock_transfer" PRIMARY KEY (id),
     CONSTRAINT "FK_tbl_stock_transfer_tbl_app_user_createdbyid" FOREIGN KEY (createdbyid) REFERENCES tbl_app_user (id) ON DELETE RESTRICT,
+    CONSTRAINT "FK_tbl_stock_transfer_tbl_app_user_updatedbyid" FOREIGN KEY (updatedbyid) REFERENCES tbl_app_user (id) ON DELETE SET NULL,
     CONSTRAINT "FK_tbl_stock_transfer_tbl_document_exitdocumentid" FOREIGN KEY (exitdocumentid) REFERENCES tbl_document (id) ON DELETE RESTRICT,
     CONSTRAINT "FK_tbl_stock_transfer_tbl_document_receiptdocumentid" FOREIGN KEY (receiptdocumentid) REFERENCES tbl_document (id) ON DELETE RESTRICT,
     CONSTRAINT "FK_tbl_stock_transfer_tbl_transporter_transporterid" FOREIGN KEY (transporterid) REFERENCES tbl_transporter (id) ON DELETE SET NULL
