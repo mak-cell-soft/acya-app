@@ -279,6 +279,28 @@ export function getStandardPrintStyles(): string {
       border-bottom: 1px solid #000;
     }
 
+    .instructions-row td.instructions-cell {
+      border: 1px solid #000 !important;
+      padding: 2.5mm 3mm !important;
+      font-size: 8pt !important;
+      text-align: left !important;
+      background-color: #fff;
+      vertical-align: top;
+    }
+
+    .instructions-label {
+      font-weight: bold;
+      color: #000;
+      margin-right: 1.5mm;
+    }
+
+    .instructions-value {
+      font-weight: 500;
+      color: #333;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
     .footer-section {
       display: grid;
       grid-template-columns: 1.8fr 1.2fr;

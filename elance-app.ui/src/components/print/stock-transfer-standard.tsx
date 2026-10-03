@@ -14,18 +14,22 @@ interface StockTransferStandardProps {
 
 export function StockTransferStandard({ transfer, details, enterprise, printLocale }: StockTransferStandardProps) {
   const ar = printLocale || defaultAr;
+  // Resolve notes from transfer or details
+  const rawNotes = transfer.notes || (details && details.length > 0 && (details[0] as any).notes) || '';
+  const notes = typeof rawNotes === 'string' ? rawNotes.trim() : '';
+  const hasNotes = Boolean(notes);
+
   // Pad the items table with empty rows to match the A4 print height standard.
+  // When instructions/notes are present at the bottom, adjust empty row padding so the overall document height remains stable.
   const rowCount = details?.length || 0;
-  const paddingCount = Math.max(0, 15 - rowCount);
+  const targetRowCount = hasNotes ? 13 : 15;
+  const paddingCount = Math.max(0, targetRowCount - rowCount);
   const emptyRows = Array.from({ length: paddingCount });
 
   // Resolve the confirmation code (PIN code) from either details items or transfer metadata
   const confirmationCode = details?.find(d => d.confirmationCode)?.confirmationCode || 
                            (transfer as any).confirmationCode || 
                            '';
-
-  // Resolve notes from transfer or details
-  const notes = transfer.notes || (details && details.length > 0 && (details[0] as any).notes) || '';
 
   // Helper to extract vehicle information
   const getVehicleInfo = () => {
@@ -143,12 +147,6 @@ export function StockTransferStandard({ transfer, details, enterprise, printLoca
               <span className="value font-mono font-bold">{confirmationCode}</span>
             </div>
           )}
-          {notes && (
-            <div className="info-row" style={{ marginTop: '2px' }}>
-              <span className="label">Instructions:</span>
-              <span className="value font-medium" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '8pt' }}>{notes}</span>
-            </div>
-          )}
         </div>
       </div>
 
@@ -213,6 +211,53 @@ export function StockTransferStandard({ transfer, details, enterprise, printLoca
                 <td colSpan={5}>&nbsp;</td>
               </tr>
             ))}
+            {/* Instructions / Internal notes section at the bottom of the main transfer table */}
+            {hasNotes && (
+              <tr className="instructions-row">
+                <td
+                  colSpan={5}
+                  className="instructions-cell"
+                  style={{
+                    border: '1px solid #000',
+                    padding: '2.5mm 3mm',
+                    fontSize: '8pt',
+                    textAlign: 'left',
+                    backgroundColor: '#fff',
+                    verticalAlign: 'top',
+                  }}
+                >
+                  <div
+                    className="transfer-instructions"
+                    style={{
+                      textAlign: 'left',
+                      lineHeight: 1.35,
+                    }}
+                  >
+                    <span
+                      className="instructions-label"
+                      style={{
+                        fontWeight: 'bold',
+                        color: '#000',
+                        marginRight: '1.5mm',
+                      }}
+                    >
+                      Instructions:
+                    </span>
+                    <span
+                      className="instructions-value"
+                      style={{
+                        fontWeight: 500,
+                        color: '#333',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {notes}
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
