@@ -44,7 +44,7 @@ const faqs = [
   },
   {
     question: "Proposez-vous un accompagnement pour la prise en main ?",
-    answer: "Oui, le succès de votre transition est notre priorité. L'équipe d'ACYA Consulting vous accompagne de bout en bout : paramétrage personnalisé, formation des utilisateurs, et support client réactif basé en Tunisie."
+    answer: "Oui, le succès de votre transition est notre priorité. L'équipe de RéVA Consulting vous accompagne de bout en bout : paramétrage personnalisé, formation des utilisateurs, et support client réactif basé en Tunisie."
   }
 ];
 

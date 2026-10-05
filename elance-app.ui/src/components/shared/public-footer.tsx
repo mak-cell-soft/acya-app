@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, Mail, Shield, CheckCircle, RefreshCw, Phone } from 'lucide-react';
 
 export function PublicFooter() {
@@ -108,8 +109,22 @@ export function PublicFooter() {
               <span className="text-2xl font-bold text-slate-800 tracking-tight">Élancé</span>
             </Link>
             <p className="text-[0.9rem] leading-relaxed text-slate-500 max-w-[280px] font-semibold">
-              L'ERP de nouvelle génération spécialisé pour le secteur bois, matériaux, négoce et construction. Propulsé par ACYA Consulting.
+              L'ERP de nouvelle génération spécialisé pour le secteur bois, matériaux, négoce et construction.
             </p>
+            {/* Enterprise attribution: RéVA Consulting */}
+            <div className="flex items-center gap-3">
+              <Image
+                src="/logo-reva.jpeg"
+                alt="RéVA Consulting"
+                width={1440}
+                height={1375}
+                className="h-11 w-auto rounded-lg border border-slate-200 object-contain shadow-sm"
+              />
+              <span className="text-[0.8rem] font-semibold text-slate-500 leading-snug">
+                Powered by<br />
+                <span className="font-bold text-slate-700">RéVA Consulting</span>
+              </span>
+            </div>
             <div className="flex gap-3">
               {[
                 {
@@ -183,7 +198,7 @@ export function PublicFooter() {
 
           <div className="text-left">
             <h4 className="text-[0.72rem] font-bold uppercase tracking-[0.2em] text-corp-blue-700 mb-8">
-              ACYA Consulting
+              RéVA Consulting
             </h4>
             <div className="flex flex-col gap-4">
               {[
@@ -211,7 +226,7 @@ export function PublicFooter() {
         {/* Bottom copyright row */}
         <div className="pt-10 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-[0.75rem] text-slate-400 font-semibold uppercase tracking-widest">
-            © {currentYear} ACYA Consulting. Tous droits réservés.
+            © {currentYear} Élancé · Powered by RéVA Consulting. Tous droits réservés.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8">
             <Link href="/privacy" className="text-[0.72rem] text-slate-400 hover:text-corp-blue-600 transition-colors font-semibold uppercase tracking-widest">Confidentialité</Link>

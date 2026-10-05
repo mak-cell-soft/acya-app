@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/use-auth-store';
 import { Menu, X, ArrowRight } from 'lucide-react';
@@ -51,7 +52,7 @@ export function PublicNavbar() {
     { name: 'Intégration Qwerty', href: '#integration-qwerty', isNew: true },
     { name: 'App Mobile', href: '#mobile-app', isNew: true },
     { name: 'Tarifs', href: '#tarifs' },
-    { name: 'Pourquoi ACYA', href: '#pourquoi' },
+    { name: 'Pourquoi Élancé', href: '#pourquoi' },
     { name: 'Contact', href: '/contact' },
   ];
 
@@ -155,14 +156,25 @@ export function PublicNavbar() {
               )}>
                 Élancé
               </span>
-              {/* Secondary ACYA Brand Badge: Subtly proportioned to not compete with logo text */}
-              <span className={cn(
-                "text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded leading-none transition-colors duration-300",
-                isScrolled 
-                  ? "bg-slate-100 text-slate-600 border border-slate-200" 
-                  : "bg-blue-500/20 text-cyan-300 border border-cyan-400/30"
-              )}>
-                ACYA
+              {/* Enterprise attribution: RéVA Consulting logo, sized like the former badge so navbar height is unchanged */}
+              <span className="flex items-center gap-1.5 ml-0.5" title="Powered by RéVA Consulting">
+                <Image
+                  src="/logo-reva.jpeg"
+                  alt="Powered by RéVA Consulting"
+                  width={1440}
+                  height={1375}
+                  priority
+                  className={cn(
+                    "h-6 w-auto rounded object-contain transition-colors duration-300",
+                    isScrolled ? "border border-slate-200" : "border border-white/20"
+                  )}
+                />
+                <span className={cn(
+                  "hidden 2xl:block text-[9px] font-bold uppercase tracking-wider leading-tight transition-colors duration-300",
+                  isScrolled ? "text-slate-500" : "text-slate-300"
+                )}>
+                  Powered by<br />RéVA Consulting
+                </span>
               </span>
             </div>
           </Link>

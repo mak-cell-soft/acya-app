@@ -189,7 +189,7 @@ export function HeroSection() {
                 href="/enterprise-registration"
                 className="group inline-flex h-13 sm:h-14 items-center justify-center gap-2.5 rounded-xl px-8 text-base font-bold text-white bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-[0_10px_25px_-5px_rgba(37,99,235,0.5),0_0_0_1px_rgba(255,255,255,0.25)_inset] transition-all duration-200 active:scale-[0.96]"
               >
-                <span>Essai Gratuit 14 Jours</span>
+                <span>Essai Gratuit 30 Jours</span>
                 <ArrowRight className="w-4.5 h-4.5 transition-transform duration-200 group-hover:translate-x-1" />
               </Link>
               <Link

@@ -403,7 +403,7 @@ export default function GestionChantierPage() {
                 href="/enterprise-registration"
                 className="inline-flex h-13 items-center justify-center gap-2.5 rounded-xl px-8 text-base font-bold text-white bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-[0_10px_25px_-5px_rgba(37,99,235,0.5)] transition-all duration-200 active:scale-[0.97]"
               >
-                Essai gratuit 14 jours
+                Essai gratuit 30 jours
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
@@ -785,14 +785,14 @@ export default function GestionChantierPage() {
             <p className="text-slate-300 text-base leading-relaxed mb-8">
               Rejoignez les entreprises du bois, du négoce et de la construction
               en Tunisie qui utilisent Élancé pour centraliser leur gestion de
-              chantier. Essai gratuit 14 jours, sans carte bancaire.
+              chantier. Essai gratuit 30 jours, sans carte bancaire.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/enterprise-registration"
                 className="inline-flex h-13 items-center justify-center gap-2.5 rounded-xl px-8 text-base font-bold text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-[0_10px_25px_-5px_rgba(37,99,235,0.5)] transition-all duration-200 active:scale-[0.97]"
               >
-                Essai gratuit 14 jours
+                Essai gratuit 30 jours
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link

@@ -19,7 +19,7 @@ const reasons = [
   { 
     num: '03', 
     title: 'Déploiement accompagné', 
-    desc: 'ACYA Consulting assure le paramétrage, la formation et le support. Vous n\'êtes jamais seul face à votre logiciel.',
+    desc: 'RéVA Consulting assure le paramétrage, la formation et le support. Vous n\'êtes jamais seul face à votre logiciel.',
     icon: <ShieldCheck className="text-emerald-500" size={24} />
   },
 ];

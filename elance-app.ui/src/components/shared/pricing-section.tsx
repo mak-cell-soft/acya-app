@@ -314,7 +314,7 @@ export function PricingSection() {
                 <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </Link>
               <div className="text-center text-[11px] text-slate-400 font-medium">
-                Essai gratuit 14 jours · Sans engagement
+                Essai gratuit 30 jours · Sans engagement
               </div>
             </div>
           </motion.div>
@@ -449,7 +449,7 @@ export function PricingSection() {
                 <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </Link>
               <div className="text-center text-[11px] text-slate-400 font-medium">
-                Essai gratuit 14 jours · Sans engagement
+                Essai gratuit 30 jours · Sans engagement
               </div>
             </div>
           </motion.div>
@@ -558,7 +558,7 @@ export function PricingSection() {
                     <div className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
                       <Check size={11} strokeWidth={3} />
                     </div>
-                    <span className="leading-snug">Support prioritaire ACYA Consulting</span>
+                    <span className="leading-snug">Support prioritaire RéVA Consulting</span>
                   </li>
                 </ul>
               </div>
@@ -575,7 +575,7 @@ export function PricingSection() {
                 <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </Link>
               <div className="text-center text-[11px] text-slate-400 font-medium">
-                Essai gratuit 14 jours · Sans engagement
+                Essai gratuit 30 jours · Sans engagement
               </div>
             </div>
           </motion.div>
@@ -600,7 +600,7 @@ export function PricingSection() {
         <div className="mt-8 max-w-4xl mx-auto rounded-2xl bg-slate-900 text-white px-6 sm:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-medium shadow-md">
           <div className="flex items-center gap-2 text-slate-300">
             <HeartHandshake size={16} className="text-corp-cyan shrink-0" />
-            <span>Accompagnement, formation et paramétrage assurés par ACYA Consulting</span>
+            <span>Accompagnement, formation et paramétrage assurés par RéVA Consulting</span>
           </div>
           <div className="text-slate-400 font-mono text-[11px] whitespace-nowrap">
             Facturation annuelle claire · De 450 à 800 DT HT / an
