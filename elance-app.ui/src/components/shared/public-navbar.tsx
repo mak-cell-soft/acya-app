@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/use-auth-store';
 import { Menu, X, ArrowRight } from 'lucide-react';
@@ -155,26 +154,6 @@ export function PublicNavbar() {
                   : "text-white group-hover:text-blue-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
               )}>
                 Élancé
-              </span>
-              {/* Enterprise attribution: RéVA Consulting logo, sized like the former badge so navbar height is unchanged */}
-              <span className="flex items-center gap-1.5 ml-0.5" title="Powered by RéVA Consulting">
-                <Image
-                  src="/logo-reva.jpeg"
-                  alt="Powered by RéVA Consulting"
-                  width={1440}
-                  height={1375}
-                  priority
-                  className={cn(
-                    "h-6 w-auto rounded object-contain transition-colors duration-300",
-                    isScrolled ? "border border-slate-200" : "border border-white/20"
-                  )}
-                />
-                <span className={cn(
-                  "hidden 2xl:block text-[9px] font-bold uppercase tracking-wider leading-tight transition-colors duration-300",
-                  isScrolled ? "text-slate-500" : "text-slate-300"
-                )}>
-                  Powered by<br />RéVA Consulting
-                </span>
               </span>
             </div>
           </Link>

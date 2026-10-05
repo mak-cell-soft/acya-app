@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowRight, CheckCircle2, TrendingUp, Package, ShoppingCart,
   Users, BarChart3, Truck, FileText, Zap, Shield, Globe, ChevronLeft, ChevronRight, Factory
@@ -146,10 +147,32 @@ export function HeroSection() {
             transition={{ duration: 0.75, ease: 'easeOut' }}
             className="space-y-7 text-left"
           >
-            {/* Top pill badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.08] border border-white/15 text-cyan-300 text-xs font-semibold backdrop-blur-md shadow-sm">
-              <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
-              ERP Nouvelle Génération & Intégration Fiscale
+            <div className="flex flex-col items-start gap-4">
+              {/* Company attribution: RéVA Consulting (publisher), kept subtle so Élancé and the headline stay primary */}
+              <div className="flex items-center gap-3">
+                <Image
+                  src="/logo-reva.jpeg"
+                  alt="RéVA Consulting"
+                  width={1440}
+                  height={1375}
+                  priority
+                  className="h-9 sm:h-11 w-auto shrink-0 rounded-md object-contain ring-1 ring-white/15 shadow-[0_4px_14px_rgba(0,0,0,0.35)]"
+                />
+                <div className="flex flex-col leading-tight">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    Powered by
+                  </span>
+                  <span className="text-sm sm:text-[0.95rem] font-semibold tracking-tight text-slate-100 whitespace-nowrap">
+                    RéVA Consulting
+                  </span>
+                </div>
+              </div>
+
+              {/* Top pill badge */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.08] border border-white/15 text-cyan-300 text-xs font-semibold backdrop-blur-md shadow-sm">
+                <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+                ERP Nouvelle Génération & Intégration Fiscale
+              </div>
             </div>
 
             {/* H1 - High visual hierarchy, text-wrap balance */}

@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowRight, Mail, Shield, CheckCircle, RefreshCw, Phone } from 'lucide-react';
 
 export function PublicFooter() {
@@ -111,20 +110,6 @@ export function PublicFooter() {
             <p className="text-[0.9rem] leading-relaxed text-slate-500 max-w-[280px] font-semibold">
               L'ERP de nouvelle génération spécialisé pour le secteur bois, matériaux, négoce et construction.
             </p>
-            {/* Enterprise attribution: RéVA Consulting */}
-            <div className="flex items-center gap-3">
-              <Image
-                src="/logo-reva.jpeg"
-                alt="RéVA Consulting"
-                width={1440}
-                height={1375}
-                className="h-11 w-auto rounded-lg border border-slate-200 object-contain shadow-sm"
-              />
-              <span className="text-[0.8rem] font-semibold text-slate-500 leading-snug">
-                Powered by<br />
-                <span className="font-bold text-slate-700">RéVA Consulting</span>
-              </span>
-            </div>
             <div className="flex gap-3">
               {[
                 {
