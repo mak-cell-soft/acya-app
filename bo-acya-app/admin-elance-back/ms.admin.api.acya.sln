@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ms.admin.api.acya.infrastru
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ms.admin.api.acya.common", "src\ms.admin.api.acya.common\ms.admin.api.acya.common.csproj", "{AFEC154B-4D6E-4FBD-A3E9-685EE16F4D61}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{629A4072-9C75-4E28-90D4-32B2B03A48F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ms.admin.api.acya.tests", "tests\ms.admin.api.acya.tests\ms.admin.api.acya.tests.csproj", "{94D7C50B-F682-4C70-AC4D-0A1AA18B004F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +75,18 @@ Global
 		{AFEC154B-4D6E-4FBD-A3E9-685EE16F4D61}.Release|x64.Build.0 = Release|Any CPU
 		{AFEC154B-4D6E-4FBD-A3E9-685EE16F4D61}.Release|x86.ActiveCfg = Release|Any CPU
 		{AFEC154B-4D6E-4FBD-A3E9-685EE16F4D61}.Release|x86.Build.0 = Release|Any CPU
+		{94D7C50B-F682-4C70-AC4D-0A1AA18B004F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94D7C50B-F682-4C70-AC4D-0A1AA18B004F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94D7C50B-F682-4C70-AC4D-0A1AA18B004F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{94D7C50B-F682-4C70-AC4D-0A1AA18B004F}.Debug|x64.Build.0 = Debug|Any CPU
+		{94D7C50B-F682-4C70-AC4D-0A1AA18B004F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{94D7C50B-F682-4C70-AC4D-0A1AA18B004F}.Debug|x86.Build.0 = Debug|Any CPU
+		{94D7C50B-F682-4C70-AC4D-0A1AA18B004F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94D7C50B-F682-4C70-AC4D-0A1AA18B004F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94D7C50B-F682-4C70-AC4D-0A1AA18B004F}.Release|x64.ActiveCfg = Release|Any CPU
+		{94D7C50B-F682-4C70-AC4D-0A1AA18B004F}.Release|x64.Build.0 = Release|Any CPU
+		{94D7C50B-F682-4C70-AC4D-0A1AA18B004F}.Release|x86.ActiveCfg = Release|Any CPU
+		{94D7C50B-F682-4C70-AC4D-0A1AA18B004F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -80,5 +96,6 @@ Global
 		{9B24586E-8BF5-4990-A2F0-4A564870053F} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{76E00225-B805-438E-9C51-DD7A6ABE7A25} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{AFEC154B-4D6E-4FBD-A3E9-685EE16F4D61} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{94D7C50B-F682-4C70-AC4D-0A1AA18B004F} = {629A4072-9C75-4E28-90D4-32B2B03A48F8}
 	EndGlobalSection
 EndGlobal
