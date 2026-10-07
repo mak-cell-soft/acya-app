@@ -64,6 +64,7 @@ services:
       - MobileStorage__BasePath=/app/storage/private/mobile
       - N8nEmailService__BaseUrl=http://n8n:5678
       - N8nEmailService__ApiKey=${N8N_EMAIL_SERVICE_API_KEY:-Bearer 8a9632170ad282a748818806c2e6d918288f7266d8a798750340d250f398176f}
+      - AIService__Secret=${AI_SERVICE_SECRET}
     ports:
 
       - "8080:80"

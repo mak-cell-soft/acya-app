@@ -88,13 +88,26 @@ export function HeroSection() {
 
   return (
     <section
-      className="relative min-h-screen w-full overflow-hidden text-white transition-colors duration-1000"
-      style={{ backgroundColor: SLIDES[slide].bg }}
+      className="relative min-h-screen w-full overflow-hidden text-white transition-colors duration-1000 bg-[#080E1E]"
     >
-      {/* ── Atmospheric background mesh & light glows ── */}
+      {/* ── RéVA Subtle Hero Background Visual ── */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        <Image
+          src="/logo-reva.jpeg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-[center_35%] lg:object-[65%_35%] opacity-30 select-none"
+        />
+        {/* Dark transparent gradient overlay ensuring Élancé text readability & brand identity */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#070D1E] via-[#070D1E]/90 to-[#070D1E]/75" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#070D1E]/80 via-transparent to-[#070D1E]" />
+      </div>
+
       {/* Subtle micro-grid */}
       <div 
-        className="absolute inset-0 opacity-[0.06] pointer-events-none" 
+        className="absolute inset-0 opacity-[0.05] pointer-events-none z-0" 
         style={{ 
           backgroundImage: 'radial-gradient(rgba(255,255,255,0.8) 1px, transparent 1px)', 
           backgroundSize: '30px 30px' 
@@ -106,28 +119,18 @@ export function HeroSection() {
         <motion.div
           key={slide}
           initial={{ opacity: 0 }}
-          animate={{ opacity: 0.35 }}
+          animate={{ opacity: 0.25 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1.2 }}
-          className="absolute inset-0 blur-[160px] rounded-full scale-125 pointer-events-none"
+          className="absolute inset-0 blur-[160px] rounded-full scale-125 pointer-events-none z-0"
           style={{ backgroundColor: SLIDES[slide].accent }}
         />
       </AnimatePresence>
 
       {/* Top radiant light beam */}
       <div 
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] rounded-full blur-[120px] pointer-events-none" 
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] rounded-full blur-[120px] pointer-events-none z-0" 
         style={{ background: SLIDES[slide].glow }} 
-      />
-
-      {/* Secondary atmospheric glows for spatial depth */}
-      <div 
-        className="absolute top-24 right-[-5%] w-[550px] h-[550px] rounded-full blur-[140px] pointer-events-none" 
-        style={{ background: 'rgba(59,130,246,0.18)' }} 
-      />
-      <div 
-        className="absolute bottom-10 left-[-5%] w-[450px] h-[450px] rounded-full blur-[130px] pointer-events-none" 
-        style={{ background: 'rgba(6,182,212,0.12)' }} 
       />
 
       {/* Bottom fade transition to page content */}
@@ -148,24 +151,19 @@ export function HeroSection() {
             className="space-y-7 text-left"
           >
             <div className="flex flex-col items-start gap-4">
-              {/* Company attribution: RéVA Consulting (publisher), kept subtle so Élancé and the headline stay primary */}
-              <div className="flex items-center gap-3">
+              {/* Company attribution: Développé par RéVA */}
+              <div className="flex flex-col items-start gap-1">
+                <span className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400">
+                  Développé par
+                </span>
                 <Image
-                  src="/logo-reva.jpeg"
-                  alt="RéVA Consulting"
-                  width={1440}
-                  height={1375}
+                  src="/logo-reva-navbar.png"
+                  alt="RéVA"
+                  width={2103}
+                  height={748}
                   priority
-                  className="h-9 sm:h-11 w-auto shrink-0 rounded-md object-contain ring-1 ring-white/15 shadow-[0_4px_14px_rgba(0,0,0,0.35)]"
+                  className="h-8 sm:h-9 w-auto object-contain"
                 />
-                <div className="flex flex-col leading-tight">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                    Powered by
-                  </span>
-                  <span className="text-sm sm:text-[0.95rem] font-semibold tracking-tight text-slate-100 whitespace-nowrap">
-                    RéVA Consulting
-                  </span>
-                </div>
               </div>
 
               {/* Top pill badge */}

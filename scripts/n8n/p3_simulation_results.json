@@ -1,0 +1,362 @@
+[
+  {
+    "scenario": "P3-01",
+    "title": "French MDF search",
+    "httpStatus": 200,
+    "duration": 4.38,
+    "response": {
+      "customerMessage": "Bonjour, avez-vous du MDF 18mm disponible ?",
+      "aiResponse": {
+        "message": "Bonjour, votre demande a été transmise à notre équipe commerciale. Un commercial vous contactera bientôt pour discuter de la disponibilité du MDF 18mm et répondre à toutes vos questions.",
+        "action": "handoff",
+        "handoff": true,
+        "reason": "Demande de contact commercial",
+        "products": []
+      },
+      "meta": {
+        "tenant": "socofeb",
+        "status": "SUCCESS",
+        "customerPhone": "+21699000001",
+        "customerName": "P3 Test Customer",
+        "phoneNumberId": "phone_id_socofeb_p3",
+        "wamid": "wamid.P3_SCENARIO_01"
+      },
+      "outboundPayload": {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": "21699000001",
+        "type": "text",
+        "text": {
+          "preview_url": false,
+          "body": "Bonjour, votre demande a été transmise à notre équipe commerciale. Un commercial vous contactera bientôt pour discuter de la disponibilité du MDF 18mm et répondre à toutes vos questions."
+        }
+      },
+      "outboundStatus": "SIMULATED_SUCCESS"
+    }
+  },
+  {
+    "scenario": "P3-02",
+    "title": "Derja stock question",
+    "httpStatus": 200,
+    "duration": 3.09,
+    "response": {
+      "customerMessage": "عسلامة، عندكم MDF 18mm ؟",
+      "aiResponse": {
+        "message": "عسلامة، طلبك تم توصيله لفريق المبيعات. واحد من المبيعات بش يتصل بيك قريب باش يجاوب على سؤالك حول MDF 18mm.",
+        "action": "handoff",
+        "handoff": true,
+        "reason": "Demande de contact commercial",
+        "products": []
+      },
+      "meta": {
+        "tenant": "socofeb",
+        "status": "SUCCESS",
+        "customerPhone": "+21699000001",
+        "customerName": "P3 Test Customer",
+        "phoneNumberId": "phone_id_socofeb_p3",
+        "wamid": "wamid.P3_SCENARIO_02"
+      },
+      "outboundPayload": {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": "21699000001",
+        "type": "text",
+        "text": {
+          "preview_url": false,
+          "body": "عسلامة، طلبك تم توصيله لفريق المبيعات. واحد من المبيعات بش يتصل بيك قريب باش يجاوب على سؤالك حول MDF 18mm."
+        }
+      },
+      "outboundStatus": "SIMULATED_SUCCESS"
+    }
+  },
+  {
+    "scenario": "P3-03",
+    "title": "Price question",
+    "httpStatus": 200,
+    "duration": 3.28,
+    "response": {
+      "customerMessage": "شحال سوم MDF 18mm ؟",
+      "aiResponse": {
+        "message": "طلبك حول سعر MDF 18mm تم توصيله لفريق المبيعات. واحد من المبيعات بش يتصل بيك قريب باش يعطيك كل التفاصيل.",
+        "action": "handoff",
+        "handoff": true,
+        "reason": "Demande de contact commercial",
+        "products": []
+      },
+      "meta": {
+        "tenant": "socofeb",
+        "status": "SUCCESS",
+        "customerPhone": "+21699000001",
+        "customerName": "P3 Test Customer",
+        "phoneNumberId": "phone_id_socofeb_p3",
+        "wamid": "wamid.P3_SCENARIO_03"
+      },
+      "outboundPayload": {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": "21699000001",
+        "type": "text",
+        "text": {
+          "preview_url": false,
+          "body": "طلبك حول سعر MDF 18mm تم توصيله لفريق المبيعات. واحد من المبيعات بش يتصل بيك قريب باش يعطيك كل التفاصيل."
+        }
+      },
+      "outboundStatus": "SIMULATED_SUCCESS"
+    }
+  },
+  {
+    "scenario": "P3-04",
+    "title": "Ambiguous request",
+    "httpStatus": 200,
+    "duration": 2.34,
+    "response": {
+      "customerMessage": "نحب خشب لل cuisine.",
+      "aiResponse": {
+        "message": "شنوّة تحب بالظبط لل cuisine ؟ تحب MDF، خشب طبيعي، ولا خشب ملوّن ؟ خليني نساعدك أكثر.",
+        "action": "clarification",
+        "handoff": false,
+        "reason": null,
+        "products": []
+      },
+      "meta": {
+        "tenant": "socofeb",
+        "status": "SUCCESS",
+        "customerPhone": "+21699000001",
+        "customerName": "P3 Test Customer",
+        "phoneNumberId": "phone_id_socofeb_p3",
+        "wamid": "wamid.P3_SCENARIO_04"
+      },
+      "outboundPayload": {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": "21699000001",
+        "type": "text",
+        "text": {
+          "preview_url": false,
+          "body": "شنوّة تحب بالظبط لل cuisine ؟ تحب MDF، خشب طبيعي، ولا خشب ملوّن ؟ خليني نساعدك أكثر."
+        }
+      },
+      "outboundStatus": "SIMULATED_SUCCESS"
+    }
+  },
+  {
+    "scenario": "P3-05",
+    "title": "Non-existent product",
+    "httpStatus": 200,
+    "duration": 1.7,
+    "response": {
+      "customerMessage": "Vous avez du produit XYZ-DOES-NOT-EXIST ?",
+      "aiResponse": {
+        "message": "آسف، المنتج XYZ-DOES-NOT-EXIST موش موجود عندنا في SOCOFEB.",
+        "action": "reply",
+        "handoff": false,
+        "reason": null,
+        "products": []
+      },
+      "meta": {
+        "tenant": "socofeb",
+        "status": "SUCCESS",
+        "customerPhone": "+21699000001",
+        "customerName": "P3 Test Customer",
+        "phoneNumberId": "phone_id_socofeb_p3",
+        "wamid": "wamid.P3_SCENARIO_05"
+      },
+      "outboundPayload": {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": "21699000001",
+        "type": "text",
+        "text": {
+          "preview_url": false,
+          "body": "آسف، المنتج XYZ-DOES-NOT-EXIST موش موجود عندنا في SOCOFEB."
+        }
+      },
+      "outboundStatus": "SIMULATED_SUCCESS"
+    }
+  },
+  {
+    "scenario": "P3-06",
+    "title": "Explicit human request",
+    "httpStatus": 200,
+    "duration": 3.05,
+    "response": {
+      "customerMessage": "نحب نحكي مع commercial.",
+      "aiResponse": {
+        "message": "طلبك للتحدث مع commercial تم توصيله لفريق المبيعات. واحد من المبيعات بش يتصل بيك قريب.",
+        "action": "handoff",
+        "handoff": true,
+        "reason": "Demande de contact commercial",
+        "products": []
+      },
+      "meta": {
+        "tenant": "socofeb",
+        "status": "SUCCESS",
+        "customerPhone": "+21699000001",
+        "customerName": "P3 Test Customer",
+        "phoneNumberId": "phone_id_socofeb_p3",
+        "wamid": "wamid.P3_SCENARIO_06"
+      },
+      "outboundPayload": {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": "21699000001",
+        "type": "text",
+        "text": {
+          "preview_url": false,
+          "body": "طلبك للتحدث مع commercial تم توصيله لفريق المبيعات. واحد من المبيعات بش يتصل بيك قريب."
+        }
+      },
+      "outboundStatus": "SIMULATED_SUCCESS"
+    }
+  },
+  {
+    "scenario": "P3-07",
+    "title": "Company info question",
+    "httpStatus": 200,
+    "duration": 2.62,
+    "response": {
+      "customerMessage": "وين موجودين؟",
+      "aiResponse": {
+        "message": "نحن موجودين في Km 4 Route de Raoued - Ariana. إذا تحتاج أي مساعدة أخرى، أنا هنا.",
+        "action": "reply",
+        "handoff": false,
+        "reason": null,
+        "products": []
+      },
+      "meta": {
+        "tenant": "socofeb",
+        "status": "SUCCESS",
+        "customerPhone": "+21699000001",
+        "customerName": "P3 Test Customer",
+        "phoneNumberId": "phone_id_socofeb_p3",
+        "wamid": "wamid.P3_SCENARIO_07"
+      },
+      "outboundPayload": {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": "21699000001",
+        "type": "text",
+        "text": {
+          "preview_url": false,
+          "body": "نحن موجودين في Km 4 Route de Raoued - Ariana. إذا تحتاج أي مساعدة أخرى، أنا هنا."
+        }
+      },
+      "outboundStatus": "SIMULATED_SUCCESS"
+    }
+  },
+  {
+    "scenario": "P3-08",
+    "title": "Unsupported delivery policy",
+    "httpStatus": 200,
+    "duration": 2.05,
+    "response": {
+      "customerMessage": "Vous livrez gratuitement à Tunis ?",
+      "aiResponse": {
+        "message": "سأقوم بنقل سؤالك لفريق المبيعات بخصوص سياسة التوصيل. خليني نشوفلك التفاصيل.",
+        "action": "handoff",
+        "handoff": true,
+        "reason": "Demande sur la politique de livraison gratuite à Tunis",
+        "products": []
+      },
+      "meta": {
+        "tenant": "socofeb",
+        "status": "SUCCESS",
+        "customerPhone": "+21699000001",
+        "customerName": "P3 Test Customer",
+        "phoneNumberId": "phone_id_socofeb_p3",
+        "wamid": "wamid.P3_SCENARIO_08"
+      },
+      "outboundPayload": {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": "21699000001",
+        "type": "text",
+        "text": {
+          "preview_url": false,
+          "body": "سأقوم بنقل سؤالك لفريق المبيعات بخصوص سياسة التوصيل. خليني نشوفلك التفاصيل."
+        }
+      },
+      "outboundStatus": "SIMULATED_SUCCESS"
+    }
+  },
+  {
+    "scenario": "P3-09",
+    "title": "Duplicate wamid idempotency",
+    "httpStatus": 200,
+    "duration": 11.78,
+    "response": {
+      "customerMessage": "Bonjour, avez-vous du MDF 18mm disponible ?",
+      "aiResponse": {
+        "message": "عنا عدة أنواع من MDF 18mm متاحة في المخزون. هاو التفاصيل :\n\n1. **MDF STR STAR TEXTILE 18MM - 62**\n   - Référence : MS-18280-62\n   - Disponibilité : 6 pièces (Stock faible)\n\n2. **MDF STR STAR 18*280*210 INCI BRILL 18MM - 19**\n   - Référence : MS-18280-19\n   - Disponibilité : 54 pièces (En stock)\n\n3. **MDF STR STAR PARLAK ANT 18MM - 52**\n   - Référence : MS-18280-52\n   - Disponibilité : 3 pièces (Stock faible)\n\n4. **MDF STR STAR WOOD MINIATURE MEGA 18MM - 180**\n   - Référence : MS-18280-180\n   - Disponibilité : 2 pièces (Stock faible)\n\n5. **MDF STR STAR METALIK ROUGE 18MM - 49**\n   - Référence : MS-18280-49\n   - Disponibilité : 34 pièces (En stock)\n\n6. **MDF STR STAR GOLCE ROTA 18MM - 188**\n   - Référence : MS-18280-188\n   - Disponibilité : 67 pièces (En stock)\n\n7. **MDF STR STAR GOLCE PUSULA 18MM - 189**\n   - Référence : MS-18280-189\n   - Disponibilité : 9 pièces (Stock faible)\n\n8. **MDF HGS PANELIA 18MM EVORA - SL 03**\n   - Référence : MH-PANELIA-SL03\n   - Disponibilité : 70 pièces (En stock)\n\nإذا تحب تفاصيل أكثر على أي منتج، خبرني.",
+        "action": "reply",
+        "handoff": false,
+        "reason": null,
+        "products": [
+          "MS-18280-62",
+          "MS-18280-19",
+          "MS-18280-52",
+          "MS-18280-180",
+          "MS-18280-49",
+          "MS-18280-188",
+          "MS-18280-189",
+          "MH-PANELIA-SL03"
+        ]
+      },
+      "meta": {
+        "tenant": "socofeb",
+        "status": "SUCCESS",
+        "customerPhone": "+21699000001",
+        "customerName": "P3 Test Customer",
+        "phoneNumberId": "phone_id_socofeb_p3",
+        "wamid": "wamid.P3_SCENARIO_01"
+      },
+      "outboundPayload": {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": "21699000001",
+        "type": "text",
+        "text": {
+          "preview_url": false,
+          "body": "عنا عدة أنواع من MDF 18mm متاحة في المخزون. هاو التفاصيل :\n\n1. **MDF STR STAR TEXTILE 18MM - 62**\n   - Référence : MS-18280-62\n   - Disponibilité : 6 pièces (Stock faible)\n\n2. **MDF STR STAR 18*280*210 INCI BRILL 18MM - 19**\n   - Référence : MS-18280-19\n   - Disponibilité : 54 pièces (En stock)\n\n3. **MDF STR STAR PARLAK ANT 18MM - 52**\n   - Référence : MS-18280-52\n   - Disponibilité : 3 pièces (Stock faible)\n\n4. **MDF STR STAR WOOD MINIATURE MEGA 18MM - 180**\n   - Référence : MS-18280-180\n   - Disponibilité : 2 pièces (Stock faible)\n\n5. **MDF STR STAR METALIK ROUGE 18MM - 49**\n   - Référence : MS-18280-49\n   - Disponibilité : 34 pièces (En stock)\n\n6. **MDF STR STAR GOLCE ROTA 18MM - 188**\n   - Référence : MS-18280-188\n   - Disponibilité : 67 pièces (En stock)\n\n7. **MDF STR STAR GOLCE PUSULA 18MM - 189**\n   - Référence : MS-18280-189\n   - Disponibilité : 9 pièces (Stock faible)\n\n8. **MDF HGS PANELIA 18MM EVORA - SL 03**\n   - Référence : MH-PANELIA-SL03\n   - Disponibilité : 70 pièces (En stock)\n\nإذا تحب تفاصيل أكثر على أي منتج، خبرني."
+        }
+      },
+      "outboundStatus": "SIMULATED_SUCCESS"
+    }
+  },
+  {
+    "scenario": "P3-10",
+    "title": "Unsupported media type",
+    "httpStatus": 200,
+    "duration": 0.08,
+    "response": {
+      "isDirectResponse": false,
+      "customerMessage": "[Message non-texte: image]",
+      "aiResponse": {
+        "message": "عذرًا، المساعد الذكي لـ SOCOFEB يدعم الرسائل النصية فقط في الوقت الحالي. يرجى كتابة استفسارك نصيًا لمساعدتك.",
+        "action": "reply",
+        "handoff": false,
+        "reason": null,
+        "products": []
+      },
+      "meta": {
+        "tenant": "socofeb",
+        "status": "UNSUPPORTED_MEDIA",
+        "customerPhone": "+21699000001",
+        "customerName": "P3 Test Customer",
+        "phoneNumberId": "phone_id_socofeb_p3",
+        "wamid": "wamid.P3_SCENARIO_10"
+      },
+      "outboundPayload": {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": "21699000001",
+        "type": "text",
+        "text": {
+          "preview_url": false,
+          "body": "عذرًا، المساعد الذكي لـ SOCOFEB يدعم الرسائل النصية فقط في الوقت الحالي. يرجى كتابة استفسارك نصيًا لمساعدتك."
+        }
+      },
+      "outboundStatus": "SIMULATED_SUCCESS"
+    }
+  }
+]

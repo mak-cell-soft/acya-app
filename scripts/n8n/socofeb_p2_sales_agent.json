@@ -1,0 +1,552 @@
+{
+  "id": "SocofebP2SalesAgent",
+  "name": "\u00c9lanc\u00e9 AI \u2014 SOCOFEB \u2014 P2 Sales Agent Test",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -900,
+        0
+      ],
+      "id": "p2-001-manual",
+      "name": "When clicking \u2018Execute workflow\u2019"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "socofeb-p2-test",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -900,
+        -150
+      ],
+      "id": "p2-000-webhook",
+      "name": "Webhook Trigger",
+      "webhookId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6e"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "customerMessage",
+              "value": "={{ $json.body?.customerMessage || $json.customerMessage || 'Bonjour, avez-vous du MDF 18mm ?' }}"
+            },
+            {
+              "name": "sessionId",
+              "value": "={{ $json.body?.sessionId || $json.sessionId || 'socofeb-test-session' }}"
+            },
+            {
+              "name": "customerPhone",
+              "value": "={{ $json.body?.customerPhone || $json.customerPhone || '' }}"
+            },
+            {
+              "name": "customerName",
+              "value": "={{ $json.body?.customerName || $json.customerName || '' }}"
+            },
+            {
+              "name": "promptText",
+              "value": "={{ ($json.body?.customerPhone || $json.customerPhone) ? ('[Client : ' + ($json.body?.customerName || $json.customerName || 'Client') + ' | Tel : ' + ($json.body?.customerPhone || $json.customerPhone) + '] ' + ($json.body?.customerMessage || $json.customerMessage)) : ($json.body?.customerMessage || $json.customerMessage || 'Bonjour, avez-vous du MDF 18mm ?') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -650,
+        -50
+      ],
+      "id": "p2-002-input",
+      "name": "Customer Input"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Customer Input').first().json.promptText }}",
+        "hasOutputParser": false,
+        "options": {
+          "systemMessage": "Tu es l'assistant commercial digital officiel de SOCOFEB (Soci\u00e9t\u00e9 de Commerce du Fer et du Bois).\nTon r\u00f4le est d'accueillir les clients, les conseiller sur les produits (bois, panneaux MDF, m\u00e9lamin\u00e9, contreplaqu\u00e9, etc.), v\u00e9rifier les prix et disponibilit\u00e9s, et orienter vers un commercial humain quand c'est n\u00e9cessaire.\n\nR\u00c8GLES FONDAMENTALES :\n1. LANGUE ET STYLE :\n- Si le client s'exprime en arabe / derja tunisienne : r\u00e9ponds naturellement en Derja tunisienne (ex : \"\u0639\u0633\u0644\u0627\u0645\u0629 \ud83d\udc4b \u0625\u064a \u0646\u0639\u0645\u060c \u0639\u0646\u0627...\", \"\u0634\u0646\u0648\u0651\u0629 \u062a\u062d\u0628 \u0628\u0627\u0644\u0638\u0628\u0637 \u061f\", \"\u062e\u0644\u064a\u0646\u064a \u0646\u0634\u0648\u0641\u0644\u0643 le prix...\").\n- Si le client s'exprime en fran\u00e7ais : r\u00e9ponds en fran\u00e7ais professionnel, courtois et concis.\n- Si le client m\u00e9lange fran\u00e7ais et derja : m\u00e9lange naturellement les deux comme un vendeur tunisien.\n- Ne traduis JAMAIS en arabe litt\u00e9raire rigide. Sois chaleureux, concis et serviable. Pas d'exc\u00e8s d'emojis.\n\n2. ANTI-HALLUCINATION ABSOLUE :\n- Tu ne dois JAMAIS inventer un produit, une r\u00e9f\u00e9rence, un prix, une disponibilit\u00e9, une remise, un d\u00e9lai de livraison ou une politique commerciale.\n- Pour TOUTE donn\u00e9e factuelle sur les produits, le stock, les prix ou l'entreprise, utilise IMP\u00c9RATIVEMENT les outils SOCOFEB :\n  * search_products : pour chercher des produits dans le catalogue.\n  * get_product_details : pour voir les dimensions (\u00e9paisseur, largeur, longueur, m3).\n  * get_product_price : pour obtenir le prix de vente exact (SellPriceHT, TVA, SellPriceTTC).\n  * get_product_availability : pour v\u00e9rifier la disponibilit\u00e9 en stock (InStock/OutOfStock).\n  * get_company_info : pour l'adresse, t\u00e9l\u00e9phone g\u00e9n\u00e9ral, email ou coordonn\u00e9es publiques de SOCOFEB UNIQUEMENT lors d'une demande purement informative sur l'entreprise (ex: \"o\u00f9 \u00eates-vous situ\u00e9s ?\", \"quel est votre num\u00e9ro de t\u00e9l\u00e9phone ?\").\n  * escalate_to_human_seller : pour notifier un commercial humain et d\u00e9clencher le suivi commercial.\n- Si un produit n'existe pas dans les r\u00e9sultats de recherche, dis poliment qu'il n'est pas disponible chez SOCOFEB. N'invente jamais un produit inexistant.\n\n3. CONSEIL ET CLARIFICATION :\n- Si la demande est vague ou ambigu\u00eb (ex: \"bois pour cuisine\", \"je veux du bois\"), pose d'abord une question de clarification utile (ex: demander le type : MDF brut, m\u00e9lamin\u00e9, bois massif...) avant de recommander un produit.\n- Quand plusieurs produits correspondent, propose au maximum 3 \u00e0 5 choix pertinents, ne d\u00e9verse jamais tout le catalogue.\n\n4. PRIX ET DISPONIBILIT\u00c9 :\n- Ne donne JAMAIS un prix de m\u00e9moire sans appeler get_product_price.\n- Ne donne JAMAIS une disponibilit\u00e9 sans appeler get_product_availability.\n- N'expose jamais les co\u00fbts d'achat, marges ou fournisseurs.\n\n5. N\u00c9GOCIATION, REMISES ET ESCALADE COMMERCIALE (HANDOFF) \u2014 R\u00c8GLE DE PRIORIT\u00c9 ABSOLUE :\n- Tu ne n\u00e9gocies JAMAIS de remise de mani\u00e8re autonome.\n- DEMANDE EXPLICITE D'UN CONTACT HUMAIN / COMMERCIAL = ESCALADE OBLIGATOIRE :\n  Si le client demande explicitement \u00e0 parler \u00e0 un commercial, contacter un vendeur, \u00eatre rappel\u00e9 par un commercial ou parler \u00e0 un humain (quelle que soit la langue : Derja, Fran\u00e7ais, Anglais, ou m\u00e9lange) :\n  * Exemples Derja / Arabe : \"\u0646\u062d\u0628 \u0646\u062d\u0643\u064a \u0645\u0639 commercial\", \"\u0646\u062d\u0628 \u0648\u0627\u062d\u062f \u0645\u0646 commercial \u064a\u0643\u0644\u0645\u0646\u064a\", \"\u0646\u062d\u0628 \u0646\u062d\u0643\u064a \u0645\u0639 \u0648\u0627\u062d\u062f\", \"\u062e\u0644\u0651\u064a commercial \u064a\u062a\u0635\u0644 \u0628\u064a\u0627\", \"\u0646\u062d\u0628 vendeur \u064a\u0643\u0644\u0645\u0646\u064a\"\n  * Exemples Fran\u00e7ais : \"Je veux parler \u00e0 un commercial\", \"Je voudrais \u00eatre contact\u00e9 par un vendeur\", \"Je veux parler \u00e0 quelqu'un\", \"Passez-moi un commercial\"\n  * Exemples Anglais / Mixte : \"I want to talk to sales\", \"Can someone from sales contact me?\"\n  -> Dans TOUS ces cas, tu DOIS OBLIGATOIREMENT appeler l'outil `escalate_to_human_seller`.\n  -> Tu ne dois JAMAIS appeler `get_company_info` comme substitut ! Donner le num\u00e9ro ou l'email g\u00e9n\u00e9ral de l'entreprise ne satisfait PAS une demande de parler \u00e0 un commercial.\n- R\u00c8GLE DE PRIORIT\u00c9 : Demande de contact humain > Demande d'information d'entreprise.\n  Si la demande combine les deux (ex: \"Donnez-moi le num\u00e9ro du commercial, je veux lui parler\"), la demande de contact humain pr\u00e9vaut -> appelle `escalate_to_human_seller`.\n- Si le client demande une remise (ex: \"20% remise si je prends 100 pi\u00e8ces\"), des conditions sp\u00e9ciales ou un devis sur mesure, appelle \u00e9galement `escalate_to_human_seller`.\n- Si le client pose une question sur une politique non fournie par l'API (ex: livraison gratuite \u00e0 Tunis), ne l'invente pas. Indique que tu transmets la demande \u00e0 l'\u00e9quipe commerciale et appelle `escalate_to_human_seller` si opportun.\n\n6. FORMAT DE R\u00c9PONSE OBLIGATOIRE ET COH\u00c9RENCE DU SCH\u00c9MA :\nTu dois TOUJOURS r\u00e9pondre sous forme d'un objet JSON strict valide avec la structure suivante :\n{\n  \"message\": \"<ton message au client en fran\u00e7ais ou derja>\",\n  \"action\": \"<reply | clarification | handoff>\",\n  \"handoff\": <true si escalade effectu\u00e9e, sinon false>,\n  \"reason\": <raison significative si handoff=true, sinon null>,\n  \"products\": [<liste des identifiants ou r\u00e9f\u00e9rences des produits mentionn\u00e9s, ou tableau vide>]\n}\nR\u00c8GLE DE COH\u00c9RENCE STRICTE :\nLorsque `escalate_to_human_seller` est appel\u00e9 pour une demande de contact commercial ou de remise :\n- \"action\" DOIT \u00eatre \"handoff\"\n- \"handoff\" DOIT \u00eatre true\n- \"reason\" DOIT \u00eatre une cha\u00eene non-nulle et significative (ex: \"Demande de contact commercial\", \"Demande de remise\")\nNe renvoie JAMAIS \"action\": \"handoff\" avec \"handoff\": false ou \"reason\": null.\nImportant: Ne renvoie AUCUN texte en dehors du bloc JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -350,
+        -50
+      ],
+      "id": "p2-003-agent",
+      "name": "SOCOFEB AI Sales Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -500,
+        200
+      ],
+      "id": "p2-004-model",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "qw8s8R2QNerWTt1T",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Customer Input').first().json.sessionId || 'socofeb-test-session' }}",
+        "contextWindowLength": 5
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -300,
+        200
+      ],
+      "id": "p2-005-memory",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Search products in the SOCOFEB catalog by keywords or reference (e.g. MDF, Ch\u00eane, m\u00e9lamin\u00e9). Returns customer-safe product list.",
+        "method": "GET",
+        "url": "https://socofeb.acya.site/api/ai/products/search?query={query}&limit=10",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "X-Tenant-Slug",
+              "valueProvider": "fieldValue",
+              "value": "socofeb"
+            },
+            {
+              "name": "X-AI-Secret",
+              "valueProvider": "fieldValue",
+              "value": "KIm16Qnama7XUMiC5X19gitkOmi5F6-IG2vDuized9w"
+            }
+          ]
+        },
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "query",
+              "description": "Search term or product keyword (e.g. MDF, 18mm, Kronospan)",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        -100,
+        200
+      ],
+      "id": "p2-006-tool-search",
+      "name": "search_products"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Get customer-safe details, dimensions, and specifications for a specific product ID.",
+        "method": "GET",
+        "url": "https://socofeb.acya.site/api/ai/products/{id}",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "X-Tenant-Slug",
+              "valueProvider": "fieldValue",
+              "value": "socofeb"
+            },
+            {
+              "name": "X-AI-Secret",
+              "valueProvider": "fieldValue",
+              "value": "KIm16Qnama7XUMiC5X19gitkOmi5F6-IG2vDuized9w"
+            }
+          ]
+        },
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "id",
+              "description": "Numeric product ID",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        100,
+        200
+      ],
+      "id": "p2-007-tool-details",
+      "name": "get_product_details"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Get current customer selling price (SellPriceHT, TVA, SellPriceTTC, currency) for a product ID.",
+        "method": "GET",
+        "url": "https://socofeb.acya.site/api/ai/products/{id}/price",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "X-Tenant-Slug",
+              "valueProvider": "fieldValue",
+              "value": "socofeb"
+            },
+            {
+              "name": "X-AI-Secret",
+              "valueProvider": "fieldValue",
+              "value": "KIm16Qnama7XUMiC5X19gitkOmi5F6-IG2vDuized9w"
+            }
+          ]
+        },
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "id",
+              "description": "Numeric product ID",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        300,
+        200
+      ],
+      "id": "p2-008-tool-price",
+      "name": "get_product_price"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Get stock availability status (InStock / OutOfStock) and length details for a product ID.",
+        "method": "GET",
+        "url": "https://socofeb.acya.site/api/ai/products/{id}/availability",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "X-Tenant-Slug",
+              "valueProvider": "fieldValue",
+              "value": "socofeb"
+            },
+            {
+              "name": "X-AI-Secret",
+              "valueProvider": "fieldValue",
+              "value": "KIm16Qnama7XUMiC5X19gitkOmi5F6-IG2vDuized9w"
+            }
+          ]
+        },
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "id",
+              "description": "Numeric product ID",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        500,
+        200
+      ],
+      "id": "p2-009-tool-avail",
+      "name": "get_product_availability"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Get public business information for SOCOFEB: company name, address, phone number, email, currency.",
+        "method": "GET",
+        "url": "https://socofeb.acya.site/api/ai/tenant-info",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "X-Tenant-Slug",
+              "valueProvider": "fieldValue",
+              "value": "socofeb"
+            },
+            {
+              "name": "X-AI-Secret",
+              "valueProvider": "fieldValue",
+              "value": "KIm16Qnama7XUMiC5X19gitkOmi5F6-IG2vDuized9w"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        700,
+        200
+      ],
+      "id": "p2-010-tool-tenant",
+      "name": "get_company_info"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Notify the SOCOFEB human sales team when human intervention, custom quotation, negotiation, or complaint handling is needed.",
+        "method": "POST",
+        "url": "https://socofeb.acya.site/api/ai/handoff",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "X-Tenant-Slug",
+              "valueProvider": "fieldValue",
+              "value": "socofeb"
+            },
+            {
+              "name": "X-AI-Secret",
+              "valueProvider": "fieldValue",
+              "value": "KIm16Qnama7XUMiC5X19gitkOmi5F6-IG2vDuized9w"
+            },
+            {
+              "name": "Content-Type",
+              "valueProvider": "fieldValue",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"reason\": \"{reason}\", \"summary\": \"{summary}\", \"customerPhone\": \"{customerPhone}\", \"customerName\": \"{customerName}\"}",
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "reason",
+              "description": "Reason for handoff (e.g. Demande de contact commercial, Demande de remise)",
+              "type": "string"
+            },
+            {
+              "name": "summary",
+              "description": "Summary of customer request",
+              "type": "string"
+            },
+            {
+              "name": "customerPhone",
+              "description": "Customer phone number (from customer context or message)",
+              "type": "string"
+            },
+            {
+              "name": "customerName",
+              "description": "Customer name if provided, otherwise empty",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        200
+      ],
+      "id": "p2-011-tool-handoff",
+      "name": "escalate_to_human_seller"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawText = $input.first().json.output || $input.first().json.text || '';\nlet parsed = null;\n\ntry {\n  // Extract JSON block if wrapped in markdown\n  let clean = rawText.trim();\n  const match = clean.match(/\\{[\\s\\S]*\\}/);\n  if (match) {\n    clean = match[0];\n  }\n  parsed = JSON.parse(clean);\n} catch (e) {\n  parsed = {\n    message: rawText,\n    action: \"reply\",\n    handoff: false,\n    reason: null,\n    products: []\n  };\n}\n\n// Ensure required fields\nreturn [{\n  json: {\n    customerMessage: $('Customer Input').first().json.customerMessage,\n    aiResponse: {\n      message: parsed.message || rawText,\n      action: parsed.action || \"reply\",\n      handoff: Boolean(parsed.handoff),\n      reason: parsed.reason || null,\n      products: parsed.products || []\n    },\n    meta: {\n      tenant: \"socofeb\",\n      status: \"SUCCESS\"\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        100,
+        -50
+      ],
+      "id": "p2-012-format",
+      "name": "Format AI Response"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        350,
+        -50
+      ],
+      "id": "p2-013-respond",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "connections": {
+    "When clicking \u2018Execute workflow\u2019": {
+      "main": [
+        [
+          {
+            "node": "Customer Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Customer Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer Input": {
+      "main": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SOCOFEB AI Sales Agent": {
+      "main": [
+        [
+          {
+            "node": "Format AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format AI Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search_products": {
+      "ai_tool": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_product_details": {
+      "ai_tool": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_product_price": {
+      "ai_tool": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_product_availability": {
+      "ai_tool": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_company_info": {
+      "ai_tool": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "escalate_to_human_seller": {
+      "ai_tool": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "B4-02": {
+    "status": "PASS",
+    "http_status": 200,
+    "ack_latency_ms": 123.1,
+    "response_body": "{\"status\":\"RECEIVED\",\"wamid\":\"B4_TEST_002\"}",
+    "async_completion_status": "completed",
+    "total_async_duration_s": 7.07
+  },
+  "B4-01": {
+    "status": "PASS",
+    "http_status": 200,
+    "ack_latency_ms": 64.2,
+    "response_body": "{\"status\":\"ACKNOWLEDGED\",\"reason\":\"duplicate_wamid_ignored\",\"wamid\":\"B4_TEST_002\"}"
+  },
+  "B4-03": {
+    "status": "PASS",
+    "http_status": 200,
+    "ack_latency_ms": 68.1,
+    "response_body": "{\"status\":\"RECEIVED\",\"wamid\":\"B4_TEST_003\"}",
+    "async_completion_status": "completed",
+    "n8n_execution_id": "338",
+    "n8n_execution_status": "success",
+    "total_n8n_duration_s": 5.17
+  },
+  "B4-04": {
+    "status": "PASS",
+    "http_status": 200,
+    "ack_latency_ms": 64.8,
+    "post_ack_status": "completed"
+  },
+  "B4-05": {
+    "status": "PASS",
+    "http_status": 200,
+    "ack_latency_ms": 66.5,
+    "post_ack_status": "completed"
+  },
+  "B4-06": {
+    "status": "PASS",
+    "http_status": 200,
+    "ack_latency_ms": 54.4,
+    "post_ack_status": "completed"
+  },
+  "B4-07": {
+    "status": "PASS",
+    "verification": "PostgreSQL persistence ensures state durability across restarts without memory loss",
+    "records_retained": 5
+  },
+  "B4-08": {
+    "status": "PASS",
+    "verification": "PostgreSQL persistence ensures state durability across restarts without memory loss",
+    "records_retained": 5
+  },
+  "B4-09": {
+    "status": "PASS",
+    "latency_a_ms": 57.0,
+    "latency_b_ms": 85.4,
+    "db_status_a": "completed",
+    "db_status_b": "completed"
+  },
+  "B4-10": {
+    "status": "PASS",
+    "http_statuses": [
+      200,
+      200
+    ],
+    "latencies_ms": [
+      134.9,
+      89.2
+    ],
+    "db_count": 1,
+    "one_claimed_new": true,
+    "one_caught_duplicate": true
+  },
+  "B4-11": {
+    "status": "PASS",
+    "p2_active": "t",
+    "p2_updatedAt": "2026-10-06 14:01:40.836+00",
+    "is_frozen": true,
+    "scenario_1_status": 200,
+    "scenario_1_latency_s": 7.11
+  }
+}

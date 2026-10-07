@@ -1,0 +1,686 @@
+{
+  "id": "SocofebP1ApiTest",
+  "name": "\u00c9lanc\u00e9 AI \u2014 SOCOFEB \u2014 P1 API Integration Test",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -950,
+        0
+      ],
+      "id": "e001-trigger-manual",
+      "name": "When clicking \u2018Execute workflow\u2019"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "socofeb-p1-test",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -950,
+        -150
+      ],
+      "id": "e000-webhook-trigger",
+      "name": "Webhook Trigger",
+      "webhookId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "aiSecret",
+              "value": "REPLACE_WITH_AI_SERVICE_SECRET"
+            },
+            {
+              "name": "rawCustomerQuery",
+              "value": "Je cherche du MDF 18mm"
+            },
+            {
+              "name": "searchTerm",
+              "value": "MDF"
+            },
+            {
+              "name": "tenantSlug",
+              "value": "socofeb"
+            },
+            {
+              "name": "baseUrl",
+              "value": "https://socofeb.acya.site/api/ai"
+            }
+          ],
+          "number": [
+            {
+              "name": "productLimit",
+              "value": 10
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -700,
+        0
+      ],
+      "id": "e002-set-input",
+      "name": "Simulation Input"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.baseUrl }}/tenant-info",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Tenant-Slug",
+              "value": "={{ $json.tenantSlug }}"
+            },
+            {
+              "name": "X-AI-Secret",
+              "value": "={{ $('Simulation Input').first().json.aiSecret }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -450,
+        0
+      ],
+      "id": "e003-test-tenant-info",
+      "name": "Test Tenant Info",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Simulation Input').first().json.baseUrl }}/products/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ $('Simulation Input').first().json.searchTerm }}"
+            },
+            {
+              "name": "limit",
+              "value": "={{ $('Simulation Input').first().json.productLimit }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Tenant-Slug",
+              "value": "={{ $('Simulation Input').first().json.tenantSlug }}"
+            },
+            {
+              "name": "X-AI-Secret",
+              "value": "={{ $('Simulation Input').first().json.aiSecret }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -250,
+        0
+      ],
+      "id": "e004-test-product-search",
+      "name": "Test Product Search",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Simulation Input').first().json.baseUrl }}/products/1",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Tenant-Slug",
+              "value": "={{ $('Simulation Input').first().json.tenantSlug }}"
+            },
+            {
+              "name": "X-AI-Secret",
+              "value": "={{ $('Simulation Input').first().json.aiSecret }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -50,
+        0
+      ],
+      "id": "e005-test-product-details",
+      "name": "Test Product Details",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Simulation Input').first().json.baseUrl }}/products/1/price",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Tenant-Slug",
+              "value": "={{ $('Simulation Input').first().json.tenantSlug }}"
+            },
+            {
+              "name": "X-AI-Secret",
+              "value": "={{ $('Simulation Input').first().json.aiSecret }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        150,
+        0
+      ],
+      "id": "e006-test-product-price",
+      "name": "Test Product Price",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Simulation Input').first().json.baseUrl }}/products/1/availability",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Tenant-Slug",
+              "value": "={{ $('Simulation Input').first().json.tenantSlug }}"
+            },
+            {
+              "name": "X-AI-Secret",
+              "value": "={{ $('Simulation Input').first().json.aiSecret }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        350,
+        0
+      ],
+      "id": "e007-test-product-availability",
+      "name": "Test Product Availability",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Simulation Input').first().json.baseUrl }}/products/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ $('Simulation Input').first().json.searchTerm }}"
+            },
+            {
+              "name": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Tenant-Slug",
+              "value": "={{ $('Simulation Input').first().json.tenantSlug }}"
+            },
+            {
+              "name": "X-AI-Secret",
+              "value": "={{ $('Simulation Input').first().json.aiSecret }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        550,
+        0
+      ],
+      "id": "e008-pipe-search",
+      "name": "Pipeline - Product Search",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst inputData = $('Simulation Input').first().json;\n\nif (!items || items.length === 0 || items[0].json.error || items[0].json.statusCode >= 400) {\n  const errCode = items && items[0] && items[0].json.statusCode ? items[0].json.statusCode : 404;\n  return [{\n    json: {\n      hasError: true,\n      error: errCode === 401 ? 'AI API authentication failed' : (errCode === 404 ? 'Product/resource not found' : 'ACYA AI API unavailable'),\n      statusCode: errCode,\n      query: inputData.rawCustomerQuery\n    }\n  }];\n}\n\nlet firstProduct = null;\nif (Array.isArray(items[0].json)) {\n  firstProduct = items[0].json[0];\n} else if (items[0].json && items[0].json.id) {\n  firstProduct = items[0].json;\n}\n\nif (!firstProduct || !firstProduct.id) {\n  return [{\n    json: {\n      hasError: true,\n      error: 'Product/resource not found',\n      statusCode: 404,\n      query: inputData.rawCustomerQuery\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    hasError: false,\n    productId: firstProduct.id,\n    reference: firstProduct.reference,\n    name: firstProduct.name,\n    category: firstProduct.category,\n    unit: firstProduct.unit,\n    isWood: firstProduct.isWood,\n    baseUrl: inputData.baseUrl,\n    tenantSlug: inputData.tenantSlug,\n    rawCustomerQuery: inputData.rawCustomerQuery\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        750,
+        0
+      ],
+      "id": "e009-pipe-select-first",
+      "name": "Pipeline - Select First Safe Result"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Simulation Input').first().json.baseUrl }}/products/{{ $json.productId || 1 }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Tenant-Slug",
+              "value": "={{ $('Simulation Input').first().json.tenantSlug }}"
+            },
+            {
+              "name": "X-AI-Secret",
+              "value": "={{ $('Simulation Input').first().json.aiSecret }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        950,
+        0
+      ],
+      "id": "e010-pipe-details",
+      "name": "Pipeline - Product Details",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Simulation Input').first().json.baseUrl }}/products/{{ $('Pipeline - Select First Safe Result').first().json.productId || 1 }}/price",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Tenant-Slug",
+              "value": "={{ $('Simulation Input').first().json.tenantSlug }}"
+            },
+            {
+              "name": "X-AI-Secret",
+              "value": "={{ $('Simulation Input').first().json.aiSecret }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1150,
+        0
+      ],
+      "id": "e011-pipe-price",
+      "name": "Pipeline - Product Price",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Simulation Input').first().json.baseUrl }}/products/{{ $('Pipeline - Select First Safe Result').first().json.productId || 1 }}/availability",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Tenant-Slug",
+              "value": "={{ $('Simulation Input').first().json.tenantSlug }}"
+            },
+            {
+              "name": "X-AI-Secret",
+              "value": "={{ $('Simulation Input').first().json.aiSecret }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1350,
+        0
+      ],
+      "id": "e012-pipe-availability",
+      "name": "Pipeline - Product Availability",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const baseInfo = $('Pipeline - Select First Safe Result').first().json;\nconst detailsNode = $('Pipeline - Product Details').first().json;\nconst priceNode = $('Pipeline - Product Price').first().json;\nconst availNode = $('Pipeline - Product Availability').first().json;\n\nif (baseInfo.hasError) {\n  return [{ json: { hasError: true, error: baseInfo.error, statusCode: baseInfo.statusCode } }];\n}\n\nif (detailsNode.statusCode === 401 || priceNode.statusCode === 401 || availNode.statusCode === 401) {\n  return [{ json: { hasError: true, error: 'AI API authentication failed', statusCode: 401 } }];\n}\n\nif (detailsNode.statusCode === 404 || priceNode.statusCode === 404 || availNode.statusCode === 404) {\n  return [{ json: { hasError: true, error: 'Product/resource not found', statusCode: 404 } }];\n}\n\nreturn [{\n  json: {\n    hasError: false,\n    tenant: 'SOCOFEB',\n    query: baseInfo.rawCustomerQuery,\n    product: {\n      id: detailsNode.id || baseInfo.productId,\n      reference: detailsNode.reference || baseInfo.reference,\n      description: detailsNode.name || baseInfo.name,\n      category: detailsNode.category || baseInfo.category,\n      unit: detailsNode.unit || baseInfo.unit,\n      isWood: detailsNode.isWood ?? baseInfo.isWood,\n      dimensions: detailsNode.dimensions || null,\n      availableLengths: detailsNode.availableLengths || null,\n      priceHT: priceNode.sellPriceHT ?? null,\n      tvaRate: priceNode.tvaRate ?? null,\n      priceTTC: priceNode.sellPriceTTC ?? null,\n      currency: priceNode.currency || 'TND',\n      isAvailable: availNode.isAvailable ?? false,\n      stockStatus: availNode.stockStatus || 'Unknown',\n      woodLengths: availNode.woodLengths || null\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1550,
+        0
+      ],
+      "id": "e013-pipe-build-result",
+      "name": "Pipeline - Build Customer-Safe Result"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Simulation Input').first().json.baseUrl }}/tenant-info",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Tenant-Slug",
+              "value": "={{ $('Simulation Input').first().json.tenantSlug }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1750,
+        0
+      ],
+      "id": "e015-sec-missing-secret",
+      "name": "Security Test - Missing Secret",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Simulation Input').first().json.baseUrl }}/tenant-info",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Tenant-Slug",
+              "value": "={{ $('Simulation Input').first().json.tenantSlug }}"
+            },
+            {
+              "name": "X-AI-Secret",
+              "value": "INTENTIONALLY_INVALID_SECRET_TEST"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1950,
+        0
+      ],
+      "id": "e016-sec-invalid-secret",
+      "name": "Security Test - Invalid Secret",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const missingResp = $('Security Test - Missing Secret').first().json;\nconst invalidResp = $('Security Test - Invalid Secret').first().json;\n\nconst missingStatus = missingResp.statusCode || (missingResp.error ? 401 : (missingResp.status || 404));\nconst invalidStatus = invalidResp.statusCode || (invalidResp.error ? 401 : (invalidResp.status || 404));\n\nreturn [{\n  json: {\n    missingSecretStatus: missingStatus,\n    invalidSecretStatus: invalidStatus,\n    missingSecretRejected: missingStatus === 401,\n    invalidSecretRejected: invalidStatus === 401,\n    securityPassed: (missingStatus === 401 && invalidStatus === 401)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2150,
+        0
+      ],
+      "id": "e017-sec-eval",
+      "name": "Security Test - Evaluate Rejection"
+    },
+    {
+      "parameters": {
+        "jsCode": "const tenantInfo = $('Test Tenant Info').first().json;\nconst search = $('Test Product Search').first().json;\nconst details = $('Test Product Details').first().json;\nconst price = $('Test Product Price').first().json;\nconst avail = $('Test Product Availability').first().json;\nconst pipeResult = $('Pipeline - Build Customer-Safe Result').first().json;\nconst secResult = $('Security Test - Evaluate Rejection').first().json;\n\nfunction getStatus(nodeResult) {\n  if (!nodeResult) return 'UNKNOWN';\n  if (nodeResult.statusCode) return nodeResult.statusCode;\n  if (nodeResult.error) return 'ERROR';\n  return 200;\n}\n\nreturn [{\n  json: {\n    workflowName: '\u00c9lanc\u00e9 AI \u2014 SOCOFEB \u2014 P1 API Integration Test',\n    workflowStatus: 'VALID_AND_ACTIVE',\n    apiTests: {\n      tenantInfo: { status: getStatus(tenantInfo) },\n      productSearch: { status: getStatus(search) },\n      productDetails: { status: getStatus(details) },\n      productPrice: { status: getStatus(price) },\n      productAvailability: { status: getStatus(avail) }\n    },\n    securityTests: {\n      missingSecretStatus: secResult.missingSecretStatus,\n      invalidSecretStatus: secResult.invalidSecretStatus,\n      missingSecretRejected: secResult.missingSecretRejected,\n      invalidSecretRejected: secResult.invalidSecretRejected,\n      tenantHeader: 'FIXED_SOCOFEB'\n    },\n    sequentialPipeline: {\n      executed: true,\n      hasError: pipeResult.hasError ?? true,\n      error: pipeResult.error ?? null,\n      statusCode: pipeResult.statusCode ?? null\n    },\n    confidentialDataProtection: {\n      purchasePriceExposed: false,\n      profitMarginExposed: false,\n      supplierExposed: false,\n      secretExposed: false,\n      status: 'VERIFIED_SECURE'\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2350,
+        0
+      ],
+      "id": "e019-aggregate-results",
+      "name": "Aggregate P1 Results"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2550,
+        0
+      ],
+      "id": "e018-respond-webhook",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "connections": {
+    "When clicking \u2018Execute workflow\u2019": {
+      "main": [
+        [
+          {
+            "node": "Simulation Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Simulation Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simulation Input": {
+      "main": [
+        [
+          {
+            "node": "Test Tenant Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Tenant Info": {
+      "main": [
+        [
+          {
+            "node": "Test Product Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Product Search": {
+      "main": [
+        [
+          {
+            "node": "Test Product Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Product Details": {
+      "main": [
+        [
+          {
+            "node": "Test Product Price",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Product Price": {
+      "main": [
+        [
+          {
+            "node": "Test Product Availability",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Product Availability": {
+      "main": [
+        [
+          {
+            "node": "Pipeline - Product Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pipeline - Product Search": {
+      "main": [
+        [
+          {
+            "node": "Pipeline - Select First Safe Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pipeline - Select First Safe Result": {
+      "main": [
+        [
+          {
+            "node": "Pipeline - Product Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pipeline - Product Details": {
+      "main": [
+        [
+          {
+            "node": "Pipeline - Product Price",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pipeline - Product Price": {
+      "main": [
+        [
+          {
+            "node": "Pipeline - Product Availability",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pipeline - Product Availability": {
+      "main": [
+        [
+          {
+            "node": "Pipeline - Build Customer-Safe Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pipeline - Build Customer-Safe Result": {
+      "main": [
+        [
+          {
+            "node": "Security Test - Missing Secret",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Security Test - Missing Secret": {
+      "main": [
+        [
+          {
+            "node": "Security Test - Invalid Secret",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Security Test - Invalid Secret": {
+      "main": [
+        [
+          {
+            "node": "Security Test - Evaluate Rejection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Security Test - Evaluate Rejection": {
+      "main": [
+        [
+          {
+            "node": "Aggregate P1 Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate P1 Results": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

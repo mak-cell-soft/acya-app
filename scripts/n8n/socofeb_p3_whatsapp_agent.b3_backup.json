@@ -1,0 +1,907 @@
+{
+  "id": "SocofebP3WhatsAppAgent",
+  "name": "Élancé AI — SOCOFEB — WhatsApp Production Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": [
+          "GET",
+          "POST"
+        ],
+        "path": "socofeb-whatsapp",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1100,
+        0
+      ],
+      "id": "p3-000-webhook",
+      "name": "WhatsApp Webhook Trigger",
+      "webhookId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb7f"
+    },
+    {
+      "parameters": {
+        "jsCode": "const req = $input.first().json;\nconst query = req.query || {};\nconst body = req.body || {};\nconst headers = req.headers || {};\n\n// -------------------------------------------------------------\n// Case 1: Meta Webhook GET Verification Challenge\n// -------------------------------------------------------------\nif (query['hub.mode'] === 'subscribe') {\n  const configuredToken = $env.WHATSAPP_VERIFY_TOKEN;\n  const incomingToken = query['hub.verify_token'];\n  const challenge = query['hub.challenge'];\n\n  if (configuredToken && incomingToken === configuredToken) {\n    return [{\n      json: {\n        shouldCallAi: false,\n        responseMode: 'verification',\n        challenge: challenge,\n        statusCode: 200\n      }\n    }];\n  } else {\n    return [{\n      json: {\n        shouldCallAi: false,\n        responseMode: 'forbidden',\n        statusCode: 403\n      }\n    }];\n  }\n}\n\n// -------------------------------------------------------------\n// Case 2: Inbound POST Event Handling\n// -------------------------------------------------------------\nif (body.object && body.object !== 'whatsapp_business_account') {\n  return [{\n    json: {\n      shouldCallAi: false,\n      responseMode: 'ack',\n      reason: 'ignored_non_whatsapp',\n      statusCode: 200\n    }\n  }];\n}\n\nconst entry = body.entry?.[0] || {};\nconst change = entry.changes?.[0] || {};\nconst value = change.value || body.value || body;\n\n// Subcase 2.1: Status Updates (sent, delivered, read) -> Ack & ignore\nif (value.statuses && value.statuses.length > 0) {\n  return [{\n    json: {\n      shouldCallAi: false,\n      responseMode: 'ack',\n      reason: 'status_update',\n      statuses: value.statuses,\n      statusCode: 200\n    }\n  }];\n}\n\n// Subcase 2.2: Messages\nconst messages = value.messages || [];\nif (!messages || messages.length === 0) {\n  return [{\n    json: {\n      shouldCallAi: false,\n      responseMode: 'ack',\n      reason: 'no_messages',\n      statusCode: 200\n    }\n  }];\n}\n\nconst msg = messages[0];\nconst wamid = msg.id || 'wa_msg_' + Date.now();\nconst messageType = msg.type || 'text';\n\n// Extract Contact & Identity\nconst contacts = value.contacts || [];\nconst contact = contacts[0] || {};\nconst customerName = contact.profile?.name || msg.from_name || 'Client WhatsApp';\n\n// Normalize Phone Number to E.164 (+216XXXXXXXX)\nlet rawFrom = String(msg.from || '');\nlet digits = rawFrom.replace(/\\D/g, '');\nlet customerPhone = '';\nif (digits.startsWith('216') && digits.length === 11) {\n  customerPhone = '+' + digits;\n} else if (digits.length === 8) {\n  customerPhone = '+216' + digits;\n} else if (digits.startsWith('00216')) {\n  customerPhone = '+' + digits.slice(2);\n} else if (digits.length > 0) {\n  customerPhone = '+' + digits;\n} else {\n  customerPhone = '+21699000001';\n}\n\nconst phoneNumberId = value.metadata?.phone_number_id || 'phone_id_simulated';\nconst wabaId = entry.id || 'waba_id_simulated';\nconst sessionId = 'socofeb_wa_' + customerPhone;\n\n// Subcase 2.3: Non-text message (image, audio, video, sticker, location, etc.)\nif (messageType !== 'text') {\n  return [{\n    json: {\n      shouldCallAi: false,\n      responseMode: 'unsupported_media',\n      wamid: wamid,\n      customerPhone: customerPhone,\n      customerName: customerName,\n      phoneNumberId: phoneNumberId,\n      sessionId: sessionId,\n      messageType: messageType,\n      statusCode: 200,\n      fallbackMessage: 'عذرًا، المساعد الذكي لـ SOCOFEB يدعم الرسائل النصية فقط في الوقت الحالي. يرجى كتابة استفسارك نصيًا لمساعدتك.'\n    }\n  }];\n}\n\n// Subcase 2.4: Standard text message -> Forward to AI Agent\nconst customerMessage = msg.text?.body || '';\n\nreturn [{\n  json: {\n    shouldCallAi: true,\n    wamid: wamid,\n    customerPhone: customerPhone,\n    customerName: customerName,\n    customerMessage: customerMessage,\n    phoneNumberId: phoneNumberId,\n    wabaId: wabaId,\n    sessionId: sessionId,\n    promptText: '[Client : ' + customerName + ' | Tél : ' + customerPhone + '] ' + customerMessage\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -850,
+        0
+      ],
+      "id": "p3-001-dispatcher",
+      "name": "Normalize & Dispatch Request"
+    },
+    {
+      "parameters": {
+        "options": {},
+        "conditions": {
+          "options": {
+            "version": 3,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "cond-ai",
+              "leftValue": "={{ $json.shouldCallAi }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -550,
+        0
+      ],
+      "id": "p3-002-if-ai",
+      "name": "Should Call AI?"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO idempotency.whatsapp_messages (\n    tenant,\n    wamid,\n    customer_phone,\n    received_at,\n    expires_at,\n    status\n)\nVALUES (\n    $1,\n    $2,\n    $3,\n    NOW(),\n    NOW() + INTERVAL '24 hours',\n    'processing'\n)\nON CONFLICT (tenant, wamid) DO NOTHING\nRETURNING wamid;",
+        "options": {
+          "queryReplacement": "={{ ['socofeb', $('Normalize & Dispatch Request').first().json.wamid, $('Normalize & Dispatch Request').first().json.customerPhone] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -350,
+        200
+      ],
+      "id": "p3-002b-claim-wamid",
+      "name": "Claim wamid — PostgreSQL",
+      "credentials": {
+        "postgres": {
+          "id": "SocofebIdempotencyPostgres",
+          "name": "SOCOFEB Idempotency Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const pgResult = $input.first()?.json || {};\nconst originalData = $('Normalize & Dispatch Request').first()?.json || {};\n\n// If atomic INSERT succeeded, wamid was returned\nconst isClaimGranted = Boolean(pgResult.wamid && pgResult.wamid === originalData.wamid);\n\nreturn [{\n  json: {\n    ...originalData,\n    isClaimGranted: isClaimGranted,\n    claimStatus: isClaimGranted ? 'processing' : 'duplicate_ignored'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -150,
+        200
+      ],
+      "id": "p3-002c-eval-claim",
+      "name": "Evaluate wamid Claim"
+    },
+    {
+      "parameters": {
+        "options": {},
+        "conditions": {
+          "options": {
+            "version": 3,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "cond-claim-granted",
+              "leftValue": "={{ $json.isClaimGranted }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        50,
+        200
+      ],
+      "id": "p3-002d-if-claim",
+      "name": "Is Claim Granted?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first()?.json || {};\n\nreturn [{\n  json: {\n    isDirectResponse: true,\n    statusCode: 200,\n    contentType: 'application/json',\n    bodyText: JSON.stringify({\n      status: 'ACKNOWLEDGED',\n      reason: 'duplicate_wamid_ignored',\n      wamid: item.wamid\n    })\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        250,
+        400
+      ],
+      "id": "p3-002e-dup-handler",
+      "name": "Handle Duplicate wamid"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst mode = item.responseMode;\n\nif (mode === 'verification') {\n  return [{\n    json: {\n      isDirectResponse: true,\n      statusCode: 200,\n      contentType: 'text/plain',\n      bodyText: item.challenge\n    }\n  }];\n}\n\nif (mode === 'forbidden') {\n  return [{\n    json: {\n      isDirectResponse: true,\n      statusCode: 403,\n      contentType: 'text/plain',\n      bodyText: 'Forbidden'\n    }\n  }];\n}\n\nif (mode === 'unsupported_media') {\n  return [{\n    json: {\n      isDirectResponse: false,\n      customerMessage: '[Message non-texte: ' + (item.messageType || 'media') + ']',\n      aiResponse: {\n        message: item.fallbackMessage,\n        action: 'reply',\n        handoff: false,\n        reason: null,\n        products: []\n      },\n      meta: {\n        tenant: 'socofeb',\n        status: 'UNSUPPORTED_MEDIA',\n        customerPhone: item.customerPhone,\n        customerName: item.customerName,\n        phoneNumberId: item.phoneNumberId,\n        wamid: item.wamid\n      }\n    }\n  }];\n}\n\n// Default: ack / duplicate / status update\nreturn [{\n  json: {\n    isDirectResponse: true,\n    statusCode: 200,\n    contentType: 'application/json',\n    bodyText: JSON.stringify({ status: 'ACKNOWLEDGED', reason: item.reason, wamid: item.wamid })\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -250,
+        -200
+      ],
+      "id": "p3-003-non-ai-handler",
+      "name": "Handle Non-AI Responses"
+    },
+    {
+      "parameters": {
+        "options": {},
+        "conditions": {
+          "options": {
+            "version": 3,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "cond-direct",
+              "leftValue": "={{ $json.isDirectResponse }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        50,
+        -200
+      ],
+      "id": "p3-004-if-direct",
+      "name": "Is Direct Response?"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.bodyText }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "={{ $json.contentType || 'text/plain' }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        350,
+        -300
+      ],
+      "id": "p3-005-resp-direct",
+      "name": "Respond Direct"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Normalize & Dispatch Request').first().json.promptText }}",
+        "hasOutputParser": false,
+        "options": {
+          "systemMessage": "Tu es l'assistant commercial digital officiel de SOCOFEB (Société de Commerce du Fer et du Bois).\nTon rôle est d'accueillir les clients, les conseiller sur les produits (bois, panneaux MDF, mélaminé, contreplaqué, etc.), vérifier les prix et disponibilités, et orienter vers un commercial humain quand c'est nécessaire.\n\nRÈGLES FONDAMENTALES :\n1. LANGUE ET STYLE :\n- Si le client s'exprime en arabe / derja tunisienne : réponds naturellement en Derja tunisienne (ex : \"عسلامة 👋 إي نعم، عنا...\", \"شنوّة تحب بالظبط ؟\", \"خليني نشوفلك le prix...\").\n- Si le client s'exprime en français : réponds en français professionnel, courtois et concis.\n- Si le client mélange français et derja : mélange naturellement les deux comme un vendeur tunisien.\n- Ne traduis JAMAIS en arabe littéraire rigide. Sois chaleureux, concis et serviable. Pas d'excès d'emojis.\n\n2. ANTI-HALLUCINATION ABSOLUE :\n- Tu ne dois JAMAIS inventer un produit, une référence, un prix, une disponibilité, une remise, un délai de livraison ou une politique commerciale.\n- Pour TOUTE donnée factuelle sur les produits, le stock, les prix ou l'entreprise, utilise IMPÉRATIVEMENT les outils SOCOFEB :\n  * search_products : pour chercher des produits dans le catalogue.\n  * get_product_details : pour voir les dimensions (épaisseur, largeur, longueur, m3).\n  * get_product_price : pour obtenir le prix de vente exact (SellPriceHT, TVA, SellPriceTTC).\n  * get_product_availability : pour vérifier la disponibilité en stock (InStock/OutOfStock).\n  * get_company_info : pour l'adresse, téléphone général, email ou coordonnées publiques de SOCOFEB UNIQUEMENT lors d'une demande purement informative sur l'entreprise (ex: \"où êtes-vous situés ?\", \"quel est votre numéro de téléphone ?\").\n  * escalate_to_human_seller : pour notifier un commercial humain et déclencher le suivi commercial.\n- Si un produit n'existe pas dans les résultats de recherche, dis poliment qu'il n'est pas disponible chez SOCOFEB. N'invente jamais un produit inexistant.\n\n3. CONSEIL ET CLARIFICATION :\n- Si la demande est vague ou ambiguë (ex: \"bois pour cuisine\", \"je veux du bois\"), pose d'abord une question de clarification utile (ex: demander le type : MDF brut, mélaminé, bois massif...) avant de recommander un produit.\n- Quand plusieurs produits correspondent, propose au maximum 3 à 5 choix pertinents, ne déverse jamais tout le catalogue.\n\n4. PRIX ET DISPONIBILITÉ :\n- Ne donne JAMAIS un prix de mémoire sans appeler get_product_price.\n- Ne donne JAMAIS une disponibilité sans appeler get_product_availability.\n- N'expose jamais les coûts d'achat, marges ou fournisseurs.\n\n5. NÉGOCIATION, REMISES ET ESCALADE COMMERCIALE (HANDOFF) — RÈGLE DE PRIORITÉ ABSOLUE :\n- Tu ne négocies JAMAIS de remise de manière autonome.\n- DEMANDE EXPLICITE D'UN CONTACT HUMAIN / COMMERCIAL = ESCALADE OBLIGATOIRE :\n  Si le client demande explicitement à parler à un commercial, contacter un vendeur, être rappelé par un commercial ou parler à un humain (quelle que soit la langue : Derja, Français, Anglais, ou mélange) :\n  * Exemples Derja / Arabe : \"نحب نحكي مع commercial\", \"نحب واحد من commercial يكلمني\", \"نحب نحكي مع واحد\", \"خلّي commercial يتصل بيا\", \"نحب vendeur يكلمني\"\n  * Exemples Français : \"Je veux parler à un commercial\", \"Je voudrais être contacté par un vendeur\", \"Je veux parler à quelqu'un\", \"Passez-moi un commercial\"\n  * Exemples Anglais / Mixte : \"I want to talk to sales\", \"Can someone from sales contact me?\"\n  -> Dans TOUS ces cas, tu DOIS OBLIGATOIREMENT appeler l'outil `escalate_to_human_seller`.\n  -> Tu ne dois JAMAIS appeler `get_company_info` comme substitut ! Donner le numéro ou l'email général de l'entreprise ne satisfait PAS une demande de parler à un commercial.\n- RÈGLE DE PRIORITÉ : Demande de contact humain > Demande d'information d'entreprise.\n  Si la demande combine les deux (ex: \"Donnez-moi le numéro du commercial, je veux lui parler\"), la demande de contact humain prévaut -> appelle `escalate_to_human_seller`.\n- Si le client demande une remise (ex: \"20% remise si je prends 100 pièces\"), des conditions spéciales ou un devis sur mesure, appelle également `escalate_to_human_seller`.\n- Si le client pose une question sur une politique non fournie par l'API (ex: livraison gratuite à Tunis), ne l'invente pas. Indique que tu transmets la demande à l'équipe commerciale et appelle `escalate_to_human_seller` si opportun.\n\n6. FORMAT DE RÉPONSE OBLIGATOIRE ET COHÉRENCE DU SCHÉMA :\nTu dois TOUJOURS répondre sous forme d'un objet JSON strict valide avec la structure suivante :\n{\n  \"message\": \"<ton message au client en français ou derja>\",\n  \"action\": \"<reply | clarification | handoff>\",\n  \"handoff\": <true si escalade effectuée, sinon false>,\n  \"reason\": <raison significative si handoff=true, sinon null>,\n  \"products\": [<liste des identifiants ou références des produits mentionnés, ou tableau vide>]\n}\nRÈGLE DE COHÉRENCE STRICTE :\nLorsque `escalate_to_human_seller` est appelé pour une demande de contact commercial ou de remise :\n- \"action\" DOIT être \"handoff\"\n- \"handoff\" DOIT être true\n- \"reason\" DOIT être une chaîne non-nulle et significative (ex: \"Demande de contact commercial\", \"Demande de remise\")\nNe renvoie JAMAIS \"action\": \"handoff\" avec \"handoff\": false ou \"reason\": null.\nImportant: Ne renvoie AUCUN texte en dehors du bloc JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -200,
+        300
+      ],
+      "id": "p3-007-agent",
+      "name": "SOCOFEB AI Sales Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -350,
+        550
+      ],
+      "id": "p3-008-model",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "qw8s8R2QNerWTt1T",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Normalize & Dispatch Request').first().json.sessionId }}",
+        "contextWindowLength": 5
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -150,
+        550
+      ],
+      "id": "p3-009-memory",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Search products in the SOCOFEB catalog by keywords or reference (e.g. MDF, Chêne, mélaminé). Returns customer-safe product list.",
+        "method": "GET",
+        "url": "https://socofeb.acya.site/api/ai/products/search?query={query}&limit=10",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "X-Tenant-Slug",
+              "valueProvider": "fieldValue",
+              "value": "socofeb"
+            }
+          ]
+        },
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "query",
+              "description": "Search term or product keyword (e.g. MDF, 18mm, Kronospan)",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        550
+      ],
+      "id": "p3-010-tool-search",
+      "name": "search_products",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "AcyaAiServiceAuth",
+          "name": "ACYA AI Service Header Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Get complete technical dimensions, thickness, width, length and details of a specific SOCOFEB product by its numeric ID.",
+        "method": "GET",
+        "url": "https://socofeb.acya.site/api/ai/products/{id}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "X-Tenant-Slug",
+              "valueProvider": "fieldValue",
+              "value": "socofeb"
+            }
+          ]
+        },
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "id",
+              "description": "Numeric product ID",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        200,
+        550
+      ],
+      "id": "p3-011-tool-details",
+      "name": "get_product_details",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "AcyaAiServiceAuth",
+          "name": "ACYA AI Service Header Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Get official customer selling price (SellPriceHT, TVA, SellPriceTTC) in TND for a SOCOFEB product by its numeric ID. Never invents prices.",
+        "method": "GET",
+        "url": "https://socofeb.acya.site/api/ai/products/{id}/price",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "X-Tenant-Slug",
+              "valueProvider": "fieldValue",
+              "value": "socofeb"
+            }
+          ]
+        },
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "id",
+              "description": "Numeric product ID",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        400,
+        550
+      ],
+      "id": "p3-012-tool-price",
+      "name": "get_product_price",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "AcyaAiServiceAuth",
+          "name": "ACYA AI Service Header Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Check stock availability and quantities across SOCOFEB sales sites for a product by its numeric ID.",
+        "method": "GET",
+        "url": "https://socofeb.acya.site/api/ai/products/{id}/availability",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "X-Tenant-Slug",
+              "valueProvider": "fieldValue",
+              "value": "socofeb"
+            }
+          ]
+        },
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "id",
+              "description": "Numeric product ID",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        600,
+        550
+      ],
+      "id": "p3-013-tool-avail",
+      "name": "get_product_availability",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "AcyaAiServiceAuth",
+          "name": "ACYA AI Service Header Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Get public business information for SOCOFEB: company name, address, phone number, email, currency.",
+        "method": "GET",
+        "url": "https://socofeb.acya.site/api/ai/tenant-info",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "X-Tenant-Slug",
+              "valueProvider": "fieldValue",
+              "value": "socofeb"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        550
+      ],
+      "id": "p3-014-tool-tenant",
+      "name": "get_company_info",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "AcyaAiServiceAuth",
+          "name": "ACYA AI Service Header Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Notify the SOCOFEB human sales team when human intervention, custom quotation, negotiation, or complaint handling is needed.",
+        "method": "POST",
+        "url": "https://socofeb.acya.site/api/ai/handoff",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "X-Tenant-Slug",
+              "valueProvider": "fieldValue",
+              "value": "socofeb"
+            },
+            {
+              "name": "Content-Type",
+              "valueProvider": "fieldValue",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"reason\": \"{reason}\", \"summary\": \"{summary}\", \"customerPhone\": \"{customerPhone}\", \"customerName\": \"{customerName}\"}",
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "reason",
+              "description": "Reason for handoff (e.g. Demande de contact commercial, Demande de remise)",
+              "type": "string"
+            },
+            {
+              "name": "summary",
+              "description": "Summary of customer request",
+              "type": "string"
+            },
+            {
+              "name": "customerPhone",
+              "description": "Customer phone number (from customer context or message)",
+              "type": "string"
+            },
+            {
+              "name": "customerName",
+              "description": "Customer name if provided, otherwise empty",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        1000,
+        550
+      ],
+      "id": "p3-015-tool-handoff",
+      "name": "escalate_to_human_seller",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "AcyaAiServiceAuth",
+          "name": "ACYA AI Service Header Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawText = $input.first().json.output || $input.first().json.text || '';\nconst norm = $('Normalize & Dispatch Request').first().json;\nlet parsed = null;\n\ntry {\n  let clean = rawText.trim();\n  const match = clean.match(/\\{[\\s\\S]*\\}/);\n  if (match) {\n    clean = match[0];\n  }\n  parsed = JSON.parse(clean);\n} catch (e) {\n  parsed = {\n    message: rawText,\n    action: \"reply\",\n    handoff: false,\n    reason: null,\n    products: []\n  };\n}\n\nreturn [{\n  json: {\n    customerMessage: norm.customerMessage,\n    aiResponse: {\n      message: parsed.message || rawText,\n      action: parsed.action || \"reply\",\n      handoff: Boolean(parsed.handoff),\n      reason: parsed.reason || null,\n      products: parsed.products || []\n    },\n    meta: {\n      tenant: \"socofeb\",\n      status: \"SUCCESS\",\n      customerPhone: norm.customerPhone,\n      customerName: norm.customerName,\n      phoneNumberId: norm.phoneNumberId,\n      wamid: norm.wamid\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        150,
+        300
+      ],
+      "id": "p3-016-format-response",
+      "name": "Format AI Response"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst aiMsg = item.aiResponse?.message || 'Merci pour votre message.';\nconst meta = item.meta || {};\n\n// Sanitize message: limit length to 4096 chars, remove leading/trailing extra whitespace\nlet cleanText = String(aiMsg).trim();\nif (cleanText.length > 4096) {\n  cleanText = cleanText.substring(0, 4090) + '...';\n}\n\n// Construct Meta Graph API payload\nconst metaOutboundPayload = {\n  messaging_product: \"whatsapp\",\n  recipient_type: \"individual\",\n  to: meta.customerPhone ? meta.customerPhone.replace(/\\+/g, '') : '',\n  type: \"text\",\n  text: {\n    preview_url: false,\n    body: cleanText\n  }\n};\n\nreturn [{\n  json: {\n    ...item,\n    outboundPayload: metaOutboundPayload,\n    outboundStatus: \"PREPARED_FOR_DISPATCH\"\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        450,
+        200
+      ],
+      "id": "p3-017-outbound-prep",
+      "name": "Format Outbound Message"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\n// In P3.2-A (Simulation mode), we validate the contract and record simulated delivery.\n// In P3.2-B, real Graph API call is made via HTTP Request Node with configured credentials.\nitem.outboundStatus = \"SIMULATED_SUCCESS\";\n\nreturn [{ json: item }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        200
+      ],
+      "id": "p3-018-dispatch-node",
+      "name": "Dispatch Outbound Message"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE idempotency.whatsapp_messages\nSET status = 'completed'\nWHERE tenant = $1 AND wamid = $2;",
+        "options": {
+          "queryReplacement": "={{ ['socofeb', $('Normalize & Dispatch Request').first().json.wamid] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        950,
+        200
+      ],
+      "id": "p3-018b-update-completed",
+      "name": "Update Status — Completed",
+      "credentials": {
+        "postgres": {
+          "id": "SocofebIdempotencyPostgres",
+          "name": "SOCOFEB Idempotency Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($('Dispatch Outbound Message').first().json) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        200
+      ],
+      "id": "p3-019-resp-final",
+      "name": "Respond to Webhook (Final)"
+    }
+  ],
+  "connections": {
+    "WhatsApp Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Dispatch Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Normalize & Dispatch Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & Dispatch Request": {
+      "main": [
+        [
+          {
+            "node": "Should Call AI?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should Call AI?": {
+      "main": [
+        [
+          {
+            "node": "Claim wamid — PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Non-AI Responses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim wamid — PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Evaluate wamid Claim",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate wamid Claim": {
+      "main": [
+        [
+          {
+            "node": "Is Claim Granted?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Claim Granted?": {
+      "main": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Duplicate wamid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Duplicate wamid": {
+      "main": [
+        [
+          {
+            "node": "Respond Direct",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Non-AI Responses": {
+      "main": [
+        [
+          {
+            "node": "Is Direct Response?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Direct Response?": {
+      "main": [
+        [
+          {
+            "node": "Respond Direct",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Outbound Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search_products": {
+      "ai_tool": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_product_details": {
+      "ai_tool": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_product_price": {
+      "ai_tool": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_product_availability": {
+      "ai_tool": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_company_info": {
+      "ai_tool": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "escalate_to_human_seller": {
+      "ai_tool": [
+        [
+          {
+            "node": "SOCOFEB AI Sales Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SOCOFEB AI Sales Agent": {
+      "main": [
+        [
+          {
+            "node": "Format AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format AI Response": {
+      "main": [
+        [
+          {
+            "node": "Format Outbound Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Outbound Message": {
+      "main": [
+        [
+          {
+            "node": "Dispatch Outbound Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dispatch Outbound Message": {
+      "main": [
+        [
+          {
+            "node": "Update Status — Completed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Status — Completed": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook (Final)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

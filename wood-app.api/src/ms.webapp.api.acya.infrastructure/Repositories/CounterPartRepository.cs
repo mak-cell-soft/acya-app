@@ -221,14 +221,66 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       return new CounterPartExistenceResult { Exists = false, Dto = null };
     }
 
+    /// <summary>
+    /// Normalizes a phone number by stripping non-digit characters and returning the last 8 national digits (Tunisian format).
+    /// </summary>
+    public static string NormalizePhoneNumber(string? rawPhone)
+    {
+      if (string.IsNullOrWhiteSpace(rawPhone)) return string.Empty;
+      var digits = new string(rawPhone.Where(char.IsDigit).ToArray());
+      if (digits.Length >= 8)
+      {
+        return digits.Substring(digits.Length - 8);
+      }
+      return digits;
+    }
+
+    /// <summary>
+    /// Resolves an existing active customer by phone number.
+    /// Matches against normalized PhoneNumberOne and PhoneNumberTwo.
+    /// </summary>
+    public async Task<CounterPart?> GetByPhoneNumberAsync(string phone)
+    {
+      if (string.IsNullOrWhiteSpace(phone)) return null;
+
+      var target8 = NormalizePhoneNumber(phone);
+      if (string.IsNullOrEmpty(target8) || target8.Length < 8) return null;
+
+      // 1. Efficient candidate pre-filter in database
+      var candidates = await context.CounterParts
+          .Where(c => c.IsDeleted == false &&
+                     ((c.PhoneNumberOne != null && c.PhoneNumberOne.Contains(target8)) ||
+                      (c.PhoneNumberTwo != null && c.PhoneNumberTwo.Contains(target8))))
+          .ToListAsync();
+
+      var match = candidates.FirstOrDefault(c =>
+          NormalizePhoneNumber(c.PhoneNumberOne) == target8 ||
+          NormalizePhoneNumber(c.PhoneNumberTwo) == target8);
+
+      if (match != null) return match;
+
+      // 2. Fallback for phone numbers formatted with spacing in DB (e.g. "98 123 456")
+      var allWithPhone = await context.CounterParts
+          .Where(c => c.IsDeleted == false && (c.PhoneNumberOne != null || c.PhoneNumberTwo != null))
+          .Select(c => new { c.Id, c.PhoneNumberOne, c.PhoneNumberTwo })
+          .ToListAsync();
+
+      var matchedId = allWithPhone.FirstOrDefault(c =>
+          NormalizePhoneNumber(c.PhoneNumberOne) == target8 ||
+          NormalizePhoneNumber(c.PhoneNumberTwo) == target8)?.Id;
+
+      if (matchedId.HasValue)
+      {
+          return await context.CounterParts.FindAsync(matchedId.Value);
+      }
+
+      return null;
+    }
 
     public class CounterPartExistenceResult
     {
       public bool Exists { get; set; }
       public CounterPartDto? Dto { get; set; }
     }
-
-
-
   }
 }
