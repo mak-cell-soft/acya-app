@@ -98,11 +98,11 @@ export function HeroSection() {
           fill
           priority
           sizes="100vw"
-          className="object-cover object-[center_35%] lg:object-[65%_35%] opacity-30 select-none"
+          className="object-cover object-[center_35%] lg:object-[65%_35%] opacity-40 select-none"
         />
         {/* Dark transparent gradient overlay ensuring Élancé text readability & brand identity */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#070D1E] via-[#070D1E]/90 to-[#070D1E]/75" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#070D1E]/80 via-transparent to-[#070D1E]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#070D1E] via-[#070D1E]/82 to-[#070D1E]/65" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#070D1E]/70 via-transparent to-[#070D1E]" />
       </div>
 
       {/* Subtle micro-grid */}
@@ -158,7 +158,7 @@ export function HeroSection() {
                 </span>
                 <Image
                   src="/logo-reva-navbar.png"
-                  alt="RéVA"
+                  alt="RÉVA Consulting"
                   width={2103}
                   height={748}
                   priority
