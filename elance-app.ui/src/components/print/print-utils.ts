@@ -1,4 +1,4 @@
-import { Document } from '@/types/document';
+import { Document, DocumentTypes } from '@/types/document';
 
 /**
  * Formats a date into the DD/MM/YY format (common in Tunisian business documents).
@@ -328,5 +328,48 @@ export function numberToWordsFR(amount: number | undefined | null): string {
 
   if (!result) return 'Zéro dinar';
   return result.charAt(0).toUpperCase() + result.slice(1);
+}
+
+/**
+ * Helper to retrieve supplier name from the counterpart model
+ */
+export function getSupplierName(document: Document | null | undefined): string {
+  const cp = document?.counterpart;
+  if (!cp) return 'Fournisseur sans nom';
+  return cp.name || `${cp.firstname || ''} ${cp.lastname || ''}`.trim() || 'Fournisseur sans nom';
+}
+
+/**
+ * Helper to retrieve supplier address
+ */
+export function getSupplierAddress(document: Document | null | undefined): string {
+  return document?.counterpart?.address || '';
+}
+
+/**
+ * Helper to retrieve supplier tax identification number (Matricule Fiscal)
+ */
+export function getSupplierTvaCode(document: Document | null | undefined): string {
+  return document?.counterpart?.taxregistrationnumber || '';
+}
+
+/**
+ * Returns human-readable document header title for purchase documents
+ */
+export function getPurchaseDocTitle(type: DocumentTypes | undefined): string {
+  switch (type) {
+    case DocumentTypes.supplierReceipt:
+      return 'BON DE RÉCEPTION';
+    case DocumentTypes.supplierInvoice:
+      return 'FACTURE FOURNISSEUR';
+    case DocumentTypes.supplierOrder:
+      return 'BON DE COMMANDE';
+    case DocumentTypes.supplierInvoiceReturn:
+      return 'AVOIR FOURNISSEUR';
+    case DocumentTypes.supplierMerchandiseReturn:
+      return 'BON DE RETOUR';
+    default:
+      return "DOCUMENT D'ACHAT";
+  }
 }
 

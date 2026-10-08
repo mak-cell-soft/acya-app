@@ -185,6 +185,7 @@ export default function PurchasesPage() {
   const [isCreditNoteModalOpen, setIsCreditNoteModalOpen] = useState(false);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
   const [isPrintListModalOpen, setIsPrintListModalOpen] = useState(false);
+  const [printDoc, setPrintDoc] = useState<{ doc: Document; type: 'purchase' } | null>(null);
   // Controls visibility of the RS (Holding Tax) list side-panel
   const [isRsPanelOpen, setIsRsPanelOpen] = useState(false);
 
@@ -1627,7 +1628,7 @@ export default function PurchasesPage() {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => setSelectedDocIdForDetail(item.id)}
+                                    onClick={() => setPrintDoc({ doc: item, type: 'purchase' })}
                                     className="h-8 w-8 rounded-lg text-slate-400 hover:text-amber-800"
                                   >
                                     <Printer className="w-4 h-4" />
@@ -1648,6 +1649,12 @@ export default function PurchasesPage() {
                                         className="gap-2 font-bold text-slate-800 cursor-pointer"
                                       >
                                         <FileText className="w-4 h-4 text-slate-500" /> Afficher Détails
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() => setPrintDoc({ doc: item, type: 'purchase' })}
+                                        className="gap-2 font-bold text-slate-800 cursor-pointer"
+                                      >
+                                        <Printer className="w-4 h-4 text-slate-500" /> Imprimer Document
                                       </DropdownMenuItem>
 
                                       {/* Edit action — only for receipts */}
@@ -2080,6 +2087,7 @@ export default function PurchasesPage() {
         documentId={selectedDocIdForDetail}
         onClose={() => setSelectedDocIdForDetail(null)}
         onNavigateToRelated={(id) => setSelectedDocIdForDetail(id)}
+        onPrint={(doc) => setPrintDoc({ doc, type: 'purchase' })}
       />
 
       {/* RS Withholding Tax Modal Dialog (TEJ Integration) */}
@@ -2122,6 +2130,14 @@ export default function PurchasesPage() {
           refetch();
         }}
         parentInvoice={invoiceForCreditNote}
+      />
+
+      {/* Print Single Purchase Document Dialog */}
+      <PrintVariantDialog
+        isOpen={printDoc !== null}
+        onClose={() => setPrintDoc(null)}
+        document={printDoc?.doc}
+        docType={printDoc?.type}
       />
 
       {/* Print List Dialog */}

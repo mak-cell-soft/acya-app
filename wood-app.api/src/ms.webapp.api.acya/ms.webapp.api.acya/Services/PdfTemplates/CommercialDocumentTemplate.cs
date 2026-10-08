@@ -41,14 +41,16 @@ namespace ms.webapp.api.acya.api.Services.PdfTemplates
             {
                 row.RelativeItem().Column(column =>
                 {
-                    column.Item().Text("ACYA APP").FontSize(20).SemiBold().FontColor(Colors.Blue.Medium);
-                    column.Item().Text($"{_model.sales_site?.address ?? "Site de vente principal"}");
-                    column.Item().Text($"{_model.appuser?.login ?? "Admin"}");
+                    column.Item().Text("ACYA APP").FontSize(20).SemiBold().FontColor(Colors.Black);
+                    if (!string.IsNullOrEmpty(_model.appuser?.login))
+                    {
+                        column.Item().Text($"Émis par: {_model.appuser.login}").FontSize(9).FontColor(Colors.Grey.Darken1);
+                    }
                 });
 
                 row.RelativeItem().AlignRight().Column(column =>
                 {
-                    column.Item().Text(title).FontSize(24).ExtraBold().FontColor(Colors.Blue.Medium);
+                    column.Item().Text(title).FontSize(22).ExtraBold().FontColor(Colors.Black);
                     column.Item().Text(text =>
                     {
                         text.Span("Référence: ").SemiBold();
@@ -65,19 +67,28 @@ namespace ms.webapp.api.acya.api.Services.PdfTemplates
 
         void ComposeContent(IContainer container)
         {
-            container.PaddingVertical(40).Column(column =>
+            container.PaddingVertical(30).Column(column =>
             {
                 column.Spacing(20);
+
+                bool isPurchase = _model.type == DocumentTypes.supplierOrder ||
+                                  _model.type == DocumentTypes.supplierReceipt ||
+                                  _model.type == DocumentTypes.supplierInvoice ||
+                                  _model.type == DocumentTypes.supplierInvoiceReturn;
+
+                string counterpartLabel = isPurchase ? "Fournisseur" : "Client";
 
                 column.Item().Row(row =>
                 {
                     row.RelativeItem().Column(c =>
                     {
-                        c.Item().Text("Client / Fournisseur").SemiBold().FontColor(Colors.Blue.Medium);
+                        c.Item().Text(counterpartLabel).SemiBold().FontColor(Colors.Black);
                         string cpName = _model.counterpart?.name ?? (_model.counterpart?.firstname + " " + _model.counterpart?.lastname);
-                        c.Item().PaddingTop(5).Text(cpName ?? "Client Divers");
-                        c.Item().Text(_model.counterpart?.address ?? "Tunisie");
-                        c.Item().Text(_model.counterpart?.phonenumberone ?? "");
+                        c.Item().PaddingTop(5).Text(cpName ?? (isPurchase ? "Fournisseur Divers" : "Client Divers")).SemiBold();
+                        if (!string.IsNullOrEmpty(_model.counterpart?.address))
+                            c.Item().Text(_model.counterpart.address);
+                        if (!string.IsNullOrEmpty(_model.counterpart?.phonenumberone))
+                            c.Item().Text($"Tél: {_model.counterpart.phonenumberone}");
                         if (!string.IsNullOrEmpty(_model.counterpart?.taxregistrationnumber))
                             c.Item().Text($"M.F: {_model.counterpart.taxregistrationnumber}");
                     });
@@ -197,8 +208,8 @@ namespace ms.webapp.api.acya.api.Services.PdfTemplates
 
                     column.Item().Row(row =>
                     {
-                        row.RelativeItem().Text("Net à Payer").FontSize(14).ExtraBold().FontColor(Colors.Blue.Medium);
-                        row.RelativeItem().AlignRight().Text(_model.total_net_payable?.ToString("N3") ?? "0.000").FontSize(14).ExtraBold().FontColor(Colors.Blue.Medium);
+                        row.RelativeItem().Text("Net à Payer").FontSize(14).ExtraBold().FontColor(Colors.Black);
+                        row.RelativeItem().AlignRight().Text(_model.total_net_payable?.ToString("N3") ?? "0.000").FontSize(14).ExtraBold().FontColor(Colors.Black);
                     });
                 }
             });

@@ -127,7 +127,7 @@ export function DocumentDetailDrawer({
 
   // Trigger browser print of document or use custom print wrapper if provided
   const handlePrint = () => {
-    if (doc && onPrint && (doc.type === DocumentTypes.customerDeliveryNote || doc.type === DocumentTypes.customerInvoice)) {
+    if (doc && onPrint) {
       onPrint(doc);
     } else {
       window.print();

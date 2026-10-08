@@ -20,6 +20,8 @@ import { DeliveryNoteStandard } from './delivery-note-standard';
 import { DeliveryNoteLight } from './delivery-note-light';
 import { InvoiceStandard } from './invoice-standard';
 import { InvoiceLight } from './invoice-light';
+import { PurchaseStandard } from './purchase-standard';
+import { PurchaseLight } from './purchase-light';
 import { StockTransferStandard } from './stock-transfer-standard';
 import { StockTransferLight } from './stock-transfer-light';
 import { LeaveStandard } from './leave-standard';
@@ -96,7 +98,7 @@ interface PrintVariantDialogProps {
   articlesList?: Article[] | null;
   articlesStockMap?: Map<number, { total: number; breakdown: { siteName: string; quantity: number; unit: string }[] }>;
   articlesFilterInfo?: ArticlesFilterInfo;
-  docType: 'bl' | 'invoice' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | 'document-list' | 'bank-statement' | 'caisse-remise' | 'supplier-payment' | 'bordereau-versement' | 'supplier-payments-list' | 'stock-inventory' | 'customer-report' | 'customers-list' | 'suppliers-list' | 'supplier-report' | 'articles-inventory' | 'inventory' | 'registered-inventory' | null | undefined;
+  docType: 'bl' | 'invoice' | 'purchase' | 'purchase-order' | 'purchase-receipt' | 'purchase-invoice' | 'purchase-return' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | 'document-list' | 'bank-statement' | 'caisse-remise' | 'supplier-payment' | 'bordereau-versement' | 'supplier-payments-list' | 'stock-inventory' | 'customer-report' | 'customers-list' | 'suppliers-list' | 'supplier-report' | 'articles-inventory' | 'inventory' | 'registered-inventory' | null | undefined;
 }
 
 export function PrintVariantDialog({
@@ -238,6 +240,23 @@ export function PrintVariantDialog({
             <InvoiceStandard document={document} enterprise={enterprise} printLocale={printLocale} payments={invoicePayments} />
           ) : (
             <InvoiceLight document={document} enterprise={enterprise} printLocale={printLocale} payments={invoicePayments} />
+          )
+        );
+      } else if (
+        (docType === 'purchase' ||
+          docType === 'purchase-order' ||
+          docType === 'purchase-receipt' ||
+          docType === 'purchase-invoice' ||
+          docType === 'purchase-return') &&
+        document
+      ) {
+        printDocNumber = document.docnumber || '';
+        styleCss = variant === 'standard' ? getStandardPrintStyles() : getLightPrintStyles();
+        contentHtml = renderToStaticMarkup(
+          variant === 'standard' ? (
+            <PurchaseStandard document={document} enterprise={enterprise} printLocale={printLocale} />
+          ) : (
+            <PurchaseLight document={document} enterprise={enterprise} printLocale={printLocale} />
           )
         );
       } else if (docType === 'transfer' && transfer) {

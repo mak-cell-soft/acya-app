@@ -6,15 +6,17 @@ import defaultAr from '@/locales/print-ar.json';
 import { PrintLocale } from '@/hooks/use-print-locale';
 import * as utils from './print-utils';
 
-interface DeliveryNoteLightProps {
+interface PurchaseLightProps {
   document: Document;
   enterprise: Enterprise;
   printLocale?: PrintLocale;
 }
 
-export function DeliveryNoteLight({ document, enterprise, printLocale }: DeliveryNoteLightProps) {
+export function PurchaseLight({ document, enterprise, printLocale }: PurchaseLightProps) {
   const ar = printLocale || defaultAr;
-  const amountInWords = numberToFrenchWords(document?.total_net_ttc || 0);
+  const finalPayable = document?.total_net_payable || document?.total_net_ttc || 0;
+  const amountInWords = numberToFrenchWords(finalPayable);
+  const docTitle = utils.getPurchaseDocTitle(document?.type);
 
   return (
     <div className="print-container">
@@ -34,15 +36,15 @@ export function DeliveryNoteLight({ document, enterprise, printLocale }: Deliver
 
       {/* Document Type Label */}
       <div className="document-type-header">
-        BON DE LIVRAISON CLIENT N° {document?.docnumber || 'BROUILLON'}
+        {docTitle} N° {document?.docnumber || 'BROUILLON'}
         {document?.deliveryNoteDocNumbers && document.deliveryNoteDocNumbers.length > 0 && (
           <span style={{ fontSize: '0.8em', fontWeight: 'normal', marginLeft: '6px' }}>
-            (BL Réf: {document.deliveryNoteDocNumbers.join(', ')})
+            (BR Réf: {document.deliveryNoteDocNumbers.join(', ')})
           </span>
         )}
       </div>
 
-      {/* Meta details & client box side-by-side */}
+      {/* Meta details & supplier box side-by-side */}
       <div className="meta-and-client">
         <div className="meta-box">
           <div className="info-row">
@@ -50,33 +52,31 @@ export function DeliveryNoteLight({ document, enterprise, printLocale }: Deliver
             <span>{utils.formatDate(document?.creationdate)}</span>
           </div>
           <div className="info-row">
-            <span className="info-label">Adresse de Livraison: </span>
-            <span>{utils.getCustomDeliveryAddress(document) || utils.getCustomerRealAddress(document) || '—'}</span>
+            <span className="info-label">Dépôt / Site: </span>
+            <span>{document?.sales_site?.address || 'Site Principal'}</span>
           </div>
           <div className="info-row">
-            <span className="info-label">{ar.labels.accountNumber}: </span>
-            <span>{utils.getAccountNumber(document)}</span>
+            <span className="info-label">Réf Fournisseur: </span>
+            <span>{document?.supplierReference || '—'}</span>
+          </div>
+          <div className="info-row">
+            <span className="info-label">N° Compte: </span>
+            <span>{document?.counterpart?.id?.toString() || '—'}</span>
           </div>
         </div>
 
         <div className="client-box">
           <div className="info-row">
-            <span className="info-label">{ar.labels.client} </span>
-            <span style={{ fontWeight: 'bold' }}>{utils.getClientName(document)}</span>
+            <span className="info-label">Fournisseur : </span>
+            <span style={{ fontWeight: 'bold' }}>{utils.getSupplierName(document)}</span>
           </div>
           <div className="info-row">
-            <span className="info-label">Adresse: </span>
-            <span>{utils.getCustomerRealAddress(document) || '—'}</span>
+            <span className="info-label">Adresse : </span>
+            <span>{utils.getSupplierAddress(document) || '—'}</span>
           </div>
-          {utils.getCustomDeliveryAddress(document) && (
-            <div className="info-row">
-              <span className="info-label">Adresse de Livraison: </span>
-              <span style={{ fontWeight: 'bold' }}>{utils.getCustomDeliveryAddress(document)}</span>
-            </div>
-          )}
           <div className="info-row">
-            <span className="info-label">{ar.labels.tvaCode} </span>
-            <span>{utils.getTvaCode(document)}</span>
+            <span className="info-label">M.F / TVA : </span>
+            <span>{utils.getSupplierTvaCode(document) || '—'}</span>
           </div>
         </div>
       </div>
@@ -96,16 +96,15 @@ export function DeliveryNoteLight({ document, enterprise, printLocale }: Deliver
         </thead>
         <tbody>
           {document?.merchandises?.map((merch, idx) => (
-            <tr key={merch.id || idx} className="item-row">
-              <td className="col-code" style={{ textAlign: 'center' }}>{idx + 1}</td>
+            <tr key={merch.id || idx}>
+              <td className="col-code">{idx + 1}</td>
               <td className="col-designation">
-                <div>{merch.description || merch.article?.description}</div>
-                {/* Wood lengths print layout in one line for dot matrix compactness */}
+                {merch.description || merch.article?.description}
                 {merch.lisoflengths && merch.lisoflengths.length > 0 && (
-                  <div className="item-lengths-detail">
+                  <div style={{ fontSize: '7pt', color: '#555', marginTop: '1pt' }}>
                     Long: {merch.lisoflengths.map((len, lIdx) => (
-                      <span key={len.id || lIdx}>
-                        {len.nbpieces}p/{len.length?.value}m{lIdx < merch.lisoflengths.length - 1 ? ', ' : ''}
+                      <span key={len.id || lIdx} style={{ marginRight: '4px' }}>
+                        {len.nbpieces}p/{len.length?.value}m
                       </span>
                     ))}
                   </div>
@@ -114,34 +113,32 @@ export function DeliveryNoteLight({ document, enterprise, printLocale }: Deliver
               <td className="col-unit" style={{ textAlign: 'center' }}>{merch.article?.unit || 'PCS'}</td>
               <td className="col-qty">{utils.formatQuantity(merch.quantity, merch.article?.unit)}</td>
               <td className="col-price">{utils.formatNumber(merch.unit_price_ht)}</td>
-              <td className="col-tva" style={{ textAlign: 'center' }}>{String(merch.article?.tva?.value || 0).replace(/%/g, '').trim()}%</td>
+              <td className="col-tva" style={{ textAlign: 'center' }}>{merch.article?.tva?.value || 0}%</td>
               <td className="col-total">{utils.formatNumber(merch.cost_net_ht)}</td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      <div className="separator" />
-
       {/* Totals Section */}
-      <div className="footer-section">
-        <div className="words-and-legal">
-          <div className="words-label">{ar.labels.arreteLaSomme}</div>
-          <div className="words-value">{amountInWords}</div>
+      <div className="summary-section">
+        <div className="amount-words-light">
+          Arrêté le présent document à la somme de :<br />
+          <strong>{amountInWords}</strong>
         </div>
 
         <div className="totals-box">
-          <div className="total-row">
-            <span>{ar.labels.totalHT}:</span>
+          <div className="tot-row">
+            <span>Total HT:</span>
             <span>{utils.formatNumber(document?.total_ht_net_doc)}</span>
           </div>
-          <div className="total-row">
-            <span>{ar.labels.totalTVA}:</span>
+          <div className="tot-row">
+            <span>Total TVA:</span>
             <span>{utils.formatNumber(document?.total_tva_doc)}</span>
           </div>
-          <div className="total-row highlight">
-            <span>{ar.labels.totalTTC}:</span>
-            <span>{utils.formatNumber(document?.total_net_ttc)}</span>
+          <div className="tot-row total-highlight">
+            <span>{document?.total_net_payable ? 'NET À PAYER:' : 'TOTAL TTC:'}</span>
+            <span>{utils.formatNumber(finalPayable)}</span>
           </div>
         </div>
       </div>
@@ -149,11 +146,11 @@ export function DeliveryNoteLight({ document, enterprise, printLocale }: Deliver
       {/* Simple signature boxes for dot matrix */}
       <div className="signatures">
         <div className="sig-box">
-          <div className="sig-label">CLIENT</div>
+          <div className="sig-label">MAGASINIER</div>
           <div style={{ fontSize: '7pt', textAlign: 'center' }}>Date & Sign</div>
         </div>
         <div className="sig-box">
-          <div className="sig-label">CHAUFFEUR</div>
+          <div className="sig-label">FOURNISSEUR</div>
           <div style={{ fontSize: '7pt', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
             {utils.getTransporterName(document)}
           </div>
@@ -169,16 +166,15 @@ export function DeliveryNoteLight({ document, enterprise, printLocale }: Deliver
           <div></div>
         </div>
         <div className="sig-box">
-          <div className="sig-label">SORTIE</div>
+          <div className="sig-label">DIRECTION</div>
           <div></div>
         </div>
       </div>
 
       {/* Legal message for dot matrix */}
       <div className="footer-legal-light">
-        {enterprise.name} - {enterprise.siegeAddress}
+        {enterprise.name}
       </div>
     </div>
   );
 }
-

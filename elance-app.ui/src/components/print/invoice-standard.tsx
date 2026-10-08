@@ -36,7 +36,6 @@ export function InvoiceStandard({ document, enterprise, printLocale, payments }:
           <p className="company-details">
             {enterprise.description || (enterprise.capital ? `S.A. au Capital de ${enterprise.capital}` : '')}
           </p>
-          <p className="company-details">{enterprise.siegeAddress}</p>
           <p className="company-details">
             Tél: {enterprise.phone} {enterprise.mobileOne ? `| ${enterprise.mobileOne}` : ''}
           </p>
@@ -58,14 +57,12 @@ export function InvoiceStandard({ document, enterprise, printLocale, payments }:
           </div>
         </div>
 
-        {/* Right: Arabic Info and Label */}
+        {/* Right: Arabic Info */}
         <div className="arabic-info">
           <p className="arabic-text">{ar.companyArabicName}</p>
           <p className="arabic-text">
             {ar.companyArabicCapital}
           </p>
-          <p className="arabic-details">{ar.companyArabicAddress}</p>
-          <h3 className="original-label">{ar.originalLabel.invoice}</h3>
         </div>
       </div>
 
@@ -362,12 +359,15 @@ export function InvoiceStandard({ document, enterprise, printLocale, payments }:
         </div>
       )}
 
-      {/* Legal terms footer
+      {/* Legal terms footer */}
       <div className="footer-legal">
         <p className="legal-text">
           {enterprise.description ? `${enterprise.name} - ${enterprise.description}` : enterprise.name}
         </p>
-      </div> */}
+        <p className="agency-info">
+          Tél: {enterprise.phone} | M.F: {enterprise.matriculeFiscal}
+        </p>
+      </div>
     </div>
   );
 }

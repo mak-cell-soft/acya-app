@@ -6,21 +6,25 @@ import defaultAr from '@/locales/print-ar.json';
 import { PrintLocale } from '@/hooks/use-print-locale';
 import * as utils from './print-utils';
 
-interface DeliveryNoteStandardProps {
+interface PurchaseStandardProps {
   document: Document;
   enterprise: Enterprise;
   printLocale?: PrintLocale;
 }
 
-export function DeliveryNoteStandard({ document, enterprise, printLocale }: DeliveryNoteStandardProps) {
+export function PurchaseStandard({ document, enterprise, printLocale }: PurchaseStandardProps) {
   const ar = printLocale || defaultAr;
-  const amountInWords = numberToFrenchWords(document?.total_net_ttc || 0);
+  const finalPayable = document?.total_net_payable || document?.total_net_ttc || 0;
+  const amountInWords = numberToFrenchWords(finalPayable);
   const tvaBreakdown = utils.getTvaBreakdown(document);
+  const stampAmount = document?.taxe ? parseFloat(document.taxe.value || '0') : 0;
 
-  // Pad the items table with empty rows to match the A4 print height standard from the Angular template.
+  // Pad the items table with empty rows to match the A4 print height standard
   const rowCount = document?.merchandises?.length || 0;
   const paddingCount = Math.max(0, 10 - rowCount);
   const emptyRows = Array.from({ length: paddingCount });
+
+  const docTitle = utils.getPurchaseDocTitle(document?.type);
 
   return (
     <div className="print-container">
@@ -41,7 +45,7 @@ export function DeliveryNoteStandard({ document, enterprise, printLocale }: Deli
           </p>
         </div>
 
-        {/* Center: Styled Enterprise Name (Choose a not so bold character) */}
+        {/* Center: Styled Enterprise Logo Name */}
         <div className="center-section">
           <div className="logo" style={{ borderColor: '#000' }}>
             <h1 
@@ -62,56 +66,67 @@ export function DeliveryNoteStandard({ document, enterprise, printLocale }: Deli
         </div>
       </div>
 
-      {/* Document Title and Client Info */}
+      {/* Document Title and Supplier Info */}
       <div className="document-header">
         <div className="document-title-section">
           <h2 className="document-title">
-            BON DE LIVRAISON N° {document?.docnumber || 'BROUILLON'}
+            {docTitle} N° {document?.docnumber || 'BROUILLON'}
             {document?.deliveryNoteDocNumbers && document.deliveryNoteDocNumbers.length > 0 && (
               <span className="text-[0.7rem] font-normal text-slate-600 ml-2">
-                (BL Réf: {document.deliveryNoteDocNumbers.join(', ')})
+                (BR Réf: {document.deliveryNoteDocNumbers.join(', ')})
               </span>
             )}
           </h2>
+          {document?.supplierReference && (
+            <span className="text-[0.75rem] font-semibold text-slate-700 mt-1">
+              Réf Fournisseur: {document.supplierReference}
+            </span>
+          )}
         </div>
 
         <div className="client-info">
           <div className="info-row">
-            <span className="label">{ar.labels.client}</span>
-            <span className="value font-bold">{utils.getClientName(document)}</span>
+            <span className="label">Fournisseur :</span>
+            <span className="value font-bold">{utils.getSupplierName(document)}</span>
           </div>
           <div className="info-row">
-            <span className="label">Adresse</span>
-            <span className="value">{utils.getCustomerRealAddress(document) || '—'}</span>
+            <span className="label">Adresse :</span>
+            <span className="value">{utils.getSupplierAddress(document) || '—'}</span>
           </div>
-          {utils.getCustomDeliveryAddress(document) && (
+          <div className="info-row">
+            <span className="label">Matricule Fiscal :</span>
+            <span className="value font-mono text-xs">{utils.getSupplierTvaCode(document) || '—'}</span>
+          </div>
+          {(document?.counterpart?.phonenumberone || document?.counterpart?.phonenumbertwo) && (
             <div className="info-row">
-              <span className="label">Adresse de Livraison</span>
-              <span className="value font-semibold text-slate-800">{utils.getCustomDeliveryAddress(document)}</span>
+              <span className="label">Téléphone :</span>
+              <span className="value">{document.counterpart.phonenumberone || document.counterpart.phonenumbertwo}</span>
             </div>
           )}
-          <div className="info-row">
-            <span className="label">{ar.labels.tvaCode}</span>
-            <span className="value font-mono text-xs">{utils.getTvaCode(document)}</span>
-          </div>
         </div>
       </div>
 
       {/* Document Details Bar */}
       <div className="document-details">
         <div className="detail-item">
-          <span className="detail-label">{ar.labels.date}</span>
+          <span className="detail-label">DATE</span>
           <span className="detail-value">{utils.formatDate(document?.creationdate)}</span>
         </div>
         <div className="detail-item">
-          <span className="detail-label">Adresse de Livraison</span>
+          <span className="detail-label">DÉPÔT / SITE</span>
           <span className="detail-value">
-            {utils.getCustomDeliveryAddress(document) || utils.getCustomerRealAddress(document) || '—'}
+            {document?.sales_site?.address || 'Site Principal'}
           </span>
         </div>
         <div className="detail-item">
-          <span className="detail-label">{ar.labels.accountNumber}</span>
-          <span className="detail-value">{utils.getAccountNumber(document)}</span>
+          <span className="detail-label">RÉF FOURNISSEUR</span>
+          <span className="detail-value font-mono">
+            {document?.supplierReference || '—'}
+          </span>
+        </div>
+        <div className="detail-item">
+          <span className="detail-label">N° COMPTE</span>
+          <span className="detail-value">{document?.counterpart?.id?.toString() || '—'}</span>
         </div>
       </div>
 
@@ -227,6 +242,18 @@ export function DeliveryNoteStandard({ document, enterprise, printLocale }: Deli
 
         {/* Right Side: Document totals */}
         <div className="totals-column">
+          {document?.total_discount_doc > 0 && (
+            <>
+              <div className="total-row">
+                <span className="total-label">TOTAL BRUT HT</span>
+                <span className="total-value">{utils.formatNumber((document?.total_ht_net_doc || 0) + (document?.total_discount_doc || 0))}</span>
+              </div>
+              <div className="total-row">
+                <span className="total-label">REMISE</span>
+                <span className="total-value">-{utils.formatNumber(document?.total_discount_doc)}</span>
+              </div>
+            </>
+          )}
           <div className="total-row">
             <span className="total-label">{ar.labels.totalHT}</span>
             <span className="total-value">{utils.formatNumber(document?.total_ht_net_doc)}</span>
@@ -235,9 +262,21 @@ export function DeliveryNoteStandard({ document, enterprise, printLocale }: Deli
             <span className="total-label">{ar.labels.totalTVA}</span>
             <span className="total-value">{utils.formatNumber(document?.total_tva_doc)}</span>
           </div>
+          {stampAmount > 0 && (
+            <div className="total-row">
+              <span className="total-label">{ar.labels.stampTax}</span>
+              <span className="total-value">{utils.formatNumber(stampAmount)}</span>
+            </div>
+          )}
+          {document?.holdingtax && document.holdingtax.taxvalue > 0 && (
+            <div className="total-row">
+              <span className="total-label">{ar.labels.withholdingTax} ({document.holdingtax.taxpercentage}%)</span>
+              <span className="total-value">-{utils.formatNumber(document.holdingtax.taxvalue)}</span>
+            </div>
+          )}
           <div className="total-row total-ttc">
-            <span className="total-label">{ar.labels.totalTTC}</span>
-            <span className="total-value">{utils.formatNumber(document?.total_net_ttc)}</span>
+            <span className="total-label">{document?.total_net_payable ? ar.labels.netPayable : ar.labels.totalTTC}</span>
+            <span className="total-value">{utils.formatNumber(finalPayable)}</span>
           </div>
         </div>
       </div>
@@ -245,7 +284,11 @@ export function DeliveryNoteStandard({ document, enterprise, printLocale }: Deli
       {/* Signature boxes */}
       <div className="signature-section">
         <div className="signature-box">
-          <span className="signature-label">{ar.labels.signClient}</span>
+          <span className="signature-label">RÉCEPTION / MAGASINIER</span>
+          <div className="signature-area"></div>
+        </div>
+        <div className="signature-box">
+          <span className="signature-label">FOURNISSEUR / LIVREUR</span>
           <div className="signature-area"></div>
         </div>
         <div className="signature-box">
@@ -255,18 +298,11 @@ export function DeliveryNoteStandard({ document, enterprise, printLocale }: Deli
           </div>
         </div>
         <div className="signature-box">
-          <span className="signature-label">{ar.labels.driverName}</span>
-          <div className="signature-area font-bold text-center pt-2">
-            {utils.getTransporterName(document)}
-          </div>
-          <span className="cin-label">{ar.labels.cin}</span>
-        </div>
-        <div className="signature-box">
-          <span className="signature-label">{ar.labels.controlBL}</span>
+          <span className="signature-label">CONTRÔLE CONFORMITÉ</span>
           <div className="signature-area"></div>
         </div>
         <div className="signature-box">
-          <span className="signature-label">{ar.labels.controlExit}</span>
+          <span className="signature-label">DIRECTION / VALIDATION</span>
           <div className="signature-area"></div>
         </div>
       </div>
@@ -294,4 +330,3 @@ export function DeliveryNoteStandard({ document, enterprise, printLocale }: Deli
     </div>
   );
 }
-
