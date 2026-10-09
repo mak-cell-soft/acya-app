@@ -29,8 +29,19 @@ import {
   UserCheck,
   RotateCcw,
   Mail,
-  Wrench
+  Wrench,
+  Clock
 } from 'lucide-react';
+import {
+  QuoteValidityDialog,
+  QuoteValidityConfig
+} from '@/components/sales/quote-validity-dialog';
+import {
+  DEFAULT_VALIDITY_DURATION,
+  DEFAULT_VALIDITY_UNIT,
+  DEFAULT_COMMERCIAL_CONDITIONS,
+  generateValiditySentence
+} from '@/lib/quotation-utils';
 import { useDocumentById, useUpdateDocument } from '@/hooks/use-documents';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -345,6 +356,14 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
   // Rounding / extra discount adjustments
   const [extraDiscount, setExtraDiscount] = useState<number>(0);
   const [manualNetTTC, setManualNetTTC] = useState<string>('');
+
+  // Quotation validity and commercial conditions modal state
+  const [isValidityModalOpen, setIsValidityModalOpen] = useState(false);
+  const [quoteValidityConfig, setQuoteValidityConfig] = useState<QuoteValidityConfig>({
+    validityDuration: DEFAULT_VALIDITY_DURATION,
+    validityUnit: DEFAULT_VALIDITY_UNIT,
+    commercialConditions: DEFAULT_COMMERCIAL_CONDITIONS
+  });
 
   // Ensure Client Passager system counterpart is always present in customer dropdown options
   const allCustomersWithPassager = useMemo(() => {
@@ -858,6 +877,17 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
 
     if (editingDoc.exchangeRate) {
       setExchangeRate(editingDoc.exchangeRate);
+    }
+
+    // Load quotation validity period and commercial conditions
+    if (docType === DocumentTypes.customerQuote || editingDoc.type === DocumentTypes.customerQuote) {
+      setQuoteValidityConfig({
+        validityDuration: editingDoc.validity_duration || DEFAULT_VALIDITY_DURATION,
+        validityUnit: (editingDoc.validity_unit as 'days' | 'months') || DEFAULT_VALIDITY_UNIT,
+        commercialConditions: editingDoc.commercial_conditions !== undefined && editingDoc.commercial_conditions !== null
+          ? editingDoc.commercial_conditions
+          : DEFAULT_COMMERCIAL_CONDITIONS
+      });
     }
 
     if (editingDoc.taxe) {
@@ -1387,7 +1417,10 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
         isPaid: editingDoc?.isPaid ?? false,
         billingstatus: editingDoc?.billingstatus ?? BillingStatus.NotBilled,
         currency: docCurrency,
-        exchangeRate: exchangeRate
+        exchangeRate: exchangeRate,
+        validity_duration: (docType === DocumentTypes.customerQuote) ? quoteValidityConfig.validityDuration : (editingDoc?.validity_duration || undefined),
+        validity_unit: (docType === DocumentTypes.customerQuote) ? quoteValidityConfig.validityUnit : (editingDoc?.validity_unit || undefined),
+        commercial_conditions: (docType === DocumentTypes.customerQuote) ? quoteValidityConfig.commercialConditions : (editingDoc?.commercial_conditions || undefined)
       };
 
       // Factor in withholding taxes (RS) if selected on Invoices
@@ -1509,6 +1542,22 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                 <Edit className="w-3.5 h-3.5 text-amber-600" />
                 Mode Modification ({editingDoc?.docnumber || `#${editDocumentId}`})
               </Badge>
+            )}
+            {docType === DocumentTypes.customerQuote && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsValidityModalOpen(true)}
+                className="h-10 px-3.5 gap-2 border-corp-blue-200 bg-white hover:bg-corp-blue-50/70 text-corp-blue-900 font-bold text-xs shadow-xs rounded-xl transition-all cursor-pointer"
+                title="Configurer la durée de validité et les conditions commerciales du devis"
+              >
+                <Clock className="w-4 h-4 text-corp-blue-600" />
+                <span>Validité et conditions</span>
+                <Badge variant="secondary" className="bg-corp-blue-50 text-corp-blue-800 text-[10px] px-2 py-0.5 border-corp-blue-100 font-mono">
+                  {generateValiditySentence(quoteValidityConfig.validityDuration, quoteValidityConfig.validityUnit)}
+                </Badge>
+              </Button>
             )}
           </div>
         </div>
@@ -1926,6 +1975,36 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+              )}
+
+              {/* Quotation Validity & Commercial Conditions Configuration Widget */}
+              {docType === DocumentTypes.customerQuote && (
+                <div className="md:col-span-2 bg-gradient-to-r from-corp-blue-50/70 via-sand-50/40 to-corp-blue-50/70 p-4 rounded-xl border border-corp-blue-100/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in slide-in-from-top-2 duration-300">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-corp-blue-600" />
+                      <span className="text-xs font-bold text-corp-blue-950 uppercase tracking-wider">
+                        Validité & Conditions commerciales
+                      </span>
+                    </div>
+                    <p className="text-xs text-sand-600 font-medium">
+                      <strong className="text-corp-blue-900 font-bold">
+                        {generateValiditySentence(quoteValidityConfig.validityDuration, quoteValidityConfig.validityUnit)}
+                      </strong>
+                      {quoteValidityConfig.commercialConditions ? ` • ${quoteValidityConfig.commercialConditions.replace(/\n/g, ' ')}` : ''}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsValidityModalOpen(true)}
+                    className="h-8 px-3 text-xs font-bold text-corp-blue-700 bg-white border-corp-blue-200 hover:bg-corp-blue-50 rounded-lg shadow-xs cursor-pointer shrink-0"
+                  >
+                    <Edit className="w-3.5 h-3.5 mr-1 text-corp-blue-600" />
+                    Modifier les conditions
+                  </Button>
                 </div>
               )}
 
@@ -2716,6 +2795,14 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
           isLoading={updateCustomer.isPending}
         />
       )}
+
+      {/* Quote Validity & Commercial Conditions Dialog */}
+      <QuoteValidityDialog
+        isOpen={isValidityModalOpen}
+        onClose={() => setIsValidityModalOpen(false)}
+        config={quoteValidityConfig}
+        onSave={(newCfg) => setQuoteValidityConfig(newCfg)}
+      />
 
       {/* Delete Row Confirmation Dialog */}
       <AlertDialog 

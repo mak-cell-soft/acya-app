@@ -183,6 +183,9 @@ export interface Document {
   billingstatus: BillingStatus;
   isPaid: boolean;
   isservice: boolean;
+  validity_duration?: number;
+  validity_unit?: string;
+  commercial_conditions?: string;
   deliveryNoteDocNumbers?: string[];
   transporter?: (Customer & { fullname?: string }) | null;
   parentdocuments?: Document[];

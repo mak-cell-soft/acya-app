@@ -70,6 +70,9 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public double remaining_balance { get; set; }
     public string? currency { get; set; }
     public double exchangeRate { get; set; } = 1.0;
+    public int? validity_duration { get; set; }
+    public string? validity_unit { get; set; }
+    public string? commercial_conditions { get; set; }
 
     public ICollection<DocumentDto>? childdocuments { get; set; } = new List<DocumentDto>();
     public ICollection<DocumentDto>? parentdocuments { get; set; } = new List<DocumentDto>();
@@ -96,7 +99,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       description = entity.Description;
       creationdate = entity.CreationDate; 
       updatedate = entity.UpdateDate;
-      updatedbyid = (int)entity.UpdatedById!;
+      updatedbyid = entity.UpdatedById ?? 0;
       total_ht_net_doc = entity.TotalCostHTNetDoc;
       total_net_ttc = entity.TotalCostNetTTCDoc;
       total_tva_doc = entity.TotalCostTvaDoc;
@@ -109,6 +112,9 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
       withholdingtax = entity.WithHoldingTax;
       currency = entity.Currency;
       exchangeRate = entity.ExchangeRate;
+      validity_duration = entity.ValidityDuration;
+      validity_unit = entity.ValidityUnit;
+      commercial_conditions = entity.CommercialConditions;
 
       // Calculate total_net_payable if RS is applied
       if (entity.WithHoldingTax && entity.HoldingTaxes != null)

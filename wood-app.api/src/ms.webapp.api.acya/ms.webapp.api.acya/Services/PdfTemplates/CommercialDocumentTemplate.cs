@@ -96,17 +96,92 @@ namespace ms.webapp.api.acya.api.Services.PdfTemplates
 
                 column.Item().Element(ComposeTable);
 
-                column.Item().AlignRight().Element(ComposeTotals);
+                bool isQuote = _model.type == DocumentTypes.customerQuote;
+                bool hasConditions = isQuote || _model.validity_duration != null || !string.IsNullOrWhiteSpace(_model.commercial_conditions);
+                bool hasNotes = !string.IsNullOrEmpty(_model.description);
 
-                if (!string.IsNullOrEmpty(_model.description))
+                if (hasConditions || hasNotes)
                 {
-                    column.Item().PaddingTop(20).Column(c =>
+                    column.Item().Row(row =>
                     {
-                        c.Item().Text("Notes:").SemiBold();
-                        c.Item().Text(_model.description);
+                        row.RelativeItem().Column(c =>
+                        {
+                            if (hasConditions)
+                            {
+                                ComposeCommercialConditions(c);
+                            }
+
+                            if (hasNotes)
+                            {
+                                c.Item().PaddingTop(hasConditions ? 12 : 0).Column(nc =>
+                                {
+                                    nc.Item().Text("Notes:").SemiBold().FontSize(9);
+                                    nc.Item().Text(_model.description).FontSize(8.5f).FontColor(Colors.Grey.Darken2);
+                                });
+                            }
+                        });
+
+                        row.ConstantItem(25);
+
+                        row.AutoItem().Element(ComposeTotals);
                     });
                 }
+                else
+                {
+                    column.Item().AlignRight().Element(ComposeTotals);
+                }
             });
+        }
+
+        void ComposeCommercialConditions(ColumnDescriptor column)
+        {
+            int duration = _model.validity_duration ?? 15;
+            string unit = _model.validity_unit ?? "days";
+            string validitySentence = GetValiditySentence(duration, unit);
+
+            column.Item().Border(0.5f).BorderColor(Colors.Grey.Lighten2).Background(Colors.Grey.Lighten4).Padding(8).Column(c =>
+            {
+                c.Item().Text("Conditions commerciales").SemiBold().FontSize(9.5f).FontColor(Colors.Black);
+
+                c.Item().PaddingTop(3).Text(validitySentence).FontSize(8.5f).FontColor(Colors.Grey.Darken3);
+
+                string conditionsText = _model.commercial_conditions;
+                if (conditionsText == null && _model.type == DocumentTypes.customerQuote)
+                {
+                    conditionsText = "Dans la limite du stock disponible.";
+                }
+
+                if (!string.IsNullOrWhiteSpace(conditionsText))
+                {
+                    var lines = conditionsText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var line in lines)
+                    {
+                        var trimmed = line.Trim();
+                        if (!string.IsNullOrWhiteSpace(trimmed))
+                        {
+                            // Avoid duplicate validity sentence if user customized text with it
+                            if (trimmed.Equals(validitySentence, StringComparison.OrdinalIgnoreCase))
+                                continue;
+
+                            c.Item().PaddingTop(2).Text(trimmed).FontSize(8.5f).FontColor(Colors.Grey.Darken3);
+                        }
+                    }
+                }
+            });
+        }
+
+        private static string GetValiditySentence(int duration, string unit)
+        {
+            int safeDuration = duration > 0 ? duration : 15;
+            string normalizedUnit = (unit ?? "days").Trim().ToLowerInvariant();
+
+            if (normalizedUnit == "months" || normalizedUnit == "mois")
+            {
+                return safeDuration == 1 ? "Devis valide 1 mois." : $"Devis valide {safeDuration} mois.";
+            }
+
+            // Default to days / jours
+            return safeDuration == 1 ? "Devis valide 1 jour." : $"Devis valide {safeDuration} jours.";
         }
 
         void ComposeTable(IContainer container)

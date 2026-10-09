@@ -39,6 +39,9 @@ namespace ms.webapp.api.acya.infrastructure.Configurations.Documents
             entity.Property(e => e.IsDeleted).HasColumnName("isdeleted").HasDefaultValue(false);
             entity.Property(e => e.Currency).HasColumnName("Currency");
             entity.Property(e => e.ExchangeRate).HasColumnName("ExchangeRate").HasDefaultValue(1.0);
+            entity.Property(e => e.ValidityDuration).HasColumnName("validity_duration");
+            entity.Property(e => e.ValidityUnit).HasColumnName("validity_unit").HasMaxLength(50);
+            entity.Property(e => e.CommercialConditions).HasColumnName("commercial_conditions");
 
             // Relationships
             entity.HasOne(e => e.AppUsers) // Navigation property to AppUser

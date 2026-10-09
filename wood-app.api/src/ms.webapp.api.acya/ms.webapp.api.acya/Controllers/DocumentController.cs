@@ -855,7 +855,9 @@ namespace ms.webapp.api.acya.api.Controllers
             BillingStatus = dto.billingstatus,
             WithHoldingTax = dto.withholdingtax,
             Isservice = dto.isservice,
-
+            ValidityDuration = dto.validity_duration,
+            ValidityUnit = dto.validity_unit,
+            CommercialConditions = dto.commercial_conditions,
           };
 
           // Handle relationships with proper null checks
@@ -1939,6 +1941,9 @@ namespace ms.webapp.api.acya.api.Controllers
           doc.TotalCostNetTTCDoc = Math.Round(dto.total_net_ttc, 3, MidpointRounding.AwayFromZero);
           doc.TotalCostDiscountDoc = Math.Round(dto.total_discount_doc, 3, MidpointRounding.AwayFromZero);
           doc.TotalCostTvaDoc = Math.Round(dto.total_tva_doc, 3, MidpointRounding.AwayFromZero);
+          doc.ValidityDuration = dto.validity_duration;
+          doc.ValidityUnit = dto.validity_unit;
+          doc.CommercialConditions = dto.commercial_conditions;
 
           // Handle CounterPart transporter update
           if (dto.counterpart != null && doc.CounterPart != null)

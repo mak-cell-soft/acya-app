@@ -30,6 +30,7 @@ import {
   Landmark,
   DollarSign
 } from 'lucide-react';
+import { documentService } from '@/services/components/document.service';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -223,6 +224,25 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
     } else if (target === 'invoice') {
       // Open inline confirmation modal — do NOT navigate away
       setBlForConversion(doc);
+    }
+  };
+
+  // PDF download handler
+  const handleDownloadPdf = async (doc: Document) => {
+    try {
+      const blob = await documentService.downloadPdf(doc.id);
+      const url = window.URL.createObjectURL(blob);
+      const link = window.document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${doc.type === DocumentTypes.customerQuote ? 'Devis' : 'Document'}_${doc.docnumber || doc.id}.pdf`);
+      window.document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success('Le téléchargement du devis PDF a commencé.');
+    } catch (err) {
+      console.error('Failed to download PDF:', err);
+      toast.error('Erreur lors du téléchargement du PDF.');
     }
   };
 
@@ -1016,6 +1036,37 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
                                             ) : (
                                               <>
                                                 <Edit className="w-4 h-4 text-amber-600" /> Modifier Facture
+                                              </>
+                                            )}
+                                          </DropdownMenuItem>
+                                        )}
+
+                                        {/* Quote PDF Download & Edit Options */}
+                                        {item.type === DocumentTypes.customerQuote && (
+                                          <DropdownMenuItem
+                                            onClick={() => handleDownloadPdf(item)}
+                                            className="gap-2 font-semibold text-corp-blue-800 hover:bg-corp-blue-50 cursor-pointer"
+                                          >
+                                            <Download className="w-4 h-4 text-corp-blue-600" /> Télécharger PDF
+                                          </DropdownMenuItem>
+                                        )}
+
+                                        {hasPermission('sales', 'canUpdate') && item.type === DocumentTypes.customerQuote && (
+                                          <DropdownMenuItem
+                                            onClick={() => router.push(`/sales/quote/${item.id}/edit`)}
+                                            disabled={!isOwner}
+                                            className={cn(
+                                              "gap-2 font-semibold cursor-pointer",
+                                              !isOwner ? "text-sand-400 cursor-not-allowed" : "text-amber-800 hover:bg-amber-50"
+                                            )}
+                                          >
+                                            {!isOwner ? (
+                                              <>
+                                                <Lock className="w-4 h-4 text-sand-400" /> Non Autorisé
+                                              </>
+                                            ) : (
+                                              <>
+                                                <Edit className="w-4 h-4 text-amber-600" /> Modifier Devis
                                               </>
                                             )}
                                           </DropdownMenuItem>

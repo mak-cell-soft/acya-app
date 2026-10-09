@@ -14,12 +14,15 @@ import {
   TrendingDown,
   Clock,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
+import { generateValiditySentence } from '@/lib/quotation-utils';
 import { documentService } from '@/services/components/document.service';
 import { DocumentTypes, DocStatus, Document } from '@/types/document';
 import { cn } from '@/lib/utils';
@@ -171,13 +174,37 @@ export function DocumentDetailDrawer({
             </div>
             <div className="flex items-center gap-2">
               {doc && (
-                <Button
-                  onClick={handlePrint}
-                  variant="ghost"
-                  className="text-sand-100 hover:bg-corp-blue-900 hover:text-white rounded-full"
-                >
-                  <Printer className="w-4 h-4 mr-2" /> Imprimer
-                </Button>
+                <>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        const blob = await documentService.downloadPdf(doc.id);
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.setAttribute('download', `${doc.type === DocumentTypes.customerQuote ? 'Devis' : 'Document'}_${doc.docnumber || doc.id}.pdf`);
+                        document.body.appendChild(link);
+                        link.click();
+                        link.parentNode?.removeChild(link);
+                        window.URL.revokeObjectURL(url);
+                        toast.success('Téléchargement du PDF commencé');
+                      } catch {
+                        toast.error('Erreur lors du téléchargement du PDF');
+                      }
+                    }}
+                    variant="ghost"
+                    className="text-sand-100 hover:bg-corp-blue-900 hover:text-white rounded-full text-xs font-semibold gap-1.5"
+                  >
+                    <Download className="w-4 h-4" /> PDF
+                  </Button>
+                  <Button
+                    onClick={handlePrint}
+                    variant="ghost"
+                    className="text-sand-100 hover:bg-corp-blue-900 hover:text-white rounded-full text-xs font-semibold gap-1.5"
+                  >
+                    <Printer className="w-4 h-4" /> Imprimer
+                  </Button>
+                </>
               )}
               <Button
                 onClick={onClose}
@@ -418,8 +445,41 @@ export function DocumentDetailDrawer({
 
                 {/* Financial Summary */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start pt-4">
-                  {/* Notes / T&C Section */}
+                  {/* Notes & Commercial Conditions Section */}
                   <div className="md:col-span-6 space-y-4">
+                    {/* Commercial Conditions & Validity for Quotes */}
+                    {(doc.type === DocumentTypes.customerQuote || doc.validity_duration || doc.commercial_conditions) && (
+                      <Card className="rounded-[20px] border-corp-blue-100 shadow-xs bg-corp-blue-50/40 p-5 space-y-2.5">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-corp-blue-600" />
+                          <h4 className="text-xs font-bold text-corp-blue-950 uppercase tracking-wide">
+                            Conditions commerciales
+                          </h4>
+                        </div>
+                        <ul className="space-y-1.5 text-xs text-sand-800">
+                          <li className="flex items-start gap-2">
+                            <span className="text-corp-blue-600 font-bold">•</span>
+                            <span className="font-semibold text-corp-blue-950">
+                              {generateValiditySentence(doc.validity_duration || 15, doc.validity_unit || 'days')}
+                            </span>
+                          </li>
+                          {(doc.commercial_conditions !== undefined && doc.commercial_conditions !== null
+                            ? doc.commercial_conditions
+                            : (doc.type === DocumentTypes.customerQuote ? 'Dans la limite du stock disponible.' : '')
+                          )
+                            .split('\n')
+                            .map((l: string) => l.trim())
+                            .filter((l: string) => l.length > 0 && l.toLowerCase() !== generateValiditySentence(doc.validity_duration || 15, doc.validity_unit || 'days').toLowerCase())
+                            .map((condLine: string, idx: number) => (
+                              <li key={idx} className="flex items-start gap-2">
+                                <span className="text-sand-400 font-bold">•</span>
+                                <span>{condLine}</span>
+                              </li>
+                            ))}
+                        </ul>
+                      </Card>
+                    )}
+
                     {doc.description && (
                       <Card className="rounded-[20px] border-sand-200/60 shadow-xs bg-white p-6">
                         <h4 className="text-sm font-medium text-sand-400 mb-2">

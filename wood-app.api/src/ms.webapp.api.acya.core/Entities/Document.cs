@@ -30,6 +30,13 @@ namespace ms.webapp.api.acya.core.Entities
     public bool WithHoldingTax { get; set; } // Avec RS ?
 
     /**
+     * Quotation validity period and commercial conditions
+     */
+    public int? ValidityDuration { get; set; }
+    public string? ValidityUnit { get; set; }
+    public string? CommercialConditions { get; set; }
+
+    /**
      * Total Prices Calculculated of the given Document
      */
     public double TotalCostHTNetDoc { get; set; }
@@ -113,6 +120,9 @@ namespace ms.webapp.api.acya.core.Entities
       UpdateDate = dto.updatedate;
       UpdatedById = dto.updatedbyid;
       WithHoldingTax = dto.withholdingtax;
+      ValidityDuration = dto.validity_duration;
+      ValidityUnit = dto.validity_unit;
+      CommercialConditions = dto.commercial_conditions;
       /**
        * Prices and Costs
        */
