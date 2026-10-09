@@ -61,7 +61,15 @@ namespace ms.admin.api.acya.infrastructure.Services
                 {
                     await conn.OpenAsync();
 
-                    // 1. Create Schema
+                    // 1. Create Schema (clean up any previous incomplete schema if tenant was never activated)
+                    if (!enterprise.IsActive)
+                    {
+                        using (var dropCmd = new NpgsqlCommand($"DROP SCHEMA IF EXISTS \"{enterprise.SchemaName}\" CASCADE;", conn))
+                        {
+                            await dropCmd.ExecuteNonQueryAsync();
+                        }
+                    }
+
                     using (var cmd = new NpgsqlCommand($"CREATE SCHEMA IF NOT EXISTS \"{enterprise.SchemaName}\";", conn))
                     {
                         await cmd.ExecuteNonQueryAsync();
@@ -273,6 +281,22 @@ namespace ms.admin.api.acya.infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to provision tenant {Slug}", enterprise.Slug);
+                try
+                {
+                    var connStr = _config.GetConnectionString("MasterConnection");
+                    if (!string.IsNullOrWhiteSpace(connStr) && !string.IsNullOrWhiteSpace(enterprise.SchemaName))
+                    {
+                        using var rollbackConn = new NpgsqlConnection(connStr);
+                        await rollbackConn.OpenAsync();
+                        using var cmd = new NpgsqlCommand($"DROP SCHEMA IF EXISTS \"{enterprise.SchemaName}\" CASCADE;", rollbackConn);
+                        await cmd.ExecuteNonQueryAsync();
+                        _logger.LogInformation("Successfully rolled back incomplete schema {Schema} for tenant {Slug}", enterprise.SchemaName, enterprise.Slug);
+                    }
+                }
+                catch (Exception rollbackEx)
+                {
+                    _logger.LogWarning(rollbackEx, "Failed to rollback incomplete schema {Schema} for tenant {Slug}", enterprise.SchemaName, enterprise.Slug);
+                }
                 return false;
             }
         }
