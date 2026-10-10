@@ -82,6 +82,7 @@ namespace ms.webapp.api.acya.api.Extentions
       services.Configure<ms.webapp.api.acya.api.Models.SmtpSettings>(config.GetSection("SmtpSettings"));
       services.AddScoped<IEmailService, EmailService>();
       services.AddScoped<IAppNotificationService, AppNotificationService>();
+      services.AddSingleton<IPasswordResetRateLimiter, InMemoryPasswordResetRateLimiter>();
       services.AddScoped<IApprovalService, ApprovalService>();
       services.AddScoped<IPricingGridService, PricingGridService>();
       services.AddScoped<IImportService, ImportService>();

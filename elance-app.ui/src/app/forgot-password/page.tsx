@@ -42,11 +42,15 @@ function ForgotPasswordContent() {
     try {
       await authService.forgotPassword(email);
       setStep('request'); // stays on page but displays a success instruction or we transition
-      toast.success('Lien de réinitialisation envoyé !');
+      toast.success("Si un compte est associé à cette adresse e-mail, vous recevrez les instructions de réinitialisation.");
       // Transition to code input if they want to enter it manually
       setStep('reset');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Une erreur est survenue.');
+      if (error?.response?.status === 429) {
+        toast.error(error.response?.data?.message || 'Trop de tentatives de réinitialisation. Veuillez réessayer dans quelques minutes.');
+      } else {
+        toast.error(error.response?.data?.message || 'Une erreur est survenue.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -130,7 +134,7 @@ function ForgotPasswordContent() {
                 <Input
                   id="token"
                   type="text"
-                  placeholder="Ex: F75A5633"
+                  placeholder="Collez votre code de validation"
                   required
                   value={token}
                   onChange={(e) => setToken(e.target.value)}

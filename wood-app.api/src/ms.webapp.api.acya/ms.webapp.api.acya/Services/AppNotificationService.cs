@@ -17,6 +17,7 @@ namespace ms.webapp.api.acya.api.Services
         private readonly WoodAppContext _context;
         private readonly IHubContext<NotificationHub> _hubContext;
         private readonly IEmailService _emailService;
+        private readonly IN8nEmailService? _n8nEmailService;
         private readonly ILogger<AppNotificationService> _logger;
         private readonly TenantContext? _tenantContext;
 
@@ -25,7 +26,7 @@ namespace ms.webapp.api.acya.api.Services
             IHubContext<NotificationHub> hubContext,
             IEmailService emailService,
             ILogger<AppNotificationService> logger)
-            : this(context, hubContext, emailService, logger, null)
+            : this(context, hubContext, emailService, logger, null, null)
         {
         }
 
@@ -35,12 +36,24 @@ namespace ms.webapp.api.acya.api.Services
             IEmailService emailService,
             ILogger<AppNotificationService> logger,
             TenantContext? tenantContext)
+            : this(context, hubContext, emailService, logger, tenantContext, null)
+        {
+        }
+
+        public AppNotificationService(
+            WoodAppContext context, 
+            IHubContext<NotificationHub> hubContext,
+            IEmailService emailService,
+            ILogger<AppNotificationService> logger,
+            TenantContext? tenantContext,
+            IN8nEmailService? n8nEmailService)
         {
             _context = context;
             _hubContext = hubContext;
             _emailService = emailService;
             _logger = logger;
             _tenantContext = tenantContext;
+            _n8nEmailService = n8nEmailService;
         }
 
         private string? GetTenantSlug()
@@ -87,12 +100,20 @@ namespace ms.webapp.api.acya.api.Services
             return notification;
         }
 
-        public async Task SendEmailNotificationAsync(string to, string subject, string body, int? targetUserId = null)
+        public async Task<EmailDispatchResult> SendEmailNotificationAsync(
+            string to,
+            string subject,
+            string body,
+            int? targetUserId = null,
+            string? sanitizedMessage = null)
         {
+            // Security: Never persist raw password reset tokens in secondary storage
+            var messageToPersist = sanitizedMessage ?? SanitizePersistedMessage(body);
+
             var notification = new AppNotification
             {
                 Title = subject,
-                Message = body,
+                Message = messageToPersist,
                 Type = NotificationType.Email,
                 Priority = NotificationPriority.Normal,
                 TargetUserId = targetUserId,
@@ -103,19 +124,50 @@ namespace ms.webapp.api.acya.api.Services
             _context.AppNotifications.Add(notification);
             await _context.SaveChangesAsync();
 
+            EmailDispatchResult dispatchResult;
+
             try
             {
-                await _emailService.SendEmailAsync(to, subject, body, true);
-                notification.EmailSent = true;
-                notification.EmailSentAt = DateTime.UtcNow;
+                if (_n8nEmailService != null)
+                {
+                    dispatchResult = await _n8nEmailService.SendEmailAsync(to, subject, body);
+                }
+                else
+                {
+                    // Fallback to direct SMTP if n8n service is not registered
+                    await _emailService.SendEmailAsync(to, subject, body, true);
+                    dispatchResult = EmailDispatchResult.Success();
+                }
+
+                if (dispatchResult.Status == EmailDispatchStatus.Accepted)
+                {
+                    notification.EmailSent = true;
+                    notification.EmailSentAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    notification.EmailSent = false;
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to send email notification to {Recipient}", to);
                 notification.EmailSent = false;
+                dispatchResult = EmailDispatchResult.Rejected(ex.Message);
             }
 
             await _context.SaveChangesAsync();
+            return dispatchResult;
+        }
+
+        private static string SanitizePersistedMessage(string message)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return string.Empty;
+            // Redact raw tokens from URLs or query parameters (e.g. token=4A1B2C...)
+            return System.Text.RegularExpressions.Regex.Replace(
+                message,
+                @"([?&]token=)[A-Za-z0-9_-]+",
+                "$1[REDACTED]");
         }
 
         public async Task<bool> MarkAsReadAsync(int notificationId)

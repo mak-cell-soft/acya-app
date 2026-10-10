@@ -22,17 +22,23 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
     private readonly ITokenService _tokenService;
     private readonly TenantContext _tenantContext;
     private readonly IAppNotificationService _notificationService;
+    private readonly IPasswordResetRateLimiter? _rateLimiter;
+    private readonly ILogger<AccountController>? _logger;
 
     public AccountController(
         WoodAppContext context, 
         ITokenService tokenService, 
         TenantContext tenantContext,
-        IAppNotificationService notificationService)
+        IAppNotificationService notificationService,
+        IPasswordResetRateLimiter? rateLimiter = null,
+        ILogger<AccountController>? logger = null)
     {
       _context = context;
       _tokenService = tokenService;
       _tenantContext = tenantContext;
       _notificationService = notificationService;
+      _rateLimiter = rateLimiter;
+      _logger = logger;
     }
 
     [Authorize]
@@ -271,47 +277,87 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
     [HttpPost("forgot-password")]
     public async Task<ActionResult> ForgotPassword(PasswordResetRequestDto dto)
     {
-      var user = await _context.AppUsers.FirstOrDefaultAsync(u => u.Email == dto.Email);
-      if (user == null) return Ok(new { message = "Si cet email existe, un code de réinitialisation a été généré." });
+      const string genericPublicMessage = "Si un compte est associé à cette adresse e-mail, vous recevrez les instructions de réinitialisation.";
 
+      // 1. Rate Limiting Protection (per IP and per email within current tenant)
+      if (_rateLimiter != null)
+      {
+        var clientIp = ResolveClientIp();
+        var tenantSlug = _tenantContext?.Slug?.ToLowerInvariant() ?? "default";
+        if (!_rateLimiter.IsAllowed(clientIp, dto?.Email ?? string.Empty, tenantSlug, out var retryAfterSeconds))
+        {
+          _logger?.LogWarning("Rate limit exceeded for forgot-password from IP {ClientIp} in tenant {Tenant}", clientIp, tenantSlug);
+          Response.Headers["Retry-After"] = retryAfterSeconds.ToString();
+          return StatusCode(StatusCodes.Status429TooManyRequests, new
+          {
+            message = "Trop de tentatives de réinitialisation. Veuillez réessayer dans quelques minutes."
+          });
+        }
+      }
+
+      if (dto == null || string.IsNullOrWhiteSpace(dto.Email))
+      {
+        return Ok(new { message = genericPublicMessage });
+      }
+
+      var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
+      var user = await _context.AppUsers.FirstOrDefaultAsync(u => u.Email != null && u.Email.ToLower() == normalizedEmail);
+      if (user == null)
+      {
+        return Ok(new { message = genericPublicMessage });
+      }
+
+      // 2. Cryptographically secure 256-bit token generation
       var tokenBytes = new byte[32];
       RandomNumberGenerator.Fill(tokenBytes);
-      var rawToken = Convert.ToHexString(tokenBytes).ToUpper();
-      var tokenHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(rawToken))).ToUpper();
+      var rawToken = Convert.ToHexString(tokenBytes).ToUpperInvariant();
+      var tokenHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(rawToken))).ToUpperInvariant();
 
       user.PasswordResetToken = tokenHash;
       user.PasswordResetTokenExpiry = DateTime.UtcNow.AddMinutes(15);
-
       await _context.SaveChangesAsync();
 
-      // Build dynamic base URL based on Request headers
+      // 3. Trusted tenant-based URL construction (Prevents Host Header / Origin Poisoning)
       var scheme = Request.Scheme;
-      var host = Request.Host.Value;
-      string baseUrl = $"{scheme}://{host}";
+      var tenantSlugForUrl = _tenantContext?.Slug?.ToLowerInvariant();
+      string baseUrl;
 
-      if (Request.Headers.TryGetValue("Origin", out var originHeader) && !string.IsNullOrEmpty(originHeader))
+      if (!string.IsNullOrEmpty(tenantSlugForUrl) && tenantSlugForUrl != "public")
       {
-        baseUrl = originHeader.ToString().TrimEnd('/');
-      }
-      else if (Request.Headers.TryGetValue("Referer", out var refererHeader) && !string.IsNullOrEmpty(refererHeader))
-      {
-        try
+        var canonicalHost = $"{tenantSlugForUrl}.acya.site";
+        var canonicalOrigin = $"https://{canonicalHost}";
+
+        var originHeader = Request.Headers["Origin"].ToString();
+        var refererHeader = Request.Headers["Referer"].ToString();
+
+        if (IsTrustedOrigin(originHeader, canonicalHost))
         {
-          var uri = new Uri(refererHeader.ToString());
-          baseUrl = $"{uri.Scheme}://{uri.Authority}";
+          baseUrl = originHeader.TrimEnd('/');
         }
-        catch { /* fallback to default */ }
+        else if (IsTrustedOrigin(refererHeader, canonicalHost) && Uri.TryCreate(refererHeader, UriKind.Absolute, out var refUri))
+        {
+          baseUrl = $"{refUri.Scheme}://{refUri.Authority}";
+        }
+        else
+        {
+          baseUrl = canonicalOrigin;
+        }
+      }
+      else
+      {
+        baseUrl = $"{scheme}://{Request.Host.Value}";
       }
 
       var resetUrl = $"{baseUrl}/forgot-password?token={rawToken}";
 
-      // Send password reset email
-      var emailSubject = "Réinitialisation de votre mot de passe - ACYA";
+      // 4. Email construction
+      var enterpriseName = _tenantContext?.Slug?.ToUpperInvariant() ?? "ACYA";
+      var emailSubject = $"Réinitialisation de votre mot de passe - {enterpriseName}";
       var emailBody = $@"
 <div style=""font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;"">
   <h2 style=""color: #3b82f6; text-align: center;"">Réinitialisation de votre mot de passe</h2>
   <p>Bonjour,</p>
-  <p>Nous avons reçu une demande de réinitialisation de mot de passe pour votre compte ACYA.</p>
+  <p>Nous avons reçu une demande de réinitialisation de mot de passe pour votre compte sur <strong>{enterpriseName}</strong>.</p>
   <p>Pour réinitialiser votre mot de passe, veuillez cliquer sur le bouton ci-dessous (ce lien est valable pendant 15 minutes) :</p>
   <div style=""text-align: center; margin: 30px 0;"">
     <a href=""{resetUrl}"" style=""background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;"">Réinitialiser mon mot de passe</a>
@@ -323,12 +369,72 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
   <p style=""font-size: 12px; color: #6b7280; text-align: center;"">Ceci est un message automatique, veuillez ne pas y répondre.</p>
 </div>";
 
-      await _notificationService.SendEmailNotificationAsync(user.Email!, emailSubject, emailBody, user.Id);
+      // 5. Dispatch email with sanitized message to avoid storing raw tokens in secondary storage
+      const string sanitizedNotificationSummary = "Demande de réinitialisation de mot de passe générée pour le compte.";
+      var dispatchResult = await _notificationService.SendEmailNotificationAsync(
+          user.Email!,
+          emailSubject,
+          emailBody,
+          user.Id,
+          sanitizedMessage: sanitizedNotificationSummary);
+
+      // 6. Diagnostics without leaking tokens or private URLs
+      if (dispatchResult != null)
+      {
+        var tenantIdentifier = _tenantContext?.Slug ?? "unknown";
+        if (dispatchResult.Status == EmailDispatchStatus.Accepted)
+        {
+          _logger?.LogInformation("Password reset email accepted by transport for user ID {UserId} in tenant {Tenant}", user.Id, tenantIdentifier);
+        }
+        else if (dispatchResult.Status == EmailDispatchStatus.Rejected)
+        {
+          _logger?.LogError("Password reset email transport rejected for user ID {UserId} in tenant {Tenant}: {Reason}", user.Id, tenantIdentifier, dispatchResult.ErrorMessage);
+        }
+        else if (dispatchResult.Status == EmailDispatchStatus.Unknown)
+        {
+          _logger?.LogWarning("Password reset email transport timed out / outcome unknown for user ID {UserId} in tenant {Tenant}: {Reason}", user.Id, tenantIdentifier, dispatchResult.ErrorMessage);
+        }
+      }
 
       return Ok(new
       {
-        message = "Si cet email existe, un code de réinitialisation a été généré."
+        message = genericPublicMessage
       });
+    }
+
+    private string ResolveClientIp()
+    {
+      if (Request.Headers.TryGetValue("X-Forwarded-For", out var forwarded) && !string.IsNullOrEmpty(forwarded))
+      {
+        var firstIp = forwarded.ToString().Split(',')[0].Trim();
+        if (System.Net.IPAddress.TryParse(firstIp, out _))
+        {
+          return firstIp;
+        }
+      }
+
+      if (Request.Headers.TryGetValue("X-Real-IP", out var realIp) && !string.IsNullOrEmpty(realIp))
+      {
+        var trimmed = realIp.ToString().Trim();
+        if (System.Net.IPAddress.TryParse(trimmed, out _))
+        {
+          return trimmed;
+        }
+      }
+
+      return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    }
+
+    public static bool IsTrustedOrigin(string? originOrReferer, string canonicalHost)
+    {
+      if (string.IsNullOrWhiteSpace(originOrReferer)) return false;
+      if (!Uri.TryCreate(originOrReferer, UriKind.Absolute, out var uri)) return false;
+
+      var host = uri.Host.ToLowerInvariant();
+      if (string.Equals(host, canonicalHost, StringComparison.OrdinalIgnoreCase)) return true;
+      if (host == "localhost" || host == "127.0.0.1" || host.EndsWith(".localhost")) return true;
+
+      return false;
     }
 
     [AllowAnonymous]

@@ -16,7 +16,7 @@ namespace ms.webapp.api.acya.core.Interfaces
         /// <summary>
         /// Specifically for sending emails through the notification system.
         /// </summary>
-        Task SendEmailNotificationAsync(string to, string subject, string body, int? targetUserId = null);
+        Task<EmailDispatchResult> SendEmailNotificationAsync(string to, string subject, string body, int? targetUserId = null, string? sanitizedMessage = null);
 
         /// <summary>
         /// Marks a notification as read. Returns true if updated, false if not found.

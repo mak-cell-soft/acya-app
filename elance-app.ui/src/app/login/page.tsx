@@ -204,9 +204,13 @@ export default function LoginPage() {
     try {
       await authService.forgotPassword(forgotEmail);
       setIsForgotEmailSent(true);
-      toast.success("Lien de réinitialisation envoyé !");
-    } catch (error) {
-      toast.error("Une erreur est survenue lors de la génération du lien.");
+      toast.success("Si un compte est associé à cette adresse e-mail, vous recevrez les instructions de réinitialisation.");
+    } catch (error: any) {
+      if (error?.response?.status === 429) {
+        toast.error(error.response?.data?.message || "Trop de tentatives de réinitialisation. Veuillez réessayer dans quelques minutes.");
+      } else {
+        toast.error("Une erreur est survenue lors de la demande de réinitialisation.");
+      }
     } finally {
       setIsForgotLoading(false);
     }
@@ -495,16 +499,16 @@ export default function LoginPage() {
                   <div className="p-4 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl space-y-3">
                     {isForgotEmailSent ? (
                       <div className="text-center py-2 space-y-2">
-                        <p className="text-xs font-bold text-[#1D9E75]">Lien de réinitialisation envoyé !</p>
+                        <p className="text-xs font-bold text-[#1D9E75]">Demande enregistrée</p>
                         <p className="text-[11px] text-[#64748B]">
-                          Vérifiez vos e-mails (y compris les spams) pour cliquer sur le lien de réinitialisation.
+                          Si un compte est associé à cette adresse e-mail, vous recevrez les instructions de réinitialisation (pensez à vérifier vos spams).
                         </p>
                         <button
                           type="button"
                           onClick={() => setIsForgotEmailSent(false)}
                           className="text-[10px] text-[#3B82F6] hover:underline font-bold"
                         >
-                          Renvoyer un autre lien
+                          Saisir une autre adresse
                         </button>
                       </div>
                     ) : (

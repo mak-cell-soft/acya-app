@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, Key, ToggleLeft, Trash2, CheckCircle2, Loader2, ExternalLink, Edit, Users, Lock, ChevronLeft, ChevronRight, FileText, Eye, Search, Filter } from "lucide-react";
+import { Shield, Key, ToggleLeft, Trash2, CheckCircle2, Loader2, ExternalLink, Edit, Users, Lock, ChevronLeft, ChevronRight, FileText, Eye, Search, Filter, Upload, UploadCloud, X, AlertCircle } from "lucide-react";
 
 interface TenantAppUser {
   id: number;
@@ -79,6 +79,16 @@ export default function EnterprisesPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null);
   const [deleteSubmitLoading, setDeleteSubmitLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+
+  // RNE Document Upload modal state
+  const [rneUploadTarget, setRneUploadTarget] = useState<Enterprise | null>(null);
+  const [rneSelectedFile, setRneSelectedFile] = useState<File | null>(null);
+  const [rneFileName, setRneFileName] = useState("");
+  const [rneFileSize, setRneFileSize] = useState("");
+  const [rneUploadLoading, setRneUploadLoading] = useState(false);
+  const [rneUploadError, setRneUploadError] = useState("");
+  const [rneUploadSuccess, setRneUploadSuccess] = useState("");
+  const [rneIsDragging, setRneIsDragging] = useState(false);
 
 
   // Form states - Create & Provision Unified
@@ -204,6 +214,159 @@ export default function EnterprisesPage() {
   useEffect(() => {
     fetchEnterprises();
   }, []);
+
+  // Keyboard shortcut (Escape) to close RNE upload modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && rneUploadTarget && !rneUploadLoading) {
+        closeRneModal();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [rneUploadTarget, rneUploadLoading]);
+
+  const openRneModal = (ent: Enterprise) => {
+    setRneUploadTarget(ent);
+    setRneSelectedFile(null);
+    setRneFileName("");
+    setRneFileSize("");
+    setRneUploadError("");
+    setRneUploadSuccess("");
+    setRneIsDragging(false);
+  };
+
+  const closeRneModal = () => {
+    if (rneUploadLoading) return;
+    setRneUploadTarget(null);
+    setRneSelectedFile(null);
+    setRneFileName("");
+    setRneFileSize("");
+    setRneUploadError("");
+    setRneUploadSuccess("");
+    setRneIsDragging(false);
+  };
+
+  const validateAndSetRneFile = (file: File) => {
+    setRneUploadError("");
+    setRneUploadSuccess("");
+
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      setRneUploadError("Le document RNE doit obligatoirement être au format PDF.");
+      return false;
+    }
+
+    if (file.size <= 0) {
+      setRneUploadError("Le fichier sélectionné est vide.");
+      return false;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      setRneUploadError("La taille du fichier PDF ne doit pas dépasser 15 Mo.");
+      return false;
+    }
+
+    setRneSelectedFile(file);
+    setRneFileName(file.name);
+    setRneFileSize((file.size / (1024 * 1024)).toFixed(2) + " Mo");
+    return true;
+  };
+
+  const handleRneFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      validateAndSetRneFile(file);
+    }
+  };
+
+  const handleRneDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setRneIsDragging(true);
+  };
+
+  const handleRneDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setRneIsDragging(false);
+  };
+
+  const handleRneDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setRneIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      validateAndSetRneFile(files[0]);
+    }
+  };
+
+  const handleRemoveRneSelection = () => {
+    if (rneUploadLoading) return;
+    setRneSelectedFile(null);
+    setRneFileName("");
+    setRneFileSize("");
+    setRneUploadError("");
+    setRneUploadSuccess("");
+  };
+
+  const handleUploadRneSubmit = async () => {
+    if (!rneUploadTarget || !rneSelectedFile) return;
+
+    setRneUploadLoading(true);
+    setRneUploadError("");
+    setRneUploadSuccess("");
+
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api/";
+
+      const formData = new FormData();
+      formData.append("file", rneSelectedFile);
+
+      const res = await fetch(`${apiBase}admin/enterprise/${rneUploadTarget.id}/upload-rne`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText || "Impossible de téléverser le document RNE. Veuillez réessayer.");
+      }
+
+      const data = await res.json();
+      const updatedUrl = data.rneDocumentUrl;
+
+      // Update row in enterprises table immediately
+      setEnterprises(prev => prev.map(ent => {
+        if (ent.id === rneUploadTarget.id) {
+          return {
+            ...ent,
+            rneDocumentUrl: updatedUrl,
+          };
+        }
+        return ent;
+      }));
+
+      // Update edit modal if same enterprise is currently open in form
+      if (existingId === rneUploadTarget.id) {
+        setRneDocumentUrl(updatedUrl);
+      }
+
+      setRneUploadSuccess("Le document RNE a été ajouté avec succès.");
+
+      setTimeout(() => {
+        closeRneModal();
+      }, 700);
+    } catch (err: any) {
+      setRneUploadError(err.message || "Impossible de téléverser le document RNE. Veuillez réessayer.");
+    } finally {
+      setRneUploadLoading(false);
+    }
+  };
 
   const handleCreateAndProvision = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -778,10 +941,15 @@ export default function EnterprisesPage() {
                             <span>Voir RNE</span>
                           </button>
                         ) : (
-                          <span className="text-xs text-muted-foreground font-mono opacity-40 flex items-center gap-1">
-                            <Eye className="w-3 h-3 text-muted-foreground/30" />
-                            Non fourni
-                          </span>
+                          <button
+                            type="button"
+                            onClick={() => openRneModal(ent)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold hover:bg-amber-500/20 active:scale-[0.96] transition-all cursor-pointer shadow-xs whitespace-nowrap"
+                            title={`Uploader le document RNE pour ${ent.name}`}
+                          >
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>Uploader RNE</span>
+                          </button>
                         )}
                       </td>
                       <td className="px-6 py-4">
@@ -1075,24 +1243,55 @@ export default function EnterprisesPage() {
                               <p className="text-[11px] text-slate-400 mt-0.5">Registre National des Entreprises (PDF)</p>
                             </div>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const win = window.open();
-                              if (win) {
-                                win.document.write(`<iframe src="${rneDocumentUrl}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
-                              }
-                            }}
-                            className="px-3.5 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
-                          >
-                            <FileText className="w-3.5 h-3.5" />
-                            Consulter PDF RNE
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const win = window.open();
+                                if (win) {
+                                  win.document.write(`<iframe src="${rneDocumentUrl}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+                                }
+                              }}
+                              className="px-3.5 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-[0.96]"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              Consulter PDF RNE
+                            </button>
+                            {existingId && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const targetEnt = enterprises.find(e => e.id === existingId);
+                                  if (targetEnt) openRneModal(targetEnt);
+                                }}
+                                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer active:scale-[0.96]"
+                                title="Remplacer le document RNE"
+                              >
+                                <Upload className="w-3.5 h-3.5 text-slate-400" />
+                                Remplacer
+                              </button>
+                            )}
+                          </div>
                         </div>
                       ) : (
-                        <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3">
-                          <img src="/images/rne-logo.png" alt="Logo RNE" className="h-5 object-contain opacity-70" />
-                          <span className="text-xs text-amber-400 font-medium">Aucun document PDF RNE n'a été rattaché à cette entreprise.</span>
+                        <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <img src="/images/rne-logo.png" alt="Logo RNE" className="h-5 object-contain opacity-70" />
+                            <span className="text-xs text-amber-400 font-medium">Aucun document PDF RNE n'a été rattaché à cette entreprise.</span>
+                          </div>
+                          {existingId && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const targetEnt = enterprises.find(e => e.id === existingId);
+                                if (targetEnt) openRneModal(targetEnt);
+                              }}
+                              className="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-[0.96]"
+                            >
+                              <Upload className="w-3.5 h-3.5" />
+                              Uploader RNE
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1580,6 +1779,177 @@ export default function EnterprisesPage() {
                 disabled={deleteSubmitLoading}
               >
                 {deleteSubmitLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "DELETE FOREVER"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RNE DOCUMENT UPLOAD MODAL */}
+      {rneUploadTarget && (
+        <div 
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[60] animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !rneUploadLoading) {
+              closeRneModal();
+            }
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="rne-modal-title"
+        >
+          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-5 animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between pb-4 border-b border-slate-800">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center p-1.5 shrink-0 shadow-inner">
+                  <img src="/images/rne-logo.png" alt="Logo RNE" className="h-7 w-auto object-contain" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 id="rne-modal-title" className="text-base font-bold text-slate-100">
+                      Document RNE
+                    </h3>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                      Document officiel
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 font-medium mt-0.5">
+                    Entreprise : <span className="text-slate-100 font-semibold">{rneUploadTarget.name}</span>
+                    <span className="font-mono text-muted-foreground text-[11px] ml-1.5">
+                      (ID: {rneUploadTarget.id.toString().padStart(4, "0")})
+                    </span>
+                  </p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Ajoutez le document PDF du Registre National des Entreprises.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeRneModal}
+                disabled={rneUploadLoading}
+                className="text-slate-400 hover:text-slate-100 p-1.5 rounded-lg hover:bg-slate-800/80 transition-colors disabled:opacity-50 cursor-pointer"
+                aria-label="Fermer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Error Alert */}
+            {rneUploadError && (
+              <div className="p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-2.5 text-xs text-red-400 animate-in fade-in duration-200">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
+                <span className="leading-relaxed">{rneUploadError}</span>
+              </div>
+            )}
+
+            {/* Success Alert */}
+            {rneUploadSuccess && (
+              <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-start gap-2.5 text-xs text-emerald-400 animate-in fade-in duration-200">
+                <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-400" />
+                <span className="leading-relaxed">{rneUploadSuccess}</span>
+              </div>
+            )}
+
+            {/* Upload Zone or Selected File State */}
+            <div className="space-y-3">
+              {!rneSelectedFile ? (
+                <label
+                  onDragOver={handleRneDragOver}
+                  onDragLeave={handleRneDragLeave}
+                  onDrop={handleRneDrop}
+                  className={`flex flex-col items-center justify-center w-full h-44 border-2 border-dashed rounded-xl cursor-pointer transition-all group relative overflow-hidden select-none ${
+                    rneIsDragging
+                      ? "border-cyan-400 bg-cyan-500/10 scale-[1.01]"
+                      : "border-slate-700/80 bg-slate-950/40 hover:bg-slate-800/40 hover:border-cyan-500/50"
+                  }`}
+                >
+                  <div className="flex flex-col items-center justify-center p-6 text-center">
+                    <div className="w-12 h-12 mb-3 rounded-full bg-slate-900 border border-slate-700/80 flex items-center justify-center text-cyan-400 shadow-md group-hover:scale-110 group-hover:text-cyan-300 transition-all">
+                      <UploadCloud className="w-6 h-6" />
+                    </div>
+                    <p className="mb-1 text-sm font-semibold text-slate-200">
+                      <span className="text-cyan-400 underline underline-offset-2">Cliquez pour téléverser</span> le PDF RNE
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      ou glissez-déposez le fichier ici
+                    </p>
+                    <p className="text-[11px] text-slate-500 font-mono mt-2">
+                      Format PDF uniquement (max. 15 Mo)
+                    </p>
+                  </div>
+                  <input
+                    id="rne-file-upload-input"
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    className="hidden"
+                    disabled={rneUploadLoading}
+                    onChange={handleRneFileChange}
+                  />
+                </label>
+              ) : (
+                <div className="p-4 bg-slate-950/60 border border-emerald-500/30 rounded-xl flex items-center justify-between shadow-xs">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-11 h-11 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0 p-1.5">
+                      <FileText className="w-6 h-6 text-emerald-400" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-bold text-slate-100 truncate max-w-[240px] sm:max-w-xs">
+                          {rneFileName}
+                        </p>
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      </div>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        <span className="font-mono tabular-nums">{rneFileSize}</span> •{" "}
+                        <span className="text-emerald-400 font-medium">Document PDF prêt à être envoyé</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleRemoveRneSelection}
+                    disabled={rneUploadLoading}
+                    className="text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg p-2 transition-all cursor-pointer shrink-0 ml-2 active:scale-[0.96]"
+                    title="Supprimer / Remplacer le fichier"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={closeRneModal}
+                disabled={rneUploadLoading}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 rounded-lg text-xs font-semibold cursor-pointer transition-colors active:scale-[0.96] disabled:opacity-50"
+              >
+                Annuler
+              </button>
+
+              <button
+                type="button"
+                onClick={handleUploadRneSubmit}
+                disabled={!rneSelectedFile || rneUploadLoading}
+                className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-xs font-semibold cursor-pointer flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(6,182,212,0.25)] active:scale-[0.96]"
+              >
+                {rneUploadLoading ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Téléversement en cours...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Téléverser le document</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

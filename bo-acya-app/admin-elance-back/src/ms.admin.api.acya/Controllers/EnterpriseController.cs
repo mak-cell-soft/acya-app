@@ -9,8 +9,10 @@ using ms.admin.api.acya.Services;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace ms.admin.api.acya.Controllers
 {
@@ -94,6 +96,11 @@ namespace ms.admin.api.acya.Controllers
     public class ResetTenantUserPasswordRequest
     {
         public string NewPassword { get; set; } = string.Empty;
+    }
+
+    public class UploadRneDocumentRequest
+    {
+        public string? RneDocumentUrl { get; set; }
     }
 
 
@@ -412,6 +419,11 @@ namespace ms.admin.api.acya.Controllers
                 TenantPlan.Enterprise => 299.00m,
                 _ => 0.00m
             });
+
+            if (request.RneDocumentUrl != null)
+            {
+                enterprise.RneDocumentUrl = request.RneDocumentUrl;
+            }
 
             await _enterpriseRepository.UpdateAsync(enterprise);
 
@@ -837,6 +849,162 @@ namespace ms.admin.api.acya.Controllers
 
             await _enterpriseRepository.DeleteAsync(enterprise);
             return NoContent();
+        }
+
+        [HttpPost("{id}/upload-rne")]
+        [RequestSizeLimit(16 * 1024 * 1024)]
+        public async Task<IActionResult> UploadRneDocument(long id, [FromForm] IFormFile? file)
+        {
+            var enterprise = await _enterpriseRepository.GetByIdAsync(id);
+            if (enterprise == null)
+            {
+                return NotFound("Entreprise introuvable.");
+            }
+
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("Aucun fichier n'a été fourni ou le fichier est vide.");
+            }
+
+            if (file.Length > 15 * 1024 * 1024)
+            {
+                return BadRequest("La taille du fichier PDF ne doit pas dépasser 15 Mo.");
+            }
+
+            // Backend validation: Verify PDF magic bytes (%PDF)
+            byte[] header = new byte[4];
+            using (var stream = file.OpenReadStream())
+            {
+                int bytesRead = await stream.ReadAsync(header, 0, 4);
+                if (bytesRead < 4 || header[0] != 0x25 || header[1] != 0x50 || header[2] != 0x44 || header[3] != 0x46)
+                {
+                    return BadRequest("Le fichier téléversé n'est pas un document PDF valide.");
+                }
+
+                stream.Position = 0;
+                using var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream);
+                byte[] fileBytes = memoryStream.ToArray();
+
+                string base64 = Convert.ToBase64String(fileBytes);
+                string dataUrl = $"data:application/pdf;base64,{base64}";
+
+                enterprise.RneDocumentUrl = dataUrl;
+
+                // Synchronize notes JSON if rneDocumentUrl is also tracked in registration metadata
+                if (!string.IsNullOrWhiteSpace(enterprise.Notes))
+                {
+                    try
+                    {
+                        var notesDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(enterprise.Notes);
+                        if (notesDict != null)
+                        {
+                            notesDict["rneDocumentUrl"] = dataUrl;
+                            enterprise.Notes = System.Text.Json.JsonSerializer.Serialize(notesDict);
+                        }
+                    }
+                    catch
+                    {
+                        // Notes may contain freeform notes
+                    }
+                }
+
+                await _enterpriseRepository.UpdateAsync(enterprise);
+
+                var auditLog = new MasterAuditLog
+                {
+                    TenantId = enterprise.Id,
+                    Action = "RNE Document Uploaded",
+                    Details = $"Document PDF RNE téléversé avec succès pour '{enterprise.Name}' (ID: {enterprise.Id}). Fichier: {file.FileName} ({Math.Round(file.Length / (1024.0 * 1024.0), 2)} Mo).",
+                    PerformedBy = User.Identity?.Name ?? "Super Admin",
+                    Timestamp = DateTime.UtcNow
+                };
+                await _context.MasterAuditLogs.AddAsync(auditLog);
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    message = "Le document RNE a été ajouté avec succès.",
+                    enterpriseId = enterprise.Id,
+                    rneDocumentUrl = enterprise.RneDocumentUrl
+                });
+            }
+        }
+
+        [HttpPost("{id}/rne-document")]
+        [RequestSizeLimit(16 * 1024 * 1024)]
+        public async Task<IActionResult> SetRneDocument(long id, [FromBody] UploadRneDocumentRequest request)
+        {
+            var enterprise = await _enterpriseRepository.GetByIdAsync(id);
+            if (enterprise == null)
+            {
+                return NotFound("Entreprise introuvable.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.RneDocumentUrl))
+            {
+                return BadRequest("Le document RNE est requis.");
+            }
+
+            if (request.RneDocumentUrl.StartsWith("data:application/pdf;base64,", StringComparison.OrdinalIgnoreCase))
+            {
+                var base64Data = request.RneDocumentUrl.Substring("data:application/pdf;base64,".Length);
+                try
+                {
+                    var bytes = Convert.FromBase64String(base64Data);
+                    if (bytes.Length == 0)
+                    {
+                        return BadRequest("Le fichier sélectionné est vide.");
+                    }
+                    if (bytes.Length > 15 * 1024 * 1024)
+                    {
+                        return BadRequest("La taille du fichier PDF ne doit pas dépasser 15 Mo.");
+                    }
+                    if (bytes.Length < 4 || bytes[0] != 0x25 || bytes[1] != 0x50 || bytes[2] != 0x44 || bytes[3] != 0x46)
+                    {
+                        return BadRequest("Le fichier téléversé n'est pas un document PDF valide.");
+                    }
+                }
+                catch
+                {
+                    return BadRequest("Format de données Base64 invalide.");
+                }
+            }
+
+            enterprise.RneDocumentUrl = request.RneDocumentUrl;
+            if (!string.IsNullOrWhiteSpace(enterprise.Notes))
+            {
+                try
+                {
+                    var notesDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(enterprise.Notes);
+                    if (notesDict != null)
+                    {
+                        notesDict["rneDocumentUrl"] = request.RneDocumentUrl;
+                        enterprise.Notes = System.Text.Json.JsonSerializer.Serialize(notesDict);
+                    }
+                }
+                catch { }
+            }
+
+            await _enterpriseRepository.UpdateAsync(enterprise);
+
+            var auditLog = new MasterAuditLog
+            {
+                TenantId = enterprise.Id,
+                Action = "RNE Document Uploaded",
+                Details = $"Document PDF RNE enregistré pour '{enterprise.Name}' (ID: {enterprise.Id}).",
+                PerformedBy = User.Identity?.Name ?? "Super Admin",
+                Timestamp = DateTime.UtcNow
+            };
+            await _context.MasterAuditLogs.AddAsync(auditLog);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Le document RNE a été ajouté avec succès.",
+                enterpriseId = enterprise.Id,
+                rneDocumentUrl = enterprise.RneDocumentUrl
+            });
         }
 
         private string Slugify(string name)

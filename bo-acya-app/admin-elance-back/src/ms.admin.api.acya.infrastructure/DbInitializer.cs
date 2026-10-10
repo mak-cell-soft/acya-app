@@ -54,6 +54,7 @@ namespace ms.admin.api.acya.infrastructure
                 ALTER TABLE public.bo_tbl_enterprise ADD COLUMN IF NOT EXISTS ""IsManagingConstructions"" BOOLEAN DEFAULT FALSE;
                 ALTER TABLE public.bo_tbl_enterprise ADD COLUMN IF NOT EXISTS ""IsManagingProduction"" BOOLEAN DEFAULT FALSE;
                 ALTER TABLE public.bo_tbl_enterprise ADD COLUMN IF NOT EXISTS ""PlanPrice"" NUMERIC(18, 2) DEFAULT 0;
+                ALTER TABLE public.bo_tbl_enterprise ADD COLUMN IF NOT EXISTS ""RneDocumentUrl"" TEXT;
             ");
 
             // Create SaaS lifecycle tables
