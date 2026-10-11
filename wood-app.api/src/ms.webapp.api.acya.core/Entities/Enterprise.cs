@@ -24,6 +24,7 @@ namespace ms.webapp.api.acya.core.Entities
     public bool? IsSalingWood { get; set; }
     public bool? IsManagingConstructions { get; set; }
     public bool? IsManagingProduction { get; set; }
+    public bool? IsWebQuoteIntakeEnabled { get; set; }
     public int AuditRetentionMonths { get; set; } = 12; // Default to 12 months
     public string? DocumentNumberingConfig { get; set; }
     public string? LogoUrl { get; set; }

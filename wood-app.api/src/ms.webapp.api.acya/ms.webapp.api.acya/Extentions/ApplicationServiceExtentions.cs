@@ -83,6 +83,8 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<IEmailService, EmailService>();
       services.AddScoped<IAppNotificationService, AppNotificationService>();
       services.AddSingleton<IPasswordResetRateLimiter, InMemoryPasswordResetRateLimiter>();
+      services.AddSingleton<IQuoteRequestRateLimiter, InMemoryQuoteRequestRateLimiter>();
+      services.AddScoped<IQuoteRequestService, QuoteRequestService>();
       services.AddScoped<IApprovalService, ApprovalService>();
       services.AddScoped<IPricingGridService, PricingGridService>();
       services.AddScoped<IImportService, ImportService>();

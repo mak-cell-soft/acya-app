@@ -47,6 +47,7 @@ CREATE TABLE tbl_enterprise (
     issalingwood boolean NULL,
     ismanagingconstructions boolean NULL,
     ismanagingproduction boolean NULL,
+    iswebquoteintakeenabled boolean DEFAULT FALSE,
     CONSTRAINT "PK_tbl_enterprise" PRIMARY KEY (id)
 );
 
@@ -1666,6 +1667,48 @@ ON CONFLICT ("MigrationId") DO NOTHING;
 
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20260916190100_AddProductionTables', '7.0.20')
+ON CONFLICT ("MigrationId") DO NOTHING;
+
+-- Inbound Customer Quote Requests (SOCOFEB Pilot)
+CREATE TABLE IF NOT EXISTS tbl_inbound_quote_requests (
+    "Id" SERIAL PRIMARY KEY,
+    "TrackingNumber" VARCHAR(50) NOT NULL,
+    "Product" VARCHAR(255) NOT NULL,
+    "Quantity" VARCHAR(100) NOT NULL,
+    "CustomerName" VARCHAR(150) NOT NULL,
+    "CustomerEmail" VARCHAR(150) NOT NULL,
+    "CustomerPhone" VARCHAR(50),
+    "Message" TEXT,
+    "Source" VARCHAR(100) NOT NULL DEFAULT 'socofeb-decor.com',
+    "IdempotencyKey" VARCHAR(100) NOT NULL,
+    "EnterpriseStatus" INT NOT NULL DEFAULT 0,
+    "EnterpriseLeaseExpiresAt" TIMESTAMPTZ,
+    "EnterpriseMessageId" VARCHAR(150),
+    "EnterpriseRetryCount" INT NOT NULL DEFAULT 0,
+    "CustomerStatus" INT NOT NULL DEFAULT 0,
+    "CustomerLeaseExpiresAt" TIMESTAMPTZ,
+    "CustomerMessageId" VARCHAR(150),
+    "CustomerRetryCount" INT NOT NULL DEFAULT 0,
+    "NextRetryAt" TIMESTAMPTZ,
+    "LastError" VARCHAR(1000),
+    "CreatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "UpdatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tbl_inbound_quote_requests_idempotency_key
+ON tbl_inbound_quote_requests ("IdempotencyKey");
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tbl_inbound_quote_requests_tracking_number
+ON tbl_inbound_quote_requests ("TrackingNumber");
+
+CREATE INDEX IF NOT EXISTS idx_tbl_inbound_quote_requests_enterprise_status
+ON tbl_inbound_quote_requests ("EnterpriseStatus", "EnterpriseRetryCount", "NextRetryAt");
+
+CREATE INDEX IF NOT EXISTS idx_tbl_inbound_quote_requests_customer_status
+ON tbl_inbound_quote_requests ("CustomerStatus", "CustomerRetryCount", "NextRetryAt");
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20261010180000_AddInboundQuoteRequests', '7.0.20')
 ON CONFLICT ("MigrationId") DO NOTHING;
 
 

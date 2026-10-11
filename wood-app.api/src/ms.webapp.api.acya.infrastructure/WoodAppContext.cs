@@ -113,6 +113,9 @@ namespace ms.webapp.api.acya.infrastructure
     public virtual DbSet<MobileBuild> MobileBuilds { get; set; }
     public virtual DbSet<MobileRelease> MobileReleases { get; set; }
 
+    // Inbound Customer Quote Requests (SOCOFEB Pilot)
+    public virtual DbSet<InboundQuoteRequest> InboundQuoteRequests { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       base.OnModelCreating(modelBuilder);
