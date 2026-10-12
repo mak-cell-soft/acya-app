@@ -184,7 +184,7 @@ export function PrintTab() {
           <FieldInput
             id="companyArabicName"
             label="Nom de la société"
-            value={form.companyArabicName}
+            value={form.companyArabicName ?? ''}
             onChange={(v) => setTop('companyArabicName', v)}
             rtl
             placeholder="اسم الشركة"
@@ -192,7 +192,7 @@ export function PrintTab() {
           <FieldInput
             id="companyArabicCapital"
             label="Capital social"
-            value={form.companyArabicCapital}
+            value={form.companyArabicCapital ?? ''}
             onChange={(v) => setTop('companyArabicCapital', v)}
             rtl
             placeholder="رأس المال"
@@ -200,7 +200,7 @@ export function PrintTab() {
           <FieldInput
             id="companyArabicAddress"
             label="Adresse du siège"
-            value={form.companyArabicAddress}
+            value={form.companyArabicAddress ?? ''}
             onChange={(v) => setTop('companyArabicAddress', v)}
             rtl
             placeholder="العنوان الاجتماعي"

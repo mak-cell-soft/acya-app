@@ -26,11 +26,15 @@ export function InvoiceLight({ document, enterprise, printLocale, payments }: In
       <div className="header">
         <div className="company-info">
           <div className="company-name">{enterprise.name}</div>
+          {enterprise.siegeAddress && <div className="company-details">{enterprise.siegeAddress}</div>}
           <div className="company-details">Tél: {enterprise.phone}</div>
           <div className="company-details">M.F: {enterprise.matriculeFiscal}</div>
         </div>
         <div className="arabic-info">
-          <div className="arabic-text">{ar.companyArabicName}</div>
+          {ar.companyArabicName && <div className="arabic-text">{ar.companyArabicName}</div>}
+          {(ar.companyArabicAddress || enterprise.siegeAddress) && (
+            <div className="arabic-details" dir="rtl">{ar.companyArabicAddress || enterprise.siegeAddress}</div>
+          )}
         </div>
       </div>
 
@@ -238,7 +242,7 @@ export function InvoiceLight({ document, enterprise, printLocale, payments }: In
 
       {/* Legal Footer */}
       <div className="footer-legal-light">
-        {enterprise.name}
+        {enterprise.name}{enterprise.siegeAddress ? ` - ${enterprise.siegeAddress}` : ''}
       </div>
     </div>
   );

@@ -24,7 +24,8 @@ export function DeliveryNoteStandard({ document, enterprise, printLocale }: Deli
   const tvaBreakdown = utils.getTvaBreakdown(document);
 
   const isQuote = document?.type === DocumentTypes.customerQuote;
-  const docTitle = isQuote ? 'DEVIS' : 'BON DE LIVRAISON';
+  const isOrder = document?.type === DocumentTypes.customerOrder;
+  const docTitle = isQuote ? 'DEVIS' : isOrder ? 'BON DE COMMANDE' : 'BON DE LIVRAISON';
 
   const validityDuration = document?.validity_duration ?? DEFAULT_VALIDITY_DURATION;
   const validityUnit = document?.validity_unit ?? DEFAULT_VALIDITY_UNIT;
@@ -49,6 +50,9 @@ export function DeliveryNoteStandard({ document, enterprise, printLocale }: Deli
           <p className="company-details">
             {enterprise.description || (enterprise.capital ? `S.A. au Capital de ${enterprise.capital}` : '')}
           </p>
+          {enterprise.siegeAddress && (
+            <p className="company-details">{enterprise.siegeAddress}</p>
+          )}
           <p className="company-details">
             Tél: {enterprise.phone} {enterprise.mobileOne ? `| ${enterprise.mobileOne}` : ''}
           </p>
@@ -72,10 +76,15 @@ export function DeliveryNoteStandard({ document, enterprise, printLocale }: Deli
 
         {/* Right: Arabic Info */}
         <div className="arabic-info">
-          <p className="arabic-text">{ar.companyArabicName}</p>
-          <p className="arabic-text">
-            {ar.companyArabicCapital}
-          </p>
+          {ar.companyArabicName && <p className="arabic-text">{ar.companyArabicName}</p>}
+          {ar.companyArabicCapital && (
+            <p className="arabic-text">
+              {ar.companyArabicCapital}
+            </p>
+          )}
+          {(ar.companyArabicAddress || enterprise.siegeAddress) && (
+            <p className="arabic-details" dir="rtl">{ar.companyArabicAddress || enterprise.siegeAddress}</p>
+          )}
         </div>
       </div>
 
@@ -339,7 +348,7 @@ export function DeliveryNoteStandard({ document, enterprise, printLocale }: Deli
           {enterprise.description ? `${enterprise.name} - ${enterprise.description}` : enterprise.name}
         </p>
         <p className="agency-info">
-          Tél: {enterprise.phone} | M.F: {enterprise.matriculeFiscal}
+          {enterprise.siegeAddress ? `Adresse: ${enterprise.siegeAddress} | ` : ''}Tél: {enterprise.phone} | M.F: {enterprise.matriculeFiscal}
         </p>
       </div>
     </div>

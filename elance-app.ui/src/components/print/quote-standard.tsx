@@ -47,6 +47,9 @@ export function QuoteStandard({ document, enterprise, printLocale }: QuoteStanda
           <p className="company-details">
             {enterprise.description || (enterprise.capital ? `S.A. au Capital de ${enterprise.capital}` : '')}
           </p>
+          {enterprise.siegeAddress && (
+            <p className="company-details">{enterprise.siegeAddress}</p>
+          )}
           <p className="company-details">
             Tél: {enterprise.phone} {enterprise.mobileOne ? `| ${enterprise.mobileOne}` : ''}
           </p>
@@ -70,8 +73,11 @@ export function QuoteStandard({ document, enterprise, printLocale }: QuoteStanda
 
         {/* Right: Arabic Info */}
         <div className="arabic-info">
-          <p className="arabic-text">{ar.companyArabicName}</p>
-          <p className="arabic-text">{ar.companyArabicCapital}</p>
+          {ar.companyArabicName && <p className="arabic-text">{ar.companyArabicName}</p>}
+          {ar.companyArabicCapital && <p className="arabic-text">{ar.companyArabicCapital}</p>}
+          {(ar.companyArabicAddress || enterprise.siegeAddress) && (
+            <p className="arabic-details" dir="rtl">{ar.companyArabicAddress || enterprise.siegeAddress}</p>
+          )}
         </div>
       </div>
 
@@ -273,7 +279,7 @@ export function QuoteStandard({ document, enterprise, printLocale }: QuoteStanda
           {enterprise.description ? `${enterprise.name} - ${enterprise.description}` : enterprise.name}
         </p>
         <p className="agency-info">
-          Tél: {enterprise.phone} | M.F: {enterprise.matriculeFiscal}
+          {enterprise.siegeAddress ? `Adresse: ${enterprise.siegeAddress} | ` : ''}Tél: {enterprise.phone} | M.F: {enterprise.matriculeFiscal}
         </p>
       </div>
     </div>
