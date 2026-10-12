@@ -13,9 +13,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { useEnterprise } from '@/hooks/use-enterprise';
 import { usePrintLocale } from '@/hooks/use-print-locale';
-import { Document } from '@/types/document';
+import { Document, DocumentTypes } from '@/types/document';
 import { StockTransferInfo, StockTransferDetails } from '@/types/stock';
 import { getStandardPrintStyles, getLightPrintStyles } from './print-styles';
+import { QuoteStandard } from './quote-standard';
+import { QuoteLight } from './quote-light';
 import { DeliveryNoteStandard } from './delivery-note-standard';
 import { DeliveryNoteLight } from './delivery-note-light';
 import { InvoiceStandard } from './invoice-standard';
@@ -98,7 +100,7 @@ interface PrintVariantDialogProps {
   articlesList?: Article[] | null;
   articlesStockMap?: Map<number, { total: number; breakdown: { siteName: string; quantity: number; unit: string }[] }>;
   articlesFilterInfo?: ArticlesFilterInfo;
-  docType: 'bl' | 'invoice' | 'purchase' | 'purchase-order' | 'purchase-receipt' | 'purchase-invoice' | 'purchase-return' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | 'document-list' | 'bank-statement' | 'caisse-remise' | 'supplier-payment' | 'bordereau-versement' | 'supplier-payments-list' | 'stock-inventory' | 'customer-report' | 'customers-list' | 'suppliers-list' | 'supplier-report' | 'articles-inventory' | 'inventory' | 'registered-inventory' | null | undefined;
+  docType: 'bl' | 'quote' | 'invoice' | 'purchase' | 'purchase-order' | 'purchase-receipt' | 'purchase-invoice' | 'purchase-return' | 'transfer' | 'leave' | 'advance' | 'payslip' | 'customer-statement' | 'supplier-statement' | 'document-list' | 'bank-statement' | 'caisse-remise' | 'supplier-payment' | 'bordereau-versement' | 'supplier-payments-list' | 'stock-inventory' | 'customer-report' | 'customers-list' | 'suppliers-list' | 'supplier-report' | 'articles-inventory' | 'inventory' | 'registered-inventory' | null | undefined;
 }
 
 export function PrintVariantDialog({
@@ -214,7 +216,17 @@ export function PrintVariantDialog({
       let styleCss = '';
       let printDocNumber = '';
 
-      if (docType === 'bl' && document) {
+      if ((docType === 'quote' || (docType === 'bl' && document?.type === DocumentTypes.customerQuote)) && document) {
+        printDocNumber = document.docnumber || '';
+        styleCss = variant === 'standard' ? getStandardPrintStyles() : getLightPrintStyles();
+        contentHtml = renderToStaticMarkup(
+          variant === 'standard' ? (
+            <QuoteStandard document={document} enterprise={enterprise} printLocale={printLocale} />
+          ) : (
+            <QuoteLight document={document} enterprise={enterprise} printLocale={printLocale} />
+          )
+        );
+      } else if (docType === 'bl' && document) {
         printDocNumber = document.docnumber || '';
         styleCss = variant === 'standard' ? getStandardPrintStyles() : getLightPrintStyles();
         contentHtml = renderToStaticMarkup(

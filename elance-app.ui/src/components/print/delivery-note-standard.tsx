@@ -1,9 +1,15 @@
 import React from 'react';
-import { Document } from '@/types/document';
+import { Document, DocumentTypes } from '@/types/document';
 import { Enterprise } from '@/types/settings';
 import { numberToFrenchWords } from '@/lib/number-to-words';
 import defaultAr from '@/locales/print-ar.json';
 import { PrintLocale } from '@/hooks/use-print-locale';
+import {
+  DEFAULT_VALIDITY_DURATION,
+  DEFAULT_VALIDITY_UNIT,
+  DEFAULT_COMMERCIAL_CONDITIONS,
+  generateValiditySentence,
+} from '@/lib/quotation-utils';
 import * as utils from './print-utils';
 
 interface DeliveryNoteStandardProps {
@@ -17,9 +23,20 @@ export function DeliveryNoteStandard({ document, enterprise, printLocale }: Deli
   const amountInWords = numberToFrenchWords(document?.total_net_ttc || 0);
   const tvaBreakdown = utils.getTvaBreakdown(document);
 
+  const isQuote = document?.type === DocumentTypes.customerQuote;
+  const docTitle = isQuote ? 'DEVIS' : 'BON DE LIVRAISON';
+
+  const validityDuration = document?.validity_duration ?? DEFAULT_VALIDITY_DURATION;
+  const validityUnit = document?.validity_unit ?? DEFAULT_VALIDITY_UNIT;
+  const validitySentence = generateValiditySentence(validityDuration, validityUnit);
+  const conditionsText =
+    document?.commercial_conditions !== undefined && document?.commercial_conditions !== null
+      ? document.commercial_conditions.trim()
+      : DEFAULT_COMMERCIAL_CONDITIONS;
+
   // Pad the items table with empty rows to match the A4 print height standard from the Angular template.
   const rowCount = document?.merchandises?.length || 0;
-  const paddingCount = Math.max(0, 10 - rowCount);
+  const paddingCount = Math.max(0, (isQuote ? 8 : 10) - rowCount);
   const emptyRows = Array.from({ length: paddingCount });
 
   return (
@@ -66,8 +83,8 @@ export function DeliveryNoteStandard({ document, enterprise, printLocale }: Deli
       <div className="document-header">
         <div className="document-title-section">
           <h2 className="document-title">
-            BON DE LIVRAISON N° {document?.docnumber || 'BROUILLON'}
-            {document?.deliveryNoteDocNumbers && document.deliveryNoteDocNumbers.length > 0 && (
+            {docTitle} N° {document?.docnumber || 'BROUILLON'}
+            {!isQuote && document?.deliveryNoteDocNumbers && document.deliveryNoteDocNumbers.length > 0 && (
               <span className="text-[0.7rem] font-normal text-slate-600 ml-2">
                 (BL Réf: {document.deliveryNoteDocNumbers.join(', ')})
               </span>
@@ -223,6 +240,27 @@ export function DeliveryNoteStandard({ document, enterprise, printLocale }: Deli
             <span className="words-label">{ar.labels.arreteLaSomme}</span>
             <p className="words-value">{amountInWords}</p>
           </div>
+
+          {/* Validité & Conditions commerciales (Quotation only) */}
+          {isQuote && (
+            <div className="amount-words" style={{ marginTop: '2.5mm' }}>
+              <span className="words-label" style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Validité &amp; Conditions commerciales
+              </span>
+              <div style={{ fontSize: '8pt', lineHeight: 1.4 }}>
+                <div>
+                  <strong>Validité : </strong>
+                  <span>{validitySentence}</span>
+                </div>
+                {conditionsText ? (
+                  <div style={{ marginTop: '1mm' }}>
+                    <strong>Conditions : </strong>
+                    <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{conditionsText}</span>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Side: Document totals */}
@@ -243,33 +281,46 @@ export function DeliveryNoteStandard({ document, enterprise, printLocale }: Deli
       </div>
 
       {/* Signature boxes */}
-      <div className="signature-section">
-        <div className="signature-box">
-          <span className="signature-label">{ar.labels.signClient}</span>
-          <div className="signature-area"></div>
-        </div>
-        <div className="signature-box">
-          <span className="signature-label">{ar.labels.truckNumber}</span>
-          <div className="signature-area font-bold text-center pt-2">
-            {utils.getVehicleInfo(document)}
+      {isQuote ? (
+        <div className="signature-section" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+          <div className="signature-box">
+            <span className="signature-label">Bon pour accord / Client</span>
+            <div className="signature-area" style={{ minHeight: '16mm' }}></div>
+          </div>
+          <div className="signature-box">
+            <span className="signature-label">Direction / Commercial</span>
+            <div className="signature-area" style={{ minHeight: '16mm' }}></div>
           </div>
         </div>
-        <div className="signature-box">
-          <span className="signature-label">{ar.labels.driverName}</span>
-          <div className="signature-area font-bold text-center pt-2">
-            {utils.getTransporterName(document)}
+      ) : (
+        <div className="signature-section">
+          <div className="signature-box">
+            <span className="signature-label">{ar.labels.signClient}</span>
+            <div className="signature-area"></div>
           </div>
-          <span className="cin-label">{ar.labels.cin}</span>
+          <div className="signature-box">
+            <span className="signature-label">{ar.labels.truckNumber}</span>
+            <div className="signature-area font-bold text-center pt-2">
+              {utils.getVehicleInfo(document)}
+            </div>
+          </div>
+          <div className="signature-box">
+            <span className="signature-label">{ar.labels.driverName}</span>
+            <div className="signature-area font-bold text-center pt-2">
+              {utils.getTransporterName(document)}
+            </div>
+            <span className="cin-label">{ar.labels.cin}</span>
+          </div>
+          <div className="signature-box">
+            <span className="signature-label">{ar.labels.controlBL}</span>
+            <div className="signature-area"></div>
+          </div>
+          <div className="signature-box">
+            <span className="signature-label">{ar.labels.controlExit}</span>
+            <div className="signature-area"></div>
+          </div>
         </div>
-        <div className="signature-box">
-          <span className="signature-label">{ar.labels.controlBL}</span>
-          <div className="signature-area"></div>
-        </div>
-        <div className="signature-box">
-          <span className="signature-label">{ar.labels.controlExit}</span>
-          <div className="signature-area"></div>
-        </div>
-      </div>
+      )}
 
       {/* Stamp / Signature Image - bottom right */}
       {ar.stampImageBase64 && (

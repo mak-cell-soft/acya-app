@@ -293,7 +293,10 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
 
   // Collapsible advanced options state (Devise, Taux de change, Timbre fiscal, Retenue RS)
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
-  const isAdvancedOptionsDoc = docType === DocumentTypes.customerInvoice || docType === DocumentTypes.customerDeliveryNote;
+  const isAdvancedOptionsDoc =
+    docType === DocumentTypes.customerInvoice ||
+    docType === DocumentTypes.customerDeliveryNote ||
+    docType === DocumentTypes.customerQuote;
 
   // Invoice-specific taxes selection states
   const [selectedTax, setSelectedTax] = useState<any | null>(null);

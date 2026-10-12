@@ -151,9 +151,9 @@ export function HeroSection() {
             className="space-y-7 text-left"
           >
             <div className="flex flex-col items-start gap-4">
-              {/* Company attribution: Développé par RéVA */}
-              <div className="flex flex-col items-start gap-1">
-                <span className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400">
+              {/* Mobile / Tablet attribution: compact and neatly integrated */}
+              <div className="lg:hidden flex items-center gap-2 px-0.5">
+                <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-400">
                   Développé par
                 </span>
                 <Image
@@ -162,7 +162,7 @@ export function HeroSection() {
                   width={2103}
                   height={748}
                   priority
-                  className="h-8 sm:h-9 w-auto object-contain"
+                  className="h-7 w-auto object-contain"
                 />
               </div>
 
@@ -240,13 +240,39 @@ export function HeroSection() {
             </div>
           </motion.div>
 
-          {/* RIGHT: Product Showcase Mockup */}
-          <motion.div
-            initial={{ opacity: 0, y: 25 }}
-            animate={{ opacity: mounted ? 1 : 0, y: mounted ? 0 : 25 }}
-            transition={{ duration: 0.85, delay: 0.15, ease: 'easeOut' }}
-            className="hidden lg:block relative group"
-          >
+          {/* RIGHT: REVA Branding (Upper Right) + Product Showcase Mockup */}
+          <div className="hidden lg:flex flex-col gap-4.5 xl:gap-5.5 w-full">
+            {/* REVA branding block - Positioned in the upper-right area above dashboard preview */}
+            <motion.div
+              initial={{ opacity: 0, y: -15 }}
+              animate={{ opacity: mounted ? 1 : 0, y: mounted ? 0 : -15 }}
+              transition={{ duration: 0.7, delay: 0.1, ease: 'easeOut' }}
+              className="flex items-center justify-end pr-1 relative -top-[40px]"
+            >
+              <div className="flex flex-col items-end gap-1.5 group/reva">
+                <span className="text-[10px] xl:text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400 transition-colors group-hover/reva:text-slate-300">
+                  Développé par
+                </span>
+                <div className="px-3.5 py-1.5 xl:py-2 rounded-xl bg-slate-900/40 border border-white/10 backdrop-blur-md shadow-sm hover:border-white/20 transition-all duration-300">
+                  <Image
+                    src="/logo-reva-navbar.png"
+                    alt="RÉVA Consulting"
+                    width={2103}
+                    height={748}
+                    priority
+                    className="h-10 xl:h-11 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)] transition-transform duration-300 group-hover/reva:scale-[1.02]"
+                  />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Product Showcase Mockup */}
+            <motion.div
+              initial={{ opacity: 0, y: 25 }}
+              animate={{ opacity: mounted ? 1 : 0, y: mounted ? 0 : 25 }}
+              transition={{ duration: 0.85, delay: 0.15, ease: 'easeOut' }}
+              className="relative group"
+            >
             {/* Ambient backlight glow */}
             <div 
               className="absolute -inset-6 rounded-3xl opacity-70 group-hover:opacity-90 transition-opacity duration-700 blur-[70px] pointer-events-none" 
@@ -430,6 +456,7 @@ export function HeroSection() {
               </div>
             </motion.div>
           </motion.div>
+        </div>
 
         </div>
       </div>

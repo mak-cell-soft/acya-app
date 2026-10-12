@@ -1,9 +1,15 @@
 import React from 'react';
-import { Document } from '@/types/document';
+import { Document, DocumentTypes } from '@/types/document';
 import { Enterprise } from '@/types/settings';
 import { numberToFrenchWords } from '@/lib/number-to-words';
 import defaultAr from '@/locales/print-ar.json';
 import { PrintLocale } from '@/hooks/use-print-locale';
+import {
+  DEFAULT_VALIDITY_DURATION,
+  DEFAULT_VALIDITY_UNIT,
+  DEFAULT_COMMERCIAL_CONDITIONS,
+  generateValiditySentence,
+} from '@/lib/quotation-utils';
 import * as utils from './print-utils';
 
 interface DeliveryNoteLightProps {
@@ -15,6 +21,17 @@ interface DeliveryNoteLightProps {
 export function DeliveryNoteLight({ document, enterprise, printLocale }: DeliveryNoteLightProps) {
   const ar = printLocale || defaultAr;
   const amountInWords = numberToFrenchWords(document?.total_net_ttc || 0);
+
+  const isQuote = document?.type === DocumentTypes.customerQuote;
+  const docTitle = isQuote ? 'DEVIS CLIENT' : 'BON DE LIVRAISON CLIENT';
+
+  const validityDuration = document?.validity_duration ?? DEFAULT_VALIDITY_DURATION;
+  const validityUnit = document?.validity_unit ?? DEFAULT_VALIDITY_UNIT;
+  const validitySentence = generateValiditySentence(validityDuration, validityUnit);
+  const conditionsText =
+    document?.commercial_conditions !== undefined && document?.commercial_conditions !== null
+      ? document.commercial_conditions.trim()
+      : DEFAULT_COMMERCIAL_CONDITIONS;
 
   return (
     <div className="print-container">
@@ -34,8 +51,8 @@ export function DeliveryNoteLight({ document, enterprise, printLocale }: Deliver
 
       {/* Document Type Label */}
       <div className="document-type-header">
-        BON DE LIVRAISON CLIENT N° {document?.docnumber || 'BROUILLON'}
-        {document?.deliveryNoteDocNumbers && document.deliveryNoteDocNumbers.length > 0 && (
+        {docTitle} N° {document?.docnumber || 'BROUILLON'}
+        {!isQuote && document?.deliveryNoteDocNumbers && document.deliveryNoteDocNumbers.length > 0 && (
           <span style={{ fontSize: '0.8em', fontWeight: 'normal', marginLeft: '6px' }}>
             (BL Réf: {document.deliveryNoteDocNumbers.join(', ')})
           </span>
@@ -128,6 +145,19 @@ export function DeliveryNoteLight({ document, enterprise, printLocale }: Deliver
         <div className="words-and-legal">
           <div className="words-label">{ar.labels.arreteLaSomme}</div>
           <div className="words-value">{amountInWords}</div>
+
+          {/* Validité & Conditions commerciales (Quotation only) */}
+          {isQuote && (
+            <div style={{ marginTop: '3mm', padding: '1.5mm', border: '1px dashed #000' }}>
+              <div style={{ fontWeight: 'bold' }}>VALIDITÉ &amp; CONDITIONS COMMERCIALES :</div>
+              <div>Validité : {validitySentence}</div>
+              {conditionsText ? (
+                <div style={{ marginTop: '0.5mm', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                  Conditions : {conditionsText}
+                </div>
+              ) : null}
+            </div>
+          )}
         </div>
 
         <div className="totals-box">
@@ -146,33 +176,44 @@ export function DeliveryNoteLight({ document, enterprise, printLocale }: Deliver
         </div>
       </div>
 
-      {/* Simple signature boxes for dot matrix */}
-      <div className="signatures">
-        <div className="sig-box">
-          <div className="sig-label">CLIENT</div>
-          <div style={{ fontSize: '7pt', textAlign: 'center' }}>Date & Sign</div>
-        </div>
-        <div className="sig-box">
-          <div className="sig-label">CHAUFFEUR</div>
-          <div style={{ fontSize: '7pt', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-            {utils.getTransporterName(document)}
+      {/* Signature boxes */}
+      {isQuote ? (
+        <div className="signatures">
+          <div className="sig-box" style={{ width: '48%' }}>
+            <span>Bon pour accord (Client)</span>
+          </div>
+          <div className="sig-box" style={{ width: '48%' }}>
+            <span>Entreprise</span>
           </div>
         </div>
-        <div className="sig-box">
-          <div className="sig-label">MATRICULE</div>
-          <div style={{ fontSize: '7.5pt', textAlign: 'center' }}>
-            {utils.getVehicleInfo(document)}
+      ) : (
+        <div className="signatures">
+          <div className="sig-box">
+            <div className="sig-label">CLIENT</div>
+            <div style={{ fontSize: '7pt', textAlign: 'center' }}>Date & Sign</div>
+          </div>
+          <div className="sig-box">
+            <div className="sig-label">CHAUFFEUR</div>
+            <div style={{ fontSize: '7pt', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+              {utils.getTransporterName(document)}
+            </div>
+          </div>
+          <div className="sig-box">
+            <div className="sig-label">MATRICULE</div>
+            <div style={{ fontSize: '7.5pt', textAlign: 'center' }}>
+              {utils.getVehicleInfo(document)}
+            </div>
+          </div>
+          <div className="sig-box">
+            <div className="sig-label">CONTRÔLE</div>
+            <div></div>
+          </div>
+          <div className="sig-box">
+            <div className="sig-label">SORTIE</div>
+            <div></div>
           </div>
         </div>
-        <div className="sig-box">
-          <div className="sig-label">CONTRÔLE</div>
-          <div></div>
-        </div>
-        <div className="sig-box">
-          <div className="sig-label">SORTIE</div>
-          <div></div>
-        </div>
-      </div>
+      )}
 
       {/* Legal message for dot matrix */}
       <div className="footer-legal-light">

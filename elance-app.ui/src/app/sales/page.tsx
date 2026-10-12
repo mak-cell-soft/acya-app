@@ -137,7 +137,7 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
   const [blForConversion, setBlForConversion] = useState<Document | null>(null);
   const [isRsPanelOpen, setIsRsPanelOpen] = useState<boolean>(false);
   // State to manage which document is being printed and its type
-  const [printDoc, setPrintDoc] = useState<{ doc: Document; type: 'bl' | 'invoice' } | null>(null);
+  const [printDoc, setPrintDoc] = useState<{ doc: Document; type: 'bl' | 'quote' | 'invoice' } | null>(null);
   const [isPrintListModalOpen, setIsPrintListModalOpen] = useState(false);
   const [docToDelete, setDocToDelete] = useState<Document | null>(null);
   const queryClient = useQueryClient();
@@ -1041,14 +1041,22 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
                                           </DropdownMenuItem>
                                         )}
 
-                                        {/* Quote PDF Download & Edit Options */}
+                                        {/* Quote PDF Download & Print & Edit Options */}
                                         {item.type === DocumentTypes.customerQuote && (
-                                          <DropdownMenuItem
-                                            onClick={() => handleDownloadPdf(item)}
-                                            className="gap-2 font-semibold text-corp-blue-800 hover:bg-corp-blue-50 cursor-pointer"
-                                          >
-                                            <Download className="w-4 h-4 text-corp-blue-600" /> Télécharger PDF
-                                          </DropdownMenuItem>
+                                          <>
+                                            <DropdownMenuItem
+                                              onClick={() => setPrintDoc({ doc: item, type: 'quote' })}
+                                              className="gap-2 font-semibold text-sand-800 cursor-pointer"
+                                            >
+                                              <Printer className="w-4 h-4 text-sand-600" /> Imprimer Devis
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                              onClick={() => handleDownloadPdf(item)}
+                                              className="gap-2 font-semibold text-corp-blue-800 hover:bg-corp-blue-50 cursor-pointer"
+                                            >
+                                              <Download className="w-4 h-4 text-corp-blue-600" /> Télécharger PDF
+                                            </DropdownMenuItem>
+                                          </>
                                         )}
 
                                         {hasPermission('sales', 'canUpdate') && item.type === DocumentTypes.customerQuote && (
@@ -1470,7 +1478,11 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
         onPrint={(doc) => {
           setPrintDoc({
             doc,
-            type: doc.type === DocumentTypes.customerInvoice ? 'invoice' : 'bl'
+            type: doc.type === DocumentTypes.customerInvoice
+              ? 'invoice'
+              : doc.type === DocumentTypes.customerQuote
+              ? 'quote'
+              : 'bl'
           });
         }}
       />

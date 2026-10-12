@@ -108,106 +108,111 @@ export function PublicNavbar() {
           : "bg-slate-950/35 backdrop-blur-md border-b border-white/10 py-2.5 sm:py-3"
       )}>
         <div className="max-w-[1240px] mx-auto flex items-center justify-between px-4 sm:px-6 md:px-8">
-          {/* Logo & Brand Identity */}
-          <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className={cn(
-              "relative flex items-center justify-center p-1 rounded-lg transition-all duration-300",
-              isScrolled 
-                ? "bg-corp-blue-50/70" 
-                : "bg-white/[0.08] border border-white/15 shadow-[0_0_12px_rgba(59,130,246,0.25)]"
-            )}>
-              {/* Structural SVG Logo: Compact 28px/30px sizing */}
-              <svg 
-                className={cn(
-                  "w-7 h-7 sm:w-[30px] sm:h-[30px] transition-transform duration-300 group-hover:scale-105 shrink-0",
-                  !isScrolled && "drop-shadow-[0_2px_6px_rgba(59,130,246,0.4)]"
-                )} 
-                viewBox="0 0 40 40" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <defs>
-                  <linearGradient id="logo_grad_1" x1="0" y1="0" x2="40" y2="40">
-                    <stop offset="0%" stopColor="#93C5FD"/>
-                    <stop offset="100%" stopColor="#3B82F6"/>
-                  </linearGradient>
-                  <linearGradient id="logo_grad_2" x1="0" y1="0" x2="40" y2="40">
-                    <stop offset="0%" stopColor="#3B82F6"/>
-                    <stop offset="100%" stopColor="#2563EB"/>
-                  </linearGradient>
-                  <linearGradient id="logo_grad_3" x1="0" y1="0" x2="40" y2="40">
-                    <stop offset="0%" stopColor="#2563EB"/>
-                    <stop offset="100%" stopColor="#1D4ED8"/>
-                  </linearGradient>
-                </defs>
-                <path d="M 20 3 L 27.79 7.5 L 27.79 16.5 L 20 21 L 12.21 16.5 L 12.21 7.5 Z" fill="url(#logo_grad_1)" />
-                <path d="M 11.34 18 L 19.13 22.5 L 19.13 31.5 L 11.34 36 L 3.55 31.5 L 3.55 22.5 Z" fill="url(#logo_grad_2)" />
-                <path d="M 28.66 18 L 36.45 22.5 L 36.45 31.5 L 28.66 36 L 20.87 31.5 L 20.87 22.5 Z" fill="url(#logo_grad_3)" />
-              </svg>
-            </div>
-            
-            <div className="flex items-center gap-1.5">
-              <span className={cn(
-                "text-xl sm:text-[1.35rem] font-black font-heading tracking-tight transition-colors duration-300 leading-none",
+          {/* Left section: Brand + Desktop Navigation */}
+          <div className="flex items-center gap-6 xl:gap-8">
+            {/* Logo & Brand Identity */}
+            <Link href="/" className="flex items-center gap-2.5 group shrink-0 select-none py-0.5" aria-label="Élancé Accueil">
+              <div className={cn(
+                "relative flex items-center justify-center p-1 rounded-lg transition-all duration-300",
                 isScrolled 
-                  ? "text-slate-900 group-hover:text-corp-blue-600" 
-                  : "text-white group-hover:text-blue-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
+                  ? "bg-corp-blue-50/70" 
+                  : "bg-white/[0.08] border border-white/15 shadow-[0_0_12px_rgba(59,130,246,0.25)]"
               )}>
-                Élancé
-              </span>
-            </div>
-          </Link>
-
-          {/* Desktop Navigation: Compact gap and refined font sizing for single-row stability across 1366px-1920px */}
-          <div className="hidden lg:flex items-center gap-5 xl:gap-6.5 ml-auto">
-            {navLinks.map((link) => (
-              <Link 
-                key={link.name} 
-                href={link.href}
-                className={cn(
-                  "text-[0.84rem] xl:text-[0.88rem] font-semibold transition-colors duration-200 relative group/link py-1 px-0.5 flex items-center gap-1.5 whitespace-nowrap",
-                  isScrolled 
-                    ? "text-slate-600 hover:text-corp-blue-600" 
-                    : "text-slate-200 hover:text-white"
-                )}
-              >
-                <span>{link.name}</span>
-                {/* Micro-badge: Natural inline pill that does not increase line height */}
-                {link.isNew && (
-                  <span className={cn(
-                    "text-[8.5px] font-bold px-1.5 py-[1.5px] rounded-full uppercase tracking-wider leading-none shrink-0 transition-colors",
-                    isScrolled 
-                      ? "bg-corp-blue-50 text-corp-blue-600 border border-corp-blue-100" 
-                      : "bg-cyan-400/15 text-cyan-300 border border-cyan-400/25"
-                  )}>
-                    New
-                  </span>
-                )}
-                {/* Hover indicator underline */}
+                {/* Structural SVG Logo: Compact 28px/30px sizing */}
+                <svg 
+                  className={cn(
+                    "w-7 h-7 sm:w-[30px] sm:h-[30px] transition-transform duration-300 group-hover:scale-105 shrink-0",
+                    !isScrolled && "drop-shadow-[0_2px_6px_rgba(59,130,246,0.4)]"
+                  )} 
+                  viewBox="0 0 40 40" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <defs>
+                    <linearGradient id="logo_grad_1" x1="0" y1="0" x2="40" y2="40">
+                      <stop offset="0%" stopColor="#93C5FD"/>
+                      <stop offset="100%" stopColor="#3B82F6"/>
+                    </linearGradient>
+                    <linearGradient id="logo_grad_2" x1="0" y1="0" x2="40" y2="40">
+                      <stop offset="0%" stopColor="#3B82F6"/>
+                      <stop offset="100%" stopColor="#2563EB"/>
+                    </linearGradient>
+                    <linearGradient id="logo_grad_3" x1="0" y1="0" x2="40" y2="40">
+                      <stop offset="0%" stopColor="#2563EB"/>
+                      <stop offset="100%" stopColor="#1D4ED8"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M 20 3 L 27.79 7.5 L 27.79 16.5 L 20 21 L 12.21 16.5 L 12.21 7.5 Z" fill="url(#logo_grad_1)" />
+                  <path d="M 11.34 18 L 19.13 22.5 L 19.13 31.5 L 11.34 36 L 3.55 31.5 L 3.55 22.5 Z" fill="url(#logo_grad_2)" />
+                  <path d="M 28.66 18 L 36.45 22.5 L 36.45 31.5 L 28.66 36 L 20.87 31.5 L 20.87 22.5 Z" fill="url(#logo_grad_3)" />
+                </svg>
+              </div>
+              
+              <div className="flex items-center gap-1.5">
                 <span className={cn(
-                  "absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[2px] transition-all duration-250 group-hover/link:w-full rounded-full",
-                  isScrolled ? "bg-corp-blue-600" : "bg-gradient-to-r from-blue-400 to-cyan-400"
-                )} />
-              </Link>
-            ))}
+                  "text-xl sm:text-[1.35rem] font-black font-heading tracking-tight transition-colors duration-300 leading-none",
+                  isScrolled 
+                    ? "text-slate-900 group-hover:text-corp-blue-600" 
+                    : "text-white group-hover:text-blue-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
+                )}>
+                  Élancé
+                </span>
+              </div>
+            </Link>
+
+            {/* Desktop Navigation: Separated with its own gap from brand, starting with Modules */}
+            <div className="hidden lg:flex items-center gap-3.5 xl:gap-4.5">
+              {navLinks.map((link) => (
+                <Link 
+                  key={link.name} 
+                  href={link.href}
+                  className={cn(
+                    "text-[0.84rem] xl:text-[0.88rem] font-semibold transition-colors duration-200 relative group/link py-1 px-0.5 flex items-center gap-1.5 whitespace-nowrap",
+                    isScrolled 
+                      ? "text-slate-600 hover:text-corp-blue-600" 
+                      : "text-slate-200 hover:text-white"
+                  )}
+                >
+                  <span>{link.name}</span>
+                  {/* Micro-badge: Natural inline pill that does not increase line height */}
+                  {link.isNew && (
+                    <span className={cn(
+                      "text-[8.5px] font-bold px-1.5 py-[1.5px] rounded-full uppercase tracking-wider leading-none shrink-0 transition-colors",
+                      isScrolled 
+                        ? "bg-corp-blue-50 text-corp-blue-600 border border-corp-blue-100" 
+                        : "bg-cyan-400/15 text-cyan-300 border border-cyan-400/25"
+                    )}>
+                      New
+                    </span>
+                  )}
+                  {/* Hover indicator underline */}
+                  <span className={cn(
+                    "absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[2px] transition-all duration-250 group-hover/link:w-full rounded-full",
+                    isScrolled ? "bg-corp-blue-600" : "bg-gradient-to-r from-blue-400 to-cyan-400"
+                  )} />
+                </Link>
+              ))}
+            </div>
           </div>
 
-          {/* Action Button: Compact, modern CTA */}
-          <div className="hidden lg:flex items-center ml-6 xl:ml-8 gap-3 shrink-0">
+          {/* Action Buttons: Polished Connexion + Primary Inscription CTA */}
+          <div className="hidden lg:flex items-center ml-auto gap-3 shrink-0">
             {isMainDomain && (
               <Link
                 href="/login"
                 className={cn(
-                  "text-[0.84rem] xl:text-[0.88rem] font-semibold transition-colors duration-200 py-1 px-3 rounded-lg",
+                  "ml-3.5 xl:ml-4",
+                  "h-8.5 px-3.5 sm:px-4 rounded-lg text-xs font-bold inline-flex items-center justify-center transition-all duration-200 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/50 cursor-pointer shadow-xs",
                   isScrolled
-                    ? "text-slate-700 hover:text-corp-blue-600 hover:bg-slate-100/60"
-                    : "text-white/90 hover:text-white hover:bg-white/10"
+                    ? "bg-slate-100/90 hover:bg-slate-200/90 border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900"
+                    : "bg-white/[0.08] hover:bg-white/[0.14] border border-white/20 hover:border-white/35 text-white/95 hover:text-white backdrop-blur-xs"
                 )}
               >
                 Connexion
               </Link>
             )}
             <Button asChild className={cn(
+              !isMainDomain && "ml-3.5 xl:ml-4",
               "h-8.5 px-4.5 rounded-lg text-xs font-bold transition-all duration-200 relative overflow-hidden group active:scale-[0.96] shadow-sm",
               isScrolled
                 ? "bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 text-white hover:from-corp-blue-500 hover:to-corp-blue-700 shadow-corp-blue-900/10"
