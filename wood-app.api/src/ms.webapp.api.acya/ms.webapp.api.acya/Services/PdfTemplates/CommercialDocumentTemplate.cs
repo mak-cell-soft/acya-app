@@ -97,7 +97,7 @@ namespace ms.webapp.api.acya.api.Services.PdfTemplates
                 column.Item().Element(ComposeTable);
 
                 bool isQuote = _model.type == DocumentTypes.customerQuote;
-                bool hasConditions = isQuote || _model.validity_duration != null || !string.IsNullOrWhiteSpace(_model.commercial_conditions);
+                bool hasConditions = isQuote;
                 bool hasNotes = !string.IsNullOrEmpty(_model.description);
 
                 if (hasConditions || hasNotes)
@@ -141,7 +141,7 @@ namespace ms.webapp.api.acya.api.Services.PdfTemplates
 
             column.Item().Border(0.5f).BorderColor(Colors.Grey.Lighten2).Background(Colors.Grey.Lighten4).Padding(8).Column(c =>
             {
-                c.Item().Text("Conditions commerciales").SemiBold().FontSize(9.5f).FontColor(Colors.Black);
+                c.Item().Text("Validité & Conditions commerciales").SemiBold().FontSize(9.5f).FontColor(Colors.Black);
 
                 c.Item().PaddingTop(3).Text(validitySentence).FontSize(8.5f).FontColor(Colors.Grey.Darken3);
 
