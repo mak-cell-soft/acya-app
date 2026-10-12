@@ -193,7 +193,20 @@ export function PublicNavbar() {
           </div>
 
           {/* Action Button: Compact, modern CTA */}
-          <div className="hidden lg:flex items-center ml-6 xl:ml-8 shrink-0">
+          <div className="hidden lg:flex items-center ml-6 xl:ml-8 gap-3 shrink-0">
+            {isMainDomain && (
+              <Link
+                href="/login"
+                className={cn(
+                  "text-[0.84rem] xl:text-[0.88rem] font-semibold transition-colors duration-200 py-1 px-3 rounded-lg",
+                  isScrolled
+                    ? "text-slate-700 hover:text-corp-blue-600 hover:bg-slate-100/60"
+                    : "text-white/90 hover:text-white hover:bg-white/10"
+                )}
+              >
+                Connexion
+              </Link>
+            )}
             <Button asChild className={cn(
               "h-8.5 px-4.5 rounded-lg text-xs font-bold transition-all duration-200 relative overflow-hidden group active:scale-[0.96] shadow-sm",
               isScrolled
@@ -278,7 +291,14 @@ export function PublicNavbar() {
                 </div>
 
                 {/* Mobile Drawer Bottom Action */}
-                <div className="mt-auto space-y-3 pt-4 border-t border-slate-100">
+                <div className="mt-auto space-y-2.5 pt-4 border-t border-slate-100">
+                  {isMainDomain && (
+                    <Button asChild variant="outline" className="w-full h-11 text-sm text-slate-800 font-semibold border-slate-200 hover:bg-slate-50 rounded-xl">
+                      <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                        Connexion
+                      </Link>
+                    </Button>
+                  )}
                   <Button asChild className="w-full h-12 text-base bg-gradient-to-r from-corp-blue-600 to-corp-blue-800 hover:from-corp-blue-500 hover:to-corp-blue-700 text-white font-bold shadow-md shadow-corp-blue-900/10 rounded-xl">
                     <Link href={isMainDomain ? "/enterprise-registration" : "/login"} onClick={() => setIsMobileMenuOpen(false)}>
                       {isMainDomain ? "Inscription" : "Connexion"}

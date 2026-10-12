@@ -146,7 +146,9 @@ namespace ms.webapp.api.acya.Services.Mobile
             var apiKey = _configuration["N8nEmailService:ApiKey"];
             if (string.IsNullOrWhiteSpace(apiKey))
             {
-                apiKey = "Bearer 8a9632170ad282a748818806c2e6d918288f7266d8a798750340d250f398176f";
+                _logger.LogError("Email service is not configured: N8nEmailService:ApiKey is missing or empty for tenant '{Tenant}' (recipient: {Recipient}).",
+                    tenantSlug, recipient);
+                return EmailDispatchResult.Rejected("Email service is not configured: N8nEmailService:ApiKey is missing or empty.");
             }
 
             try

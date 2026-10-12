@@ -153,7 +153,8 @@ namespace ms.admin.api.acya.Controllers
                 log.Tenant,
                 log.Recipient,
                 log.RegistrationId,
-                log.CorrelationId
+                log.CorrelationId,
+                isResend: true
             );
 
             return Ok(new

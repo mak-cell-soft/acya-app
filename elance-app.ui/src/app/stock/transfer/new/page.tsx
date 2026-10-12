@@ -43,6 +43,7 @@ import { WoodLengthsDialog } from '@/components/sales/wood-lengths-dialog';
 import { WoodBdLengthsDialog } from '@/components/sales/wood-bd-lengths-dialog';
 import { GlassSurfaceDialog } from '@/components/shared/glass-surface-dialog';
 import { PrintVariantDialog } from '@/components/print/print-trigger-button';
+import { TransporterModal } from '@/components/sales/transporter-modal';
 import { StockTransferInfo, StockTransferDetails } from '@/types/stock';
 import { 
   ArrowLeft, 
@@ -104,6 +105,7 @@ function NewStockTransferContent() {
   const [originSiteId, setOriginSiteId] = useState<string>('');
   const [destinationSiteId, setDestinationSiteId] = useState<string>('');
   const [transporterId, setTransporterId] = useState<string>('');
+  const [isTransporterModalOpen, setIsTransporterModalOpen] = useState<boolean>(false);
   const [transferDate, setTransferDate] = useState<string>(new Date().toISOString().substring(0, 10));
   const [notes, setNotes] = useState<string>('');
   
@@ -733,7 +735,18 @@ function NewStockTransferContent() {
 
               {/* Transporter Selection */}
               <div className="space-y-2">
-                <Label htmlFor="transporter" className="text-[10px] uppercase font-bold text-stone-500">Transporteur *</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="transporter" className="text-[10px] uppercase font-bold text-stone-500">Transporteur *</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsTransporterModalOpen(true)}
+                    className="h-6 px-2 text-[0.65rem] font-bold text-corp-blue-700 bg-corp-blue-50 border-corp-blue-200 hover:bg-corp-blue-100 hover:text-corp-blue-800 rounded-lg flex items-center gap-1 shadow-xs transition-all cursor-pointer"
+                  >
+                    <Truck className="w-3 h-3 text-corp-blue-600" /> + Transporteurs
+                  </Button>
+                </div>
                 <Select value={transporterId} onValueChange={(val) => setTransporterId(val || '')}>
                   <SelectTrigger id="transporter" className="h-11 bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-800 rounded-xl text-xs font-semibold">
                     {/* // NOTE: Mapping transporter information dynamically to display name and vehicle serial number without falling back to ID. */}
@@ -1117,6 +1130,15 @@ function NewStockTransferContent() {
         transfer={printTransfer}
         transferDetails={printDetails}
         docType="transfer"
+      />
+
+      {/* Transporter Management Modal */}
+      <TransporterModal
+        isOpen={isTransporterModalOpen}
+        onClose={() => setIsTransporterModalOpen(false)}
+        onSelectTransporter={(trans) => {
+          setTransporterId(trans.id.toString());
+        }}
       />
     </div>
   );

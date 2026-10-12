@@ -95,6 +95,7 @@ namespace ms.webapp.api.acya.tests
                 });
 
             var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["N8nEmailService:ApiKey"]).Returns("test-key");
             var loggerMock = new Mock<ILogger<N8nEmailService>>();
             var httpClient = new HttpClient(handlerMock.Object);
             var service = new N8nEmailService(httpClient, configMock.Object, loggerMock.Object);
@@ -117,6 +118,7 @@ namespace ms.webapp.api.acya.tests
                 .ThrowsAsync(new OperationCanceledException());
 
             var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["N8nEmailService:ApiKey"]).Returns("test-key");
             var loggerMock = new Mock<ILogger<N8nEmailService>>();
             var httpClient = new HttpClient(handlerMock.Object);
             var service = new N8nEmailService(httpClient, configMock.Object, loggerMock.Object);
@@ -138,6 +140,7 @@ namespace ms.webapp.api.acya.tests
                 .ThrowsAsync(new HttpRequestException("Connection refused"));
 
             var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["N8nEmailService:ApiKey"]).Returns("test-key");
             var loggerMock = new Mock<ILogger<N8nEmailService>>();
             var httpClient = new HttpClient(handlerMock.Object);
             var service = new N8nEmailService(httpClient, configMock.Object, loggerMock.Object);
@@ -153,6 +156,7 @@ namespace ms.webapp.api.acya.tests
         {
             var handlerMock = new Mock<HttpMessageHandler>();
             var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["N8nEmailService:ApiKey"]).Returns("test-key");
             var loggerMock = new Mock<ILogger<N8nEmailService>>();
             var httpClient = new HttpClient(handlerMock.Object);
             var service = new N8nEmailService(httpClient, configMock.Object, loggerMock.Object);
@@ -184,6 +188,7 @@ namespace ms.webapp.api.acya.tests
                 });
 
             var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["N8nEmailService:ApiKey"]).Returns("test-key");
             var loggerMock = new Mock<ILogger<N8nEmailService>>();
             var httpClient = new HttpClient(handlerMock.Object);
             var service = new N8nEmailService(httpClient, configMock.Object, loggerMock.Object);
@@ -219,6 +224,7 @@ namespace ms.webapp.api.acya.tests
                 });
 
             var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["N8nEmailService:ApiKey"]).Returns("test-key");
             var loggerMock = new Mock<ILogger<N8nEmailService>>();
             var httpClient = new HttpClient(handlerMock.Object);
             var service = new N8nEmailService(httpClient, configMock.Object, loggerMock.Object);
@@ -230,6 +236,70 @@ namespace ms.webapp.api.acya.tests
             Assert.Equal("raw", doc.RootElement.GetProperty("template").GetString());
             Assert.Equal("Sujet Test", doc.RootElement.GetProperty("subject").GetString());
             Assert.Equal("<p>Contenu HTML</p>", doc.RootElement.GetProperty("html").GetString());
+        }
+
+        [Fact]
+        public async Task TestA9_MissingApiKey_FailsSafelyWithoutSendingRequest()
+        {
+            HttpRequestMessage? capturedRequest = null;
+            var handlerMock = new Mock<HttpMessageHandler>();
+            handlerMock.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .Returns<HttpRequestMessage, CancellationToken>((req, ct) =>
+                {
+                    capturedRequest = req;
+                    return Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK });
+                });
+
+            var configMock = new Mock<IConfiguration>();
+            // No N8nEmailService:ApiKey configured (null/empty)
+            var loggerMock = new Mock<ILogger<N8nEmailService>>();
+            var httpClient = new HttpClient(handlerMock.Object);
+            var service = new N8nEmailService(httpClient, configMock.Object, loggerMock.Object);
+
+            var result = await service.SendPasswordResetEmailAsync("user@socofeb.tn", "https://socofeb.acya.site/reset", "socofeb");
+
+            Assert.Null(capturedRequest); // Request must NOT be dispatched
+            Assert.Equal(EmailDispatchStatus.Rejected, result.Status);
+            Assert.Contains("not configured", result.ErrorMessage);
+        }
+
+        [Fact]
+        public async Task TestA10_ExplicitApiKey_SetsAuthorizationHeaderCorrectly()
+        {
+            HttpRequestMessage? capturedRequest = null;
+            var handlerMock = new Mock<HttpMessageHandler>();
+            handlerMock.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .Returns<HttpRequestMessage, CancellationToken>((req, ct) =>
+                {
+                    capturedRequest = req;
+                    return Task.FromResult(new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent("{\"accepted\":true,\"messageId\":\"<msg-explicit@acya.site>\"}", Encoding.UTF8, "application/json")
+                    });
+                });
+
+            var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["N8nEmailService:ApiKey"]).Returns("explicit-secret-key-12345");
+            var loggerMock = new Mock<ILogger<N8nEmailService>>();
+            var httpClient = new HttpClient(handlerMock.Object);
+            var service = new N8nEmailService(httpClient, configMock.Object, loggerMock.Object);
+
+            var result = await service.SendPasswordResetEmailAsync("user@socofeb.tn", "https://socofeb.acya.site/reset", "socofeb");
+
+            Assert.NotNull(capturedRequest);
+            Assert.NotNull(capturedRequest!.Headers.Authorization);
+            Assert.Equal("Bearer", capturedRequest.Headers.Authorization!.Scheme);
+            Assert.Equal("explicit-secret-key-12345", capturedRequest.Headers.Authorization!.Parameter);
+            Assert.Equal(EmailDispatchStatus.Accepted, result.Status);
         }
 
         #endregion

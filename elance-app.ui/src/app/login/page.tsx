@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Eye, EyeOff, TrendingUp, Package, ShoppingCart, Users, ArrowRight, CheckCircle2, BarChart3, Truck, FileText } from 'lucide-react';
 import { authService } from '@/services/auth.service';
+import { CentralLoginView } from '@/components/auth/central-login-view';
 
 // ─── Animated KPI Card ───────────────────────────────────────────────────────
 function KpiCard({ label, value, sub, color, delay }: { label: string; value: string; sub: string; color: string; delay: number }) {
@@ -101,6 +102,7 @@ export default function LoginPage() {
   const [isForgotEmailSent, setIsForgotEmailSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isMainDomain, setIsMainDomain] = useState<boolean | null>(null);
   const router = useRouter();
   const isAuthenticated = useAuthStore((state: any) => state.isAuthenticated);
   const logoUrl = useTenantStore((state: any) => state.logoUrl);
@@ -110,7 +112,17 @@ export default function LoginPage() {
   useEffect(() => {
     setMounted(true);
     if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
       const params = new URLSearchParams(window.location.search);
+      const hasTenantQuery = params.has('tenant');
+      const isMain =
+        (hostname === 'acya.site' ||
+          hostname === 'www.acya.site' ||
+          hostname === 'localhost' ||
+          hostname === '127.0.0.1') &&
+        !hasTenantQuery;
+      setIsMainDomain(isMain);
+
       const token = params.get('token');
       if (token) {
         router.push(`/forgot-password?token=${token}`);
@@ -215,6 +227,11 @@ export default function LoginPage() {
       setIsForgotLoading(false);
     }
   };
+
+  // Render central workspace login & discovery view when on the primary platform domain
+  if (isMainDomain) {
+    return <CentralLoginView />;
+  }
 
   return (
     <div className="flex min-h-screen bg-[#F5F7FA]">

@@ -1,0 +1,279 @@
+[
+  {
+    "id": "AcyaEmailEvents123",
+    "name": "ACYA - Email Events",
+    "active": true,
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "acya/email/events",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -700,
+          0
+        ],
+        "id": "2ecb03ee-5a35-4e87-aeaa-5d392e4e1b36",
+        "name": "Webhook",
+        "webhookId": "48674da9-d97f-4c69-a2a8-2969af82acd2"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://admin-api:80/api/webhooks/email/mailgun",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ $json.body }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -480,
+          0
+        ],
+        "id": "6a8e2b90-1111-4a22-9999-acya00000010",
+        "name": "Forward to ACYA Backend",
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const webhookData = $('Webhook').first().json;\nconst originalBody = webhookData.body || {};\nconst backendResponse = $input.first().json || {};\n\nconst isValid = backendResponse.success === true;\n\nif (!isValid) {\n  let httpStatus = 401;\n  const errObj = (typeof backendResponse.error === 'object' && backendResponse.error !== null) ? backendResponse.error : {};\n  const rawStatus = backendResponse.statusCode || backendResponse.status || errObj.status || errObj.statusCode;\n  \n  if (rawStatus) {\n    httpStatus = parseInt(rawStatus, 10);\n  } else if (backendResponse.error) {\n    httpStatus = 503;\n  }\n  if (isNaN(httpStatus) || httpStatus < 400) {\n    httpStatus = 401;\n  }\n\n  let errorMessage = backendResponse.message;\n  if (!errorMessage && errObj.message) {\n    try {\n      const match = errObj.message.match(/\\{.*\\}/);\n      if (match) {\n        const parsed = JSON.parse(match[0]);\n        errorMessage = parsed.message;\n      }\n    } catch (e) {}\n    if (!errorMessage) {\n      errorMessage = errObj.message;\n    }\n  }\n  if (!errorMessage) {\n    errorMessage = httpStatus >= 500 ? \"Service temporarily unavailable\" : \"Webhook verification failed\";\n  }\n\n  return [{\n    json: {\n      valid: false,\n      httpStatus: httpStatus,\n      response: {\n        success: false,\n        error: httpStatus >= 500 ? \"TEMPORARY_ERROR\" : (httpStatus === 400 ? \"BAD_REQUEST\" : \"UNAUTHORIZED\"),\n        message: errorMessage\n      }\n    }\n  }];\n}\n\nconst eventData = originalBody['event-data'] || originalBody.eventData || {};\nconst rawEvent = eventData.event || 'unknown';\nconst rawSeverity = eventData.severity || null;\n\nlet eventType = rawEvent;\nlet status = rawEvent.toUpperCase();\n\nif (rawEvent === 'failed') {\n  if (rawSeverity === 'permanent') {\n    eventType = 'bounced';\n    status = 'BOUNCED';\n  } else {\n    eventType = 'failed';\n    status = 'FAILED_TEMPORARY';\n  }\n} else if (rawEvent === 'delivered') {\n  status = 'DELIVERED';\n} else if (rawEvent === 'complained') {\n  status = 'SPAM_COMPLAINT';\n} else if (rawEvent === 'rejected') {\n  status = 'REJECTED';\n}\n\nconst recipient = eventData.recipient || (eventData.message && eventData.message.recipients ? eventData.message.recipients[0] : null);\nconst messageHeaders = (eventData.message && eventData.message.headers) || {};\nconst messageId = messageHeaders['message-id'] || messageHeaders['Message-Id'] || null;\n\nconst deliveryStatus = eventData['delivery-status'] || {};\nconst details = {\n  reason: eventData.reason || deliveryStatus.message || deliveryStatus.description || null,\n  severity: rawSeverity,\n  code: deliveryStatus.code || null,\n  description: deliveryStatus.description || null\n};\n\nconst userVariables = eventData['user-variables'] || {};\nconst metadata = {\n  tenantId: userVariables.tenantId || null,\n  registrationId: userVariables.registrationId || null,\n  correlationId: userVariables.correlationId || null,\n  template: userVariables.template || null\n};\n\nconst eventId = backendResponse.eventId || eventData.id || `evt_${Date.now()}`;\nconst eventTimestamp = eventData.timestamp ? new Date(eventData.timestamp * 1000).toISOString() : new Date().toISOString();\n\nconst isAlertable = ['BOUNCED', 'FAILED_TEMPORARY', 'SPAM_COMPLAINT', 'REJECTED'].includes(status) || ['bounced', 'failed', 'complained', 'rejected'].includes(eventType);\n\nconst alertText = `ACYA Email Service detected an email delivery problem.\\n\\nEvent:\\n${status || eventType}\\n\\nRecipient:\\n${recipient || 'N/A'}\\n\\nTemplate:\\n${metadata.template || 'N/A'}\\n\\nTenant:\\n${metadata.tenantId || 'N/A'}\\n\\nRegistration:\\n${metadata.registrationId || 'N/A'}\\n\\nCorrelation ID:\\n${metadata.correlationId || 'N/A'}\\n\\nMailgun Message ID:\\n${messageId || 'N/A'}\\n\\nMailgun Event ID:\\n${eventId || 'N/A'}\\n\\nTimestamp:\\n${eventTimestamp}\\n\\nReason:\\n${details.reason || 'N/A'}\\n\\nSeverity:\\n${details.severity || 'N/A'}\\n\\nThis is an operational notification only.`;\n\nreturn [{\n  json: {\n    valid: true,\n    eventId: eventId,\n    eventType: eventType,\n    status: status,\n    recipient: recipient,\n    messageId: messageId,\n    timestamp: eventTimestamp,\n    details: details,\n    metadata: metadata,\n    isAlertable: isAlertable,\n    alertSubject: `[ACYA Email Alert] Email ${eventType || status}`,\n    alertText: alertText,\n    response: {\n      success: true,\n      processed: backendResponse.processed ?? true,\n      eventId: eventId,\n      eventType: eventType\n    }\n  }\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -260,
+          0
+        ],
+        "id": "6a8e2b90-1111-4a22-9999-acya00000005",
+        "name": "Prepare Alert & Route"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "42b8efdc-b3b2-4f54-936f-12446803fb84",
+                "leftValue": "={{$json.valid}}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          -40,
+          0
+        ],
+        "id": "8179f8fa-0807-415f-8f52-7788df8daf63",
+        "name": "Router"
+      },
+      {
+        "parameters": {
+          "respondWith": "firstIncomingItem",
+          "options": {
+            "responseCode": 200
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          180,
+          -100
+        ],
+        "id": "6a8e2b90-1111-4a22-9999-acya00000007",
+        "name": "Respond Event Accepted"
+      },
+      {
+        "parameters": {
+          "respondWith": "firstIncomingItem",
+          "options": {
+            "responseCode": "={{ $json.httpStatus || 401 }}"
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          180,
+          100
+        ],
+        "id": "6a8e2b90-1111-4a22-9999-acya00000006",
+        "name": "Respond Auth / Val Error"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "42b8efdc-b3b2-4f54-936f-12446803fb85",
+                "leftValue": "={{$json.isAlertable}}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          400,
+          -100
+        ],
+        "id": "6a8e2b90-1111-4a22-9999-acya00000008",
+        "name": "Check Alert Warranted"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.mailgun.net/v3/acya.site/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "sendBody": true,
+          "contentType": "form-url-encoded",
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "from",
+                "value": "ACYA Monitoring <noreply@acya.site>"
+              },
+              {
+                "name": "to",
+                "value": "acya.consulting@gmail.com"
+              },
+              {
+                "name": "subject",
+                "value": "={{ $json.alertSubject }}"
+              },
+              {
+                "name": "text",
+                "value": "={{ $json.alertText }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          620,
+          -100
+        ],
+        "id": "6a8e2b90-1111-4a22-9999-acya00000009",
+        "name": "Send Operational Alert",
+        "onError": "continueErrorOutput",
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "MailgunBasicAuth1",
+            "name": "Mailgun Basic Auth"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Forward to ACYA Backend",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Forward to ACYA Backend": {
+        "main": [
+          [
+            {
+              "node": "Prepare Alert & Route",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Alert & Route": {
+        "main": [
+          [
+            {
+              "node": "Router",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Router": {
+        "main": [
+          [
+            {
+              "node": "Respond Event Accepted",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond Auth / Val Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Respond Event Accepted": {
+        "main": [
+          [
+            {
+              "node": "Check Alert Warranted",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Alert Warranted": {
+        "main": [
+          [
+            {
+              "node": "Send Operational Alert",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    }
+  }
+]

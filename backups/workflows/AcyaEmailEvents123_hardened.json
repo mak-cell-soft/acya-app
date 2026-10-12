@@ -1,0 +1,347 @@
+[
+  {
+    "updatedAt": "2026-10-12T11:48:24.219Z",
+    "createdAt": "2026-08-11T07:32:27.810Z",
+    "id": "AcyaEmailEvents123",
+    "name": "ACYA - Email Events",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "acya/email/events",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -700,
+          0
+        ],
+        "id": "2ecb03ee-5a35-4e87-aeaa-5d392e4e1b36",
+        "name": "Webhook",
+        "webhookId": "48674da9-d97f-4c69-a2a8-2969af82acd2"
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.first().json;\nconst body = input.body || {};\n\nconst signatureObj = body.signature || {};\nconst timestamp = signatureObj.timestamp;\nconst token = signatureObj.token;\nconst signature = signatureObj.signature;\n\nif (!timestamp || !token || !signature) {\n  return [{\n    json: {\n      valid: false,\n      response: {\n        success: false,\n        error: \"UNAUTHORIZED\",\n        message: \"Missing Mailgun signature parameters\"\n      },\n      httpStatus: 401\n    }\n  }];\n}\n\nconst nowSeconds = Math.floor(Date.now() / 1000);\nconst timestampNum = parseInt(timestamp, 10);\nif (isNaN(timestampNum) || Math.abs(nowSeconds - timestampNum) > 900) {\n  return [{\n    json: {\n      valid: false,\n      response: {\n        success: false,\n        error: \"UNAUTHORIZED\",\n        message: \"Webhook timestamp expired or invalid\"\n      },\n      httpStatus: 401\n    }\n  }];\n}\n\nconst signingKey = (typeof $env !== 'undefined' && $env.MAILGUN_WEBHOOK_SIGNING_KEY) ||\n                   (typeof process !== 'undefined' && process.env && process.env.MAILGUN_WEBHOOK_SIGNING_KEY) ||\n                   '';\n\nif (!signingKey || !signingKey.trim()) {\n  return [{\n    json: {\n      valid: false,\n      response: {\n        success: false,\n        error: \"CONFIGURATION_ERROR\",\n        message: \"Webhook signing key not configured\"\n      },\n      httpStatus: 401\n    }\n  }];\n}\n\nfunction rightRotate(n, b) {\n  return (n >>> b) | (n << (32 - b));\n}\n\nfunction sha256Bytes(bytes) {\n  const K = [\n    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,\n    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,\n    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,\n    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,\n    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,\n    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,\n    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,\n    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2\n  ];\n\n  const H = [\n    0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19\n  ];\n\n  const l = bytes.length;\n  const bitLen = l * 8;\n  const k = (448 - ((l + 1) % 64 * 8) + 512) % 512 / 8;\n  const padded = new Uint8Array(l + 1 + k + 8);\n  padded.set(bytes);\n  padded[l] = 0x80;\n\n  const view = new DataView(padded.buffer);\n  view.setBigUint64(padded.length - 8, BigInt(bitLen), false);\n\n  const w = new Int32Array(64);\n  const pView = new DataView(padded.buffer);\n\n  for (let offset = 0; offset < padded.length; offset += 64) {\n    for (let i = 0; i < 16; i++) {\n      w[i] = pView.getInt32(offset + i * 4, false);\n    }\n    for (let i = 16; i < 64; i++) {\n      const s0 = (rightRotate(w[i - 15], 7) ^ rightRotate(w[i - 15], 18) ^ (w[i - 15] >>> 3));\n      const s1 = (rightRotate(w[i - 2], 17) ^ rightRotate(w[i - 2], 19) ^ (w[i - 2] >>> 10));\n      w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;\n    }\n\n    let a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];\n\n    for (let i = 0; i < 64; i++) {\n      const S1 = rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25);\n      const ch = (e & f) ^ ((~e) & g);\n      const temp1 = (h + S1 + ch + K[i] + w[i]) | 0;\n      const S0 = rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22);\n      const maj = (a & b) ^ (a & c) ^ (b & c);\n      const temp2 = (S0 + maj) | 0;\n\n      h = g;\n      g = f;\n      f = e;\n      e = (d + temp1) | 0;\n      d = c;\n      c = b;\n      b = a;\n      a = (temp1 + temp2) | 0;\n    }\n\n    H[0] = (H[0] + a) | 0;\n    H[1] = (H[1] + b) | 0;\n    H[2] = (H[2] + c) | 0;\n    H[3] = (H[3] + d) | 0;\n    H[4] = (H[4] + e) | 0;\n    H[5] = (H[5] + f) | 0;\n    H[6] = (H[6] + g) | 0;\n    H[7] = (H[7] + h) | 0;\n  }\n\n  const result = new Uint8Array(32);\n  const rView = new DataView(result.buffer);\n  for (let i = 0; i < 8; i++) {\n    rView.setInt32(i * 4, H[i], false);\n  }\n  return result;\n}\n\nfunction hmacSha256(keyStr, msgStr) {\n  const enc = new TextEncoder();\n  let keyBytes = enc.encode(keyStr);\n  if (keyBytes.length > 64) {\n    keyBytes = sha256Bytes(keyBytes);\n  }\n  const K = new Uint8Array(64);\n  K.set(keyBytes);\n\n  const o_key_pad = new Uint8Array(64);\n  const i_key_pad = new Uint8Array(64);\n  for (let i = 0; i < 64; i++) {\n    o_key_pad[i] = K[i] ^ 0x5c;\n    i_key_pad[i] = K[i] ^ 0x36;\n  }\n\n  const msgBytes = enc.encode(msgStr);\n  const innerMsg = new Uint8Array(64 + msgBytes.length);\n  innerMsg.set(i_key_pad, 0);\n  innerMsg.set(msgBytes, 64);\n  const innerHash = sha256Bytes(innerMsg);\n\n  const outerMsg = new Uint8Array(64 + 32);\n  outerMsg.set(o_key_pad, 0);\n  outerMsg.set(innerHash, 64);\n  const outerHash = sha256Bytes(outerMsg);\n\n  return Array.from(outerHash).map(b => b.toString(16).padStart(2, '0')).join('');\n}\n\nconst computedHmac = hmacSha256(signingKey, timestamp + token);\n\nif (!computedHmac || computedHmac.toLowerCase() !== String(signature).toLowerCase()) {\n  return [{\n    json: {\n      valid: false,\n      response: {\n        success: false,\n        error: \"UNAUTHORIZED\",\n        message: \"Invalid Mailgun webhook signature\"\n      },\n      httpStatus: 401\n    }\n  }];\n}\n\nconst eventData = body['event-data'] || body.eventData;\nif (!eventData) {\n  return [{\n    json: {\n      valid: false,\n      response: {\n        success: false,\n        error: \"VALIDATION_ERROR\",\n        message: \"Missing 'event-data' in webhook payload\"\n      },\n      httpStatus: 400\n    }\n  }];\n}\n\nconst rawEvent = eventData.event || 'unknown';\nconst rawSeverity = eventData.severity || null;\n\nlet eventType = rawEvent;\nlet status = rawEvent.toUpperCase();\n\nif (rawEvent === 'failed') {\n  if (rawSeverity === 'permanent') {\n    eventType = 'bounced';\n    status = 'BOUNCED';\n  } else {\n    eventType = 'failed';\n    status = 'FAILED_TEMPORARY';\n  }\n} else if (rawEvent === 'delivered') {\n  status = 'DELIVERED';\n} else if (rawEvent === 'complained') {\n  status = 'SPAM_COMPLAINT';\n} else if (rawEvent === 'rejected') {\n  status = 'REJECTED';\n}\n\nconst recipient = eventData.recipient || (eventData.message && eventData.message.recipients ? eventData.message.recipients[0] : null);\n\nconst messageHeaders = (eventData.message && eventData.message.headers) || {};\nconst messageId = messageHeaders['message-id'] || messageHeaders['Message-Id'] || null;\n\nconst deliveryStatus = eventData['delivery-status'] || {};\nconst details = {\n  reason: eventData.reason || deliveryStatus.message || deliveryStatus.description || null,\n  severity: rawSeverity,\n  code: deliveryStatus.code || null,\n  description: deliveryStatus.description || null\n};\n\nconst userVariables = eventData['user-variables'] || {};\nconst metadata = {\n  tenantId: userVariables.tenantId || null,\n  registrationId: userVariables.registrationId || null,\n  correlationId: userVariables.correlationId || null,\n  template: userVariables.template || null\n};\n\nconst eventId = eventData.id || `evt_${Date.now()}`;\nconst eventTimestamp = eventData.timestamp ? new Date(eventData.timestamp * 1000).toISOString() : new Date().toISOString();\n\nconst isAlertable = ['BOUNCED', 'FAILED_TEMPORARY', 'SPAM_COMPLAINT', 'REJECTED'].includes(status) || ['bounced', 'failed', 'complained', 'rejected'].includes(eventType);\n\nconst alertText = `ACYA Email Service detected an email delivery problem.\n\nEvent:\n${status || eventType}\n\nRecipient:\n${recipient || 'N/A'}\n\nTemplate:\n${metadata.template || 'N/A'}\n\nTenant:\n${metadata.tenantId || 'N/A'}\n\nRegistration:\n${metadata.registrationId || 'N/A'}\n\nCorrelation ID:\n${metadata.correlationId || 'N/A'}\n\nMailgun Message ID:\n${messageId || 'N/A'}\n\nMailgun Event ID:\n${eventId || 'N/A'}\n\nTimestamp:\n${eventTimestamp}\n\nReason:\n${details.reason || 'N/A'}\n\nSeverity:\n${details.severity || 'N/A'}\n\nThis is an operational notification only.`;\n\nreturn [{\n  json: {\n    valid: true,\n    eventId: eventId,\n    eventType: eventType,\n    status: status,\n    recipient: recipient,\n    messageId: messageId,\n    timestamp: eventTimestamp,\n    details: details,\n    metadata: metadata,\n    isAlertable: isAlertable,\n    alertSubject: `[ACYA Email Alert] Email ${eventType || status}`,\n    alertText: alertText,\n    response: {\n      success: true,\n      processed: true,\n      eventId: eventId,\n      eventType: eventType\n    }\n  }\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -480,
+          0
+        ],
+        "id": "6a8e2b90-1111-4a22-9999-acya00000005",
+        "name": "Verify & Normalize"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "42b8efdc-b3b2-4f54-936f-12446803fb84",
+                "leftValue": "={{$json.valid}}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          -260,
+          0
+        ],
+        "id": "8179f8fa-0807-415f-8f52-7788df8daf63",
+        "name": "Router"
+      },
+      {
+        "parameters": {
+          "respondWith": "firstIncomingItem",
+          "options": {
+            "responseCode": 401
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          -40,
+          160
+        ],
+        "id": "6a8e2b90-1111-4a22-9999-acya00000006",
+        "name": "Respond Auth / Val Error"
+      },
+      {
+        "parameters": {
+          "respondWith": "firstIncomingItem",
+          "options": {
+            "responseCode": 200
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          -40,
+          -100
+        ],
+        "id": "6a8e2b90-1111-4a22-9999-acya00000007",
+        "name": "Respond Event Accepted"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "42b8efdc-b3b2-4f54-936f-12446803fb85",
+                "leftValue": "={{$json.isAlertable}}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          180,
+          -100
+        ],
+        "id": "6a8e2b90-1111-4a22-9999-acya00000008",
+        "name": "Check Alert Warranted"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.mailgun.net/v3/acya.site/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "sendBody": true,
+          "contentType": "form-url-encoded",
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "from",
+                "value": "ACYA Monitoring <noreply@acya.site>"
+              },
+              {
+                "name": "to",
+                "value": "acya.consulting@gmail.com"
+              },
+              {
+                "name": "subject",
+                "value": "={{ $json.alertSubject }}"
+              },
+              {
+                "name": "text",
+                "value": "={{ $json.alertText }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          400,
+          -180
+        ],
+        "id": "6a8e2b90-1111-4a22-9999-acya00000009",
+        "name": "Send Operational Alert",
+        "onError": "continueErrorOutput",
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "MailgunBasicAuth1",
+            "name": "Mailgun Basic Auth"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://admin-api:80/api/webhooks/email/events",
+          "sendBody": true,
+          "contentType": "json",
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "eventId",
+                "value": "={{ $json.eventId }}"
+              },
+              {
+                "name": "eventType",
+                "value": "={{ $json.eventType }}"
+              },
+              {
+                "name": "status",
+                "value": "={{ $json.status }}"
+              },
+              {
+                "name": "recipient",
+                "value": "={{ $json.recipient }}"
+              },
+              {
+                "name": "messageId",
+                "value": "={{ $json.messageId }}"
+              },
+              {
+                "name": "timestamp",
+                "value": "={{ $json.timestamp }}"
+              },
+              {
+                "name": "details",
+                "value": "={{ $json.details }}"
+              },
+              {
+                "name": "metadata",
+                "value": "={{ $json.metadata }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          400,
+          0
+        ],
+        "id": "6a8e2b90-1111-4a22-9999-acya00000010",
+        "name": "Forward to ACYA Backend",
+        "onError": "continueErrorOutput"
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Verify & Normalize",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Verify & Normalize": {
+        "main": [
+          [
+            {
+              "node": "Router",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Router": {
+        "main": [
+          [
+            {
+              "node": "Respond Event Accepted",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond Auth / Val Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Respond Event Accepted": {
+        "main": [
+          [
+            {
+              "node": "Check Alert Warranted",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Forward to ACYA Backend",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Alert Warranted": {
+        "main": [
+          [
+            {
+              "node": "Send Operational Alert",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": null,
+    "staticData": null,
+    "meta": null,
+    "nodeGroups": [],
+    "pinData": null,
+    "versionId": "d6146c0a-ea87-418f-8a4e-d886646c318f",
+    "activeVersionId": "d6146c0a-ea87-418f-8a4e-d886646c318f",
+    "versionCounter": 5,
+    "triggerCount": 1,
+    "sourceWorkflowId": null,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-08-11T07:32:27.810Z",
+        "createdAt": "2026-08-11T07:32:27.810Z",
+        "role": "workflow:owner",
+        "workflowId": "AcyaEmailEvents123",
+        "projectId": "QCkKAcbc0oMYxLoE",
+        "project": {
+          "updatedAt": "2026-08-02T17:17:33.849Z",
+          "createdAt": "2026-08-02T17:08:20.454Z",
+          "id": "QCkKAcbc0oMYxLoE",
+          "name": "Amine KLABI <medamine.klabi@gmail.com>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "customTelemetryTags": [],
+          "creatorId": "2839fa5d-fc0e-4ffa-bf68-dd58478625bf"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": "ACYA - Email Events",
+      "description": null
+    }
+  }
+]

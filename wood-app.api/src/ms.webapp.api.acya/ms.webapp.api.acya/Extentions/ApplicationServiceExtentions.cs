@@ -84,6 +84,7 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<IAppNotificationService, AppNotificationService>();
       services.AddSingleton<IPasswordResetRateLimiter, InMemoryPasswordResetRateLimiter>();
       services.AddSingleton<IQuoteRequestRateLimiter, InMemoryQuoteRequestRateLimiter>();
+      services.AddSingleton<IWorkspaceRecoveryRateLimiter, ms.webapp.api.acya.Services.InMemoryWorkspaceRecoveryRateLimiter>();
       services.AddScoped<IQuoteRequestService, QuoteRequestService>();
       services.AddScoped<IApprovalService, ApprovalService>();
       services.AddScoped<IPricingGridService, PricingGridService>();

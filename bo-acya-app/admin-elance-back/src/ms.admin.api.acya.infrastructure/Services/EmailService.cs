@@ -33,10 +33,29 @@ namespace ms.admin.api.acya.infrastructure.Services
             _logger = logger;
         }
 
-        public async Task<EmailLog> SendWelcomeEmailAsync(MasterEnterprise enterprise, string adminEmail, long? registrationId, string? correlationId)
+        public async Task<EmailLog> SendWelcomeEmailAsync(MasterEnterprise enterprise, string adminEmail, long? registrationId, string? correlationId, bool isResend = false)
         {
             var activeCorrelationId = string.IsNullOrWhiteSpace(correlationId) ? Guid.NewGuid().ToString("N") : correlationId;
             var recipientEmail = string.IsNullOrWhiteSpace(adminEmail) ? (enterprise.Email ?? $"admin@{enterprise.Slug}.acya.site") : adminEmail;
+
+            // Idempotency: Prevent duplicate welcome emails on retries or repeated approval processing
+            if (!isResend)
+            {
+                var regId = registrationId ?? enterprise.Id;
+                var existingLog = await _context.EmailLogs
+                    .Where(e => (e.TenantId == enterprise.Id || e.RegistrationId == regId)
+                                && e.Template == "welcome"
+                                && (e.CurrentStatus == "ACCEPTED" || e.CurrentStatus == "DELIVERED"))
+                    .OrderByDescending(e => e.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                if (existingLog != null)
+                {
+                    _logger.LogInformation("Welcome email already sent for TenantId: {TenantId}, RegistrationId: {RegistrationId} with status {Status}. Duplicate send suppressed.",
+                        enterprise.Id, regId, existingLog.CurrentStatus);
+                    return existingLog;
+                }
+            }
 
             var emailLog = new EmailLog
             {
@@ -54,7 +73,15 @@ namespace ms.admin.api.acya.infrastructure.Services
             await _context.SaveChangesAsync();
 
             var baseUrl = _configuration["N8nEmailService:BaseUrl"] ?? "http://n8n:5678";
-            var apiKey = _configuration["N8nEmailService:ApiKey"] ?? string.Empty;
+            var apiKey = _configuration["N8nEmailService:ApiKey"];
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                _logger.LogError("Email service is not configured: N8nEmailService:ApiKey is missing or empty. Welcome email aborted for TenantId: {TenantId}", enterprise.Id);
+                emailLog.CurrentStatus = "FAILED_CONFIG";
+                emailLog.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                return emailLog;
+            }
 
             var payload = new
             {
@@ -91,26 +118,36 @@ namespace ms.admin.api.acya.infrastructure.Services
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", cleanToken);
                 }
 
-                _httpClient.Timeout = TimeSpan.FromSeconds(5);
-                var response = await _httpClient.SendAsync(request);
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                var response = await _httpClient.SendAsync(request, cts.Token);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    using var doc = JsonDocument.Parse(responseContent);
-                    var root = doc.RootElement;
-
                     string? messageId = null;
-                    if (root.TryGetProperty("messageId", out var msgIdElem))
+                    try
                     {
-                        messageId = msgIdElem.GetString();
+                        using var doc = JsonDocument.Parse(responseContent);
+                        var root = doc.RootElement;
+                        if (root.TryGetProperty("messageId", out var msgIdElem))
+                        {
+                            messageId = msgIdElem.GetString();
+                        }
+                        else if (root.TryGetProperty("id", out var idElem))
+                        {
+                            messageId = idElem.GetString();
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore parse error on messageId
                     }
 
-                    emailLog.MessageId = messageId;
+                    emailLog.MessageId = messageId?.Trim();
                     emailLog.CurrentStatus = "ACCEPTED";
                     emailLog.UpdatedAt = DateTime.UtcNow;
 
-                    _logger.LogInformation("Welcome email successfully accepted by n8n. TenantId: {TenantId}, MessageId: {MessageId}", enterprise.Id, messageId);
+                    _logger.LogInformation("Welcome email successfully accepted by n8n. TenantId: {TenantId}, MessageId: {MessageId}", enterprise.Id, emailLog.MessageId);
                 }
                 else
                 {
@@ -130,6 +167,24 @@ namespace ms.admin.api.acya.infrastructure.Services
             return emailLog;
         }
 
+        public static string? NormalizeMessageId(string? messageId)
+        {
+            if (string.IsNullOrWhiteSpace(messageId))
+                return null;
+
+            var trimmed = messageId.Trim();
+            if (trimmed.StartsWith("<", StringComparison.Ordinal) && trimmed.EndsWith(">", StringComparison.Ordinal) && trimmed.Length >= 2)
+            {
+                trimmed = trimmed.Substring(1, trimmed.Length - 2).Trim();
+            }
+            else
+            {
+                trimmed = trimmed.Trim('<', '>').Trim();
+            }
+
+            return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
+        }
+
         public async Task<bool> ProcessDeliveryEventAsync(NormalizedEmailEventDto eventDto)
         {
             if (eventDto == null || string.IsNullOrWhiteSpace(eventDto.EventId))
@@ -146,24 +201,31 @@ namespace ms.admin.api.acya.infrastructure.Services
                 return true;
             }
 
-            // 2. Correlate with EmailLog by MessageId, TenantId, or CorrelationId
+            // 2. Normalize incoming message ID
+            var normalizedMsgId = NormalizeMessageId(eventDto.MessageId);
+
+            // 3. Correlate with EmailLog by MessageId, CorrelationId, or TenantId
             EmailLog? emailLog = null;
-            if (!string.IsNullOrWhiteSpace(eventDto.MessageId))
+            if (!string.IsNullOrWhiteSpace(normalizedMsgId))
             {
-                emailLog = await _context.EmailLogs.FirstOrDefaultAsync(l => l.MessageId == eventDto.MessageId);
+                var bracketedMsgId = $"<{normalizedMsgId}>";
+                emailLog = await _context.EmailLogs.FirstOrDefaultAsync(l => 
+                    l.MessageId == normalizedMsgId || 
+                    l.MessageId == bracketedMsgId ||
+                    (l.MessageId != null && (l.MessageId.Trim() == normalizedMsgId || l.MessageId.Trim() == bracketedMsgId)));
             }
 
             if (emailLog == null && eventDto.Metadata != null)
             {
-                if (long.TryParse(eventDto.Metadata.TenantId, out var tenantId))
+                if (!string.IsNullOrWhiteSpace(eventDto.Metadata.CorrelationId))
+                {
+                    emailLog = await _context.EmailLogs.FirstOrDefaultAsync(l => l.CorrelationId == eventDto.Metadata.CorrelationId);
+                }
+                else if (long.TryParse(eventDto.Metadata.TenantId, out var tenantIdFallback) && tenantIdFallback > 0)
                 {
                     emailLog = await _context.EmailLogs
                         .OrderByDescending(l => l.CreatedAt)
-                        .FirstOrDefaultAsync(l => l.TenantId == tenantId);
-                }
-                else if (!string.IsNullOrWhiteSpace(eventDto.Metadata.CorrelationId))
-                {
-                    emailLog = await _context.EmailLogs.FirstOrDefaultAsync(l => l.CorrelationId == eventDto.Metadata.CorrelationId);
+                        .FirstOrDefaultAsync(l => l.TenantId == tenantIdFallback);
                 }
             }
 
@@ -173,7 +235,21 @@ namespace ms.admin.api.acya.infrastructure.Services
                 return false;
             }
 
-            // 3. Persist Event Entry
+            // 4. Strict Tenant Isolation: Ensure event tenant metadata does not clash with the matched record
+            if (eventDto.Metadata != null && 
+                !string.IsNullOrWhiteSpace(eventDto.Metadata.TenantId) && 
+                long.TryParse(eventDto.Metadata.TenantId, out var expectedTenantId) && 
+                expectedTenantId > 0)
+            {
+                if (emailLog.TenantId != expectedTenantId)
+                {
+                    _logger.LogWarning("Cross-tenant delivery event rejected. Event TenantId: {ExpectedTenantId}, Record TenantId: {ActualTenantId}, EventId: {EventId}",
+                        expectedTenantId, emailLog.TenantId, eventDto.EventId);
+                    return false;
+                }
+            }
+
+            // 5. Persist Event Entry
             var logEvent = new EmailLogEvent
             {
                 EmailLogId = emailLog.Id,
@@ -190,7 +266,12 @@ namespace ms.admin.api.acya.infrastructure.Services
 
             await _context.EmailLogEvents.AddAsync(logEvent);
 
-            // 4. Update Parent Current Status safely
+            // 6. Update Parent Current Status and normalize MessageId if stored unnormalized
+            if (!string.IsNullOrWhiteSpace(normalizedMsgId) && emailLog.MessageId != normalizedMsgId)
+            {
+                emailLog.MessageId = normalizedMsgId;
+            }
+
             emailLog.CurrentStatus = eventDto.Status;
             emailLog.UpdatedAt = DateTime.UtcNow;
 

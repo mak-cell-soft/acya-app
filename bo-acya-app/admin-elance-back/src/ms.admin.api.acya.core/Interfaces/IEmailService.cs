@@ -6,7 +6,7 @@ namespace ms.admin.api.acya.core.Interfaces
 {
     public interface IEmailService
     {
-        Task<EmailLog> SendWelcomeEmailAsync(MasterEnterprise enterprise, string adminEmail, long? registrationId, string? correlationId);
+        Task<EmailLog> SendWelcomeEmailAsync(MasterEnterprise enterprise, string adminEmail, long? registrationId, string? correlationId, bool isResend = false);
         Task<bool> ProcessDeliveryEventAsync(NormalizedEmailEventDto eventDto);
     }
 }

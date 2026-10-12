@@ -30,7 +30,9 @@ import {
   RotateCcw,
   Mail,
   Wrench,
-  Clock
+  Clock,
+  ChevronDown,
+  SlidersHorizontal
 } from 'lucide-react';
 import {
   QuoteValidityDialog,
@@ -288,6 +290,10 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
   const [docDate, setDocDate] = useState<string>(new Date().toISOString().substring(0, 10));
   const [docCurrency, setDocCurrency] = useState<string>('TND');
   const [exchangeRate, setExchangeRate] = useState<number>(1.0);
+
+  // Collapsible advanced options state (Devise, Taux de change, Timbre fiscal, Retenue RS)
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+  const isAdvancedOptionsDoc = docType === DocumentTypes.customerInvoice || docType === DocumentTypes.customerDeliveryNote;
 
   // Invoice-specific taxes selection states
   const [selectedTax, setSelectedTax] = useState<any | null>(null);
@@ -1885,97 +1891,219 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                 </div>
               </div>
 
-              {/* Currency */}
-              <div className="space-y-2">
-                <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Devise *</label>
-                <Select onValueChange={handleCurrencyChange} value={docCurrency}>
-                  <SelectTrigger className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900">
-                    <SelectValue placeholder="Sélectionner une devise">
-                      {docCurrency ? DEVISES.find(d => d.key === docCurrency)?.value : undefined}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-corp-blue-50 font-bold text-xs">
-                    {DEVISES.map(d => (
-                      <SelectItem key={d.key} value={d.key} className="font-bold text-xs">{d.value}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Exchange Rate */}
-              <div className="space-y-2">
-                <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Taux de change *</label>
-                <Input
-                  type="number"
-                  step="0.000001"
-                  min="0"
-                  className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900"
-                  value={exchangeRate}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value) || 1.0;
-                    setExchangeRate(val < 0 ? 1.0 : val);
-                  }}
-                  disabled={docCurrency === 'TND'}
-                />
-              </div>
-
-              {/* Invoice Specific: Stamp Tax Select */}
-              {(docType === DocumentTypes.customerInvoice || docType === DocumentTypes.customerOrder) && (
-                <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
-                  <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Timbre Fiscal *</label>
-                  <Select 
-                    onValueChange={(val) => {
-                      const tax = appvariablesTaxes.find(t => t.id.toString() === val);
-                      setSelectedTax(tax || null);
-                    }} 
-                    value={selectedTax?.id?.toString() || ''}
+              {/* Collapsible Advanced Options for Invoice and Delivery Note */}
+              {isAdvancedOptionsDoc && (
+                <div className="md:col-span-2 pt-1 border-t border-corp-blue-50/60">
+                  <button
+                    type="button"
+                    onClick={() => setIsAdvancedOpen(prev => !prev)}
+                    className="w-full flex items-center justify-between p-3 rounded-xl border border-corp-blue-100/50 bg-sand-50/30 hover:bg-sand-50/70 text-corp-blue-900 transition-colors cursor-pointer group"
                   >
-                    <SelectTrigger className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900">
-                      <SelectValue placeholder="Aucun timbre">
-                        {selectedTax ? `${selectedTax.name} (${parseFloat(selectedTax.value || '0').toFixed(3)} TND)` : 'Aucun timbre'}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-corp-blue-50 font-bold text-xs">
-                      {appvariablesTaxes.map((tax) => (
-                        <SelectItem key={tax.id} value={tax.id.toString()} className="font-bold text-xs">
-                          {tax.name} ({parseFloat(tax.value).toFixed(3)} TND)
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-white border border-corp-blue-100 flex items-center justify-center text-corp-blue-600 shadow-2xs group-hover:border-corp-blue-200 transition-colors">
+                        <SlidersHorizontal className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="text-left">
+                        <span className="text-xs font-bold text-corp-blue-950 block">
+                          Options avancées
+                        </span>
+                        <span className="text-[0.65rem] text-sand-400 font-medium block">
+                          {docType === DocumentTypes.customerInvoice
+                            ? 'Devise, taux de change, timbre fiscal et retenue à la source'
+                            : 'Devise et taux de change'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {(docCurrency !== 'TND' || (docType === DocumentTypes.customerInvoice && selectedRS)) && (
+                        <span className="text-[0.65rem] font-bold px-2 py-0.5 rounded-md bg-corp-blue-100/60 text-corp-blue-800">
+                          {docCurrency !== 'TND' ? docCurrency : ''}
+                          {docCurrency !== 'TND' && selectedRS ? ' • ' : ''}
+                          {selectedRS ? `RS ${selectedRS.value}%` : ''}
+                        </span>
+                      )}
+                      <ChevronDown
+                        className={cn(
+                          "w-4 h-4 text-sand-400 group-hover:text-corp-blue-600 transition-transform duration-200",
+                          isAdvancedOpen && "rotate-180"
+                        )}
+                      />
+                    </div>
+                  </button>
+
+                  <AnimatePresence initial={false}>
+                    {isAdvancedOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5">
+                          {/* Currency */}
+                          <div className="space-y-2">
+                            <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Devise *</label>
+                            <Select onValueChange={handleCurrencyChange} value={docCurrency}>
+                              <SelectTrigger className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900">
+                                <SelectValue placeholder="Sélectionner une devise">
+                                  {docCurrency ? DEVISES.find(d => d.key === docCurrency)?.value : undefined}
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl border-corp-blue-50 font-bold text-xs">
+                                {DEVISES.map(d => (
+                                  <SelectItem key={d.key} value={d.key} className="font-bold text-xs">{d.value}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Exchange Rate */}
+                          <div className="space-y-2">
+                            <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Taux de change *</label>
+                            <Input
+                              type="number"
+                              step="0.000001"
+                              min="0"
+                              className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900"
+                              value={exchangeRate}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value) || 1.0;
+                                setExchangeRate(val < 0 ? 1.0 : val);
+                              }}
+                              disabled={docCurrency === 'TND'}
+                            />
+                          </div>
+
+                          {/* Invoice Specific: Stamp Tax Select */}
+                          {docType === DocumentTypes.customerInvoice && (
+                            <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
+                              <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Timbre Fiscal *</label>
+                              <Select 
+                                onValueChange={(val) => {
+                                  const tax = appvariablesTaxes.find(t => t.id.toString() === val);
+                                  setSelectedTax(tax || null);
+                                }} 
+                                value={selectedTax?.id?.toString() || ''}
+                              >
+                                <SelectTrigger className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900">
+                                  <SelectValue placeholder="Aucun timbre">
+                                    {selectedTax ? `${selectedTax.name} (${parseFloat(selectedTax.value || '0').toFixed(3)} TND)` : 'Aucun timbre'}
+                                  </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent className="rounded-xl border-corp-blue-50 font-bold text-xs">
+                                  {appvariablesTaxes.map((tax) => (
+                                    <SelectItem key={tax.id} value={tax.id.toString()} className="font-bold text-xs">
+                                      {tax.name} ({parseFloat(tax.value).toFixed(3)} TND)
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+
+                          {/* Invoice Specific: Withholding Tax Select */}
+                          {docType === DocumentTypes.customerInvoice && (
+                            <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
+                              <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Retenue à la Source (RS)</label>
+                              <Select 
+                                onValueChange={(val) => {
+                                  if (val === 'none') {
+                                    setSelectedRS(null);
+                                  } else {
+                                    const rs = appvariablesRS.find(r => r.id.toString() === val);
+                                    setSelectedRS(rs || null);
+                                  }
+                                }} 
+                                value={selectedRS?.id?.toString() || 'none'}
+                              >
+                                <SelectTrigger className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900">
+                                  <SelectValue placeholder="Aucune retenue">
+                                    {selectedRS ? `${selectedRS.name} (${selectedRS.value}%)` : 'Aucune retenue (0%)'}
+                                  </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent className="rounded-xl border-corp-blue-50 font-bold text-xs">
+                                  <SelectItem value="none" className="font-bold text-xs text-rose-500">Aucune retenue (0%)</SelectItem>
+                                  {appvariablesRS.map((rs) => (
+                                    <SelectItem key={rs.id} value={rs.id.toString()} className="font-bold text-xs">
+                                      {rs.name} ({rs.value}%)
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               )}
 
-              {/* Invoice Specific: Withholding Tax Select */}
-              {docType === DocumentTypes.customerInvoice && (
-                <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
-                  <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Retenue à la Source (RS)</label>
-                  <Select 
-                    onValueChange={(val) => {
-                      if (val === 'none') {
-                        setSelectedRS(null);
-                      } else {
-                        const rs = appvariablesRS.find(r => r.id.toString() === val);
-                        setSelectedRS(rs || null);
-                      }
-                    }} 
-                    value={selectedRS?.id?.toString() || 'none'}
-                  >
-                    <SelectTrigger className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900">
-                      <SelectValue placeholder="Aucune retenue">
-                        {selectedRS ? `${selectedRS.name} (${selectedRS.value}%)` : 'Aucune retenue (0%)'}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-corp-blue-50 font-bold text-xs">
-                      <SelectItem value="none" className="font-bold text-xs text-rose-500">Aucune retenue (0%)</SelectItem>
-                      {appvariablesRS.map((rs) => (
-                        <SelectItem key={rs.id} value={rs.id.toString()} className="font-bold text-xs">
-                          {rs.name} ({rs.value}%)
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              {/* Standard display when not in advanced options mode (Quotes, Orders, etc.) */}
+              {!isAdvancedOptionsDoc && (
+                <>
+                  {/* Currency */}
+                  <div className="space-y-2">
+                    <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Devise *</label>
+                    <Select onValueChange={handleCurrencyChange} value={docCurrency}>
+                      <SelectTrigger className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900">
+                        <SelectValue placeholder="Sélectionner une devise">
+                          {docCurrency ? DEVISES.find(d => d.key === docCurrency)?.value : undefined}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-corp-blue-50 font-bold text-xs">
+                        {DEVISES.map(d => (
+                          <SelectItem key={d.key} value={d.key} className="font-bold text-xs">{d.value}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Exchange Rate */}
+                  <div className="space-y-2">
+                    <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Taux de change *</label>
+                    <Input
+                      type="number"
+                      step="0.000001"
+                      min="0"
+                      className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900"
+                      value={exchangeRate}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value) || 1.0;
+                        setExchangeRate(val < 0 ? 1.0 : val);
+                      }}
+                      disabled={docCurrency === 'TND'}
+                    />
+                  </div>
+
+                  {/* Order Specific: Stamp Tax Select */}
+                  {docType === DocumentTypes.customerOrder && (
+                    <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
+                      <label className="text-[0.65rem] font-bold text-sand-400 uppercase tracking-widest block">Timbre Fiscal *</label>
+                      <Select 
+                        onValueChange={(val) => {
+                          const tax = appvariablesTaxes.find(t => t.id.toString() === val);
+                          setSelectedTax(tax || null);
+                        }} 
+                        value={selectedTax?.id?.toString() || ''}
+                      >
+                        <SelectTrigger className="h-11 rounded-xl border-corp-blue-50 focus:ring-corp-blue-600 bg-sand-50/50 text-xs font-bold text-corp-blue-900">
+                          <SelectValue placeholder="Aucun timbre">
+                            {selectedTax ? `${selectedTax.name} (${parseFloat(selectedTax.value || '0').toFixed(3)} TND)` : 'Aucun timbre'}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-corp-blue-50 font-bold text-xs">
+                          {appvariablesTaxes.map((tax) => (
+                            <SelectItem key={tax.id} value={tax.id.toString()} className="font-bold text-xs">
+                              {tax.name} ({parseFloat(tax.value).toFixed(3)} TND)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </>
               )}
 
               {/* Quotation Validity & Commercial Conditions Configuration Widget */}
