@@ -156,14 +156,23 @@ export function HeroSection() {
                 <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-400">
                   Développé par
                 </span>
-                <Image
-                  src="/logo-reva-navbar.png"
-                  alt="RÉVA Consulting"
-                  width={2103}
-                  height={748}
-                  priority
-                  className="h-7 w-auto object-contain"
-                />
+                <a
+                  href="https://reva-consulte.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="RÉVA Consulting (ouvre un nouvel onglet)"
+                  title="Visiter le site de RÉVA Consulting"
+                  className="inline-flex items-center rounded-md cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+                >
+                  <Image
+                    src="/logo-reva-navbar.png"
+                    alt="RÉVA Consulting"
+                    width={2103}
+                    height={748}
+                    priority
+                    className="h-7 w-auto object-contain"
+                  />
+                </a>
               </div>
 
               {/* Top pill badge */}
@@ -253,7 +262,14 @@ export function HeroSection() {
                 <span className="text-[10px] xl:text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400 transition-colors group-hover/reva:text-slate-300">
                   Développé par
                 </span>
-                <div className="px-3.5 py-1.5 xl:py-2 rounded-xl bg-slate-900/40 border border-white/10 backdrop-blur-md shadow-sm hover:border-white/20 transition-all duration-300">
+                <a
+                  href="https://reva-consulte.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="RÉVA Consulting (ouvre un nouvel onglet)"
+                  title="Visiter le site de RÉVA Consulting"
+                  className="px-3.5 py-1.5 xl:py-2 rounded-xl bg-slate-900/40 border border-white/10 backdrop-blur-md shadow-sm hover:border-white/20 transition-all duration-300 inline-block cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+                >
                   <Image
                     src="/logo-reva-navbar.png"
                     alt="RÉVA Consulting"
@@ -262,7 +278,7 @@ export function HeroSection() {
                     priority
                     className="h-10 xl:h-11 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)] transition-transform duration-300 group-hover/reva:scale-[1.02]"
                   />
-                </div>
+                </a>
               </div>
             </motion.div>
 

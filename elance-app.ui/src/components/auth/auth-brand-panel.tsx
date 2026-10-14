@@ -16,9 +16,22 @@ export function AuthBrandPanel({ className = '' }: AuthBrandPanelProps) {
   return (
     <aside
       aria-label="Présentation Élancé ERP"
-      className={`hidden lg:flex lg:w-[48%] xl:w-[50%] min-h-screen bg-[#060D1E] text-white flex-col justify-between p-8 xl:p-12 relative overflow-hidden select-none border-r border-white/5 ${className}`}
+      className={`hidden lg:flex lg:w-[48%] xl:w-[50%] min-h-screen bg-[#060D1E] text-white flex-col relative overflow-hidden select-none border-r border-white/5 ${className}`}
     >
-      {/* ─── Ambient lighting & textures ──────────────────────────────── */}
+      <a
+        href="https://acya.site"
+        aria-label="Retourner au site public Élancé (acya.site)"
+        title="Retourner au site public Élancé"
+        onClick={(e) => {
+          // Preserve behavior of any independent interactive controls inside panel if added
+          const target = e.target as HTMLElement;
+          if (target.closest('button, input, select, textarea') || (target.closest('a') && target.closest('a') !== e.currentTarget)) {
+            e.stopPropagation();
+          }
+        }}
+        className="flex-1 flex flex-col justify-between p-8 xl:p-12 relative cursor-pointer no-underline text-inherit focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-inset"
+      >
+        {/* ─── Ambient lighting & textures ──────────────────────────────── */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {/* Soft cyan glow in top-right to match og-image accent */}
         <div className="absolute -top-32 -right-32 w-[420px] h-[420px] bg-cyan-500/12 rounded-full blur-[110px]" />
@@ -121,6 +134,7 @@ export function AuthBrandPanel({ className = '' }: AuthBrandPanelProps) {
         <span>Élancé ERP par ACYA Technologies</span>
         <span className="text-slate-400/80">Architecture SaaS multi-tenant isolée</span>
       </div>
+      </a>
     </aside>
   );
 }
