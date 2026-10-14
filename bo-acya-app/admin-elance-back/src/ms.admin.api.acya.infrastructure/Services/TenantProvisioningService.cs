@@ -7,7 +7,10 @@ using Npgsql;
 using System;
 using System.IO;
 using System.Security.Cryptography;
+using ms.admin.api.acya.Services;
+using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace ms.admin.api.acya.infrastructure.Services
@@ -371,6 +374,390 @@ namespace ms.admin.api.acya.infrastructure.Services
                 _logger.LogError(ex, "Failed to deprovision tenant {Slug}", enterprise.Slug);
                 return false;
             }
+        }
+
+        public async Task<ProductionActivationResult> EnsureProductionLaborSchemaAsync(string schemaName)
+        {
+            try
+            {
+                // 1. Validate the tenant schema using existing safe identifier rules
+                if (string.IsNullOrWhiteSpace(schemaName) || !SchemaSanitizer.IsValidIdentifier(schemaName))
+                {
+                    _logger.LogError("Invalid tenant schema identifier for production activation: '{SchemaName}'", schemaName);
+                    return new ProductionActivationResult
+                    {
+                        Success = false,
+                        ErrorMessage = $"Invalid tenant schema identifier: '{schemaName}'."
+                    };
+                }
+
+                var connStr = _config.GetConnectionString("MasterConnection")
+                    ?? throw new InvalidOperationException("Master connection string is missing");
+
+                using var conn = new NpgsqlConnection(connStr);
+                await conn.OpenAsync();
+
+                // 2. Verify schema exists in PostgreSQL
+                bool schemaExists;
+                using (var cmd = new NpgsqlCommand("SELECT 1 FROM information_schema.schemata WHERE schema_name = @schemaName;", conn))
+                {
+                    cmd.Parameters.AddWithValue("schemaName", schemaName);
+                    schemaExists = await cmd.ExecuteScalarAsync() != null;
+                }
+
+                if (!schemaExists)
+                {
+                    _logger.LogError("Tenant schema '{SchemaName}' does not exist in the database.", schemaName);
+                    return new ProductionActivationResult
+                    {
+                        Success = false,
+                        ErrorMessage = $"Tenant schema '{schemaName}' does not exist."
+                    };
+                }
+
+                // 3. Check whether the required schema objects are already present
+                var (isAlreadyComplete, _) = await VerifyProductionLaborSchemaInternalAsync(conn, schemaName);
+                if (isAlreadyComplete)
+                {
+                    _logger.LogInformation("Tenant schema '{SchemaName}' already contains all required production labor-tracking tables, constraints, and indexes.", schemaName);
+                    return new ProductionActivationResult
+                    {
+                        Success = true,
+                        AlreadyMigrated = true
+                    };
+                }
+
+                // 4. Ensure base production tables (production_steps) exist if missing before applying labor tracking
+                bool hasProductionSteps;
+                using (var cmd = new NpgsqlCommand(
+                    "SELECT 1 FROM information_schema.tables WHERE table_schema = @schemaName AND table_name = 'production_steps';", conn))
+                {
+                    cmd.Parameters.AddWithValue("schemaName", schemaName);
+                    hasProductionSteps = await cmd.ExecuteScalarAsync() != null;
+                }
+
+                if (!hasProductionSteps)
+                {
+                    _logger.LogInformation("Tenant schema '{SchemaName}' missing base production_steps table. Provisioning base production module...", schemaName);
+                    var baseScriptPath = ResolveBaseProductionScriptPath();
+                    if (string.IsNullOrEmpty(baseScriptPath) || !File.Exists(baseScriptPath))
+                    {
+                        _logger.LogError("Base production module migration script not found for schema '{SchemaName}'.", schemaName);
+                        return new ProductionActivationResult
+                        {
+                            Success = false,
+                            ErrorMessage = "Base production module migration script not found."
+                        };
+                    }
+
+                    var baseSql = await File.ReadAllTextAsync(baseScriptPath);
+                    using (var tx = await conn.BeginTransactionAsync())
+                    {
+                        try
+                        {
+                            var quotedSchema = SchemaSanitizer.QuoteIdentifier(schemaName);
+                            using (var setPathCmd = new NpgsqlCommand($"SET search_path TO {quotedSchema}, public;", conn, tx))
+                            {
+                                await setPathCmd.ExecuteNonQueryAsync();
+                            }
+
+                            using (var baseCmd = new NpgsqlCommand(baseSql, conn, tx))
+                            {
+                                baseCmd.CommandTimeout = 120;
+                                await baseCmd.ExecuteNonQueryAsync();
+                            }
+
+                            await tx.CommitAsync();
+                            _logger.LogInformation("Base production module provisioned successfully for schema '{SchemaName}'.", schemaName);
+                        }
+                        catch (Exception ex)
+                        {
+                            await tx.RollbackAsync();
+                            _logger.LogError(ex, "Failed to provision base production tables for schema '{SchemaName}'.", schemaName);
+                            return new ProductionActivationResult
+                            {
+                                Success = false,
+                                ErrorMessage = $"Failed to provision base production tables: {ex.Message}"
+                            };
+                        }
+                    }
+                }
+
+                // 5. Apply the incremental migration db/wood/v0.39/01_add_production_labor_tracking.sql to that tenant schema ONLY
+                var migrationScriptPath = ResolveProductionLaborMigrationScriptPath();
+                if (string.IsNullOrEmpty(migrationScriptPath) || !File.Exists(migrationScriptPath))
+                {
+                    _logger.LogError("Production labor-tracking migration script not found at path: {Path}", migrationScriptPath);
+                    return new ProductionActivationResult
+                    {
+                        Success = false,
+                        ErrorMessage = "Authoritative migration script '01_add_production_labor_tracking.sql' not found."
+                    };
+                }
+
+                var rawMigrationSql = await File.ReadAllTextAsync(migrationScriptPath);
+
+                // Scope authoritative migration strictly to this tenant schema
+                var targetSchemaFilter = $"WHERE schema_name = '{schemaName}'";
+                var singleTenantSql = Regex.Replace(
+                    rawMigrationSql,
+                    @"WHERE\s+schema_name\s+LIKE\s+'tenant_%'\s+OR\s+schema_name\s*=\s*'public'",
+                    targetSchemaFilter,
+                    RegexOptions.IgnoreCase
+                );
+
+                if (!singleTenantSql.Contains(targetSchemaFilter))
+                {
+                    _logger.LogError("Could not safely target single schema '{SchemaName}' in migration script.", schemaName);
+                    return new ProductionActivationResult
+                    {
+                        Success = false,
+                        ErrorMessage = "Could not safely target single schema in migration script."
+                    };
+                }
+
+                _logger.LogInformation("Applying production labor-tracking migration to schema '{SchemaName}'...", schemaName);
+
+                using (var tx = await conn.BeginTransactionAsync())
+                {
+                    try
+                    {
+                        using (var cmd = new NpgsqlCommand(singleTenantSql, conn, tx))
+                        {
+                            cmd.CommandTimeout = 180;
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+
+                        await tx.CommitAsync();
+                        _logger.LogInformation("Applied production labor-tracking migration to schema '{SchemaName}'.", schemaName);
+                    }
+                    catch (Exception ex)
+                    {
+                        await tx.RollbackAsync();
+                        _logger.LogError(ex, "Failed to execute production labor-tracking migration for schema '{SchemaName}'.", schemaName);
+                        return new ProductionActivationResult
+                        {
+                            Success = false,
+                            ErrorMessage = $"Failed to execute migration: {ex.Message}"
+                        };
+                    }
+                }
+
+                // 6. Verify the expected tables, constraints, and indexes
+                var (isVerified, missingDetails) = await VerifyProductionLaborSchemaInternalAsync(conn, schemaName);
+                if (!isVerified)
+                {
+                    _logger.LogError("Post-migration verification failed for schema '{SchemaName}': {Missing}", schemaName, missingDetails);
+                    return new ProductionActivationResult
+                    {
+                        Success = false,
+                        ErrorMessage = $"Post-migration verification failed: {missingDetails}"
+                    };
+                }
+
+                _logger.LogInformation("Production labor-tracking schema successfully verified for schema '{SchemaName}'.", schemaName);
+                return new ProductionActivationResult
+                {
+                    Success = true,
+                    AlreadyMigrated = false
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error ensuring production labor schema for '{SchemaName}'.", schemaName);
+                return new ProductionActivationResult
+                {
+                    Success = false,
+                    ErrorMessage = $"Unexpected error: {ex.Message}"
+                };
+            }
+        }
+
+        private async Task<(bool IsComplete, string? MissingDetails)> VerifyProductionLaborSchemaInternalAsync(
+            NpgsqlConnection conn, string schemaName)
+        {
+            var missing = new List<string>();
+
+            // 1. Verify Expected Tables
+            var expectedTables = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "production_step_workers",
+                "production_step_work_logs",
+                "production_other_work_entries"
+            };
+
+            var foundTables = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            using (var cmd = new NpgsqlCommand(
+                @"SELECT table_name 
+                  FROM information_schema.tables 
+                  WHERE table_schema = @schemaName 
+                    AND table_name IN ('production_step_workers', 'production_step_work_logs', 'production_other_work_entries');", conn))
+            {
+                cmd.Parameters.AddWithValue("schemaName", schemaName);
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    foundTables.Add(reader.GetString(0));
+                }
+            }
+
+            foreach (var table in expectedTables)
+            {
+                if (!foundTables.Contains(table))
+                {
+                    missing.Add($"Table '{table}'");
+                }
+            }
+
+            // If tables are missing, don't check indexes/foreign keys on missing tables
+            if (missing.Count > 0)
+            {
+                return (false, string.Join(", ", missing));
+            }
+
+            // 2. Verify Expected Indexes
+            var expectedIndexes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "idx_step_workers_step",
+                "idx_step_workers_person",
+                "idx_step_workers_step_person",
+                "idx_step_workers_guid",
+                "idx_work_logs_step_worker",
+                "idx_work_logs_step",
+                "idx_work_logs_person_date",
+                "idx_work_logs_date",
+                "idx_work_logs_guid",
+                "idx_other_work_person_date",
+                "idx_other_work_date",
+                "idx_other_work_guid"
+            };
+
+            var foundIndexes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            using (var cmd = new NpgsqlCommand(
+                @"SELECT indexname 
+                  FROM pg_indexes 
+                  WHERE schemaname = @schemaName;", conn))
+            {
+                cmd.Parameters.AddWithValue("schemaName", schemaName);
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    foundIndexes.Add(reader.GetString(0));
+                }
+            }
+
+            foreach (var idx in expectedIndexes)
+            {
+                if (!foundIndexes.Contains(idx))
+                {
+                    missing.Add($"Index '{idx}'");
+                }
+            }
+
+            // 3. Verify Foreign Key Constraints
+            var expectedForeignKeys = new List<(string Table, string ForeignTable)>
+            {
+                ("production_step_workers", "production_steps"),
+                ("production_step_workers", "tbl_person"),
+                ("production_step_work_logs", "production_step_workers"),
+                ("production_step_work_logs", "production_steps"),
+                ("production_step_work_logs", "tbl_person"),
+                ("production_other_work_entries", "tbl_person")
+            };
+
+            var foundForeignKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            using (var cmd = new NpgsqlCommand(
+                @"SELECT 
+                    rel.relname AS table_name,
+                    frel.relname AS foreign_table_name
+                  FROM pg_constraint con
+                  JOIN pg_class rel ON rel.oid = con.conrelid
+                  JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
+                  JOIN pg_class frel ON frel.oid = con.confrelid
+                  WHERE nsp.nspname = @schemaName
+                    AND con.contype = 'f';", conn))
+            {
+                cmd.Parameters.AddWithValue("schemaName", schemaName);
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    foundForeignKeys.Add($"{reader.GetString(0)}->{reader.GetString(1)}");
+                }
+            }
+
+            foreach (var (table, foreignTable) in expectedForeignKeys)
+            {
+                var key = $"{table}->{foreignTable}";
+                if (!foundForeignKeys.Contains(key))
+                {
+                    missing.Add($"Foreign Key '{table}' -> '{foreignTable}'");
+                }
+            }
+
+            if (missing.Count > 0)
+            {
+                return (false, string.Join(", ", missing));
+            }
+
+            return (true, null);
+        }
+
+        private string? ResolveProductionLaborMigrationScriptPath()
+        {
+            var configuredPath = _config["ProductionLaborMigrationScriptPath"];
+            if (!string.IsNullOrEmpty(configuredPath) && File.Exists(configuredPath))
+            {
+                return configuredPath;
+            }
+
+            var defaultPath = "/app/db/wood/v0.39/01_add_production_labor_tracking.sql";
+            if (File.Exists(defaultPath))
+            {
+                return defaultPath;
+            }
+
+            var currentDir = AppDomain.CurrentDomain.BaseDirectory;
+            while (currentDir != null)
+            {
+                var path1 = Path.Combine(currentDir, "db", "wood", "v0.39", "01_add_production_labor_tracking.sql");
+                if (File.Exists(path1)) return path1;
+
+                var path2 = Path.Combine(currentDir, "wood-app.api", "db", "wood", "v0.39", "01_add_production_labor_tracking.sql");
+                if (File.Exists(path2)) return path2;
+
+                currentDir = Directory.GetParent(currentDir)?.FullName;
+            }
+
+            return null;
+        }
+
+        private string? ResolveBaseProductionScriptPath()
+        {
+            var configuredPath = _config["BaseProductionMigrationScriptPath"];
+            if (!string.IsNullOrEmpty(configuredPath) && File.Exists(configuredPath))
+            {
+                return configuredPath;
+            }
+
+            var defaultPath = "/app/db/wood/v0.28/V0.28__add_production_module.sql";
+            if (File.Exists(defaultPath))
+            {
+                return defaultPath;
+            }
+
+            var currentDir = AppDomain.CurrentDomain.BaseDirectory;
+            while (currentDir != null)
+            {
+                var path1 = Path.Combine(currentDir, "db", "wood", "v0.28", "V0.28__add_production_module.sql");
+                if (File.Exists(path1)) return path1;
+
+                var path2 = Path.Combine(currentDir, "wood-app.api", "db", "wood", "v0.28", "V0.28__add_production_module.sql");
+                if (File.Exists(path2)) return path2;
+
+                currentDir = Directory.GetParent(currentDir)?.FullName;
+            }
+
+            return null;
         }
     }
 }

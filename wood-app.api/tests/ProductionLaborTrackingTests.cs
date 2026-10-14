@@ -1153,6 +1153,35 @@ namespace ms.webapp.api.acya.tests
       Assert.Contains("non autorisé ou inactif", result.Message);
     }
 
+    [Fact]
+    public async Task ProductionController_WhenProductionDisabled_Returns403Forbidden()
+    {
+      using var context = CreateContext();
+      context.Enterprises.Add(new Enterprise
+      {
+        Id = 1,
+        Name = "Restricted Tenant",
+        IsManagingProduction = false // Production disabled
+      });
+      await context.SaveChangesAsync();
+
+      var docMerchRepo = new DocumentMerchandiseRepository(context);
+      var stockRepo = new StockRepository(context, docMerchRepo);
+      var prodRepo = new ProductionRepository(context);
+      var logger = new Microsoft.Extensions.Logging.Abstractions.NullLogger<ProductionService>();
+      var prodService = new ProductionService(context, prodRepo, stockRepo, logger);
+
+      var controller = new ms.webapp.api.acya.api.Controllers.ProductionController(prodRepo, prodService, context);
+
+      // Act
+      var result = await controller.GetAll(null, null, null);
+
+      // Assert
+      var objectResult = Assert.IsType<Microsoft.AspNetCore.Mvc.ObjectResult>(result.Result);
+      Assert.Equal(Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden, objectResult.StatusCode);
+    }
+
     #endregion
   }
 }
+
