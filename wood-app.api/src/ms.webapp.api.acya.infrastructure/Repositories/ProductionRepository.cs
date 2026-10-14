@@ -32,6 +32,10 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
           .ThenInclude(s => s.Inputs)
             .ThenInclude(i => i.Merchandise)
               .ThenInclude(m => m!.Articles)
+        .Include(o => o.Steps)
+          .ThenInclude(s => s.Workers)
+        .Include(o => o.Steps)
+          .ThenInclude(s => s.WorkLogs)
         .AsQueryable();
 
       if (status.HasValue)
@@ -66,13 +70,17 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         .AsNoTracking()
         .Where(o => o.Id == id && !o.IsDeleted)
         .Include(o => o.SalesSite)
-        .Include(o => o.Steps.OrderBy(s => s.StepNumber))
+        .Include(o => o.Steps)
           .ThenInclude(s => s.OutputMerchandise)
             .ThenInclude(m => m!.Articles)
         .Include(o => o.Steps)
           .ThenInclude(s => s.Inputs)
             .ThenInclude(i => i.Merchandise)
               .ThenInclude(m => m!.Articles)
+        .Include(o => o.Steps)
+          .ThenInclude(s => s.Workers)
+        .Include(o => o.Steps)
+          .ThenInclude(s => s.WorkLogs)
         .FirstOrDefaultAsync();
 
       if (order == null) return null;
@@ -91,7 +99,9 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         var stocks = await context.Stocks
           .AsNoTracking()
           .Where(st => st.SalesSiteId == order.SalesSiteId && merchandiseIds.Contains(st.MerchandiseId))
-          .ToDictionaryAsync(st => st.MerchandiseId, st => st.Quantity);
+          .GroupBy(st => st.MerchandiseId)
+          .Select(g => new { MerchandiseId = g.Key, TotalQuantity = g.Sum(st => st.Quantity) })
+          .ToDictionaryAsync(st => st.MerchandiseId, st => st.TotalQuantity);
 
         foreach (var step in dto.Steps)
         {
@@ -179,6 +189,16 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
             foreach (var iDto in sDto.Inputs)
             {
               merchList.TryGetValue(iDto.MerchandiseId, out var merch);
+              decimal defaultCost = 0m;
+              if (merch?.Articles != null && merch.Articles.LastPurchasePriceTTC > 0)
+              {
+                defaultCost = (decimal)merch.Articles.LastPurchasePriceTTC;
+              }
+
+              decimal resolvedUnitCost = (iDto.UnitCost.HasValue && iDto.UnitCost.Value > 0)
+                ? iDto.UnitCost.Value
+                : defaultCost;
+
               var input = new ProductionInput
               {
                 MerchandiseId = iDto.MerchandiseId,
@@ -186,11 +206,11 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                 MerchandiseDesignation = merch?.Articles?.Description,
                 Unit = merch?.Articles?.Unit,
                 PlannedQuantity = iDto.PlannedQuantity > 0 ? iDto.PlannedQuantity : 1.0,
-                UnitCost = iDto.UnitCost ?? (merch?.Articles?.LastPurchasePriceTTC != null ? (decimal)merch.Articles.LastPurchasePriceTTC : 0),
+                UnitCost = resolvedUnitCost,
                 CreatedById = userId,
                 CreationDate = DateTime.UtcNow
               };
-              input.TotalCost = (input.UnitCost ?? 0) * (decimal)input.PlannedQuantity;
+              input.TotalCost = resolvedUnitCost * (decimal)input.PlannedQuantity;
               step.Inputs.Add(input);
             }
           }
@@ -239,7 +259,15 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
       if (order.Status == ProductionStatus.Validated)
       {
-        throw new InvalidOperationException("Cannot delete a validated production order. Cancel it first.");
+        throw new InvalidOperationException("Impossible de supprimer un ordre de fabrication validé. Veuillez d'abord l'annuler pour rétablir les stocks.");
+      }
+
+      var hasWorkLogs = await context.ProductionStepWorkLogs
+        .AnyAsync(w => w.ProductionStep != null && w.ProductionStep.ProductionOrderId == id);
+
+      if (hasWorkLogs)
+      {
+        throw new InvalidOperationException("Impossible de supprimer cet ordre : des heures de travail d'employés sont enregistrées. Supprimez d'abord les pointages des employés, puis réessayez.");
       }
 
       order.IsDeleted = true;
@@ -487,6 +515,16 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
       if (merch == null) throw new ArgumentException("Marchandise introuvable.");
 
+      decimal defaultArticleCost = 0m;
+      if (merch.Articles != null && merch.Articles.LastPurchasePriceTTC > 0)
+      {
+        defaultArticleCost = (decimal)merch.Articles.LastPurchasePriceTTC;
+      }
+
+      decimal resolvedUnitCost = (dto.UnitCost.HasValue && dto.UnitCost.Value > 0)
+        ? dto.UnitCost.Value
+        : defaultArticleCost;
+
       var input = new ProductionInput
       {
         ProductionStepId = stepId,
@@ -495,11 +533,11 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         MerchandiseDesignation = merch.Articles?.Description,
         Unit = merch.Articles?.Unit,
         PlannedQuantity = dto.PlannedQuantity > 0 ? dto.PlannedQuantity : 1.0,
-        UnitCost = dto.UnitCost ?? (merch.Articles?.LastPurchasePriceTTC != null ? (decimal)merch.Articles.LastPurchasePriceTTC : 0),
+        UnitCost = resolvedUnitCost,
         CreatedById = userId,
         CreationDate = DateTime.UtcNow
       };
-      input.TotalCost = (input.UnitCost ?? 0) * (decimal)input.PlannedQuantity;
+      input.TotalCost = resolvedUnitCost * (decimal)input.PlannedQuantity;
 
       context.ProductionInputs.Add(input);
       await context.SaveChangesAsync();
@@ -518,7 +556,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         PlannedQuantity = input.PlannedQuantity,
         ActualQuantity = input.ActualQuantity,
         UnitCost = input.UnitCost,
-        TotalCost = input.TotalCost
+        TotalCost = input.TotalCost,
+        AllowNegativStock = merch.AllowNegativStock
       };
     }
 
@@ -581,6 +620,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       var order = await context.ProductionOrders
         .Include(o => o.Steps)
           .ThenInclude(s => s.Inputs)
+        .Include(o => o.Steps)
+          .ThenInclude(s => s.WorkLogs)
         .FirstOrDefaultAsync(o => o.Id == orderId);
 
       if (order == null) return;
@@ -591,8 +632,10 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
       foreach (var step in order.Steps)
       {
-        totalLabor += step.LaborCost ?? 0;
-        totalOther += step.OtherCost ?? 0;
+        decimal stepLaborManual = step.LaborCost ?? 0m;
+        decimal stepLaborActual = step.WorkLogs?.Sum(w => w.CalculatedLaborAmount) ?? 0m;
+        totalLabor += (stepLaborManual + stepLaborActual);
+        totalOther += step.OtherCost ?? 0m;
 
         foreach (var input in step.Inputs)
         {
@@ -617,6 +660,604 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       await context.SaveChangesAsync();
     }
 
+    #endregion
+
+    #region Step Workers
+
+    public async Task<List<ProductionStepWorkerDto>> GetStepWorkersAsync(int stepId)
+    {
+      var workers = await context.ProductionStepWorkers
+        .AsNoTracking()
+        .Where(w => w.ProductionStepId == stepId)
+        .Include(w => w.WorkLogs)
+        .OrderBy(w => w.Id)
+        .ToListAsync();
+
+      return workers.Select(MapToWorkerDto).ToList();
+    }
+
+    public async Task<ProductionStepWorkerDto?> AddStepWorkerAsync(int stepId, CreateProductionStepWorkerDto dto, int userId)
+    {
+      if (dto.PlannedHours < 0) throw new ArgumentException("Les heures prévues ne peuvent pas être négatives.");
+      if (dto.DefaultHourlyRate < 0) throw new ArgumentException("Le taux horaire ne peut pas être négatif.");
+
+      var step = await context.ProductionSteps
+        .Include(s => s.ProductionOrder)
+        .FirstOrDefaultAsync(s => s.Id == stepId);
+
+      if (step == null) return null;
+
+      var order = step.ProductionOrder;
+      if (order == null || order.Status == ProductionStatus.Validated || order.Status == ProductionStatus.Cancelled)
+      {
+        throw new InvalidOperationException("Impossible d'affecter un ouvrier à un ordre de fabrication validé ou annulé.");
+      }
+
+      var person = await context.Persons
+        .AsNoTracking()
+        .FirstOrDefaultAsync(p => p.Id == dto.PersonId && !p.IsDeleted);
+
+      if (person == null)
+      {
+        throw new ArgumentException($"Employé #{dto.PersonId} introuvable ou inactif.");
+      }
+
+      bool alreadyAssigned = await context.ProductionStepWorkers
+        .AnyAsync(w => w.ProductionStepId == stepId && w.PersonId == dto.PersonId);
+
+      if (alreadyAssigned)
+      {
+        throw new InvalidOperationException("Cet employé est déjà affecté à cette étape de fabrication.");
+      }
+
+      string employeeFullName = !string.IsNullOrWhiteSpace(person.FullName)
+        ? person.FullName
+        : $"{person.Firstname} {person.Lastname}".Trim();
+
+      var worker = new ProductionStepWorker
+      {
+        ProductionStepId = stepId,
+        PersonId = dto.PersonId,
+        EmployeeFullName = employeeFullName,
+        PlannedHours = dto.PlannedHours,
+        DefaultHourlyRate = dto.DefaultHourlyRate,
+        EstimatedLaborAmount = Math.Round(dto.PlannedHours * dto.DefaultHourlyRate, 3),
+        Notes = dto.Notes,
+        CreatedById = userId,
+        CreationDate = DateTime.UtcNow
+      };
+
+      context.ProductionStepWorkers.Add(worker);
+      await context.SaveChangesAsync();
+
+      return MapToWorkerDto(worker);
+    }
+
+    public async Task<bool> UpdateStepWorkerAsync(int workerId, UpdateProductionStepWorkerDto dto, int userId)
+    {
+      if (dto.PlannedHours < 0) throw new ArgumentException("Les heures prévues ne peuvent pas être négatives.");
+      if (dto.DefaultHourlyRate < 0) throw new ArgumentException("Le taux horaire ne peut pas être négatif.");
+
+      var worker = await context.ProductionStepWorkers
+        .Include(w => w.ProductionStep)
+          .ThenInclude(s => s!.ProductionOrder)
+        .FirstOrDefaultAsync(w => w.Id == workerId);
+
+      if (worker == null) return false;
+
+      var order = worker.ProductionStep?.ProductionOrder;
+      if (order == null || order.Status == ProductionStatus.Validated || order.Status == ProductionStatus.Cancelled)
+      {
+        throw new InvalidOperationException("Impossible de modifier une affectation sur un ordre validé ou annulé.");
+      }
+
+      worker.PlannedHours = dto.PlannedHours;
+      worker.DefaultHourlyRate = dto.DefaultHourlyRate;
+      worker.EstimatedLaborAmount = Math.Round(dto.PlannedHours * dto.DefaultHourlyRate, 3);
+      worker.Notes = dto.Notes;
+      worker.UpdatedById = userId;
+      worker.UpdateDate = DateTime.UtcNow;
+
+      await context.SaveChangesAsync();
+      return true;
+    }
+
+    public async Task<bool> DeleteStepWorkerAsync(int workerId)
+    {
+      var worker = await context.ProductionStepWorkers
+        .Include(w => w.ProductionStep)
+          .ThenInclude(s => s!.ProductionOrder)
+        .FirstOrDefaultAsync(w => w.Id == workerId);
+
+      if (worker == null) return false;
+
+      var order = worker.ProductionStep?.ProductionOrder;
+      if (order == null || order.Status == ProductionStatus.Validated || order.Status == ProductionStatus.Cancelled)
+      {
+        throw new InvalidOperationException("Impossible de supprimer une affectation sur un ordre validé ou annulé.");
+      }
+
+      // Check whether actual work logs exist using a direct query (prevents historical work-log loss)
+      bool hasWorkLogs = await context.ProductionStepWorkLogs
+        .AnyAsync(wl => wl.StepWorkerId == workerId);
+
+      if (hasWorkLogs)
+      {
+        throw new InvalidOperationException("Impossible de supprimer une affectation d'ouvrier ayant déjà des sessions de travail enregistrées. Supprimez d'abord les sessions de travail associées.");
+      }
+
+      context.ProductionStepWorkers.Remove(worker);
+      await context.SaveChangesAsync();
+
+      return true;
+    }
+
+    #endregion
+
+    #region Step Work Logs
+
+    public async Task<List<ProductionStepWorkLogDto>> GetStepWorkLogsAsync(int stepId)
+    {
+      var workLogs = await context.ProductionStepWorkLogs
+        .AsNoTracking()
+        .Where(w => w.ProductionStepId == stepId)
+        .OrderBy(w => w.WorkDate)
+        .ThenBy(w => w.Id)
+        .ToListAsync();
+
+      return workLogs.Select(MapToWorkLogDto).ToList();
+    }
+
+    public async Task<ProductionStepWorkLogDto?> AddStepWorkLogAsync(int stepId, CreateProductionStepWorkLogDto dto, int userId)
+    {
+      if (dto.ActualHours <= 0)
+      {
+        throw new ArgumentException("Le nombre d'heures réelles doit être strictement supérieur à zéro.");
+      }
+
+      var step = await context.ProductionSteps
+        .Include(s => s.ProductionOrder)
+        .FirstOrDefaultAsync(s => s.Id == stepId);
+
+      if (step == null) return null;
+
+      var order = step.ProductionOrder;
+      if (order == null || order.Status == ProductionStatus.Validated || order.Status == ProductionStatus.Cancelled)
+      {
+        throw new InvalidOperationException("Impossible d'enregistrer des heures de travail sur un ordre validé ou annulé.");
+      }
+
+      if (step.Status == ProductionStepStatus.Cancelled)
+      {
+        throw new InvalidOperationException("Impossible d'enregistrer des heures de travail sur une étape de fabrication annulée.");
+      }
+
+      var worker = await context.ProductionStepWorkers
+        .FirstOrDefaultAsync(w => w.Id == dto.StepWorkerId && w.ProductionStepId == stepId);
+
+      if (worker == null)
+      {
+        throw new ArgumentException("L'affectation de l'ouvrier est introuvable ou n'appartient pas à cette étape.");
+      }
+
+      decimal effectiveRate;
+      if (dto.HourlyRate.HasValue)
+      {
+        if (dto.HourlyRate.Value <= 0)
+        {
+          throw new ArgumentException("Le taux horaire saisi doit être strictement supérieur à zéro.");
+        }
+        effectiveRate = dto.HourlyRate.Value;
+      }
+      else
+      {
+        if (worker.DefaultHourlyRate <= 0)
+        {
+          throw new ArgumentException("Aucun taux horaire par défaut valide n'est défini pour cet ouvrier.");
+        }
+        effectiveRate = worker.DefaultHourlyRate;
+      }
+
+      var calendarDate = new DateTime(dto.WorkDate.Year, dto.WorkDate.Month, dto.WorkDate.Day, 0, 0, 0, DateTimeKind.Unspecified);
+      decimal calculatedLabor = Math.Round(dto.ActualHours * effectiveRate, 3);
+
+      var workLog = new ProductionStepWorkLog
+      {
+        StepWorkerId = worker.Id,
+        ProductionStepId = step.Id,
+        PersonId = worker.PersonId,
+        EmployeeFullName = worker.EmployeeFullName,
+        WorkDate = calendarDate,
+        ActualHours = dto.ActualHours,
+        HourlyRate = effectiveRate,
+        CalculatedLaborAmount = calculatedLabor,
+        Notes = dto.Notes,
+        CreatedById = userId,
+        CreationDate = DateTime.UtcNow
+      };
+
+      var transaction = context.Database.CurrentTransaction == null
+        ? await context.Database.BeginTransactionAsync()
+        : null;
+
+      try
+      {
+        context.ProductionStepWorkLogs.Add(workLog);
+        await context.SaveChangesAsync();
+
+        await RecalculateOrderCostsAsync(step.ProductionOrderId);
+
+        if (transaction != null)
+        {
+          await transaction.CommitAsync();
+        }
+      }
+      catch
+      {
+        if (transaction != null)
+        {
+          await transaction.RollbackAsync();
+        }
+        throw;
+      }
+      finally
+      {
+        if (transaction != null)
+        {
+          await transaction.DisposeAsync();
+        }
+      }
+
+      return MapToWorkLogDto(workLog);
+    }
+
+    public async Task<bool> UpdateStepWorkLogAsync(int workLogId, UpdateProductionStepWorkLogDto dto, int userId)
+    {
+      if (dto.ActualHours <= 0)
+      {
+        throw new ArgumentException("Le nombre d'heures réelles doit être strictement supérieur à zéro.");
+      }
+
+      var workLog = await context.ProductionStepWorkLogs
+        .Include(w => w.ProductionStep)
+          .ThenInclude(s => s!.ProductionOrder)
+        .FirstOrDefaultAsync(w => w.Id == workLogId);
+
+      if (workLog == null) return false;
+
+      var order = workLog.ProductionStep?.ProductionOrder;
+      if (order == null || order.Status == ProductionStatus.Validated || order.Status == ProductionStatus.Cancelled)
+      {
+        throw new InvalidOperationException("Impossible de modifier des heures de travail sur un ordre validé ou annulé.");
+      }
+
+      if (workLog.ProductionStep?.Status == ProductionStepStatus.Cancelled)
+      {
+        throw new InvalidOperationException("Impossible de modifier des heures de travail sur une étape de fabrication annulée.");
+      }
+
+      decimal effectiveRate = workLog.HourlyRate;
+      if (dto.HourlyRate.HasValue)
+      {
+        if (dto.HourlyRate.Value <= 0)
+        {
+          throw new ArgumentException("Le taux horaire saisi doit être strictement supérieur à zéro.");
+        }
+        effectiveRate = dto.HourlyRate.Value;
+      }
+
+      var calendarDate = new DateTime(dto.WorkDate.Year, dto.WorkDate.Month, dto.WorkDate.Day, 0, 0, 0, DateTimeKind.Unspecified);
+
+      var transaction = context.Database.CurrentTransaction == null
+        ? await context.Database.BeginTransactionAsync()
+        : null;
+
+      try
+      {
+        workLog.WorkDate = calendarDate;
+        workLog.ActualHours = dto.ActualHours;
+        workLog.HourlyRate = effectiveRate;
+        workLog.CalculatedLaborAmount = Math.Round(dto.ActualHours * effectiveRate, 3);
+        workLog.Notes = dto.Notes;
+        workLog.UpdatedById = userId;
+        workLog.UpdateDate = DateTime.UtcNow;
+
+        await context.SaveChangesAsync();
+
+        await RecalculateOrderCostsAsync(workLog.ProductionStep!.ProductionOrderId);
+
+        if (transaction != null)
+        {
+          await transaction.CommitAsync();
+        }
+      }
+      catch
+      {
+        if (transaction != null)
+        {
+          await transaction.RollbackAsync();
+        }
+        throw;
+      }
+      finally
+      {
+        if (transaction != null)
+        {
+          await transaction.DisposeAsync();
+        }
+      }
+
+      return true;
+    }
+
+    public async Task<bool> DeleteStepWorkLogAsync(int workLogId)
+    {
+      var workLog = await context.ProductionStepWorkLogs
+        .Include(w => w.ProductionStep)
+          .ThenInclude(s => s!.ProductionOrder)
+        .FirstOrDefaultAsync(w => w.Id == workLogId);
+
+      if (workLog == null) return false;
+
+      var order = workLog.ProductionStep?.ProductionOrder;
+      if (order == null || order.Status == ProductionStatus.Validated || order.Status == ProductionStatus.Cancelled)
+      {
+        throw new InvalidOperationException("Impossible de supprimer des heures de travail sur un ordre validé ou annulé.");
+      }
+
+      if (workLog.ProductionStep?.Status == ProductionStepStatus.Cancelled)
+      {
+        throw new InvalidOperationException("Impossible de supprimer des heures de travail sur une étape de fabrication annulée.");
+      }
+
+      int orderId = workLog.ProductionStep!.ProductionOrderId;
+
+      var transaction = context.Database.CurrentTransaction == null
+        ? await context.Database.BeginTransactionAsync()
+        : null;
+
+      try
+      {
+        context.ProductionStepWorkLogs.Remove(workLog);
+        await context.SaveChangesAsync();
+
+        await RecalculateOrderCostsAsync(orderId);
+
+        if (transaction != null)
+        {
+          await transaction.CommitAsync();
+        }
+      }
+      catch
+      {
+        if (transaction != null)
+        {
+          await transaction.RollbackAsync();
+        }
+        throw;
+      }
+      finally
+      {
+        if (transaction != null)
+        {
+          await transaction.DisposeAsync();
+        }
+      }
+
+      return true;
+    }
+
+    #endregion
+
+    #region Other Work Entries
+
+    public async Task<List<ProductionOtherWorkEntryDto>> GetOtherWorkEntriesAsync(DateTime? startDate = null, DateTime? endDate = null, int? personId = null)
+    {
+      var query = context.ProductionOtherWorkEntries
+        .AsNoTracking()
+        .Where(e => !e.IsDeleted)
+        .AsQueryable();
+
+      if (startDate.HasValue)
+      {
+        var start = new DateTime(startDate.Value.Year, startDate.Value.Month, startDate.Value.Day, 0, 0, 0, DateTimeKind.Unspecified);
+        query = query.Where(e => e.WorkDate >= start);
+      }
+
+      if (endDate.HasValue)
+      {
+        var end = new DateTime(endDate.Value.Year, endDate.Value.Month, endDate.Value.Day, 23, 59, 59, DateTimeKind.Unspecified);
+        query = query.Where(e => e.WorkDate <= end);
+      }
+
+      if (personId.HasValue && personId.Value > 0)
+      {
+        query = query.Where(e => e.PersonId == personId.Value);
+      }
+
+      var entries = await query
+        .OrderByDescending(e => e.WorkDate)
+        .ThenByDescending(e => e.Id)
+        .ToListAsync();
+
+      return entries.Select(MapToOtherWorkDto).ToList();
+    }
+
+    public async Task<ProductionOtherWorkEntryDto?> GetOtherWorkEntryByIdAsync(int id)
+    {
+      var entry = await context.ProductionOtherWorkEntries
+        .AsNoTracking()
+        .FirstOrDefaultAsync(e => e.Id == id && !e.IsDeleted);
+
+      return entry == null ? null : MapToOtherWorkDto(entry);
+    }
+
+    public async Task<ProductionOtherWorkEntryDto> CreateOtherWorkEntryAsync(CreateProductionOtherWorkEntryDto dto, int userId)
+    {
+      if (dto.Hours <= 0) throw new ArgumentException("Le nombre d'heures doit être strictement supérieur à zéro.");
+      if (dto.HourlyRate <= 0) throw new ArgumentException("Le taux horaire doit être strictement supérieur à zéro.");
+      if (string.IsNullOrWhiteSpace(dto.Description)) throw new ArgumentException("La description est obligatoire.");
+
+      var person = await context.Persons
+        .AsNoTracking()
+        .FirstOrDefaultAsync(p => p.Id == dto.PersonId && !p.IsDeleted);
+
+      if (person == null)
+      {
+        throw new ArgumentException($"Employé #{dto.PersonId} introuvable ou inactif.");
+      }
+
+      string employeeFullName = !string.IsNullOrWhiteSpace(person.FullName)
+        ? person.FullName
+        : $"{person.Firstname} {person.Lastname}".Trim();
+
+      var calendarDate = new DateTime(dto.WorkDate.Year, dto.WorkDate.Month, dto.WorkDate.Day, 0, 0, 0, DateTimeKind.Unspecified);
+      decimal calculatedAmount = Math.Round(dto.Hours * dto.HourlyRate, 3);
+
+      var entry = new ProductionOtherWorkEntry
+      {
+        PersonId = dto.PersonId,
+        EmployeeFullName = employeeFullName,
+        WorkDate = calendarDate,
+        Hours = dto.Hours,
+        HourlyRate = dto.HourlyRate,
+        CalculatedAmount = calculatedAmount,
+        Description = dto.Description.Trim(),
+        CreatedById = userId,
+        CreationDate = DateTime.UtcNow,
+        IsDeleted = false
+      };
+
+      context.ProductionOtherWorkEntries.Add(entry);
+      await context.SaveChangesAsync();
+
+      return MapToOtherWorkDto(entry);
+    }
+
+    public async Task<bool> UpdateOtherWorkEntryAsync(int id, UpdateProductionOtherWorkEntryDto dto, int userId)
+    {
+      if (dto.Hours <= 0) throw new ArgumentException("Le nombre d'heures doit être strictement supérieur à zéro.");
+      if (dto.HourlyRate <= 0) throw new ArgumentException("Le taux horaire doit être strictement supérieur à zéro.");
+      if (string.IsNullOrWhiteSpace(dto.Description)) throw new ArgumentException("La description est obligatoire.");
+
+      var entry = await context.ProductionOtherWorkEntries
+        .FirstOrDefaultAsync(e => e.Id == id && !e.IsDeleted);
+
+      if (entry == null) return false;
+
+      var calendarDate = new DateTime(dto.WorkDate.Year, dto.WorkDate.Month, dto.WorkDate.Day, 0, 0, 0, DateTimeKind.Unspecified);
+
+      entry.WorkDate = calendarDate;
+      entry.Hours = dto.Hours;
+      entry.HourlyRate = dto.HourlyRate;
+      entry.CalculatedAmount = Math.Round(dto.Hours * dto.HourlyRate, 3);
+      entry.Description = dto.Description.Trim();
+      entry.UpdatedById = userId;
+      entry.UpdateDate = DateTime.UtcNow;
+
+      await context.SaveChangesAsync();
+      return true;
+    }
+
+    public async Task<bool> DeleteOtherWorkEntryAsync(int id, int userId)
+    {
+      var entry = await context.ProductionOtherWorkEntries
+        .FirstOrDefaultAsync(e => e.Id == id && !e.IsDeleted);
+
+      if (entry == null) return false;
+
+      entry.IsDeleted = true;
+      entry.UpdatedById = userId;
+      entry.UpdateDate = DateTime.UtcNow;
+
+      await context.SaveChangesAsync();
+      return true;
+    }
+
+    #endregion
+
+    #region Monthly Employee Payable Summary
+
+    public async Task<MonthlyEmployeePayableSummaryDto> GetMonthlyPayableSummaryAsync(int year, int month)
+    {
+      if (year < 2000 || year > 2100) throw new ArgumentException("Année invalide.");
+      if (month < 1 || month > 12) throw new ArgumentException("Mois invalide (1 à 12).");
+
+      var startDate = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Unspecified);
+      var endDate = startDate.AddMonths(1);
+
+      // 1. Manufacturing work logs: exclude work logs from cancelled or soft-deleted orders
+      var mfgLogs = await context.ProductionStepWorkLogs
+        .AsNoTracking()
+        .Include(w => w.ProductionStep)
+          .ThenInclude(s => s!.ProductionOrder)
+        .Where(w => w.WorkDate >= startDate && w.WorkDate < endDate)
+        .Where(w => w.ProductionStep != null 
+                 && w.ProductionStep.ProductionOrder != null 
+                 && !w.ProductionStep.ProductionOrder.IsDeleted 
+                 && w.ProductionStep.ProductionOrder.Status != ProductionStatus.Cancelled)
+        .ToListAsync();
+
+      // 2. Other payable work entries: exclude soft-deleted entries
+      var otherEntries = await context.ProductionOtherWorkEntries
+        .AsNoTracking()
+        .Where(e => !e.IsDeleted && e.WorkDate >= startDate && e.WorkDate < endDate)
+        .ToListAsync();
+
+      // Group by PersonId
+      var allPersonIds = mfgLogs.Select(m => m.PersonId)
+        .Union(otherEntries.Select(o => o.PersonId))
+        .Distinct()
+        .ToList();
+
+      var summary = new MonthlyEmployeePayableSummaryDto
+      {
+        Year = year,
+        Month = month
+      };
+
+      foreach (var personId in allPersonIds)
+      {
+        var personMfg = mfgLogs.Where(m => m.PersonId == personId).ToList();
+        var personOther = otherEntries.Where(o => o.PersonId == personId).ToList();
+
+        string fullName = personMfg.FirstOrDefault()?.EmployeeFullName
+          ?? personOther.FirstOrDefault()?.EmployeeFullName
+          ?? $"Employé #{personId}";
+
+        decimal mfgHours = personMfg.Sum(m => m.ActualHours);
+        decimal mfgAmount = personMfg.Sum(m => m.CalculatedLaborAmount);
+        decimal otherHours = personOther.Sum(o => o.Hours);
+        decimal otherAmount = personOther.Sum(o => o.CalculatedAmount);
+
+        summary.Employees.Add(new EmployeePayableSummaryItemDto
+        {
+          PersonId = personId,
+          EmployeeFullName = fullName,
+          ManufacturingHours = mfgHours,
+          ManufacturingAmount = mfgAmount,
+          OtherHours = otherHours,
+          OtherAmount = otherAmount,
+          TotalPayableHours = mfgHours + otherHours,
+          TotalPayableAmount = mfgAmount + otherAmount
+        });
+      }
+
+      summary.Employees = summary.Employees.OrderBy(e => e.EmployeeFullName).ToList();
+      summary.TotalManufacturingHours = summary.Employees.Sum(e => e.ManufacturingHours);
+      summary.TotalManufacturingAmount = summary.Employees.Sum(e => e.ManufacturingAmount);
+      summary.TotalOtherHours = summary.Employees.Sum(e => e.OtherHours);
+      summary.TotalOtherAmount = summary.Employees.Sum(e => e.OtherAmount);
+      summary.TotalPayableHours = summary.TotalManufacturingHours + summary.TotalOtherHours;
+      summary.TotalPayableAmount = summary.TotalManufacturingAmount + summary.TotalOtherAmount;
+
+      return summary;
+    }
+
+    #endregion
+
+    #region Mapping Helpers
+
     private static ProductionOrderDto MapToOrderDto(ProductionOrder o)
     {
       return new ProductionOrderDto
@@ -627,7 +1268,9 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         Description = o.Description,
         Notes = o.Notes,
         SalesSiteId = o.SalesSiteId,
-        SalesSiteName = o.SalesSite?.Address ?? $"Dépôt #{o.SalesSiteId}",
+        SalesSiteName = o.SalesSite != null
+          ? (!string.IsNullOrWhiteSpace(o.SalesSite.Gouvernorate) ? $"{o.SalesSite.Gouvernorate} - {o.SalesSite.Address}" : (o.SalesSite.Address ?? $"Dépôt #{o.SalesSiteId}"))
+          : $"Dépôt #{o.SalesSiteId}",
         Status = o.Status,
         PlannedStartDate = o.PlannedStartDate,
         PlannedEndDate = o.PlannedEndDate,
@@ -643,41 +1286,115 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         CreatedById = o.CreatedById,
         CreationDate = o.CreationDate,
         UpdateDate = o.UpdateDate,
-        Steps = o.Steps.OrderBy(s => s.StepNumber).Select(s => new ProductionStepDto
+        Steps = o.Steps.OrderBy(s => s.StepNumber).Select(MapToStepDto).ToList()
+      };
+    }
+
+    private static ProductionStepDto MapToStepDto(ProductionStep s)
+    {
+      decimal actualLabor = s.WorkLogs?.Sum(w => w.CalculatedLaborAmount) ?? 0m;
+      decimal manualLabor = s.LaborCost ?? 0m;
+      decimal material = s.Inputs?.Sum(i => i.TotalCost ?? 0m) ?? 0m;
+      decimal other = s.OtherCost ?? 0m;
+
+      return new ProductionStepDto
+      {
+        Id = s.Id,
+        Guid = s.Guid,
+        ProductionOrderId = s.ProductionOrderId,
+        StepNumber = s.StepNumber,
+        Name = s.Name,
+        Description = s.Description,
+        Status = s.Status,
+        StartDate = s.StartDate,
+        EndDate = s.EndDate,
+        LaborCost = s.LaborCost,
+        EmployeeLaborCost = actualLabor,
+        OtherCost = s.OtherCost,
+        MaterialCost = material,
+        TotalStepCost = manualLabor + actualLabor + other + material,
+        OutputMerchandiseId = s.OutputMerchandiseId,
+        OutputMerchandiseRef = s.OutputMerchandise?.PackageReference,
+        OutputMerchandiseDesignation = s.OutputMerchandise?.Articles?.Description,
+        PlannedOutputQuantity = s.PlannedOutputQuantity,
+        ActualOutputQuantity = s.ActualOutputQuantity,
+        Inputs = s.Inputs?.Select(i => new ProductionInputDto
         {
-          Id = s.Id,
-          Guid = s.Guid,
-          ProductionOrderId = s.ProductionOrderId,
-          StepNumber = s.StepNumber,
-          Name = s.Name,
-          Description = s.Description,
-          Status = s.Status,
-          StartDate = s.StartDate,
-          EndDate = s.EndDate,
-          LaborCost = s.LaborCost,
-          OtherCost = s.OtherCost,
-          MaterialCost = s.Inputs.Sum(i => i.TotalCost ?? 0),
-          TotalStepCost = (s.LaborCost ?? 0) + (s.OtherCost ?? 0) + s.Inputs.Sum(i => i.TotalCost ?? 0),
-          OutputMerchandiseId = s.OutputMerchandiseId,
-          OutputMerchandiseRef = s.OutputMerchandise?.PackageReference,
-          OutputMerchandiseDesignation = s.OutputMerchandise?.Articles?.Description,
-          PlannedOutputQuantity = s.PlannedOutputQuantity,
-          ActualOutputQuantity = s.ActualOutputQuantity,
-          Inputs = s.Inputs.Select(i => new ProductionInputDto
-          {
-            Id = i.Id,
-            Guid = i.Guid,
-            ProductionStepId = i.ProductionStepId,
-            MerchandiseId = i.MerchandiseId,
-            MerchandiseRef = i.MerchandiseRef ?? i.Merchandise?.PackageReference,
-            MerchandiseDesignation = i.MerchandiseDesignation ?? i.Merchandise?.Articles?.Description,
-            Unit = i.Unit ?? i.Merchandise?.Articles?.Unit,
-            PlannedQuantity = i.PlannedQuantity,
-            ActualQuantity = i.ActualQuantity,
-            UnitCost = i.UnitCost,
-            TotalCost = i.TotalCost
-          }).ToList()
-        }).ToList()
+          Id = i.Id,
+          Guid = i.Guid,
+          ProductionStepId = i.ProductionStepId,
+          MerchandiseId = i.MerchandiseId,
+          MerchandiseRef = i.MerchandiseRef ?? i.Merchandise?.PackageReference,
+          MerchandiseDesignation = i.MerchandiseDesignation ?? i.Merchandise?.Articles?.Description,
+          Unit = i.Unit ?? i.Merchandise?.Articles?.Unit,
+          PlannedQuantity = i.PlannedQuantity,
+          ActualQuantity = i.ActualQuantity,
+          UnitCost = i.UnitCost,
+          TotalCost = i.TotalCost,
+          AllowNegativStock = i.Merchandise?.AllowNegativStock ?? false
+        }).ToList() ?? new List<ProductionInputDto>(),
+        Workers = s.Workers?.Select(MapToWorkerDto).ToList() ?? new List<ProductionStepWorkerDto>(),
+        WorkLogs = s.WorkLogs?.Select(MapToWorkLogDto).ToList() ?? new List<ProductionStepWorkLogDto>()
+      };
+    }
+
+    private static ProductionStepWorkerDto MapToWorkerDto(ProductionStepWorker w)
+    {
+      return new ProductionStepWorkerDto
+      {
+        Id = w.Id,
+        Guid = w.Guid,
+        ProductionStepId = w.ProductionStepId,
+        PersonId = w.PersonId,
+        EmployeeFullName = w.EmployeeFullName,
+        PlannedHours = w.PlannedHours,
+        DefaultHourlyRate = w.DefaultHourlyRate,
+        EstimatedLaborAmount = w.EstimatedLaborAmount,
+        Notes = w.Notes,
+        CreatedById = w.CreatedById,
+        CreationDate = w.CreationDate,
+        WorkLogs = w.WorkLogs?.Select(MapToWorkLogDto).ToList() ?? new List<ProductionStepWorkLogDto>()
+      };
+    }
+
+    private static ProductionStepWorkLogDto MapToWorkLogDto(ProductionStepWorkLog wl)
+    {
+      return new ProductionStepWorkLogDto
+      {
+        Id = wl.Id,
+        Guid = wl.Guid,
+        StepWorkerId = wl.StepWorkerId,
+        ProductionStepId = wl.ProductionStepId,
+        PersonId = wl.PersonId,
+        EmployeeFullName = wl.EmployeeFullName,
+        WorkDate = wl.WorkDate,
+        ActualHours = wl.ActualHours,
+        HourlyRate = wl.HourlyRate,
+        CalculatedLaborAmount = wl.CalculatedLaborAmount,
+        Notes = wl.Notes,
+        CreatedById = wl.CreatedById,
+        CreationDate = wl.CreationDate
+      };
+    }
+
+    private static ProductionOtherWorkEntryDto MapToOtherWorkDto(ProductionOtherWorkEntry e)
+    {
+      return new ProductionOtherWorkEntryDto
+      {
+        Id = e.Id,
+        Guid = e.Guid,
+        PersonId = e.PersonId,
+        EmployeeFullName = e.EmployeeFullName,
+        WorkDate = e.WorkDate,
+        Hours = e.Hours,
+        HourlyRate = e.HourlyRate,
+        CalculatedAmount = e.CalculatedAmount,
+        Description = e.Description,
+        CreatedById = e.CreatedById,
+        CreationDate = e.CreationDate,
+        UpdatedById = e.UpdatedById,
+        UpdateDate = e.UpdateDate,
+        IsDeleted = e.IsDeleted
       };
     }
 

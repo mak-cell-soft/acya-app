@@ -108,6 +108,9 @@ namespace ms.webapp.api.acya.infrastructure
     public virtual DbSet<ProductionOrder> ProductionOrders { get; set; }
     public virtual DbSet<ProductionStep> ProductionSteps { get; set; }
     public virtual DbSet<ProductionInput> ProductionInputs { get; set; }
+    public virtual DbSet<ProductionStepWorker> ProductionStepWorkers { get; set; }
+    public virtual DbSet<ProductionStepWorkLog> ProductionStepWorkLogs { get; set; }
+    public virtual DbSet<ProductionOtherWorkEntry> ProductionOtherWorkEntries { get; set; }
 
     // Mobile Application Releases & Builds
     public virtual DbSet<MobileBuild> MobileBuilds { get; set; }

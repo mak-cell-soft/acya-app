@@ -12,6 +12,16 @@ import {
   CreateProductionInputInput,
   CompleteStepInput,
   QuickCreateMerchandiseInput,
+  ProductionStepWorker,
+  CreateProductionStepWorkerInput,
+  UpdateProductionStepWorkerInput,
+  ProductionStepWorkLog,
+  CreateProductionStepWorkLogInput,
+  UpdateProductionStepWorkLogInput,
+  ProductionOtherWorkEntry,
+  CreateProductionOtherWorkEntryInput,
+  UpdateProductionOtherWorkEntryInput,
+  MonthlyEmployeePayableSummary,
 } from '@/types/production';
 
 export const PRODUCTION_STATUS_MAP: Record<number, ProductionStatus> = {
@@ -110,6 +120,82 @@ export const productionService = {
 
   quickCreateMerchandise: async (data: QuickCreateMerchandiseInput): Promise<{ id: number; packageReference: string; description: string; articleId: number }> => {
     const response = await api.post('/Production/quick-merchandise', data);
+    return response.data;
+  },
+
+  // ── Step Workers Endpoints ──────────────────────────────────────────────────
+  getStepWorkers: async (stepId: number): Promise<ProductionStepWorker[]> => {
+    const response = await api.get<ProductionStepWorker[]>(`/Production/steps/${stepId}/workers`);
+    return response.data;
+  },
+
+  addStepWorker: async (stepId: number, data: CreateProductionStepWorkerInput): Promise<ProductionStepWorker> => {
+    const response = await api.post<ProductionStepWorker>(`/Production/steps/${stepId}/workers`, data);
+    return response.data;
+  },
+
+  updateStepWorker: async (workerId: number, data: UpdateProductionStepWorkerInput): Promise<void> => {
+    await api.put(`/Production/workers/${workerId}`, data);
+  },
+
+  deleteStepWorker: async (workerId: number): Promise<void> => {
+    await api.delete(`/Production/workers/${workerId}`);
+  },
+
+  // ── Step Work Logs Endpoints ────────────────────────────────────────────────
+  getStepWorkLogs: async (stepId: number): Promise<ProductionStepWorkLog[]> => {
+    const response = await api.get<ProductionStepWorkLog[]>(`/Production/steps/${stepId}/work-logs`);
+    return response.data;
+  },
+
+  addStepWorkLog: async (stepId: number, data: CreateProductionStepWorkLogInput): Promise<ProductionStepWorkLog> => {
+    const response = await api.post<ProductionStepWorkLog>(`/Production/steps/${stepId}/work-logs`, data);
+    return response.data;
+  },
+
+  updateStepWorkLog: async (workLogId: number, data: UpdateProductionStepWorkLogInput): Promise<void> => {
+    await api.put(`/Production/work-logs/${workLogId}`, data);
+  },
+
+  deleteStepWorkLog: async (workLogId: number): Promise<void> => {
+    await api.delete(`/Production/work-logs/${workLogId}`);
+  },
+
+  // ── Standalone Other Work Entries Endpoints ─────────────────────────────────
+  getOtherWorkEntries: async (params?: { startDate?: string; endDate?: string; personId?: number }): Promise<ProductionOtherWorkEntry[]> => {
+    const queryParams: Record<string, string | number> = {};
+    if (params?.startDate) queryParams.startDate = params.startDate;
+    if (params?.endDate) queryParams.endDate = params.endDate;
+    if (params?.personId) queryParams.personId = params.personId;
+
+    const response = await api.get<ProductionOtherWorkEntry[]>('/Production/other-work', { params: queryParams });
+    return response.data;
+  },
+
+  getOtherWorkEntryById: async (id: number): Promise<ProductionOtherWorkEntry> => {
+    const response = await api.get<ProductionOtherWorkEntry>(`/Production/other-work/${id}`);
+    return response.data;
+  },
+
+  createOtherWorkEntry: async (data: CreateProductionOtherWorkEntryInput): Promise<ProductionOtherWorkEntry> => {
+    const response = await api.post<ProductionOtherWorkEntry>('/Production/other-work', data);
+    return response.data;
+  },
+
+  updateOtherWorkEntry: async (id: number, data: UpdateProductionOtherWorkEntryInput): Promise<ProductionOtherWorkEntry> => {
+    const response = await api.put<ProductionOtherWorkEntry>(`/Production/other-work/${id}`, data);
+    return response.data;
+  },
+
+  deleteOtherWorkEntry: async (id: number): Promise<void> => {
+    await api.delete(`/Production/other-work/${id}`);
+  },
+
+  // ── Monthly Employee Payable Summary Endpoints ──────────────────────────────
+  getMonthlyPayableSummary: async (year: number, month: number): Promise<MonthlyEmployeePayableSummary> => {
+    const response = await api.get<MonthlyEmployeePayableSummary>('/Production/payables/monthly', {
+      params: { year, month },
+    });
     return response.data;
   },
 };

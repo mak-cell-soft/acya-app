@@ -53,6 +53,12 @@ namespace ms.webapp.api.acya.api.Controllers
     {
       if (transaction == null) return BadRequest("Transaction data is required.");
 
+      var authUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+      if (int.TryParse(authUserIdStr, out var authUserId) && authUserId > 0)
+      {
+        transaction.UpdatedById = authUserId;
+      }
+
       try
       {
         await _stockService.HandleTransactionAsync(transaction);

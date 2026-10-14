@@ -10,6 +10,7 @@ import { Factory, Plus, Trash2, Calendar, MapPin, Layers, Sparkles } from 'lucid
 import { useCreateProductionOrder } from '@/hooks/use-production';
 import { salesSitesService } from '@/services/components/salessites.service';
 import { merchandiseService } from '@/services/components/merchandise.service';
+import { useAuthStore } from '@/store/use-auth-store';
 import { CreateProductionOrderInput } from '@/types/production';
 
 interface CreateProductionModalProps {
@@ -32,10 +33,24 @@ interface StepFormItem {
 }
 
 export function CreateProductionModal({ isOpen, onClose }: CreateProductionModalProps) {
+  const { user } = useAuthStore();
   const createOrderMutation = useCreateProductionOrder();
 
-  const [sites, setSites] = useState<{ id: number; address: string }[]>([]);
-  const [merchandises, setMerchandises] = useState<{ id: number; packageReference?: string; description?: string }[]>([]);
+  const [sites, setSites] = useState<{ id: number; address: string; gov?: string; isForsale?: boolean }[]>([]);
+  const [merchandises, setMerchandises] = useState<{
+    id: number;
+    packageReference?: string;
+    description?: string;
+    cost_ht?: number;
+    unit_price_ht?: number;
+    article?: {
+      id?: number;
+      description?: string;
+      lastpurchaseprice_ttc?: number;
+      sellprice_ht?: number;
+      unit?: string;
+    };
+  }[]>([]);
 
   const [reference, setReference] = useState('');
   const [description, setDescription] = useState('');
@@ -63,7 +78,13 @@ export function CreateProductionModal({ isOpen, onClose }: CreateProductionModal
         const list = Array.isArray(res) ? res : res?.data || [];
         setSites(list);
         if (list.length > 0 && !salesSiteId) {
-          setSalesSiteId(list[0].id);
+          const userDefaultId = user?.defaultSiteId ? Number(user.defaultSiteId) : null;
+          const matchingSite = userDefaultId ? list.find((s: any) => s.id === userDefaultId) : null;
+          const forSaleSite = list.find((s: any) => s.isForsale);
+          const defaultSite = matchingSite || forSaleSite || list[0];
+          if (defaultSite) {
+            setSalesSiteId(defaultSite.id);
+          }
         }
       });
 
@@ -105,6 +126,8 @@ export function CreateProductionModal({ isOpen, onClose }: CreateProductionModal
 
   const addInputToStep = (stepIndex: number) => {
     if (merchandises.length === 0) return;
+    const firstMerch = merchandises[0];
+    const initialCost = Number(firstMerch.cost_ht ?? firstMerch.article?.lastpurchaseprice_ttc ?? 0);
     setSteps((prev) =>
       prev.map((s, i) =>
         i === stepIndex
@@ -113,9 +136,9 @@ export function CreateProductionModal({ isOpen, onClose }: CreateProductionModal
               inputs: [
                 ...s.inputs,
                 {
-                  merchandiseId: merchandises[0].id,
+                  merchandiseId: firstMerch.id,
                   plannedQuantity: 1,
-                  unitCost: 0,
+                  unitCost: initialCost,
                 },
               ],
             }
@@ -218,7 +241,9 @@ export function CreateProductionModal({ isOpen, onClose }: CreateProductionModal
             >
               {sites.map((site) => (
                 <option key={site.id} value={site.id}>
-                  {site.address}
+                  {site.gov ? `${site.gov} - ` : ''}
+                  {site.address || `Dépôt #${site.id}`}
+                  {site.isForsale ? ' (Dépôt Principal / Vente)' : ''}
                 </option>
               ))}
             </select>
@@ -394,9 +419,29 @@ export function CreateProductionModal({ isOpen, onClose }: CreateProductionModal
                         <div key={inpIdx} className="flex items-center gap-2">
                           <select
                             value={inp.merchandiseId}
-                            onChange={(e) =>
-                              updateInputField(sIdx, inpIdx, 'merchandiseId', parseInt(e.target.value))
-                            }
+                            onChange={(e) => {
+                              const newId = parseInt(e.target.value);
+                              const selected = merchandises.find((m: any) => m.id === newId);
+                              const newCost = Number(selected?.cost_ht ?? selected?.article?.lastpurchaseprice_ttc ?? 0);
+                              setSteps((prev) =>
+                                prev.map((s, i) =>
+                                  i === sIdx
+                                    ? {
+                                        ...s,
+                                        inputs: s.inputs.map((inputItem, idx) =>
+                                          idx === inpIdx
+                                            ? {
+                                                ...inputItem,
+                                                merchandiseId: newId,
+                                                unitCost: newCost,
+                                              }
+                                            : inputItem
+                                        ),
+                                      }
+                                    : s
+                                )
+                              );
+                            }}
                             className="flex-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 font-medium"
                           >
                             {merchandises.map((m) => (

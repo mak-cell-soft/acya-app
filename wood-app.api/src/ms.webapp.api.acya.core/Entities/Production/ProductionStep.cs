@@ -66,6 +66,10 @@ namespace ms.webapp.api.acya.core.Entities.Production
     // ── Inputs Consumed in this Step ────────────────────────────────────────────
     public ICollection<ProductionInput> Inputs { get; set; } = new List<ProductionInput>();
 
+    // ── Workers Assigned & Work Logs ───────────────────────────────────────────
+    public ICollection<ProductionStepWorker> Workers { get; set; } = new List<ProductionStepWorker>();
+    public ICollection<ProductionStepWorkLog> WorkLogs { get; set; } = new List<ProductionStepWorkLog>();
+
     public ProductionStep()
     {
     }

@@ -40,6 +40,11 @@ namespace ms.webapp.api.acya.api.Services
     /// </summary>
     public async Task<(bool Success, string Message, ProductionOrderDto? Order)> StartOrderAsync(int orderId, int userId)
     {
+      if (userId <= 0 || !await _context.AppUsers.AnyAsync(u => u.Id == userId && u.IsActive))
+      {
+        return (false, "Utilisateur non autorisé ou inactif pour cette entreprise.", null);
+      }
+
       var order = await _context.ProductionOrders
         .Include(o => o.Steps)
         .FirstOrDefaultAsync(o => o.Id == orderId && !o.IsDeleted);
@@ -80,6 +85,13 @@ namespace ms.webapp.api.acya.api.Services
     /// </summary>
     public async Task<(bool Success, string Message, ProductionOrderDto? Order)> ValidateOrderAsync(int orderId, int userId)
     {
+      // Validate that the authenticated user exists and is active in the current tenant schema
+      if (userId <= 0 || !await _context.AppUsers.AnyAsync(u => u.Id == userId && u.IsActive))
+      {
+        return (false, "Utilisateur non autorisé ou inactif pour cette entreprise.", null);
+      }
+      int effectiveUserId = userId;
+
       var order = await _context.ProductionOrders
         .Include(o => o.SalesSite)
         .Include(o => o.Steps)
@@ -118,23 +130,31 @@ namespace ms.webapp.api.acya.api.Services
         return (false, "Impossible de valider un ordre sans matières consommées.", null);
       }
 
-      // Pre-check stock availability for all inputs before entering the transaction
-      foreach (var input in allInputs)
-      {
-        double reqQty = input.ActualQuantity ?? input.PlannedQuantity;
-        if (reqQty <= 0) continue;
-
-        var stockRecord = await _context.Stocks
-          .AsNoTracking()
-          .FirstOrDefaultAsync(s => s.MerchandiseId == input.MerchandiseId && s.SalesSiteId == order.SalesSiteId);
-
-        var currentQty = stockRecord?.Quantity ?? 0;
-        var allowNegative = input.Merchandise?.AllowNegativStock ?? false;
-
-        if (!allowNegative && currentQty < reqQty)
+      // Aggregate required quantities by MerchandiseId to accurately check total availability
+      var requiredByMerch = allInputs
+        .GroupBy(i => i.MerchandiseId)
+        .Select(g => new
         {
-          var articleName = input.MerchandiseDesignation ?? input.MerchandiseRef ?? $"ID #{input.MerchandiseId}";
-          return (false, $"Stock insuffisant pour '{articleName}' au dépôt sélectionné. Requis: {reqQty}, Disponible: {currentQty}.", null);
+          MerchandiseId = g.Key,
+          TotalRequired = g.Sum(i => i.ActualQuantity ?? i.PlannedQuantity),
+          SampleInput = g.First()
+        })
+        .Where(x => x.TotalRequired > 0)
+        .ToList();
+
+      foreach (var item in requiredByMerch)
+      {
+        var currentQty = await _context.Stocks
+          .AsNoTracking()
+          .Where(s => s.MerchandiseId == item.MerchandiseId && s.SalesSiteId == order.SalesSiteId)
+          .SumAsync(s => (double?)s.Quantity) ?? 0.0;
+
+        var allowNegative = item.SampleInput.Merchandise?.AllowNegativStock ?? false;
+
+        if (!allowNegative && currentQty < item.TotalRequired)
+        {
+          var articleName = item.SampleInput.MerchandiseDesignation ?? item.SampleInput.MerchandiseRef ?? $"ID #{item.MerchandiseId}";
+          return (false, $"Stock insuffisant pour '{articleName}' au dépôt sélectionné. Requis: {item.TotalRequired}, Disponible: {currentQty}.", null);
         }
       }
 
@@ -165,7 +185,8 @@ namespace ms.webapp.api.acya.api.Services
             Quantity = qtyToDeduct,
             Type = TransactionType.Retrieve,
             CreationDate = DateTime.UtcNow,
-            UpdateDate = DateTime.UtcNow
+            UpdateDate = DateTime.UtcNow,
+            UpdatedById = effectiveUserId
           };
 
           await _stockRepo.HandleTransaction(stockTransaction, bypassNegativeCheck: false);
@@ -190,7 +211,8 @@ namespace ms.webapp.api.acya.api.Services
                 Quantity = outputQty,
                 Type = TransactionType.Add,
                 CreationDate = DateTime.UtcNow,
-                UpdateDate = DateTime.UtcNow
+                UpdateDate = DateTime.UtcNow,
+                UpdatedById = effectiveUserId
               };
 
               await _stockRepo.HandleTransaction(stockAdd, bypassNegativeCheck: true);
@@ -206,7 +228,7 @@ namespace ms.webapp.api.acya.api.Services
             step.Status = ProductionStepStatus.Completed;
             step.EndDate ??= DateTime.UtcNow;
             step.ActualOutputQuantity ??= step.PlannedOutputQuantity;
-            step.UpdatedById = userId;
+            step.UpdatedById = effectiveUserId;
             step.UpdateDate = DateTime.UtcNow;
           }
         }
@@ -214,7 +236,7 @@ namespace ms.webapp.api.acya.api.Services
         // 4. Update order state and calculate final unit production cost
         order.Status = ProductionStatus.Validated;
         order.ActualEndDate ??= DateTime.UtcNow;
-        order.UpdatedById = userId;
+        order.UpdatedById = effectiveUserId;
         order.UpdateDate = DateTime.UtcNow;
 
         var lastStep = order.Steps.OrderByDescending(s => s.StepNumber).FirstOrDefault();
@@ -246,6 +268,13 @@ namespace ms.webapp.api.acya.api.Services
     /// </summary>
     public async Task<(bool Success, string Message, ProductionOrderDto? Order)> CancelOrderAsync(int orderId, int userId)
     {
+      // Validate that the authenticated user exists and is active in the current tenant schema
+      if (userId <= 0 || !await _context.AppUsers.AnyAsync(u => u.Id == userId && u.IsActive))
+      {
+        return (false, "Utilisateur non autorisé ou inactif pour cette entreprise.", null);
+      }
+      int effectiveUserId = userId;
+
       var order = await _context.ProductionOrders
         .Include(o => o.SalesSite)
         .Include(o => o.Steps)
@@ -297,7 +326,8 @@ namespace ms.webapp.api.acya.api.Services
               Quantity = qtyToReturn,
               Type = TransactionType.Add,
               CreationDate = DateTime.UtcNow,
-              UpdateDate = DateTime.UtcNow
+              UpdateDate = DateTime.UtcNow,
+              UpdatedById = effectiveUserId
             };
 
             await _stockRepo.HandleTransaction(stockAdd, bypassNegativeCheck: true);
@@ -322,7 +352,8 @@ namespace ms.webapp.api.acya.api.Services
                   Quantity = outputQty,
                   Type = TransactionType.Retrieve,
                   CreationDate = DateTime.UtcNow,
-                  UpdateDate = DateTime.UtcNow
+                  UpdateDate = DateTime.UtcNow,
+                  UpdatedById = effectiveUserId
                 };
 
                 await _stockRepo.HandleTransaction(stockRetrieve, bypassNegativeCheck: true);
@@ -331,7 +362,7 @@ namespace ms.webapp.api.acya.api.Services
           }
 
           order.Status = ProductionStatus.Cancelled;
-          order.UpdatedById = userId;
+          order.UpdatedById = effectiveUserId;
           order.UpdateDate = DateTime.UtcNow;
 
           await _context.SaveChangesAsync();
@@ -353,7 +384,7 @@ namespace ms.webapp.api.acya.api.Services
       {
         // Not yet validated, just set to Cancelled
         order.Status = ProductionStatus.Cancelled;
-        order.UpdatedById = userId;
+        order.UpdatedById = effectiveUserId;
         order.UpdateDate = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
