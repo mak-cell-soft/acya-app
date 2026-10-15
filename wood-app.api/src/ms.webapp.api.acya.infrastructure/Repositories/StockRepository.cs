@@ -111,12 +111,12 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         throw new ArgumentNullException(nameof(transaction));
       }
 
-      if (transaction.Merchandises == null)
+      if (transaction.Merchandises == null && transaction.MerchandiseId <= 0)
       {
         throw new ArgumentException("Merchandise information is required.", nameof(transaction));
       }
 
-      if (transaction.SalesSites == null)
+      if (transaction.SalesSites == null && transaction.SalesSiteId <= 0)
       {
         throw new ArgumentException("Sales Site information is required.", nameof(transaction));
       }
@@ -155,6 +155,25 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
       if (transaction.Type == TransactionType.Retrieve && transaction.Quantity > 0)
       {
         throw new InvalidOperationException("Cannot retrieve stock from an empty inventory.");
+      }
+
+      if (transaction.UpdatedById <= 0)
+      {
+        if (transaction.AppUsers != null && transaction.AppUsers.Id > 0)
+        {
+          transaction.UpdatedById = transaction.AppUsers.Id;
+        }
+      }
+
+      if (transaction.UpdatedById <= 0)
+      {
+        throw new InvalidOperationException("Un identifiant d'utilisateur valide (UpdatedById) est requis pour enregistrer un mouvement de stock.");
+      }
+
+      var userExists = await context.AppUsers.AnyAsync(u => u.Id == transaction.UpdatedById && u.IsActive);
+      if (!userExists)
+      {
+        throw new InvalidOperationException($"L'utilisateur #{transaction.UpdatedById} spécifié pour le mouvement de stock est introuvable ou inactif dans cette entreprise.");
       }
 
       transaction.CreationDate = DateTime.UtcNow;
@@ -206,7 +225,13 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
           {
             existingStock.UpdateDate = DateTime.UtcNow;
             existingStock.Type = transaction.Type;
-            existingStock.SalesSiteId = transaction.SalesSites!.Id;
+            if (transaction.UpdatedById > 0)
+            {
+              existingStock.UpdatedById = transaction.UpdatedById;
+            }
+            existingStock.SalesSiteId = transaction.SalesSiteId > 0 
+              ? transaction.SalesSiteId 
+              : (transaction.SalesSites?.Id ?? existingStock.SalesSiteId);
           }
           await context.SaveChangesAsync();
           return; // Success
@@ -311,7 +336,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
           Type = (TransactionType)doc.StockTransactionType!,  // Use the determined type : Add or Retrieve
           Merchandises = merchandise.Merchandise,
           SalesSites = doc.SalesSite,
-          AppUsers = appuser
+          AppUsers = appuser,
+          UpdatedById = appuser?.Id ?? doc.UpdatedById ?? 0
         };
 
         await HandleTransaction(stockTransaction);

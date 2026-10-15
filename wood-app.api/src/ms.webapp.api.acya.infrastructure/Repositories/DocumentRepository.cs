@@ -254,7 +254,8 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
             Quantity = merchandise.Quantity,
             MerchandiseId = merchandise.Id,
             SalesSites = document.SalesSite,
-            AppUsers = document.AppUsers
+            AppUsers = document.AppUsers,
+            UpdatedById = document.AppUsers?.Id ?? document.UpdatedById ?? 0
           };
 
           // Update the stock using the repository method

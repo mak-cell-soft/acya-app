@@ -9,5 +9,6 @@ namespace ms.admin.api.acya.core.Interfaces
         Task<bool> ProvisionTenantAsync(MasterEnterprise enterprise, string adminUsername, string adminEmail, string adminPassword);
         Task<bool> ProvisionTenantAsync(MasterEnterprise enterprise, TenantProvisionDetails details);
         Task<bool> DeprovisionTenantAsync(MasterEnterprise enterprise);
+        Task<ProductionActivationResult> EnsureProductionLaborSchemaAsync(string schemaName);
     }
 }

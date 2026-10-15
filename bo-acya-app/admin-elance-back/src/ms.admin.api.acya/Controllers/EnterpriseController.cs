@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace ms.admin.api.acya.Controllers
 {
@@ -114,19 +115,22 @@ namespace ms.admin.api.acya.Controllers
         private readonly MasterDbContext _context;
         private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
         private readonly ms.admin.api.acya.core.Interfaces.IEmailService _emailService;
+        private readonly ILogger<EnterpriseController> _logger;
 
         public EnterpriseController(
             IEnterpriseRepository enterpriseRepository, 
             ITenantProvisioningService provisioningService, 
             MasterDbContext context,
             Microsoft.Extensions.Configuration.IConfiguration configuration,
-            ms.admin.api.acya.core.Interfaces.IEmailService emailService)
+            ms.admin.api.acya.core.Interfaces.IEmailService emailService,
+            ILogger<EnterpriseController> logger)
         {
             _enterpriseRepository = enterpriseRepository;
             _provisioningService = provisioningService;
             _context = context;
             _configuration = configuration;
             _emailService = emailService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -397,6 +401,37 @@ namespace ms.admin.api.acya.Controllers
                 enterprise.Slug = newSlug;
             }
 
+            // Production Feature Activation Safety Gate:
+            // When transitioning IsManagingProduction from false to true for an existing tenant,
+            // validate the schema, ensure schema objects exist, and verify before enabling.
+            bool wasManagingProduction = enterprise.IsManagingProduction;
+            bool isEnablingProduction = !wasManagingProduction && request.IsManagingProduction;
+
+            if (isEnablingProduction)
+            {
+                if (string.IsNullOrWhiteSpace(enterprise.SchemaName) || !SchemaSanitizer.IsValidIdentifier(enterprise.SchemaName))
+                {
+                    _logger.LogError("Production feature activation rejected: tenant ID {EnterpriseId} has invalid or missing schema name '{SchemaName}'",
+                        enterprise.Id, enterprise.SchemaName);
+                    return BadRequest($"Cannot activate Production: tenant schema name '{enterprise.SchemaName}' is invalid.");
+                }
+
+                var activationResult = await _provisioningService.EnsureProductionLaborSchemaAsync(enterprise.SchemaName);
+                if (!activationResult.Success)
+                {
+                    _logger.LogError("Production feature activation failed for tenant {Slug} ({SchemaName}): {Error}",
+                        enterprise.Slug, enterprise.SchemaName, activationResult.ErrorMessage);
+                    return StatusCode(StatusCodes.Status500InternalServerError, new
+                    {
+                        message = "Production feature activation failed: required database schema could not be verified or provisioned.",
+                        error = activationResult.ErrorMessage
+                    });
+                }
+
+                _logger.LogInformation("Production feature schema verified for tenant {Slug} ({SchemaName}). Already migrated: {AlreadyMigrated}",
+                    enterprise.Slug, enterprise.SchemaName, activationResult.AlreadyMigrated);
+            }
+
             enterprise.Name = request.Name;
             enterprise.Email = request.Email;
             enterprise.Phone = request.Phone;
@@ -474,9 +509,9 @@ namespace ms.admin.api.acya.Controllers
                         }
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // Schema may not exist if tenant has not been fully provisioned yet
+                    _logger.LogWarning(ex, "Failed to synchronize tbl_enterprise for schema '{SchemaName}'", enterprise.SchemaName);
                 }
             }
 

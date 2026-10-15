@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Loader2, ArrowRight, Mail, CheckCircle2, AlertCircle, Building2 } from 'lucide-react';
+import { Loader2, ArrowRight, Mail, CheckCircle2, AlertCircle, Building2, Shield, Lock } from 'lucide-react';
 import api from '@/lib/axios';
+import { AuthBrandPanel } from './auth-brand-panel';
 
 const RESERVED_SUBDOMAINS = [
   'www',
@@ -101,9 +102,9 @@ export function CentralLoginView() {
           window.location.href = `https://${cleanSlug}.acya.site/login`;
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsCheckingSlug(false);
-      const httpStatus = err?.response?.status;
+      const httpStatus = (err as { response?: { status?: number } })?.response?.status;
       if (httpStatus === 404) {
         setSlugError("Aucun espace ne correspond à ce nom. Vérifiez l'orthographe ou utilisez la récupération par e-mail ci-dessous.");
       } else if (httpStatus === 403) {
@@ -135,9 +136,10 @@ export function CentralLoginView() {
       const message = response?.data?.message || 'Si un compte correspond à cette adresse, vous recevrez les instructions nécessaires pour retrouver votre espace ACYA.';
       setRecoverySuccessMessage(message);
       setRecoveryEmail('');
-    } catch (err: any) {
-      if (err?.response?.status === 429) {
-        setRecoveryError(err.response?.data?.message || 'Trop de tentatives de récupération. Veuillez réessayer dans quelques minutes.');
+    } catch (err: unknown) {
+      const errorObj = err as { response?: { status?: number; data?: { message?: string } } };
+      if (errorObj?.response?.status === 429) {
+        setRecoveryError(errorObj.response.data?.message || 'Trop de tentatives de récupération. Veuillez réessayer dans quelques minutes.');
       } else {
         setRecoveryError('Une erreur est survenue lors de la demande. Veuillez réessayer.');
       }
@@ -147,239 +149,259 @@ export function CentralLoginView() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/70 flex flex-col justify-between py-10 px-4 sm:px-6 relative selection:bg-corp-blue-500/15">
-      {/* Subtle Ambient Background */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-[20%] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-gradient-to-b from-corp-blue-400/10 via-cyan-400/5 to-transparent blur-[100px] rounded-full" />
-        <div
-          className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: 'radial-gradient(#0f172a 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
-          }}
-        />
-      </div>
+    <div className="min-h-screen bg-[#FAFBFD] flex flex-col lg:flex-row selection:bg-corp-blue-500/15">
+      {/* ─── LEFT PANEL: Brand Experience with og-image.png ───────────── */}
+      <AuthBrandPanel />
 
-      {/* Main Centered Container */}
-      <div className="w-full max-w-[440px] mx-auto my-auto relative z-10">
-        {/* Brand Header */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2.5 group transition-transform duration-200 hover:scale-[1.02]">
-            <div className="p-1 rounded-xl bg-white border border-slate-200/80 shadow-[0_2px_8px_rgba(15,23,42,0.06)]">
-              <svg className="w-8 h-8 shrink-0" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="cent_grad_1" x1="0" y1="0" x2="40" y2="40">
-                    <stop offset="0%" stopColor="#93C5FD" />
-                    <stop offset="100%" stopColor="#3B82F6" />
-                  </linearGradient>
-                  <linearGradient id="cent_grad_2" x1="0" y1="0" x2="40" y2="40">
-                    <stop offset="0%" stopColor="#3B82F6" />
-                    <stop offset="100%" stopColor="#2563EB" />
-                  </linearGradient>
-                  <linearGradient id="cent_grad_3" x1="0" y1="0" x2="40" y2="40">
-                    <stop offset="0%" stopColor="#2563EB" />
-                    <stop offset="100%" stopColor="#1D4ED8" />
-                  </linearGradient>
-                </defs>
-                <path d="M 20 3 L 27.79 7.5 L 27.79 16.5 L 20 21 L 12.21 16.5 L 12.21 7.5 Z" fill="url(#cent_grad_1)" />
-                <path d="M 11.34 18 L 19.13 22.5 L 19.13 31.5 L 11.34 36 L 3.55 31.5 L 3.55 22.5 Z" fill="url(#cent_grad_2)" />
-                <path d="M 28.66 18 L 36.45 22.5 L 36.45 31.5 L 28.66 36 L 20.87 31.5 L 20.87 22.5 Z" fill="url(#cent_grad_3)" />
-              </svg>
-            </div>
-            <span className="text-2xl font-black font-heading tracking-tight text-slate-900">
-              Élancé <span className="text-corp-blue-600 font-semibold">ERP</span>
-            </span>
-          </Link>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mt-6">
-            Connexion à votre espace
-          </h1>
-          <p className="text-sm text-slate-500 mt-1.5 font-medium">
-            Accédez à votre espace professionnel ACYA.
-          </p>
+      {/* ─── RIGHT PANEL: Authentication Experience ────────────────────── */}
+      <main className="flex-1 flex flex-col justify-between p-6 sm:p-10 lg:p-12 xl:p-14 relative min-h-screen overflow-y-auto">
+        {/* Subtle Ambient Background for Right Panel */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div
+            className="absolute inset-0 opacity-[0.025]"
+            style={{
+              backgroundImage: 'radial-gradient(#0F172A 1px, transparent 1px)',
+              backgroundSize: '24px 24px',
+            }}
+          />
         </div>
 
-        {/* Central Card */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 sm:p-8">
-          {/* ─── ACTION 1: Access via Slug ─────────────────────────── */}
-          <form onSubmit={handleContinueWorkspace} className="space-y-4">
-            <div>
-              <label htmlFor="workspace-slug" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                Nom de votre espace
-              </label>
-
-              {/* Input group with fixed suffix */}
-              <div className="relative flex rounded-xl border border-slate-300 focus-within:border-corp-blue-600 focus-within:ring-2 focus-within:ring-corp-blue-500/20 transition-all bg-white overflow-hidden shadow-xs">
-                <div className="flex items-center pl-3.5 pr-2 pointer-events-none text-slate-400">
-                  <Building2 size={17} />
-                </div>
-                <input
-                  id="workspace-slug"
-                  type="text"
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                  placeholder="monentreprise"
-                  value={workspaceSlug}
-                  onChange={(e) => {
-                    setWorkspaceSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'));
-                    if (slugError) setSlugError(null);
-                  }}
-                  disabled={isCheckingSlug}
-                  className="flex-1 min-w-0 py-2.5 px-1 text-sm font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none bg-transparent"
-                />
-                <span className="inline-flex items-center px-3.5 bg-slate-50 text-slate-500 text-xs sm:text-sm font-mono font-semibold border-l border-slate-200 select-none">
-                  .acya.site
-                </span>
-              </div>
-
-              {slugError && (
-                <div className="flex items-start gap-1.5 mt-2 text-xs font-medium text-rose-600">
-                  <AlertCircle size={14} className="shrink-0 mt-0.5" />
-                  <span>{slugError}</span>
-                </div>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={isCheckingSlug || !workspaceSlug.trim()}
-              className="w-full h-11 bg-gradient-to-r from-corp-blue-600 to-corp-blue-700 hover:from-corp-blue-500 hover:to-corp-blue-600 text-white font-semibold text-sm rounded-xl shadow-sm transition-all duration-200 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+        {/* Form Container (Strictly centered, comfortable max-w 420-460px) */}
+        <div className="w-full max-w-[440px] sm:max-w-[450px] mx-auto my-auto relative z-10 py-6 sm:py-8">
+          
+          {/* Brand Header */}
+          <div className="text-center mb-7 sm:mb-8">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2.5 group transition-transform duration-200 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-corp-blue-500 rounded-xl p-1"
             >
-              {isCheckingSlug ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  <span>Vérification...</span>
-                </>
-              ) : (
-                <>
-                  <span>Continuer</span>
-                  <ArrowRight size={15} />
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* ─── DIVIDER ───────────────────────────────────────────── */}
-          <div className="relative my-7">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200" />
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-white px-3 text-slate-400 font-bold uppercase tracking-wider">
-                OU
+              <div className="p-1.5 rounded-xl bg-white border border-slate-200/90 shadow-[0_2px_8px_rgba(15,23,42,0.06)]">
+                <svg className="w-7 h-7 sm:w-8 sm:h-8 shrink-0" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="cent_grad_1" x1="0" y1="0" x2="40" y2="40">
+                      <stop offset="0%" stopColor="#93C5FD" />
+                      <stop offset="100%" stopColor="#3B82F6" />
+                    </linearGradient>
+                    <linearGradient id="cent_grad_2" x1="0" y1="0" x2="40" y2="40">
+                      <stop offset="0%" stopColor="#3B82F6" />
+                      <stop offset="100%" stopColor="#2563EB" />
+                    </linearGradient>
+                    <linearGradient id="cent_grad_3" x1="0" y1="0" x2="40" y2="40">
+                      <stop offset="0%" stopColor="#2563EB" />
+                      <stop offset="100%" stopColor="#1D4ED8" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M 20 3 L 27.79 7.5 L 27.79 16.5 L 20 21 L 12.21 16.5 L 12.21 7.5 Z" fill="url(#cent_grad_1)" />
+                  <path d="M 11.34 18 L 19.13 22.5 L 19.13 31.5 L 11.34 36 L 3.55 31.5 L 3.55 22.5 Z" fill="url(#cent_grad_2)" />
+                  <path d="M 28.66 18 L 36.45 22.5 L 36.45 31.5 L 28.66 36 L 20.87 31.5 L 20.87 22.5 Z" fill="url(#cent_grad_3)" />
+                </svg>
+              </div>
+              <span className="text-2xl font-bold tracking-tight text-slate-900">
+                Élancé <span className="text-corp-blue-600 font-semibold">ERP</span>
               </span>
-            </div>
+            </Link>
+
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mt-5">
+              Connexion à votre espace
+            </h1>
+            <p className="text-sm text-slate-500 mt-1.5 font-normal">
+              Accédez à votre espace professionnel ACYA.
+            </p>
           </div>
 
-          {/* ─── ACTION 2: Email-based Recovery ────────────────────── */}
-          <div className="space-y-3">
-            <div>
-              <h2 className="text-sm font-bold text-slate-800">
-                Vous avez oublié le nom de votre espace ?
-              </h2>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Retrouvez votre espace professionnel à partir de votre adresse e-mail.
-              </p>
-            </div>
-
-            {recoverySuccessMessage ? (
-              <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2">
-                <div className="flex items-start gap-2 text-emerald-800">
-                  <CheckCircle2 size={16} className="shrink-0 mt-0.5 text-emerald-600" />
-                  <p className="text-xs font-medium leading-relaxed">
-                    {recoverySuccessMessage}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setRecoverySuccessMessage(null)}
-                  className="text-[11px] font-semibold text-corp-blue-600 hover:underline pt-1 block"
+          {/* Elevated Authentication Surface */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.03)] p-6 sm:p-8">
+            
+            {/* ─── PRIMARY WORKFLOW: Workspace Slug Identification ──────── */}
+            <form onSubmit={handleContinueWorkspace} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="workspace-slug"
+                  className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-2"
                 >
-                  Envoyer à une autre adresse e-mail
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleRecoverWorkspace} className="space-y-3">
-                <div className="relative flex rounded-xl border border-slate-300 focus-within:border-corp-blue-600 focus-within:ring-2 focus-within:ring-corp-blue-500/20 transition-all bg-white overflow-hidden shadow-xs">
+                  Nom de votre espace
+                </label>
+
+                {/* Input group with clean suffix badge */}
+                <div className="relative flex rounded-xl border border-slate-300/90 bg-white hover:border-slate-400 focus-within:border-corp-blue-600 focus-within:ring-4 focus-within:ring-corp-blue-600/10 transition-[border-color,box-shadow] overflow-hidden shadow-2xs">
                   <div className="flex items-center pl-3.5 pr-2 pointer-events-none text-slate-400">
-                    <Mail size={17} />
+                    <Building2 size={18} />
                   </div>
                   <input
-                    id="recovery-email"
-                    type="email"
-                    placeholder="Adresse e-mail professionnelle"
-                    value={recoveryEmail}
+                    id="workspace-slug"
+                    type="text"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    placeholder="monentreprise"
+                    value={workspaceSlug}
                     onChange={(e) => {
-                      setRecoveryEmail(e.target.value);
-                      if (recoveryError) setRecoveryError(null);
+                      setWorkspaceSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'));
+                      if (slugError) setSlugError(null);
                     }}
-                    disabled={isRecoveryLoading}
-                    className="flex-1 min-w-0 py-2.5 px-1 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none bg-transparent"
+                    disabled={isCheckingSlug}
+                    className="flex-1 min-w-0 py-3 px-1 text-sm font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none bg-transparent"
                   />
+                  <span className="inline-flex items-center px-3.5 bg-slate-50 text-slate-500 text-xs sm:text-sm font-mono font-semibold border-l border-slate-200 select-none">
+                    .acya.site
+                  </span>
                 </div>
 
-                {recoveryError && (
-                  <div className="flex items-start gap-1.5 text-xs font-medium text-rose-600">
-                    <AlertCircle size={14} className="shrink-0 mt-0.5" />
-                    <span>{recoveryError}</span>
+                {slugError && (
+                  <div role="alert" className="flex items-start gap-1.5 mt-2 text-xs font-medium text-rose-600">
+                    <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                    <span>{slugError}</span>
                   </div>
                 )}
+              </div>
 
-                <button
-                  type="submit"
-                  disabled={isRecoveryLoading || !recoveryEmail.trim()}
-                  className="w-full h-10 bg-slate-100 hover:bg-slate-200/80 text-slate-800 font-semibold text-xs sm:text-sm rounded-xl border border-slate-200/80 transition-all duration-200 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
-                >
-                  {isRecoveryLoading ? (
-                    <>
-                      <Loader2 size={15} className="animate-spin" />
-                      <span>Envoi en cours...</span>
-                    </>
-                  ) : (
-                    <span>Retrouver mon espace</span>
+              <button
+                type="submit"
+                disabled={isCheckingSlug || !workspaceSlug.trim()}
+                className="w-full h-11.5 bg-corp-blue-600 hover:bg-corp-blue-700 active:bg-corp-blue-800 text-white font-semibold text-sm rounded-xl shadow-xs hover:shadow transition-[background-color,transform,box-shadow] duration-200 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+              >
+                {isCheckingSlug ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Vérification...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Continuer</span>
+                    <ArrowRight size={16} />
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* ─── SUBTLE REFINED DIVIDER ──────────────────────────────── */}
+            <div className="relative my-6 sm:my-7">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200/80" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white px-3 text-slate-400 font-medium select-none">
+                  ou
+                </span>
+              </div>
+            </div>
+
+            {/* ─── SECONDARY WORKFLOW: Email-Based Workspace Recovery ──── */}
+            <div className="space-y-3">
+              <div>
+                <h2 className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                  Vous avez oublié le nom de votre espace ?
+                </h2>
+                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                  Retrouvez votre espace professionnel à partir de votre adresse e-mail.
+                </p>
+              </div>
+
+              {recoverySuccessMessage ? (
+                <div className="p-3.5 bg-emerald-50/90 border border-emerald-200 rounded-xl space-y-2">
+                  <div className="flex items-start gap-2 text-emerald-800">
+                    <CheckCircle2 size={16} className="shrink-0 mt-0.5 text-emerald-600" />
+                    <p className="text-xs font-medium leading-relaxed">
+                      {recoverySuccessMessage}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setRecoverySuccessMessage(null)}
+                    className="text-[11px] font-semibold text-corp-blue-600 hover:underline pt-1 block cursor-pointer"
+                  >
+                    Envoyer à une autre adresse e-mail
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleRecoverWorkspace} className="space-y-3">
+                  <div className="relative flex rounded-xl border border-slate-300/90 bg-white hover:border-slate-400 focus-within:border-corp-blue-600 focus-within:ring-4 focus-within:ring-corp-blue-600/10 transition-[border-color,box-shadow] overflow-hidden shadow-2xs">
+                    <div className="flex items-center pl-3.5 pr-2 pointer-events-none text-slate-400">
+                      <Mail size={17} />
+                    </div>
+                    <input
+                      id="recovery-email"
+                      type="email"
+                      placeholder="Adresse e-mail professionnelle"
+                      value={recoveryEmail}
+                      onChange={(e) => {
+                        setRecoveryEmail(e.target.value);
+                        if (recoveryError) setRecoveryError(null);
+                      }}
+                      disabled={isRecoveryLoading}
+                      className="flex-1 min-w-0 py-2.5 px-1 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none bg-transparent"
+                    />
+                  </div>
+
+                  {recoveryError && (
+                    <div role="alert" className="flex items-start gap-1.5 text-xs font-medium text-rose-600">
+                      <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                      <span>{recoveryError}</span>
+                    </div>
                   )}
-                </button>
-              </form>
-            )}
+
+                  <button
+                    type="submit"
+                    disabled={isRecoveryLoading || !recoveryEmail.trim()}
+                    className="w-full h-10 bg-slate-100/90 hover:bg-slate-200/80 text-slate-700 font-semibold text-xs sm:text-sm rounded-xl border border-slate-200/90 transition-[background-color,transform] duration-200 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+                  >
+                    {isRecoveryLoading ? (
+                      <>
+                        <Loader2 size={15} className="animate-spin" />
+                        <span>Envoi en cours...</span>
+                      </>
+                    ) : (
+                      <span>Retrouver mon espace</span>
+                    )}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+
+          {/* ─── TERTIARY ACTION: Account Creation Link ────────────────── */}
+          <div className="text-center mt-6">
+            <p className="text-xs text-slate-600 font-normal">
+              Vous n&apos;avez pas encore de compte ?{' '}
+              <Link
+                href="/enterprise-registration"
+                className="font-semibold text-corp-blue-600 hover:text-corp-blue-700 hover:underline transition-colors ml-0.5 inline-flex items-center gap-1"
+              >
+                Créer votre espace professionnel &rarr;
+              </Link>
+            </p>
           </div>
         </div>
 
-        {/* ─── ACTION 3: Registration Link ───────────────────────── */}
-        <div className="text-center mt-6">
-          <p className="text-xs text-slate-600 font-medium">
-            Vous n'avez pas encore de compte ?{' '}
-            <Link
-              href="/enterprise-registration"
-              className="font-bold text-corp-blue-600 hover:text-corp-blue-700 hover:underline transition-colors inline-flex items-center gap-1"
-            >
-              Créer votre espace professionnel &rarr;
-            </Link>
-          </p>
-        </div>
-
-        {/* Security & Legal Footer */}
-        <div className="mt-8 pt-6 border-t border-slate-200/70 text-center space-y-3">
-          <div className="flex items-center justify-center gap-4 text-[11px] text-slate-400 font-medium">
-            <span>🔒 Connexion sécurisée TLS</span>
+        {/* ─── COMPACT SECURITY & LEGAL FOOTER ─────────────────────────── */}
+        <footer className="w-full max-w-[440px] sm:max-w-[450px] mx-auto pt-6 border-t border-slate-200/70 text-center space-y-2.5 relative z-10">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-[11px] text-slate-400 font-medium select-none">
+            <span className="inline-flex items-center gap-1.5">
+              <Lock className="w-3 h-3 text-slate-400" />
+              Connexion sécurisée TLS
+            </span>
             <span>•</span>
-            <span>🛡️ Données isolées par espace</span>
+            <span className="inline-flex items-center gap-1.5">
+              <Shield className="w-3 h-3 text-slate-400" />
+              Données isolées par espace
+            </span>
           </div>
-          <div className="flex items-center justify-center gap-3 text-[11px] text-slate-500">
-            <Link href="/mentions-legales" className="hover:text-slate-800 transition-colors">
+          <div className="flex items-center justify-center gap-3 text-[11px] text-slate-500 font-normal">
+            <Link href="/mentions-legales" className="hover:text-slate-900 transition-colors">
               Mentions Légales
             </Link>
             <span>•</span>
-            <Link href="/privacy" className="hover:text-slate-800 transition-colors">
+            <Link href="/privacy" className="hover:text-slate-900 transition-colors">
               Confidentialité
             </Link>
             <span>•</span>
-            <Link href="/contact" className="hover:text-slate-800 transition-colors">
+            <Link href="/contact" className="hover:text-slate-900 transition-colors">
               Contact
             </Link>
           </div>
-        </div>
-      </div>
+        </footer>
+      </main>
     </div>
   );
 }

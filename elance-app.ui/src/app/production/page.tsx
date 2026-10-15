@@ -16,6 +16,7 @@ import {
   Package,
   X,
   AlertTriangle,
+  Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,7 @@ import { OverviewTab } from './tabs/OverviewTab';
 import { StepsTab } from './tabs/StepsTab';
 import { MaterialsTab } from './tabs/MaterialsTab';
 import { CostAnalysisTab } from './tabs/CostAnalysisTab';
+import { PersonnelTab } from './tabs/PersonnelTab';
 import { CreateProductionModal } from './components/CreateProductionModal';
 import { ProductionStatusBadge } from './components/ProductionStatusBadge';
 
@@ -56,6 +58,7 @@ export default function ProductionPage() {
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState(0);
+  const [mainView, setMainView] = useState<'orders' | 'personnel'>('orders');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<ProductionStatus | undefined>(undefined);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -99,31 +102,72 @@ export default function ProductionPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Main 2-column Container */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[calc(100vh-130px)]">
-          {/* ── LEFT COLUMN: ORDERS LIST ────────────────────────────────────────── */}
-          <div className="lg:col-span-4 xl:col-span-4 flex flex-col space-y-4">
-            {/* Header / New Button */}
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                  <Factory className="w-6 h-6 text-corp-blue-600" />
-                  Production
-                </h1>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  {orders.length} ordre{orders.length > 1 ? 's' : ''} de fabrication
-                </p>
-              </div>
-
-              {canAdd && (
-                <Button
-                  onClick={() => setIsCreateOpen(true)}
-                  className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold gap-1.5 h-9 shadow-xs active:scale-95 transition-all"
-                >
-                  <Plus className="w-4 h-4" /> Nouvel Ordre
-                </Button>
-              )}
+        {/* Top Header & Section Switcher */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-xs">
+              <Factory className="w-5 h-5 text-corp-blue-400" />
             </div>
+            <div>
+              <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                Atelier & Production
+              </h1>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Pilotage de la transformation bois, gestion des étapes, matières premières et main d'œuvre.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200/80">
+              <button
+                type="button"
+                onClick={() => setMainView('orders')}
+                className={cn(
+                  'flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all',
+                  mainView === 'orders'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                )}
+              >
+                <Factory className="w-3.5 h-3.5" />
+                Ordres de Fabrication ({orders.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMainView('personnel')}
+                className={cn(
+                  'flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all',
+                  mainView === 'personnel'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                )}
+              >
+                <Users className="w-3.5 h-3.5" />
+                Personnel & Prestations
+              </button>
+            </div>
+
+            {canAdd && mainView === 'orders' && (
+              <Button
+                onClick={() => setIsCreateOpen(true)}
+                className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold gap-1.5 h-9 shadow-xs active:scale-95 transition-all"
+              >
+                <Plus className="w-4 h-4" /> Nouvel Ordre
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* ── CONDITIONAL VIEW RENDERING ─────────────────────────────────────── */}
+        {mainView === 'personnel' ? (
+          <PersonnelTab />
+        ) : (
+          /* Main 2-column Container */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[calc(100vh-180px)]">
+            {/* ── LEFT COLUMN: ORDERS LIST ────────────────────────────────────────── */}
+            <div className="lg:col-span-4 xl:col-span-4 flex flex-col space-y-4">
 
             {/* Search Input */}
             <div className="relative">
@@ -286,7 +330,8 @@ export default function ProductionPage() {
             )}
           </div>
         </div>
-      </div>
+      )}
+    </div>
 
       {/* Create Modal */}
       <CreateProductionModal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} />

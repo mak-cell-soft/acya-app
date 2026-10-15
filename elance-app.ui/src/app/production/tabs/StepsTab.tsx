@@ -5,6 +5,7 @@ import { ProductionOrder, ProductionStep } from '@/types/production';
 import { StepStatusBadge } from '../components/ProductionStatusBadge';
 import { CompleteStepModal } from '../components/CompleteStepModal';
 import { QuickMerchandiseModal } from '../components/QuickMerchandiseModal';
+import { StepWorkersModal } from '../components/StepWorkersModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,15 +21,20 @@ import {
   Boxes,
   Clock,
   Coins,
+  Users,
+  Pencil,
 } from 'lucide-react';
 import {
   useAddProductionStep,
+  useUpdateProductionStep,
   useDeleteProductionStep,
   useAddProductionInput,
   useDeleteProductionInput,
 } from '@/hooks/use-production';
 import { merchandiseService } from '@/services/components/merchandise.service';
 import { motion } from 'framer-motion';
+import { EditStepModal } from '../components/EditStepModal';
+import { DeleteConfirmDialog } from '@/components/articles/delete-confirm-dialog';
 
 interface StepsTabProps {
   order: ProductionOrder;
@@ -36,16 +42,34 @@ interface StepsTabProps {
 
 export function StepsTab({ order }: StepsTabProps) {
   const addStepMutation = useAddProductionStep();
+  const updateStepMutation = useUpdateProductionStep();
   const deleteStepMutation = useDeleteProductionStep();
   const addInputMutation = useAddProductionInput();
   const deleteInputMutation = useDeleteProductionInput();
 
   const [selectedStepForComplete, setSelectedStepForComplete] = useState<ProductionStep | null>(null);
   const [selectedStepForQuickMerch, setSelectedStepForQuickMerch] = useState<ProductionStep | null>(null);
+  const [selectedStepForWorkers, setSelectedStepForWorkers] = useState<ProductionStep | null>(null);
+  const [selectedStepForEdit, setSelectedStepForEdit] = useState<ProductionStep | null>(null);
+  const [deleteStepConfirm, setDeleteStepConfirm] = useState<ProductionStep | null>(null);
+  const [deleteInputConfirm, setDeleteInputConfirm] = useState<{ id: number; designation: string } | null>(null);
 
   // Quick add input form state
   const [activeStepForAddInput, setActiveStepForAddInput] = useState<number | null>(null);
-  const [merchandises, setMerchandises] = useState<{ id: number; packageReference?: string; description?: string }[]>([]);
+  const [merchandises, setMerchandises] = useState<{
+    id: number;
+    packageReference?: string;
+    description?: string;
+    cost_ht?: number;
+    unit_price_ht?: number;
+    article?: {
+      id?: number;
+      description?: string;
+      lastpurchaseprice_ttc?: number;
+      sellprice_ht?: number;
+      unit?: string;
+    };
+  }[]>([]);
   const [selectedMerchandiseId, setSelectedMerchandiseId] = useState<number | null>(null);
   const [inputQuantity, setInputQuantity] = useState<number>(1);
   const [inputUnitCost, setInputUnitCost] = useState<number>(0);
@@ -64,8 +88,16 @@ export function StepsTab({ order }: StepsTabProps) {
       merchandiseService.getAll().then((res) => {
         const list = Array.isArray(res) ? res : res?.data || [];
         setMerchandises(list);
-        if (list.length > 0) setSelectedMerchandiseId(list[0].id);
+        if (list.length > 0) {
+          setSelectedMerchandiseId(list[0].id);
+          const initialCost = list[0].cost_ht ?? list[0].article?.lastpurchaseprice_ttc ?? 0;
+          setInputUnitCost(Number(initialCost) || 0);
+        }
       });
+    } else if (selectedMerchandiseId) {
+      const selected = merchandises.find((m) => m.id === selectedMerchandiseId);
+      const initialCost = selected?.cost_ht ?? selected?.article?.lastpurchaseprice_ttc ?? 0;
+      setInputUnitCost(Number(initialCost) || 0);
     }
   };
 
@@ -216,6 +248,28 @@ export function StepsTab({ order }: StepsTabProps) {
 
               {/* Step Action Buttons */}
               <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setSelectedStepForWorkers(step)}
+                  className="border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold h-8 gap-1.5 shadow-xs"
+                >
+                  <Users className="w-3.5 h-3.5 text-corp-blue-600" />
+                  Ouvriers & Pointage
+                </Button>
+
+                {!isFinalized && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setSelectedStepForEdit(step)}
+                    className="border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold h-8 gap-1.5 shadow-xs"
+                  >
+                    <Pencil className="w-3.5 h-3.5 text-slate-600" />
+                    Éditer l'étape
+                  </Button>
+                )}
+
                 {!isFinalized && step.status !== 'Completed' && (
                   <Button
                     size="sm"
@@ -230,11 +284,7 @@ export function StepsTab({ order }: StepsTabProps) {
                 {!isFinalized && order.steps.length > 1 && (
                   <button
                     type="button"
-                    onClick={() => {
-                      if (window.confirm(`Supprimer l'étape ${step.name} ?`)) {
-                        deleteStepMutation.mutate({ stepId: step.id, orderId: order.id });
-                      }
-                    }}
+                    onClick={() => setDeleteStepConfirm(step)}
                     className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors"
                     title="Supprimer cette étape"
                   >
@@ -245,11 +295,11 @@ export function StepsTab({ order }: StepsTabProps) {
             </div>
 
             {/* Step Costs & Outputs Bar */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-xl bg-slate-50/80 border border-slate-200/60 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 rounded-xl bg-slate-50/80 border border-slate-200/60 text-xs">
               <div className="flex items-center gap-2">
-                <Coins className="w-4 h-4 text-slate-400" />
+                <Coins className="w-4 h-4 text-slate-400 shrink-0" />
                 <div>
-                  <span className="text-slate-500 text-[11px]">Coût Main d'Œuvre : </span>
+                  <span className="text-slate-500 text-[11px] block">Forfait Manuel</span>
                   <strong className="font-mono text-slate-900">
                     {(step.laborCost ?? 0).toFixed(3)} TND
                   </strong>
@@ -257,9 +307,19 @@ export function StepsTab({ order }: StepsTabProps) {
               </div>
 
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-slate-400" />
+                <Users className="w-4 h-4 text-blue-600 shrink-0" />
                 <div>
-                  <span className="text-slate-500 text-[11px]">Autres Frais : </span>
+                  <span className="text-slate-500 text-[11px] block">MO Ouvriers (Réel)</span>
+                  <strong className="font-mono text-blue-700">
+                    {(step.employeeLaborCost ?? 0).toFixed(3)} TND
+                  </strong>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                <div>
+                  <span className="text-slate-500 text-[11px] block">Autres Frais</span>
                   <strong className="font-mono text-slate-900">
                     {(step.otherCost ?? 0).toFixed(3)} TND
                   </strong>
@@ -268,8 +328,8 @@ export function StepsTab({ order }: StepsTabProps) {
 
               <div className="flex items-center justify-between sm:justify-end gap-2">
                 <div className="text-right">
-                  <span className="text-slate-500 text-[11px]">Coût Total Étape : </span>
-                  <strong className="font-mono font-bold text-corp-blue-700">
+                  <span className="text-slate-500 text-[11px] block">Coût Total Étape</span>
+                  <strong className="font-mono font-bold text-corp-blue-700 text-sm">
                     {(step.totalStepCost ?? 0).toFixed(3)} TND
                   </strong>
                 </div>
@@ -349,7 +409,13 @@ export function StepsTab({ order }: StepsTabProps) {
                     <Label className="text-[11px] text-slate-600">Sélectionner la matière (Catalogue)</Label>
                     <select
                       value={selectedMerchandiseId ?? ''}
-                      onChange={(e) => setSelectedMerchandiseId(parseInt(e.target.value))}
+                      onChange={(e) => {
+                        const newId = parseInt(e.target.value);
+                        setSelectedMerchandiseId(newId);
+                        const selected = merchandises.find((m) => m.id === newId);
+                        const newCost = selected?.cost_ht ?? selected?.article?.lastpurchaseprice_ttc ?? 0;
+                        setInputUnitCost(Number(newCost) || 0);
+                      }}
                       className="w-full mt-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800"
                     >
                       {merchandises.map((m) => (
@@ -452,11 +518,12 @@ export function StepsTab({ order }: StepsTabProps) {
                         {!isFinalized && (
                           <button
                             type="button"
-                            onClick={() => {
-                              if (window.confirm('Supprimer cette matière de l’étape ?')) {
-                                deleteInputMutation.mutate({ inputId: input.id, orderId: order.id });
-                              }
-                            }}
+                            onClick={() =>
+                              setDeleteInputConfirm({
+                                id: input.id,
+                                designation: input.merchandiseDesignation || input.merchandiseRef || 'cette matière',
+                              })
+                            }
                             className="text-slate-400 hover:text-rose-600 p-1"
                             title="Supprimer la matière"
                           >
@@ -481,22 +548,90 @@ export function StepsTab({ order }: StepsTabProps) {
         step={selectedStepForComplete}
       />
 
-      {/* Quick Merchandise Modal */}
+      {/* Edit Step Modal */}
+      <EditStepModal
+        isOpen={!!selectedStepForEdit}
+        onClose={() => setSelectedStepForEdit(null)}
+        orderId={order.id}
+        step={selectedStepForEdit}
+        isFinalized={isFinalized}
+      />
+
+      {/* Quick Merchandise Modal with Backend Persistence */}
       <QuickMerchandiseModal
         isOpen={!!selectedStepForQuickMerch}
         onClose={() => setSelectedStepForQuickMerch(null)}
-        onCreated={(merchId, ref, desig) => {
+        onCreated={async (merchId, ref, desig) => {
           if (selectedStepForQuickMerch) {
-            // Update the step with the newly created merchandise
-            order.steps.forEach((s) => {
-              if (s.id === selectedStepForQuickMerch.id) {
-                s.outputMerchandiseId = merchId;
-                s.outputMerchandiseRef = ref;
-                s.outputMerchandiseDesignation = desig;
-              }
-            });
+            try {
+              await updateStepMutation.mutateAsync({
+                stepId: selectedStepForQuickMerch.id,
+                orderId: order.id,
+                data: {
+                  name: selectedStepForQuickMerch.name,
+                  description: selectedStepForQuickMerch.description,
+                  stepNumber: selectedStepForQuickMerch.stepNumber,
+                  startDate: selectedStepForQuickMerch.startDate,
+                  endDate: selectedStepForQuickMerch.endDate,
+                  laborCost: selectedStepForQuickMerch.laborCost,
+                  otherCost: selectedStepForQuickMerch.otherCost,
+                  outputMerchandiseId: merchId,
+                  plannedOutputQuantity: selectedStepForQuickMerch.plannedOutputQuantity,
+                  actualOutputQuantity: selectedStepForQuickMerch.actualOutputQuantity,
+                },
+              });
+              // Update local step reference for immediate UI feedback
+              order.steps.forEach((s) => {
+                if (s.id === selectedStepForQuickMerch.id) {
+                  s.outputMerchandiseId = merchId;
+                  s.outputMerchandiseRef = ref;
+                  s.outputMerchandiseDesignation = desig;
+                }
+              });
+              setSelectedStepForQuickMerch(null);
+            } catch (err) {
+              console.error('Erreur lors de la persistance du produit de sortie :', err);
+            }
           }
         }}
+      />
+
+      {/* Step Workers & Labor Modal */}
+      <StepWorkersModal
+        isOpen={!!selectedStepForWorkers}
+        onClose={() => setSelectedStepForWorkers(null)}
+        order={order}
+        step={selectedStepForWorkers}
+      />
+
+      {/* Delete Step Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={!!deleteStepConfirm}
+        onClose={() => setDeleteStepConfirm(null)}
+        onConfirm={async () => {
+          if (deleteStepConfirm) {
+            await deleteStepMutation.mutateAsync({ stepId: deleteStepConfirm.id, orderId: order.id });
+            setDeleteStepConfirm(null);
+          }
+        }}
+        title={`Supprimer l'étape ${deleteStepConfirm?.name}`}
+        description="Êtes-vous sûr de vouloir supprimer cette étape de fabrication ? Les matières consommées associées à cette étape seront également retirées."
+        isLoading={deleteStepMutation.isPending}
+      />
+
+      {/* Delete Input (Material) Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={!!deleteInputConfirm}
+        onClose={() => setDeleteInputConfirm(null)}
+        onConfirm={async () => {
+          if (deleteInputConfirm) {
+            await deleteInputMutation.mutateAsync({ inputId: deleteInputConfirm.id, orderId: order.id });
+            setDeleteInputConfirm(null);
+          }
+        }}
+        title="Supprimer la matière première"
+        description={`Êtes-vous sûr de vouloir retirer "${deleteInputConfirm?.designation}" de l'étape ?`}
+        isLoading={deleteInputMutation.isPending}
       />
     </div>
   );

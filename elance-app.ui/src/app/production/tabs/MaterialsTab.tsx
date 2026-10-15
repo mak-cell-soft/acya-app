@@ -1,15 +1,59 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ProductionOrder } from '@/types/production';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertCircle, CheckCircle2, Warehouse, Coins, Package } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { stockService } from '@/services/components/stock.service';
+import { salesSitesService } from '@/services/components/salessites.service';
+import { useUpdateProductionOrder } from '@/hooks/use-production';
 
 interface MaterialsTabProps {
   order: ProductionOrder;
 }
 
 export function MaterialsTab({ order }: MaterialsTabProps) {
+  const updateOrderMutation = useUpdateProductionOrder();
+
+  // Query all active sites for depot switching
+  const { data: allSites = [] } = useQuery({
+    queryKey: ['sales-sites'],
+    queryFn: async () => {
+      const res = await salesSitesService.getAll();
+      return Array.isArray(res) ? res : res?.data || [];
+    },
+  });
+
+  // Query actual warehouse stock for this order's sales site
+  const { data: siteStocks = [] } = useQuery({
+    queryKey: ['stock', 'by-site', order.salesSiteId],
+    queryFn: () => stockService.getBySite({ id: order.salesSiteId }),
+    enabled: !!order.salesSiteId && order.salesSiteId > 0,
+  });
+
+  const siteStockMap = useMemo(() => {
+    const map = new Map<number, number>();
+    if (Array.isArray(siteStocks)) {
+      for (const s of siteStocks) {
+        const mId = s.merchandiseId ?? s.merchandise_id ?? s.MerchandiseId;
+        const qty = Number(s.stockQuantity ?? s.quantity ?? s.StockQuantity ?? 0);
+        if (mId) {
+          map.set(Number(mId), (map.get(Number(mId)) ?? 0) + qty);
+        }
+      }
+    }
+    return map;
+  }, [siteStocks]);
+
+  const handleSiteChange = async (newSiteId: number) => {
+    if (newSiteId === order.salesSiteId) return;
+    await updateOrderMutation.mutateAsync({
+      id: order.id,
+      data: { salesSiteId: newSiteId },
+    });
+  };
+
   // Aggregate all inputs by MerchandiseId
   const aggregatedMap = new Map<
     number,
@@ -22,6 +66,7 @@ export function MaterialsTab({ order }: MaterialsTabProps) {
       actualQty: number;
       totalCost: number;
       currentStock: number;
+      allowNegativStock: boolean;
       stepNames: string[];
     }
   >();
@@ -31,6 +76,10 @@ export function MaterialsTab({ order }: MaterialsTabProps) {
       const existing = aggregatedMap.get(input.merchandiseId);
       const qty = input.actualQuantity ?? input.plannedQuantity;
       const cost = input.totalCost ?? 0;
+      const availableStock = siteStockMap.has(input.merchandiseId)
+        ? (siteStockMap.get(input.merchandiseId) ?? 0)
+        : (input.currentStockQuantity ?? 0);
+      const allowsNegative = input.allowNegativStock ?? false;
 
       if (!existing) {
         aggregatedMap.set(input.merchandiseId, {
@@ -41,13 +90,15 @@ export function MaterialsTab({ order }: MaterialsTabProps) {
           plannedQty: input.plannedQuantity,
           actualQty: qty,
           totalCost: cost,
-          currentStock: input.currentStockQuantity ?? 0,
+          currentStock: availableStock,
+          allowNegativStock: allowsNegative,
           stepNames: [step.name],
         });
       } else {
         existing.plannedQty += input.plannedQuantity;
         existing.actualQty += qty;
         existing.totalCost += cost;
+        if (allowsNegative) existing.allowNegativStock = true;
         if (!existing.stepNames.includes(step.name)) {
           existing.stepNames.push(step.name);
         }
@@ -57,7 +108,11 @@ export function MaterialsTab({ order }: MaterialsTabProps) {
 
   const materialsList = Array.from(aggregatedMap.values());
   const hasInsufficientStock = materialsList.some(
-    (m) => order.status !== 'Validated' && order.status !== 'Cancelled' && m.currentStock < m.actualQty
+    (m) =>
+      order.status !== 'Validated' &&
+      order.status !== 'Cancelled' &&
+      !m.allowNegativStock &&
+      m.currentStock < m.actualQty
   );
 
   return (
@@ -69,9 +124,29 @@ export function MaterialsTab({ order }: MaterialsTabProps) {
             <Warehouse className="w-5 h-5 text-corp-blue-600" />
             Bilan des Matières Premières & Disponibilité Stock
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Dépôt source : <strong className="text-slate-800">{order.salesSiteName || `Dépôt #${order.salesSiteId}`}</strong>
-          </p>
+          <div className="flex items-center gap-2 mt-1 text-xs text-slate-600 flex-wrap">
+            <span>Dépôt source :</span>
+            {order.status !== 'Validated' && order.status !== 'Cancelled' ? (
+              <select
+                value={order.salesSiteId}
+                onChange={(e) => handleSiteChange(Number(e.target.value))}
+                disabled={updateOrderMutation.isPending}
+                className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 shadow-2xs focus:outline-none focus:ring-2 focus:ring-corp-blue-500"
+              >
+                {allSites.map((site: any) => (
+                  <option key={site.id} value={site.id}>
+                    {site.gov ? `${site.gov} - ` : ''}
+                    {site.address || `Dépôt #${site.id}`}
+                    {site.isForsale ? ' (Dépôt Principal / Vente)' : ''}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <strong className="text-slate-800 font-semibold">
+                {order.salesSiteName || `Dépôt #${order.salesSiteId}`}
+              </strong>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-3 text-xs">
@@ -88,10 +163,10 @@ export function MaterialsTab({ order }: MaterialsTabProps) {
       {hasInsufficientStock && (
         <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-xs text-rose-800">
           <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-          <div>
+          <div className="space-y-1">
             <h5 className="font-bold text-rose-900">Alerte : Stock insuffisant pour validation</h5>
             <p className="mt-0.5 text-rose-700 leading-relaxed">
-              Une ou plusieurs matières premières requises ont un stock disponible inférieur à la consommation requise au dépôt sélectionné. L'ordre ne pourra pas être validé tant que les quantités ne sont pas approvisionnées.
+              Une ou plusieurs matières premières requises ont un stock disponible inférieur à la consommation requise au dépôt sélectionné (<strong>{order.salesSiteName || `Dépôt #${order.salesSiteId}`}</strong>). L'ordre ne pourra pas être validé tant que les quantités ne sont pas approvisionnées ou que le bon dépôt source n'est pas sélectionné.
             </p>
           </div>
         </div>
@@ -123,6 +198,7 @@ export function MaterialsTab({ order }: MaterialsTabProps) {
                 const isShort =
                   order.status !== 'Validated' &&
                   order.status !== 'Cancelled' &&
+                  !mat.allowNegativStock &&
                   mat.currentStock < mat.actualQty;
 
                 return (
@@ -172,6 +248,10 @@ export function MaterialsTab({ order }: MaterialsTabProps) {
                         <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
                           <AlertCircle className="w-3.5 h-3.5" /> Insuffisant
                         </span>
+                      ) : mat.allowNegativStock && mat.currentStock < mat.actualQty ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200" title="Stock négatif autorisé">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Autorisé
+                        </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                           <CheckCircle2 className="w-3.5 h-3.5" /> Disponible
@@ -188,3 +268,4 @@ export function MaterialsTab({ order }: MaterialsTabProps) {
     </div>
   );
 }
+

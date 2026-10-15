@@ -407,9 +407,9 @@ namespace ms.webapp.api.acya.api.Controllers.AppConfiguration
     ""invoice"": ""FACTURE ORIGINAL""
   },
   ""originalLabelTransfer"": ""TRANSFERT STOCK"",
-  ""companyArabicName"": ""الشركة التجارية للحديد و الخشب"",
-  ""companyArabicCapital"": ""شركة خفية الإسم رأس مالها 20.000 د.ت"",
-  ""companyArabicAddress"": ""مقرها الاجتماعي: طريق رواد كلم 4 اريانة"",
+  ""companyArabicName"": """",
+  ""companyArabicCapital"": """",
+  ""companyArabicAddress"": """",
   ""stampImageBase64"": """",
   ""labels"": {
     ""client"": ""Client :"",

@@ -37,11 +37,15 @@ export function QuoteLight({ document, enterprise, printLocale }: QuoteLightProp
       <div className="header">
         <div className="company-info">
           <div className="company-name">{enterprise.name}</div>
+          {enterprise.siegeAddress && <div className="company-details">{enterprise.siegeAddress}</div>}
           <div className="company-details">Tél: {enterprise.phone}</div>
           <div className="company-details">M.F: {enterprise.matriculeFiscal}</div>
         </div>
         <div className="arabic-info">
-          <div className="arabic-text">{ar.companyArabicName}</div>
+          {ar.companyArabicName && <div className="arabic-text">{ar.companyArabicName}</div>}
+          {(ar.companyArabicAddress || enterprise.siegeAddress) && (
+            <div className="arabic-details" dir="rtl">{ar.companyArabicAddress || enterprise.siegeAddress}</div>
+          )}
         </div>
       </div>
 
@@ -170,6 +174,11 @@ export function QuoteLight({ document, enterprise, printLocale }: QuoteLightProp
         <div className="sig-box" style={{ width: '48%' }}>
           <span>Entreprise</span>
         </div>
+      </div>
+
+      {/* Legal message for dot matrix */}
+      <div className="footer-legal-light">
+        {enterprise.name}{enterprise.siegeAddress ? ` - ${enterprise.siegeAddress}` : ''}
       </div>
     </div>
   );

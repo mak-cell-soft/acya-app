@@ -14,6 +14,7 @@ export interface ProductionInput {
   unitCost?: number;
   totalCost?: number;
   currentStockQuantity?: number;
+  allowNegativStock?: boolean;
 }
 
 export interface ProductionStep {
@@ -27,6 +28,7 @@ export interface ProductionStep {
   startDate?: string;
   endDate?: string;
   laborCost?: number;
+  employeeLaborCost?: number;
   otherCost?: number;
   materialCost?: number;
   totalStepCost?: number;
@@ -36,6 +38,8 @@ export interface ProductionStep {
   plannedOutputQuantity: number;
   actualOutputQuantity?: number;
   inputs: ProductionInput[];
+  workers?: ProductionStepWorker[];
+  workLogs?: ProductionStepWorkLog[];
 }
 
 export interface ProductionOrder {
@@ -135,3 +139,126 @@ export interface QuickCreateMerchandiseInput {
   isInvoicible?: boolean;
   allowNegativStock?: boolean;
 }
+
+// ── Step Worker & Labor Types ───────────────────────────────────────────────
+
+export interface ProductionStepWorker {
+  id: number;
+  guid: string;
+  productionStepId: number;
+  personId: number;
+  employeeFullName: string;
+  plannedHours: number;
+  defaultHourlyRate: number;
+  estimatedLaborAmount: number;
+  notes?: string;
+  createdById: number;
+  creationDate: string;
+  workLogs?: ProductionStepWorkLog[];
+}
+
+export interface CreateProductionStepWorkerInput {
+  personId: number;
+  plannedHours: number;
+  defaultHourlyRate: number;
+  notes?: string;
+}
+
+export interface UpdateProductionStepWorkerInput {
+  plannedHours: number;
+  defaultHourlyRate: number;
+  notes?: string;
+}
+
+// ── Step Work Log Types ─────────────────────────────────────────────────────
+
+export interface ProductionStepWorkLog {
+  id: number;
+  guid: string;
+  stepWorkerId: number;
+  productionStepId: number;
+  personId: number;
+  employeeFullName: string;
+  workDate: string; // YYYY-MM-DD
+  actualHours: number;
+  hourlyRate: number;
+  calculatedLaborAmount: number;
+  notes?: string;
+  createdById: number;
+  creationDate: string;
+}
+
+export interface CreateProductionStepWorkLogInput {
+  stepWorkerId: number;
+  workDate: string; // YYYY-MM-DD
+  actualHours: number;
+  hourlyRate?: number;
+  notes?: string;
+}
+
+export interface UpdateProductionStepWorkLogInput {
+  workDate: string; // YYYY-MM-DD
+  actualHours: number;
+  hourlyRate?: number;
+  notes?: string;
+}
+
+// ── Production Other Work Types (Standalone) ────────────────────────────────
+
+export interface ProductionOtherWorkEntry {
+  id: number;
+  guid: string;
+  personId: number;
+  employeeFullName: string;
+  workDate: string; // YYYY-MM-DD
+  hours: number;
+  hourlyRate: number;
+  calculatedAmount: number;
+  description: string;
+  createdById: number;
+  creationDate: string;
+  updatedById?: number;
+  updateDate?: string;
+  isDeleted: boolean;
+}
+
+export interface CreateProductionOtherWorkEntryInput {
+  personId: number;
+  workDate: string; // YYYY-MM-DD
+  hours: number;
+  hourlyRate: number;
+  description: string;
+}
+
+export interface UpdateProductionOtherWorkEntryInput {
+  workDate: string; // YYYY-MM-DD
+  hours: number;
+  hourlyRate: number;
+  description: string;
+}
+
+// ── Monthly Employee Payable Summary Types ──────────────────────────────────
+
+export interface EmployeePayableSummaryItem {
+  personId: number;
+  employeeFullName: string;
+  manufacturingHours: number;
+  manufacturingAmount: number;
+  otherHours: number;
+  otherAmount: number;
+  totalPayableHours: number;
+  totalPayableAmount: number;
+}
+
+export interface MonthlyEmployeePayableSummary {
+  year: number;
+  month: number;
+  totalManufacturingHours: number;
+  totalManufacturingAmount: number;
+  totalOtherHours: number;
+  totalOtherAmount: number;
+  totalPayableHours: number;
+  totalPayableAmount: number;
+  employees: EmployeePayableSummaryItem[];
+}
+

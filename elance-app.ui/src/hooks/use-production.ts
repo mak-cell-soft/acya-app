@@ -12,6 +12,16 @@ import {
   CreateProductionInputInput,
   CompleteStepInput,
   QuickCreateMerchandiseInput,
+  ProductionStepWorker,
+  CreateProductionStepWorkerInput,
+  UpdateProductionStepWorkerInput,
+  ProductionStepWorkLog,
+  CreateProductionStepWorkLogInput,
+  UpdateProductionStepWorkLogInput,
+  ProductionOtherWorkEntry,
+  CreateProductionOtherWorkEntryInput,
+  UpdateProductionOtherWorkEntryInput,
+  MonthlyEmployeePayableSummary,
 } from '@/types/production';
 import { toast } from 'sonner';
 
@@ -22,6 +32,13 @@ export const PRODUCTION_QUERY_KEYS = {
     [...PRODUCTION_QUERY_KEYS.orders(), params] as const,
   orderDetails: () => [...PRODUCTION_QUERY_KEYS.all, 'detail'] as const,
   orderDetail: (id: number) => [...PRODUCTION_QUERY_KEYS.orderDetails(), id] as const,
+  stepWorkers: (stepId: number) => [...PRODUCTION_QUERY_KEYS.all, 'step-workers', stepId] as const,
+  stepWorkLogs: (stepId: number) => [...PRODUCTION_QUERY_KEYS.all, 'step-work-logs', stepId] as const,
+  otherWork: (params?: { startDate?: string; endDate?: string; personId?: number }) =>
+    [...PRODUCTION_QUERY_KEYS.all, 'other-work', params] as const,
+  monthlyPayables: (year: number, month: number) =>
+    [...PRODUCTION_QUERY_KEYS.all, 'monthly-payables', year, month] as const,
+  allMonthlyPayables: () => [...PRODUCTION_QUERY_KEYS.all, 'monthly-payables'] as const,
 };
 
 export function useProductionOrdersList(params?: { status?: string; salesSiteId?: number; search?: string }) {
@@ -242,3 +259,197 @@ export function useQuickCreateMerchandise() {
     },
   });
 }
+
+// ── Step Workers Hooks ────────────────────────────────────────────────────────
+
+export function useStepWorkers(stepId?: number) {
+  return useQuery<ProductionStepWorker[]>({
+    queryKey: PRODUCTION_QUERY_KEYS.stepWorkers(stepId ?? 0),
+    queryFn: () => productionService.getStepWorkers(stepId!),
+    enabled: !!stepId && stepId > 0,
+  });
+}
+
+export function useAddStepWorker() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ stepId, orderId, data }: { stepId: number; orderId: number; data: CreateProductionStepWorkerInput }) =>
+      productionService.addStepWorker(stepId, data),
+    onSuccess: (_, { stepId, orderId }) => {
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.stepWorkers(stepId) });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.orderDetail(orderId) });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.orders() });
+      toast.success('Ouvrier affecté à l’étape.');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Erreur lors de l’affectation de l’ouvrier.');
+    },
+  });
+}
+
+export function useUpdateStepWorker() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workerId, stepId, orderId, data }: { workerId: number; stepId: number; orderId: number; data: UpdateProductionStepWorkerInput }) =>
+      productionService.updateStepWorker(workerId, data),
+    onSuccess: (_, { stepId, orderId }) => {
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.stepWorkers(stepId) });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.orderDetail(orderId) });
+      toast.success('Affectation mise à jour.');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Erreur lors de la mise à jour de l’affectation.');
+    },
+  });
+}
+
+export function useDeleteStepWorker() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workerId, stepId, orderId }: { workerId: number; stepId: number; orderId: number }) =>
+      productionService.deleteStepWorker(workerId),
+    onSuccess: (_, { stepId, orderId }) => {
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.stepWorkers(stepId) });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.orderDetail(orderId) });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.orders() });
+      toast.success('Affectation retirée avec succès.');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Impossible de supprimer cette affectation.');
+    },
+  });
+}
+
+// ── Step Work Logs Hooks ──────────────────────────────────────────────────────
+
+export function useStepWorkLogs(stepId?: number) {
+  return useQuery<ProductionStepWorkLog[]>({
+    queryKey: PRODUCTION_QUERY_KEYS.stepWorkLogs(stepId ?? 0),
+    queryFn: () => productionService.getStepWorkLogs(stepId!),
+    enabled: !!stepId && stepId > 0,
+  });
+}
+
+export function useAddStepWorkLog() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ stepId, orderId, data }: { stepId: number; orderId: number; data: CreateProductionStepWorkLogInput }) =>
+      productionService.addStepWorkLog(stepId, data),
+    onSuccess: (_, { stepId, orderId }) => {
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.stepWorkLogs(stepId) });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.stepWorkers(stepId) });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.orderDetail(orderId) });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.orders() });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.allMonthlyPayables() });
+      toast.success('Session de travail enregistrée.');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Erreur lors de l’enregistrement de la session de travail.');
+    },
+  });
+}
+
+export function useUpdateStepWorkLog() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workLogId, stepId, orderId, data }: { workLogId: number; stepId: number; orderId: number; data: UpdateProductionStepWorkLogInput }) =>
+      productionService.updateStepWorkLog(workLogId, data),
+    onSuccess: (_, { stepId, orderId }) => {
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.stepWorkLogs(stepId) });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.stepWorkers(stepId) });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.orderDetail(orderId) });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.orders() });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.allMonthlyPayables() });
+      toast.success('Session de travail mise à jour.');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Erreur lors de la modification de la session de travail.');
+    },
+  });
+}
+
+export function useDeleteStepWorkLog() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workLogId, stepId, orderId }: { workLogId: number; stepId: number; orderId: number }) =>
+      productionService.deleteStepWorkLog(workLogId),
+    onSuccess: (_, { stepId, orderId }) => {
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.stepWorkLogs(stepId) });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.stepWorkers(stepId) });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.orderDetail(orderId) });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.orders() });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.allMonthlyPayables() });
+      toast.success('Session de travail supprimée.');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Erreur lors de la suppression de la session.');
+    },
+  });
+}
+
+// ── Standalone Other Work Entries Hooks ───────────────────────────────────────
+
+export function useOtherWorkEntries(params?: { startDate?: string; endDate?: string; personId?: number }) {
+  return useQuery<ProductionOtherWorkEntry[]>({
+    queryKey: PRODUCTION_QUERY_KEYS.otherWork(params),
+    queryFn: () => productionService.getOtherWorkEntries(params),
+  });
+}
+
+export function useCreateOtherWorkEntry() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateProductionOtherWorkEntryInput) =>
+      productionService.createOtherWorkEntry(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [...PRODUCTION_QUERY_KEYS.all, 'other-work'] });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.allMonthlyPayables() });
+      toast.success('Prestation de travail enregistrée.');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Erreur lors de l’enregistrement de la prestation.');
+    },
+  });
+}
+
+export function useUpdateOtherWorkEntry() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UpdateProductionOtherWorkEntryInput }) =>
+      productionService.updateOtherWorkEntry(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [...PRODUCTION_QUERY_KEYS.all, 'other-work'] });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.allMonthlyPayables() });
+      toast.success('Prestation mise à jour.');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Erreur lors de la mise à jour de la prestation.');
+    },
+  });
+}
+
+export function useDeleteOtherWorkEntry() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => productionService.deleteOtherWorkEntry(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [...PRODUCTION_QUERY_KEYS.all, 'other-work'] });
+      queryClient.invalidateQueries({ queryKey: PRODUCTION_QUERY_KEYS.allMonthlyPayables() });
+      toast.success('Prestation supprimée avec succès.');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Erreur lors de la suppression de la prestation.');
+    },
+  });
+}
+
+// ── Monthly Employee Payable Summary Hook ───────────────────────────────────
+
+export function useMonthlyPayableSummary(year: number, month: number) {
+  return useQuery<MonthlyEmployeePayableSummary>({
+    queryKey: PRODUCTION_QUERY_KEYS.monthlyPayables(year, month),
+    queryFn: () => productionService.getMonthlyPayableSummary(year, month),
+    enabled: year >= 2000 && month >= 1 && month <= 12,
+  });
+}
+

@@ -82,6 +82,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Production
     public DateTime? EndDate { get; set; }
 
     public decimal? LaborCost { get; set; }
+    public decimal? EmployeeLaborCost { get; set; }
     public decimal? OtherCost { get; set; }
     public decimal? MaterialCost { get; set; }
     public decimal? TotalStepCost { get; set; }
@@ -93,6 +94,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Production
     public double? ActualOutputQuantity { get; set; }
 
     public List<ProductionInputDto> Inputs { get; set; } = new List<ProductionInputDto>();
+    public List<ProductionStepWorkerDto> Workers { get; set; } = new List<ProductionStepWorkerDto>();
+    public List<ProductionStepWorkLogDto> WorkLogs { get; set; } = new List<ProductionStepWorkLogDto>();
   }
 
   public class CreateProductionStepDto
@@ -152,6 +155,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Production
     public decimal? TotalCost { get; set; }
 
     public double? CurrentStockQuantity { get; set; }
+    public bool AllowNegativStock { get; set; }
   }
 
   public class CreateProductionInputDto
@@ -197,5 +201,184 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Production
     public string? Description { get; set; }
     public bool IsInvoicible { get; set; } = true;
     public bool AllowNegativStock { get; set; } = false;
+  }
+
+  // ── Step Worker DTOs ───────────────────────────────────────────────────────
+
+  public class ProductionStepWorkerDto
+  {
+    public int Id { get; set; }
+    public Guid Guid { get; set; }
+    public int ProductionStepId { get; set; }
+    public int PersonId { get; set; }
+    public string EmployeeFullName { get; set; } = string.Empty;
+    public decimal PlannedHours { get; set; }
+    public decimal DefaultHourlyRate { get; set; }
+    public decimal EstimatedLaborAmount { get; set; }
+    public string? Notes { get; set; }
+    public int CreatedById { get; set; }
+    public DateTime CreationDate { get; set; }
+    public List<ProductionStepWorkLogDto> WorkLogs { get; set; } = new List<ProductionStepWorkLogDto>();
+  }
+
+  public class CreateProductionStepWorkerDto
+  {
+    [Required]
+    public int PersonId { get; set; }
+
+    [Range(0, 100000, ErrorMessage = "Les heures prévues doivent être supérieures ou égales à zéro.")]
+    public decimal PlannedHours { get; set; } = 0m;
+
+    [Range(0, 100000, ErrorMessage = "Le taux horaire par défaut doit être supérieur ou égal à zéro.")]
+    public decimal DefaultHourlyRate { get; set; } = 0m;
+
+    public string? Notes { get; set; }
+  }
+
+  public class UpdateProductionStepWorkerDto
+  {
+    [Range(0, 100000, ErrorMessage = "Les heures prévues doivent être supérieures ou égales à zéro.")]
+    public decimal PlannedHours { get; set; } = 0m;
+
+    [Range(0, 100000, ErrorMessage = "Le taux horaire par défaut doit être supérieur ou égal à zéro.")]
+    public decimal DefaultHourlyRate { get; set; } = 0m;
+
+    public string? Notes { get; set; }
+  }
+
+  // ── Work Log DTOs ──────────────────────────────────────────────────────────
+
+  public class ProductionStepWorkLogDto
+  {
+    public int Id { get; set; }
+    public Guid Guid { get; set; }
+    public int StepWorkerId { get; set; }
+    public int ProductionStepId { get; set; }
+    public int PersonId { get; set; }
+    public string EmployeeFullName { get; set; } = string.Empty;
+    public DateTime WorkDate { get; set; }
+    public decimal ActualHours { get; set; }
+    public decimal HourlyRate { get; set; }
+    public decimal CalculatedLaborAmount { get; set; }
+    public string? Notes { get; set; }
+    public int CreatedById { get; set; }
+    public DateTime CreationDate { get; set; }
+  }
+
+  public class CreateProductionStepWorkLogDto
+  {
+    [Required]
+    public int StepWorkerId { get; set; }
+
+    [Required]
+    public DateTime WorkDate { get; set; }
+
+    [Range(0.001, 1000, ErrorMessage = "Les heures effectives doivent être strictement supérieures à zéro.")]
+    public decimal ActualHours { get; set; }
+
+    /// <summary>
+    /// Explicit hourly rate snapshot. If null, server defaults to assignment's DefaultHourlyRate.
+    /// </summary>
+    public decimal? HourlyRate { get; set; }
+
+    public string? Notes { get; set; }
+  }
+
+  public class UpdateProductionStepWorkLogDto
+  {
+    [Required]
+    public DateTime WorkDate { get; set; }
+
+    [Range(0.001, 1000, ErrorMessage = "Les heures effectives doivent être strictement supérieures à zéro.")]
+    public decimal ActualHours { get; set; }
+
+    /// <summary>
+    /// Explicit hourly rate snapshot. If null, preserves existing work log rate.
+    /// </summary>
+    public decimal? HourlyRate { get; set; }
+
+    public string? Notes { get; set; }
+  }
+
+  // ── Production Other Work Entry DTOs ───────────────────────────────────────
+
+  public class ProductionOtherWorkEntryDto
+  {
+    public int Id { get; set; }
+    public Guid Guid { get; set; }
+    public int PersonId { get; set; }
+    public string EmployeeFullName { get; set; } = string.Empty;
+    public DateTime WorkDate { get; set; }
+    public decimal Hours { get; set; }
+    public decimal HourlyRate { get; set; }
+    public decimal CalculatedAmount { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public int CreatedById { get; set; }
+    public DateTime CreationDate { get; set; }
+    public int? UpdatedById { get; set; }
+    public DateTime? UpdateDate { get; set; }
+    public bool IsDeleted { get; set; }
+  }
+
+  public class CreateProductionOtherWorkEntryDto
+  {
+    [Required]
+    public int PersonId { get; set; }
+
+    [Required]
+    public DateTime WorkDate { get; set; }
+
+    [Range(0.001, 1000, ErrorMessage = "Le nombre d'heures doit être strictement supérieur à zéro.")]
+    public decimal Hours { get; set; }
+
+    [Range(0.001, 100000, ErrorMessage = "Le taux horaire doit être strictement supérieur à zéro.")]
+    public decimal HourlyRate { get; set; }
+
+    [Required]
+    [MaxLength(500, ErrorMessage = "La description ne doit pas dépasser 500 caractères.")]
+    public string Description { get; set; } = string.Empty;
+  }
+
+  public class UpdateProductionOtherWorkEntryDto
+  {
+    [Required]
+    public DateTime WorkDate { get; set; }
+
+    [Range(0.001, 1000, ErrorMessage = "Le nombre d'heures doit être strictement supérieur à zéro.")]
+    public decimal Hours { get; set; }
+
+    [Range(0.001, 100000, ErrorMessage = "Le taux horaire doit être strictement supérieur à zéro.")]
+    public decimal HourlyRate { get; set; }
+
+    [Required]
+    [MaxLength(500, ErrorMessage = "La description ne doit pas dépasser 500 caractères.")]
+    public string Description { get; set; } = string.Empty;
+  }
+
+  // ── Monthly Employee Payable Summary DTOs ──────────────────────────────────
+
+  public class MonthlyEmployeePayableSummaryDto
+  {
+    public int Year { get; set; }
+    public int Month { get; set; }
+    public decimal TotalManufacturingHours { get; set; }
+    public decimal TotalManufacturingAmount { get; set; }
+    public decimal TotalOtherHours { get; set; }
+    public decimal TotalOtherAmount { get; set; }
+    public decimal TotalPayableHours { get; set; }
+    public decimal TotalPayableAmount { get; set; }
+    public List<EmployeePayableSummaryItemDto> Employees { get; set; } = new List<EmployeePayableSummaryItemDto>();
+  }
+
+  public class EmployeePayableSummaryItemDto
+  {
+    public int PersonId { get; set; }
+    public string EmployeeFullName { get; set; } = string.Empty;
+    public decimal ManufacturingHours { get; set; }
+    public decimal ManufacturingAmount { get; set; }
+    public decimal OtherHours { get; set; }
+    public decimal OtherAmount { get; set; }
+    public decimal TotalPayableHours { get; set; }
+    public decimal TotalPayableAmount { get; set; }
   }
 }

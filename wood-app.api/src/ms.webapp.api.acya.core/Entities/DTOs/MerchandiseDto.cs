@@ -105,6 +105,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
           article = new ArticleDto();
         }
         article.UpdateFromEntity(entity.Articles);
+        cost_ht = entity.Articles.LastPurchasePriceTTC > 0 ? entity.Articles.LastPurchasePriceTTC : 0;
+        unit_price_ht = entity.Articles.SellPriceHT ?? 0;
       }
       else
       {
