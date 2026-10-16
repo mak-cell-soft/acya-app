@@ -4,6 +4,7 @@ import { salesSitesService } from '@/services/components/salessites.service';
 import { Enterprise, Site } from '@/types/settings';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/use-auth-store';
+import { applyBranding } from '@/lib/branding';
 
 export function useEnterprise() {
   const { user } = useAuthStore();
@@ -11,7 +12,21 @@ export function useEnterprise() {
 
   return useQuery<Enterprise>({
     queryKey: ['enterprise', enterpriseId],
-    queryFn: () => enterpriseService.getEnterpriseInfo(enterpriseId),
+    queryFn: async () => {
+      const data = await enterpriseService.getEnterpriseInfo(enterpriseId);
+      if (data) {
+        applyBranding({
+          name: data.name,
+          logoUrl: data.logoUrl,
+          faviconUrl: data.faviconUrl,
+          primaryColor: data.primaryColor,
+          secondaryColor: data.secondaryColor,
+          language: data.language,
+          currency: data.currency,
+        });
+      }
+      return data;
+    },
     enabled: !!enterpriseId,
   });
 }
@@ -36,8 +51,14 @@ export function useUpdateEnterprise() {
       };
       return enterpriseService.update(enterpriseId, mergedData);
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['enterprise', enterpriseId] });
+      applyBranding({
+        ...(variables.logoUrl !== undefined && { logoUrl: variables.logoUrl }),
+        ...(variables.faviconUrl !== undefined && { faviconUrl: variables.faviconUrl }),
+        ...(variables.primaryColor !== undefined && { primaryColor: variables.primaryColor }),
+        ...(variables.secondaryColor !== undefined && { secondaryColor: variables.secondaryColor }),
+      });
       toast.success('Informations de l\'entreprise mises à jour');
     },
     onError: (error: any) => {

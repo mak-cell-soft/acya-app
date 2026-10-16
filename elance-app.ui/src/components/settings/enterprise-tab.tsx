@@ -14,6 +14,7 @@ import { DEVISES, JOB_DESCRIPTION } from '@/lib/constants/settings';
 import { Building2, UserCircle, Save, Loader2, BadgeInfo, Palette } from 'lucide-react';
 import { SitesSection } from './sites-section';
 import { TaxRegistrationDialog } from '@/components/shared/tax-registration-dialog';
+import { isValidHexColor, isValidUrl } from '@/lib/branding';
 import { motion } from 'framer-motion';
 
 const enterpriseSchema = z.object({
@@ -31,12 +32,34 @@ const enterpriseSchema = z.object({
   siegeAddress: z.string().min(1, 'Adresse siège requise'),
   commercialregister: z.string().min(1, 'Registre de commerce requis'),
   capital: z.string().min(1, 'Capital requis'),
-  logoUrl: z.string().optional().nullable(),
-  faviconUrl: z.string().optional().nullable(),
-  primaryColor: z.string().optional().nullable(),
-  secondaryColor: z.string().optional().nullable(),
-  customDomain: z.string().optional().nullable(),
-  language: z.string().optional().nullable(),
+  logoUrl: z
+    .string()
+    .optional()
+    .nullable()
+    .refine((val) => !val || val.trim() === '' || isValidUrl(val), {
+      message: 'URL invalide (doit débuter par http://, https:// ou /)',
+    }),
+  faviconUrl: z
+    .string()
+    .optional()
+    .nullable()
+    .refine((val) => !val || val.trim() === '' || isValidUrl(val), {
+      message: 'URL invalide (doit débuter par http://, https:// ou /)',
+    }),
+  primaryColor: z
+    .string()
+    .optional()
+    .nullable()
+    .refine((val) => !val || val.trim() === '' || isValidHexColor(val), {
+      message: 'Format hexadécimal invalide (ex: #2563EB)',
+    }),
+  secondaryColor: z
+    .string()
+    .optional()
+    .nullable()
+    .refine((val) => !val || val.trim() === '' || isValidHexColor(val), {
+      message: 'Format hexadécimal invalide (ex: #F0F4FF)',
+    }),
 });
 
 type EnterpriseFormValues = z.infer<typeof enterpriseSchema>;
@@ -74,10 +97,13 @@ export function EnterpriseTab() {
       faviconUrl: '',
       primaryColor: '',
       secondaryColor: '',
-      customDomain: '',
-      language: '',
     },
   });
+
+  const watchedLogoUrl = watch('logoUrl');
+  const watchedFaviconUrl = watch('faviconUrl');
+  const watchedPrimaryColor = watch('primaryColor') || '';
+  const watchedSecondaryColor = watch('secondaryColor') || '';
 
   React.useEffect(() => {
     if (enterprise) {
@@ -100,14 +126,18 @@ export function EnterpriseTab() {
         faviconUrl: enterprise.faviconUrl || '',
         primaryColor: enterprise.primaryColor || '',
         secondaryColor: enterprise.secondaryColor || '',
-        customDomain: enterprise.customDomain || '',
-        language: enterprise.language || '',
       });
     }
   }, [enterprise, reset]);
 
   const onSubmit = (data: EnterpriseFormValues) => {
-    updateEnterprise.mutate(data);
+    // Preserve centrally managed customDomain & language to prevent accidental clobbering
+    const payload = {
+      ...data,
+      customDomain: enterprise?.customDomain ?? null,
+      language: enterprise?.language ?? null,
+    };
+    updateEnterprise.mutate(payload);
   };
 
   if (isLoading) {
@@ -327,88 +357,176 @@ export function EnterpriseTab() {
               Personnalisation & Marque
             </h3>
             <p className="text-[0.9rem] text-sand-400 font-medium leading-relaxed">
-              Configurez l'apparence visuelle et le domaine de votre portail client.
+              Configurez l&apos;apparence visuelle, les logos et la palette de couleurs de votre portail.
             </p>
           </div>
           <Card className="lg:col-span-2 border-corp-blue-100 rounded-xl shadow-sm bg-white overflow-hidden">
             <CardContent className="p-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Logo URL */}
                 <div className="space-y-2.5">
-                  <Label className="text-sm font-bold text-corp-blue-900">URL du Logo</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="logoUrl" className="text-sm font-bold text-corp-blue-900">
+                      URL du Logo
+                    </Label>
+                    {watchedLogoUrl && isValidUrl(watchedLogoUrl) && (
+                      <span className="text-xs text-emerald-600 font-medium">
+                        URL valide
+                      </span>
+                    )}
+                  </div>
                   <Input 
+                    id="logoUrl"
                     {...register('logoUrl')} 
                     placeholder="https://mon-serveur.com/logo.png"
                     className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
                   />
+                  {errors.logoUrl && (
+                    <p className="text-xs text-red-500 font-medium">{errors.logoUrl.message}</p>
+                  )}
+                  {watchedLogoUrl && isValidUrl(watchedLogoUrl) && (
+                    <div className="flex items-center gap-3 p-2.5 bg-sand-50 rounded-xl border border-corp-blue-100">
+                      <span className="text-xs text-sand-400 font-medium">Aperçu :</span>
+                      <div className="h-9 max-w-[140px] px-2 py-1 bg-white rounded border border-slate-200 flex items-center justify-center">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img 
+                          src={watchedLogoUrl} 
+                          alt="Aperçu logo" 
+                          className="max-h-full max-w-full object-contain"
+                          onError={(e) => {
+                            const parent = (e.currentTarget.parentElement as HTMLElement);
+                            if (parent) parent.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                {/* Favicon URL */}
                 <div className="space-y-2.5">
-                  <Label className="text-sm font-bold text-corp-blue-900">URL du Favicon</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="faviconUrl" className="text-sm font-bold text-corp-blue-900">
+                      URL du Favicon
+                    </Label>
+                    {watchedFaviconUrl && isValidUrl(watchedFaviconUrl) && (
+                      <span className="text-xs text-emerald-600 font-medium">
+                        URL valide
+                      </span>
+                    )}
+                  </div>
                   <Input 
+                    id="faviconUrl"
                     {...register('faviconUrl')} 
                     placeholder="https://mon-serveur.com/favicon.ico"
                     className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
                   />
+                  {errors.faviconUrl && (
+                    <p className="text-xs text-red-500 font-medium">{errors.faviconUrl.message}</p>
+                  )}
+                  {watchedFaviconUrl && isValidUrl(watchedFaviconUrl) && (
+                    <div className="flex items-center gap-3 p-2.5 bg-sand-50 rounded-xl border border-corp-blue-100">
+                      <span className="text-xs text-sand-400 font-medium">Aperçu :</span>
+                      <div className="w-8 h-8 bg-white rounded border border-slate-200 flex items-center justify-center">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img 
+                          src={watchedFaviconUrl} 
+                          alt="Aperçu favicon" 
+                          className="w-5 h-5 object-contain"
+                          onError={(e) => {
+                            const parent = (e.currentTarget.parentElement as HTMLElement);
+                            if (parent) parent.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                {/* Primary Color */}
                 <div className="space-y-2.5">
-                  <Label className="text-sm font-bold text-corp-blue-900">Couleur Primaire (Hex)</Label>
-                  <div className="flex gap-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="primaryColor" className="text-sm font-bold text-corp-blue-900">
+                      Couleur Primaire (Hex)
+                    </Label>
+                    {watchedPrimaryColor && isValidHexColor(watchedPrimaryColor) && (
+                      <span className="text-xs text-sand-400 font-mono">
+                        {watchedPrimaryColor.toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
                     <Input 
                       type="color"
-                      {...register('primaryColor')} 
-                      className="h-12 w-16 p-1 rounded-xl bg-sand-50 border-corp-blue-100 cursor-pointer" 
+                      aria-label="Sélecteur de couleur primaire"
+                      value={isValidHexColor(watchedPrimaryColor) ? watchedPrimaryColor : '#2563EB'}
+                      onChange={(e) => setValue('primaryColor', e.target.value.toUpperCase(), { shouldDirty: true, shouldValidate: true })}
+                      className="h-12 w-14 p-1 rounded-xl bg-sand-50 border-corp-blue-100 cursor-pointer shrink-0" 
                     />
                     <Input 
+                      id="primaryColor"
                       type="text"
                       {...register('primaryColor')} 
-                      placeholder="#3B82F6"
-                      className="h-12 flex-1 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
+                      placeholder="#2563EB"
+                      className="h-12 flex-1 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-mono font-medium" 
                     />
+                    {isValidHexColor(watchedPrimaryColor) && (
+                      <div 
+                        className="w-10 h-10 rounded-xl border border-corp-blue-100 shadow-xs shrink-0"
+                        style={{ backgroundColor: watchedPrimaryColor }}
+                        title={`Aperçu: ${watchedPrimaryColor}`}
+                      />
+                    )}
                   </div>
+                  {errors.primaryColor && (
+                    <p className="text-xs text-red-500 font-medium">{errors.primaryColor.message}</p>
+                  )}
                 </div>
+
+                {/* Secondary Color */}
                 <div className="space-y-2.5">
-                  <Label className="text-sm font-bold text-corp-blue-900">Couleur Secondaire (Hex)</Label>
-                  <div className="flex gap-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="secondaryColor" className="text-sm font-bold text-corp-blue-900">
+                      Couleur Secondaire (Hex)
+                    </Label>
+                    {watchedSecondaryColor && isValidHexColor(watchedSecondaryColor) && (
+                      <span className="text-xs text-sand-400 font-mono">
+                        {watchedSecondaryColor.toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
                     <Input 
                       type="color"
-                      {...register('secondaryColor')} 
-                      className="h-12 w-16 p-1 rounded-xl bg-sand-50 border-corp-blue-100 cursor-pointer" 
+                      aria-label="Sélecteur de couleur secondaire"
+                      value={isValidHexColor(watchedSecondaryColor) ? watchedSecondaryColor : '#F0F4FF'}
+                      onChange={(e) => setValue('secondaryColor', e.target.value.toUpperCase(), { shouldDirty: true, shouldValidate: true })}
+                      className="h-12 w-14 p-1 rounded-xl bg-sand-50 border-corp-blue-100 cursor-pointer shrink-0" 
                     />
                     <Input 
+                      id="secondaryColor"
                       type="text"
                       {...register('secondaryColor')} 
-                      placeholder="#EBF1FA"
-                      className="h-12 flex-1 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
+                      placeholder="#F0F4FF"
+                      className="h-12 flex-1 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-mono font-medium" 
                     />
+                    {isValidHexColor(watchedSecondaryColor) && (
+                      <div 
+                        className="w-10 h-10 rounded-xl border border-corp-blue-100 shadow-xs shrink-0"
+                        style={{ backgroundColor: watchedSecondaryColor }}
+                        title={`Aperçu: ${watchedSecondaryColor}`}
+                      />
+                    )}
                   </div>
-                </div>
-                <div className="space-y-2.5">
-                  <Label className="text-sm font-bold text-corp-blue-900">Nom de Domaine Personnalisé</Label>
-                  <Input 
-                    {...register('customDomain')} 
-                    placeholder="erp.monentreprise.com"
-                    className="h-12 rounded-xl bg-sand-50 border-corp-blue-100 focus:border-corp-blue-600 outline-none transition-all font-medium" 
-                  />
-                </div>
-                <div className="space-y-2.5">
-                  <Label className="text-sm font-bold text-corp-blue-900">Langue du Portail</Label>
-                  <Select 
-                    value={watch('language') || 'fr'} 
-                    onValueChange={(val) => setValue('language', val || 'fr', { shouldDirty: true })}
-                  >
-                    <SelectTrigger className="h-12 rounded-xl bg-sand-50 border-corp-blue-100">
-                      <SelectValue placeholder="Choisir une langue" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="fr">Français (FR)</SelectItem>
-                      <SelectItem value="en">English (EN)</SelectItem>
-                      <SelectItem value="ar">العربية (AR)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  {errors.secondaryColor && (
+                    <p className="text-xs text-red-500 font-medium">{errors.secondaryColor.message}</p>
+                  )}
                 </div>
               </div>
 
               <div className="flex justify-end pt-4">
                 <Button 
+                  type="submit"
                   disabled={!isDirty || updateEnterprise.isPending}
                   className="bg-corp-blue-600 text-white hover:bg-corp-blue-800 font-bold shadow-lg shadow-corp-blue-600/20 gap-2 h-12 px-8 transition-all duration-300"
                 >

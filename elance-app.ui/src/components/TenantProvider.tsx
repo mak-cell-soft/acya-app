@@ -6,6 +6,8 @@ import api from '@/lib/axios';
 import { useTenantStore } from '@/store/use-tenant-store';
 import { Loader2 } from 'lucide-react';
 
+import { applyBranding } from '@/lib/branding';
+
 // Public marketing / informational routes that do not depend on tenant configuration
 // and MUST render their full content during SSR for search engines and performance.
 const isPublicPathname = (path: string | null): boolean => {
@@ -36,7 +38,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     const isMainDomain = (hostname === 'acya.site' || hostname === 'www.acya.site' || hostname === 'localhost' || hostname === '127.0.0.1') && !hasTenantQuery;
 
     if (isMainDomain) {
-      setBranding({
+      applyBranding({
         name: 'Élancé',
         logoUrl: null,
         faviconUrl: null,
@@ -55,7 +57,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         const response = await api.get('/Enterprise/config');
         const config = response.data;
 
-        setBranding({
+        applyBranding({
           name: config.name || 'Élancé',
           logoUrl: config.logoUrl,
           faviconUrl: config.faviconUrl,
@@ -65,31 +67,6 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
           currency: config.currency,
           status: config.status,
         });
-
-        // 1. Inject Favicon dynamically
-        if (config.faviconUrl) {
-          let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
-          if (!link) {
-            link = document.createElement('link');
-            link.rel = 'icon';
-            document.getElementsByTagName('head')[0].appendChild(link);
-          }
-          link.href = config.faviconUrl;
-        }
-
-        // 2. Inject primary color style variables
-        if (config.primaryColor) {
-          document.documentElement.style.setProperty('--primary', config.primaryColor);
-          document.documentElement.style.setProperty('--corp-blue-600', config.primaryColor);
-          // Generically set other variants if needed
-          document.documentElement.style.setProperty('--color-corp-blue-600', config.primaryColor);
-        }
-
-        // 3. Inject secondary color style variables
-        if (config.secondaryColor) {
-          document.documentElement.style.setProperty('--secondary', config.secondaryColor);
-          document.documentElement.style.setProperty('--sidebar-bg', config.secondaryColor);
-        }
 
         // 3. Handle suspension / expiration routing
         const isSuspendedOrExpired =

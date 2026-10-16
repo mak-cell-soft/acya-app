@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Shield, Key, ToggleLeft, Trash2, CheckCircle2, Loader2, ExternalLink, Edit, Users, Lock, ChevronLeft, ChevronRight, FileText, Eye, Search, Filter, Upload, UploadCloud, X, AlertCircle } from "lucide-react";
+import { ProvisionEnterpriseModal } from "@/components/ProvisionEnterpriseModal";
 
 interface TenantAppUser {
   id: number;
@@ -1030,495 +1031,76 @@ export default function EnterprisesPage() {
       )}
 
       {/* UNIFIED CREATE & PROVISION TENANT MODAL */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 p-8 rounded-2xl space-y-6 shadow-2xl my-8">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-4">
-              <h2 className="text-xl font-bold font-mono text-slate-100 flex items-center gap-2">
-                <Shield className="text-primary w-6 h-6" />
-                {isEditingActive 
-                  ? "EDIT ENTERPRISE CONFIGURATION" 
-                  : existingId 
-                    ? "CONFIRM & PROVISION PENDING REGISTRATION" 
-                    : "REGISTER & AUTOMATICALLY PROVISION TENANT"}
-              </h2>
-              <button 
-                onClick={() => {
-                  if (!provisioningLoading) {
-                    setShowCreateModal(false);
-                  }
-                }}
-                className="text-muted-foreground hover:text-foreground text-xl font-bold cursor-pointer"
-                disabled={provisioningLoading}
-              >
-                &times;
-              </button>
-            </div>
-
-            {creationSuccessData ? (
-              <div className="space-y-6 text-center py-6 animate-in zoom-in duration-500">
-                <div className="flex justify-center">
-                  <CheckCircle2 className="w-16 h-16 text-primary" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-lg font-bold text-slate-100">Provisionnement Réussi !</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Le locataire <b>{creationSuccessData.name}</b> a été créé et sa base de données a été migrée avec succès.
-                  </p>
-                </div>
-                
-                <div className="p-5 bg-slate-950 border border-slate-800 rounded-xl text-left font-mono text-xs space-y-2.5 max-w-md mx-auto">
-                  <div><span className="text-muted-foreground">URL :</span> <a href={creationSuccessData.url} target="_blank" rel="noreferrer" className="text-primary hover:underline">{creationSuccessData.url}</a></div>
-                  <div><span className="text-muted-foreground">Identifiant Admin :</span> <span className="text-slate-200">{creationSuccessData.adminUsername}</span></div>
-                  <div><span className="text-muted-foreground">Email Admin :</span> <span className="text-slate-200">{creationSuccessData.adminEmail}</span></div>
-                  <div><span className="text-muted-foreground">Mot de passe :</span> <span className="text-slate-200">{creationSuccessData.adminPassword}</span></div>
-                </div>
-
-                <div className="pt-4 flex justify-center">
-                  <button 
-                    onClick={() => setShowCreateModal(false)}
-                    className="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors text-sm"
-                  >
-                    Fermer le Panel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <form onSubmit={handleCreateAndProvision} className="space-y-6">
-                
-                {/* Section 1: Tenant Information */}
-                <div className="space-y-4">
-                  <h3 className="text-xs uppercase font-mono tracking-wider text-primary border-b border-slate-800/60 pb-1.5">1. Informations Locataire</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono uppercase text-muted-foreground">Enterprise Name</label>
-                      <input
-                        type="text"
-                        required
-                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="e.g. wellness medical"
-                        disabled={provisioningLoading}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono uppercase text-muted-foreground">Subdomain Slug (Opt)</label>
-                      <input
-                        type="text"
-                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100 font-mono"
-                        value={slug}
-                        onChange={(e) => setSlug(e.target.value)}
-                        placeholder="e.g. wellness-med (leaves empty for auto)"
-                        disabled={provisioningLoading}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono uppercase text-muted-foreground">Email</label>
-                      <input
-                        type="email"
-                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="contact@wellness.com"
-                        disabled={provisioningLoading}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono uppercase text-muted-foreground">Phone</label>
-                      <input
-                        type="text"
-                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="+33 6 12 34 56"
-                        disabled={provisioningLoading}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono uppercase text-muted-foreground">Plan Selection</label>
-                      <select
-                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
-                        value={plan}
-                        onChange={(e) => handlePlanChange(e.target.value)}
-                        disabled={provisioningLoading}
-                      >
-                        <option value="Trial">Trial (30 Days)</option>
-                        <option value="Starter">Starter (5 Users)</option>
-                        <option value="Pro">Pro (25 Users)</option>
-                        <option value="Enterprise">Enterprise (Unlimited)</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono uppercase text-muted-foreground">Monthly Price ({currency})</label>
-                      <input
-                        type="number"
-                        min="0"
-                        required
-                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100 font-mono"
-                        value={planPrice}
-                        onChange={(e) => setPlanPrice(Number(e.target.value))}
-                        disabled={provisioningLoading}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section 1.5: Preserved Registration Details Display */}
-                {(matriculeFiscal || siegeAddress || nameResponsable || (sites && sites.length > 0)) && (
-                  <div className="p-4 bg-slate-950/80 border border-amber-500/20 rounded-xl space-y-3 shadow-inner">
-                    <h4 className="text-xs uppercase font-mono tracking-wider text-amber-400 font-semibold flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-amber-400" />
-                      Données d'Inscription Enregistrées (Conservées à la Validation)
-                    </h4>
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      {matriculeFiscal && (
-                        <div>
-                          <span className="text-slate-400 font-mono">Matricule Fiscal: </span>
-                          <span className="font-mono text-slate-200 font-bold">{matriculeFiscal}</span>
-                        </div>
-                      )}
-                      {siegeAddress && (
-                        <div>
-                          <span className="text-slate-400">Adresse Siège: </span>
-                          <span className="text-slate-200">{siegeAddress}</span>
-                        </div>
-                      )}
-                      {devise && (
-                        <div>
-                          <span className="text-slate-400">Devise: </span>
-                          <span className="font-mono text-slate-200">{devise}</span>
-                        </div>
-                      )}
-                      {commercialRegister && (
-                        <div>
-                          <span className="text-slate-400">Registre Commerce: </span>
-                          <span className="font-mono text-slate-200">{commercialRegister}</span>
-                        </div>
-                      )}
-                      {capital && (
-                        <div>
-                          <span className="text-slate-400">Capital: </span>
-                          <span className="font-mono text-slate-200">{capital}</span>
-                        </div>
-                      )}
-                      {(nameResponsable || surnameResponsable) && (
-                        <div>
-                          <span className="text-slate-400">Responsable Légale: </span>
-                          <span className="text-slate-200 font-medium">{surnameResponsable} {nameResponsable} {positionResponsable ? `(${positionResponsable})` : ''}</span>
-                        </div>
-                      )}
-                    </div>
-                    {sites && sites.length > 0 && (
-                      <div className="pt-2 border-t border-slate-800/80 text-xs">
-                        <span className="text-slate-400 font-mono">Sites de Vente Enregistrés ({sites.length}): </span>
-                        <div className="mt-1 flex flex-wrap gap-1.5">
-                          {sites.map((s: any, idx: number) => (
-                            <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[11px] text-slate-300">
-                              {s.gov ? `${s.gov} - ` : ''}{s.address}{s.isForSale ? ' (Point de Vente)' : ''}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Document PDF RNE (Visible Uniquement dans le Back Office) */}
-                    <div className="pt-3 border-t border-slate-800/80">
-                      {rneDocumentUrl ? (
-                        <div className="p-3.5 bg-slate-900/90 border border-cyan-500/30 rounded-xl flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center p-1 shrink-0">
-                              <img src="/images/rne-logo.png" alt="Logo RNE" className="h-6 object-contain" />
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-slate-100">Document PDF RNE</span>
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                  Document Téléversé
-                                </span>
-                              </div>
-                              <p className="text-[11px] text-slate-400 mt-0.5">Registre National des Entreprises (PDF)</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const win = window.open();
-                                if (win) {
-                                  win.document.write(`<iframe src="${rneDocumentUrl}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
-                                }
-                              }}
-                              className="px-3.5 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-[0.96]"
-                            >
-                              <FileText className="w-3.5 h-3.5" />
-                              Consulter PDF RNE
-                            </button>
-                            {existingId && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const targetEnt = enterprises.find(e => e.id === existingId);
-                                  if (targetEnt) openRneModal(targetEnt);
-                                }}
-                                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer active:scale-[0.96]"
-                                title="Remplacer le document RNE"
-                              >
-                                <Upload className="w-3.5 h-3.5 text-slate-400" />
-                                Remplacer
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-3">
-                            <img src="/images/rne-logo.png" alt="Logo RNE" className="h-5 object-contain opacity-70" />
-                            <span className="text-xs text-amber-400 font-medium">Aucun document PDF RNE n'a été rattaché à cette entreprise.</span>
-                          </div>
-                          {existingId && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const targetEnt = enterprises.find(e => e.id === existingId);
-                                if (targetEnt) openRneModal(targetEnt);
-                              }}
-                              className="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-[0.96]"
-                            >
-                              <Upload className="w-3.5 h-3.5" />
-                              Uploader RNE
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Section 2: Admin Credentials */}
-                {!isEditingActive && (
-                  <div className="space-y-4">
-                    <h3 className="text-xs uppercase font-mono tracking-wider text-primary border-b border-slate-800/60 pb-1.5">2. Identifiants Administrateur du Tenant</h3>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-xs font-mono uppercase text-muted-foreground">Admin Username</label>
-                        <input
-                          type="text"
-                          required
-                          className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100 font-mono"
-                          value={adminUsername}
-                          onChange={(e) => setAdminUsername(e.target.value)}
-                          disabled={provisioningLoading}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-mono uppercase text-muted-foreground">Admin Email</label>
-                        <input
-                          type="email"
-                          required
-                          className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
-                          value={adminEmail}
-                          onChange={(e) => setAdminEmail(e.target.value)}
-                          placeholder="admin@wellness.com"
-                          disabled={provisioningLoading}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-mono uppercase text-muted-foreground">Admin Password (Opt)</label>
-                        <input
-                          type="text"
-                          className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100 font-mono"
-                          value={adminPassword}
-                          onChange={(e) => setAdminPassword(e.target.value)}
-                          placeholder="Auto-generated if empty"
-                          disabled={provisioningLoading}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Section 3: Branding & Options (Optional) */}
-                <div className="space-y-4">
-                  <h3 className="text-xs uppercase font-mono tracking-wider text-primary border-b border-slate-800/60 pb-1.5">3. Personnalisation & Options (Optionnel)</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono uppercase text-muted-foreground">Logo URL</label>
-                      <input
-                        type="text"
-                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
-                        value={logoUrl}
-                        onChange={(e) => setLogoUrl(e.target.value)}
-                        placeholder="https://mon-serveur.com/logo.png"
-                        disabled={provisioningLoading}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono uppercase text-muted-foreground">Favicon URL</label>
-                      <input
-                        type="text"
-                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
-                        value={faviconUrl}
-                        onChange={(e) => setFaviconUrl(e.target.value)}
-                        placeholder="https://mon-serveur.com/favicon.ico"
-                        disabled={provisioningLoading}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono uppercase text-muted-foreground">Primary Color</label>
-                      <div className="flex gap-2">
-                        <input
-                          type="color"
-                          className="h-9 w-10 p-0.5 rounded bg-slate-950 border border-slate-800 cursor-pointer"
-                          value={primaryColor}
-                          onChange={(e) => setPrimaryColor(e.target.value)}
-                          disabled={provisioningLoading}
-                        />
-                        <input
-                          type="text"
-                          className="w-full px-2 py-1 bg-slate-950 border border-slate-800 rounded text-xs focus:outline-none focus:border-primary text-slate-100 font-mono"
-                          value={primaryColor}
-                          onChange={(e) => setPrimaryColor(e.target.value)}
-                          disabled={provisioningLoading}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono uppercase text-muted-foreground">Secondary Color</label>
-                      <div className="flex gap-2">
-                        <input
-                          type="color"
-                          className="h-9 w-10 p-0.5 rounded bg-slate-950 border border-slate-800 cursor-pointer"
-                          value={secondaryColor}
-                          onChange={(e) => setSecondaryColor(e.target.value)}
-                          disabled={provisioningLoading}
-                        />
-                        <input
-                          type="text"
-                          className="w-full px-2 py-1 bg-slate-950 border border-slate-800 rounded text-xs focus:outline-none focus:border-primary text-slate-100 font-mono"
-                          value={secondaryColor}
-                          onChange={(e) => setSecondaryColor(e.target.value)}
-                          disabled={provisioningLoading}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-1 col-span-1">
-                      <label className="text-xs font-mono uppercase text-muted-foreground">Custom Domain</label>
-                      <input
-                        type="text"
-                        className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100"
-                        value={customDomain}
-                        onChange={(e) => setCustomDomain(e.target.value)}
-                        placeholder="erp.monentreprise.com"
-                        disabled={provisioningLoading}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono uppercase text-muted-foreground">Langue / Devise</label>
-                      <div className="flex gap-1">
-                        <select
-                          className="w-1/2 px-2 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-100"
-                          value={language}
-                          onChange={(e) => setLanguage(e.target.value)}
-                          disabled={provisioningLoading}
-                        >
-                          <option value="fr">FR</option>
-                          <option value="en">EN</option>
-                          <option value="ar">AR</option>
-                        </select>
-                        <select
-                          className="w-1/2 px-2 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-100 font-mono"
-                          value={currency}
-                          onChange={(e) => setCurrency(e.target.value)}
-                          disabled={provisioningLoading}
-                        >
-                          <option value="TND">TND</option>
-                          <option value="EUR">EUR</option>
-                          <option value="USD">USD</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 py-1">
-                    <input
-                      type="checkbox"
-                      id="isSalingWood"
-                      className="w-4 h-4 bg-slate-950 border border-slate-800 rounded text-primary focus:ring-primary focus:ring-opacity-50 cursor-pointer"
-                      checked={isSalingWood}
-                      onChange={(e) => setIsSalingWood(e.target.checked)}
-                      disabled={provisioningLoading}
-                    />
-                    <label htmlFor="isSalingWood" className="text-sm font-medium text-slate-200 cursor-pointer select-none">
-                      Activer le traitement spécial bois (Seed Natural Wood tables)
-                    </label>
-                  </div>
-
-                  <div className="flex items-center gap-3 py-1">
-                    <input
-                      type="checkbox"
-                      id="isManagingConstructions"
-                      className="w-4 h-4 bg-slate-950 border border-slate-800 rounded text-primary focus:ring-primary focus:ring-opacity-50 cursor-pointer"
-                      checked={isManagingConstructions}
-                      onChange={(e) => setIsManagingConstructions(e.target.checked)}
-                      disabled={provisioningLoading}
-                    />
-                    <label htmlFor="isManagingConstructions" className="text-sm font-medium text-slate-200 cursor-pointer select-none">
-                      Activer la gestion des chantiers (Module Chantiers)
-                    </label>
-                  </div>
-
-                  <div className="flex items-center gap-3 py-1">
-                    <input
-                      type="checkbox"
-                      id="isManagingProduction"
-                      className="w-4 h-4 bg-slate-950 border border-slate-800 rounded text-primary focus:ring-primary focus:ring-opacity-50 cursor-pointer"
-                      checked={isManagingProduction}
-                      onChange={(e) => setIsManagingProduction(e.target.checked)}
-                      disabled={provisioningLoading}
-                    />
-                    <label htmlFor="isManagingProduction" className="text-sm font-medium text-slate-200 cursor-pointer select-none">
-                      Activer la gestion de la production (Module Production)
-                    </label>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-mono uppercase text-muted-foreground">Internal Notes</label>
-                    <textarea
-                      className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:outline-none focus:border-primary text-slate-100 h-14 resize-none"
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Special client notes, contract terms etc."
-                      disabled={provisioningLoading}
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={provisioningLoading}
-                  className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors text-sm font-mono cursor-pointer flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:scale-[1.01] active:scale-[0.99] transition-all"
-                >
-                  {provisioningLoading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      {isEditingActive ? "SAVING CHANGES..." : "NON-INTERACTIVE PROVISIONING IN PROGRESS (3-10 SECONDS)..."}
-                    </>
-                  ) : (
-                    isEditingActive ? "SAVE SETTINGS" : "PROVISION REGISTRY ENTRY & SCHEMAS"
-                  )}
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
+      <ProvisionEnterpriseModal
+        isOpen={showCreateModal}
+        onClose={() => {
+          if (!provisioningLoading) {
+            setShowCreateModal(false);
+          }
+        }}
+        onSubmit={handleCreateAndProvision}
+        provisioningLoading={provisioningLoading}
+        creationSuccessData={creationSuccessData}
+        existingId={existingId}
+        isEditingActive={isEditingActive}
+        error={error}
+        name={name}
+        setName={setName}
+        slug={slug}
+        setSlug={setSlug}
+        email={email}
+        setEmail={setEmail}
+        phone={phone}
+        setPhone={setPhone}
+        plan={plan}
+        handlePlanChange={handlePlanChange}
+        planPrice={planPrice}
+        setPlanPrice={setPlanPrice}
+        matriculeFiscal={matriculeFiscal}
+        devise={devise}
+        siegeAddress={siegeAddress}
+        commercialRegister={commercialRegister}
+        capital={capital}
+        nameResponsable={nameResponsable}
+        surnameResponsable={surnameResponsable}
+        positionResponsable={positionResponsable}
+        sites={sites}
+        rneDocumentUrl={rneDocumentUrl}
+        onOpenRneUpload={() => {
+          if (existingId) {
+            const targetEnt = enterprises.find((e) => e.id === existingId);
+            if (targetEnt) openRneModal(targetEnt);
+          }
+        }}
+        adminUsername={adminUsername}
+        setAdminUsername={setAdminUsername}
+        adminEmail={adminEmail}
+        setAdminEmail={setAdminEmail}
+        adminPassword={adminPassword}
+        setAdminPassword={setAdminPassword}
+        logoUrl={logoUrl}
+        setLogoUrl={setLogoUrl}
+        faviconUrl={faviconUrl}
+        setFaviconUrl={setFaviconUrl}
+        primaryColor={primaryColor}
+        setPrimaryColor={setPrimaryColor}
+        secondaryColor={secondaryColor}
+        setSecondaryColor={setSecondaryColor}
+        customDomain={customDomain}
+        setCustomDomain={setCustomDomain}
+        language={language}
+        setLanguage={setLanguage}
+        currency={currency}
+        setCurrency={setCurrency}
+        isSalingWood={isSalingWood}
+        setIsSalingWood={setIsSalingWood}
+        isManagingConstructions={isManagingConstructions}
+        setIsManagingConstructions={setIsManagingConstructions}
+        isManagingProduction={isManagingProduction}
+        setIsManagingProduction={setIsManagingProduction}
+        notes={notes}
+        setNotes={setNotes}
+      />
 
       {/* CONNECTED TENANT USERS SLIDE-OVER DRAWER */}
       {showUsersPanel && selectedEnterprise && (
