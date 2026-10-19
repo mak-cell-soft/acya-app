@@ -80,7 +80,10 @@ namespace ms.webapp.api.acya.api.Extentions
 
       // Notifications & Reminders (§5.19)
       services.Configure<ms.webapp.api.acya.api.Models.SmtpSettings>(config.GetSection("SmtpSettings"));
+      services.Configure<ms.webapp.api.acya.api.Models.FirebaseSettings>(config.GetSection("Firebase"));
       services.AddScoped<IEmailService, EmailService>();
+      services.AddSingleton<ms.webapp.api.acya.api.Services.Notifications.IFirebaseMessagingClient, ms.webapp.api.acya.api.Services.Notifications.FirebaseMessagingClient>();
+      services.AddScoped<ms.webapp.api.acya.core.Interfaces.IFcmPushDispatcher, ms.webapp.api.acya.api.Services.Notifications.FcmPushDispatcher>();
       services.AddScoped<IAppNotificationService, AppNotificationService>();
       services.AddSingleton<IPasswordResetRateLimiter, InMemoryPasswordResetRateLimiter>();
       services.AddSingleton<IQuoteRequestRateLimiter, InMemoryQuoteRequestRateLimiter>();

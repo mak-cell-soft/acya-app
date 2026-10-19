@@ -1778,8 +1778,27 @@ INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20261010180000_AddInboundQuoteRequests', '7.0.20')
 ON CONFLICT ("MigrationId") DO NOTHING;
 
+-- Device Push Tokens for FCM
+CREATE TABLE IF NOT EXISTS "DevicePushTokens" (
+    "Id"            SERIAL PRIMARY KEY,
+    "UserId"        INT NOT NULL REFERENCES tbl_app_user(id) ON DELETE CASCADE,
+    "Token"         VARCHAR(512) NOT NULL,
+    "Platform"      VARCHAR(30) NOT NULL,
+    "AppVersion"    VARCHAR(50),
+    "IsActive"      BOOLEAN NOT NULL DEFAULT TRUE,
+    "CreatedAt"     TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    "LastActiveAt"  TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+);
 
+CREATE UNIQUE INDEX IF NOT EXISTS "IX_DevicePushTokens_Token"
+ON "DevicePushTokens" ("Token");
 
+CREATE INDEX IF NOT EXISTS "IX_DevicePushTokens_UserId_IsActive"
+ON "DevicePushTokens" ("UserId", "IsActive");
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20261017170000_AddDevicePushTokens', '7.0.20')
+ON CONFLICT ("MigrationId") DO NOTHING;
 
 
 
