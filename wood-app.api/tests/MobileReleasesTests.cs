@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -2841,6 +2843,187 @@ namespace ms.webapp.api.acya.tests
             Assert.Equal("Amine KLABI", amine.Name);
             Assert.True(amine.CanView);
             Assert.True(amine.CanDownload);
+        }
+
+        #endregion
+
+        #region 14. N8n Mobile Invitation Email Dispatch Tests
+
+        [Fact]
+        public async Task SendMobileAppInvitation_UsesRawTemplate_AndIncludesSubjectAndHtml()
+        {
+            string? capturedBody = null;
+            var handler = new MockHttpMessageHandler(async req =>
+            {
+                if (req.Content != null)
+                {
+                    capturedBody = await req.Content.ReadAsStringAsync();
+                }
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("{\"success\":true,\"messageId\":\"<msg-mobile-1@acya.site>\"}", Encoding.UTF8, "application/json")
+                };
+            });
+
+            var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["N8nEmailService:BaseUrl"]).Returns("http://n8n:5678");
+            configMock.Setup(c => c["N8nEmailService:ApiKey"]).Returns("test-key");
+            configMock.Setup(c => c["EmailSettings:SupportEmail"]).Returns("support@acya.site");
+
+            var loggerMock = new Mock<ILogger<N8nEmailService>>();
+            var httpClient = new HttpClient(handler);
+            var service = new N8nEmailService(httpClient, configMock.Object, loggerMock.Object);
+
+            // Act
+            var result = await service.SendMobileAppInvitationAsync(
+                toEmail: "amine@socofeb.tn",
+                tenantName: "SOCOFEB",
+                tenantSlug: "socofeb",
+                userName: "Amine KLABI",
+                version: "1.0.2",
+                buildNumber: 2,
+                portalUrl: "https://socofeb.acya.site/mobile-app"
+            );
+
+            // Assert
+            Assert.True(result);
+            Assert.NotNull(capturedBody);
+
+            using var doc = JsonDocument.Parse(capturedBody!);
+            var root = doc.RootElement;
+
+            Assert.Equal("amine@socofeb.tn", root.GetProperty("to").GetString());
+            Assert.Equal("raw", root.GetProperty("template").GetString());
+            Assert.Equal("noreply", root.GetProperty("sender").GetString());
+            Assert.Equal("support@acya.site", root.GetProperty("replyTo").GetString());
+
+            var subject = root.GetProperty("subject").GetString();
+            Assert.False(string.IsNullOrWhiteSpace(subject));
+            Assert.Equal("Votre application mobile SOCOFEB est prête", subject);
+
+            var html = root.GetProperty("html").GetString();
+            Assert.False(string.IsNullOrWhiteSpace(html));
+            Assert.Contains("https://socofeb.acya.site/mobile-app", html);
+            Assert.Contains("1.0.2", html);
+            Assert.Contains("2", html);
+            Assert.Contains("Amine KLABI", html);
+            Assert.Contains("SOCOFEB", html);
+
+            var variables = root.GetProperty("variables");
+            Assert.Equal("SOCOFEB", variables.GetProperty("tenantName").GetString());
+            Assert.Equal("socofeb", variables.GetProperty("tenantSlug").GetString());
+            Assert.Equal("https://socofeb.acya.site/mobile-app", variables.GetProperty("portalUrl").GetString());
+        }
+
+        [Fact]
+        public async Task SendMobileAppInvitation_HtmlEncodes_InterpolatedData()
+        {
+            string? capturedBody = null;
+            var handler = new MockHttpMessageHandler(async req =>
+            {
+                if (req.Content != null)
+                {
+                    capturedBody = await req.Content.ReadAsStringAsync();
+                }
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("{\"success\":true}", Encoding.UTF8, "application/json")
+                };
+            });
+
+            var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["N8nEmailService:BaseUrl"]).Returns("http://n8n:5678");
+            configMock.Setup(c => c["N8nEmailService:ApiKey"]).Returns("test-key");
+
+            var loggerMock = new Mock<ILogger<N8nEmailService>>();
+            var httpClient = new HttpClient(handler);
+            var service = new N8nEmailService(httpClient, configMock.Object, loggerMock.Object);
+
+            // Act: Provide data with special HTML characters
+            var result = await service.SendMobileAppInvitationAsync(
+                toEmail: "user@test.tn",
+                tenantName: "Mansour <Construction> & \"Partners\"",
+                tenantSlug: "mansour-construction",
+                userName: "Bob <Admin> & \"Tester\"",
+                version: "1.0.2<script>",
+                buildNumber: 2,
+                portalUrl: "https://mansour-construction.acya.site/mobile-app?ref=\"test\"&a=1"
+            );
+
+            // Assert
+            Assert.True(result);
+            Assert.NotNull(capturedBody);
+
+            using var doc = JsonDocument.Parse(capturedBody!);
+            var html = doc.RootElement.GetProperty("html").GetString()!;
+
+            // Verify safe HTML encoding
+            Assert.Contains("Mansour &lt;Construction&gt; &amp; &quot;Partners&quot;", html);
+            Assert.Contains("Bob &lt;Admin&gt; &amp; &quot;Tester&quot;", html);
+            Assert.Contains("1.0.2&lt;script&gt;", html);
+            Assert.DoesNotContain("<Construction>", html);
+            Assert.DoesNotContain("<script>", html);
+        }
+
+        [Fact]
+        public async Task SendMobileAppInvitation_WhenProviderRejects_ReturnsFalse()
+        {
+            var handler = new MockHttpMessageHandler(_ => Task.FromResult(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Content = new StringContent("{\"valid\":false,\"error\":\"VALIDATION_ERROR\",\"message\":\"Unsupported template\"}", Encoding.UTF8, "application/json")
+            }));
+
+            var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["N8nEmailService:BaseUrl"]).Returns("http://n8n:5678");
+            configMock.Setup(c => c["N8nEmailService:ApiKey"]).Returns("test-key");
+
+            var loggerMock = new Mock<ILogger<N8nEmailService>>();
+            var httpClient = new HttpClient(handler);
+            var service = new N8nEmailService(httpClient, configMock.Object, loggerMock.Object);
+
+            var result = await service.SendMobileAppInvitationAsync(
+                toEmail: "test@domain.tn",
+                tenantName: "SOCOFEB",
+                tenantSlug: "socofeb",
+                userName: "User",
+                version: "1.0.0",
+                buildNumber: 1,
+                portalUrl: "https://socofeb.acya.site/mobile-app"
+            );
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task SendMobileAppInvitation_WhenEmptyRecipient_ReturnsFalseWithoutCallingHttp()
+        {
+            bool httpCalled = false;
+            var handler = new MockHttpMessageHandler(_ =>
+            {
+                httpCalled = true;
+                return Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK });
+            });
+
+            var configMock = new Mock<IConfiguration>();
+            var loggerMock = new Mock<ILogger<N8nEmailService>>();
+            var httpClient = new HttpClient(handler);
+            var service = new N8nEmailService(httpClient, configMock.Object, loggerMock.Object);
+
+            var result = await service.SendMobileAppInvitationAsync(
+                toEmail: "   ",
+                tenantName: "SOCOFEB",
+                tenantSlug: "socofeb",
+                userName: "User",
+                version: "1.0.0",
+                buildNumber: 1,
+                portalUrl: "https://socofeb.acya.site/mobile-app"
+            );
+
+            Assert.False(result);
+            Assert.False(httpCalled);
         }
 
         #endregion
