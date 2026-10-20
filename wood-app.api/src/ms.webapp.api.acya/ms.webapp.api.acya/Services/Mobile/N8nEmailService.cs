@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -43,13 +44,19 @@ namespace ms.webapp.api.acya.Services.Mobile
                 return false;
             }
 
+            var displayName = !string.IsNullOrWhiteSpace(tenantName) ? tenantName.Trim() : tenantSlug.Trim();
+            var subject = $"Votre application mobile {displayName} est prête";
+            var htmlBody = BuildMobileAppInvitationHtml(portalUrl, displayName, userName, version, buildNumber);
+
             var payload = new
             {
                 to = toEmail.Trim(),
-                template = "mobile_app",
+                template = "raw",
+                subject = subject,
+                html = htmlBody,
                 variables = new
                 {
-                    tenantName = tenantName,
+                    tenantName = displayName,
                     tenantSlug = tenantSlug,
                     userName = userName,
                     userEmail = toEmail.Trim(),
@@ -57,7 +64,14 @@ namespace ms.webapp.api.acya.Services.Mobile
                     buildNumber = buildNumber.ToString(),
                     portalUrl = portalUrl
                 },
-                replyTo = _configuration["EmailSettings:SupportEmail"] ?? "support@acya.site"
+                sender = "noreply",
+                replyTo = _configuration["EmailSettings:SupportEmail"] ?? "support@acya.site",
+                metadata = new
+                {
+                    tenantSlug = tenantSlug,
+                    template = "raw",
+                    type = "mobile_invitation"
+                }
             };
 
             var result = await DispatchEmailPayloadAsync(payload, toEmail, tenantSlug, cancellationToken);
@@ -245,6 +259,54 @@ namespace ms.webapp.api.acya.Services.Mobile
   <p>Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail en toute sécurité.</p>
   <hr style=""border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;"" />
   <p style=""font-size: 12px; color: #6b7280; text-align: center;"">Ceci est un message automatique, veuillez ne pas y répondre.</p>
+</div>";
+        }
+
+        private static string BuildMobileAppInvitationHtml(
+            string portalUrl,
+            string tenantDisplayName,
+            string userName,
+            string version,
+            int buildNumber)
+        {
+            var safeTenant = WebUtility.HtmlEncode(tenantDisplayName ?? string.Empty);
+            var safeUser = WebUtility.HtmlEncode(userName ?? string.Empty);
+            var safeVersion = WebUtility.HtmlEncode(version ?? string.Empty);
+            var safePortalUrl = WebUtility.HtmlEncode(portalUrl ?? string.Empty);
+
+            var versionInfo = !string.IsNullOrWhiteSpace(safeVersion)
+                ? $"Version {safeVersion} (Build {buildNumber})"
+                : $"Build {buildNumber}";
+
+            return $@"
+<div style=""font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff; color: #1e293b;"">
+  <div style=""text-align: center; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;"">
+    <h1 style=""color: #2563eb; font-size: 24px; font-weight: 700; margin: 0;"">Élancé Mobile</h1>
+    <p style=""color: #64748b; font-size: 14px; margin: 4px 0 0 0;"">Plateforme ACYA ERP</p>
+  </div>
+  <div style=""padding: 24px 0;"">
+    <p style=""font-size: 16px; margin: 0 0 16px 0;"">Bonjour <strong>{safeUser}</strong>,</p>
+    <p style=""font-size: 15px; line-height: 1.6; margin: 0 0 16px 0;"">
+      L'application mobile officielle pour votre entreprise <strong>{safeTenant}</strong> est prête et disponible au téléchargement.
+    </p>
+    <div style=""background-color: #f8fafc; border-left: 4px solid #2563eb; padding: 12px 16px; margin: 20px 0; border-radius: 0 6px 6px 0;"">
+      <p style=""font-size: 14px; font-weight: 600; color: #334155; margin: 0;"">Disponibilité de la version :</p>
+      <p style=""font-size: 14px; color: #64748b; margin: 4px 0 0 0;"">{versionInfo}</p>
+    </div>
+    <div style=""text-align: center; margin: 28px 0;"">
+      <a href=""{safePortalUrl}"" style=""background-color: #2563eb; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px; display: inline-block;"">Accéder à mon espace mobile</a>
+    </div>
+    <p style=""font-size: 13px; color: #64748b; line-height: 1.5; margin: 0 0 8px 0;"">
+      Si le bouton ne fonctionne pas, vous pouvez copier et coller le lien suivant dans votre navigateur :
+    </p>
+    <p style=""font-size: 13px; word-break: break-all; margin: 0 0 20px 0;"">
+      <a href=""{safePortalUrl}"" style=""color: #2563eb; text-decoration: underline;"">{safePortalUrl}</a>
+    </p>
+  </div>
+  <div style=""padding-top: 16px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 12px; color: #94a3b8;"">
+    <p style=""margin: 0;"">Ce message a été envoyé automatiquement pour votre compte {safeTenant}.</p>
+    <p style=""margin: 4px 0 0 0;"">&copy; {DateTime.UtcNow.Year} ACYA. Tous droits réservés.</p>
+  </div>
 </div>";
         }
     }

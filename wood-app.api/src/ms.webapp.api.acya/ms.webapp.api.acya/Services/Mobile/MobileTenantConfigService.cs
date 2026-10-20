@@ -4,6 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs.Mobile;
 using ms.webapp.api.acya.core.Interfaces;
 using ms.webapp.api.acya.infrastructure;
@@ -19,12 +22,32 @@ namespace ms.webapp.api.acya.Services.Mobile
         private readonly MasterDbContext _masterDb;
         private readonly WoodAppContext _woodAppDb;
         private readonly IConfiguration _configuration;
+        private readonly IServiceProvider? _serviceProvider;
+        private readonly ILogger<MobileTenantConfigService>? _logger;
 
-        public MobileTenantConfigService(MasterDbContext masterDb, WoodAppContext woodAppDb, IConfiguration configuration)
+        // NOTE: Backward-compatible constructor for in-memory unit tests and simple DI scenarios.
+        public MobileTenantConfigService(
+            MasterDbContext masterDb,
+            WoodAppContext woodAppDb,
+            IConfiguration configuration)
+            : this(masterDb, woodAppDb, configuration, null, null)
+        {
+        }
+
+        // NOTE: Primary DI constructor. Injects IServiceProvider and ILogger to allow dynamically
+        // creating a tenant-scoped WoodAppContext with the resolved TenantContext schema.
+        public MobileTenantConfigService(
+            MasterDbContext masterDb,
+            WoodAppContext woodAppDb,
+            IConfiguration configuration,
+            IServiceProvider? serviceProvider,
+            ILogger<MobileTenantConfigService>? logger)
         {
             _masterDb = masterDb;
             _woodAppDb = woodAppDb;
             _configuration = configuration;
+            _serviceProvider = serviceProvider;
+            _logger = logger;
         }
 
         public async Task<MobileTenantConfigDto?> GenerateConfigForTenantAsync(string tenantSlug, CancellationToken cancellationToken = default)
@@ -46,14 +69,38 @@ namespace ms.webapp.api.acya.Services.Mobile
                 return null;
             }
 
-            // 2. Fetch enterprise modules flags if accessible from tenant context
+            // 2. Fetch enterprise module flags from the tenant's isolated PostgreSQL schema
+            // NOTE: In multi-tenant production mode, the caller (e.g., admin endpoint GET /api/admin/mobile/builds/{id}/config)
+            // runs outside the tenant HTTP context. We must dynamically resolve a tenant-scoped WoodAppContext
+            // with TenantContext.SchemaName and ConnectionString populated, matching the pattern in MobileBuildService.cs.
             bool hasChantier = false;
             bool hasProduction = false;
             try
             {
-                var enterprise = await _woodAppDb.Enterprises
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(cancellationToken);
+                Enterprise? enterprise;
+                if (_serviceProvider != null && _woodAppDb.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
+                {
+                    using var scope = _serviceProvider.CreateScope();
+                    var tenantCtx = scope.ServiceProvider.GetRequiredService<TenantContext>();
+                    tenantCtx.IsEnabled = true;
+                    tenantCtx.Slug = tenant.Slug;
+                    tenantCtx.SchemaName = tenant.SchemaName;
+                    tenantCtx.ConnectionString = (!string.IsNullOrEmpty(tenant.ConnectionString)
+                        ? tenant.ConnectionString
+                        : _configuration.GetConnectionString("WoodAppContextConnection")) ?? "";
+
+                    var scopedDb = scope.ServiceProvider.GetRequiredService<WoodAppContext>();
+                    enterprise = await scopedDb.Enterprises
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(cancellationToken);
+                }
+                else
+                {
+                    // Fallback for in-memory testing or non-scoped execution
+                    enterprise = await _woodAppDb.Enterprises
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(cancellationToken);
+                }
 
                 if (enterprise != null)
                 {
@@ -61,9 +108,12 @@ namespace ms.webapp.api.acya.Services.Mobile
                     hasProduction = enterprise.IsManagingProduction ?? false;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Fallback gracefully if tenant schema is unreachable from current connection
+                // NOTE: Do not silently swallow schema or database connectivity failures, which would corrupt
+                // build configs by falsely indicating modules are disabled. Log details and fail explicitly.
+                _logger?.LogError(ex, "Failed to resolve enterprise module configuration for tenant '{TenantSlug}' in schema '{Schema}'", cleanSlug, tenant.SchemaName);
+                throw new InvalidOperationException($"Failed to resolve enterprise module configuration for tenant '{cleanSlug}' in schema '{tenant.SchemaName}': {ex.Message}", ex);
             }
 
             // Clean slug for package name (alphanumeric only)
