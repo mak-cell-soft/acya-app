@@ -19,6 +19,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using ms.webapp.api.acya.api.Controllers;
 using ms.webapp.api.acya.api.Services;
+using ms.webapp.api.acya.api.Services.Notifications;
 using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs.Notifications;
@@ -59,9 +60,14 @@ namespace ms.webapp.api.acya.tests
             return new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
         }
 
-        private NotificationsController CreateController(WoodAppContext context, ClaimsPrincipal? user = null)
+        private NotificationsController CreateController(
+            WoodAppContext context,
+            ClaimsPrincipal? user = null,
+            IFirebaseMessagingClient? firebaseClient = null,
+            IDeviceTestPushRateLimiter? rateLimiter = null,
+            Mock<IAppNotificationService>? mockAppNotifOut = null)
         {
-            var mockAppNotif = new Mock<IAppNotificationService>();
+            var mockAppNotif = mockAppNotifOut ?? new Mock<IAppNotificationService>();
             var mockStockNotif = new Mock<NotificationService>(null!, null!, null!);
             var mockLogger = new Mock<ILogger<NotificationsController>>();
 
@@ -69,7 +75,9 @@ namespace ms.webapp.api.acya.tests
                 mockAppNotif.Object,
                 mockStockNotif.Object,
                 context,
-                mockLogger.Object);
+                mockLogger.Object,
+                firebaseClient,
+                rateLimiter);
 
             var httpContext = new DefaultHttpContext();
             if (user != null)
@@ -560,13 +568,19 @@ namespace ms.webapp.api.acya.tests
             var ctor = ctors[0];
             Assert.NotNull(ctor.GetCustomAttribute<ActivatorUtilitiesConstructorAttribute>());
             var parameters = ctor.GetParameters();
-            Assert.Equal(4, parameters.Length);
+            Assert.Equal(6, parameters.Length);
             Assert.Equal("context", parameters[2].Name);
             Assert.True(parameters[2].HasDefaultValue);
             Assert.Null(parameters[2].DefaultValue);
             Assert.Equal("logger", parameters[3].Name);
             Assert.True(parameters[3].HasDefaultValue);
             Assert.Null(parameters[3].DefaultValue);
+            Assert.Equal("firebaseClient", parameters[4].Name);
+            Assert.True(parameters[4].HasDefaultValue);
+            Assert.Null(parameters[4].DefaultValue);
+            Assert.Equal("rateLimiter", parameters[5].Name);
+            Assert.True(parameters[5].HasDefaultValue);
+            Assert.Null(parameters[5].DefaultValue);
         }
 
         #region TestPush Regression Tests
@@ -898,6 +912,538 @@ namespace ms.webapp.api.acya.tests
             };
 
             Assert.False(constraint.Accept(prodConstraintContext));
+        }
+
+        #endregion
+
+        #region Test Device Push Endpoint (E9.58.3)
+
+        [Fact]
+        public async Task TestDevicePush_AnonymousCaller_Returns401Unauthorized()
+        {
+            var db = Guid.NewGuid().ToString();
+            var context = CreateContext(db, "socofeb");
+            var controller = CreateController(context, user: null);
+
+            var result = await controller.TestDevicePush(new DeviceTestPushRequestDto());
+
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("not_an_int")]
+        [InlineData("0")]
+        [InlineData("-12")]
+        public async Task TestDevicePush_MissingOrInvalidUserId_Returns401Unauthorized(string? rawUserId)
+        {
+            var db = Guid.NewGuid().ToString();
+            var context = CreateContext(db, "socofeb");
+
+            var claims = new List<Claim>();
+            if (rawUserId != null)
+            {
+                claims.Add(new Claim(ClaimTypes.NameIdentifier, rawUserId));
+            }
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
+            var controller = CreateController(context, principal);
+
+            var result = await controller.TestDevicePush(new DeviceTestPushRequestDto());
+
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task TestDevicePush_TenantMismatch_Returns401Unauthorized()
+        {
+            var db = Guid.NewGuid().ToString();
+            var context = CreateContext(db, "socofeb"); // context schema: tenant_socofeb
+            var userFromOtherTenant = CreateUserPrincipal(101, "malicious_other_tenant");
+            var controller = CreateController(context, userFromOtherTenant);
+
+            var result = await controller.TestDevicePush(new DeviceTestPushRequestDto());
+
+            var unauthResult = Assert.IsType<UnauthorizedObjectResult>(result);
+            Assert.Contains("Incohérence de contexte tenant", unauthResult.Value?.ToString());
+        }
+
+        [Fact]
+        public async Task TestDevicePush_TargetDeviceBelongsToAnotherUser_Returns404NotFound()
+        {
+            var db = Guid.NewGuid().ToString();
+            var context = CreateContext(db, "socofeb");
+
+            // Device 50 belongs to user 999
+            context.DevicePushTokens.Add(new DevicePushToken
+            {
+                Id = 50,
+                UserId = 999,
+                Token = "fcm_token_other_user",
+                Platform = "android",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                LastActiveAt = DateTime.UtcNow
+            });
+            await context.SaveChangesAsync();
+
+            var user101 = CreateUserPrincipal(101, "socofeb");
+            var controller = CreateController(context, user101);
+
+            // Caller 101 attempts to target device 50
+            var result = await controller.TestDevicePush(new DeviceTestPushRequestDto { DeviceRegistrationId = 50 });
+
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.NotNull(notFoundResult.Value);
+        }
+
+        [Fact]
+        public async Task TestDevicePush_TargetDeviceInactive_Returns404NotFound()
+        {
+            var db = Guid.NewGuid().ToString();
+            var context = CreateContext(db, "socofeb");
+
+            // Device 60 belongs to user 101 but is inactive
+            context.DevicePushTokens.Add(new DevicePushToken
+            {
+                Id = 60,
+                UserId = 101,
+                Token = "fcm_token_inactive",
+                Platform = "android",
+                IsActive = false,
+                CreatedAt = DateTime.UtcNow,
+                LastActiveAt = DateTime.UtcNow
+            });
+            await context.SaveChangesAsync();
+
+            var user101 = CreateUserPrincipal(101, "socofeb");
+            var controller = CreateController(context, user101);
+
+            var result = await controller.TestDevicePush(new DeviceTestPushRequestDto { DeviceRegistrationId = 60 });
+
+            Assert.IsType<NotFoundObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task TestDevicePush_NoEligibleDevice_Returns404NotFound()
+        {
+            var db = Guid.NewGuid().ToString();
+            var context = CreateContext(db, "socofeb");
+            var user101 = CreateUserPrincipal(101, "socofeb");
+            var controller = CreateController(context, user101);
+
+            // No devices registered at all
+            var result = await controller.TestDevicePush(null);
+
+            Assert.IsType<NotFoundObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task TestDevicePush_NoDeviceIdSupplied_SelectsMostRecentlyActiveDevice()
+        {
+            var db = Guid.NewGuid().ToString();
+            var context = CreateContext(db, "socofeb");
+
+            var olderTime = DateTime.UtcNow.AddHours(-2);
+            var newerTime = DateTime.UtcNow.AddMinutes(-5);
+
+            context.DevicePushTokens.AddRange(
+                new DevicePushToken
+                {
+                    Id = 1,
+                    UserId = 101,
+                    Token = "fcm_older_token",
+                    Platform = "android",
+                    IsActive = true,
+                    CreatedAt = olderTime,
+                    LastActiveAt = olderTime
+                },
+                new DevicePushToken
+                {
+                    Id = 2,
+                    UserId = 101,
+                    Token = "fcm_newer_token",
+                    Platform = "android",
+                    IsActive = true,
+                    CreatedAt = newerTime,
+                    LastActiveAt = newerTime
+                }
+            );
+            await context.SaveChangesAsync();
+
+            var mockFirebase = new Mock<IFirebaseMessagingClient>();
+            mockFirebase.Setup(m => m.IsConfigured).Returns(true);
+            mockFirebase
+                .Setup(m => m.SendMulticastAsync(
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>>(),
+                    It.IsAny<System.Threading.CancellationToken>()))
+                .ReturnsAsync(new FcmBatchSendResult { SuccessCount = 1, FailureCount = 0, UnregisteredTokens = new List<string>() });
+
+            var user101 = CreateUserPrincipal(101, "socofeb");
+            var controller = CreateController(context, user101, firebaseClient: mockFirebase.Object);
+
+            var result = await controller.TestDevicePush(null);
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var response = Assert.IsType<DeviceTestPushResponseDto>(okResult.Value);
+            Assert.True(response.Success);
+            Assert.Equal("AcceptedByFCM", response.Status);
+            Assert.Equal(2, response.DeviceRegistrationId); // Selected most recently active device (Id = 2)
+
+            mockFirebase.Verify(m => m.SendMulticastAsync(
+                It.Is<IReadOnlyList<string>>(tokens => tokens.Count == 1 && tokens[0] == "fcm_newer_token"),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<IReadOnlyDictionary<string, string>>(),
+                It.IsAny<System.Threading.CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task TestDevicePush_FirebaseNotConfigured_Returns503ServiceUnavailable()
+        {
+            var db = Guid.NewGuid().ToString();
+            var context = CreateContext(db, "socofeb");
+
+            context.DevicePushTokens.Add(new DevicePushToken
+            {
+                Id = 1,
+                UserId = 101,
+                Token = "fcm_token_device",
+                Platform = "android",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                LastActiveAt = DateTime.UtcNow
+            });
+            await context.SaveChangesAsync();
+
+            var mockFirebase = new Mock<IFirebaseMessagingClient>();
+            mockFirebase.Setup(m => m.IsConfigured).Returns(false); // NOT configured
+
+            var user101 = CreateUserPrincipal(101, "socofeb");
+            var controller = CreateController(context, user101, firebaseClient: mockFirebase.Object);
+
+            var result = await controller.TestDevicePush(new DeviceTestPushRequestDto());
+
+            var statusResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(StatusCodes.Status503ServiceUnavailable, statusResult.StatusCode);
+
+            // Verifies no dispatch was attempted
+            mockFirebase.Verify(m => m.SendMulticastAsync(
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<IReadOnlyDictionary<string, string>>(),
+                It.IsAny<System.Threading.CancellationToken>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task TestDevicePush_GoogleAccepts_Returns200WithAcceptedByFcmStatus()
+        {
+            var db = Guid.NewGuid().ToString();
+            var context = CreateContext(db, "socofeb");
+
+            context.DevicePushTokens.Add(new DevicePushToken
+            {
+                Id = 10,
+                UserId = 101,
+                Token = "fcm_token_redmi",
+                Platform = "android",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                LastActiveAt = DateTime.UtcNow
+            });
+            await context.SaveChangesAsync();
+
+            var mockFirebase = new Mock<IFirebaseMessagingClient>();
+            mockFirebase.Setup(m => m.IsConfigured).Returns(true);
+            mockFirebase
+                .Setup(m => m.SendMulticastAsync(
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>>(),
+                    It.IsAny<System.Threading.CancellationToken>()))
+                .ReturnsAsync(new FcmBatchSendResult { SuccessCount = 1, FailureCount = 0, UnregisteredTokens = new List<string>() });
+
+            var user101 = CreateUserPrincipal(101, "socofeb");
+            var controller = CreateController(context, user101, firebaseClient: mockFirebase.Object);
+
+            var result = await controller.TestDevicePush(new DeviceTestPushRequestDto { DeviceRegistrationId = 10 });
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var response = Assert.IsType<DeviceTestPushResponseDto>(okResult.Value);
+            Assert.True(response.Success);
+            Assert.Equal("AcceptedByFCM", response.Status);
+            Assert.False(response.DeliveryConfirmed); // Transport acceptance only, never claimed handset delivery
+            Assert.Equal(10, response.DeviceRegistrationId);
+            Assert.Equal("android", response.Platform);
+        }
+
+        [Fact]
+        public async Task TestDevicePush_Payload_ContainsOnlyGenericDiagnosticData()
+        {
+            var db = Guid.NewGuid().ToString();
+            var context = CreateContext(db, "socofeb");
+
+            context.DevicePushTokens.Add(new DevicePushToken
+            {
+                Id = 11,
+                UserId = 101,
+                Token = "fcm_token_payload_check",
+                Platform = "android",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                LastActiveAt = DateTime.UtcNow
+            });
+            await context.SaveChangesAsync();
+
+            string? capturedTitle = null;
+            string? capturedBody = null;
+            IReadOnlyDictionary<string, string>? capturedData = null;
+
+            var mockFirebase = new Mock<IFirebaseMessagingClient>();
+            mockFirebase.Setup(m => m.IsConfigured).Returns(true);
+            mockFirebase
+                .Setup(m => m.SendMulticastAsync(
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>>(),
+                    It.IsAny<System.Threading.CancellationToken>()))
+                .Callback<IReadOnlyList<string>, string, string, IReadOnlyDictionary<string, string>, System.Threading.CancellationToken>(
+                    (tokens, title, body, data, ct) =>
+                    {
+                        capturedTitle = title;
+                        capturedBody = body;
+                        capturedData = data;
+                    })
+                .ReturnsAsync(new FcmBatchSendResult { SuccessCount = 1, FailureCount = 0, UnregisteredTokens = new List<string>() });
+
+            var user101 = CreateUserPrincipal(101, "socofeb");
+            var controller = CreateController(context, user101, firebaseClient: mockFirebase.Object);
+
+            await controller.TestDevicePush(new DeviceTestPushRequestDto());
+
+            Assert.Equal("ACYA — Diagnostic Mobile", capturedTitle);
+            Assert.Equal("Test de notification en direct. Aucune action requise.", capturedBody);
+            Assert.NotNull(capturedData);
+            Assert.Equal("diagnostic", capturedData["type"]);
+            Assert.Equal("socofeb", capturedData["tenantSlug"]);
+            Assert.True(capturedData.ContainsKey("timestamp"));
+
+            // Payload sanity: Must not contain raw token, customer data, passwords, or financial terms
+            Assert.DoesNotContain("fcm_token_payload_check", capturedTitle);
+            Assert.DoesNotContain("fcm_token_payload_check", capturedBody);
+            Assert.DoesNotContain("password", capturedBody, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("price", capturedBody, StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public async Task TestDevicePush_GoogleReturnsUnregistered_DeactivatesDeviceRegistration()
+        {
+            var db = Guid.NewGuid().ToString();
+            var context = CreateContext(db, "socofeb");
+
+            var token = "fcm_token_stale_to_deactivate";
+            context.DevicePushTokens.Add(new DevicePushToken
+            {
+                Id = 12,
+                UserId = 101,
+                Token = token,
+                Platform = "android",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                LastActiveAt = DateTime.UtcNow
+            });
+            await context.SaveChangesAsync();
+
+            var mockFirebase = new Mock<IFirebaseMessagingClient>();
+            mockFirebase.Setup(m => m.IsConfigured).Returns(true);
+            // Firebase returns Unregistered token
+            mockFirebase
+                .Setup(m => m.SendMulticastAsync(
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>>(),
+                    It.IsAny<System.Threading.CancellationToken>()))
+                .ReturnsAsync(new FcmBatchSendResult { SuccessCount = 0, FailureCount = 1, UnregisteredTokens = new List<string> { token } });
+
+            var user101 = CreateUserPrincipal(101, "socofeb");
+            var controller = CreateController(context, user101, firebaseClient: mockFirebase.Object);
+
+            var result = await controller.TestDevicePush(new DeviceTestPushRequestDto());
+
+            var objResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(StatusCodes.Status502BadGateway, objResult.StatusCode);
+
+            // Confirm database entity was deactivated!
+            var stored = await context.DevicePushTokens.FirstAsync(d => d.Id == 12);
+            Assert.False(stored.IsActive);
+        }
+
+        [Fact]
+        public async Task TestDevicePush_GoogleReturnsFailureWithoutUnregistered_DoesNotDeactivateDevice()
+        {
+            var db = Guid.NewGuid().ToString();
+            var context = CreateContext(db, "socofeb");
+
+            var token = "fcm_token_transient_failure";
+            context.DevicePushTokens.Add(new DevicePushToken
+            {
+                Id = 13,
+                UserId = 101,
+                Token = token,
+                Platform = "android",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                LastActiveAt = DateTime.UtcNow
+            });
+            await context.SaveChangesAsync();
+
+            var mockFirebase = new Mock<IFirebaseMessagingClient>();
+            mockFirebase.Setup(m => m.IsConfigured).Returns(true);
+            // Failure without UnregisteredTokens (e.g. transient network outage, server error, or InvalidArgument)
+            mockFirebase
+                .Setup(m => m.SendMulticastAsync(
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>>(),
+                    It.IsAny<System.Threading.CancellationToken>()))
+                .ReturnsAsync(new FcmBatchSendResult { SuccessCount = 0, FailureCount = 1, UnregisteredTokens = new List<string>() });
+
+            var user101 = CreateUserPrincipal(101, "socofeb");
+            var controller = CreateController(context, user101, firebaseClient: mockFirebase.Object);
+
+            var result = await controller.TestDevicePush(new DeviceTestPushRequestDto());
+
+            var objResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(StatusCodes.Status502BadGateway, objResult.StatusCode);
+
+            // Confirm database entity remains ACTIVE (do not deactivate on non-unregistered failure)
+            var stored = await context.DevicePushTokens.FirstAsync(d => d.Id == 13);
+            Assert.True(stored.IsActive);
+        }
+
+        [Fact]
+        public async Task TestDevicePush_RateLimiter_SecondRequestWithinWindow_Returns429WithRetryAfter()
+        {
+            var db = Guid.NewGuid().ToString();
+            var context = CreateContext(db, "socofeb");
+
+            context.DevicePushTokens.Add(new DevicePushToken
+            {
+                Id = 14,
+                UserId = 101,
+                Token = "fcm_token_rate_limit",
+                Platform = "android",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                LastActiveAt = DateTime.UtcNow
+            });
+            await context.SaveChangesAsync();
+
+            var mockFirebase = new Mock<IFirebaseMessagingClient>();
+            mockFirebase.Setup(m => m.IsConfigured).Returns(true);
+            mockFirebase
+                .Setup(m => m.SendMulticastAsync(
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>>(),
+                    It.IsAny<System.Threading.CancellationToken>()))
+                .ReturnsAsync(new FcmBatchSendResult { SuccessCount = 1, FailureCount = 0, UnregisteredTokens = new List<string>() });
+
+            var rateLimiter = new InMemoryDeviceTestPushRateLimiter(window: TimeSpan.FromMinutes(5));
+            var user101 = CreateUserPrincipal(101, "socofeb");
+            var controller = CreateController(context, user101, firebaseClient: mockFirebase.Object, rateLimiter: rateLimiter);
+
+            // First call: Should succeed
+            var firstResult = await controller.TestDevicePush(new DeviceTestPushRequestDto());
+            Assert.IsType<OkObjectResult>(firstResult);
+
+            // Second call immediately within window: Should be rate limited (429)
+            var secondResult = await controller.TestDevicePush(new DeviceTestPushRequestDto());
+            var statusResult = Assert.IsType<ObjectResult>(secondResult);
+            Assert.Equal(StatusCodes.Status429TooManyRequests, statusResult.StatusCode);
+
+            Assert.True(controller.Response.Headers.ContainsKey("Retry-After"));
+            var retryAfter = int.Parse(controller.Response.Headers["Retry-After"]!);
+            Assert.True(retryAfter > 0 && retryAfter <= 300);
+        }
+
+        [Fact]
+        public void TestDevicePush_RateLimiter_DifferentUsersOrTenants_AreIsolated()
+        {
+            var rateLimiter = new InMemoryDeviceTestPushRateLimiter(window: TimeSpan.FromMinutes(5));
+
+            // User 1 on socofeb records a request
+            Assert.True(rateLimiter.IsAllowed("socofeb", 1, out _));
+            // Immediate second request for User 1 on socofeb rejected
+            Assert.False(rateLimiter.IsAllowed("socofeb", 1, out _));
+
+            // User 2 on same tenant is allowed (isolated by user)
+            Assert.True(rateLimiter.IsAllowed("socofeb", 2, out _));
+
+            // User 1 on different tenant is allowed (isolated by tenant)
+            Assert.True(rateLimiter.IsAllowed("other_tenant", 1, out _));
+        }
+
+        [Fact]
+        public async Task TestDevicePush_DoesNotCallAppNotificationServiceOrModifyBusinessNotifications()
+        {
+            var db = Guid.NewGuid().ToString();
+            var context = CreateContext(db, "socofeb");
+
+            context.DevicePushTokens.Add(new DevicePushToken
+            {
+                Id = 15,
+                UserId = 101,
+                Token = "fcm_token_no_business_side_effect",
+                Platform = "android",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                LastActiveAt = DateTime.UtcNow
+            });
+            await context.SaveChangesAsync();
+
+            var mockFirebase = new Mock<IFirebaseMessagingClient>();
+            mockFirebase.Setup(m => m.IsConfigured).Returns(true);
+            mockFirebase
+                .Setup(m => m.SendMulticastAsync(
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>>(),
+                    It.IsAny<System.Threading.CancellationToken>()))
+                .ReturnsAsync(new FcmBatchSendResult { SuccessCount = 1, FailureCount = 0, UnregisteredTokens = new List<string>() });
+
+            var mockAppNotif = new Mock<IAppNotificationService>();
+            var user101 = CreateUserPrincipal(101, "socofeb");
+            var controller = CreateController(
+                context,
+                user101,
+                firebaseClient: mockFirebase.Object,
+                mockAppNotifOut: mockAppNotif);
+
+            var result = await controller.TestDevicePush(new DeviceTestPushRequestDto());
+            Assert.IsType<OkObjectResult>(result);
+
+            // Assert that AppNotificationService.NotifyAsync was NEVER invoked for diagnostic push
+            mockAppNotif.Verify(a => a.NotifyAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<NotificationType>(),
+                It.IsAny<NotificationPriority>(),
+                It.IsAny<int?>(),
+                It.IsAny<string?>(),
+                It.IsAny<int?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>()), Times.Never);
         }
 
         #endregion

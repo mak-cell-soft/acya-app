@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ms.webapp.api.acya.api.Services;
+using ms.webapp.api.acya.api.Services.Notifications;
 using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities.DTOs.Notifications;
 using ms.webapp.api.acya.core.Entities.Notifications;
@@ -26,18 +28,24 @@ namespace ms.webapp.api.acya.api.Controllers
     private readonly NotificationService _stockNotificationService;
     private readonly WoodAppContext? _context;
     private readonly ILogger<NotificationsController>? _logger;
+    private readonly IFirebaseMessagingClient? _firebaseClient;
+    private readonly IDeviceTestPushRateLimiter? _rateLimiter;
 
     [ActivatorUtilitiesConstructor]
     public NotificationsController(
         IAppNotificationService appNotificationService,
         NotificationService stockNotificationService,
         WoodAppContext? context = null,
-        ILogger<NotificationsController>? logger = null)
+        ILogger<NotificationsController>? logger = null,
+        IFirebaseMessagingClient? firebaseClient = null,
+        IDeviceTestPushRateLimiter? rateLimiter = null)
     {
       _appNotificationService = appNotificationService;
       _stockNotificationService = stockNotificationService;
       _context = context;
       _logger = logger;
+      _firebaseClient = firebaseClient;
+      _rateLimiter = rateLimiter;
     }
 
     [HttpGet("unreads")]
@@ -245,6 +253,171 @@ namespace ms.webapp.api.acya.api.Controllers
       }
 
       return Ok(new DeviceTokenResponseDto { Success = true, Message = "Appareil désenregistré avec succès." });
+    }
+
+    /// <summary>
+    /// Production-safe diagnostic action to test FCM push delivery to the authenticated user's own registered device.
+    /// Strictly limits targeting to an active device owned by the caller within the resolved tenant schema.
+    /// Never accepts raw tokens, never broadcasts, and enforces single-instance rate limiting.
+    /// </summary>
+    [HttpPost("devices/test-push")]
+    [Authorize]
+    public async Task<IActionResult> TestDevicePush([FromBody] DeviceTestPushRequestDto? dto)
+    {
+      if (_context == null)
+      {
+        return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Database context is not configured." });
+      }
+
+      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+      if (!int.TryParse(userIdClaim, out var userId) || userId <= 0)
+      {
+        return Unauthorized(new { message = "Authentification requise ou identité utilisateur invalide." });
+      }
+
+      // 1. Resolve active tenant slug and validate tenant claim
+      var tenantClaim = User.FindFirst("tenant_slug")?.Value?.Trim().ToLowerInvariant();
+      var contextTenant = (!string.IsNullOrEmpty(_context.SchemaName) && _context.SchemaName.StartsWith("tenant_"))
+          ? _context.SchemaName.Substring("tenant_".Length).Trim().ToLowerInvariant()
+          : null;
+
+      if (!string.IsNullOrEmpty(tenantClaim) && !string.IsNullOrEmpty(contextTenant) &&
+          !string.Equals(tenantClaim, contextTenant, StringComparison.OrdinalIgnoreCase))
+      {
+        _logger?.LogWarning("Tenant mismatch detected: token claim '{ClaimTenant}' does not match context '{ContextTenant}'",
+            tenantClaim, contextTenant);
+        return Unauthorized(new { message = "Incohérence de contexte tenant." });
+      }
+
+      var tenantSlug = tenantClaim ?? contextTenant ?? "default";
+
+      // 2. Check rate limit
+      if (_rateLimiter != null && !_rateLimiter.IsAllowed(tenantSlug, userId, out var retryAfterSeconds))
+      {
+        Response.Headers["Retry-After"] = retryAfterSeconds.ToString();
+        return StatusCode(StatusCodes.Status429TooManyRequests, new
+        {
+          success = false,
+          status = "RateLimited",
+          message = $"Limite de requêtes atteinte. Veuillez réessayer dans {retryAfterSeconds} secondes.",
+          retryAfterSeconds
+        });
+      }
+
+      // 3. Resolve target device strictly owned by caller and active
+      DevicePushToken? targetDevice = null;
+      if (dto?.DeviceRegistrationId.HasValue == true)
+      {
+        targetDevice = await _context.DevicePushTokens
+            .FirstOrDefaultAsync(d => d.Id == dto.DeviceRegistrationId.Value && d.UserId == userId && d.IsActive);
+      }
+      else
+      {
+        targetDevice = await _context.DevicePushTokens
+            .Where(d => d.UserId == userId && d.IsActive)
+            .OrderByDescending(d => d.LastActiveAt)
+            .FirstOrDefaultAsync();
+      }
+
+      if (targetDevice == null)
+      {
+        return NotFound(new
+        {
+          success = false,
+          status = "DeviceNotFound",
+          message = "Aucun appareil actif enregistré n'a été trouvé pour votre compte."
+        });
+      }
+
+      // 4. Verify Firebase Client readiness
+      if (_firebaseClient == null || !_firebaseClient.IsConfigured)
+      {
+        _logger?.LogWarning("Diagnostic push rejected: Firebase messaging is not configured on this server (Tenant: '{TenantSlug}', UserId: {UserId})",
+            tenantSlug, userId);
+        return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+        {
+          success = false,
+          status = "ServiceUnavailable",
+          message = "Le service de notification push Firebase n'est pas configuré sur ce serveur."
+        });
+      }
+
+      // 5. Construct generic harmless diagnostic payload
+      var title = "ACYA — Diagnostic Mobile";
+      var body = "Test de notification en direct. Aucune action requise.";
+      var data = new Dictionary<string, string>
+      {
+        ["type"] = "diagnostic",
+        ["tenantSlug"] = tenantSlug ?? "unknown",
+        ["timestamp"] = DateTime.UtcNow.ToString("o")
+      };
+
+      // 6. Send single push via IFirebaseMessagingClient.SendMulticastAsync with exactly one token
+      FcmBatchSendResult sendResult;
+      try
+      {
+        using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(5));
+        sendResult = await _firebaseClient.SendMulticastAsync(
+            new[] { targetDevice.Token },
+            title,
+            body,
+            data,
+            cts.Token);
+      }
+      catch (Exception ex)
+      {
+        _logger?.LogError("Unexpected error during diagnostic FCM dispatch for user {UserId}: {ErrorMessage}", userId, ex.Message);
+        return StatusCode(StatusCodes.Status502BadGateway, new
+        {
+          success = false,
+          status = "GatewayError",
+          message = "Erreur inattendue lors de la communication avec le service Firebase."
+        });
+      }
+
+      // 7. Token hygiene: Deactivate ONLY if Firebase reliably reported token as unregistered
+      if (sendResult.UnregisteredTokens != null && sendResult.UnregisteredTokens.Contains(targetDevice.Token))
+      {
+        targetDevice.IsActive = false;
+        targetDevice.LastActiveAt = DateTime.UtcNow;
+        _context.DevicePushTokens.Update(targetDevice);
+        await _context.SaveChangesAsync();
+
+        _logger?.LogInformation("Deactivated unregistered device token for user {UserId} in tenant '{TenantSlug}' (DeviceId: {DeviceId})",
+            userId, tenantSlug, targetDevice.Id);
+      }
+
+      // 8. Distinguish FCM acceptance from handset delivery
+      if (sendResult.SuccessCount > 0)
+      {
+        _logger?.LogInformation("Diagnostic FCM message accepted by Firebase for user {UserId} (DeviceId: {DeviceId}, Tenant: '{TenantSlug}')",
+            userId, targetDevice.Id, tenantSlug);
+
+        return Ok(new DeviceTestPushResponseDto
+        {
+          Success = true,
+          Status = "AcceptedByFCM",
+          Message = "Notification de test acceptée par Firebase Cloud Messaging pour acheminement. La réception sur l'appareil dépend de sa connectivité et de ses paramètres système.",
+          TargetedDeviceId = targetDevice.Id,
+          Platform = targetDevice.Platform,
+          DeliveryConfirmed = false,
+          TimestampUtc = DateTime.UtcNow
+        });
+      }
+      else
+      {
+        _logger?.LogWarning("Diagnostic FCM message rejected by Firebase for user {UserId} (DeviceId: {DeviceId}, Tenant: '{TenantSlug}', Failures: {FailureCount})",
+            userId, targetDevice.Id, tenantSlug, sendResult.FailureCount);
+
+        return StatusCode(StatusCodes.Status502BadGateway, new DeviceTestPushResponseDto
+        {
+          Success = false,
+          Status = "RejectedByFCM",
+          Message = "La requête de notification a été rejetée par Firebase Cloud Messaging.",
+          TargetedDeviceId = targetDevice.Id,
+          TimestampUtc = DateTime.UtcNow
+        });
+      }
     }
 
     /// <summary>
