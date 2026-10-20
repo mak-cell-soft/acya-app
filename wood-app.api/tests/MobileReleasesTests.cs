@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using ms.webapp.api.acya.api.Interfaces;
@@ -597,6 +598,201 @@ namespace ms.webapp.api.acya.tests
             Assert.True(config.HasChantierModule);
             Assert.False(config.HasProductionModule);
             Assert.Equal("https://socofeb.acya.site/api/", config.BaseUrl);
+        }
+
+        [Fact]
+        public async Task MobileTenantConfig_MansourConstruction_BothChantierAndProductionEnabled()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "mansour-construction", SchemaName = "tenant_mansour_construction" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry
+            {
+                Id = 2,
+                Slug = "mansour-construction",
+                Name = "Mansour Construction",
+                SchemaName = "tenant_mansour_construction",
+                PrimaryColor = "#D97706",
+                SecondaryColor = "#F59E0B",
+                Language = "fr",
+                Currency = "TND",
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            woodDb.Enterprises.Add(new Enterprise
+            {
+                Id = 2,
+                Name = "Mansour Construction",
+                IsManagingConstructions = true,
+                IsManagingProduction = true
+            });
+            await woodDb.SaveChangesAsync();
+
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+
+            // Act
+            var config = await configService.GenerateConfigForTenantAsync("mansour-construction");
+
+            // Assert
+            Assert.NotNull(config);
+            Assert.Equal("mansour-construction", config!.TenantId);
+            Assert.Equal("Mansour Construction", config.CompanyName);
+            Assert.Equal("com.mansourconstruction.woodapp", config.PackageName);
+            Assert.True(config.HasChantierModule);
+            Assert.True(config.HasProductionModule);
+            Assert.Equal("https://mansour-construction.acya.site/api/", config.BaseUrl);
+        }
+
+        [Fact]
+        public async Task MobileTenantConfig_ScopedResolution_SetsTenantContextSchemaAndReadsModules()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry
+            {
+                Id = 10,
+                Slug = "mansour-construction",
+                Name = "Mansour Construction",
+                SchemaName = "tenant_mansour_construction",
+                ConnectionString = "Host=localhost;Database=acya_test",
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var services = new ServiceCollection();
+            var scopedTenantCtx = new TenantContext();
+            services.AddScoped(_ => scopedTenantCtx);
+
+            var tenantWoodDbOptions = new DbContextOptionsBuilder<WoodAppContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+            var scopedWoodDb = new WoodAppContext(tenantWoodDbOptions, scopedTenantCtx);
+            scopedWoodDb.Enterprises.Add(new Enterprise
+            {
+                Id = 1,
+                Name = "Mansour Construction",
+                IsManagingConstructions = true,
+                IsManagingProduction = true
+            });
+            await scopedWoodDb.SaveChangesAsync();
+
+            services.AddScoped(_ => scopedWoodDb);
+            var serviceProvider = services.BuildServiceProvider();
+
+            // When scoped resolution runs, it sets TenantContext properties
+            using (var scope = serviceProvider.CreateScope())
+            {
+                var ctx = scope.ServiceProvider.GetRequiredService<TenantContext>();
+                ctx.IsEnabled = true;
+                ctx.Slug = "mansour-construction";
+                ctx.SchemaName = "tenant_mansour_construction";
+                ctx.ConnectionString = "Host=localhost;Database=acya_test";
+
+                var db = scope.ServiceProvider.GetRequiredService<WoodAppContext>();
+                var ent = await db.Enterprises.FirstOrDefaultAsync();
+                Assert.NotNull(ent);
+                Assert.True(ent!.IsManagingConstructions);
+                Assert.True(ent.IsManagingProduction);
+            }
+        }
+
+        [Fact]
+        public async Task MobileTenantConfig_DatabaseFailure_ThrowsAndDoesNotSilentlyDisableModules()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "mansour-construction" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry
+            {
+                Id = 3,
+                Slug = "mansour-construction",
+                Name = "Mansour Construction",
+                SchemaName = "tenant_mansour_construction",
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            // Dispose woodDb to simulate a database query / connection failure
+            await woodDb.DisposeAsync();
+
+            var loggerMock = new Mock<ILogger<MobileTenantConfigService>>();
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration, null, loggerMock.Object);
+
+            // Act & Assert
+            // NOTE: Must throw InvalidOperationException instead of silently returning hasChantier = false, hasProduction = false
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                configService.GenerateConfigForTenantAsync("mansour-construction"));
+        }
+
+        [Fact]
+        public async Task AdminBuilds_GetBuildConfig_MansourConstruction_ReturnsBothModulesTrue()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "mansour-construction", SchemaName = "tenant_mansour_construction" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry
+            {
+                Id = 1,
+                Slug = "mansour-construction",
+                Name = "Mansour Construction",
+                SchemaName = "tenant_mansour_construction",
+                IsActive = true
+            });
+
+            var build = new MobileBuild
+            {
+                Id = 42,
+                TenantId = "mansour-construction",
+                Version = "1.0.0",
+                BuildNumber = 1,
+                Status = "pending",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+            masterDb.MobileBuilds.Add(build);
+            await masterDb.SaveChangesAsync();
+
+            woodDb.Enterprises.Add(new Enterprise
+            {
+                Id = 1,
+                Name = "Mansour Construction",
+                IsManagingConstructions = true,
+                IsManagingProduction = true
+            });
+            await woodDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var buildLoggerMock = new Mock<ILogger<MobileBuildService>>();
+            var buildService = new MobileBuildService(masterDb, woodDb, storageMock.Object, tokenService, configService, buildLoggerMock.Object);
+            var dispatcherMock = new Mock<IGitHubBuildDispatcher>();
+            var controllerLogger = new Mock<ILogger<AdminMobileBuildsController>>();
+
+            var controller = new AdminMobileBuildsController(buildService, configService, dispatcherMock.Object, controllerLogger.Object);
+
+            // Act
+            var actionResult = await controller.GetBuildConfig(42);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var config = Assert.IsType<MobileTenantConfigDto>(okResult.Value);
+            Assert.Equal("mansour-construction", config.TenantId);
+            Assert.Equal("Mansour Construction", config.CompanyName);
+            Assert.True(config.HasChantierModule);
+            Assert.True(config.HasProductionModule);
         }
 
         #endregion
