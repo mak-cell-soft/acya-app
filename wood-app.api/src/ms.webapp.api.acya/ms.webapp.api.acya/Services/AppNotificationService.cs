@@ -18,6 +18,7 @@ namespace ms.webapp.api.acya.api.Services
         private readonly IHubContext<NotificationHub> _hubContext;
         private readonly IEmailService _emailService;
         private readonly IN8nEmailService? _n8nEmailService;
+        private readonly IFcmPushDispatcher? _fcmDispatcher;
         private readonly ILogger<AppNotificationService> _logger;
         private readonly TenantContext? _tenantContext;
 
@@ -26,7 +27,7 @@ namespace ms.webapp.api.acya.api.Services
             IHubContext<NotificationHub> hubContext,
             IEmailService emailService,
             ILogger<AppNotificationService> logger)
-            : this(context, hubContext, emailService, logger, null, null)
+            : this(context, hubContext, emailService, logger, null, null, null)
         {
         }
 
@@ -36,7 +37,7 @@ namespace ms.webapp.api.acya.api.Services
             IEmailService emailService,
             ILogger<AppNotificationService> logger,
             TenantContext? tenantContext)
-            : this(context, hubContext, emailService, logger, tenantContext, null)
+            : this(context, hubContext, emailService, logger, tenantContext, null, null)
         {
         }
 
@@ -47,6 +48,18 @@ namespace ms.webapp.api.acya.api.Services
             ILogger<AppNotificationService> logger,
             TenantContext? tenantContext,
             IN8nEmailService? n8nEmailService)
+            : this(context, hubContext, emailService, logger, tenantContext, n8nEmailService, null)
+        {
+        }
+
+        public AppNotificationService(
+            WoodAppContext context,
+            IHubContext<NotificationHub> hubContext,
+            IEmailService emailService,
+            ILogger<AppNotificationService> logger,
+            TenantContext? tenantContext,
+            IN8nEmailService? n8nEmailService,
+            IFcmPushDispatcher? fcmDispatcher)
         {
             _context = context;
             _hubContext = hubContext;
@@ -54,6 +67,7 @@ namespace ms.webapp.api.acya.api.Services
             _logger = logger;
             _tenantContext = tenantContext;
             _n8nEmailService = n8nEmailService;
+            _fcmDispatcher = fcmDispatcher;
         }
 
         private string? GetTenantSlug()
@@ -96,6 +110,9 @@ namespace ms.webapp.api.acya.api.Services
 
             // Push via SignalR with strict tenant scoping
             await PushToSignalR(notification);
+
+            // Push via FCM with failure isolation and bounded timeout
+            await PushToFcmSafeAsync(notification);
 
             return notification;
         }
@@ -249,6 +266,29 @@ namespace ms.webapp.api.acya.api.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error pushing notification to SignalR");
+            }
+        }
+
+        private async Task PushToFcmSafeAsync(AppNotification notification)
+        {
+            if (_fcmDispatcher == null)
+            {
+                return;
+            }
+
+            try
+            {
+                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(3));
+                await _fcmDispatcher.DispatchAsync(notification, cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("FCM push dispatch timed out after 3 seconds for NotificationId {NotificationId}", notification.Id);
+            }
+            catch (Exception ex)
+            {
+                // Strict failure isolation: FCM transport errors must never fail or roll back persisted notifications
+                _logger.LogError(ex, "Error dispatching FCM push for NotificationId {NotificationId}", notification.Id);
             }
         }
     }

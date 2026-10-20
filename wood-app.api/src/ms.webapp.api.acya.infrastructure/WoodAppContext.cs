@@ -83,6 +83,7 @@ namespace ms.webapp.api.acya.infrastructure
     public virtual DbSet<EmployeePayslip> EmployeePayslips { get; set; }
     public virtual DbSet<EmployeeAdvance> EmployeeAdvances { get; set; }
     public virtual DbSet<AppNotification> AppNotifications { get; set; }
+    public virtual DbSet<DevicePushToken> DevicePushTokens { get; set; }
     public virtual DbSet<AuditLog> AuditLogs { get; set; }
     public virtual DbSet<ApprovalConfig> ApprovalConfigs { get; set; }
     public virtual DbSet<DocumentApproval> DocumentApprovals { get; set; }

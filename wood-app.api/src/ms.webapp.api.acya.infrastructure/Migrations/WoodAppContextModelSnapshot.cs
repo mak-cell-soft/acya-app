@@ -2489,6 +2489,60 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                     b.ToTable("tbl_vehicle_expense", (string)null);
                 });
 
+            modelBuilder.Entity("ms.webapp.api.acya.core.Entities.Notifications.DevicePushToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("Id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AppVersion")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("AppVersion");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("CreatedAt");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IsActive");
+
+                    b.Property<DateTime>("LastActiveAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("LastActiveAt");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("Platform");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("Token");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("UserId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique()
+                        .HasDatabaseName("IX_DevicePushTokens_Token");
+
+                    b.HasIndex("UserId", "IsActive")
+                        .HasDatabaseName("IX_DevicePushTokens_UserId_IsActive");
+
+                    b.ToTable("DevicePushTokens", (string)null);
+                });
+
             modelBuilder.Entity("ms.webapp.api.acya.infrastructure.AppHealth", b =>
                 {
                     b.Property<int>("Id")
@@ -3164,6 +3218,17 @@ namespace ms.webapp.api.acya.infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("ms.webapp.api.acya.core.Entities.Notifications.DevicePushToken", b =>
+                {
+                    b.HasOne("ms.webapp.api.acya.core.Entities.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ms.webapp.api.acya.core.Entities.Categories.FirstChild", b =>
