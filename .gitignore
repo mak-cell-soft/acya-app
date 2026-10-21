@@ -55,3 +55,4 @@ backups/
 *.dump
 *.bak
 
+/storage/secrets/firebase-service-account.json
