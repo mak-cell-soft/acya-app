@@ -68,11 +68,14 @@ services:
       - QuoteIntegration__Secret=${QUOTE_INTEGRATION_SECRET}
       - QuoteEmail__EnterpriseRecipient=${QUOTE_EMAIL_ENTERPRISE_RECIPIENT:-socofeb.deco@gmail.com}
       - QuoteEmail__SenderAlias=${QUOTE_EMAIL_SENDER_ALIAS:-contact-socofeb}
+      - FIREBASE_CREDENTIALS_PATH=${FIREBASE_CREDENTIALS_PATH:-/app/secrets/firebase-service-account.json}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-acya-fcm-prod-dispatcher}
     ports:
 
       - "8080:80"
     volumes:
       - ./storage/private/mobile:/app/storage/private/mobile
+      - ./storage/secrets/firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
       postgres:
         condition: service_healthy
