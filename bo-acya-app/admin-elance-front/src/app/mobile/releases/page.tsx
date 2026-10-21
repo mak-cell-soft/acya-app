@@ -21,8 +21,7 @@ import {
   User,
   History,
   Tag,
-  Send,
-  Mail
+  Send
 } from "lucide-react";
 import { MobileRelease, MobileTenantSummary, MobileTenantUser } from "@/types/mobile";
 
@@ -196,6 +195,7 @@ export default function MobileReleasesPage() {
 
   const handleSendInvitation = async () => {
     if (!sendTargetRelease || !selectedUserId) return;
+    const selectedUser = tenantUsers.find((u) => u.id === selectedUserId);
     setSendingEmail(true);
 
     try {
@@ -213,9 +213,23 @@ export default function MobileReleasesPage() {
         throw new Error(data.message || data.error || `Failed to send email (${res.status})`);
       }
 
+      const recipientName =
+        selectedUser?.name?.trim() ||
+        selectedUser?.fullName?.trim() ||
+        selectedUser?.userName?.trim() ||
+        selectedUser?.login?.trim() ||
+        data.recipientName?.trim();
+
+      const recipientIdentity =
+        recipientName ||
+        selectedUser?.email?.trim() ||
+        data.recipient?.trim() ||
+        data.recipientEmail?.trim() ||
+        "recipient";
+
       setToast({
         type: "success",
-        message: `✓ Mobile app invitation sent to ${data.recipientName || "user"} (${data.recipientEmail || ""})`,
+        message: `Mobile app invitation sent successfully to ${recipientIdentity}.`,
       });
       setSendModalOpen(false);
     } catch (err: unknown) {
@@ -238,6 +252,8 @@ export default function MobileReleasesPage() {
         r.tenantId.toLowerCase().includes(search) ||
         r.version.toLowerCase().includes(search) ||
         (r.releaseNotes && r.releaseNotes.toLowerCase().includes(search)) ||
+        (r.publishedByName && r.publishedByName.toLowerCase().includes(search)) ||
+        (r.publishedByEmail && r.publishedByEmail.toLowerCase().includes(search)) ||
         (r.publishedBy && r.publishedBy.toLowerCase().includes(search)) ||
         (r.sha256 && r.sha256.toLowerCase().includes(search));
 
@@ -379,9 +395,18 @@ export default function MobileReleasesPage() {
                     <span className="text-muted-foreground">Published:</span>
                     <span className="text-zinc-300">{formatDate(rel.publishedAt)}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-start">
                     <span className="text-muted-foreground">Published By:</span>
-                    <span className="text-zinc-300 truncate max-w-[160px]">{rel.publishedBy || "Admin"}</span>
+                    <div className="text-right max-w-[170px]">
+                      <div className="text-zinc-300 truncate" title={rel.publishedByName || rel.publishedBy || "Admin"}>
+                        {rel.publishedByName || rel.publishedBy || "Admin"}
+                      </div>
+                      {rel.publishedByEmail && rel.publishedByName && rel.publishedByEmail.toLowerCase() !== rel.publishedByName.toLowerCase() && (
+                        <div className="text-[10px] text-zinc-400 font-mono truncate" title={rel.publishedByEmail}>
+                          {rel.publishedByEmail}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">APK Size:</span>
@@ -549,8 +574,15 @@ export default function MobileReleasesPage() {
                       <td className="p-3 text-muted-foreground">
                         {formatDate(rel.publishedAt)}
                       </td>
-                      <td className="p-3 text-muted-foreground truncate max-w-[120px]">
-                        {rel.publishedBy || "Admin"}
+                      <td className="p-3 text-zinc-300 max-w-[160px]">
+                        <div className="truncate text-xs font-medium text-zinc-200" title={rel.publishedByName || rel.publishedBy || "Admin"}>
+                          {rel.publishedByName || rel.publishedBy || "Admin"}
+                        </div>
+                        {rel.publishedByEmail && rel.publishedByName && rel.publishedByEmail.toLowerCase() !== rel.publishedByName.toLowerCase() && (
+                          <div className="truncate text-[10px] text-zinc-400 font-mono" title={rel.publishedByEmail}>
+                            {rel.publishedByEmail}
+                          </div>
+                        )}
                       </td>
                       <td className="p-3 pr-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-2">
@@ -679,12 +711,21 @@ export default function MobileReleasesPage() {
                       </span>
                       <span className="text-zinc-300">{formatDate(selectedRelease.publishedAt)}</span>
                     </div>
-                    <div className="p-3 flex justify-between items-center">
-                      <span className="text-muted-foreground flex items-center gap-1">
+                    <div className="p-3 flex justify-between items-center gap-3">
+                      <span className="text-muted-foreground flex items-center gap-1 shrink-0">
                         <User className="w-3 h-3 text-muted-foreground" />
                         Published By
                       </span>
-                      <span className="text-zinc-300 truncate max-w-[200px]">{selectedRelease.publishedBy || "Admin"}</span>
+                      <div className="text-right max-w-[220px]">
+                        <div className="text-zinc-200 font-medium truncate" title={selectedRelease.publishedByName || selectedRelease.publishedBy || "Admin"}>
+                          {selectedRelease.publishedByName || selectedRelease.publishedBy || "Admin"}
+                        </div>
+                        {selectedRelease.publishedByEmail && selectedRelease.publishedByName && selectedRelease.publishedByEmail.toLowerCase() !== selectedRelease.publishedByName.toLowerCase() && (
+                          <div className="text-[11px] text-zinc-400 font-mono truncate" title={selectedRelease.publishedByEmail}>
+                            {selectedRelease.publishedByEmail}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -883,22 +924,39 @@ export default function MobileReleasesPage() {
                     onChange={(e) => setSelectedUserId(Number(e.target.value))}
                     className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2.5 text-xs font-mono text-white focus:outline-none focus:border-corp-blue-500 cursor-pointer"
                   >
-                    {tenantUsers.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.fullName || u.userName} ({u.email || u.userName})
-                      </option>
-                    ))}
+                    {tenantUsers.map((u) => {
+                      const userDisplayName =
+                        u.name?.trim() ||
+                        u.fullName?.trim() ||
+                        u.userName?.trim() ||
+                        u.login?.trim();
+                      const userEmail = u.email?.trim();
+                      const optionLabel = userDisplayName
+                        ? `${userDisplayName} (${userEmail || "No email defined"})`
+                        : (userEmail || `User #${u.id}`);
+                      return (
+                        <option key={u.id} value={u.id}>
+                          {optionLabel}
+                        </option>
+                      );
+                    })}
                   </select>
 
                   {/* Selected User Details */}
                   {(() => {
                     const sel = tenantUsers.find((u) => u.id === selectedUserId);
                     if (!sel) return null;
+                    const displayName =
+                      sel.name?.trim() ||
+                      sel.fullName?.trim() ||
+                      sel.userName?.trim() ||
+                      sel.login?.trim() ||
+                      "Name unavailable";
                     return (
                       <div className="p-3 rounded-lg bg-zinc-950/50 border border-zinc-800/60 font-mono text-xs space-y-1">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Name:</span>
-                          <span className="text-white font-medium">{sel.fullName || sel.userName}</span>
+                          <span className="text-white font-medium">{displayName}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Email:</span>

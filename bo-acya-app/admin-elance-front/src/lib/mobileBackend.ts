@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { MobileBuild, MobileRelease, CreateMobileBuildInput, MobileTenantSummary, MobileTenantUser, SendMobileAppResult } from "@/types/mobile";
+import { MobileBuild, MobileRelease, CreateMobileBuildInput, MobileTenantSummary, MobileTenantUser, SendMobileAppResult, NextMobileVersionInfo } from "@/types/mobile";
 
 interface TokenCache {
   token: string;
@@ -553,6 +553,42 @@ export async function sendMobileAppInvitation(
   if (!res || !res.ok) {
     const errorText = await res?.text().catch(() => "");
     throw new Error(`Failed to send mobile app invitation (${res?.status || "unknown"}): ${errorText || res?.statusText}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Retrieves the suggested semantic version and next build number for a tenant.
+ */
+export async function fetchNextMobileVersion(
+  coreToken: string,
+  tenantId: string
+): Promise<NextMobileVersionInfo> {
+  const { coreBase } = await getBackendUrls();
+  const cleanTenant = encodeURIComponent(tenantId.trim().toLowerCase());
+  let url = `${coreBase}admin/mobile/builds/next-version?tenantId=${cleanTenant}`;
+
+  let res = await fetch(url, {
+    headers: {
+      "Authorization": `Bearer ${coreToken}`,
+      "Accept": "application/json",
+    },
+  }).catch(() => null);
+
+  if (!res) {
+    url = `http://localhost:8080/api/admin/mobile/builds/next-version?tenantId=${cleanTenant}`;
+    res = await fetch(url, {
+      headers: {
+        "Authorization": `Bearer ${coreToken}`,
+        "Accept": "application/json",
+      },
+    });
+  }
+
+  if (!res || !res.ok) {
+    const errorText = await res?.text().catch(() => "");
+    throw new Error(`Failed to retrieve next version suggestion (${res?.status || "unknown"}): ${errorText || res?.statusText}`);
   }
 
   return res.json();

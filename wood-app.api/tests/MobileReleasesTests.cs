@@ -2378,6 +2378,360 @@ namespace ms.webapp.api.acya.tests
             Assert.Contains("/api/mobile/releases/download?token=", downloadResponse.DownloadUrl);
         }
 
+        [Fact]
+        public async Task PublishBuild_TokenWithNameClaim_RecordsAuthoritativeName()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 101,
+                TenantId = "socofeb",
+                Version = "1.0.1",
+                BuildNumber = 1,
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = "socofeb/1/SOCOFEB-1.0.1-1.apk",
+                ArtifactSize = 50000,
+                Sha256 = "sha256hash",
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            storageMock.Setup(s => s.ArtifactExistsAsync("socofeb/1/SOCOFEB-1.0.1-1.apk", default)).ReturnsAsync(true);
+
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+            controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.Role, "Admin"),
+                new Claim("name", "Amine Klabi"),
+                new Claim(ClaimTypes.Email, "klabiamine@gmail.com")
+            }, "TestAuth"));
+
+            // Act
+            var actionResult = await controller.PublishBuild(101);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var release = Assert.IsType<MobileReleaseDto>(okResult.Value);
+
+            Assert.Equal("Amine Klabi", release.PublishedBy);
+            Assert.Equal("Amine Klabi", release.PublishedByName);
+            Assert.Null(release.PublishedByEmail);
+
+            var saved = await masterDb.MobileReleases.FirstAsync(r => r.MobileBuildId == 101);
+            Assert.Equal("Amine Klabi", saved.PublishedBy);
+        }
+
+        [Fact]
+        public async Task PublishBuild_TokenWithOnlyEmail_FallsBackToEmail()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 102,
+                TenantId = "socofeb",
+                Version = "1.0.2",
+                BuildNumber = 2,
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = "socofeb/2/SOCOFEB-1.0.2-2.apk",
+                ArtifactSize = 50000,
+                Sha256 = "sha256hash",
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            storageMock.Setup(s => s.ArtifactExistsAsync("socofeb/2/SOCOFEB-1.0.2-2.apk", default)).ReturnsAsync(true);
+
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+            controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.Role, "Admin"),
+                new Claim(ClaimTypes.Email, "publisher@acya.site")
+            }, "TestAuth"));
+
+            // Act
+            var actionResult = await controller.PublishBuild(102);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var release = Assert.IsType<MobileReleaseDto>(okResult.Value);
+
+            Assert.Equal("publisher@acya.site", release.PublishedBy);
+            Assert.Equal("publisher@acya.site", release.PublishedByEmail);
+        }
+
+        [Fact]
+        public async Task PublishBuild_TokenWithImpersonatorUsername_PrefersImpersonatorOverFallback()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 103,
+                TenantId = "socofeb",
+                Version = "1.0.3",
+                BuildNumber = 3,
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = "socofeb/3/SOCOFEB-1.0.3-3.apk",
+                ArtifactSize = 50000,
+                Sha256 = "sha256hash",
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            storageMock.Setup(s => s.ArtifactExistsAsync("socofeb/3/SOCOFEB-1.0.3-3.apk", default)).ReturnsAsync(true);
+
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+            controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.Role, "Admin"),
+                new Claim("impersonator_username", "amine"),
+                new Claim(ClaimTypes.Name, "Tenant Local Manager"),
+                new Claim(ClaimTypes.Email, "socofeb.deco@gmail.com")
+            }, "TestAuth"));
+
+            // Act
+            var actionResult = await controller.PublishBuild(103);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var release = Assert.IsType<MobileReleaseDto>(okResult.Value);
+
+            // Super Admin username must be preferred over tenant user's name
+            Assert.Equal("amine", release.PublishedBy);
+            Assert.Equal("amine", release.PublishedByName);
+        }
+
+        [Fact]
+        public async Task PublishBuild_GenericAdminNameClaim_DoesNotOverrideSpecificEmail()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 104,
+                TenantId = "socofeb",
+                Version = "1.0.4",
+                BuildNumber = 4,
+                Status = MobileBuildStatus.Succeeded,
+                ArtifactPath = "socofeb/4/SOCOFEB-1.0.4-4.apk",
+                ArtifactSize = 50000,
+                Sha256 = "sha256hash",
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            storageMock.Setup(s => s.ArtifactExistsAsync("socofeb/4/SOCOFEB-1.0.4-4.apk", default)).ReturnsAsync(true);
+
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+            controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.Role, "Admin"),
+                new Claim(ClaimTypes.Name, "Admin"),
+                new Claim(ClaimTypes.Email, "operator@socofeb.com")
+            }, "TestAuth"));
+
+            // Act
+            var actionResult = await controller.PublishBuild(104);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var release = Assert.IsType<MobileReleaseDto>(okResult.Value);
+
+            // Generic "Admin" placeholder must not override specific email
+            Assert.Equal("operator@socofeb.com", release.PublishedBy);
+            Assert.Equal("operator@socofeb.com", release.PublishedByEmail);
+        }
+
+        [Fact]
+        public async Task CreateBuild_ImpersonatedSuperAdmin_RecordsSuperAdminAsCreatedBy()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry
+            {
+                Id = 1,
+                Slug = "socofeb",
+                Name = "SOCOFEB",
+                SchemaName = "tenant_socofeb",
+                IsActive = true
+            });
+            await masterDb.SaveChangesAsync();
+
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var controller = CreateAdminBuildsController(masterDb, woodDb, storageMock);
+            controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.Role, "Admin"),
+                new Claim("impersonator_username", "amine"),
+                new Claim(ClaimTypes.Name, "Tenant Local Manager"),
+                new Claim(ClaimTypes.Email, "socofeb.deco@gmail.com")
+            }, "TestAuth"));
+
+            // Act
+            var actionResult = await controller.CreateBuild(new CreateMobileBuildDto
+            {
+                TenantId = "socofeb",
+                Version = "1.0.5",
+                GitBranch = "main"
+            });
+
+            // Assert
+            var createdResult = Assert.IsType<CreatedAtActionResult>(actionResult.Result);
+            var build = Assert.IsType<MobileBuildDto>(createdResult.Value);
+
+            Assert.Equal("amine", build.CreatedBy);
+        }
+
+        [Fact]
+        public async Task GetAllReleases_HistoricalEmail_ResolvesToTenantUserFullName()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry
+            {
+                Id = 1,
+                Slug = "socofeb",
+                Name = "SOCOFEB",
+                SchemaName = "tenant_socofeb",
+                IsActive = true
+            });
+
+            woodDb.AppUsers.Add(new AppUser
+            {
+                Id = 10,
+                Login = "amine.klabi",
+                Email = "klabiamine@gmail.com",
+                IsActive = true,
+                Persons = new Person { Firstname = "Amine", Lastname = "KLABI" }
+            });
+            await woodDb.SaveChangesAsync();
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 10,
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 1,
+                Status = "Completed",
+                CreatedAt = DateTime.UtcNow
+            });
+
+            masterDb.MobileReleases.Add(new MobileRelease
+            {
+                Id = 201,
+                TenantId = "socofeb",
+                MobileBuildId = 10,
+                Version = "1.0.0",
+                BuildNumber = 1,
+                Status = "Published",
+                IsCurrent = true,
+                PublishedBy = "klabiamine@gmail.com",
+                CreatedAt = DateTime.UtcNow
+            });
+            await masterDb.SaveChangesAsync();
+
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var buildService = new MobileBuildService(masterDb, woodDb, storageMock.Object, tokenService, configService, new Mock<ILogger<MobileBuildService>>().Object);
+
+            // Act
+            var releases = (await buildService.GetAllReleasesAsync("socofeb")).ToList();
+
+            // Assert
+            var rel = Assert.Single(releases);
+            Assert.Equal("klabiamine@gmail.com", rel.PublishedBy); // Preserved exactly
+            Assert.Equal("Amine KLABI", rel.PublishedByName);     // Friendly name resolved
+            Assert.Equal("klabiamine@gmail.com", rel.PublishedByEmail);
+        }
+
+        [Fact]
+        public async Task GetAllReleases_UnresolvableEmail_PreservesRawEmailWithoutGuessing()
+        {
+            // Arrange
+            var dbName = Guid.NewGuid().ToString();
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var tenantContext = new TenantContext { IsEnabled = true, Slug = "socofeb" };
+            var woodDb = CreateInMemoryWoodAppDb(dbName, tenantContext);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry
+            {
+                Id = 1,
+                Slug = "socofeb",
+                Name = "SOCOFEB",
+                SchemaName = "tenant_socofeb",
+                IsActive = true
+            });
+
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                Id = 11,
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 1,
+                Status = "Completed",
+                CreatedAt = DateTime.UtcNow
+            });
+
+            masterDb.MobileReleases.Add(new MobileRelease
+            {
+                Id = 202,
+                TenantId = "socofeb",
+                MobileBuildId = 11,
+                Version = "1.0.0",
+                BuildNumber = 1,
+                Status = "Published",
+                IsCurrent = true,
+                PublishedBy = "unknown.admin@legacy.com",
+                CreatedAt = DateTime.UtcNow
+            });
+            await masterDb.SaveChangesAsync();
+
+            var tokenService = new MobileDownloadTokenService(_configuration);
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var storageMock = new Mock<IMobileArtifactStorage>();
+            var buildService = new MobileBuildService(masterDb, woodDb, storageMock.Object, tokenService, configService, new Mock<ILogger<MobileBuildService>>().Object);
+
+            // Act
+            var releases = (await buildService.GetAllReleasesAsync("socofeb")).ToList();
+
+            // Assert
+            var rel = Assert.Single(releases);
+            Assert.Equal("unknown.admin@legacy.com", rel.PublishedBy);       // Preserved exactly
+            Assert.Equal("unknown.admin@legacy.com", rel.PublishedByEmail);  // Classified as email
+            Assert.Null(rel.PublishedByName);                                // Never guessed!
+        }
+
         [Theory]
         [InlineData("/api/admin/mobile/releases/current")]
         [InlineData("/api/admin/mobile/releases")]
@@ -3220,6 +3574,703 @@ namespace ms.webapp.api.acya.tests
 
             Assert.False(result);
             Assert.False(httpCalled);
+        }
+
+        #endregion
+
+        #region 15. Automatic Version & Build Numbering Tests (Phase 3)
+
+        [Fact]
+        public async Task GetNextVersionInfo_FirstTenantBuild_DefaultsToVersion100AndBuild1()
+        {
+            var dbName = Guid.NewGuid().ToString("N");
+            var (controller, _, masterDb) = CreateAdminMobileBuildsController(dbName);
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+            await masterDb.SaveChangesAsync();
+
+            var buildService = new MobileBuildService(
+                masterDb,
+                CreateInMemoryWoodAppDb(dbName, new TenantContext { IsEnabled = true, Slug = "socofeb" }),
+                new Mock<IMobileArtifactStorage>().Object,
+                new MobileDownloadTokenService(_configuration),
+                new MobileTenantConfigService(masterDb, CreateInMemoryWoodAppDb(dbName, new TenantContext { IsEnabled = true, Slug = "socofeb" }), _configuration),
+                new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            // Act
+            var info = await buildService.GetNextVersionInfoAsync("socofeb");
+
+            // Assert
+            Assert.Equal("1.0.0", info.SuggestedVersion);
+            Assert.Equal("1.0.0", info.PatchVersion);
+            Assert.Equal("1.0.0", info.MinorVersion);
+            Assert.Equal("1.0.0", info.MajorVersion);
+            Assert.Equal(1, info.NextBuildNumber);
+            Assert.Null(info.LatestVersion);
+            Assert.Null(info.LatestStatus);
+        }
+
+        [Fact]
+        public async Task GetNextVersionInfo_ExistingVersion129_SuggestsPatch1210_Minor130_Major200()
+        {
+            var dbName = Guid.NewGuid().ToString("N");
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var woodDb = CreateInMemoryWoodAppDb(dbName, new TenantContext { IsEnabled = true, Slug = "socofeb" });
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+
+            var buildService = new MobileBuildService(
+                masterDb,
+                woodDb,
+                new Mock<IMobileArtifactStorage>().Object,
+                new MobileDownloadTokenService(_configuration),
+                new MobileTenantConfigService(masterDb, woodDb, _configuration),
+                new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            // Seed an existing build with version 1.2.9
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                TenantId = "socofeb",
+                BuildNumber = 1,
+                Version = "1.2.9",
+                Status = MobileBuildStatus.Succeeded,
+                CreatedAt = DateTime.UtcNow
+            });
+            await masterDb.SaveChangesAsync();
+
+            // Act
+            var info = await buildService.GetNextVersionInfoAsync("socofeb");
+
+            // Assert
+            Assert.Equal("1.2.10", info.SuggestedVersion);
+            Assert.Equal("1.2.10", info.PatchVersion);
+            Assert.Equal("1.3.0", info.MinorVersion);
+            Assert.Equal("2.0.0", info.MajorVersion);
+            Assert.Equal(2, info.NextBuildNumber);
+            Assert.Equal("1.2.9", info.LatestVersion);
+            Assert.Equal("Succeeded", info.LatestStatus);
+        }
+
+        [Fact]
+        public async Task GetNextVersionInfo_HandlesPrefixVAndTwoPartSemver_Correctly()
+        {
+            var dbName = Guid.NewGuid().ToString("N");
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var woodDb = CreateInMemoryWoodAppDb(dbName, new TenantContext { IsEnabled = true, Slug = "socofeb" });
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+
+            var buildService = new MobileBuildService(
+                masterDb,
+                woodDb,
+                new Mock<IMobileArtifactStorage>().Object,
+                new MobileDownloadTokenService(_configuration),
+                new MobileTenantConfigService(masterDb, woodDb, _configuration),
+                new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            // Seed an existing build with version "v2.4"
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                TenantId = "socofeb",
+                BuildNumber = 1,
+                Version = "v2.4",
+                Status = MobileBuildStatus.Succeeded,
+                CreatedAt = DateTime.UtcNow
+            });
+            await masterDb.SaveChangesAsync();
+
+            // Act
+            var info = await buildService.GetNextVersionInfoAsync("socofeb");
+
+            // Assert
+            Assert.Equal("2.4.1", info.SuggestedVersion);
+            Assert.Equal("2.4.1", info.PatchVersion);
+            Assert.Equal("2.5.0", info.MinorVersion);
+            Assert.Equal("3.0.0", info.MajorVersion);
+        }
+
+        [Fact]
+        public async Task GetNextVersionInfo_HandlesInvalidHistoricalVersion_SafelyWithoutThrowing()
+        {
+            var dbName = Guid.NewGuid().ToString("N");
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var woodDb = CreateInMemoryWoodAppDb(dbName, new TenantContext { IsEnabled = true, Slug = "socofeb" });
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+
+            var buildService = new MobileBuildService(
+                masterDb,
+                woodDb,
+                new Mock<IMobileArtifactStorage>().Object,
+                new MobileDownloadTokenService(_configuration),
+                new MobileTenantConfigService(masterDb, woodDb, _configuration),
+                new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            // Seed an existing build with invalid version string
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                TenantId = "socofeb",
+                BuildNumber = 1,
+                Version = "not-a-valid-version-abc",
+                Status = MobileBuildStatus.Succeeded,
+                CreatedAt = DateTime.UtcNow
+            });
+            await masterDb.SaveChangesAsync();
+
+            // Act: should not throw, should fall back to 1.0.0 defaults
+            var info = await buildService.GetNextVersionInfoAsync("socofeb");
+
+            // Assert: invalid version string defaults to 1.0.0 parsing baseline, producing 1.0.1 for patch bump
+            Assert.NotNull(info);
+            Assert.Equal("1.0.1", info.SuggestedVersion);
+            Assert.Equal("1.0.1", info.PatchVersion);
+            Assert.Equal("1.1.0", info.MinorVersion);
+            Assert.Equal("2.0.0", info.MajorVersion);
+        }
+
+        [Fact]
+        public async Task GetNextVersionInfo_SuccessfulUnpublishedBuild_ActsAsBaselineVersion()
+        {
+            var dbName = Guid.NewGuid().ToString("N");
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var woodDb = CreateInMemoryWoodAppDb(dbName, new TenantContext { IsEnabled = true, Slug = "socofeb" });
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+
+            var buildService = new MobileBuildService(
+                masterDb,
+                woodDb,
+                new Mock<IMobileArtifactStorage>().Object,
+                new MobileDownloadTokenService(_configuration),
+                new MobileTenantConfigService(masterDb, woodDb, _configuration),
+                new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            // Seed Published release at 1.0.0 (Build 1)
+            masterDb.MobileReleases.Add(new MobileRelease
+            {
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 1,
+                Status = "Published",
+                CreatedAt = DateTime.UtcNow.AddHours(-2)
+            });
+
+            // Seed Succeeded build at 1.1.0 (Build 2) that has NOT been published yet
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                TenantId = "socofeb",
+                BuildNumber = 2,
+                Version = "1.1.0",
+                Status = MobileBuildStatus.Succeeded,
+                CreatedAt = DateTime.UtcNow.AddHours(-1)
+            });
+            await masterDb.SaveChangesAsync();
+
+            // Act: Succeeded unpublished build 1.1.0 should serve as baseline
+            var info = await buildService.GetNextVersionInfoAsync("socofeb");
+
+            // Assert
+            Assert.Equal("1.1.1", info.SuggestedVersion);
+            Assert.Equal("1.1.1", info.PatchVersion);
+            Assert.Equal("1.2.0", info.MinorVersion);
+            Assert.Equal("2.0.0", info.MajorVersion);
+            Assert.Equal(3, info.NextBuildNumber);
+        }
+
+        [Fact]
+        public async Task CreateBuild_WithoutVersion_AutomaticallyBumpsPatchVersionFromLatest()
+        {
+            var dbName = Guid.NewGuid().ToString("N");
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var woodDb = CreateInMemoryWoodAppDb(dbName, new TenantContext { IsEnabled = true, Slug = "socofeb" });
+            var buildService = new MobileBuildService(
+                masterDb,
+                woodDb,
+                new Mock<IMobileArtifactStorage>().Object,
+                new MobileDownloadTokenService(_configuration),
+                new MobileTenantConfigService(masterDb, woodDb, _configuration),
+                new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+
+            // Previous build is 1.2.9
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                TenantId = "socofeb",
+                BuildNumber = 1,
+                Version = "1.2.9",
+                Status = MobileBuildStatus.Succeeded,
+                CreatedAt = DateTime.UtcNow
+            });
+            await masterDb.SaveChangesAsync();
+
+            // Act: create build with Version = null
+            var dto = new CreateMobileBuildDto
+            {
+                TenantId = "socofeb",
+                Version = null,
+                ReleaseNotes = "Automatic patch bump"
+            };
+            var result = await buildService.CreateBuildAsync(dto, "Admin");
+
+            // Assert
+            Assert.Equal("1.2.10", result.Version);
+            Assert.Equal(2, result.BuildNumber);
+        }
+
+        [Fact]
+        public async Task CreateBuild_WithAutoVersion_AutomaticallyBumpsPatchVersion()
+        {
+            var dbName = Guid.NewGuid().ToString("N");
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var woodDb = CreateInMemoryWoodAppDb(dbName, new TenantContext { IsEnabled = true, Slug = "socofeb" });
+            var buildService = new MobileBuildService(
+                masterDb,
+                woodDb,
+                new Mock<IMobileArtifactStorage>().Object,
+                new MobileDownloadTokenService(_configuration),
+                new MobileTenantConfigService(masterDb, woodDb, _configuration),
+                new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+
+            // Previous build is 1.2.9
+            masterDb.MobileBuilds.Add(new MobileBuild
+            {
+                TenantId = "socofeb",
+                BuildNumber = 1,
+                Version = "1.2.9",
+                Status = MobileBuildStatus.Succeeded,
+                CreatedAt = DateTime.UtcNow
+            });
+            await masterDb.SaveChangesAsync();
+
+            // Act: create build with Version = "auto"
+            var dto = new CreateMobileBuildDto
+            {
+                TenantId = "socofeb",
+                Version = "auto",
+                ReleaseNotes = "Auto keyword test"
+            };
+            var result = await buildService.CreateBuildAsync(dto, "Admin");
+
+            // Assert
+            Assert.Equal("1.2.10", result.Version);
+            Assert.Equal(2, result.BuildNumber);
+        }
+
+        [Fact]
+        public async Task CreateBuild_WithManualValidVersion_PreservesUserEnteredVersion()
+        {
+            var dbName = Guid.NewGuid().ToString("N");
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var woodDb = CreateInMemoryWoodAppDb(dbName, new TenantContext { IsEnabled = true, Slug = "socofeb" });
+            var buildService = new MobileBuildService(
+                masterDb,
+                woodDb,
+                new Mock<IMobileArtifactStorage>().Object,
+                new MobileDownloadTokenService(_configuration),
+                new MobileTenantConfigService(masterDb, woodDb, _configuration),
+                new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+            await masterDb.SaveChangesAsync();
+
+            // Act: manually specify "2.5.0-rc.1"
+            var dto = new CreateMobileBuildDto
+            {
+                TenantId = "socofeb",
+                Version = "2.5.0-rc.1",
+                ReleaseNotes = "Release Candidate"
+            };
+            var result = await buildService.CreateBuildAsync(dto, "Admin");
+
+            // Assert: preserved exactly without being rewritten
+            Assert.Equal("2.5.0-rc.1", result.Version);
+        }
+
+        [Fact]
+        public async Task CreateBuild_IgnoresClientSuppliedBuildNumber_AlwaysAssignsNextSequentialNumber()
+        {
+            var dbName = Guid.NewGuid().ToString("N");
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var woodDb = CreateInMemoryWoodAppDb(dbName, new TenantContext { IsEnabled = true, Slug = "socofeb" });
+            var buildService = new MobileBuildService(
+                masterDb,
+                woodDb,
+                new Mock<IMobileArtifactStorage>().Object,
+                new MobileDownloadTokenService(_configuration),
+                new MobileTenantConfigService(masterDb, woodDb, _configuration),
+                new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+            await masterDb.SaveChangesAsync();
+
+            // Client attempts to spoof or force BuildNumber = 999
+            var dto = new CreateMobileBuildDto
+            {
+                TenantId = "socofeb",
+                Version = "1.0.0",
+                BuildNumber = 999
+            };
+
+            // Act
+            var result = await buildService.CreateBuildAsync(dto, "Admin");
+
+            // Assert: client BuildNumber is ignored, authoritative server assigns 1
+            Assert.Equal(1, result.BuildNumber);
+        }
+
+        [Fact]
+        public async Task CreateBuild_FailedBuilds_RetainAssignedNumbersAndNextBuildIncrements()
+        {
+            var dbName = Guid.NewGuid().ToString("N");
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var woodDb = CreateInMemoryWoodAppDb(dbName, new TenantContext { IsEnabled = true, Slug = "socofeb" });
+            var buildService = new MobileBuildService(
+                masterDb,
+                woodDb,
+                new Mock<IMobileArtifactStorage>().Object,
+                new MobileDownloadTokenService(_configuration),
+                new MobileTenantConfigService(masterDb, woodDb, _configuration),
+                new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+            await masterDb.SaveChangesAsync();
+
+            // Build 1 fails
+            var build1 = await buildService.CreateBuildAsync(new CreateMobileBuildDto
+            {
+                TenantId = "socofeb",
+                Version = "1.0.0"
+            }, "Admin");
+            await buildService.UpdateBuildStatusAsync(build1.Id, new UpdateMobileBuildStatusDto
+            {
+                Status = MobileBuildStatus.Failed,
+                ErrorMessage = "Build compilation error"
+            });
+
+            // Build 2 is created
+            var build2 = await buildService.CreateBuildAsync(new CreateMobileBuildDto
+            {
+                TenantId = "socofeb",
+                Version = "1.0.1"
+            }, "Admin");
+
+            // Assert
+            Assert.Equal(1, build1.BuildNumber);
+            Assert.Equal(2, build2.BuildNumber);
+
+            var persistedBuild1 = await masterDb.MobileBuilds.FindAsync(build1.Id);
+            Assert.NotNull(persistedBuild1);
+            Assert.Equal(1, persistedBuild1.BuildNumber);
+            Assert.Equal(MobileBuildStatus.Failed, persistedBuild1.Status);
+        }
+
+        [Fact]
+        public async Task CreateBuild_DifferentTenants_MaintainIndependentNumbering()
+        {
+            var dbName = Guid.NewGuid().ToString("N");
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var woodDb = CreateInMemoryWoodAppDb(dbName, new TenantContext { IsEnabled = true, Slug = "socofeb" });
+            var buildService = new MobileBuildService(
+                masterDb,
+                woodDb,
+                new Mock<IMobileArtifactStorage>().Object,
+                new MobileDownloadTokenService(_configuration),
+                new MobileTenantConfigService(masterDb, woodDb, _configuration),
+                new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "tenant-a", Name = "Tenant A", IsActive = true });
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "tenant-b", Name = "Tenant B", IsActive = true });
+            await masterDb.SaveChangesAsync();
+
+            // Tenant A build 1
+            var buildA1 = await buildService.CreateBuildAsync(new CreateMobileBuildDto { TenantId = "tenant-a", Version = "1.0.0" }, "Admin");
+            // Tenant B build 1 succeeds independently while Tenant A build 1 is in progress
+            var buildB1 = await buildService.CreateBuildAsync(new CreateMobileBuildDto { TenantId = "tenant-b", Version = "1.0.0" }, "Admin");
+
+            // Complete or fail Tenant A build 1 so tenant A is allowed to start build 2 under active-build invariant
+            await buildService.UpdateBuildStatusAsync(buildA1.Id, new UpdateMobileBuildStatusDto
+            {
+                Status = MobileBuildStatus.Failed,
+                ErrorMessage = "Test completion"
+            });
+
+            // Tenant A build 2
+            var buildA2 = await buildService.CreateBuildAsync(new CreateMobileBuildDto { TenantId = "tenant-a", Version = "1.0.1" }, "Admin");
+
+            // Assert: independent numbering
+            Assert.Equal(1, buildA1.BuildNumber);
+            Assert.Equal(1, buildB1.BuildNumber);
+            Assert.Equal(2, buildA2.BuildNumber);
+        }
+
+        [Fact]
+        public async Task CreateBuild_ConcurrentAllocations_SameTenant_GuaranteesNoDuplicatesAndEnforcesActiveBuildRestriction()
+        {
+            var dbName = Guid.NewGuid().ToString("N");
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var woodDb = CreateInMemoryWoodAppDb(dbName, new TenantContext { IsEnabled = true, Slug = "socofeb" });
+
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+            await masterDb.SaveChangesAsync();
+
+            var successResults = new List<MobileBuildDto>();
+            var conflictExceptions = new List<InvalidOperationException>();
+
+            // Dispatch 5 concurrent build creations for the same tenant
+            var tasks = new List<Task>();
+            for (int i = 0; i < 5; i++)
+            {
+                int index = i;
+                tasks.Add(Task.Run(async () =>
+                {
+                    var scopedMaster = CreateInMemoryMasterDb(dbName);
+                    var scopedWood = CreateInMemoryWoodAppDb(dbName, new TenantContext { IsEnabled = true, Slug = "socofeb" });
+                    var scopedService = new MobileBuildService(
+                        scopedMaster,
+                        scopedWood,
+                        new Mock<IMobileArtifactStorage>().Object,
+                        new MobileDownloadTokenService(_configuration),
+                        new MobileTenantConfigService(scopedMaster, scopedWood, _configuration),
+                        new Mock<ILogger<MobileBuildService>>().Object
+                    );
+                    try
+                    {
+                        var res = await scopedService.CreateBuildAsync(new CreateMobileBuildDto
+                        {
+                            TenantId = "socofeb",
+                            Version = $"1.0.{index}"
+                        }, "Admin");
+                        lock (successResults) { successResults.Add(res); }
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        lock (conflictExceptions) { conflictExceptions.Add(ex); }
+                    }
+                }));
+            }
+
+            await Task.WhenAll(tasks);
+
+            // Assert: exactly 1 build succeeded with authoritative build number 1; 4 were blocked by active-build invariant.
+            // Duplicate numbers are strictly impossible.
+            Assert.Single(successResults);
+            Assert.Equal(1, successResults[0].BuildNumber);
+            Assert.Equal(4, conflictExceptions.Count);
+            Assert.All(conflictExceptions, ex => Assert.Contains("already in progress for tenant 'socofeb'", ex.Message));
+        }
+
+        [Fact]
+        public async Task CreateBuild_ConcurrentAllocations_AcrossDifferentTenants_AllSucceedIndependently()
+        {
+            var dbName = Guid.NewGuid().ToString("N");
+            var masterDb = CreateInMemoryMasterDb(dbName);
+
+            for (int i = 1; i <= 5; i++)
+            {
+                masterDb.TenantRegistries.Add(new TenantRegistry { Slug = $"tenant-{i}", Name = $"Tenant {i}", IsActive = true });
+            }
+            await masterDb.SaveChangesAsync();
+
+            // Dispatch 5 concurrent build creations across 5 different tenants
+            var tasks = new List<Task<MobileBuildDto>>();
+            for (int i = 1; i <= 5; i++)
+            {
+                int tenantNum = i;
+                tasks.Add(Task.Run(async () =>
+                {
+                    var scopedMaster = CreateInMemoryMasterDb(dbName);
+                    var scopedWood = CreateInMemoryWoodAppDb(dbName, new TenantContext { IsEnabled = true, Slug = $"tenant-{tenantNum}" });
+                    var scopedService = new MobileBuildService(
+                        scopedMaster,
+                        scopedWood,
+                        new Mock<IMobileArtifactStorage>().Object,
+                        new MobileDownloadTokenService(_configuration),
+                        new MobileTenantConfigService(scopedMaster, scopedWood, _configuration),
+                        new Mock<ILogger<MobileBuildService>>().Object
+                    );
+                    return await scopedService.CreateBuildAsync(new CreateMobileBuildDto
+                    {
+                        TenantId = $"tenant-{tenantNum}",
+                        Version = "1.0.0"
+                    }, "Admin");
+                }));
+            }
+
+            var results = await Task.WhenAll(tasks);
+
+            // Assert: all 5 distinct tenants allocate their build #1 independently and concurrently
+            Assert.Equal(5, results.Length);
+            Assert.All(results, res => Assert.Equal(1, res.BuildNumber));
+        }
+
+        [Fact]
+        public async Task AdminMobileBuildsController_GetNextVersion_ReturnsOkResult_WithVersionInfo()
+        {
+            var dbName = Guid.NewGuid().ToString("N");
+            var (controller, _, masterDb) = CreateAdminMobileBuildsController(dbName);
+
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+            await masterDb.SaveChangesAsync();
+
+            // Act
+            var actionResult = await controller.GetNextVersion("socofeb", default);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var info = Assert.IsType<NextMobileVersionDto>(okResult.Value);
+            Assert.Equal("1.0.0", info.SuggestedVersion);
+            Assert.Equal(1, info.NextBuildNumber);
+        }
+
+        [Fact]
+        public void AdminMobileBuildsController_GetNextVersion_RequiresAdminRole_AttributePresent()
+        {
+            var method = typeof(AdminMobileBuildsController).GetMethod("GetNextVersion");
+            Assert.NotNull(method);
+
+            var authorizeAttr = method.GetCustomAttributes(typeof(AuthorizeAttribute), false).FirstOrDefault() as AuthorizeAttribute;
+            Assert.NotNull(authorizeAttr);
+            Assert.Equal("RequireAdminRole", authorizeAttr.Policy);
+
+            var httpGetAttr = method.GetCustomAttributes(typeof(HttpGetAttribute), false).FirstOrDefault() as HttpGetAttribute;
+            Assert.NotNull(httpGetAttr);
+            Assert.Equal("next-version", httpGetAttr.Template);
+        }
+
+        [Fact]
+        public async Task AdminMobileBuildsController_GetNextVersion_MissingTenant_ReturnsBadRequest()
+        {
+            var dbName = Guid.NewGuid().ToString("N");
+            var (controller, _, _) = CreateAdminMobileBuildsController(dbName);
+
+            // Act
+            var actionResult = await controller.GetNextVersion("  ", default);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(actionResult.Result);
+        }
+
+        private class FailingLockMobileBuildService : MobileBuildService
+        {
+            public bool LockAttempted { get; private set; }
+
+            public FailingLockMobileBuildService(
+                MasterDbContext masterDb,
+                WoodAppContext woodDb,
+                IMobileArtifactStorage storage,
+                IMobileDownloadTokenService tokenService,
+                IMobileTenantConfigService configService,
+                ILogger<MobileBuildService> logger)
+                : base(masterDb, woodDb, storage, tokenService, configService, logger)
+            {
+            }
+
+            protected override Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction?> BeginLockTransactionAsync(
+                string cleanTenant,
+                CancellationToken cancellationToken)
+            {
+                LockAttempted = true;
+                throw new InvalidOperationException("PostgreSQL lock acquisition timeout or permission denial.");
+            }
+        }
+
+        [Fact]
+        public async Task CreateBuild_WhenRelationalLockAcquisitionFails_AbortsOperationImmediately_AndDoesNotAllocateOrInsertBuild()
+        {
+            var dbName = Guid.NewGuid().ToString("N");
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var woodDb = CreateInMemoryWoodAppDb(dbName, new TenantContext { IsEnabled = true, Slug = "socofeb" });
+
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+            await masterDb.SaveChangesAsync();
+
+            var failingService = new FailingLockMobileBuildService(
+                masterDb,
+                woodDb,
+                new Mock<IMobileArtifactStorage>().Object,
+                new MobileDownloadTokenService(_configuration),
+                new MobileTenantConfigService(masterDb, woodDb, _configuration),
+                new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            var dto = new CreateMobileBuildDto
+            {
+                TenantId = "socofeb",
+                Version = "1.0.0"
+            };
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => failingService.CreateBuildAsync(dto, "Admin"));
+
+            // Verify fail-closed behavior:
+            Assert.True(failingService.LockAttempted);
+            Assert.Contains("Unable to acquire database lock for mobile build creation", ex.Message);
+
+            // Confirm no build was inserted and no build number was allocated
+            Assert.Empty(masterDb.MobileBuilds);
+        }
+
+        [Fact]
+        public async Task AdminMobileBuildsController_CreateBuild_WhenLockAcquisitionFails_ReturnsConflictWithCleanMessage()
+        {
+            var dbName = Guid.NewGuid().ToString("N");
+            var masterDb = CreateInMemoryMasterDb(dbName);
+            var woodDb = CreateInMemoryWoodAppDb(dbName, new TenantContext { IsEnabled = true, Slug = "socofeb" });
+
+            masterDb.TenantRegistries.Add(new TenantRegistry { Slug = "socofeb", Name = "SOCOFEB", IsActive = true });
+            await masterDb.SaveChangesAsync();
+
+            var failingService = new FailingLockMobileBuildService(
+                masterDb,
+                woodDb,
+                new Mock<IMobileArtifactStorage>().Object,
+                new MobileDownloadTokenService(_configuration),
+                new MobileTenantConfigService(masterDb, woodDb, _configuration),
+                new Mock<ILogger<MobileBuildService>>().Object
+            );
+
+            var configService = new MobileTenantConfigService(masterDb, woodDb, _configuration);
+            var dispatcherMock = new Mock<IGitHubBuildDispatcher>();
+            var controllerLogger = new Mock<ILogger<AdminMobileBuildsController>>();
+            var controller = new AdminMobileBuildsController(failingService, configService, dispatcherMock.Object, controllerLogger.Object);
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                    {
+                        new Claim(ClaimTypes.Name, "AdminUser"),
+                        new Claim(ClaimTypes.Role, "Admin")
+                    }, "TestAuth"))
+                }
+            };
+
+            var dto = new CreateMobileBuildDto
+            {
+                TenantId = "socofeb",
+                Version = "1.0.0"
+            };
+
+            // Act
+            var actionResult = await controller.CreateBuild(dto);
+
+            // Assert: returns 409 Conflict with sanitized message without exposing database internals
+            var conflictResult = Assert.IsType<ConflictObjectResult>(actionResult.Result);
+            Assert.Equal(409, conflictResult.StatusCode);
+            var message = conflictResult.Value?.GetType().GetProperty("message")?.GetValue(conflictResult.Value)?.ToString();
+            Assert.Contains("Unable to acquire database lock for mobile build creation", message);
+
+            // Verify CI was NOT dispatched
+            dispatcherMock.Verify(d => d.DispatchBuildAsync(It.IsAny<MobileBuildDto>(), It.IsAny<string?>(), default), Times.Never);
         }
 
         #endregion

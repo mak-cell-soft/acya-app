@@ -19,6 +19,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Mobile
         public bool IsCurrent { get; set; }
         public DateTime PublishedAt { get; set; }
         public string? PublishedBy { get; set; }
+        public string? PublishedByName { get; set; }
+        public string? PublishedByEmail { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
         public string? ArtifactFileName { get; set; }
@@ -29,7 +31,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Mobile
 
         public MobileReleaseDto() { }
 
-        public MobileReleaseDto(MobileRelease release)
+        public MobileReleaseDto(MobileRelease release, string? resolvedPublisherName = null)
         {
             Id = release.Id;
             MobileBuildId = release.MobileBuildId;
@@ -42,6 +44,26 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Mobile
             PublishedBy = release.PublishedBy;
             CreatedAt = release.CreatedAt;
             ReleaseNotes = release.ReleaseNotes ?? release.MobileBuild?.ReleaseNotes;
+
+            if (!string.IsNullOrWhiteSpace(resolvedPublisherName))
+            {
+                PublishedByName = resolvedPublisherName;
+                if (!string.IsNullOrWhiteSpace(release.PublishedBy) && release.PublishedBy.Contains("@"))
+                {
+                    PublishedByEmail = release.PublishedBy;
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(release.PublishedBy))
+            {
+                if (release.PublishedBy.Contains("@"))
+                {
+                    PublishedByEmail = release.PublishedBy;
+                }
+                else
+                {
+                    PublishedByName = release.PublishedBy;
+                }
+            }
 
             if (release.MobileBuild != null)
             {
@@ -65,6 +87,17 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Mobile
             IsCurrent = false;
             PublishedAt = build.CompletedAt ?? build.CreatedAt;
             PublishedBy = build.CreatedBy;
+            if (!string.IsNullOrWhiteSpace(build.CreatedBy))
+            {
+                if (build.CreatedBy.Contains("@"))
+                {
+                    PublishedByEmail = build.CreatedBy;
+                }
+                else
+                {
+                    PublishedByName = build.CreatedBy;
+                }
+            }
             CreatedAt = build.CreatedAt;
             CompletedAt = build.CompletedAt;
             ArtifactSize = build.ArtifactSize;

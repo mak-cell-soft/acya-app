@@ -48,9 +48,7 @@ namespace ms.webapp.api.acya.Controllers
                 return BadRequest(ModelState);
             }
 
-            var createdBy = User.FindFirst(ClaimTypes.Name)?.Value 
-                         ?? User.FindFirst(ClaimTypes.Email)?.Value 
-                         ?? "Admin";
+            var createdBy = ResolveOperatorIdentity(User);
 
             MobileBuildDto build;
             try
@@ -93,6 +91,32 @@ namespace ms.webapp.api.acya.Controllers
             }
 
             return CreatedAtAction(nameof(GetBuild), new { id = build.Id }, build);
+        }
+
+        /// <summary>
+        /// Retrieves suggested semantic version and next build number for a tenant.
+        /// Accessible by Admins or CI worker.
+        /// </summary>
+        [HttpGet("next-version")]
+        [Authorize(Policy = "RequireAdminRole")]
+        public async Task<ActionResult<NextMobileVersionDto>> GetNextVersion(
+            [FromQuery] string tenantId,
+            CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(tenantId))
+            {
+                return BadRequest(new { message = "tenantId query parameter is required." });
+            }
+
+            try
+            {
+                var info = await _buildService.GetNextVersionInfoAsync(tenantId.Trim().ToLowerInvariant(), cancellationToken);
+                return Ok(info);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         /// <summary>
@@ -226,9 +250,7 @@ namespace ms.webapp.api.acya.Controllers
         [Authorize(Policy = "RequireAdminRole")]
         public async Task<ActionResult<MobileReleaseDto>> PublishBuild(int id)
         {
-            var adminUser = User.FindFirst(ClaimTypes.Name)?.Value 
-                         ?? User.FindFirst(ClaimTypes.Email)?.Value 
-                         ?? "Admin";
+            var adminUser = ResolveOperatorIdentity(User);
 
             try
             {
@@ -247,6 +269,63 @@ namespace ms.webapp.api.acya.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        /// <summary>
+        /// Derives the authoritative operator identity from cryptographically validated claims.
+        /// Prioritizes human display name / SuperAdmin username over raw fallback email.
+        /// </summary>
+        private static string ResolveOperatorIdentity(ClaimsPrincipal user)
+        {
+            // 1. If action is initiated by a Super Admin via SaaS impersonation,
+            // the authoritative actor is the authenticated Super Admin, NOT the impersonated tenant user.
+            var impersonator = user.FindFirst("impersonator_username")?.Value
+                            ?? user.FindFirst("impersonator")?.Value;
+
+            if (!string.IsNullOrWhiteSpace(impersonator) &&
+                !impersonator.Equals("SuperAdmin", StringComparison.OrdinalIgnoreCase) &&
+                !impersonator.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+            {
+                return impersonator.Trim();
+            }
+
+            // 2. Direct tenant-user publication or direct client authentication:
+            // Prefer specific name claim (must not be an email address and not a generic placeholder)
+            var nameClaim = user.FindFirst("name")?.Value
+                         ?? user.FindFirst(ClaimTypes.Name)?.Value
+                         ?? user.FindFirst("unique_name")?.Value;
+
+            if (!string.IsNullOrWhiteSpace(nameClaim) &&
+                !nameClaim.Contains("@") &&
+                !nameClaim.Equals("Admin", StringComparison.OrdinalIgnoreCase) &&
+                !nameClaim.Equals("SuperAdmin", StringComparison.OrdinalIgnoreCase) &&
+                !nameClaim.Equals("Administrator", StringComparison.OrdinalIgnoreCase))
+            {
+                return nameClaim.Trim();
+            }
+
+            // 3. If an impersonator claim is present (even if generic "SuperAdmin") and no specific person name exists
+            if (!string.IsNullOrWhiteSpace(impersonator))
+            {
+                return impersonator.Trim();
+            }
+
+            // 4. Non-empty Email claim (prioritize specific email over generic name placeholders)
+            var emailClaim = user.FindFirst(ClaimTypes.Email)?.Value
+                          ?? user.FindFirst("email")?.Value;
+
+            if (!string.IsNullOrWhiteSpace(emailClaim))
+            {
+                return emailClaim.Trim();
+            }
+
+            // 5. Fallback to name claim even if generic or formatted as email
+            if (!string.IsNullOrWhiteSpace(nameClaim))
+            {
+                return nameClaim.Trim();
+            }
+
+            return "Admin";
         }
     }
 }

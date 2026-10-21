@@ -636,17 +636,27 @@ namespace ms.admin.api.acya.Controllers
                 ?? _configuration["JWTSettings:securityKey"]
                 ?? throw new InvalidOperationException("Tenant client JWT secret is not configured.");
             var key = System.Text.Encoding.ASCII.GetBytes(clientJwtSecret);
+            var callerUsername = User.Identity?.Name
+                ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.UniqueName)?.Value
+                ?? User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value
+                ?? "SuperAdmin";
+
+            var effectiveName = !string.IsNullOrWhiteSpace(adminFullName) ? adminFullName : callerUsername;
+
             var claims = new System.Collections.Generic.List<System.Security.Claims.Claim>
             {
                 new System.Security.Claims.Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Email, adminEmail),
                 new System.Security.Claims.Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Name, adminFullName),
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, effectiveName),
+                new System.Security.Claims.Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.UniqueName, effectiveName),
                 new System.Security.Claims.Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.NameId, "1"), // Placeholder ID
                 new System.Security.Claims.Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Aud, "https://acya.site"),
                 new System.Security.Claims.Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Iss, "https://acya.site/api/"),
                 new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, "Admin"),
                 new System.Security.Claims.Claim("EnterpriseId", "1"),
                 new System.Security.Claims.Claim("tenant_slug", enterprise.Slug),
-                new System.Security.Claims.Claim("impersonator", "SuperAdmin")
+                new System.Security.Claims.Claim("impersonator", callerUsername),
+                new System.Security.Claims.Claim("impersonator_username", callerUsername)
             };
 
             if (!string.IsNullOrEmpty(permissionsJson))

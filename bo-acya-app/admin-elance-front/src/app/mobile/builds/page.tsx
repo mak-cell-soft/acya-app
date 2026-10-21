@@ -24,7 +24,7 @@ import {
   Sparkles
 } from "lucide-react";
 import Link from "next/link";
-import { MobileBuild, MobileBuildStatus, MobileTenantSummary } from "@/types/mobile";
+import { MobileBuild, MobileBuildStatus, MobileTenantSummary, NextMobileVersionInfo } from "@/types/mobile";
 
 export default function MobileBuildsPage() {
   const [builds, setBuilds] = useState<MobileBuild[]>([]);
@@ -60,10 +60,17 @@ export default function MobileBuildsPage() {
 
   // Form fields
   const [formTenantId, setFormTenantId] = useState("");
-  const [formVersion, setFormVersion] = useState("1.0.1");
+  const [formVersion, setFormVersion] = useState("1.0.0");
   const [formEnvironment, setFormEnvironment] = useState("production");
   const [formGitBranch, setFormGitBranch] = useState("main");
   const [formReleaseNotes, setFormReleaseNotes] = useState("");
+
+  // Version suggestion state
+  const [versionInfo, setVersionInfo] = useState<NextMobileVersionInfo | null>(null);
+  const [loadingVersionInfo, setLoadingVersionInfo] = useState(false);
+  const [versionInfoError, setVersionInfoError] = useState("");
+  const [isVersionUserEdited, setIsVersionUserEdited] = useState(false);
+  const versionRequestIdRef = useRef<number>(0);
 
   // Track previous statuses to show live transition notifications
   const prevStatusesRef = useRef<Map<number, MobileBuildStatus>>(new Map());
@@ -143,6 +150,47 @@ export default function MobileBuildsPage() {
     }
   };
 
+  // Fetch next version suggestion for selected tenant
+  const fetchNextVersion = useCallback(async (tenantSlug: string, forceUpdate = false) => {
+    if (!tenantSlug.trim()) {
+      setVersionInfo(null);
+      return;
+    }
+
+    const currentReqId = ++versionRequestIdRef.current;
+    setLoadingVersionInfo(true);
+    setVersionInfoError("");
+
+    try {
+      const res = await fetch(`/api/mobile/builds/next-version?tenantId=${encodeURIComponent(tenantSlug.trim().toLowerCase())}`);
+      const data = await res.json().catch(() => ({}));
+
+      // Prevent race conditions from stale requests
+      if (currentReqId !== versionRequestIdRef.current) return;
+
+      if (!res.ok) {
+        throw new Error(data.error || data.message || `Failed to fetch next version (${res.status})`);
+      }
+
+      const info: NextMobileVersionInfo = data;
+      setVersionInfo(info);
+
+      // Only populate version field if user hasn't explicitly customized it, or if forceUpdate
+      if (!isVersionUserEdited || forceUpdate) {
+        setFormVersion(info.suggestedVersion);
+        if (forceUpdate) setIsVersionUserEdited(false);
+      }
+    } catch (err: unknown) {
+      if (currentReqId === versionRequestIdRef.current) {
+        setVersionInfoError(err instanceof Error ? err.message : "Failed to load version suggestion");
+      }
+    } finally {
+      if (currentReqId === versionRequestIdRef.current) {
+        setLoadingVersionInfo(false);
+      }
+    }
+  }, [isVersionUserEdited]);
+
   // Fetch tenants for Create Modal
   const fetchTenants = useCallback(async () => {
     setLoadingTenants(true);
@@ -153,8 +201,11 @@ export default function MobileBuildsPage() {
         setTenants(data);
         // Pre-select socofeb or first active tenant if none selected
         if (!formTenantId && data.length > 0) {
-          const defaultTenant = data.find((t) => t.slug === "socofeb") || data[0];
-          setFormTenantId(defaultTenant.slug);
+          const defaultTenant = (data.find((t) => t.slug === "socofeb") || data[0]).slug;
+          setFormTenantId(defaultTenant);
+          fetchNextVersion(defaultTenant, true);
+        } else if (formTenantId) {
+          fetchNextVersion(formTenantId, false);
         }
       }
     } catch (err) {
@@ -162,7 +213,7 @@ export default function MobileBuildsPage() {
     } finally {
       setLoadingTenants(false);
     }
-  }, [formTenantId]);
+  }, [formTenantId, fetchNextVersion]);
 
   // Initial load
   useEffect(() => {
@@ -377,6 +428,7 @@ export default function MobileBuildsPage() {
   // Open Create Build Modal
   const openCreateModal = () => {
     setCreateError("");
+    setIsVersionUserEdited(false);
     setIsCreateModalOpen(true);
     fetchTenants();
   };
@@ -815,7 +867,12 @@ export default function MobileBuildsPage() {
                 </label>
                 <select
                   value={formTenantId}
-                  onChange={(e) => setFormTenantId(e.target.value)}
+                  onChange={(e) => {
+                    const newTenant = e.target.value;
+                    setFormTenantId(newTenant);
+                    setIsVersionUserEdited(false);
+                    fetchNextVersion(newTenant, true);
+                  }}
                   disabled={creating || loadingTenants}
                   className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary disabled:opacity-50 font-mono"
                   required
@@ -832,30 +889,129 @@ export default function MobileBuildsPage() {
               {/* Version & Build Number Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-medium text-slate-300">
-                    VERSION <span className="text-destructive">*</span>
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-mono font-medium text-slate-300">
+                      VERSION <span className="text-destructive">*</span>
+                    </label>
+                    {loadingVersionInfo && (
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-1 font-mono">
+                        <Loader2 className="w-3 h-3 animate-spin text-primary" /> Calculating...
+                      </span>
+                    )}
+                    {versionInfo && !loadingVersionInfo && isVersionUserEdited && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormVersion(versionInfo.suggestedVersion);
+                          setIsVersionUserEdited(false);
+                        }}
+                        className="text-[10px] text-primary hover:underline font-mono"
+                        title="Reset to server suggested version"
+                      >
+                        Reset to suggested
+                      </button>
+                    )}
+                  </div>
                   <input
                     type="text"
                     placeholder="e.g. 1.0.1"
                     value={formVersion}
-                    onChange={(e) => setFormVersion(e.target.value)}
+                    onChange={(e) => {
+                      setFormVersion(e.target.value);
+                      setIsVersionUserEdited(true);
+                    }}
                     disabled={creating}
                     required
                     className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 font-mono focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary disabled:opacity-50"
                   />
-                  <p className="text-[11px] text-muted-foreground font-mono">Semantic version (e.g. 1.0.0, 1.0.1)</p>
+
+                  {/* Quick Semantic Bump Chips */}
+                  {versionInfo && !loadingVersionInfo && (
+                    <div className="flex items-center gap-1.5 pt-1 flex-wrap">
+                      <span className="text-[10px] text-muted-foreground font-mono mr-0.5">Quick bump:</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormVersion(versionInfo.patchVersion);
+                          setIsVersionUserEdited(true);
+                        }}
+                        className={`px-2 py-0.5 rounded text-[11px] font-mono border transition-colors cursor-pointer ${
+                          formVersion === versionInfo.patchVersion
+                            ? "bg-primary/20 text-primary border-primary/50 font-semibold"
+                            : "bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-800"
+                        }`}
+                        title="Increment patch version (+0.0.1)"
+                      >
+                        Patch ({versionInfo.patchVersion})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormVersion(versionInfo.minorVersion);
+                          setIsVersionUserEdited(true);
+                        }}
+                        className={`px-2 py-0.5 rounded text-[11px] font-mono border transition-colors cursor-pointer ${
+                          formVersion === versionInfo.minorVersion
+                            ? "bg-primary/20 text-primary border-primary/50 font-semibold"
+                            : "bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-800"
+                        }`}
+                        title="Increment minor version (+0.1.0)"
+                      >
+                        Minor ({versionInfo.minorVersion})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormVersion(versionInfo.majorVersion);
+                          setIsVersionUserEdited(true);
+                        }}
+                        className={`px-2 py-0.5 rounded text-[11px] font-mono border transition-colors cursor-pointer ${
+                          formVersion === versionInfo.majorVersion
+                            ? "bg-primary/20 text-primary border-primary/50 font-semibold"
+                            : "bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-800"
+                        }`}
+                        title="Increment major version (+1.0.0)"
+                      >
+                        Major ({versionInfo.majorVersion})
+                      </button>
+                    </div>
+                  )}
+
+                  {versionInfoError && (
+                    <p className="text-[11px] text-amber-400 font-mono">⚠️ {versionInfoError}</p>
+                  )}
+                  {!versionInfoError && (
+                    <p className="text-[11px] text-muted-foreground font-mono">
+                      {versionInfo?.latestVersion
+                        ? `Baseline: v${versionInfo.latestVersion} (${versionInfo.latestStatus || "Existing"})`
+                        : "Semantic version format (e.g. 1.0.0, 1.0.1)"}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-mono font-medium text-slate-300">
                     BUILD NUMBER
                   </label>
-                  <div className="w-full px-3 py-2 bg-slate-950/50 border border-slate-800/60 rounded-lg text-sm text-slate-400 font-mono flex items-center justify-between select-none">
-                    <span>Automatic</span>
-                    <span className="text-[10px] text-primary uppercase font-mono tracking-wider font-semibold">Server assigned</span>
+                  <div className="w-full px-3 py-2 bg-slate-950/50 border border-slate-800/60 rounded-lg text-sm text-slate-200 font-mono flex items-center justify-between select-none">
+                    <span>
+                      {loadingVersionInfo ? (
+                        <span className="text-muted-foreground text-xs">Allocating...</span>
+                      ) : versionInfo ? (
+                        <span className="font-semibold text-white">#{versionInfo.nextBuildNumber}</span>
+                      ) : (
+                        <span className="text-muted-foreground">Automatic</span>
+                      )}
+                    </span>
+                    <span className="text-[10px] text-primary uppercase font-mono tracking-wider font-semibold">
+                      Server assigned
+                    </span>
                   </div>
-                  <p className="text-[11px] text-muted-foreground font-mono">Sequential allocation by backend</p>
+                  <p className="text-[11px] text-muted-foreground font-mono">
+                    {versionInfo && versionInfo.nextBuildNumber > 1
+                      ? `Sequential next (prior: #${versionInfo.nextBuildNumber - 1})`
+                      : "Strictly server-assigned sequential integer"}
+                  </p>
                 </div>
               </div>
 

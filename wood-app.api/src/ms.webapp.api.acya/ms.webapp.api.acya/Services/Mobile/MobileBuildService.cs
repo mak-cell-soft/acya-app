@@ -82,8 +82,42 @@ namespace ms.webapp.api.acya.Services.Mobile
             var tenantLock = _tenantLocks.GetOrAdd(cleanTenant, _ => new SemaphoreSlim(1, 1));
             await tenantLock.WaitAsync(cancellationToken);
 
+            Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction? transaction = null;
+
             try
             {
+                // When using a relational provider (PostgreSQL), acquire a transaction-scoped advisory lock
+                // scoped to the normalized tenant identifier to guarantee atomic sequential numbering across server instances.
+                // FAIL-CLOSED: If the advisory lock cannot be acquired, abort the operation immediately.
+                // Never continue allocating build numbers under partial synchronization.
+                try
+                {
+                    transaction = await BeginLockTransactionAsync(cleanTenant, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to acquire PostgreSQL transaction advisory lock for tenant '{Tenant}'. Aborting build creation to ensure authoritative numbering.", cleanTenant);
+                    if (transaction != null)
+                    {
+                        try
+                        {
+                            await transaction.RollbackAsync(cancellationToken);
+                        }
+                        catch
+                        {
+                            // Suppress secondary rollback exceptions during fault handling
+                        }
+                        await transaction.DisposeAsync();
+                        transaction = null;
+                    }
+
+                    throw new InvalidOperationException("Unable to acquire database lock for mobile build creation. Please retry.", ex);
+                }
+
                 // 2. Concurrency guard: check if active build already exists for this tenant
                 var activeBuildExists = await _masterDb.MobileBuilds
                     .AnyAsync(b => b.TenantId == cleanTenant 
@@ -97,22 +131,35 @@ namespace ms.webapp.api.acya.Services.Mobile
                     throw new InvalidOperationException($"A mobile build is already in progress for tenant '{cleanTenant}'. Please wait for it to complete before creating another build.");
                 }
 
-                // 3. Resolve sequential build number if not provided
-                var buildNumber = dto.BuildNumber;
-                if (buildNumber <= 0)
-                {
-                    var latestBuildNumber = await _masterDb.MobileBuilds
-                        .Where(b => b.TenantId == cleanTenant)
-                        .Select(b => (int?)b.BuildNumber)
-                        .MaxAsync(cancellationToken) ?? 0;
+                // 3. Resolve sequential build number (strictly server-assigned; client value is ignored)
+                var latestBuildNumber = await _masterDb.MobileBuilds
+                    .Where(b => b.TenantId == cleanTenant)
+                    .Select(b => (int?)b.BuildNumber)
+                    .MaxAsync(cancellationToken) ?? 0;
 
-                    buildNumber = latestBuildNumber + 1;
+                var buildNumber = latestBuildNumber + 1;
+
+                // 4. Resolve version: if omitted, empty, or "auto", derive automatically from history
+                string resolvedVersion;
+                if (string.IsNullOrWhiteSpace(dto.Version) || dto.Version.Trim().Equals("auto", StringComparison.OrdinalIgnoreCase))
+                {
+                    var versionInfo = await GetNextVersionInfoAsync(cleanTenant, cancellationToken);
+                    resolvedVersion = versionInfo.SuggestedVersion;
+                }
+                else
+                {
+                    var cleanVersion = dto.Version.Trim().TrimStart('v', 'V');
+                    if (cleanVersion.Length > 50)
+                    {
+                        throw new ArgumentException("Version string exceeds maximum length of 50 characters.", nameof(dto.Version));
+                    }
+                    resolvedVersion = cleanVersion;
                 }
 
                 var build = new MobileBuild
                 {
                     TenantId = cleanTenant,
-                    Version = dto.Version.Trim(),
+                    Version = resolvedVersion,
                     BuildNumber = buildNumber,
                     Status = MobileBuildStatus.Pending,
                     ReleaseNotes = dto.ReleaseNotes,
@@ -127,6 +174,10 @@ namespace ms.webapp.api.acya.Services.Mobile
                 try
                 {
                     await _masterDb.SaveChangesAsync(cancellationToken);
+                    if (transaction != null)
+                    {
+                        await transaction.CommitAsync(cancellationToken);
+                    }
                 }
                 catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
                 {
@@ -167,8 +218,148 @@ namespace ms.webapp.api.acya.Services.Mobile
             }
             finally
             {
+                if (transaction != null)
+                {
+                    await transaction.DisposeAsync();
+                }
                 tenantLock.Release();
             }
+        }
+
+        /// <summary>
+        /// Begins a database transaction and acquires a PostgreSQL transaction-scoped advisory lock for the tenant.
+        /// Returns null when running under non-relational providers (e.g. EF Core InMemory).
+        /// Virtual to permit deterministic unit testing of relational lock failures without connecting to external engines.
+        /// </summary>
+        protected virtual async Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction?> BeginLockTransactionAsync(
+            string cleanTenant,
+            CancellationToken cancellationToken)
+        {
+            if (!_masterDb.Database.IsRelational())
+            {
+                return null;
+            }
+
+            var transaction = await _masterDb.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, cancellationToken);
+            await _masterDb.Database.ExecuteSqlRawAsync(
+                "SELECT pg_advisory_xact_lock(hashtext('acya_mobile_build_' || {0}));",
+                new object[] { cleanTenant },
+                cancellationToken);
+
+            return transaction;
+        }
+
+        public async Task<NextMobileVersionDto> GetNextVersionInfoAsync(string tenantId, CancellationToken cancellationToken = default)
+        {
+            var cleanTenant = tenantId.Trim().ToLowerInvariant();
+
+            var tenantExists = await _masterDb.TenantRegistries
+                .AnyAsync(t => t.Slug.ToLower() == cleanTenant, cancellationToken);
+
+            if (!tenantExists)
+            {
+                throw new ArgumentException($"Tenant '{tenantId}' does not exist.", nameof(tenantId));
+            }
+
+            // 1. Determine baseline version:
+            // Check latest published release or latest succeeded build.
+            // Succeeded builds represent compiled and verified release candidates.
+            var latestRelease = await _masterDb.MobileReleases
+                .AsNoTracking()
+                .Where(r => r.TenantId == cleanTenant && r.IsCurrent)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            var latestSucceededBuild = await _masterDb.MobileBuilds
+                .AsNoTracking()
+                .Where(b => b.TenantId == cleanTenant && b.IsActive && b.Status == MobileBuildStatus.Succeeded)
+                .OrderByDescending(b => b.BuildNumber)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            string? baselineVersion = null;
+            string? latestStatus = null;
+
+            if (latestSucceededBuild != null && (latestRelease == null || latestSucceededBuild.BuildNumber >= latestRelease.BuildNumber))
+            {
+                baselineVersion = latestSucceededBuild.Version;
+                latestStatus = "Succeeded";
+            }
+            else if (latestRelease != null)
+            {
+                baselineVersion = latestRelease.Version;
+                latestStatus = "Published";
+            }
+            else
+            {
+                // Fallback to latest build of any status if present
+                var anyBuild = await _masterDb.MobileBuilds
+                    .AsNoTracking()
+                    .Where(b => b.TenantId == cleanTenant && b.IsActive)
+                    .OrderByDescending(b => b.BuildNumber)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (anyBuild != null)
+                {
+                    baselineVersion = anyBuild.Version;
+                    latestStatus = anyBuild.Status;
+                }
+            }
+
+            var nextBuildNumber = (await _masterDb.MobileBuilds
+                .Where(b => b.TenantId == cleanTenant)
+                .Select(b => (int?)b.BuildNumber)
+                .MaxAsync(cancellationToken) ?? 0) + 1;
+
+            if (string.IsNullOrWhiteSpace(baselineVersion))
+            {
+                return new NextMobileVersionDto
+                {
+                    TenantId = cleanTenant,
+                    SuggestedVersion = "1.0.0",
+                    PatchVersion = "1.0.0",
+                    MinorVersion = "1.0.0",
+                    MajorVersion = "1.0.0",
+                    NextBuildNumber = nextBuildNumber,
+                    LatestVersion = null,
+                    LatestStatus = null
+                };
+            }
+
+            var (major, minor, patch) = ParseSemVer(baselineVersion);
+            var patchVer = $"{major}.{minor}.{patch + 1}";
+            var minorVer = $"{major}.{minor + 1}.0";
+            var majorVer = $"{major + 1}.0.0";
+
+            return new NextMobileVersionDto
+            {
+                TenantId = cleanTenant,
+                SuggestedVersion = patchVer,
+                PatchVersion = patchVer,
+                MinorVersion = minorVer,
+                MajorVersion = majorVer,
+                NextBuildNumber = nextBuildNumber,
+                LatestVersion = baselineVersion,
+                LatestStatus = latestStatus
+            };
+        }
+
+        public static (int Major, int Minor, int Patch) ParseSemVer(string? version)
+        {
+            if (string.IsNullOrWhiteSpace(version)) return (1, 0, 0);
+
+            var clean = version.Trim().TrimStart('v', 'V');
+            var dashIdx = clean.IndexOf('-');
+            if (dashIdx > 0) clean = clean.Substring(0, dashIdx);
+            var plusIdx = clean.IndexOf('+');
+            if (plusIdx > 0) clean = clean.Substring(0, plusIdx);
+
+            var parts = clean.Split('.');
+            int major = 1, minor = 0, patch = 0;
+
+            if (parts.Length >= 1 && int.TryParse(parts[0], out var maj)) major = Math.Max(0, maj);
+            if (parts.Length >= 2 && int.TryParse(parts[1], out var min)) minor = Math.Max(0, min);
+            if (parts.Length >= 3 && int.TryParse(parts[2], out var pat)) patch = Math.Max(0, pat);
+
+            return (major, minor, patch);
         }
 
         private static bool IsUniqueConstraintViolation(DbUpdateException ex)
@@ -460,7 +651,17 @@ namespace ms.webapp.api.acya.Services.Mobile
                 .ThenByDescending(r => r.BuildNumber)
                 .ToListAsync(cancellationToken);
 
-            return releases.Select(r => new MobileReleaseDto(r));
+            var nameMap = await ResolvePublisherNamesAsync(releases, cancellationToken);
+
+            return releases.Select(r =>
+            {
+                string? resolvedName = null;
+                if (!string.IsNullOrWhiteSpace(r.PublishedBy) && r.PublishedBy.Contains("@"))
+                {
+                    nameMap.TryGetValue($"{r.TenantId.Trim().ToLowerInvariant()}::{r.PublishedBy.Trim().ToLowerInvariant()}", out resolvedName);
+                }
+                return new MobileReleaseDto(r, resolvedName);
+            });
         }
 
         public async Task<IEnumerable<MobileReleaseDto>> GetCurrentReleasesAsync(string? tenantId = null, CancellationToken cancellationToken = default)
@@ -480,7 +681,17 @@ namespace ms.webapp.api.acya.Services.Mobile
                 .OrderBy(r => r.TenantId)
                 .ToListAsync(cancellationToken);
 
-            return releases.Select(r => new MobileReleaseDto(r));
+            var nameMap = await ResolvePublisherNamesAsync(releases, cancellationToken);
+
+            return releases.Select(r =>
+            {
+                string? resolvedName = null;
+                if (!string.IsNullOrWhiteSpace(r.PublishedBy) && r.PublishedBy.Contains("@"))
+                {
+                    nameMap.TryGetValue($"{r.TenantId.Trim().ToLowerInvariant()}::{r.PublishedBy.Trim().ToLowerInvariant()}", out resolvedName);
+                }
+                return new MobileReleaseDto(r, resolvedName);
+            });
         }
 
         public async Task<MobileReleaseDto?> GetCurrentReleaseForTenantAsync(string tenantId, CancellationToken cancellationToken = default)
@@ -492,7 +703,16 @@ namespace ms.webapp.api.acya.Services.Mobile
                 .AsNoTracking()
                 .FirstOrDefaultAsync(r => r.TenantId == cleanTenant && r.IsCurrent, cancellationToken);
 
-            return current != null ? new MobileReleaseDto(current) : null;
+            if (current == null) return null;
+
+            string? resolvedName = null;
+            if (!string.IsNullOrWhiteSpace(current.PublishedBy) && current.PublishedBy.Contains("@"))
+            {
+                var nameMap = await ResolvePublisherNamesAsync(new[] { current }, cancellationToken);
+                nameMap.TryGetValue($"{cleanTenant}::{current.PublishedBy.Trim().ToLowerInvariant()}", out resolvedName);
+            }
+
+            return new MobileReleaseDto(current, resolvedName);
         }
 
         public async Task<IEnumerable<MobileReleaseDto>> GetReleasesForTenantAsync(string tenantId, CancellationToken cancellationToken = default)
@@ -509,7 +729,16 @@ namespace ms.webapp.api.acya.Services.Mobile
 
             if (releases.Any())
             {
-                return releases.Select(r => new MobileReleaseDto(r));
+                var nameMap = await ResolvePublisherNamesAsync(releases, cancellationToken);
+                return releases.Select(r =>
+                {
+                    string? resolvedName = null;
+                    if (!string.IsNullOrWhiteSpace(r.PublishedBy) && r.PublishedBy.Contains("@"))
+                    {
+                        nameMap.TryGetValue($"{cleanTenant}::{r.PublishedBy.Trim().ToLowerInvariant()}", out resolvedName);
+                    }
+                    return new MobileReleaseDto(r, resolvedName);
+                });
             }
 
             // Fallback for tests/unmigrated tenants
@@ -544,7 +773,14 @@ namespace ms.webapp.api.acya.Services.Mobile
                     return null;
                 }
 
-                return new MobileReleaseDto(release);
+                string? resolvedName = null;
+                if (!string.IsNullOrWhiteSpace(release.PublishedBy) && release.PublishedBy.Contains("@"))
+                {
+                    var nameMap = await ResolvePublisherNamesAsync(new[] { release }, cancellationToken);
+                    nameMap.TryGetValue($"{cleanTenant}::{release.PublishedBy.Trim().ToLowerInvariant()}", out resolvedName);
+                }
+
+                return new MobileReleaseDto(release, resolvedName);
             }
 
             // Fallback check MobileBuilds
@@ -1011,6 +1247,49 @@ namespace ms.webapp.api.acya.Services.Mobile
                     ? $"Mobile app download link sent successfully to {recipientEmail}." 
                     : "Mobile app invitation could not be dispatched via email notification service."
             };
+        }
+
+        /// <summary>
+        /// Resolves publisher emails to user full names for releases where PublishedBy is an email address.
+        /// Queries the tenant's user registry and maps email to full name. Does not guess or overwrite unmapped values.
+        /// </summary>
+        private async Task<Dictionary<string, string>> ResolvePublisherNamesAsync(
+            IEnumerable<MobileRelease> releases,
+            CancellationToken cancellationToken = default)
+        {
+            var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var emailReleases = releases
+                .Where(r => !string.IsNullOrWhiteSpace(r.PublishedBy) && r.PublishedBy.Contains("@"))
+                .GroupBy(r => r.TenantId.Trim().ToLowerInvariant());
+
+            foreach (var tenantGroup in emailReleases)
+            {
+                var tenantId = tenantGroup.Key;
+                var emails = tenantGroup.Select(r => r.PublishedBy!.Trim().ToLowerInvariant()).Distinct().ToList();
+                if (!emails.Any()) continue;
+
+                try
+                {
+                    var tenantUsers = await GetTenantUsersAsync(tenantId, cancellationToken);
+                    foreach (var user in tenantUsers)
+                    {
+                        if (!string.IsNullOrWhiteSpace(user.Email) && emails.Contains(user.Email.Trim().ToLowerInvariant()))
+                        {
+                            var key = $"{tenantId}::{user.Email.Trim().ToLowerInvariant()}";
+                            if (!string.IsNullOrWhiteSpace(user.Name))
+                            {
+                                map[key] = user.Name;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to resolve publisher names for tenant '{Tenant}'", tenantId);
+                }
+            }
+
+            return map;
         }
     }
 }

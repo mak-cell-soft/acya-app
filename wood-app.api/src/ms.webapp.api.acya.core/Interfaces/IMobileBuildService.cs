@@ -11,6 +11,7 @@ namespace ms.webapp.api.acya.core.Interfaces
     {
         // Admin build operations
         Task<MobileBuildDto> CreateBuildAsync(CreateMobileBuildDto dto, string? createdBy, CancellationToken cancellationToken = default);
+        Task<NextMobileVersionDto> GetNextVersionInfoAsync(string tenantId, CancellationToken cancellationToken = default);
         Task<MobileBuildDto?> GetBuildByIdAsync(int id, CancellationToken cancellationToken = default);
         Task<IEnumerable<MobileBuildDto>> GetBuildsAsync(string? tenantId = null, string? status = null, int page = 1, int pageSize = 50, CancellationToken cancellationToken = default);
         Task<MobileBuildDto?> UpdateBuildStatusAsync(int id, UpdateMobileBuildStatusDto dto, CancellationToken cancellationToken = default);

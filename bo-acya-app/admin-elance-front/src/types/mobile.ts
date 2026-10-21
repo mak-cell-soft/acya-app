@@ -34,6 +34,8 @@ export interface MobileRelease {
   isCurrent: boolean;
   publishedAt: string;
   publishedBy?: string | null;
+  publishedByName?: string | null;
+  publishedByEmail?: string | null;
   createdAt: string;
   completedAt?: string | null;
   artifactFileName?: string | null;
@@ -82,7 +84,19 @@ export interface MobileTenantUser {
 export interface SendMobileAppResult {
   success: boolean;
   message: string;
+  recipient?: string;
   recipientEmail?: string;
   recipientName?: string;
   portalUrl?: string;
+}
+
+export interface NextMobileVersionInfo {
+  tenantId: string;
+  suggestedVersion: string;
+  patchVersion: string;
+  minorVersion: string;
+  majorVersion: string;
+  nextBuildNumber: number;
+  latestVersion?: string | null;
+  latestStatus?: string | null;
 }

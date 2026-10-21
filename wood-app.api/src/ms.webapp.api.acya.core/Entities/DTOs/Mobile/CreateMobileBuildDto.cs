@@ -7,11 +7,16 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Mobile
         [Required]
         public string TenantId { get; set; } = string.Empty;
 
-        [Required]
-        public string Version { get; set; } = string.Empty;
+        /// <summary>
+        /// Semantic version string (e.g. "1.0.1"). If omitted, empty, or "auto", the server
+        /// automatically calculates the next version based on previous builds/releases.
+        /// </summary>
+        [MaxLength(50)]
+        public string? Version { get; set; }
 
         /// <summary>
-        /// Optional build number. If omitted or 0, the system automatically assigns the next sequential number.
+        /// Deprecated client parameter. Build numbers are strictly server-assigned to ensure
+        /// atomic sequential allocation and prevent collisions. Any supplied value is ignored.
         /// </summary>
         public int BuildNumber { get; set; }
 
