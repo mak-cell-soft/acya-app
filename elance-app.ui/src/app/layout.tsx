@@ -18,11 +18,11 @@ const SITE_URL = "https://acya.site";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Élancé | ERP Nouvelle Génération — Produits, Services, Chantiers & Production",
+    default: "Élancé ERP Tunisie | Solution BTP, Chantiers & Production",
     template: "%s | Élancé by ACYA",
   },
   description:
-    "Solution ERP SaaS tout-en-un pour le négoce bois, la gestion des produits et services, la production d'atelier et les chantiers en Tunisie. Connectez achats, stocks, prestations, ventes et comptabilité avec Élancé.",
+    "Solution ERP SaaS tout-en-un pour le BTP, la gestion des chantiers, la production industrielle et le négoce en Tunisie. Connectez achats, stocks, atelier, chantiers et comptabilité.",
   keywords: [
     "ERP",
     "ERP Tunisie",
@@ -140,7 +140,7 @@ const jsonLd = {
       url: SITE_URL,
       name: "Élancé by ACYA",
       description:
-        "ERP SaaS spécialisé pour les entreprises du bois, de la construction et du négoce en Tunisie.",
+        "ERP SaaS pour les entreprises du BTP, de la production industrielle, des chantiers et du négoce en Tunisie.",
       publisher: { "@id": `${SITE_URL}/#organization` },
       inLanguage: "fr-TN",
       potentialAction: {
@@ -159,7 +159,7 @@ const jsonLd = {
       alternateName: "Élancé by ACYA",
       url: SITE_URL,
       description:
-        "ERP SaaS tout-en-un pour les professionnels du bois, de la construction et du négoce en Tunisie. Gestion des chantiers BTP, stock multi-dépôts, achats, ventes, production d'atelier et facturation connectée à Qwerty.",
+        "ERP SaaS tout-en-un pour les entreprises du BTP, de la production industrielle et du négoce en Tunisie. Gestion des chantiers, stock multi-dépôts (M³), ordres de fabrication d'atelier et facturation connectée à Qwerty.",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       offers: {
@@ -167,7 +167,7 @@ const jsonLd = {
         price: "450",
         priceCurrency: "TND",
         priceValidUntil: "2027-12-31",
-        description: "Accès annuel illimité à tous les modules Élancé",
+        description: "Formule annuelle de base pour l'accès à la plateforme ERP Élancé",
       },
       publisher: { "@id": `${SITE_URL}/#organization` },
       inLanguage: "fr-TN",

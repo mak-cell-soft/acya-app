@@ -13,18 +13,35 @@ import { CTASection } from "@/components/shared/cta-section";
 import { PublicFooter } from "@/components/shared/public-footer";
 
 export const metadata: Metadata = {
-  title: "Élancé — ERP SaaS pour le bois, les chantiers et la production en Tunisie",
+  title: "Élancé ERP Tunisie | Gestion BTP, Production & Chantiers",
   description:
-    "Élancé centralise vos ventes, achats, stocks, gestion de chantier BTP, production d'atelier et comptabilité dans un ERP SaaS tout-en-un. Conçu pour les entreprises du bois, du négoce et de la construction en Tunisie.",
+    "Gérez votre entreprise avec Élancé ERP en Tunisie : achats, stocks, BTP, suivi de chantier et production industrielle. Découvrez nos modules et nos offres.",
   alternates: {
     canonical: "https://acya.site",
   },
   openGraph: {
-    title: "Élancé — ERP SaaS pour le bois, les chantiers et la production en Tunisie",
+    title: "Élancé ERP Tunisie | Gestion BTP, Production & Chantiers",
     description:
-      "Centralisez vos ventes, achats, stocks, gestion de chantier BTP et production en un seul logiciel. À partir de 450 DT/an.",
+      "Gérez votre entreprise avec Élancé ERP en Tunisie : achats, stocks, BTP, suivi de chantier et production industrielle. Découvrez nos modules et nos offres.",
     url: "https://acya.site",
+    siteName: "Élancé by ACYA",
+    locale: "fr_TN",
     type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Élancé ERP Tunisie — Solution BTP, Production & Chantiers",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Élancé ERP Tunisie | Gestion BTP, Production & Chantiers",
+    description:
+      "Gérez votre entreprise avec Élancé ERP en Tunisie : achats, stocks, BTP, suivi de chantier et production industrielle.",
+    images: ["/og-image.png"],
   },
 };
 

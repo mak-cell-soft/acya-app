@@ -47,6 +47,7 @@ export default function robots(): MetadataRoute.Robots {
           '/forgot-password',
           '/suspended',
           '/tenant-not-found',
+          '/mobile-app',
 
           // Next.js internals & API (static assets under /_next/static/ remain crawlable)
           '/api/',
