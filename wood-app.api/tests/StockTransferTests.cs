@@ -12,6 +12,8 @@ using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities;
 using ms.webapp.api.acya.core.Entities.DTOs;
 using ms.webapp.api.acya.core.Entities.Product;
+using ms.webapp.api.acya.core.Entities.Notifications;
+using ms.webapp.api.acya.core.Interfaces;
 using ms.webapp.api.acya.infrastructure;
 using ms.webapp.api.acya.infrastructure.Repositories;
 using Xunit;
@@ -24,6 +26,7 @@ namespace ms.webapp.api.acya.tests
         private Mock<NotificationService> _notificationServiceMock;
         private Mock<ILogger<StockService>> _loggerMock;
         private Mock<ILogger<StockController>> _notifLoggerMock;
+        private Mock<IAppNotificationService> _appNotificationServiceMock;
         private WoodAppContext _context;
         private StockRepository _stockRepository;
         private DocumentRepository _docRepository;
@@ -53,6 +56,7 @@ namespace ms.webapp.api.acya.tests
             _notifLoggerMock = new Mock<ILogger<StockController>>();
             _notificationServiceMock = new Mock<NotificationService>(_context, _hubContextMock.Object, _notifLoggerMock.Object);
             _loggerMock = new Mock<ILogger<StockService>>();
+            _appNotificationServiceMock = new Mock<IAppNotificationService>();
         }
 
         [Fact]
@@ -1551,7 +1555,495 @@ namespace ms.webapp.api.acya.tests
                 _docRepository,
                 _hubContextMock.Object,
                 _notificationServiceMock.Object,
-                _loggerMock.Object);
+                _loggerMock.Object,
+                _appNotificationServiceMock.Object);
         }
+
+        #region AppNotification Integration Tests
+
+        [Fact]
+        public async Task InitiateTransfer_Successful_ShouldNotifyDestinationSite()
+        {
+            var service = CreateService();
+            var origin = new SalesSite { Id = 3001, Address = "Depot Tunis" };
+            var dest = new SalesSite { Id = 3002, Address = "Depot Sfax" };
+            _context.SalesSites.AddRange(origin, dest);
+
+            var user = new AppUser { Id = 3101, Login = "initiator", IsActive = true };
+            _context.AppUsers.Add(user);
+
+            var merch = new Merchandise { Id = 3201, ArticleId = 3201 };
+            var article = new Article { Id = 3201, Reference = "ART3201" };
+            _context.Merchandises.Add(merch);
+            _context.Articles.Add(article);
+
+            var stock = new Stock { MerchandiseId = 3201, Merchandises = merch, SalesSiteId = 3001, SalesSites = origin, Quantity = 50, Type = TransactionType.Add, UpdatedById = 3101 };
+            _context.Stocks.Add(stock);
+            await _context.SaveChangesAsync();
+
+            var dto = new StockTransferDto
+            {
+                originSiteId = 3001,
+                destinationSiteId = 3002,
+                updatedById = 3101,
+                transferDate = DateTime.UtcNow,
+                reference = "TR-3001-3002",
+                merchandisesItems = new[]
+                {
+                    new MerchandiseDto { id = 3201, article = new ArticleDto { id = 3201 }, quantity = 5 }
+                }
+            };
+
+            var result = await service.InitiateTransferAsync(dto, autoConfirm: false);
+
+            Assert.True(result.Success);
+            _appNotificationServiceMock.Verify(n => n.NotifyAsync(
+                It.Is<string>(t => t.Contains("Nouveau transfert")),
+                It.Is<string>(m => m.Contains("Depot Tunis") && m.Contains("TR-3001-3002")),
+                NotificationType.Info,
+                NotificationPriority.High,
+                null,
+                null,
+                3002,
+                result.TransferId.ToString(),
+                "StockTransfer"
+            ), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateTransfer_Successful_ShouldNotifyDestinationSite()
+        {
+            var service = CreateService();
+            var origin = new SalesSite { Id = 3011, Address = "Origin 3011" };
+            var dest = new SalesSite { Id = 3012, Address = "Dest 3012" };
+            _context.SalesSites.AddRange(origin, dest);
+
+            var user = new AppUser { Id = 3111, Login = "updater", IsActive = true, IdSalesSite = 3011 };
+            _context.AppUsers.Add(user);
+
+            var exitDoc = new Document { Id = 3411, SalesSiteId = 3011, SalesSite = origin, Type = DocumentTypes.stockTransfer, UpdatedById = 3111 };
+            var receiptDoc = new Document { Id = 3412, SalesSiteId = 3012, SalesSite = dest, Type = DocumentTypes.stockTransfer, UpdatedById = 3111 };
+            _context.Documents.AddRange(exitDoc, receiptDoc);
+
+            var transfer = new StockTransfer
+            {
+                Id = 3511,
+                ExitDocument = exitDoc,
+                ReceiptDocument = receiptDoc,
+                ExitDocumentId = 3411,
+                ReceiptDocumentId = 3412,
+                Status = TransferStatus.Pending,
+                Reference = "TR-3511",
+                RevisionNumber = 1
+            };
+            _context.StockTransfers.Add(transfer);
+            await _context.SaveChangesAsync();
+
+            var updateReq = new UpdateTransferRequest
+            {
+                UpdatedByUserId = 3111,
+                Notes = "Updated transfer note"
+            };
+
+            var result = await service.UpdateTransferAsync(3511, updateReq);
+
+            Assert.True(result.Success);
+            _appNotificationServiceMock.Verify(n => n.NotifyAsync(
+                It.Is<string>(t => t.Contains("modifié")),
+                It.Is<string>(m => m.Contains("TR-3511") && m.Contains("Révision 2")),
+                NotificationType.Info,
+                NotificationPriority.Normal,
+                null,
+                null,
+                3012,
+                "3511",
+                "StockTransfer"
+            ), Times.Once);
+        }
+
+        [Fact]
+        public async Task ResendTransfer_Successful_ShouldNotifyDestinationSite()
+        {
+            var service = CreateService();
+            var origin = new SalesSite { Id = 3021, Address = "Origin 3021" };
+            var dest = new SalesSite { Id = 3022, Address = "Dest 3022" };
+            _context.SalesSites.AddRange(origin, dest);
+
+            var user = new AppUser { Id = 3121, Login = "resender", IsActive = true, IdSalesSite = 3021 };
+            _context.AppUsers.Add(user);
+
+            var merch = new Merchandise { Id = 3221, ArticleId = 3221 };
+            _context.Merchandises.Add(merch);
+
+            var stock = new Stock { MerchandiseId = 3221, Merchandises = merch, SalesSiteId = 3021, Quantity = 100, Type = TransactionType.Add };
+            _context.Stocks.Add(stock);
+
+            var exitDoc = new Document { Id = 3421, SalesSiteId = 3021, SalesSite = origin, Type = DocumentTypes.stockTransfer, StockTransactionType = TransactionType.Retrieve, UpdatedById = 3121 };
+            var receiptDoc = new Document { Id = 3422, SalesSiteId = 3022, SalesSite = dest, Type = DocumentTypes.stockTransfer, StockTransactionType = TransactionType.Add, UpdatedById = 3121 };
+            var exitDm = new DocumentMerchandise { DocumentId = 3421, MerchandiseId = 3221, Merchandise = merch, Quantity = 10 };
+            var receiptDm = new DocumentMerchandise { DocumentId = 3422, MerchandiseId = 3221, Merchandise = merch, Quantity = 10 };
+            exitDoc.DocumentMerchandises.Add(exitDm);
+            receiptDoc.DocumentMerchandises.Add(receiptDm);
+            _context.Documents.AddRange(exitDoc, receiptDoc);
+            _context.DocumentMerchandises.AddRange(exitDm, receiptDm);
+
+            var transfer = new StockTransfer
+            {
+                Id = 3521,
+                ExitDocument = exitDoc,
+                ReceiptDocument = receiptDoc,
+                ExitDocumentId = 3421,
+                ReceiptDocumentId = 3422,
+                Status = TransferStatus.Rejected,
+                Reference = "TR-3521",
+                ConfirmationCode = "1111",
+                RevisionNumber = 1
+            };
+            _context.StockTransfers.Add(transfer);
+            await _context.SaveChangesAsync();
+
+            var resendReq = new UpdateTransferRequest
+            {
+                UpdatedByUserId = 3121,
+                MerchandisesItems = new[] { new MerchandiseDto { id = 3221, quantity = 10 } }
+            };
+
+            var result = await service.ResendTransferAsync(3521, resendReq);
+
+            Assert.True(result.Success);
+            _appNotificationServiceMock.Verify(n => n.NotifyAsync(
+                It.Is<string>(t => t.Contains("renvoyé")),
+                It.Is<string>(m => m.Contains("TR-3521") && m.Contains("Révision 2")),
+                NotificationType.Info,
+                NotificationPriority.High,
+                null,
+                null,
+                3022,
+                "3521",
+                "StockTransfer"
+            ), Times.Once);
+        }
+
+        [Fact]
+        public async Task ConfirmTransfer_Successful_ShouldNotifyOriginSite()
+        {
+            var service = CreateService();
+            var origin = new SalesSite { Id = 3031, Address = "Origin 3031" };
+            var dest = new SalesSite { Id = 3032, Address = "Dest 3032" };
+            _context.SalesSites.AddRange(origin, dest);
+
+            var user = new AppUser { Id = 3131, Login = "confirmer", IsActive = true };
+            _context.AppUsers.Add(user);
+
+            var merch = new Merchandise { Id = 3231, ArticleId = 3231 };
+            _context.Merchandises.Add(merch);
+
+            var exitDoc = new Document { Id = 3431, SalesSiteId = 3031, SalesSite = origin, Type = DocumentTypes.stockTransfer, UpdatedById = 3131 };
+            var receiptDoc = new Document { Id = 3432, SalesSiteId = 3032, SalesSite = dest, Type = DocumentTypes.stockTransfer, UpdatedById = 3131, StockTransactionType = TransactionType.Add };
+            var receiptDm = new DocumentMerchandise { Document = receiptDoc, Merchandise = merch, Quantity = 5 };
+            receiptDoc.DocumentMerchandises.Add(receiptDm);
+            _context.Documents.AddRange(exitDoc, receiptDoc);
+            _context.DocumentMerchandises.Add(receiptDm);
+
+            var transfer = new StockTransfer
+            {
+                Id = 3531,
+                ExitDocument = exitDoc,
+                ReceiptDocument = receiptDoc,
+                Status = TransferStatus.Pending,
+                Reference = "TR-3531",
+                ConfirmationCode = "4321"
+            };
+            _context.StockTransfers.Add(transfer);
+            await _context.SaveChangesAsync();
+
+            var result = await service.ConfirmTransferAsync(3531, 3131, "4321");
+
+            Assert.True(result.Success);
+            _appNotificationServiceMock.Verify(n => n.NotifyAsync(
+                It.Is<string>(t => t.Contains("confirmé")),
+                It.Is<string>(m => m.Contains("TR-3531")),
+                NotificationType.Success,
+                NotificationPriority.Normal,
+                null,
+                null,
+                3031,
+                "3531",
+                "StockTransfer"
+            ), Times.Once);
+        }
+
+        [Fact]
+        public async Task RejectTransfer_Successful_ShouldNotifyOriginSite()
+        {
+            var service = CreateService();
+            var origin = new SalesSite { Id = 3041, Address = "Origin 3041" };
+            var dest = new SalesSite { Id = 3042, Address = "Dest 3042" };
+            _context.SalesSites.AddRange(origin, dest);
+
+            var user = new AppUser { Id = 3141, Login = "rejecter", IsActive = true };
+            _context.AppUsers.Add(user);
+
+            var merch = new Merchandise { Id = 3241, ArticleId = 3241 };
+            _context.Merchandises.Add(merch);
+
+            var exitDoc = new Document { Id = 3441, SalesSiteId = 3041, SalesSite = origin, Type = DocumentTypes.stockTransfer, UpdatedById = 3141 };
+            var receiptDoc = new Document { Id = 3442, SalesSiteId = 3042, SalesSite = dest, Type = DocumentTypes.stockTransfer, UpdatedById = 3141 };
+            _context.Documents.AddRange(exitDoc, receiptDoc);
+
+            var transfer = new StockTransfer
+            {
+                Id = 3541,
+                ExitDocument = exitDoc,
+                ReceiptDocument = receiptDoc,
+                ExitDocumentId = 3441,
+                ReceiptDocumentId = 3442,
+                Status = TransferStatus.Pending,
+                Reference = "TR-3541"
+            };
+            _context.StockTransfers.Add(transfer);
+            await _context.SaveChangesAsync();
+
+            var result = await service.RejectTransferAsync(3541, 3141, "Colis endommagé");
+
+            Assert.True(result.Success);
+            _appNotificationServiceMock.Verify(n => n.NotifyAsync(
+                It.Is<string>(t => t.Contains("rejeté")),
+                It.Is<string>(m => m.Contains("TR-3541") && m.Contains("Colis endommagé")),
+                NotificationType.Warning,
+                NotificationPriority.High,
+                null,
+                null,
+                3041,
+                "3541",
+                "StockTransfer"
+            ), Times.Once);
+        }
+
+        [Fact]
+        public async Task AutoConfirmTransfer_ShouldNotEmitPendingTransferNotification()
+        {
+            var service = CreateService();
+            var origin = new SalesSite { Id = 3051, Address = "Origin 3051" };
+            var dest = new SalesSite { Id = 3052, Address = "Dest 3052" };
+            _context.SalesSites.AddRange(origin, dest);
+
+            var user = new AppUser { Id = 3151, Login = "autoconfirmer", IsActive = true };
+            _context.AppUsers.Add(user);
+
+            var merch = new Merchandise { Id = 3251, ArticleId = 3251 };
+            var article = new Article { Id = 3251, Reference = "ART3251" };
+            _context.Merchandises.Add(merch);
+            _context.Articles.Add(article);
+
+            var stock = new Stock { MerchandiseId = 3251, Merchandises = merch, SalesSiteId = 3051, SalesSites = origin, Quantity = 50, Type = TransactionType.Add, UpdatedById = 3151 };
+            _context.Stocks.Add(stock);
+            await _context.SaveChangesAsync();
+
+            var dto = new StockTransferDto
+            {
+                originSiteId = 3051,
+                destinationSiteId = 3052,
+                updatedById = 3151,
+                transferDate = DateTime.UtcNow,
+                reference = "TR-AUTOCONFIRM",
+                merchandisesItems = new[]
+                {
+                    new MerchandiseDto { id = 3251, article = new ArticleDto { id = 3251 }, quantity = 5 }
+                }
+            };
+
+            var result = await service.InitiateTransferAsync(dto, autoConfirm: true);
+
+            Assert.True(result.Success);
+            _appNotificationServiceMock.Verify(n => n.NotifyAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<NotificationType>(),
+                It.IsAny<NotificationPriority>(),
+                It.IsAny<int?>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()
+            ), Times.Never);
+        }
+
+        [Fact]
+        public async Task FailedInitiation_DueToInvalidSiteOrStock_ShouldEmitNoNotification()
+        {
+            var service = CreateService();
+
+            var dto = new StockTransferDto
+            {
+                originSiteId = 99999, // non-existent site
+                destinationSiteId = 88888,
+                updatedById = 1,
+                merchandisesItems = new[] { new MerchandiseDto { id = 1, article = new ArticleDto { id = 1 }, quantity = 10 } }
+            };
+
+            var result = await service.InitiateTransferAsync(dto, autoConfirm: false);
+
+            Assert.False(result.Success);
+            _appNotificationServiceMock.Verify(n => n.NotifyAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<NotificationType>(),
+                It.IsAny<NotificationPriority>(),
+                It.IsAny<int?>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()
+            ), Times.Never);
+        }
+
+        [Fact]
+        public async Task RepeatedConfirmationOrRejection_ShouldNotEmitDuplicateNotification()
+        {
+            var service = CreateService();
+            var origin = new SalesSite { Id = 3061, Address = "Origin 3061" };
+            var dest = new SalesSite { Id = 3062, Address = "Dest 3062" };
+            _context.SalesSites.AddRange(origin, dest);
+
+            var user = new AppUser { Id = 3161, Login = "repeatUser", IsActive = true };
+            _context.AppUsers.Add(user);
+
+            var merch = new Merchandise { Id = 3261, ArticleId = 3261 };
+            _context.Merchandises.Add(merch);
+
+            var exitDoc = new Document { Id = 3461, SalesSiteId = 3061, SalesSite = origin, Type = DocumentTypes.stockTransfer, UpdatedById = 3161 };
+            var receiptDoc = new Document { Id = 3462, SalesSiteId = 3062, SalesSite = dest, Type = DocumentTypes.stockTransfer, UpdatedById = 3161, StockTransactionType = TransactionType.Add };
+            var receiptDm = new DocumentMerchandise { Document = receiptDoc, Merchandise = merch, Quantity = 5 };
+            receiptDoc.DocumentMerchandises.Add(receiptDm);
+            _context.Documents.AddRange(exitDoc, receiptDoc);
+            _context.DocumentMerchandises.Add(receiptDm);
+
+            var transfer = new StockTransfer
+            {
+                Id = 3561,
+                ExitDocument = exitDoc,
+                ReceiptDocument = receiptDoc,
+                Status = TransferStatus.Pending,
+                Reference = "TR-3561",
+                ConfirmationCode = "7777"
+            };
+            _context.StockTransfers.Add(transfer);
+            await _context.SaveChangesAsync();
+
+            // First confirmation: succeeds, exactly 1 notification
+            var firstResult = await service.ConfirmTransferAsync(3561, 3161, "7777");
+            Assert.True(firstResult.Success);
+            _appNotificationServiceMock.Verify(n => n.NotifyAsync(
+                It.IsAny<string>(), It.IsAny<string>(), NotificationType.Success, It.IsAny<NotificationPriority>(),
+                null, null, 3061, "3561", "StockTransfer"
+            ), Times.Once);
+
+            // Second confirmation: fails (already confirmed), still exactly 1 notification
+            var secondResult = await service.ConfirmTransferAsync(3561, 3161, "7777");
+            Assert.False(secondResult.Success);
+            _appNotificationServiceMock.Verify(n => n.NotifyAsync(
+                It.IsAny<string>(), It.IsAny<string>(), NotificationType.Success, It.IsAny<NotificationPriority>(),
+                null, null, 3061, "3561", "StockTransfer"
+            ), Times.Once);
+        }
+
+        [Fact]
+        public async Task NotificationException_AfterCommit_ShouldNotFailBusinessTransfer()
+        {
+            var service = CreateService();
+            var origin = new SalesSite { Id = 3071, Address = "Origin 3071" };
+            var dest = new SalesSite { Id = 3072, Address = "Dest 3072" };
+            _context.SalesSites.AddRange(origin, dest);
+
+            var user = new AppUser { Id = 3171, Login = "faultUser", IsActive = true };
+            _context.AppUsers.Add(user);
+
+            var merch = new Merchandise { Id = 3271, ArticleId = 3271 };
+            _context.Merchandises.Add(merch);
+
+            var exitDoc = new Document { Id = 3471, SalesSiteId = 3071, SalesSite = origin, Type = DocumentTypes.stockTransfer, UpdatedById = 3171 };
+            var receiptDoc = new Document { Id = 3472, SalesSiteId = 3072, SalesSite = dest, Type = DocumentTypes.stockTransfer, UpdatedById = 3171, StockTransactionType = TransactionType.Add };
+            var receiptDm = new DocumentMerchandise { Document = receiptDoc, Merchandise = merch, Quantity = 5 };
+            receiptDoc.DocumentMerchandises.Add(receiptDm);
+            _context.Documents.AddRange(exitDoc, receiptDoc);
+            _context.DocumentMerchandises.Add(receiptDm);
+
+            var transfer = new StockTransfer
+            {
+                Id = 3571,
+                ExitDocument = exitDoc,
+                ReceiptDocument = receiptDoc,
+                Status = TransferStatus.Pending,
+                Reference = "TR-3571",
+                ConfirmationCode = "8888"
+            };
+            _context.StockTransfers.Add(transfer);
+            await _context.SaveChangesAsync();
+
+            // Simulate catastrophic notification service failure (e.g. FCM down, DB connection drop on notification table)
+            _appNotificationServiceMock
+                .Setup(n => n.NotifyAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<NotificationType>(), It.IsAny<NotificationPriority>(), It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ThrowsAsync(new InvalidOperationException("Simulated FCM / Notification failure"));
+
+            var result = await service.ConfirmTransferAsync(3571, 3171, "8888");
+
+            // Transfer MUST still succeed and commit in DB despite notification failure
+            Assert.True(result.Success);
+            Assert.Equal(TransferStatus.Confirmed, transfer.Status);
+        }
+
+        [Fact]
+        public async Task ExistingLegacySignalRAndPendingNotifications_ArePreserved()
+        {
+            var service = CreateService();
+            var origin = new SalesSite { Id = 3081, Address = "Origin 3081" };
+            var dest = new SalesSite { Id = 3082, Address = "Dest 3082" };
+            _context.SalesSites.AddRange(origin, dest);
+
+            var user = new AppUser { Id = 3181, Login = "legacyUser", IsActive = true };
+            _context.AppUsers.Add(user);
+
+            var merch = new Merchandise { Id = 3281, ArticleId = 3281 };
+            var article = new Article { Id = 3281, Reference = "ART3281" };
+            _context.Merchandises.Add(merch);
+            _context.Articles.Add(article);
+
+            var stock = new Stock { MerchandiseId = 3281, Merchandises = merch, SalesSiteId = 3081, SalesSites = origin, Quantity = 50, Type = TransactionType.Add, UpdatedById = 3181 };
+            _context.Stocks.Add(stock);
+            await _context.SaveChangesAsync();
+
+            var dto = new StockTransferDto
+            {
+                originSiteId = 3081,
+                destinationSiteId = 3082,
+                updatedById = 3181,
+                transferDate = DateTime.UtcNow,
+                reference = "TR-LEGACY-CHECK",
+                merchandisesItems = new[]
+                {
+                    new MerchandiseDto { id = 3281, article = new ArticleDto { id = 3281 }, quantity = 5 }
+                }
+            };
+
+            var result = await service.InitiateTransferAsync(dto, autoConfirm: false);
+            Assert.True(result.Success);
+
+            // Legacy SignalR hub proxy was called for destination site group
+            _hubContextMock.Verify(h => h.Clients.Group("3082"), Times.AtLeastOnce);
+
+            // Legacy pending notification was queued in database
+            var pendingNotif = await _context.PendingNotifications.FirstOrDefaultAsync();
+            Assert.NotNull(pendingNotif);
+            Assert.Contains(result.TransferId.ToString(), pendingNotif.Content);
+
+            // Modern notification was also emitted
+            _appNotificationServiceMock.Verify(n => n.NotifyAsync(
+                It.IsAny<string>(), It.IsAny<string>(), NotificationType.Info, NotificationPriority.High,
+                null, null, 3082, result.TransferId.ToString(), "StockTransfer"
+            ), Times.Once);
+        }
+
+        #endregion
     }
 }

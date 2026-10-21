@@ -21,8 +21,8 @@ namespace ms.webapp.api.acya.api.Services
         private readonly IHubContext<NotificationHub> _hubContext;
         private readonly NotificationService _notificationService;
         private readonly ILogger<StockService> _logger;
-
         private readonly TenantContext? _tenantContext;
+        private readonly IAppNotificationService _appNotificationService;
 
         public StockService(
             StockRepository repository,
@@ -30,8 +30,9 @@ namespace ms.webapp.api.acya.api.Services
             DocumentRepository docRepository,
             IHubContext<NotificationHub> hubContext,
             NotificationService notificationService,
-            ILogger<StockService> logger)
-            : this(repository, context, docRepository, hubContext, notificationService, logger, null)
+            ILogger<StockService> logger,
+            IAppNotificationService appNotificationService)
+            : this(repository, context, docRepository, hubContext, notificationService, logger, null, appNotificationService)
         {
         }
 
@@ -42,7 +43,8 @@ namespace ms.webapp.api.acya.api.Services
             IHubContext<NotificationHub> hubContext,
             NotificationService notificationService,
             ILogger<StockService> logger,
-            TenantContext? tenantContext)
+            TenantContext? tenantContext,
+            IAppNotificationService appNotificationService)
         {
             _repository = repository;
             _context = context;
@@ -51,6 +53,7 @@ namespace ms.webapp.api.acya.api.Services
             _notificationService = notificationService;
             _logger = logger;
             _tenantContext = tenantContext;
+            _appNotificationService = appNotificationService ?? throw new ArgumentNullException(nameof(appNotificationService));
         }
 
         private string? GetTenantSlug()
@@ -287,6 +290,23 @@ namespace ms.webapp.api.acya.api.Services
                     await SendTransferNotificationAsync(destinationSite, originSite, transferRelationship, dto.merchandisesItems.Length, exitDoc.DocNumber!, receiptDoc.DocNumber!);
                     await QueueNotificationAsync(destinationSite, originSite, transferRelationship, dto.merchandisesItems.Length, exitDoc.DocNumber!, receiptDoc.DocNumber!);
 
+                    try
+                    {
+                        await _appNotificationService.NotifyAsync(
+                            title: "Nouveau transfert de stock",
+                            message: $"Transfert {transferRelationship.Reference} ({dto.merchandisesItems.Length} article(s)) envoyé depuis {originSite.Address}. En attente de confirmation.",
+                            type: NotificationType.Info,
+                            priority: NotificationPriority.High,
+                            targetSiteId: destinationSite.Id,
+                            relatedEntityId: transferRelationship.Id.ToString(),
+                            relatedEntityType: "StockTransfer"
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send modern notification for initiated transfer {TransferId}", transferRelationship.Id);
+                    }
+
                     return StockTransferResult.Ok(
                         "Transfer initiated, waiting for confirmation",
                         transferRelationship.Id,
@@ -349,6 +369,26 @@ namespace ms.webapp.api.acya.api.Services
                 if (transfer.ReceiptDocument != null)
                 {
                     await _notificationService.UpdateStatusByTransferId(transferId, transfer.ReceiptDocument.SalesSiteId.ToString(), TransferStatus.Confirmed);
+                }
+
+                if (transfer.ExitDocument != null)
+                {
+                    try
+                    {
+                        await _appNotificationService.NotifyAsync(
+                            title: "Transfert de stock confirmé",
+                            message: $"Le transfert {transfer.Reference} a été confirmé et réceptionné par le destinataire.",
+                            type: NotificationType.Success,
+                            priority: NotificationPriority.Normal,
+                            targetSiteId: transfer.ExitDocument.SalesSiteId,
+                            relatedEntityId: transfer.Id.ToString(),
+                            relatedEntityType: "StockTransfer"
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send modern notification for confirmed transfer {TransferId}", transfer.Id);
+                    }
                 }
 
                 return StockTransferResult.Ok(
@@ -427,6 +467,23 @@ namespace ms.webapp.api.acya.api.Services
                             Reference = transfer.Reference,
                             Reason = reason
                         });
+
+                    try
+                    {
+                        await _appNotificationService.NotifyAsync(
+                            title: "Transfert de stock rejeté",
+                            message: $"Le transfert {transfer.Reference} a été rejeté par le destinataire. Motif : {reason}",
+                            type: NotificationType.Warning,
+                            priority: NotificationPriority.High,
+                            targetSiteId: transfer.ExitDocument.SalesSiteId,
+                            relatedEntityId: transfer.Id.ToString(),
+                            relatedEntityType: "StockTransfer"
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send modern notification for rejected transfer {TransferId}", transfer.Id);
+                    }
                 }
 
                 return StockTransferResult.Ok("Transfer rejected and stock restored successfully", transferId, transfer.Reference!, "", "", "Rejected");
@@ -866,6 +923,23 @@ namespace ms.webapp.api.acya.api.Services
                     Message = $"Le transfert {transfer.Reference} a été modifié par l'expéditeur (Révision {transfer.RevisionNumber})."
                 });
 
+                try
+                {
+                    await _appNotificationService.NotifyAsync(
+                        title: "Transfert de stock modifié",
+                        message: $"Le transfert {transfer.Reference} a été modifié par l'expéditeur (Révision {transfer.RevisionNumber}).",
+                        type: NotificationType.Info,
+                        priority: NotificationPriority.Normal,
+                        targetSiteId: transfer.ReceiptDocument.SalesSiteId,
+                        relatedEntityId: transfer.Id.ToString(),
+                        relatedEntityType: "StockTransfer"
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send modern notification for updated transfer {TransferId}", transfer.Id);
+                }
+
                 return StockTransferResult.Ok(
                     "Transfer updated successfully",
                     transfer.Id,
@@ -1276,6 +1350,23 @@ namespace ms.webapp.api.acya.api.Services
                         RevisionNumber = transfer.RevisionNumber,
                         OriginSite = transfer.ExitDocument.SalesSite?.Address ?? "Origine"
                     });
+
+                try
+                {
+                    await _appNotificationService.NotifyAsync(
+                        title: "Transfert de stock renvoyé",
+                        message: $"Le transfert {transfer.Reference} a été réémis par l'expéditeur (Révision {transfer.RevisionNumber}). En attente de confirmation.",
+                        type: NotificationType.Info,
+                        priority: NotificationPriority.High,
+                        targetSiteId: destinationSiteId,
+                        relatedEntityId: transfer.Id.ToString(),
+                        relatedEntityType: "StockTransfer"
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send modern notification for resent transfer {TransferId}", transfer.Id);
+                }
 
                 return StockTransferResult.Ok(
                     "Transfer resent successfully",
