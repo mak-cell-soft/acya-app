@@ -20,7 +20,8 @@ import {
   EyeOff,
   Mail,
   Smartphone,
-  Sparkles
+  Sparkles,
+  Flame
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -276,7 +277,16 @@ export default function Sidebar() {
           {(!isCollapsed || !mounted) && <span>Mobile Releases</span>}
         </Link>
 
-        <Link 
+        <Link
+          href="/mobile/firebase"
+          className={getLinkClasses('/mobile/firebase')}
+          title={isCollapsed ? "Firebase Apps" : undefined}
+        >
+          <Flame className="w-4.5 h-4.5 shrink-0" />
+          {(!isCollapsed || !mounted) && <span>Firebase Apps</span>}
+        </Link>
+
+        <Link
           href="/billing" 
           className={getLinkClasses('/billing')}
           title={isCollapsed ? "Billing & Invoices" : undefined}

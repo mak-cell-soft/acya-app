@@ -1,5 +1,15 @@
 import { cookies } from "next/headers";
-import { MobileBuild, MobileRelease, CreateMobileBuildInput, MobileTenantSummary, MobileTenantUser, SendMobileAppResult, NextMobileVersionInfo } from "@/types/mobile";
+import {
+  MobileBuild,
+  MobileRelease,
+  CreateMobileBuildInput,
+  MobileTenantSummary,
+  MobileTenantUser,
+  SendMobileAppResult,
+  NextMobileVersionInfo,
+  FirebaseAppSummary,
+  TenantFirebaseAppStatus
+} from "@/types/mobile";
 
 interface TokenCache {
   token: string;
@@ -589,6 +599,135 @@ export async function fetchNextMobileVersion(
   if (!res || !res.ok) {
     const errorText = await res?.text().catch(() => "");
     throw new Error(`Failed to retrieve next version suggestion (${res?.status || "unknown"}): ${errorText || res?.statusText}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Fetches all registered and unregistered Firebase applications across active tenants.
+ */
+export async function fetchFirebaseApps(coreToken: string): Promise<FirebaseAppSummary[]> {
+  const { coreBase } = await getBackendUrls();
+  let url = `${coreBase}admin/mobile/firebase-apps`;
+
+  let res = await fetch(url, {
+    headers: {
+      "Authorization": `Bearer ${coreToken}`,
+      "Accept": "application/json",
+    },
+  }).catch(() => null);
+
+  if (!res) {
+    url = `http://localhost:8080/api/admin/mobile/firebase-apps`;
+    res = await fetch(url, {
+      headers: {
+        "Authorization": `Bearer ${coreToken}`,
+        "Accept": "application/json",
+      },
+    });
+  }
+
+  if (!res || !res.ok) {
+    const errorText = await res?.text().catch(() => "");
+    throw new Error(`Failed to load Firebase applications (${res?.status || "unknown"}): ${errorText || res?.statusText}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Fetches the Firebase application status for a specific tenant.
+ */
+export async function fetchTenantFirebaseApp(
+  coreToken: string,
+  slug: string
+): Promise<TenantFirebaseAppStatus | null> {
+  const { coreBase } = await getBackendUrls();
+  const cleanSlug = encodeURIComponent(slug.trim().toLowerCase());
+  let url = `${coreBase}admin/mobile/tenants/${cleanSlug}/firebase-app`;
+
+  let res = await fetch(url, {
+    headers: {
+      "Authorization": `Bearer ${coreToken}`,
+      "Accept": "application/json",
+    },
+  }).catch(() => null);
+
+  if (!res) {
+    url = `http://localhost:8080/api/admin/mobile/tenants/${cleanSlug}/firebase-app`;
+    res = await fetch(url, {
+      headers: {
+        "Authorization": `Bearer ${coreToken}`,
+        "Accept": "application/json",
+      },
+    });
+  }
+
+  if (!res) {
+    throw new Error("Core API unreachable.");
+  }
+
+  if (res.status === 404) {
+    return null;
+  }
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "");
+    throw new Error(`Failed to retrieve Firebase status for '${slug}' (${res.status}): ${errorText || res.statusText}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Ensures the tenant's Android application is registered in Firebase and persists configuration.
+ */
+export async function provisionTenantFirebaseApp(
+  coreToken: string,
+  slug: string
+): Promise<TenantFirebaseAppStatus> {
+  const { coreBase } = await getBackendUrls();
+  const cleanSlug = encodeURIComponent(slug.trim().toLowerCase());
+  let url = `${coreBase}admin/mobile/tenants/${cleanSlug}/firebase-app`;
+
+  let res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${coreToken}`,
+      "Content-Length": "0",
+      "Accept": "application/json",
+    },
+  }).catch(() => null);
+
+  if (!res) {
+    url = `http://localhost:8080/api/admin/mobile/tenants/${cleanSlug}/firebase-app`;
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${coreToken}`,
+        "Content-Length": "0",
+        "Accept": "application/json",
+      },
+    });
+  }
+
+  if (!res) {
+    throw new Error("Core API unreachable.");
+  }
+
+  if (!res.ok) {
+    let errorMessage = `Failed to register Firebase app (${res.status})`;
+    try {
+      const errorJson = await res.json();
+      if (errorJson.message) errorMessage = errorJson.message;
+    } catch {
+      const errorText = await res.text().catch(() => "");
+      if (errorText) errorMessage = errorText;
+    }
+    const err = new Error(errorMessage);
+    Object.assign(err, { statusCode: res.status });
+    throw err;
   }
 
   return res.json();

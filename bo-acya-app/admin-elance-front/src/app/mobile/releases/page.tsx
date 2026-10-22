@@ -21,7 +21,8 @@ import {
   User,
   History,
   Tag,
-  Send
+  Send,
+  Flame
 } from "lucide-react";
 import { MobileRelease, MobileTenantSummary, MobileTenantUser } from "@/types/mobile";
 
@@ -305,6 +306,13 @@ export default function MobileReleasesPage() {
           >
             <Sparkles className="w-4 h-4" />
             <span>Releases</span>
+          </Link>
+          <Link
+            href="/mobile/firebase"
+            className="px-4 py-2 rounded-lg text-sm font-medium font-mono text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-[background-color,color] flex items-center gap-2 cursor-pointer"
+          >
+            <Flame className="w-4 h-4" />
+            <span>Firebase Apps</span>
           </Link>
         </div>
 

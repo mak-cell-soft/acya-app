@@ -100,3 +100,32 @@ export interface NextMobileVersionInfo {
   latestVersion?: string | null;
   latestStatus?: string | null;
 }
+
+export type FirebaseAppProvisioningStatus = 'NotRegistered' | 'Pending' | 'Active' | 'Failed';
+
+export interface FirebaseAppSummary {
+  tenantId: string;
+  tenantName: string;
+  packageName: string;
+  firebaseProjectId: string;
+  firebaseAppId: string | null;
+  displayName: string;
+  status: FirebaseAppProvisioningStatus | string;
+  hasConfiguration: boolean;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface TenantFirebaseAppStatus {
+  tenantId: string;
+  firebaseProjectId: string;
+  firebaseAppId: string | null;
+  packageName: string;
+  displayName: string;
+  status: FirebaseAppProvisioningStatus | string;
+  hasConfiguration: boolean;
+  sha1Fingerprint?: string | null;
+  sha256Fingerprint?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
