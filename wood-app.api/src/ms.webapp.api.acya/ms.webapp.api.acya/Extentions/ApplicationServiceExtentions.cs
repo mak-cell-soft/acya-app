@@ -122,6 +122,9 @@ namespace ms.webapp.api.acya.api.Extentions
       // Mobile Release & Build Infrastructure
       services.AddSingleton<IMobileArtifactStorage, ms.webapp.api.acya.Services.Mobile.LocalFileSystemMobileArtifactStorage>();
       services.AddSingleton<IMobileDownloadTokenService, ms.webapp.api.acya.Services.Mobile.MobileDownloadTokenService>();
+      services.AddSingleton<ms.webapp.api.acya.Services.Mobile.IGoogleTokenProvider, ms.webapp.api.acya.Services.Mobile.GoogleTokenProvider>();
+      services.AddHttpClient<ms.webapp.api.acya.Services.Mobile.IFirebaseManagementApiClient, ms.webapp.api.acya.Services.Mobile.FirebaseManagementApiClient>();
+      services.AddScoped<ms.webapp.api.acya.core.Interfaces.IFirebaseAppManagementService, ms.webapp.api.acya.Services.Mobile.FirebaseAppManagementService>();
       services.AddScoped<IMobileTenantConfigService, ms.webapp.api.acya.Services.Mobile.MobileTenantConfigService>();
       services.AddScoped<IMobileBuildService, ms.webapp.api.acya.Services.Mobile.MobileBuildService>();
       services.AddHttpClient<IGitHubBuildDispatcher, ms.webapp.api.acya.Services.Mobile.GitHubBuildDispatcher>();

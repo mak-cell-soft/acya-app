@@ -19,5 +19,13 @@ namespace ms.webapp.api.acya.core.Entities.DTOs.Mobile
         public string Currency { get; set; } = "TND";
         public bool HasChantierModule { get; set; }
         public bool HasProductionModule { get; set; }
+
+        /// <summary>
+        /// Optional Base64-encoded google-services.json for Android FCM push integration.
+        /// Consumed exclusively by the authenticated mobile build pipeline.
+        /// Serialized as "googleServicesJsonBase64" using camelCase.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("googleServicesJsonBase64")]
+        public string? GoogleServicesJsonBase64 { get; set; }
     }
 }

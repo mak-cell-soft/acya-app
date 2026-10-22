@@ -17,6 +17,7 @@ namespace ms.webapp.api.acya.infrastructure
     public DbSet<PlatformSetting> PlatformSettings { get; set; }
     public DbSet<MobileBuild> MobileBuilds { get; set; }
     public DbSet<MobileRelease> MobileReleases { get; set; }
+    public DbSet<TenantFirebaseApp> TenantFirebaseApps { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,6 +25,7 @@ namespace ms.webapp.api.acya.infrastructure
 
       modelBuilder.ApplyConfiguration(new Configurations.MobileBuildConfiguration());
       modelBuilder.ApplyConfiguration(new Configurations.MobileReleaseConfiguration());
+      modelBuilder.ApplyConfiguration(new Configurations.TenantFirebaseAppConfiguration());
 
       // Force Master Registry to map explicitly to the public schema and bo_tbl_enterprise
       modelBuilder.Entity<TenantRegistry>(entity =>

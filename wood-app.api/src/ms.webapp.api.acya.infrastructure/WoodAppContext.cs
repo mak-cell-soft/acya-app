@@ -113,9 +113,10 @@ namespace ms.webapp.api.acya.infrastructure
     public virtual DbSet<ProductionStepWorkLog> ProductionStepWorkLogs { get; set; }
     public virtual DbSet<ProductionOtherWorkEntry> ProductionOtherWorkEntries { get; set; }
 
-    // Mobile Application Releases & Builds
+    // Mobile Application Releases, Builds & Firebase App Registry
     public virtual DbSet<MobileBuild> MobileBuilds { get; set; }
     public virtual DbSet<MobileRelease> MobileReleases { get; set; }
+    public virtual DbSet<TenantFirebaseApp> TenantFirebaseApps { get; set; }
 
     // Inbound Customer Quote Requests (SOCOFEB Pilot)
     public virtual DbSet<InboundQuoteRequest> InboundQuoteRequests { get; set; }

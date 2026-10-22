@@ -24,30 +24,42 @@ namespace ms.webapp.api.acya.Services.Mobile
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider? _serviceProvider;
         private readonly ILogger<MobileTenantConfigService>? _logger;
+        private readonly ms.webapp.api.acya.core.Interfaces.IFirebaseAppManagementService? _firebaseAppService;
 
         // NOTE: Backward-compatible constructor for in-memory unit tests and simple DI scenarios.
         public MobileTenantConfigService(
             MasterDbContext masterDb,
             WoodAppContext woodAppDb,
             IConfiguration configuration)
-            : this(masterDb, woodAppDb, configuration, null, null)
+            : this(masterDb, woodAppDb, configuration, null, null, null)
         {
         }
 
-        // NOTE: Primary DI constructor. Injects IServiceProvider and ILogger to allow dynamically
-        // creating a tenant-scoped WoodAppContext with the resolved TenantContext schema.
         public MobileTenantConfigService(
             MasterDbContext masterDb,
             WoodAppContext woodAppDb,
             IConfiguration configuration,
             IServiceProvider? serviceProvider,
             ILogger<MobileTenantConfigService>? logger)
+            : this(masterDb, woodAppDb, configuration, serviceProvider, logger, null)
+        {
+        }
+
+        // NOTE: Primary DI constructor. Injects IServiceProvider, ILogger, and IFirebaseAppManagementService.
+        public MobileTenantConfigService(
+            MasterDbContext masterDb,
+            WoodAppContext woodAppDb,
+            IConfiguration configuration,
+            IServiceProvider? serviceProvider,
+            ILogger<MobileTenantConfigService>? logger,
+            ms.webapp.api.acya.core.Interfaces.IFirebaseAppManagementService? firebaseAppService)
         {
             _masterDb = masterDb;
             _woodAppDb = woodAppDb;
             _configuration = configuration;
             _serviceProvider = serviceProvider;
             _logger = logger;
+            _firebaseAppService = firebaseAppService;
         }
 
         public async Task<MobileTenantConfigDto?> GenerateConfigForTenantAsync(string tenantSlug, CancellationToken cancellationToken = default)
@@ -126,6 +138,37 @@ namespace ms.webapp.api.acya.Services.Mobile
             var baseUrlConfig = _configuration["MobileApp:BaseUrlTemplate"] ?? "https://{slug}.acya.site/api/";
             var dynamicBaseUrl = baseUrlConfig.Replace("{slug}", cleanSlug);
 
+            var canonicalPackageName = $"com.{alphanumericSlug}.woodapp";
+
+            // Fetch Base64-encoded Firebase client configuration if provisioned
+            string? googleServicesBase64 = null;
+            if (_firebaseAppService != null)
+            {
+                googleServicesBase64 = await _firebaseAppService.GetTenantFirebaseConfigBase64Async(cleanSlug, canonicalPackageName, cancellationToken);
+            }
+            else
+            {
+                var fbApp = await _masterDb.TenantFirebaseApps
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(a => a.TenantId == cleanSlug && a.Status == "Active", cancellationToken);
+                if (fbApp != null &&
+                    string.Equals(fbApp.PackageName, canonicalPackageName, StringComparison.OrdinalIgnoreCase) &&
+                    !string.IsNullOrWhiteSpace(fbApp.GoogleServicesJson))
+                {
+                    var trimmed = fbApp.GoogleServicesJson.Trim();
+                    if (FirebaseAppManagementService.ValidateGoogleServicesJson(trimmed, canonicalPackageName))
+                    {
+                        googleServicesBase64 = IsBase64String(trimmed)
+                            ? trimmed
+                            : Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(trimmed));
+                    }
+                    else
+                    {
+                        _logger?.LogWarning("Fallback Firebase configuration for tenant '{TenantSlug}' failed validation for package '{CanonicalPackage}'. Configuration rejected.", cleanSlug, canonicalPackageName);
+                    }
+                }
+            }
+
             return new MobileTenantConfigDto
             {
                 TenantId = cleanSlug,
@@ -142,8 +185,20 @@ namespace ms.webapp.api.acya.Services.Mobile
                 Language = !string.IsNullOrWhiteSpace(tenant.Language) ? tenant.Language : "fr",
                 Currency = !string.IsNullOrWhiteSpace(tenant.Currency) ? tenant.Currency : "TND",
                 HasChantierModule = hasChantier,
-                HasProductionModule = hasProduction
+                HasProductionModule = hasProduction,
+                GoogleServicesJsonBase64 = googleServicesBase64
             };
+        }
+
+        private static bool IsBase64String(string base64)
+        {
+            if (string.IsNullOrWhiteSpace(base64) || base64.Contains("{"))
+            {
+                return false;
+            }
+
+            var buffer = new Span<byte>(new byte[base64.Length]);
+            return Convert.TryFromBase64String(base64, buffer, out _);
         }
     }
 }

@@ -45,8 +45,11 @@ postgres-data/
 pgdata/
 **/pgdata/
 
-# ===== Mobile private storage / build artifacts =====
-/storage/private/mobile/
+# ===== Storage (private artifacts & secrets) =====
+storage/
+/storage/
+storage/secrets/
+/storage/secrets/
 
 # ===== Backups & Database Dumps =====
 backups/
@@ -54,5 +57,3 @@ backups/
 *.sql.gz
 *.dump
 *.bak
-
-/storage/secrets/firebase-service-account.json
