@@ -90,6 +90,7 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddSingleton<IWorkspaceRecoveryRateLimiter, ms.webapp.api.acya.Services.InMemoryWorkspaceRecoveryRateLimiter>();
       services.AddSingleton<IDeviceTestPushRateLimiter, InMemoryDeviceTestPushRateLimiter>();
       services.AddScoped<IQuoteRequestService, QuoteRequestService>();
+      services.AddScoped<ISupportTicketService, SupportTicketService>();
       services.AddScoped<IApprovalService, ApprovalService>();
       services.AddScoped<IPricingGridService, PricingGridService>();
       services.AddScoped<IImportService, ImportService>();

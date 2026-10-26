@@ -121,6 +121,9 @@ namespace ms.webapp.api.acya.infrastructure
     // Inbound Customer Quote Requests (SOCOFEB Pilot)
     public virtual DbSet<InboundQuoteRequest> InboundQuoteRequests { get; set; }
 
+    // Support & Help Desk Tickets
+    public virtual DbSet<SupportTicket> SupportTickets { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       base.OnModelCreating(modelBuilder);

@@ -1822,6 +1822,48 @@ INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20261017170000_AddDevicePushTokens', '7.0.20')
 ON CONFLICT ("MigrationId") DO NOTHING;
 
+-- Support & Help Desk Tickets
+CREATE TABLE IF NOT EXISTS tbl_support_tickets (
+    "Id" SERIAL PRIMARY KEY,
+    "TicketReference" VARCHAR(50) NOT NULL,
+    "UserId" INT NOT NULL,
+    "UserFullName" VARCHAR(150) NOT NULL,
+    "UserEmail" VARCHAR(150) NOT NULL,
+    "EnterpriseName" VARCHAR(200) NOT NULL,
+    "TenantSlug" VARCHAR(100) NOT NULL,
+    "Category" VARCHAR(100) NOT NULL,
+    "Subcategory" VARCHAR(150) NOT NULL,
+    "Priority" VARCHAR(50) NOT NULL DEFAULT 'Normale',
+    "Subject" VARCHAR(255) NOT NULL,
+    "Description" TEXT NOT NULL,
+    "CurrentRoute" VARCHAR(255),
+    "AppVersion" VARCHAR(50),
+    "ContextData" TEXT,
+    "AttachmentFileName" VARCHAR(255),
+    "AttachmentContentType" VARCHAR(100),
+    "AttachmentStoragePath" VARCHAR(500),
+    "AttachmentSizeBytes" BIGINT,
+    "IdempotencyKey" VARCHAR(100),
+    "EmailStatus" INT NOT NULL DEFAULT 0,
+    "EmailError" VARCHAR(1000),
+    "CreatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "UpdatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tbl_support_tickets_reference
+ON tbl_support_tickets ("TicketReference");
+
+CREATE INDEX IF NOT EXISTS idx_tbl_support_tickets_tenant_user
+ON tbl_support_tickets ("TenantSlug", "UserId", "CreatedAt");
+
+CREATE INDEX IF NOT EXISTS idx_tbl_support_tickets_idempotency
+ON tbl_support_tickets ("IdempotencyKey");
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20261026080000_AddSupportTickets', '7.0.20')
+ON CONFLICT ("MigrationId") DO NOTHING;
+
+
 
 
 
