@@ -41,10 +41,14 @@ export const PRODUCTION_QUERY_KEYS = {
   allMonthlyPayables: () => [...PRODUCTION_QUERY_KEYS.all, 'monthly-payables'] as const,
 };
 
-export function useProductionOrdersList(params?: { status?: string; salesSiteId?: number; search?: string }) {
+export function useProductionOrdersList(
+  params?: { status?: string; salesSiteId?: number; search?: string },
+  options?: { enabled?: boolean }
+) {
   return useQuery<ProductionOrder[]>({
     queryKey: PRODUCTION_QUERY_KEYS.orderList(params),
     queryFn: () => productionService.getAllOrders(params),
+    enabled: options?.enabled ?? true,
   });
 }
 

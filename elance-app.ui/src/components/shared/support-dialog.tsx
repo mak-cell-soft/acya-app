@@ -61,13 +61,6 @@ export function SupportDialog({ isOpen, onClose }: SupportDialogProps) {
   const pathname = usePathname();
   const { isManagingConstructions, isManagingProduction } = useTenantFeatures();
 
-  // Reusable domain selectors data
-  const { data: articles = [] } = useArticles();
-  const { data: sites = [] } = useSites();
-  const { data: persons = [] } = usePersons();
-  const { data: chantiers = [] } = useChantiersList();
-  const { data: productionOrders = [] } = useProductionOrdersList();
-
   const submitTicketMutation = useSubmitSupportTicket();
 
   // Basic Form Fields
@@ -79,6 +72,24 @@ export function SupportDialog({ isOpen, onClose }: SupportDialogProps) {
   const [priority, setPriority] = useState<SupportPriority>('Normale');
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
+
+  // Reusable domain selectors data - strictly lazy & feature-gated
+  const isChantierOrProdSelected = isOpen && category === 'Chantiers & Production';
+  const { data: chantiers = [] } = useChantiersList(undefined, {
+    enabled: isChantierOrProdSelected && isManagingConstructions,
+  });
+  const { data: productionOrders = [] } = useProductionOrdersList(undefined, {
+    enabled: isChantierOrProdSelected && isManagingProduction,
+  });
+  const { data: articles = [] } = useArticles({
+    enabled: isOpen && (category === 'Gestion des articles' || category === 'Gestion du stock'),
+  });
+  const { data: sites = [] } = useSites({
+    enabled: isOpen && category === 'Gestion du stock',
+  });
+  const { data: persons = [] } = usePersons({
+    enabled: isOpen && category === 'Ressources humaines',
+  });
 
   // Contextual Fields
   const [mobileAccessType, setMobileAccessType] = useState<'new_install' | 'additional_device'>('new_install');

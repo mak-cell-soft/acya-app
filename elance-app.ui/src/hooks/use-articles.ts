@@ -3,10 +3,11 @@ import { articleService } from '@/services/components/article.service';
 import { Article } from '@/types/article';
 import { toast } from 'sonner';
 
-export const useArticles = () => {
+export const useArticles = (options?: { enabled?: boolean }) => {
   return useQuery<Article[]>({
     queryKey: ['articles'],
     queryFn: articleService.getAll,
+    enabled: options?.enabled ?? true,
   });
 };
 

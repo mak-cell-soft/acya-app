@@ -68,10 +68,11 @@ export function useUpdateEnterprise() {
   });
 }
 
-export function useSites() {
+export function useSites(options?: { enabled?: boolean }) {
   return useQuery<Site[]>({
     queryKey: ['sites'],
     queryFn: () => salesSitesService.getAll(),
+    enabled: options?.enabled ?? true,
   });
 }
 

@@ -44,6 +44,7 @@ import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { PermissionModuleKey } from '@/types/permissions';
 import { SupportDialog } from './support-dialog';
 import { useTenantStore } from '@/store/use-tenant-store';
+import { useTenantFeatures } from '@/hooks/use-tenant-features';
 
 type NavItem = {
   name: string;
@@ -194,8 +195,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const baseNavGroups = isDepot ? depotNavGroups : saleNavGroups;
 
   // Filter out Chantiers / Production if the enterprise doesn't manage them
-  const showChantiers = user?.isManagingConstructions === true;
-  const showProduction = user?.isManagingProduction === true;
+  const { isManagingConstructions, isManagingProduction } = useTenantFeatures();
+  const showChantiers = isManagingConstructions;
+  const showProduction = isManagingProduction;
   const navGroups = baseNavGroups.map(group => ({
     ...group,
     items: group.items.filter(item => 
@@ -541,7 +543,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </button>
         </div>
       </div>
-      <SupportDialog isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />
+      {isSupportOpen && <SupportDialog isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />}
     </>
   );
 }

@@ -53,6 +53,8 @@ import {
   formatChantierClientOptionLabel,
   resolveChantierClientDisplay
 } from '@/lib/chantier-utils';
+import { useTenantFeatures } from '@/hooks/use-tenant-features';
+import { usePermissionGuard } from '@/hooks/use-permission-guard';
 
 const TABS = [
   { id: 0, label: 'Général', icon: Info },
@@ -66,6 +68,10 @@ const TABS = [
 ];
 
 export default function ChantiersPage() {
+  const { isManagingConstructions } = useTenantFeatures();
+  const { hasPermission } = usePermissionGuard();
+  const canRead = hasPermission('chantier', 'canRead');
+
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
@@ -82,8 +88,11 @@ export default function ChantiersPage() {
   const [newEndDate, setNewEndDate] = useState('');
   const [newClientId, setNewClientId] = useState<number | null>(null);
 
-  // Fetch real list from API
-  const { data: chantiers = [], isLoading: isListLoading } = useChantiersList({ search: searchTerm });
+  // Fetch real list from API only if module is enabled and user has read permission
+  const { data: chantiers = [], isLoading: isListLoading } = useChantiersList(
+    { search: searchTerm },
+    { enabled: isManagingConstructions && canRead }
+  );
   const { data: customers = [] } = useCustomers('Customer');
   const createChantier = useCreateChantier();
   const deleteChantier = useDeleteChantier();
@@ -96,8 +105,10 @@ export default function ChantiersPage() {
     return chantiers.length > 0 ? chantiers[0].id : null;
   }, [selectedId, chantiers]);
 
-  // Fetch full detail of the selected chantier
-  const { data: selectedDetail, isLoading: isDetailLoading } = useChantierDetail(effectiveId ?? undefined);
+  // Fetch full detail of the selected chantier only if module is enabled
+  const { data: selectedDetail, isLoading: isDetailLoading } = useChantierDetail(
+    isManagingConstructions && canRead ? (effectiveId ?? undefined) : undefined
+  );
   const updateChantier = useUpdateChantier(effectiveId ?? 0);
 
   // Edit chantier modal state
@@ -205,6 +216,38 @@ export default function ChantiersPage() {
       6: unresolvedAlerts > 0 ? `${unresolvedAlerts}!` : undefined,
     };
   }, [selectedDetail]);
+
+  if (!isManagingConstructions) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center mb-4 border border-slate-200">
+            <Building2 className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900">Module non activé</h2>
+          <p className="text-sm text-slate-500 max-w-md mt-1">
+            Le module Chantiers n'est pas activé pour votre entreprise. Contactez l'administrateur ACYA pour y souscrire.
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!canRead) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4 border border-amber-200">
+            <AlertTriangle className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900">Accès non autorisé</h2>
+          <p className="text-sm text-slate-500 max-w-md mt-1">
+            Vous ne disposez pas des permissions requises pour consulter les chantiers.
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>

@@ -4,10 +4,11 @@ import { appUserService } from '@/services/team/app-user.service';
 import { Person, AppUser } from '@/types/team';
 import { toast } from 'sonner';
 
-export function usePersons() {
+export function usePersons(options?: { enabled?: boolean }) {
   return useQuery<Person[]>({
     queryKey: ['persons'],
     queryFn: () => personService.getAll(),
+    enabled: options?.enabled ?? true,
   });
 }
 

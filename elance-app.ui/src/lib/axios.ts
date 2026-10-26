@@ -101,6 +101,20 @@ api.interceptors.response.use(
     // Handle 403 Forbidden
     if (error.response?.status === 403) {
       const data = error.response.data as any;
+      const message = typeof data === 'string'
+        ? data
+        : (data?.message || data?.error || '');
+
+      // Check if this 403 is because a module is not active / enabled for the tenant
+      const isModuleNotActive =
+        /non\s+activ[eé]|pas\s+activ[eé]|d[eé]sactiv[eé]|module.*activ/i.test(message) ||
+        (error.config?.url && /\/(chantier|production)\b/i.test(error.config.url));
+
+      if (isModuleNotActive) {
+        // Module not selected/enabled for tenant — do not display generic permission error toast
+        return Promise.reject(error);
+      }
+
       if (data && (data.error === "your company is disabled contact administrator" || data.status === "Suspended")) {
         toast.error("your company is disabled contact administrator");
       } else {

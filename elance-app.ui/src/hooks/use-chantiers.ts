@@ -42,10 +42,14 @@ export const CHANTIER_QUERY_KEYS = {
     [...CHANTIER_QUERY_KEYS.caisse(id), 'transactions', params] as const,
 };
 
-export function useChantiersList(params?: { status?: ChantierStatus; healthFlag?: ChantierFlag; search?: string }) {
+export function useChantiersList(
+  params?: { status?: ChantierStatus; healthFlag?: ChantierFlag; search?: string },
+  options?: { enabled?: boolean }
+) {
   return useQuery<ChantierListItem[]>({
     queryKey: CHANTIER_QUERY_KEYS.list(params),
     queryFn: () => chantierService.getAll(params),
+    enabled: options?.enabled ?? true,
   });
 }
 

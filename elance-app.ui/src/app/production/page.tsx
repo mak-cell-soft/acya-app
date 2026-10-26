@@ -33,6 +33,7 @@ import { ProductionStatusBadge } from './components/ProductionStatusBadge';
 
 import { useProductionOrdersList, useProductionOrderDetail } from '@/hooks/use-production';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
+import { useTenantFeatures } from '@/hooks/use-tenant-features';
 import { ProductionStatus } from '@/types/production';
 
 const TABS = [
@@ -52,6 +53,7 @@ const STATUS_FILTERS: { label: string; value?: ProductionStatus }[] = [
 ];
 
 export default function ProductionPage() {
+  const { isManagingProduction } = useTenantFeatures();
   const { hasPermission } = usePermissionGuard();
   const canRead = hasPermission('production', 'canRead');
   const canAdd = hasPermission('production', 'canAdd');
@@ -63,11 +65,14 @@ export default function ProductionPage() {
   const [statusFilter, setStatusFilter] = useState<ProductionStatus | undefined>(undefined);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  // Fetch production orders
-  const { data: orders = [], isLoading: isListLoading } = useProductionOrdersList({
-    status: statusFilter,
-    search: searchTerm,
-  });
+  // Fetch production orders only if module is enabled and user has read permission
+  const { data: orders = [], isLoading: isListLoading } = useProductionOrdersList(
+    {
+      status: statusFilter,
+      search: searchTerm,
+    },
+    { enabled: isManagingProduction && canRead }
+  );
 
   // Auto-select first order if none selected
   const effectiveId = useMemo(() => {
@@ -77,12 +82,29 @@ export default function ProductionPage() {
     return orders.length > 0 ? orders[0].id : null;
   }, [selectedId, orders]);
 
-  // Fetch detail of selected order
+  // Fetch detail of selected order only if module is enabled and user has read permission
   const { data: selectedDetail, isLoading: isDetailLoading } = useProductionOrderDetail(
-    effectiveId ?? undefined
+    isManagingProduction && canRead ? (effectiveId ?? undefined) : undefined
   );
 
-  // Module permission guard
+  // Module enablement guard
+  if (!isManagingProduction) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center mb-4 border border-slate-200">
+            <Factory className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900">Module non activé</h2>
+          <p className="text-sm text-slate-500 max-w-md mt-1">
+            Le module Production n'est pas activé pour votre entreprise. Contactez l'administrateur ACYA pour y souscrire.
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // User permission guard
   if (!canRead) {
     return (
       <DashboardLayout>
@@ -92,7 +114,7 @@ export default function ProductionPage() {
           </div>
           <h2 className="text-xl font-bold text-slate-900">Accès non autorisé</h2>
           <p className="text-sm text-slate-500 max-w-md mt-1">
-            Le module Production n'est pas activé pour votre entreprise ou vous ne disposez pas des permissions requises pour y accéder.
+            Vous ne disposez pas des permissions requises pour accéder au module Production.
           </p>
         </div>
       </DashboardLayout>
