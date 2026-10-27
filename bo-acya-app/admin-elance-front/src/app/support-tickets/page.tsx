@@ -26,7 +26,11 @@ import {
   Copy,
   Check,
   Flame,
-  ShieldAlert
+  ShieldAlert,
+  Sparkles,
+  Hourglass,
+  CheckCheck,
+  Activity
 } from "lucide-react";
 import { apiFetch } from "@/lib/apiClient";
 
@@ -41,6 +45,7 @@ interface SupportTicketItem {
   category: string;
   subcategory: string;
   priority: string;
+  status: string;
   subject: string;
   hasAttachment: boolean;
   attachmentFileName: string | null;
@@ -80,6 +85,7 @@ export default function SupportTicketsPage() {
   const [searchInput, setSearchInput] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTenant, setSelectedTenant] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedPriority, setSelectedPriority] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [createdFrom, setCreatedFrom] = useState("");
@@ -92,6 +98,9 @@ export default function SupportTicketsPage() {
   const [selectedTicket, setSelectedTicket] = useState<SupportTicketDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [copiedRef, setCopiedRef] = useState<string | null>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [statusUpdatingValue, setStatusUpdatingValue] = useState<string>("");
+  const [statusFeedback, setStatusFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   // Fetch Enterprise List for tenant filter
   useEffect(() => {
@@ -120,6 +129,7 @@ export default function SupportTicketsPage() {
 
       if (searchTerm.trim()) params.set("search", searchTerm.trim());
       if (selectedTenant) params.set("tenantSlug", selectedTenant);
+      if (selectedStatus) params.set("status", selectedStatus);
       if (selectedPriority) params.set("priority", selectedPriority);
       if (selectedCategory) params.set("category", selectedCategory);
       if (createdFrom) params.set("createdFrom", new Date(createdFrom).toISOString());
@@ -149,7 +159,7 @@ export default function SupportTicketsPage() {
 
   useEffect(() => {
     fetchTickets();
-  }, [page, searchTerm, selectedTenant, selectedPriority, selectedCategory, createdFrom, createdTo]);
+  }, [page, searchTerm, selectedTenant, selectedStatus, selectedPriority, selectedCategory, createdFrom, createdTo]);
 
   // Handle Search Submit
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -163,6 +173,7 @@ export default function SupportTicketsPage() {
     setSearchInput("");
     setSearchTerm("");
     setSelectedTenant("");
+    setSelectedStatus("");
     setSelectedPriority("");
     setSelectedCategory("");
     setCreatedFrom("");
@@ -173,6 +184,7 @@ export default function SupportTicketsPage() {
   // View Ticket Details
   const handleViewDetails = async (tenantSlug: string, ticketId: number) => {
     setLoadingDetail(true);
+    setStatusFeedback(null);
     try {
       const res = await apiFetch(`admin/support-tickets/${encodeURIComponent(tenantSlug)}/${ticketId}`);
       if (!res.ok) {
@@ -181,10 +193,67 @@ export default function SupportTicketsPage() {
       }
       const data = await res.json();
       setSelectedTicket(data);
+      setStatusUpdatingValue(data.status || "New");
     } catch (err: any) {
       alert(err.message || "Erreur lors du chargement des détails.");
     } finally {
       setLoadingDetail(false);
+    }
+  };
+
+  // Update Ticket Status via PATCH endpoint
+  const handleUpdateStatus = async (tenantSlug: string, ticketId: number, newStatus: string) => {
+    if (!newStatus || isUpdatingStatus) return;
+    setIsUpdatingStatus(true);
+    setStatusFeedback(null);
+    try {
+      const res = await apiFetch(`admin/support-tickets/${encodeURIComponent(tenantSlug)}/${ticketId}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "Impossible de mettre à jour le statut du ticket.");
+      }
+
+      const data = await res.json();
+      const updatedStatus = data.status || newStatus;
+      const updatedAt = data.updatedAt || new Date().toISOString();
+
+      // Update in currently open ticket detail drawer
+      setSelectedTicket((prev) => prev ? {
+        ...prev,
+        status: updatedStatus,
+        updatedAt: updatedAt,
+      } : null);
+
+      // Synchronize in tickets list
+      setTickets((prevList) =>
+        prevList.map((t) =>
+          t.tenantSlug === tenantSlug && t.id === ticketId
+            ? { ...t, status: updatedStatus, updatedAt: updatedAt }
+            : t
+        )
+      );
+
+      setStatusUpdatingValue(updatedStatus);
+      setStatusFeedback({
+        type: "success",
+        message: `Statut mis à jour avec succès : ${getStatusLabel(updatedStatus)}`,
+      });
+
+      // Auto dismiss success feedback after 4s
+      setTimeout(() => {
+        setStatusFeedback((curr) => (curr?.type === "success" ? null : curr));
+      }, 4000);
+    } catch (err: any) {
+      setStatusFeedback({
+        type: "error",
+        message: err.message || "Une erreur est survenue lors de la mise à jour du statut.",
+      });
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -218,6 +287,80 @@ export default function SupportTicketsPage() {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  // Status Labels and Badges
+  const getStatusLabel = (status: string) => {
+    switch ((status || "").toLowerCase()) {
+      case "new":
+      case "nouveau":
+        return "Nouveau";
+      case "inprogress":
+      case "en cours":
+        return "En cours";
+      case "waitingforcustomer":
+      case "attente client":
+        return "En attente client";
+      case "resolved":
+      case "résolu":
+      case "resolu":
+        return "Résolu";
+      case "closed":
+      case "fermé":
+      case "ferme":
+        return "Fermé";
+      default:
+        return status || "Nouveau";
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const s = (status || "").toLowerCase();
+    switch (s) {
+      case "new":
+      case "nouveau":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20 shadow-[0_0_10px_rgba(56,189,248,0.1)]">
+            <Sparkles className="w-3.5 h-3.5 text-sky-400" /> Nouveau
+          </span>
+        );
+      case "inprogress":
+      case "en cours":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)]">
+            <Clock className="w-3.5 h-3.5 text-amber-400" /> En cours
+          </span>
+        );
+      case "waitingforcustomer":
+      case "attente client":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.1)]">
+            <Hourglass className="w-3.5 h-3.5 text-purple-400" /> Attente client
+          </span>
+        );
+      case "resolved":
+      case "résolu":
+      case "resolu":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Résolu
+          </span>
+        );
+      case "closed":
+      case "fermé":
+      case "ferme":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-300 border border-slate-500/20">
+            <CheckCheck className="w-3.5 h-3.5 text-slate-400" /> Fermé
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-secondary text-muted-foreground border border-border">
+            {status || "Non défini"}
+          </span>
+        );
+    }
   };
 
   // Priority Badge Styling
@@ -375,7 +518,7 @@ export default function SupportTicketsPage() {
         </form>
 
         {/* Filter Dropdowns Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 pt-2 border-t border-border/50">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-2 border-t border-border/50">
           {/* Tenant Select */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Locataire (Tenant)</label>
@@ -393,6 +536,26 @@ export default function SupportTicketsPage() {
                   {ent.name} ({ent.slug})
                 </option>
               ))}
+            </select>
+          </div>
+
+          {/* Status Select */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground">Statut</label>
+            <select
+              value={selectedStatus}
+              onChange={(e) => {
+                setSelectedStatus(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-3 py-1.5 bg-secondary/50 border border-border rounded-lg text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+              <option value="">Tous les statuts</option>
+              <option value="New">Nouveau (New)</option>
+              <option value="InProgress">En cours (InProgress)</option>
+              <option value="WaitingForCustomer">Attente client (WaitingForCustomer)</option>
+              <option value="Resolved">Résolu (Resolved)</option>
+              <option value="Closed">Fermé (Closed)</option>
             </select>
           </div>
 
@@ -498,6 +661,7 @@ export default function SupportTicketsPage() {
                 <th className="py-3 px-4 font-semibold">Référence</th>
                 <th className="py-3 px-4 font-semibold">Locataire</th>
                 <th className="py-3 px-4 font-semibold">Sujet & Catégorie</th>
+                <th className="py-3 px-4 font-semibold">Statut</th>
                 <th className="py-3 px-4 font-semibold">Priorité</th>
                 <th className="py-3 px-4 font-semibold">Demandeur</th>
                 <th className="py-3 px-4 font-semibold">Date</th>
@@ -508,14 +672,14 @@ export default function SupportTicketsPage() {
             <tbody className="divide-y divide-border/60">
               {loading && tickets.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-16 text-center text-muted-foreground">
+                  <td colSpan={9} className="py-16 text-center text-muted-foreground">
                     <Loader2 className="w-7 h-7 animate-spin mx-auto text-primary mb-3" />
                     Chargement des tickets de support...
                   </td>
                 </tr>
               ) : tickets.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-16 text-center text-muted-foreground">
+                  <td colSpan={9} className="py-16 text-center text-muted-foreground">
                     <Ticket className="w-8 h-8 mx-auto text-muted-foreground/40 mb-2" />
                     <p className="font-medium text-foreground">Aucun ticket trouvé</p>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -565,6 +729,11 @@ export default function SupportTicketsPage() {
                           {t.category} {t.subcategory ? `• ${t.subcategory}` : ""}
                         </span>
                       </div>
+                    </td>
+
+                    {/* Status */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      {getStatusBadge(t.status || "New")}
                     </td>
 
                     {/* Priority */}
@@ -666,6 +835,7 @@ export default function SupportTicketsPage() {
                       )}
                     </button>
                   </span>
+                  {getStatusBadge(selectedTicket.status || "New")}
                   {getPriorityBadge(selectedTicket.priority)}
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-secondary text-foreground border border-border">
                     {selectedTicket.category}
@@ -687,6 +857,70 @@ export default function SupportTicketsPage() {
 
             {/* Drawer Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Status Management Section */}
+              <div className="bg-secondary/30 border border-border rounded-xl p-4.5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-mono uppercase font-semibold text-muted-foreground">
+                    <Activity className="w-4 h-4 text-primary" />
+                    Statut du ticket
+                  </div>
+                  {getStatusBadge(selectedTicket.status || "New")}
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1">
+                  <div className="relative flex-1">
+                    <select
+                      value={statusUpdatingValue || selectedTicket.status || "New"}
+                      onChange={(e) => setStatusUpdatingValue(e.target.value)}
+                      disabled={isUpdatingStatus}
+                      className="w-full px-3.5 py-2 bg-secondary/70 border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer disabled:opacity-50"
+                    >
+                      <option value="New">Nouveau (New)</option>
+                      <option value="InProgress">En cours (InProgress)</option>
+                      <option value="WaitingForCustomer">En attente client (WaitingForCustomer)</option>
+                      <option value="Resolved">Résolu (Resolved)</option>
+                      <option value="Closed">Fermé (Closed)</option>
+                    </select>
+                  </div>
+
+                  <button
+                    onClick={() => handleUpdateStatus(selectedTicket.tenantSlug, selectedTicket.id, statusUpdatingValue || selectedTicket.status || "New")}
+                    disabled={isUpdatingStatus || !statusUpdatingValue || statusUpdatingValue === selectedTicket.status}
+                    className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-medium rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 shrink-0 shadow-sm"
+                  >
+                    {isUpdatingStatus ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Mise à jour...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Mettre à jour
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Status Feedback Message */}
+                {statusFeedback && (
+                  <div
+                    className={`p-2.5 rounded-lg text-xs font-medium flex items-center gap-2 animate-in fade-in duration-200 ${
+                      statusFeedback.type === "success"
+                        ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                        : "bg-rose-500/10 border border-rose-500/20 text-rose-400"
+                    }`}
+                  >
+                    {statusFeedback.type === "success" ? (
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                    ) : (
+                      <XCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                    )}
+                    <span>{statusFeedback.message}</span>
+                  </div>
+                )}
+              </div>
+
               {/* Tenant & Submitter Metadata */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-secondary/30 border border-border rounded-xl p-4 space-y-2">
