@@ -287,15 +287,43 @@ namespace ms.webapp.api.acya.Services
             CancellationToken cancellationToken)
         {
             var supportRecipient = _configuration["EmailSettings:SupportEmail"] ?? "support@acya.site";
-            var senderEmail = !string.IsNullOrWhiteSpace(_smtpSettings.SenderEmail)
-                ? _smtpSettings.SenderEmail
-                : "ticket@acya.site";
+            var senderEmail = _configuration["EmailSettings:SenderEmail"] ?? "ticket@acya.site";
 
             var subject = $"[ÉLANCÉ][{ticket.TenantSlug.ToUpper()}][{ticket.Category.ToUpper()}][{ticket.Priority.ToUpper()}] Ticket {ticket.TicketReference} — {ticket.Subject}";
             var htmlBody = BuildSupportEmailHtml(ticket);
 
             try
             {
+                if (_n8nEmailService != null)
+                {
+                    var dispatchResult = await _n8nEmailService.SendEmailAsync(
+                        toEmail: supportRecipient,
+                        subject: subject,
+                        htmlBody: htmlBody,
+                        template: "raw",
+                        sender: senderEmail,
+                        replyTo: string.IsNullOrWhiteSpace(ticket.UserEmail) ? "support@acya.site" : ticket.UserEmail,
+                        cancellationToken: cancellationToken);
+
+                    if (dispatchResult.Status == EmailDispatchStatus.Accepted)
+                    {
+                        ticket.EmailStatus = TicketEmailStatus.Sent;
+                        ticket.EmailError = null;
+                        ticket.UpdatedAt = DateTime.UtcNow;
+                        await _context.SaveChangesAsync(cancellationToken);
+
+                        _logger.LogInformation("Email notification for ticket {Reference} delivered to {Recipient} via n8n (MessageId: {MessageId})",
+                            ticket.TicketReference, supportRecipient, dispatchResult.MessageId ?? "n/a");
+                        return;
+                    }
+                    else
+                    {
+                        _logger.LogWarning("n8n Email Service rejected ticket notification for {Reference}: {Error}. Attempting fallback...",
+                            ticket.TicketReference, dispatchResult.ErrorMessage);
+                    }
+                }
+
+                // Fallback to direct SMTP if n8n is not registered or rejected
                 if (attachmentBytes != null && attachmentBytes.Length > 0 && !string.IsNullOrWhiteSpace(safeFileName))
                 {
                     var originalName = ticket.AttachmentFileName ?? safeFileName;
@@ -318,7 +346,7 @@ namespace ms.webapp.api.acya.Services
                 ticket.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("Email notification for ticket {Reference} delivered to {Recipient}",
+                _logger.LogInformation("Email notification for ticket {Reference} delivered to {Recipient} via SMTP",
                     ticket.TicketReference, supportRecipient);
             }
             catch (Exception ex)

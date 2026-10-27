@@ -451,5 +451,122 @@ namespace ms.webapp.api.acya.tests
             // Assert
             Assert.IsType<UnauthorizedObjectResult>(result);
         }
+
+        [Fact]
+        public async Task CreateTicket_WithN8nEmailService_DispatchesViaN8nWithCorrectSenderAndRecipient()
+        {
+            // Arrange
+            using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+            var emailMock = new Mock<IEmailService>();
+            var n8nMock = new Mock<IN8nEmailService>();
+            n8nMock.Setup(n => n.SendEmailAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<object>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+                .ReturnsAsync(EmailDispatchResult.Success("msg-n8n-12345"));
+
+            var configMock = CreateMockConfiguration();
+            var loggerMock = new Mock<ILogger<SupportTicketService>>();
+            var smtpOptions = Options.Create(new SmtpSettings());
+
+            var service = new SupportTicketService(
+                context,
+                emailMock.Object,
+                configMock.Object,
+                smtpOptions,
+                loggerMock.Object,
+                n8nMock.Object);
+
+            var dto = new CreateSupportTicketDto
+            {
+                Category = "Gestion du stock",
+                Subcategory = "Quantité de stock incorrecte",
+                Priority = "Élevée",
+                Subject = "Écart de stock Chêne",
+                Description = "Stock théorique 15m3 mais physique 12m3"
+            };
+
+            // Act
+            var result = await service.CreateTicketAsync(dto, 42, "Jean Dupont", "jean@socobois.tn", "SOCOBOIS SARL", "socobois");
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.True(result.EmailDispatched);
+            Assert.Equal("Sent", result.EmailStatus);
+
+            var saved = await context.SupportTickets.FirstOrDefaultAsync(t => t.TicketReference == result.TicketReference);
+            Assert.NotNull(saved);
+            Assert.Equal(TicketEmailStatus.Sent, saved.EmailStatus);
+            Assert.Null(saved.EmailError);
+
+            // Verified that n8n was invoked with intended sender ticket@acya.site and recipient support@acya.site
+            n8nMock.Verify(n => n.SendEmailAsync(
+                "support@acya.site",
+                It.Is<string>(s => s.Contains("[ÉLANCÉ][SOCOBOIS][GESTION DU STOCK][ÉLEVÉE]") && s.Contains(result.TicketReference)),
+                It.Is<string>(b => b.Contains("Jean Dupont") && b.Contains(result.TicketReference)),
+                "raw",
+                null,
+                "ticket@acya.site",
+                "jean@socobois.tn",
+                It.IsAny<CancellationToken>()), Times.Once);
+
+            // Direct SMTP was NOT called because n8n handled delivery
+            emailMock.Verify(e => e.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task CreateTicket_WithN8nEmailServiceRejection_FallsBackToDirectSmtp()
+        {
+            // Arrange
+            using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+            var emailMock = new Mock<IEmailService>();
+            var n8nMock = new Mock<IN8nEmailService>();
+            n8nMock.Setup(n => n.SendEmailAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<object>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+                .ReturnsAsync(EmailDispatchResult.Rejected("Network timeout to n8n"));
+
+            var configMock = CreateMockConfiguration();
+            var loggerMock = new Mock<ILogger<SupportTicketService>>();
+            var smtpOptions = Options.Create(new SmtpSettings());
+
+            var service = new SupportTicketService(
+                context,
+                emailMock.Object,
+                configMock.Object,
+                smtpOptions,
+                loggerMock.Object,
+                n8nMock.Object);
+
+            var dto = new CreateSupportTicketDto
+            {
+                Category = "Gestion du stock",
+                Subcategory = "Quantité de stock incorrecte",
+                Priority = "Normale",
+                Subject = "Problème inventaire",
+                Description = "Erreur de comptage"
+            };
+
+            // Act
+            var result = await service.CreateTicketAsync(dto, 42, "Jean Dupont", "jean@socobois.tn", "SOCOBOIS SARL", "socobois");
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.True(result.EmailDispatched);
+
+            // Direct SMTP fallback WAS called after n8n rejection
+            emailMock.Verify(e => e.SendEmailAsync("support@acya.site", It.IsAny<string>(), It.IsAny<string>(), true), Times.Once);
+        }
     }
 }
