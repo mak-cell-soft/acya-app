@@ -399,5 +399,184 @@ namespace ms.admin.api.acya.tests
         }
 
         #endregion
+
+        #region Status Management Tests
+
+        [Theory]
+        [InlineData("New", true)]
+        [InlineData("InProgress", true)]
+        [InlineData("WaitingForCustomer", true)]
+        [InlineData("Resolved", true)]
+        [InlineData("Closed", true)]
+        [InlineData("new", true)]
+        [InlineData("inprogress", true)]
+        [InlineData("waitingforcustomer", true)]
+        [InlineData("resolved", true)]
+        [InlineData("closed", true)]
+        [InlineData("Open", false)]
+        [InlineData("Pending", false)]
+        [InlineData("In_Progress", false)]
+        [InlineData("Unknown", false)]
+        [InlineData("", false)]
+        [InlineData(null, false)]
+        public void StatusModel_ValidatesSupportedStatuses(string? status, bool expectedValid)
+        {
+            var isValid = SupportTicketStatuses.IsValid(status);
+            Assert.Equal(expectedValid, isValid);
+
+            if (expectedValid)
+            {
+                var normalized = SupportTicketStatuses.Normalize(status!);
+                Assert.Contains(normalized, SupportTicketStatuses.All);
+            }
+        }
+
+        [Fact]
+        public void Controller_HasUpdateTicketStatusPatchEndpoint()
+        {
+            var type = typeof(SupportTicketsController);
+            var patchMethod = type.GetMethod("UpdateTicketStatus");
+            Assert.NotNull(patchMethod);
+
+            var patchAttr = patchMethod.GetCustomAttribute<HttpPatchAttribute>();
+            Assert.NotNull(patchAttr);
+            Assert.Equal("{tenantSlug}/{ticketId:int}/status", patchAttr.Template);
+
+            // Inherits controller-level [Authorize(Roles = "SUPER_ADMIN")]
+            var authAttr = type.GetCustomAttribute<AuthorizeAttribute>();
+            Assert.NotNull(authAttr);
+            Assert.Equal("SUPER_ADMIN", authAttr.Roles);
+        }
+
+        [Fact]
+        public async Task UpdateTicketStatus_WithValidStatus_ReturnsOkResult()
+        {
+            var mockService = new Mock<ISupportTicketAdminService>();
+            var expectedResponse = new UpdateTicketStatusResponseDto
+            {
+                TicketId = 15,
+                TicketReference = "EL-2026-00015",
+                TenantSlug = "socobois",
+                Status = SupportTicketStatuses.InProgress,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            mockService
+                .Setup(s => s.UpdateTicketStatusAsync("socobois", 15, "InProgress", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedResponse);
+
+            var controller = new SupportTicketsController(mockService.Object, NullLogger<SupportTicketsController>.Instance);
+            var result = await controller.UpdateTicketStatus("socobois", 15, new UpdateTicketStatusRequestDto { Status = "InProgress" });
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var response = Assert.IsType<UpdateTicketStatusResponseDto>(okResult.Value);
+            Assert.Equal(15, response.TicketId);
+            Assert.Equal("EL-2026-00015", response.TicketReference);
+            Assert.Equal("InProgress", response.Status);
+        }
+
+        [Theory]
+        [InlineData("InvalidStatus")]
+        [InlineData("Pending")]
+        [InlineData("Rejected")]
+        [InlineData("Deleted")]
+        public async Task UpdateTicketStatus_WithInvalidStatus_ReturnsBadRequest(string invalidStatus)
+        {
+            var mockService = new Mock<ISupportTicketAdminService>();
+            var controller = new SupportTicketsController(mockService.Object, NullLogger<SupportTicketsController>.Instance);
+
+            var result = await controller.UpdateTicketStatus("socobois", 1, new UpdateTicketStatusRequestDto { Status = invalidStatus });
+
+            var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.NotNull(badRequest.Value);
+        }
+
+        [Fact]
+        public async Task UpdateTicketStatus_WithEmptyStatus_ReturnsBadRequest()
+        {
+            var mockService = new Mock<ISupportTicketAdminService>();
+            var controller = new SupportTicketsController(mockService.Object, NullLogger<SupportTicketsController>.Instance);
+
+            var result = await controller.UpdateTicketStatus("socobois", 1, new UpdateTicketStatusRequestDto { Status = "  " });
+
+            var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.NotNull(badRequest.Value);
+        }
+
+        [Theory]
+        [InlineData("", 1)]
+        [InlineData("  ", 1)]
+        [InlineData("socobois", 0)]
+        [InlineData("socobois", -1)]
+        public async Task UpdateTicketStatus_WithInvalidParameters_ReturnsBadRequest(string tenantSlug, int ticketId)
+        {
+            var mockService = new Mock<ISupportTicketAdminService>();
+            var controller = new SupportTicketsController(mockService.Object, NullLogger<SupportTicketsController>.Instance);
+
+            var result = await controller.UpdateTicketStatus(tenantSlug, ticketId, new UpdateTicketStatusRequestDto { Status = "InProgress" });
+
+            var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.NotNull(badRequest.Value);
+        }
+
+        [Fact]
+        public async Task UpdateTicketStatus_TicketNotFound_ReturnsNotFound()
+        {
+            var mockService = new Mock<ISupportTicketAdminService>();
+            mockService
+                .Setup(s => s.UpdateTicketStatusAsync("socobois", 999, "Resolved", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((UpdateTicketStatusResponseDto?)null);
+
+            var controller = new SupportTicketsController(mockService.Object, NullLogger<SupportTicketsController>.Instance);
+            var result = await controller.UpdateTicketStatus("socobois", 999, new UpdateTicketStatusRequestDto { Status = "Resolved" });
+
+            var notFound = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.NotNull(notFound.Value);
+        }
+
+        [Fact]
+        public async Task Service_UpdateTicketStatus_ThrowsArgumentException_OnInvalidStatus()
+        {
+            using var context = CreateInMemoryDbContext();
+            var config = new ConfigurationBuilder().Build();
+            var service = new SupportTicketAdminService(context, config, NullLogger<SupportTicketAdminService>.Instance);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.UpdateTicketStatusAsync("socobois", 1, "NonExistentStatus"));
+        }
+
+        [Fact]
+        public async Task Service_UpdateTicketStatus_ReturnsNull_WhenTenantNotFound()
+        {
+            using var context = CreateInMemoryDbContext();
+            var config = new ConfigurationBuilder().Build();
+            var service = new SupportTicketAdminService(context, config, NullLogger<SupportTicketAdminService>.Instance);
+
+            var result = await service.UpdateTicketStatusAsync("unknown_tenant", 1, "InProgress");
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task Service_UpdateTicketStatus_ThrowsInvalidOperationException_OnInvalidSchemaIdentifier()
+        {
+            using var context = CreateInMemoryDbContext();
+            context.Enterprises.Add(new MasterEnterprise
+            {
+                Id = 88,
+                Slug = "bad-schema-tenant",
+                Name = "Bad Schema Corp",
+                SchemaName = "malicious_schema;--",
+                IsActive = true
+            });
+            await context.SaveChangesAsync();
+
+            var config = new ConfigurationBuilder().Build();
+            var service = new SupportTicketAdminService(context, config, NullLogger<SupportTicketAdminService>.Instance);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                service.UpdateTicketStatusAsync("bad-schema-tenant", 1, "InProgress"));
+        }
+
+        #endregion
     }
 }

@@ -33,6 +33,7 @@ namespace ms.admin.api.acya.Controllers
             [FromQuery] long? tenantId = null,
             [FromQuery] string? priority = null,
             [FromQuery] string? category = null,
+            [FromQuery] string? status = null,
             [FromQuery] DateTime? createdFrom = null,
             [FromQuery] DateTime? createdTo = null,
             [FromQuery] string? search = null,
@@ -46,6 +47,7 @@ namespace ms.admin.api.acya.Controllers
                 TenantId = tenantId,
                 Priority = priority,
                 Category = category,
+                Status = status,
                 CreatedFrom = createdFrom,
                 CreatedTo = createdTo,
                 Search = search
@@ -95,6 +97,57 @@ namespace ms.admin.api.acya.Controllers
                 _logger.LogError(ex, "Error retrieving support ticket detail for {Slug}/{TicketId}",
                     tenantSlug, ticketId);
                 return StatusCode(500, new { message = "An error occurred while retrieving ticket details." });
+            }
+        }
+
+        [HttpPatch("{tenantSlug}/{ticketId:int}/status")]
+        public async Task<IActionResult> UpdateTicketStatus(
+            string tenantSlug,
+            int ticketId,
+            [FromBody] UpdateTicketStatusRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(tenantSlug) || ticketId <= 0)
+            {
+                return BadRequest(new { message = "Invalid tenant slug or ticket ID." });
+            }
+
+            if (request == null || string.IsNullOrWhiteSpace(request.Status))
+            {
+                return BadRequest(new { message = "Status is required." });
+            }
+
+            if (!SupportTicketStatuses.IsValid(request.Status))
+            {
+                return BadRequest(new
+                {
+                    message = $"Invalid status '{request.Status}'. Supported statuses are: {string.Join(", ", SupportTicketStatuses.All)}."
+                });
+            }
+
+            try
+            {
+                var result = await _ticketService.UpdateTicketStatusAsync(tenantSlug, ticketId, request.Status, cancellationToken);
+                if (result == null)
+                {
+                    return NotFound(new { message = $"Support ticket {ticketId} not found in tenant '{tenantSlug}'." });
+                }
+
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Invalid tenant configuration for status update {Slug}/{TicketId}", tenantSlug, ticketId);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating status for support ticket {Slug}/{TicketId}", tenantSlug, ticketId);
+                return StatusCode(500, new { message = "An error occurred while updating ticket status." });
             }
         }
     }

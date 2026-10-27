@@ -14,5 +14,11 @@ namespace ms.admin.api.acya.core.Interfaces
             string tenantSlug,
             int ticketId,
             CancellationToken cancellationToken = default);
+
+        Task<UpdateTicketStatusResponseDto?> UpdateTicketStatusAsync(
+            string tenantSlug,
+            int ticketId,
+            string newStatus,
+            CancellationToken cancellationToken = default);
     }
 }

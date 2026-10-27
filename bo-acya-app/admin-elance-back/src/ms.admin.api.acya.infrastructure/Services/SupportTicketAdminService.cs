@@ -139,7 +139,7 @@ namespace ms.admin.api.acya.infrastructure.Services
                 var quotedSchema = SchemaSanitizer.QuoteIdentifier(validTenants[i].SchemaName);
                 unionBuilder.Append($@"
                     SELECT ""Id"", ""TicketReference"", ""TenantSlug"", ""EnterpriseName"", ""UserId"", ""UserFullName"", ""UserEmail"",
-                           ""Category"", ""Subcategory"", ""Priority"", ""Subject"", ""AttachmentFileName"", ""AttachmentSizeBytes"",
+                           ""Category"", ""Subcategory"", ""Priority"", ""Status"", ""Subject"", ""AttachmentFileName"", ""AttachmentSizeBytes"",
                            ""EmailStatus"", ""CreatedAt"", ""UpdatedAt""
                     FROM {quotedSchema}.tbl_support_tickets");
             }
@@ -149,6 +149,7 @@ namespace ms.admin.api.acya.infrastructure.Services
             const string whereClause = @"
                 WHERE (@priority IS NULL OR LOWER(""Priority"") = LOWER(@priority))
                   AND (@category IS NULL OR LOWER(""Category"") = LOWER(@category))
+                  AND (@status IS NULL OR LOWER(""Status"") = LOWER(@status))
                   AND (@createdFrom IS NULL OR ""CreatedAt"" >= @createdFrom)
                   AND (@createdTo IS NULL OR ""CreatedAt"" <= @createdTo)
                   AND (@searchPattern IS NULL OR (
@@ -192,7 +193,7 @@ namespace ms.admin.api.acya.infrastructure.Services
                     {baseUnionSql}
                 )
                 SELECT ""Id"", ""TicketReference"", ""TenantSlug"", ""EnterpriseName"", ""UserId"", ""UserFullName"", ""UserEmail"",
-                       ""Category"", ""Subcategory"", ""Priority"", ""Subject"", ""AttachmentFileName"", ""AttachmentSizeBytes"",
+                       ""Category"", ""Subcategory"", ""Priority"", ""Status"", ""Subject"", ""AttachmentFileName"", ""AttachmentSizeBytes"",
                        ""EmailStatus"", ""CreatedAt"", ""UpdatedAt""
                 FROM AllTickets
                 {whereClause}
@@ -210,8 +211,8 @@ namespace ms.admin.api.acya.infrastructure.Services
                 while (await reader.ReadAsync(cancellationToken))
                 {
                     var tenantSlug = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
-                    var attachFileName = reader.IsDBNull(11) ? null : reader.GetString(11);
-                    var emailStatus = reader.IsDBNull(13) ? 0 : reader.GetInt32(13);
+                    var attachFileName = reader.IsDBNull(12) ? null : reader.GetString(12);
+                    var emailStatus = reader.IsDBNull(14) ? 0 : reader.GetInt32(14);
 
                     tenantNameBySlug.TryGetValue(tenantSlug, out var tenantDisplayName);
 
@@ -229,14 +230,15 @@ namespace ms.admin.api.acya.infrastructure.Services
                         Category = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
                         Subcategory = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
                         Priority = reader.IsDBNull(9) ? "Normale" : reader.GetString(9),
-                        Subject = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
+                        Status = reader.IsDBNull(10) ? SupportTicketStatuses.New : reader.GetString(10),
+                        Subject = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
                         HasAttachment = !string.IsNullOrWhiteSpace(attachFileName),
                         AttachmentFileName = attachFileName,
-                        AttachmentSizeBytes = reader.IsDBNull(12) ? null : reader.GetInt64(12),
+                        AttachmentSizeBytes = reader.IsDBNull(13) ? null : reader.GetInt64(13),
                         EmailStatus = emailStatus,
                         EmailStatusText = MapEmailStatus(emailStatus),
-                        CreatedAt = reader.GetDateTime(14),
-                        UpdatedAt = reader.GetDateTime(15)
+                        CreatedAt = reader.GetDateTime(15),
+                        UpdatedAt = reader.GetDateTime(16)
                     });
                 }
             }
@@ -299,7 +301,7 @@ namespace ms.admin.api.acya.infrastructure.Services
             var quotedSchema = SchemaSanitizer.QuoteIdentifier(enterprise.SchemaName);
             var sql = $@"
                 SELECT ""Id"", ""TicketReference"", ""TenantSlug"", ""EnterpriseName"", ""UserId"", ""UserFullName"", ""UserEmail"",
-                       ""Category"", ""Subcategory"", ""Priority"", ""Subject"", ""Description"", ""CurrentRoute"", ""AppVersion"",
+                       ""Category"", ""Subcategory"", ""Priority"", ""Status"", ""Subject"", ""Description"", ""CurrentRoute"", ""AppVersion"",
                        ""ContextData"", ""AttachmentFileName"", ""AttachmentContentType"", ""AttachmentSizeBytes"",
                        ""EmailStatus"", ""EmailError"", ""CreatedAt"", ""UpdatedAt""
                 FROM {quotedSchema}.tbl_support_tickets
@@ -315,8 +317,8 @@ namespace ms.admin.api.acya.infrastructure.Services
                 return null;
             }
 
-            var attachFileName = reader.IsDBNull(15) ? null : reader.GetString(15);
-            var emailStatus = reader.IsDBNull(18) ? 0 : reader.GetInt32(18);
+            var attachFileName = reader.IsDBNull(16) ? null : reader.GetString(16);
+            var emailStatus = reader.IsDBNull(19) ? 0 : reader.GetInt32(19);
 
             return new SupportTicketDetailDto
             {
@@ -331,20 +333,104 @@ namespace ms.admin.api.acya.infrastructure.Services
                 Category = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
                 Subcategory = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
                 Priority = reader.IsDBNull(9) ? "Normale" : reader.GetString(9),
-                Subject = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
-                Description = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
-                CurrentRoute = reader.IsDBNull(12) ? null : reader.GetString(12),
-                AppVersion = reader.IsDBNull(13) ? null : reader.GetString(13),
-                ContextData = reader.IsDBNull(14) ? null : reader.GetString(14),
+                Status = reader.IsDBNull(10) ? SupportTicketStatuses.New : reader.GetString(10),
+                Subject = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
+                Description = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
+                CurrentRoute = reader.IsDBNull(13) ? null : reader.GetString(13),
+                AppVersion = reader.IsDBNull(14) ? null : reader.GetString(14),
+                ContextData = reader.IsDBNull(15) ? null : reader.GetString(15),
                 HasAttachment = !string.IsNullOrWhiteSpace(attachFileName),
                 AttachmentFileName = attachFileName,
-                AttachmentContentType = reader.IsDBNull(16) ? null : reader.GetString(16),
-                AttachmentSizeBytes = reader.IsDBNull(17) ? null : reader.GetInt64(17),
+                AttachmentContentType = reader.IsDBNull(17) ? null : reader.GetString(17),
+                AttachmentSizeBytes = reader.IsDBNull(18) ? null : reader.GetInt64(18),
                 EmailStatus = emailStatus,
                 EmailStatusText = MapEmailStatus(emailStatus),
-                EmailError = reader.IsDBNull(19) ? null : reader.GetString(19),
-                CreatedAt = reader.GetDateTime(20),
-                UpdatedAt = reader.GetDateTime(21)
+                EmailError = reader.IsDBNull(20) ? null : reader.GetString(20),
+                CreatedAt = reader.GetDateTime(21),
+                UpdatedAt = reader.GetDateTime(22)
+            };
+        }
+
+        public async Task<UpdateTicketStatusResponseDto?> UpdateTicketStatusAsync(
+            string tenantSlug,
+            int ticketId,
+            string newStatus,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(tenantSlug) || ticketId <= 0)
+                return null;
+
+            if (!SupportTicketStatuses.IsValid(newStatus))
+            {
+                throw new ArgumentException(
+                    $"Invalid status '{newStatus}'. Supported values are: {string.Join(", ", SupportTicketStatuses.All)}.",
+                    nameof(newStatus));
+            }
+
+            var normalizedStatus = SupportTicketStatuses.Normalize(newStatus);
+            var normalizedSlug = tenantSlug.Trim().ToLowerInvariant();
+
+            var enterprise = await _context.Enterprises
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Slug.ToLower() == normalizedSlug, cancellationToken);
+
+            if (enterprise == null)
+            {
+                _logger.LogInformation("Enterprise with slug '{Slug}' not found for status update.", tenantSlug);
+                return null;
+            }
+
+            if (!SchemaSanitizer.IsValidIdentifier(enterprise.SchemaName))
+            {
+                _logger.LogError("Invalid schema identifier '{SchemaName}' configured for tenant '{Slug}'.",
+                    enterprise.SchemaName, tenantSlug);
+                throw new InvalidOperationException($"Invalid tenant schema configuration for '{tenantSlug}'.");
+            }
+
+            var connStr = GetConnectionString();
+            await using var conn = new NpgsqlConnection(connStr);
+            await conn.OpenAsync(cancellationToken);
+
+            // Verify table exists
+            await using (var checkCmd = new NpgsqlCommand(
+                "SELECT 1 FROM information_schema.tables WHERE table_schema = @schema AND table_name = 'tbl_support_tickets';", conn))
+            {
+                checkCmd.Parameters.AddWithValue("schema", enterprise.SchemaName);
+                var exists = await checkCmd.ExecuteScalarAsync(cancellationToken);
+                if (exists == null)
+                {
+                    _logger.LogWarning("Schema '{SchemaName}' does not have tbl_support_tickets.", enterprise.SchemaName);
+                    return null;
+                }
+            }
+
+            var quotedSchema = SchemaSanitizer.QuoteIdentifier(enterprise.SchemaName);
+            var updateSql = $@"
+                UPDATE {quotedSchema}.tbl_support_tickets
+                SET ""Status"" = @status,
+                    ""UpdatedAt"" = @updatedAt
+                WHERE ""Id"" = @ticketId
+                RETURNING ""TicketReference"", ""Status"", ""UpdatedAt"";";
+
+            var nowUtc = DateTime.UtcNow;
+            await using var cmd = new NpgsqlCommand(updateSql, conn);
+            cmd.Parameters.Add(new NpgsqlParameter("status", NpgsqlDbType.Text) { Value = normalizedStatus });
+            cmd.Parameters.Add(new NpgsqlParameter("updatedAt", NpgsqlDbType.TimestampTz) { Value = nowUtc });
+            cmd.Parameters.Add(new NpgsqlParameter("ticketId", NpgsqlDbType.Integer) { Value = ticketId });
+
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+            if (!await reader.ReadAsync(cancellationToken))
+            {
+                return null;
+            }
+
+            return new UpdateTicketStatusResponseDto
+            {
+                TicketId = ticketId,
+                TicketReference = reader.GetString(0),
+                TenantSlug = enterprise.Slug,
+                Status = reader.GetString(1),
+                UpdatedAt = reader.GetDateTime(2)
             };
         }
 
@@ -358,6 +444,11 @@ namespace ms.admin.api.acya.infrastructure.Services
             cmd.Parameters.Add(new NpgsqlParameter("category", NpgsqlDbType.Text)
             {
                 Value = string.IsNullOrWhiteSpace(filter.Category) ? DBNull.Value : filter.Category.Trim()
+            });
+
+            cmd.Parameters.Add(new NpgsqlParameter("status", NpgsqlDbType.Text)
+            {
+                Value = string.IsNullOrWhiteSpace(filter.Status) ? DBNull.Value : filter.Status.Trim()
             });
 
             cmd.Parameters.Add(new NpgsqlParameter("createdFrom", NpgsqlDbType.TimestampTz)
