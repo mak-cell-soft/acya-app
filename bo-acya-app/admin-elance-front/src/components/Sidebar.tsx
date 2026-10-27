@@ -21,7 +21,8 @@ import {
   Mail,
   Smartphone,
   Sparkles,
-  Flame
+  Flame,
+  Ticket
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -320,6 +321,15 @@ export default function Sidebar() {
         >
           <Mail className="w-4.5 h-4.5 shrink-0" />
           {(!isCollapsed || !mounted) && <span>Email Logs</span>}
+        </Link>
+
+        <Link 
+          href="/support-tickets" 
+          className={getLinkClasses('/support-tickets')}
+          title={isCollapsed ? "Support Tickets" : undefined}
+        >
+          <Ticket className="w-4.5 h-4.5 shrink-0" />
+          {(!isCollapsed || !mounted) && <span>Support Tickets</span>}
         </Link>
 
         {(!isCollapsed || !mounted) && (
