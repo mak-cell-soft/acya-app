@@ -31,6 +31,7 @@ namespace ms.webapp.api.acya.core.Entities
         public string Category { get; set; } = string.Empty;
         public string Subcategory { get; set; } = string.Empty;
         public string Priority { get; set; } = "Normale";
+        public string Status { get; set; } = "New";
 
         public string Subject { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;

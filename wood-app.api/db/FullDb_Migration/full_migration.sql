@@ -1834,6 +1834,7 @@ CREATE TABLE IF NOT EXISTS tbl_support_tickets (
     "Category" VARCHAR(100) NOT NULL,
     "Subcategory" VARCHAR(150) NOT NULL,
     "Priority" VARCHAR(50) NOT NULL DEFAULT 'Normale',
+    "Status" VARCHAR(50) NOT NULL DEFAULT 'New',
     "Subject" VARCHAR(255) NOT NULL,
     "Description" TEXT NOT NULL,
     "CurrentRoute" VARCHAR(255),
@@ -1858,6 +1859,9 @@ ON tbl_support_tickets ("TenantSlug", "UserId", "CreatedAt");
 
 CREATE INDEX IF NOT EXISTS idx_tbl_support_tickets_idempotency
 ON tbl_support_tickets ("IdempotencyKey");
+
+CREATE INDEX IF NOT EXISTS idx_tbl_support_tickets_status
+ON tbl_support_tickets ("Status");
 
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20261026080000_AddSupportTickets', '7.0.20')
