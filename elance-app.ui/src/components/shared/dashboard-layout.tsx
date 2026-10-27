@@ -6,6 +6,9 @@ import { Navbar } from './navbar';
 import { Breadcrumbs } from './breadcrumbs';
 import { useAuthStore } from '@/store/use-auth-store';
 import { useRouter } from 'next/navigation';
+import { GuidanceProvider } from '@/components/guidance/guidance-provider';
+import { WelcomeDialog } from '@/components/guidance/welcome-dialog';
+import { PageHelpDrawer } from '@/components/guidance/page-help-drawer';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -47,18 +50,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background relative">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Navbar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-y-auto custom-scrollbar">
-          <div className="p-4 md:p-8 lg:p-10 max-w-[1600px] mx-auto">
-            <Breadcrumbs />
-            {children}
-          </div>
-        </main>
+    <GuidanceProvider>
+      <div className="flex h-screen overflow-hidden bg-background relative">
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <Navbar onMenuClick={() => setSidebarOpen(true)} />
+          <main className="flex-1 overflow-y-auto custom-scrollbar">
+            <div className="p-4 md:p-8 lg:p-10 max-w-[1600px] mx-auto">
+              <Breadcrumbs />
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+      <WelcomeDialog />
+      <PageHelpDrawer />
+    </GuidanceProvider>
   );
 }
 

@@ -13,16 +13,34 @@ import { DailyCeilingTab } from '@/components/settings/daily-ceiling-tab';
 import { RolesTab } from '@/components/settings/roles-tab';
 import { Building2, Settings2, Hash, ShieldCheck, Cog, Printer, TrendingUp, Briefcase } from 'lucide-react';
 import { useAuthStore } from '@/store/use-auth-store';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
 
-export default function SettingsPage() {
+const VALID_SETTINGS_TABS = ['enterprise', 'params', 'numbering', 'audit', 'print', 'roles', 'ceiling'] as const;
+
+function SettingsContent() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = React.useState('enterprise');
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+
+  const initialTab = React.useMemo(() => {
+    if (tabParam && (VALID_SETTINGS_TABS as readonly string[]).includes(tabParam)) {
+      return tabParam;
+    }
+    return 'enterprise';
+  }, [tabParam]);
+
+  const [activeTab, setActiveTab] = React.useState(initialTab);
   const { user } = useAuthStore();
   const { hasAnyPermission } = usePermissionGuard();
   const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin';
+
+  React.useEffect(() => {
+    if (tabParam && (VALID_SETTINGS_TABS as readonly string[]).includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
 
   React.useEffect(() => {
     if (!isAdmin && !hasAnyPermission('configuration')) {
@@ -32,8 +50,7 @@ export default function SettingsPage() {
   }, [isAdmin, hasAnyPermission, router]);
 
   return (
-    <DashboardLayout>
-      <div className="space-y-10 max-w-[1400px] mx-auto font-sans pb-20">
+    <div className="space-y-10 max-w-[1400px] mx-auto font-sans pb-20">
         <header className="relative py-6">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -165,6 +182,20 @@ export default function SettingsPage() {
           </div>
         </Tabs>
       </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <DashboardLayout>
+      <React.Suspense fallback={
+        <div className="py-24 flex flex-col justify-center items-center space-y-4">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-corp-blue-600"></div>
+          <span className="text-xs uppercase tracking-widest text-sand-400 font-bold">Chargement des paramètres...</span>
+        </div>
+      }>
+        <SettingsContent />
+      </React.Suspense>
     </DashboardLayout>
   );
 }

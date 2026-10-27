@@ -40,7 +40,8 @@ import {
   LayoutGrid,
   Info,
   Layers,
-  Wrench
+  Wrench,
+  HelpCircle
 } from "lucide-react";
 import { useCategories } from "@/hooks/use-categories";
 import { useAppVariables } from "@/hooks/use-app-variables";
@@ -48,6 +49,7 @@ import { useAuthStore } from "@/store/use-auth-store";
 import { Article, ArticleType, QuantityUnits } from "@/types/article";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { SimpleTooltip } from "@/components/ui/tooltip";
 
 const articleSchema = z.object({
   type: z.coerce.number().default(ArticleType.Merchandise),
@@ -514,7 +516,12 @@ export function ArticleFormDialog({
                     name="thicknessid"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Épaisseur (mm) *</FormLabel>
+                        <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest flex items-center gap-1.5">
+                          <span>Épaisseur (mm) *</span>
+                          <SimpleTooltip content="Épaisseur fixe en millimètres servant au calcul volumétrique du cubage en m³." side="right">
+                            <HelpCircle className="w-3.5 h-3.5 text-sand-400 hover:text-corp-blue-600 cursor-help" />
+                          </SimpleTooltip>
+                        </FormLabel>
                         <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                           <FormControl>
                             <SelectTrigger >
@@ -538,7 +545,12 @@ export function ArticleFormDialog({
                     name="widthid"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Largeur (mm)</FormLabel>
+                        <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest flex items-center gap-1.5">
+                          <span>Largeur (mm)</span>
+                          <SimpleTooltip content="Largeur standard fixe en millimètres (désactivée pour le bois BD où elle est saisie sur mesure)." side="right">
+                            <HelpCircle className="w-3.5 h-3.5 text-sand-400 hover:text-corp-blue-600 cursor-help" />
+                          </SimpleTooltip>
+                        </FormLabel>
                         <Select 
                           onValueChange={field.onChange} 
                           value={isBdSubcategory ? "" : (field.value?.toString() || "")}
@@ -659,7 +671,12 @@ export function ArticleFormDialog({
                   )}
                 />
                 <FormItem>
-                  <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Prix calculé HT</FormLabel>
+                  <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <span>Prix calculé HT</span>
+                    <SimpleTooltip content="Montant Hors Taxe déduit automatiquement : Prix TTC / (1 + Taux TVA)." side="top">
+                      <HelpCircle className="w-3.5 h-3.5 text-sand-400 hover:text-corp-blue-600 cursor-help" />
+                    </SimpleTooltip>
+                  </FormLabel>
                   <div className="h-12 rounded-xl border border-corp-blue-100 bg-sand-50/50 flex items-center px-4 font-bold text-sand-500">
                     {calculatedHT.toLocaleString('fr-TN', { minimumFractionDigits: 3 })}
                     <span className="ml-auto text-[0.6rem] uppercase tracking-wider text-sand-300">Auto-Calcul</span>
@@ -673,8 +690,11 @@ export function ArticleFormDialog({
                   name="unit"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">
-                        {isService ? "Unité de facturation" : "Unité"}
+                      <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest flex items-center gap-1.5">
+                        <span>{isService ? "Unité de facturation" : "Unité"}</span>
+                        <SimpleTooltip content={isWoodCategory ? "Verrouillé en M³ pour les articles Bois afin d'assurer le calcul volumétrique des colis." : "Unité principale pour la gestion du stock et la facturation."} side="top">
+                          <HelpCircle className="w-3.5 h-3.5 text-sand-400 hover:text-corp-blue-600 cursor-help" />
+                        </SimpleTooltip>
                       </FormLabel>
                       <Select onValueChange={field.onChange} value={field.value} disabled={isWoodCategory}>
                         <FormControl>
@@ -731,7 +751,12 @@ export function ArticleFormDialog({
                   name="profitmarginpercentage"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest">Marge (%)</FormLabel>
+                      <FormLabel className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest flex items-center gap-1.5">
+                        <span>Marge (%)</span>
+                        <SimpleTooltip content="Taux de marque indicatif utilisé pour estimer la rentabilité par rapport au dernier prix d'achat." side="top">
+                          <HelpCircle className="w-3.5 h-3.5 text-sand-400 hover:text-corp-blue-600 cursor-help" />
+                        </SimpleTooltip>
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input type="number" className="pr-8 font-bold" {...field} />

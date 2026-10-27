@@ -51,6 +51,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DataImportDialog } from '@/components/shared/data-import-dialog';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { PrintVariantDialog } from '@/components/print/print-trigger-button';
+import { PrerequisiteBanner } from '@/components/guidance/prerequisite-banner';
 import * as XLSX from 'xlsx';
 
 export default function ArticlesPage() {
@@ -90,7 +91,7 @@ export default function ArticlesPage() {
 
   // Queries and Mutations
   const { data: articles, isLoading: isArticlesLoading } = useArticles();
-  const { data: categories } = useCategories();
+  const { data: categories, isLoading: isCategoriesLoading, isError: isCategoriesError } = useCategories();
   // NOTE: Retrieve real-time stock details globally to map them to active articles dynamically
   const { data: stocks, isLoading: isStockLoading } = useStockAll();
   const createArticle = useCreateArticle();
@@ -317,6 +318,29 @@ export default function ArticlesPage() {
             )}
           </div>
         </header>
+
+        {/* Configuration Prerequisite Guidance — Evaluated from existing useCategories query */}
+        {!isCategoriesLoading && !isCategoriesError && (!categories || categories.length === 0) && (
+          <PrerequisiteBanner
+            id="articles_require_category"
+            title="Catégories d'articles requises"
+            description="La création d'un article nécessite au moins une catégorie active dans votre catalogue."
+            severity="blocking"
+            action={{ label: "Configurer les catégories", href: "/settings?tab=params&section=categories" }}
+            className="mb-6"
+          />
+        )}
+
+        {!isCategoriesLoading && !isCategoriesError && categories && categories.length > 0 && categories.every(c => !c.firstchildren || c.firstchildren.length === 0) && (
+          <PrerequisiteBanner
+            id="articles_require_subcategory"
+            title="Sous-catégories d'articles requises"
+            description="Chaque article doit être rattaché à une sous-catégorie. Veuillez créer des sous-catégories sous vos familles existantes."
+            severity="blocking"
+            action={{ label: "Configurer les sous-catégories", href: "/settings?tab=params&section=categories" }}
+            className="mb-6"
+          />
+        )}
 
         {/* Filters and Table Card */}
         <Card className="border-corp-blue-100/50 shadow-2xl shadow-corp-blue-900/5 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-md">

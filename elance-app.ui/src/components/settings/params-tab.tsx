@@ -20,8 +20,29 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { getBaseApiUrl } from '@/lib/axios';
 import { cn } from '@/lib/utils';
+import { useSearchParams } from 'next/navigation';
+
+const VALID_PARAMS_SECTIONS = ['taxes', 'dimensions', 'categories', 'transporters', 'banks', 'workflow'] as const;
 
 export function ParamsTab() {
+  const searchParams = useSearchParams();
+  const sectionParam = searchParams.get('section');
+
+  const initialSection = React.useMemo(() => {
+    if (sectionParam && (VALID_PARAMS_SECTIONS as readonly string[]).includes(sectionParam)) {
+      return sectionParam;
+    }
+    return 'taxes';
+  }, [sectionParam]);
+
+  const [activeSection, setActiveSection] = React.useState(initialSection);
+
+  React.useEffect(() => {
+    if (sectionParam && (VALID_PARAMS_SECTIONS as readonly string[]).includes(sectionParam)) {
+      setActiveSection(sectionParam);
+    }
+  }, [sectionParam]);
+
   const { data: enterprise } = useEnterprise();
   const { data: tva } = useAppVariables('Tva');
   const { data: rs } = useAppVariables('RS');
@@ -152,7 +173,7 @@ export function ParamsTab() {
           <Upload className="w-4 h-4" /> Import / Export
         </Button>
       </div>
-      <Tabs defaultValue="taxes" className="w-full">
+      <Tabs value={activeSection} onValueChange={setActiveSection} className="w-full">
         <TabsList className="bg-sand-50/50 p-1 rounded-2xl border border-corp-blue-50 mb-8 h-auto flex-wrap justify-start">
           <TabsTrigger value="taxes" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-corp-blue-900 data-[state=active]:shadow-sm font-bold gap-2">
             <Percent className="w-4 h-4" /> Taxes & TVA

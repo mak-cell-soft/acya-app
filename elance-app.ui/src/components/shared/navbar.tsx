@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Bell, Search, User, Settings, LogOut, CreditCard, Menu, Calendar, Store, MapPin, X, LayoutDashboard, Package, ShoppingBag, ShoppingCart, Users, Truck, Warehouse, Calculator, BarChart3, ClipboardList, Car, UserCheck, ArrowRight, Smartphone } from 'lucide-react';
+import { Bell, Search, User, Settings, LogOut, CreditCard, Menu, Calendar, Store, MapPin, X, LayoutDashboard, Package, ShoppingBag, ShoppingCart, Users, Truck, Warehouse, Calculator, BarChart3, ClipboardList, Car, UserCheck, ArrowRight, Smartphone, HelpCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { 
@@ -19,9 +19,33 @@ import { toast } from 'sonner';
 
 import { Button, buttonVariants } from '@/components/ui/button';
 import { ProfileDialog } from './profile-dialog';
+import { usePageGuidance } from '@/hooks/use-page-guidance';
+import { SimpleTooltip } from '@/components/ui/tooltip';
 
 interface NavbarProps {
   onMenuClick: () => void;
+}
+
+function NavbarHelpButton() {
+  const { toggleHelpDrawer, hasGuidance } = usePageGuidance();
+
+  return (
+    <SimpleTooltip content="Aide contextuelle & Guide" side="bottom">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={toggleHelpDrawer}
+        className="relative cursor-pointer hover:bg-corp-blue-50 rounded-xl text-corp-blue-800"
+        aria-label="Ouvrir le guide d'aide contextuelle"
+      >
+        <HelpCircle className="h-5 w-5" />
+        {hasGuidance && (
+          <span className="absolute top-2 right-2 w-2 h-2 bg-corp-blue-600 rounded-full ring-2 ring-background animate-pulse" />
+        )}
+        <span className="sr-only">Aide</span>
+      </Button>
+    </SimpleTooltip>
+  );
 }
 
 /**
@@ -103,6 +127,8 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         )}
 
         <NavbarNotifications />
+        
+        <NavbarHelpButton />
         
         <div className="w-px h-6 bg-corp-blue-100 mx-1" />
         
