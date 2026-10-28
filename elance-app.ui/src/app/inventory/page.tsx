@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
 import { useInventories, useValidateInventory, useCreateInventory } from '@/hooks/use-inventory';
 import { useStockBySite } from '@/hooks/use-stock';
+import { useSites } from '@/hooks/use-enterprise';
+import { useArticles } from '@/hooks/use-articles';
+import { PrerequisiteBanner } from '@/components/guidance/prerequisite-banner';
 import { UncountedStockDialog } from '@/components/inventory/uncounted-stock-dialog';
 import { ExcelInventoryDialog } from '@/components/inventory/excel-inventory-dialog';
 import { Button } from '@/components/ui/button';
@@ -90,6 +93,25 @@ function InventoryListContent() {
   // We perform client-side filtering on the returned collection to preserve backend contract and caching.
   const { data: inventories = [], isLoading } = useInventories();
   const { mutate: validateInventory, isPending: isValidating } = useValidateInventory();
+  
+  const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin' || user?.role === '10' || user?.role === '20';
+
+  // Prerequisite guidance queries reusing cached data
+  const {
+    data: sites = [],
+    isLoading: isSitesLoading,
+    isError: isSitesError
+  } = useSites();
+
+  const {
+    data: articles = [],
+    isLoading: isArticlesLoading,
+    isError: isArticlesError
+  } = useArticles();
+
+  // Permission checks for prerequisite configuration action links
+  const canManageConfiguration = isAdmin || hasAnyPermission('configuration');
+  const canAccessArticles = hasAnyPermission('articles');
   
   // Compute the default current calendar month scope once upon mount
   const defaultDateRange = React.useMemo(() => getDefaultCurrentMonthRange(), []);
@@ -263,6 +285,43 @@ function InventoryListContent() {
           </Button>
         </div>
       </div>
+
+      {/* Configuration Prerequisite Guidance — Evaluated from cached queries without duplicate network requests */}
+      {!isSitesLoading && !isSitesError && (!sites || sites.length === 0) && (
+        <PrerequisiteBanner
+          id="inventory_require_site"
+          title="Dépôts de stockage requis"
+          description={
+            canManageConfiguration
+              ? "Aucun dépôt ou site de stockage n'a été configuré. Un dépôt est obligatoire pour créer et rattacher des inventaires physiques."
+              : "Aucun dépôt ou site de stockage n'a été configuré. Veuillez contacter un administrateur pour configurer les points de stockage de votre entreprise."
+          }
+          severity="blocking"
+          action={
+            canManageConfiguration
+              ? { label: "Configurer les dépôts", href: "/settings?tab=enterprise" }
+              : undefined
+          }
+        />
+      )}
+
+      {!isArticlesLoading && !isArticlesError && (!articles || articles.length === 0) && (
+        <PrerequisiteBanner
+          id="inventory_require_article"
+          title="Articles du catalogue requis"
+          description={
+            canAccessArticles
+              ? "Votre catalogue ne contient aucun article actif. Ajoutez des références au catalogue pour composer vos feuilles d'inventaire."
+              : "Votre catalogue ne contient aucun article actif. Veuillez contacter un administrateur pour configurer le catalogue d'articles."
+          }
+          severity="blocking"
+          action={
+            canAccessArticles
+              ? { label: "Gérer les articles", href: "/articles" }
+              : undefined
+          }
+        />
+      )}
 
       {/* Filters Toolbar */}
       <div className="bg-white dark:bg-stone-900/60 border border-stone-200/80 dark:border-stone-800 rounded-xl p-3.5 sm:p-4 shadow-2xs">

@@ -10,6 +10,7 @@ export type GuidanceModuleKey =
   | 'sales'
   | 'purchases'
   | 'stock'
+  | 'inventory'
   | 'customers'
   | 'suppliers'
   | 'production'
@@ -562,6 +563,123 @@ export const GUIDANCE_REGISTRY: Record<string, ModuleGuidanceDefinition> = {
         description: 'La saisie d’un transporteur est obligatoire pour émettre des bons de transfert logistique entre dépôts.',
         severity: 'recommended',
         action: { label: 'Configurer les transporteurs', href: '/settings?tab=params&section=transporters' },
+      },
+    ],
+  },
+  inventory: {
+    moduleKey: 'inventory',
+    routePrefix: '/inventory',
+    title: 'Inventaires Physiques',
+    welcome: {
+      title: 'Bienvenue dans le module Inventaires Physiques',
+      subtitle: 'Réalisez vos campagnes de comptage, comparez les écarts et ajustez vos stocks réels.',
+      summary: 'Le module Inventaires vous permet d’organiser le contrôle périodique de vos stocks en magasin ou en dépôt. Saisissez vos comptages physiques, importez vos feuilles de relevé Excel, identifiez les écarts par rapport au stock théorique et validez définitivement la mise à niveau de votre inventaire.',
+      highlights: [
+        {
+          title: 'Comptage physique & cubage bois (m³)',
+          description: 'Saisissez les quantités constatées par référence et fardeau, avec prise en charge du calcul automatique des cubages bois.',
+        },
+        {
+          title: 'Import & Export Excel rapide',
+          description: 'Téléchargez la matrice d’inventaire pré-remplie avec le stock courant, complétez vos relevés hors-ligne et réimportez-les en un clic.',
+        },
+        {
+          title: 'Contrôle des écarts & vérification des oublis',
+          description: 'Visualisez immédiatement les deltas de stock et utilisez l’outil « Vérifier Oublis » pour détecter et solder les articles en rayon non inventoriés.',
+        },
+        {
+          title: 'Validation comptable définitive',
+          description: 'La validation par un responsable remplace le stock théorique par le comptage physique réel et verrouille la feuille contre toute modification ultérieure.',
+        },
+      ],
+      quickLinks: [
+        { label: 'Nouvel Inventaire', href: '/inventory/new', variant: 'outline' },
+        { label: 'Stock & Dépôts', href: '/stock', variant: 'outline' },
+        { label: 'Articles & Catalogue', href: '/articles', variant: 'outline' },
+        { label: 'Dépôts & Magasins', href: '/settings?tab=enterprise', variant: 'outline' },
+      ],
+    },
+    pageGuidance: {
+      title: 'Guide des Inventaires Physiques',
+      description: 'Consultez les procédures de comptage, les règles d’import/export Excel et les effets de la validation sur les stocks.',
+      workflowSteps: [
+        {
+          stepNumber: 1,
+          title: 'Préparation et sélection du dépôt',
+          description: 'Choisissez le dépôt cible et préparez votre support de comptage, soit via une nouvelle feuille d’inventaire en ligne (/inventory/new), soit en exportant le modèle Excel prérempli.',
+          tip: 'Filtrez l’export Excel pour inclure ou exclure le stock nul selon la nature de votre audit.',
+        },
+        {
+          stepNumber: 2,
+          title: 'Comptage physique sur le terrain',
+          description: 'Relevez les quantités réellement présentes en rayon ou en parc à bois. Pour les fardeaux de bois, notez les longueurs, largeurs et pièces pour calculer le volume exact.',
+        },
+        {
+          stepNumber: 3,
+          title: 'Saisie ou import des quantités comptées',
+          description: 'Enregistrez les quantités sur votre inventaire en ligne ou importez votre fichier Excel complété. L’inventaire est enregistré au statut « En attente » (aucun impact stock immédiat).',
+          tip: 'Tant que l’inventaire n’est pas validé, vous pouvez rééditer et corriger les lignes depuis le bouton Éditer.',
+        },
+        {
+          stepNumber: 4,
+          title: 'Analyse des écarts & vérification des oublis',
+          description: 'Dans la liste des inventaires, déployez la ligne pour examiner les deltas (en vert pour les excédents, en rouge pour les pertes). Cliquez sur « Vérifier Oublis » pour générer la mise à zéro des articles théoriques non comptés.',
+          tip: 'Les articles absents de la feuille d’inventaire ne sont PAS automatiquement mis à zéro lors de la validation.',
+        },
+        {
+          stepNumber: 5,
+          title: 'Validation finale par un responsable',
+          description: 'Un responsable valide la feuille d’inventaire. Cette action écrase les stocks théoriques existants par les quantités comptées et rend le document définitivement immuable.',
+          tip: 'Attention : la validation est irréversible et modifie directement l’inventaire physique en base.',
+        },
+      ],
+      faq: [
+        {
+          question: 'Quelle est la différence entre la page Stock (/stock) et la page Inventaires (/inventory) ?',
+          answer: 'La page Stock (/stock) est un tableau de bord de consultation en direct des disponibilités et d’émission des transferts logistiques. La page Inventaires (/inventory) est dédiée aux opérations d’audit physique : elle permet de saisir les comptages périodiques et d’ajuster officiellement le stock théorique sur le réel constaté.',
+        },
+        {
+          question: 'Quel est l’impact de la création ou modification d’un inventaire sur le stock ?',
+          answer: 'Aucun impact immédiat : tant qu’un inventaire est au statut « En attente », les quantités saisies constituent une simple feuille de travail déclarative. Le stock physique du dépôt n’est absolument pas modifié.',
+        },
+        {
+          question: 'Comment la validation modifie-t-elle les stocks ?',
+          answer: 'La validation remplace la quantité en stock de chaque article compté par la quantité physique renseignée (stock.Quantity = dm.Quantity). Si l’article n’avait pas encore de ligne de stock dans ce dépôt, une nouvelle entrée de stock est créée. Cette opération est définitive et irréversible.',
+        },
+        {
+          question: 'Pourquoi les articles non comptés ne sont-ils pas automatiquement remis à zéro ?',
+          answer: 'ACYA Élancé prend en charge les inventaires partiels ou tournants (par exemple, inventorier uniquement une famille de bois ou un rayon). Afin de ne pas écraser accidentellement le reste du dépôt, les références omises conservent leur stock théorique. Pour remettre à zéro les articles oubliés ou perdus, utilisez le bouton « Vérifier Oublis » qui génère une régularisation dédiée.',
+        },
+        {
+          question: 'Un inventaire validé peut-il être modifié ou annulé ?',
+          answer: 'Non. Une fois validé, l’inventaire devient strictement immuable (lecture seule et réimpression PDF). Pour corriger une erreur après validation, il convient de créer un nouvel inventaire d’ajustement sur les lignes concernées.',
+        },
+        {
+          question: 'Qui peut valider un inventaire physique ?',
+          answer: 'Pour garantir la conformité comptable, le bouton « Valider » est réservé aux utilisateurs ayant un rôle d’encadrement (Manager ou Administrateur).',
+        },
+      ],
+      tips: [
+        'Utilisez l’import Excel pour les inventaires volumineux : cela permet à plusieurs magasiniers de compter simultanément sur des tableurs avant centralisation.',
+        'Avant de valider, vérifiez systématiquement les écarts en déroulant la ligne d’inventaire ou en imprimant la fiche de contrôle.',
+        'L’outil « Vérifier Oublis » est essentiel lors d’un inventaire général de fin d’exercice pour apurer les stocks disparus.',
+        'La sélection d’un dépôt lors de la création d’une feuille réinitialise la grille en cas de changement pour éviter les incohérences de stock.',
+      ],
+    },
+    prerequisites: [
+      {
+        id: 'inventory_require_site',
+        title: 'Dépôts de stockage requis',
+        description: 'Un site de stockage ou dépôt est obligatoire pour pouvoir créer et rattacher des feuilles d’inventaire physique.',
+        severity: 'blocking',
+        action: { label: 'Configurer les dépôts', href: '/settings?tab=enterprise' },
+      },
+      {
+        id: 'inventory_require_article',
+        title: 'Articles du catalogue requis',
+        description: 'Votre catalogue doit comporter au moins un article actif pour pouvoir composer des lignes de comptage.',
+        severity: 'blocking',
+        action: { label: 'Gérer les articles', href: '/articles' },
       },
     ],
   },
