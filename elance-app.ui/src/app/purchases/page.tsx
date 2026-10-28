@@ -73,6 +73,8 @@ import {
 } from '@/hooks/use-documents';
 import { useSuppliers } from '@/hooks/use-suppliers';
 import { useArticles } from '@/hooks/use-articles';
+import { useSites } from '@/hooks/use-enterprise';
+import { PrerequisiteBanner } from '@/components/guidance/prerequisite-banner';
 import { TablePagination } from '@/components/shared/table-pagination';
 import { documentService } from '@/services/components/document.service';
 import { DocumentTypes, DocStatus, BillingStatus, Document, PurchaseSearchFilter } from '@/types/document';
@@ -235,15 +237,35 @@ export default function PurchasesPage() {
   // Fetch Parent-Child Document relationships for expansion rendering
   const { data: parentsWithChildren, isLoading: loadingRelations } = useParentsWithChildren();
 
-  // Fetch list of suppliers for client-side drop-down filtering
-  const { data: suppliers = [] } = useSuppliers();
+  // Fetch list of suppliers for client-side drop-down filtering and prerequisite guidance
+  const {
+    data: suppliers = [],
+    isLoading: isSuppliersLoading,
+    isError: isSuppliersError
+  } = useSuppliers();
 
-  // Fetch catalog articles for Deep Search article/merchandise picker
-  const { data: rawArticles = [] } = useArticles();
+  // Fetch catalog articles for Deep Search article/merchandise picker and prerequisite guidance
+  const {
+    data: rawArticles = [],
+    isLoading: isArticlesLoading,
+    isError: isArticlesError
+  } = useArticles();
   const allArticles = useMemo(
     () => rawArticles.filter(art => Number(art.type) !== ArticleType.Service),
     [rawArticles]
   );
+
+  // Fetch storage sites / depots for prerequisite guidance using existing query cache
+  const {
+    data: sites = [],
+    isLoading: isSitesLoading,
+    isError: isSitesError
+  } = useSites();
+
+  // Permission checks for prerequisite configuration action links
+  const canManageConfiguration = hasAnyPermission('configuration');
+  const canAccessSuppliers = hasAnyPermission('providers');
+  const canAccessArticles = hasAnyPermission('articles');
 
   // Filtered articles list based on user search term in Deep Search panel
   const filteredArticlesForSearch = useMemo(() => {
@@ -617,6 +639,61 @@ export default function PurchasesPage() {
             )}
           </div>
         </div>
+
+        {/* Configuration Prerequisite Guidance — Evaluated from cached queries without duplicate network requests */}
+        {!isSuppliersLoading && !isSuppliersError && (!suppliers || suppliers.length === 0) && (
+          <PrerequisiteBanner
+            id="purchases_require_supplier"
+            title="Fournisseurs requis"
+            description={
+              canAccessSuppliers
+                ? "Vous devez enregistrer au moins un fournisseur actif pour pouvoir créer des commandes, réceptions et factures d'achat."
+                : "Aucun fournisseur actif n'est enregistré dans votre entreprise. Veuillez contacter un utilisateur autorisé ou un administrateur pour ajouter des fournisseurs."
+            }
+            severity="blocking"
+            action={
+              canAccessSuppliers
+                ? { label: "Gérer les fournisseurs", href: "/suppliers" }
+                : undefined
+            }
+          />
+        )}
+
+        {!isArticlesLoading && !isArticlesError && (!allArticles || allArticles.length === 0) && (
+          <PrerequisiteBanner
+            id="purchases_require_article"
+            title="Articles du catalogue requis"
+            description={
+              canAccessArticles
+                ? "Votre catalogue ne contient aucun article marchandise actif. Ajoutez des références de bois ou marchandises générales pour effectuer des achats."
+                : "Votre catalogue ne contient aucun article marchandise actif. Veuillez contacter un administrateur pour configurer le catalogue d'articles."
+            }
+            severity="blocking"
+            action={
+              canAccessArticles
+                ? { label: "Gérer les articles", href: "/articles" }
+                : undefined
+            }
+          />
+        )}
+
+        {!isSitesLoading && !isSitesError && (!sites || sites.length === 0) && (
+          <PrerequisiteBanner
+            id="purchases_require_site"
+            title="Dépôts de stockage requis"
+            description={
+              canManageConfiguration
+                ? "Aucun site de stockage ou dépôt n'a été configuré. Un dépôt est obligatoire pour réceptionner vos marchandises et alimenter vos stocks."
+                : "Aucun site de stockage ou dépôt n'a été configuré. Veuillez demander à un administrateur de configurer les points de stockage de votre entreprise."
+            }
+            severity="blocking"
+            action={
+              canManageConfiguration
+                ? { label: "Configurer les dépôts", href: "/settings?tab=enterprise" }
+                : undefined
+            }
+          />
+        )}
 
         {/* Deep Search Collapsible Panel */}
         <AnimatePresence>
