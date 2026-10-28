@@ -432,6 +432,139 @@ export const GUIDANCE_REGISTRY: Record<string, ModuleGuidanceDefinition> = {
       },
     ],
   },
+  stock: {
+    moduleKey: 'stock',
+    routePrefix: '/stock',
+    title: 'Stock & Logistique',
+    welcome: {
+      title: 'Bienvenue dans le module Stock & Logistique',
+      subtitle: 'Supervisez vos inventaires catégorisés, retracez les mouvements et pilotez les transferts inter-sites.',
+      summary: 'Le module Stock vous permet de piloter en temps réel l’ensemble de vos dépôts, les niveaux de disponibilité par famille d’articles, les seuils d’alerte et les flux logistiques. Il intègre le suivi détaillé des cubages de bois (m³), la traçabilité complète des mouvements (timeline) et les transferts sécurisés entre dépôts par code de confirmation.',
+      highlights: [
+        {
+          title: 'Niveaux de stock & alertes en direct',
+          description: 'Visualisez les quantités disponibles par catégorie et recevez des alertes automatiques lorsque le stock passe sous le seuil minimum configuré.',
+        },
+        {
+          title: 'Détail bois & cubage (m³)',
+          description: 'Consultez la composition exacte de vos fardeaux et colis de bois (largeurs, épaisseurs, longueurs et pièces) avec calcul automatique du volume.',
+        },
+        {
+          title: 'Journal des mouvements & traçabilité',
+          description: 'Retracez l’historique chronologique de chaque entrée, sortie, ajustement et transfert avec réconciliation des flux et solde comptable.',
+        },
+        {
+          title: 'Transferts inter-dépôts sécurisés',
+          description: 'Émettez des bons de transfert avec déstockage immédiat à la source et intégration en stock à destination uniquement sur validation par code PIN à 4 chiffres.',
+        },
+      ],
+      quickLinks: [
+        { label: 'Inventaires Physiques', href: '/inventory', variant: 'outline' },
+        { label: 'Nouveau Transfert', href: '/stock/transfer/new', variant: 'outline' },
+        { label: 'Articles & Catalogue', href: '/articles', variant: 'outline' },
+        { label: 'Dépôts & Magasins', href: '/settings?tab=enterprise', variant: 'outline' },
+        { label: 'Transporteurs', href: '/settings?tab=params&section=transporters', variant: 'outline' },
+      ],
+    },
+    pageGuidance: {
+      title: 'Guide de gestion du Stock et des Transferts',
+      description: 'Consultez les principes de suivi d’inventaire, les règles de mouvement de stock et la procédure de transfert logistique.',
+      workflowSteps: [
+        {
+          stepNumber: 1,
+          title: 'Configuration des dépôts et articles',
+          description: 'Assurez-vous qu’au moins un dépôt actif et des articles existent dans votre base. Pour effectuer des transferts logistiques, au moins deux dépôts distincts et un transporteur sont requis.',
+          tip: 'Dépôts > Paramètres > Entreprise | Transporteurs > Paramètres > Transporteurs',
+        },
+        {
+          stepNumber: 2,
+          title: 'Surveillance et seuils d’alerte',
+          description: 'Dans l’onglet Stock par Catégorie, surveillez les indicateurs de statut (Optimal, Seuil Alerte, Rupture). Cliquez sur l’icône de paramétrage d’un article pour définir son stock minimum de sécurité.',
+          tip: 'La case « Masquer stock nul » permet de focaliser l’affichage sur les articles effectivement en rayon.',
+        },
+        {
+          stepNumber: 3,
+          title: 'Consultation du détail bois',
+          description: 'Pour les articles de bois (catégorie Bois), cliquez sur le bouton Détail Bois pour consulter la répartition unitaire des pièces par longueur et le volume total en m³.',
+          tip: 'Imprimez des étiquettes individuelles d’identification de fardeaux ou l’inventaire complet du dépôt.',
+        },
+        {
+          stepNumber: 4,
+          title: 'Transferts inter-dépôts en deux temps',
+          description: 'Créez un Bon de Sortie vers un dépôt récepteur. Le stock est immédiatement déduit du dépôt source (marchandises en transit). À l’arrivée, le réceptionnaire valide le transfert avec le code PIN à 4 chiffres pour créditer le dépôt destinataire.',
+          tip: 'En cas de rejet (marchandise non conforme ou manquante), le stock est automatiquement réintégré dans le dépôt d’origine.',
+        },
+        {
+          stepNumber: 5,
+          title: 'Inventaires physiques périodiques',
+          description: 'Utilisez la page dédiée Inventaires (/inventory) pour réaliser vos campagnes de comptage. La validation d’un inventaire ajuste automatiquement les quantités en stock sur le comptage physique réel.',
+          tip: 'Ne confondez pas la consultation du stock (/stock) et la validation d’un inventaire physique (/inventory).',
+        },
+      ],
+      faq: [
+        {
+          question: 'Quelle est la différence entre la page Stock (/stock) et la page Inventaires (/inventory) ?',
+          answer: 'Le module Stock (/stock) est votre tableau de bord opérationnel permanent : il présente l’état courant de vos disponibilités physiques par dépôt, la chronologie des mouvements et le registre des transferts logistiques.\n\nLa page Inventaires (/inventory) sert aux campagnes de comptage périodique (annuel ou tournant). C’est là que vous saisissez les quantités réellement comptées sur le terrain ; la validation d’un inventaire ajuste alors directement le stock système pour concorder avec le réel.',
+        },
+        {
+          question: 'Comment fonctionne l’impact stock d’un transfert inter-dépôts ?',
+          answer: 'Le transfert logistique applique un mécanisme en deux temps :\n1. À la création du transfert, un Bon de Sortie est émis et le stock est IMMÉDIATEMENT décrémenté du dépôt d’origine (marchandises en transit, statut « En attente »).\n2. Le dépôt destinataire n’est PAS crédité immédiatement. Il doit confirmer la réception en saisissant le code PIN à 4 chiffres généré sur le bon logistique.\n3. Dès confirmation, le Bon d’Entrée est validé et le stock de destination est crédité.\n4. Si le transfert est rejeté, le stock déduit est automatiquement réintégré (rollback) dans le dépôt d’origine.',
+        },
+        {
+          question: 'Pourquoi un transfert inter-dépôts requiert-il obligatoirement deux dépôts et un transporteur ?',
+          answer: 'Un transfert logistique correspond à un déplacement physique de marchandises d’un site de stockage vers un autre. Le dépôt de départ et le dépôt d’arrivée doivent donc être différents. La sélection d’un transporteur est obligatoire pour assurer la traçabilité juridique et routière de l’acheminement.',
+        },
+        {
+          question: 'Pourquoi un article affiche-t-il l’erreur « L’article n’a pas de stock initial dans ce dépôt » lors d’un transfert ?',
+          answer: 'Pour pouvoir transférer une marchandise depuis un dépôt source, celle-ci doit avoir été préalablement réceptionnée ou comptabilisée dans ce dépôt spécifique (existence d’un merchandiseId et d’une ligne de stock). Si un article n’a jamais été introduit dans ce dépôt, réalisez d’abord une réception d’achat ou un inventaire initial.',
+        },
+        {
+          question: 'Comment fonctionne la Traçabilité (Timeline) et la réconciliation ?',
+          answer: 'L’onglet Timeline rassemble l’historique des réceptions fournisseurs (+), livraisons clients (-), factures directes (+/-), retours (+/-), transferts et ajustements d’inventaire. Le panneau de droite réconcilie les totaux entrées et sorties pour vérifier la cohérence du stock final.',
+        },
+        {
+          question: 'Comment sont gérées les dimensions de bois dans le stock ?',
+          answer: 'Pour les références de catégorie Bois, les pièces ne sont pas uniquement comptées à l’unité : chaque colis détaille l’épaisseur, la largeur et les longueurs en centimètres, ce qui calcule automatiquement le cubage exact en mètres cubes (m³).',
+        },
+      ],
+      tips: [
+        'Dans l’onglet Stock par Catégorie, utilisez le filtre par dépôt pour auditer rapidement un point de vente spécifique.',
+        'Pour expédier un transfert, transmettez le code PIN à 4 chiffres au chauffeur ou au réceptionnaire du site distant pour lui permettre de valider l’entrée.',
+        'En cas d’écart constaté lors d’une livraison inter-sites, le réceptionnaire peut rejeter le transfert avec un motif : les quantités reviendront automatiquement au dépôt émetteur.',
+        'Consultez régulièrement les alertes de stock en haut de page pour anticiper vos réapprovisionnements fournisseurs avant rupture.',
+      ],
+    },
+    prerequisites: [
+      {
+        id: 'stock_require_site',
+        title: 'Dépôts de stockage requis',
+        description: 'Au moins un site de stockage ou dépôt est indispensable pour gérer les inventaires physiques et enregistrer les mouvements.',
+        severity: 'blocking',
+        action: { label: 'Configurer les dépôts', href: '/settings?tab=enterprise' },
+      },
+      {
+        id: 'stock_require_article',
+        title: 'Articles du catalogue requis',
+        description: 'Votre catalogue doit contenir au moins un article actif pour pouvoir suivre des niveaux de stock ou initier des transferts.',
+        severity: 'blocking',
+        action: { label: 'Gérer les articles', href: '/articles' },
+      },
+      {
+        id: 'stock_recommend_multiple_sites',
+        title: 'Deux dépôts recommandés pour les transferts',
+        description: 'Votre entreprise ne dispose actuellement que d’un seul dépôt. Les transferts logistiques inter-sites requièrent au moins deux dépôts distincts.',
+        severity: 'recommended',
+        action: { label: 'Ajouter un dépôt', href: '/settings?tab=enterprise' },
+      },
+      {
+        id: 'stock_recommend_transporter',
+        title: 'Transporteurs pour transferts logistiques',
+        description: 'La saisie d’un transporteur est obligatoire pour émettre des bons de transfert logistique entre dépôts.',
+        severity: 'recommended',
+        action: { label: 'Configurer les transporteurs', href: '/settings?tab=params&section=transporters' },
+      },
+    ],
+  },
 };
 
 /**

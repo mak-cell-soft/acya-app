@@ -23,13 +23,17 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
+import { useSites } from '@/hooks/use-enterprise';
+import { useArticles } from '@/hooks/use-articles';
+import { useTransporters } from '@/hooks/use-transporters';
+import { PrerequisiteBanner } from '@/components/guidance/prerequisite-banner';
 
 function StockDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuthStore();
   const { hasAnyPermission } = usePermissionGuard();
-  const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin';
+  const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin' || user?.role === '10' || user?.role === '20';
 
   useEffect(() => {
     if (!hasAnyPermission('stock')) {
@@ -37,6 +41,29 @@ function StockDashboardContent() {
       router.replace('/dashboard');
     }
   }, [hasAnyPermission, router]);
+
+  // Prerequisite guidance queries reusing cached data
+  const {
+    data: sites = [],
+    isLoading: isSitesLoading,
+    isError: isSitesError
+  } = useSites();
+
+  const {
+    data: articles = [],
+    isLoading: isArticlesLoading,
+    isError: isArticlesError
+  } = useArticles();
+
+  const {
+    data: transporters = [],
+    isLoading: isTransportersLoading,
+    isError: isTransportersError
+  } = useTransporters();
+
+  // Permission checks for prerequisite configuration action links
+  const canManageConfiguration = isAdmin || hasAnyPermission('configuration');
+  const canAccessArticles = hasAnyPermission('articles');
   
   // Tab State syncing with query param
   const activeTabParam = searchParams.get('tab') || 'list';
@@ -90,6 +117,79 @@ function StockDashboardContent() {
 
       {/* Real-time KPI Statistics Banner */}
       <StockKpiBanner />
+
+      {/* Configuration Prerequisite Guidance — Evaluated from cached queries without duplicate network requests */}
+      {!isSitesLoading && !isSitesError && (!sites || sites.length === 0) && (
+        <PrerequisiteBanner
+          id="stock_require_site"
+          title="Dépôts de stockage requis"
+          description={
+            canManageConfiguration
+              ? "Aucun dépôt ou site de stockage n'a été configuré. Un dépôt est obligatoire pour gérer les inventaires physiques et enregistrer les mouvements de stock."
+              : "Aucun dépôt ou site de stockage n'a été configuré. Veuillez contacter un administrateur pour configurer les points de stockage de votre entreprise."
+          }
+          severity="blocking"
+          action={
+            canManageConfiguration
+              ? { label: "Configurer les dépôts", href: "/settings?tab=enterprise" }
+              : undefined
+          }
+        />
+      )}
+
+      {!isArticlesLoading && !isArticlesError && (!articles || articles.length === 0) && (
+        <PrerequisiteBanner
+          id="stock_require_article"
+          title="Articles du catalogue requis"
+          description={
+            canAccessArticles
+              ? "Votre catalogue ne contient aucun article actif. Ajoutez des références de bois ou marchandises pour pouvoir suivre des niveaux de stock ou initier des transferts."
+              : "Votre catalogue ne contient aucun article actif. Veuillez contacter un administrateur pour configurer le catalogue d'articles."
+          }
+          severity="blocking"
+          action={
+            canAccessArticles
+              ? { label: "Gérer les articles", href: "/articles" }
+              : undefined
+          }
+        />
+      )}
+
+      {!isSitesLoading && !isSitesError && sites && sites.length === 1 && (
+        <PrerequisiteBanner
+          id="stock_recommend_multiple_sites"
+          title="Deux dépôts recommandés pour les transferts"
+          description={
+            canManageConfiguration
+              ? "Votre entreprise ne dispose actuellement que d'un seul dépôt. Les transferts logistiques inter-sites requièrent au moins deux dépôts distincts (origine et destination)."
+              : "Votre entreprise ne dispose actuellement que d'un seul dépôt. La réalisation de transferts logistiques nécessite au moins deux dépôts distincts. Veuillez contacter un administrateur."
+          }
+          severity="recommended"
+          action={
+            canManageConfiguration
+              ? { label: "Ajouter un dépôt", href: "/settings?tab=enterprise" }
+              : undefined
+          }
+        />
+      )}
+
+      {!isTransportersLoading && !isTransportersError && (!transporters || transporters.length === 0) && (
+        <PrerequisiteBanner
+          id="stock_recommend_transporter"
+          title="Transporteurs recommandés pour transferts"
+          description={
+            canManageConfiguration
+              ? "Aucun transporteur n'est configuré. La sélection d'un transporteur est obligatoire lors de l'émission d'un Bon de Sortie inter-dépôts (facultatif pour la consultation du stock)."
+              : "Aucun transporteur n'est configuré. L'émission de transferts logistiques nécessite au moins un transporteur actif. Veuillez contacter un administrateur."
+          }
+          severity="recommended"
+          action={
+            canManageConfiguration
+              ? { label: "Configurer les transporteurs", href: "/settings?tab=params&section=transporters" }
+              : undefined
+          }
+        />
+      )}
 
       {/* Custom Sleek Luxury Tabs switcher */}
       <div className="border-b border-stone-200/60 dark:border-stone-855/80 pb-px print:hidden">
