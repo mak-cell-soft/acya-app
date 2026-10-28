@@ -802,6 +802,129 @@ export const GUIDANCE_REGISTRY: Record<string, ModuleGuidanceDefinition> = {
       },
     ],
   },
+  production: {
+    moduleKey: 'production',
+    routePrefix: '/production',
+    title: 'Atelier & Production',
+    welcome: {
+      title: 'Bienvenue dans l’Atelier de Fabrication',
+      subtitle: 'Transformez vos matières premières en produits finis et maîtrisez vos coûts de fabrication',
+      summary: 'Le module Atelier & Production vous permet d’orchestrer la fabrication de produits finis à partir de vos stocks de matières premières. Suivez pas à pas vos étapes d’usinage, enregistrez les pointages d’heures de vos ouvriers et assurez une mise à jour rigoureuse et automatisée de vos stocks.',
+      highlights: [
+        {
+          title: 'Ordres de fabrication & rattachement atelier',
+          description: 'Créez des ordres de fabrication (OF) structurés et rattachés à un site d’atelier précis pour transformer vos matières en produits finis.',
+        },
+        {
+          title: 'Étapes d’usinage & consommations réelles',
+          description: 'Définissez vos phases de fabrication et enregistrez les quantités réelles de matières et composants consommés à chaque étape.',
+        },
+        {
+          title: 'Mouvements de stock à la validation finale',
+          description: 'La validation définitive d’un ordre décrémente automatiquement les matières premières de l’entrepôt et y incrémente le produit fini.',
+        },
+        {
+          title: 'Pointage ouvriers, taux horaires & coûts de revient',
+          description: 'Pointez les heures de votre main-d’œuvre d’atelier, appliquez des taux horaires et analysez la décomposition précise de vos coûts de fabrication.',
+        },
+      ],
+      quickLinks: [
+        { label: 'Gérer les articles', href: '/articles' },
+        { label: 'Gérer l’équipe', href: '/team' },
+        { label: 'Paramètres atelier', href: '/settings?tab=enterprise' },
+      ],
+    },
+    pageGuidance: {
+      title: 'Pilotage de l’Atelier & Ordres de Fabrication',
+      description: 'Gérez le cycle de vie complet de vos ordres de fabrication, du lancement prévisionnel à la validation finale des stocks et des coûts réels.',
+      workflowSteps: [
+        {
+          stepNumber: 1,
+          title: 'Création de l’ordre de fabrication',
+          description: 'Créez un nouvel OF en renseignant le site d’atelier, la date prévue de fabrication, le produit fini ciblé ainsi que les étapes et matières prévisionnelles.',
+          tip: 'Chaque ordre génère une référence unique (ex: OF-2026-0001) et démarre au statut Planifié.',
+        },
+        {
+          stepNumber: 2,
+          title: 'Démarrage de la fabrication',
+          description: 'Lancez l’ordre de fabrication pour passer son statut En cours et ouvrir le suivi effectif de la première étape de production.',
+          tip: 'Le démarrage formalise le début de l’activité en atelier et permet d’engager les consommations et les pointages.',
+        },
+        {
+          stepNumber: 3,
+          title: 'Affectation des ouvriers & pointage des heures',
+          description: 'Assignez les collaborateurs de votre équipe aux étapes, définissez leurs taux horaires prévus et enregistrez leurs heures effectives travaillées.',
+          tip: 'Les travaux généraux hors-OF (maintenance, nettoyage, déchargement) peuvent être saisis dans le volet Personnel & Prestations.',
+        },
+        {
+          stepNumber: 4,
+          title: 'Clôture de chaque étape avec consommations réelles',
+          description: 'Validez chaque étape terminée en saisissant les quantités réelles de sortie, les composants effectivement consommés et les frais annexes constatés.',
+          tip: 'L’écart entre consommations prévues et réelles permet d’ajuster votre rentabilité et d’affiner vos coûts de revient.',
+        },
+        {
+          stepNumber: 5,
+          title: 'Validation de l’ordre & mouvements de stock définitifs',
+          description: 'Validez l’ordre de fabrication une fois toutes les étapes achevées pour appliquer les sorties de matières premières et l’entrée en stock du produit fini.',
+          tip: 'Attention : la validation finale est irréversible. Elle fige définitivement l’ordre et met à jour le stock physique de votre dépôt.',
+        },
+      ],
+      faq: [
+        {
+          question: 'Comment vérifier la disponibilité des matières premières avant la validation ?',
+          answer: 'Consultez l’onglet « Matières & Stocks » de l’ordre de fabrication. Cet écran compare les besoins totaux de votre nomenclature avec le stock physique disponible dans le dépôt associé. Assurez-vous que le stock est suffisant pour éviter tout blocage lors de la validation.',
+        },
+        {
+          question: 'Quelle est la différence entre consommations prévues et consommations réelles ?',
+          answer: 'Les consommations prévues sont définies lors de la conception de l’OF comme une estimation théorique. Lors de la réalisation ou de la clôture d’une étape, vous enregistrez les quantités réellement consommées (avec les éventuelles pertes ou chutes de bois). Ce sont ces quantités réelles qui déterminent les sorties de stock finales et le coût de revient.',
+        },
+        {
+          question: 'Comment le coût de main-d’œuvre de l’ordre est-il calculé ?',
+          answer: 'Le coût de main-d’œuvre additionne les coûts forfaitaires déclarés sur les étapes et le produit des heures pointées par les ouvriers par leur taux horaire respectif. Ce montant s’agrège automatiquement dans l’analyse des coûts de l’OF.',
+        },
+        {
+          question: 'Comment enregistrer des travaux d’atelier non rattachés à un ordre précis ?',
+          answer: 'Utilisez le volet « Personnel & Prestations » en haut de l’écran, section Prestations diverses hors-OF. Vous pouvez y imputer des heures payables pour des tâches d’entretien, de manutention ou de préparation générale d’atelier.',
+        },
+        {
+          question: 'Le récapitulatif mensuel du personnel déclenche-t-il les paiements et virements ?',
+          answer: 'Non. Le tableau récapitulatif consolide les heures travaillées et calcule les montants payables aux ouvriers pour faciliter la gestion de l’atelier. Le décaissement réel et le versement des salaires s’effectuent via les modules Trésorerie et RH.',
+        },
+        {
+          question: 'Puis-je annuler ou dévalider un ordre de fabrication une fois validé ?',
+          answer: 'Non. La validation finale d’un ordre est irréversible : les matières premières sont décrémentées et le produit fini est entré en stock. En cas d’anomalie après validation, effectuez les ajustements nécessaires via les mouvements de stock (/stock) ou un inventaire physique (/inventory).',
+        },
+      ],
+      tips: [
+        'Vérifiez la disponibilité de vos matières premières dans l’onglet « Matières & Stocks » avant de lancer la fabrication.',
+        'Les pointages journaliers d’ouvriers alimentent directement le récapitulatif mensuel payable sans ressaisie.',
+        'La validation d’un ordre est définitive et verrouille l’ensemble des données pour garantir la cohérence comptable et physique.',
+      ],
+    },
+    prerequisites: [
+      {
+        id: 'production_require_site',
+        title: 'Sites & Ateliers requis',
+        description: 'Aucun site ou atelier n’est configuré. Un site de fabrication est obligatoire pour rattacher vos ordres de fabrication et identifier les dépôts de stockage.',
+        severity: 'blocking',
+        action: { label: 'Configurer les sites', href: '/settings?tab=enterprise' },
+      },
+      {
+        id: 'production_require_article',
+        title: 'Catalogue d’articles requis',
+        description: 'Votre catalogue est vide. Renseignez vos articles et matières premières pour définir vos composants consommés et vos produits finis fabriqués.',
+        severity: 'blocking',
+        action: { label: 'Gérer les articles', href: '/articles' },
+      },
+      {
+        id: 'production_recommend_team',
+        title: 'Collaborateurs & Ouvriers recommandés',
+        description: 'Aucun collaborateur n’est enregistré. Renseignez votre personnel pour affecter des ouvriers aux étapes de fabrication et enregistrer leurs pointages d’heures.',
+        severity: 'recommended',
+        action: { label: 'Gérer l’équipe', href: '/team' },
+      },
+    ],
+  },
 };
 
 /**

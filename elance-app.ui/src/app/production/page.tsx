@@ -34,6 +34,11 @@ import { ProductionStatusBadge } from './components/ProductionStatusBadge';
 import { useProductionOrdersList, useProductionOrderDetail } from '@/hooks/use-production';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { useTenantFeatures } from '@/hooks/use-tenant-features';
+import { useSites } from '@/hooks/use-enterprise';
+import { useArticles } from '@/hooks/use-articles';
+import { usePersons } from '@/hooks/use-team';
+import { useAuthStore } from '@/store/use-auth-store';
+import { PrerequisiteBanner } from '@/components/guidance/prerequisite-banner';
 import { ProductionStatus } from '@/types/production';
 
 const TABS = [
@@ -54,9 +59,34 @@ const STATUS_FILTERS: { label: string; value?: ProductionStatus }[] = [
 
 export default function ProductionPage() {
   const { isManagingProduction } = useTenantFeatures();
-  const { hasPermission } = usePermissionGuard();
+  const { hasPermission, hasAnyPermission } = usePermissionGuard();
   const canRead = hasPermission('production', 'canRead');
   const canAdd = hasPermission('production', 'canAdd');
+
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'Admin' || user?.role === 'SuperAdmin' || user?.role === '10' || user?.role === '20';
+  const canManageConfiguration = isAdmin || hasAnyPermission('configuration');
+  const canAccessArticles = hasAnyPermission('articles');
+  const canAccessTeam = hasAnyPermission('hr');
+
+  // Prerequisite guidance queries reusing cached data
+  const {
+    data: sites = [],
+    isLoading: isSitesLoading,
+    isError: isSitesError,
+  } = useSites({ enabled: isManagingProduction && canRead });
+
+  const {
+    data: articles = [],
+    isLoading: isArticlesLoading,
+    isError: isArticlesError,
+  } = useArticles({ enabled: isManagingProduction && canRead });
+
+  const {
+    data: persons = [],
+    isLoading: isPersonsLoading,
+    isError: isPersonsError,
+  } = usePersons({ enabled: isManagingProduction && canRead });
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState(0);
@@ -124,6 +154,61 @@ export default function ProductionPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Prerequisite Guidance Banners — Evaluated from cached queries without duplicate network requests */}
+        {!isSitesLoading && !isSitesError && (!sites || sites.length === 0) && (
+          <PrerequisiteBanner
+            id="production_require_site"
+            title="Sites & Ateliers requis"
+            description={
+              canManageConfiguration
+                ? "Aucun site ou atelier n’est configuré. Un site de fabrication est obligatoire pour rattacher vos ordres de fabrication et identifier les dépôts de stockage."
+                : "Aucun site ou atelier n’est configuré. Veuillez contacter un administrateur pour configurer les sites et ateliers de votre entreprise."
+            }
+            severity="blocking"
+            action={
+              canManageConfiguration
+                ? { label: "Configurer les sites", href: "/settings?tab=enterprise" }
+                : undefined
+            }
+          />
+        )}
+
+        {!isArticlesLoading && !isArticlesError && (!articles || articles.length === 0) && (
+          <PrerequisiteBanner
+            id="production_require_article"
+            title="Catalogue d’articles requis"
+            description={
+              canAccessArticles
+                ? "Votre catalogue est vide. Renseignez vos articles et matières premières pour définir vos composants consommés et vos produits finis fabriqués."
+                : "Votre catalogue est vide. Veuillez contacter un administrateur pour configurer le catalogue d’articles."
+            }
+            severity="blocking"
+            action={
+              canAccessArticles
+                ? { label: "Gérer les articles", href: "/articles" }
+                : undefined
+            }
+          />
+        )}
+
+        {!isPersonsLoading && !isPersonsError && (!persons || persons.length === 0) && (
+          <PrerequisiteBanner
+            id="production_recommend_team"
+            title="Collaborateurs & Ouvriers recommandés"
+            description={
+              canAccessTeam
+                ? "Aucun collaborateur n’est enregistré. Renseignez votre personnel pour affecter des ouvriers aux étapes de fabrication et enregistrer leurs pointages d’heures."
+                : "Aucun collaborateur n’est enregistré. Veuillez contacter un administrateur pour ajouter vos collaborateurs."
+            }
+            severity="recommended"
+            action={
+              canAccessTeam
+                ? { label: "Gérer l’équipe", href: "/team" }
+                : undefined
+            }
+          />
+        )}
+
         {/* Top Header & Section Switcher */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
           <div className="flex items-center gap-3">
