@@ -683,6 +683,125 @@ export const GUIDANCE_REGISTRY: Record<string, ModuleGuidanceDefinition> = {
       },
     ],
   },
+  chantiers: {
+    moduleKey: 'chantiers',
+    routePrefix: '/chantiers',
+    title: 'Chantiers & Projets de Construction',
+    welcome: {
+      title: 'Bienvenue dans la Gestion de Chantiers',
+      subtitle: 'Pilotez l’avancement opérationnel, la main-d’œuvre, les matériaux et la trésorerie de terrain.',
+      summary: 'Le module Chantiers centralise le suivi de vos projets de construction et de pose. Découpez vos chantiers en phases et tâches opérationnelles, affectez vos équipes et vos engins, suivez les consommations de matériaux et supervisez la petite trésorerie de terrain avec validation mobile.',
+      highlights: [
+        {
+          title: 'Planning WBS & Avancement Automatique',
+          description: 'Structurez vos projets en phases et tâches. L’avancement global du chantier est calculé automatiquement d’après l’achèvement des tâches actives.',
+        },
+        {
+          title: 'Affectation des Équipes & Véhicules',
+          description: 'Affectez vos collaborateurs par corps de métier (chef de chantier, maçon, électricien, etc.) et allouez les engins et véhicules avec chauffeur.',
+        },
+        {
+          title: 'Ledger Matériaux & Alertes Stock Bas',
+          description: 'Définissez vos besoins prévisionnels par référence catalogue, pointez les consommations réelles et suivez les reliquats avec alertes de réapprovisionnement.',
+        },
+        {
+          title: 'Caisse de Terrain & Validation Mobile',
+          description: 'Suivez le solde net de la caisse de chantier, enregistrez les alimentations et approuvez les demandes de fonds émises en direct depuis l’application mobile.',
+        },
+      ],
+      quickLinks: [
+        { label: 'Clients & Commanditaires', href: '/customers', variant: 'outline' },
+        { label: 'Équipe & Collaborateurs', href: '/team', variant: 'outline' },
+        { label: 'Articles & Matériaux', href: '/articles', variant: 'outline' },
+        { label: 'Véhicules & Engins', href: '/vehicles', variant: 'outline' },
+      ],
+    },
+    pageGuidance: {
+      title: 'Guide des Chantiers & Opérations',
+      description: 'Retrouvez les bonnes pratiques pour organiser vos chantiers, suivre l’avancement, allouer les ressources et contrôler la caisse de terrain.',
+      workflowSteps: [
+        {
+          stepNumber: 1,
+          title: 'Ouverture du chantier & cadrage initial',
+          description: 'Créez le chantier avec sa référence, son adresse, sa date de début et son budget prévisionnel. Associez le client maître d’ouvrage et désignez l’architecte référent dans l’onglet Général.',
+          tip: 'Associer un client dès la création facilite le suivi financier et la facturation ultérieure des situations de travaux.',
+        },
+        {
+          stepNumber: 2,
+          title: 'Découpage des phases et tâches (Production)',
+          description: 'Dans l’onglet Production, créez les phases de travaux avec leurs codes couleurs respectifs, puis détaillez les tâches opérationnelles avec dates et collaborateurs responsables.',
+          tip: 'L’état global du chantier bascule automatiquement sur « En cours » dès le démarrage de la première tâche, puis sur « Terminé » quand 100% des tâches sont achevées.',
+        },
+        {
+          stepNumber: 3,
+          title: 'Constitution de l’équipe et allocation des engins',
+          description: 'Dans l’onglet Équipe, affectez les intervenants selon leur rôle chantier. Dans l’onglet Magasin, assignez les véhicules, bennes et engins requis avec conducteur référent.',
+        },
+        {
+          stepNumber: 4,
+          title: 'Planification et pointage des consommations de matériaux',
+          description: 'Dans l’onglet Matériaux, déclarez les quantités prévisionnelles en liant les articles du catalogue. Enregistrez ensuite les consommations réelles de terrain en les rattachant aux tâches.',
+          tip: 'Important : le pointage d’une consommation sur le chantier met à jour le registre interne du projet, mais ne décrémente pas automatiquement le stock central du dépôt. Les sorties magasin transitent par les mouvements de stock et bons de transfert.',
+        },
+        {
+          stepNumber: 5,
+          title: 'Gestion de la caisse de chantier & journal d’événements',
+          description: 'Alimentez la trésorerie de terrain, enregistrez les menues dépenses locales et validez les demandes d’argent soumises depuis l’application mobile par les chefs d’équipe.',
+          tip: 'Seuls les responsables et administrateurs disposent des droits pour approuver les décaissements et consulter le solde net global de la caisse.',
+        },
+      ],
+      faq: [
+        {
+          question: 'Comment l’avancement global du chantier est-il calculé ?',
+          answer: 'L’avancement global (%) est calculé automatiquement à partir de la moyenne pondérée de la progression de toutes les tâches actives du chantier. Vous n’avez pas besoin d’ajuster manuellement le pourcentage global.',
+        },
+        {
+          question: 'L’enregistrement d’une consommation de matériau décrémente-t-il le stock du dépôt central ?',
+          answer: 'Non. Le module Chantier utilise un registre de suivi dédié (Option C ledger). L’enregistrement d’une consommation calcule le reliquat et l’avancement matière du projet, mais ne modifie pas les stocks physiques des dépôts généraux. Pour transférer physiquement du matériel d’un dépôt vers un chantier, utilisez les transferts de stock (/stock) ou les bons de livraison.',
+        },
+        {
+          question: 'Comment fonctionnent les demandes d’argent soumises depuis l’application mobile ?',
+          answer: 'Les intervenants autorisés sur le terrain peuvent demander des fonds d’urgence depuis l’application mobile. Ces demandes apparaissent avec le statut « En attente » dans l’onglet Caisse. Un responsable ou administrateur doit les valider ou les rejeter ; la validation met à jour le solde net de la caisse et notifie immédiatement le collaborateur.',
+        },
+        {
+          question: 'Qui peut consulter le solde net et les transactions de la caisse de chantier ?',
+          answer: 'Pour préserver la confidentialité financière, le solde global de la caisse et l’ensemble des mouvements sont réservés aux administrateurs et responsables. Les collaborateurs non-cadres ne voient que l’historique de leurs propres demandes de fonds.',
+        },
+        {
+          question: 'Que se passe-t-il si un chantier est supprimé ?',
+          answer: 'La suppression d’un chantier effectue une désactivation logique (soft delete). Le chantier, ses phases et ses tâches sont archivés sans perte de données historiques en base.',
+        },
+      ],
+      tips: [
+        'Définissez des seuils de réapprovisionnement minimum sur vos matériaux principaux pour bénéficier d’alertes visuelles automatiques avant rupture.',
+        'Utilisez le journal de bord (onglet Suivi) pour consigner quotidiennement les intempéries, observations ou visites de sécurité.',
+        'La courbe d’avancement dans l’onglet Statistiques permet d’identifier immédiatement tout retard entre le prévisionnel contractuel et le réel constaté.',
+      ],
+    },
+    prerequisites: [
+      {
+        id: 'chantier_recommend_customer',
+        title: 'Clients & Maîtres d’ouvrage recommandés',
+        description: 'Aucun client n’est actuellement enregistré. Associer un client commanditaire est fortement recommandé pour rattacher le maître d’ouvrage et faciliter la facturation.',
+        severity: 'recommended',
+        action: { label: 'Gérer les clients', href: '/customers' },
+      },
+      {
+        id: 'chantier_recommend_team',
+        title: 'Collaborateurs & Équipes recommandés',
+        description: 'Votre entreprise ne comporte encore aucun collaborateur enregistré. Ajoutez du personnel pour affecter des architectes, conducteurs de travaux et ouvriers à vos chantiers.',
+        severity: 'recommended',
+        action: { label: 'Gérer l’équipe', href: '/team' },
+      },
+      {
+        id: 'chantier_recommend_article',
+        title: 'Catalogue d’articles recommandé',
+        description: 'Votre catalogue d’articles est vide. Renseignez vos matériaux, fournitures et prestations pour composer vos feuilles de besoins et suivre les consommations de chantier.',
+        severity: 'recommended',
+        action: { label: 'Gérer le catalogue', href: '/articles' },
+      },
+    ],
+  },
 };
 
 /**

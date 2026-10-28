@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { usePageGuidance } from '@/hooks/use-page-guidance';
-import { Sparkles, ArrowRight, CheckCircle2, Package, Layers, ShoppingCart, TrendingUp, Warehouse, ClipboardList } from 'lucide-react';
+import { Sparkles, ArrowRight, CheckCircle2, Package, Layers, ShoppingCart, TrendingUp, Warehouse, ClipboardList, HardHat } from 'lucide-react';
 
 export function WelcomeDialog() {
   const router = useRouter();
@@ -31,19 +31,19 @@ export function WelcomeDialog() {
 
   // Auto-display on first visit when hydrated and not dismissed
   useEffect(() => {
-    // Active on pilot modules: articles, purchases, sales, stock, and inventory
+    // Active on pilot modules: articles, purchases, sales, stock, inventory, and chantiers
     if (
       hasHydrated &&
       guidance?.welcome &&
       !isWelcomeDismissed &&
       !hasClosedThisVisit.current &&
-      (moduleKey === 'articles' || moduleKey === 'purchases' || moduleKey === 'sales' || moduleKey === 'stock' || moduleKey === 'inventory')
+      (moduleKey === 'articles' || moduleKey === 'purchases' || moduleKey === 'sales' || moduleKey === 'stock' || moduleKey === 'inventory' || moduleKey === 'chantiers')
     ) {
       setIsOpen(true);
     }
   }, [hasHydrated, guidance, isWelcomeDismissed, moduleKey]);
 
-  if (!guidance?.welcome || (moduleKey !== 'articles' && moduleKey !== 'purchases' && moduleKey !== 'sales' && moduleKey !== 'stock' && moduleKey !== 'inventory')) {
+  if (!guidance?.welcome || (moduleKey !== 'articles' && moduleKey !== 'purchases' && moduleKey !== 'sales' && moduleKey !== 'stock' && moduleKey !== 'inventory' && moduleKey !== 'chantiers')) {
     return null;
   }
 
@@ -81,7 +81,9 @@ export function WelcomeDialog() {
         {/* Visual Header Banner */}
         <div className="relative bg-gradient-to-r from-corp-blue-900 via-corp-blue-800 to-corp-blue-900 p-6 sm:p-8 text-white overflow-hidden">
           <div className="absolute right-0 top-0 translate-x-4 -translate-y-4 opacity-10 pointer-events-none">
-            {moduleKey === 'inventory' ? (
+            {moduleKey === 'chantiers' ? (
+              <HardHat className="w-48 h-48" />
+            ) : moduleKey === 'inventory' ? (
               <ClipboardList className="w-48 h-48" />
             ) : moduleKey === 'stock' ? (
               <Warehouse className="w-48 h-48" />
@@ -122,7 +124,9 @@ export function WelcomeDialog() {
           {/* Highlights List */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-corp-blue-900">
-              {moduleKey === 'inventory'
+              {moduleKey === 'chantiers'
+                ? 'Points clés de la gestion de chantier'
+                : moduleKey === 'inventory'
                 ? 'Points clés des inventaires physiques'
                 : moduleKey === 'stock'
                 ? 'Points clés du stock & de la logistique'

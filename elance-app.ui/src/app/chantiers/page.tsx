@@ -48,6 +48,9 @@ import {
   useDeleteChantier,
 } from '@/hooks/use-chantiers';
 import { useCustomers } from '@/hooks/use-customers';
+import { usePersons } from '@/hooks/use-team';
+import { useArticles } from '@/hooks/use-articles';
+import { PrerequisiteBanner } from '@/components/guidance/prerequisite-banner';
 import { CreateChantierInput, UpdateChantierInput, ChantierStatus, ChantierFlag } from '@/types/chantier';
 import {
   formatChantierClientOptionLabel,
@@ -69,8 +72,12 @@ const TABS = [
 
 export default function ChantiersPage() {
   const { isManagingConstructions } = useTenantFeatures();
-  const { hasPermission } = usePermissionGuard();
+  const { hasPermission, hasAnyPermission } = usePermissionGuard();
   const canRead = hasPermission('chantier', 'canRead');
+
+  const canAccessCustomers = hasAnyPermission('customers');
+  const canAccessTeam = hasAnyPermission('hr');
+  const canAccessArticles = hasAnyPermission('articles');
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState(0);
@@ -93,7 +100,23 @@ export default function ChantiersPage() {
     { search: searchTerm },
     { enabled: isManagingConstructions && canRead }
   );
-  const { data: customers = [] } = useCustomers('Customer');
+  const {
+    data: customers = [],
+    isLoading: isCustomersLoading,
+    isError: isCustomersError,
+  } = useCustomers('Customer');
+
+  const {
+    data: persons = [],
+    isLoading: isPersonsLoading,
+    isError: isPersonsError,
+  } = usePersons();
+
+  const {
+    data: articles = [],
+    isLoading: isArticlesLoading,
+    isError: isArticlesError,
+  } = useArticles();
   const createChantier = useCreateChantier();
   const deleteChantier = useDeleteChantier();
 
@@ -251,8 +274,64 @@ export default function ChantiersPage() {
 
   return (
     <DashboardLayout>
-      {/* Framed dual-pane container with premium responsive layout */}
-      <div className="flex h-[calc(100vh-140px)] min-h-[660px] bg-[#f8f9fa] rounded-2xl border border-black/5 shadow-xs overflow-hidden">
+      <div className="space-y-4">
+        {/* Recommended Prerequisite Guidance — Evaluated from cached queries without duplicate network requests */}
+        {!isCustomersLoading && !isCustomersError && (!customers || customers.length === 0) && (
+          <PrerequisiteBanner
+            id="chantier_recommend_customer"
+            title="Clients & Maîtres d’ouvrage recommandés"
+            description={
+              canAccessCustomers
+                ? "Aucun client n’est actuellement enregistré. Associer un client commanditaire est fortement recommandé pour rattacher le maître d’ouvrage et faciliter la facturation."
+                : "Aucun client n’est actuellement enregistré. Veuillez contacter un administrateur pour renseigner vos clients commanditaires."
+            }
+            severity="recommended"
+            action={
+              canAccessCustomers
+                ? { label: "Gérer les clients", href: "/customers" }
+                : undefined
+            }
+          />
+        )}
+
+        {!isPersonsLoading && !isPersonsError && (!persons || persons.length === 0) && (
+          <PrerequisiteBanner
+            id="chantier_recommend_team"
+            title="Collaborateurs & Équipes recommandés"
+            description={
+              canAccessTeam
+                ? "Votre entreprise ne comporte encore aucun collaborateur enregistré. Ajoutez du personnel pour affecter des architectes, conducteurs de travaux et ouvriers à vos chantiers."
+                : "Votre entreprise ne comporte encore aucun collaborateur enregistré. Veuillez contacter un administrateur pour ajouter vos collaborateurs."
+            }
+            severity="recommended"
+            action={
+              canAccessTeam
+                ? { label: "Gérer l’équipe", href: "/team" }
+                : undefined
+            }
+          />
+        )}
+
+        {!isArticlesLoading && !isArticlesError && (!articles || articles.length === 0) && (
+          <PrerequisiteBanner
+            id="chantier_recommend_article"
+            title="Catalogue d’articles recommandé"
+            description={
+              canAccessArticles
+                ? "Votre catalogue d’articles est vide. Renseignez vos matériaux, fournitures et prestations pour composer vos feuilles de besoins et suivre les consommations de chantier."
+                : "Votre catalogue d’articles est vide. Veuillez contacter un administrateur pour configurer le catalogue d’articles."
+            }
+            severity="recommended"
+            action={
+              canAccessArticles
+                ? { label: "Gérer le catalogue", href: "/articles" }
+                : undefined
+            }
+          />
+        )}
+
+        {/* Framed dual-pane container with premium responsive layout */}
+        <div className="flex h-[calc(100vh-140px)] min-h-[660px] bg-[#f8f9fa] rounded-2xl border border-black/5 shadow-xs overflow-hidden">
         {/* Left Sidebar: Mes Chantiers */}
         <aside className="w-full md:w-[340px] bg-white border-r border-black/5 shadow-[2px_0_12px_rgba(0,0,0,0.02)] z-10 flex flex-col shrink-0">
           <div className="p-4 border-b border-black/5 space-y-3">
@@ -596,6 +675,7 @@ export default function ChantiersPage() {
           )}
         </main>
       </div>
+    </div>
 
       {/* Modal: Nouveau Chantier */}
       <ChantierModal
