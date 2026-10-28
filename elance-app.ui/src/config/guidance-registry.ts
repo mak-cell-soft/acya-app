@@ -291,6 +291,147 @@ export const GUIDANCE_REGISTRY: Record<string, ModuleGuidanceDefinition> = {
       },
     ],
   },
+  sales: {
+    moduleKey: 'sales',
+    routePrefix: '/sales',
+    title: 'Ventes & Facturation Clients',
+    welcome: {
+      title: 'Bienvenue dans le module Ventes & Facturation Clients',
+      subtitle: 'Pilotez vos devis, commandes, bons de livraison, factures et règlements clients.',
+      summary: 'Le module Ventes centralise l’intégralité du cycle commercial et de facturation de votre ERP Élancé. De l’émission du devis à la livraison physique du bois, en passant par la facturation directe ou groupée et l’encaissement des règlements, assurez une traçabilité rigoureuse de vos créances et de vos sorties de stock.',
+      highlights: [
+        {
+          title: 'Devis & Commandes (sans impact stock)',
+          description: 'Négociez et contractualisez vos ventes en toute flexibilité sans affecter immédiatement l’inventaire physique.',
+        },
+        {
+          title: 'Bons de Livraison (BL) & Sorties de Stock',
+          description: 'La validation du BL constate la sortie physique réelle de marchandise de votre dépôt et décrémente immédiatement les stocks.',
+        },
+        {
+          title: 'Facturation directe & Groupement de BLs',
+          description: 'Émettez des factures directes ou convertissez plusieurs BLs d’un même client en facture unique sans doublon de mouvement de stock.',
+        },
+        {
+          title: 'Règlements, Avoirs & Suivi des Impayés',
+          description: 'Enregistrez les règlements comptants ou échelonnés, gérez les retenues à la source (RS), les retours de marchandises et suivez les créances clients.',
+        },
+      ],
+      quickLinks: [
+        { label: 'Clients', href: '/customers', variant: 'outline' },
+        { label: 'Articles & Catalogue', href: '/articles', variant: 'outline' },
+        { label: 'Dépôts & Stockage', href: '/settings?tab=enterprise', variant: 'outline' },
+        { label: 'Transporteurs', href: '/settings?tab=params&section=transporters', variant: 'outline' },
+        { label: 'Taxes & Timbres', href: '/settings?tab=params&section=taxes', variant: 'outline' },
+        { label: 'Plafond quotidien', href: '/settings?tab=ceiling', variant: 'outline' },
+      ],
+    },
+    pageGuidance: {
+      title: 'Guide du cycle Ventes & Facturation Clients',
+      description: 'Consultez le déroulement complet des opérations de vente, les effets précis sur le stock physique et les bonnes pratiques de facturation.',
+      workflowSteps: [
+        {
+          stepNumber: 1,
+          title: 'Préalables et configurations',
+          description: 'Vérifiez la présence d’au moins un client actif (ou l’activation de l’option Client Passager), d’articles dans votre catalogue, d’un dépôt de stockage et d’au moins un transporteur pour les livraisons.',
+          tip: 'Clients > /customers | Transporteurs > Paramètres > Transporteurs',
+        },
+        {
+          stepNumber: 2,
+          title: 'Devis & Commande Client (sans impact stock)',
+          description: 'Émettez des devis tarifaires ou enregistrez les commandes fermes. Ces documents contractuels n’engendrent aucun mouvement sur le stock physique (stocktransactiontype = None).',
+          tip: 'Vous pouvez convertir directement un devis accepté en commande ou en bon de livraison.',
+        },
+        {
+          stepNumber: 3,
+          title: 'Livraison physique & Déstockage (BL)',
+          description: 'Lors de l’expédition ou de l’enlèvement des marchandises, validez le Bon de Livraison (BL). Cette action enregistre la sortie physique de stock (décrémentation) dans le dépôt sélectionné. La désignation d’un transporteur est obligatoire.',
+          tip: 'Pour le bois, détaillez le cubage (m³) et les numéros de colis pour assurer la traçabilité des paquets expédiés.',
+        },
+        {
+          stepNumber: 4,
+          title: 'Facturation (Directe ou issue de BL)',
+          description: 'Deux modes de facturation sont disponibles : la Facture Directe (qui génère une sortie de stock immédiate) et la Facture issue de BL (individuelle ou groupée, sans aucun impact stock supplémentaire pour éviter les doubles déductions).',
+          tip: 'Les factures générées depuis des BLs sont verrouillées contre la modification directe des lignes pour préserver la concordance avec les bons de livraison.',
+        },
+        {
+          stepNumber: 5,
+          title: 'Règlements, Retours & Clôture',
+          description: 'Saisissez les règlements reçus (chèques, traites, espèces, virements) et les retenues à la source (RS). En cas de retour de marchandise ou de litige, émettez un Avoir / Retour pour réintégrer les quantités en stock.',
+          tip: 'Le règlement d’une facture ou d’un BL n’impacte pas le stock physique.',
+        },
+      ],
+      faq: [
+        {
+          question: 'Quel est l’impact de chaque type de document sur le stock physique ?',
+          answer: '• Devis et Commande : aucun impact sur le stock physique (aucun déstockage).\n• Bon de Livraison (BL) : sortie physique immédiate de stock (décrémentation).\n• Facture Directe : sortie physique immédiate de stock (décrémentation).\n• Facture issue de BL(s) (individuelle ou groupée) : AUCUN impact stock supplémentaire (la déduction a déjà été effectuée lors de la validation du BL).\n• Avoir / Retour marchandise : entrée physique en stock (réintégration des quantités).\n• Règlement client : aucun impact sur le stock.',
+        },
+        {
+          question: 'Quand la désignation d’un transporteur est-elle obligatoire ?',
+          answer: 'Le transporteur est obligatoire lors de la validation d’un Bon de Livraison (BL) ou d’une Facture Directe pour assurer la conformité d’expédition et de transport. Il est en revanche facultatif pour la rédaction des Devis et Commandes.',
+        },
+        {
+          question: 'Comment fonctionne l’option « Client Passager » ?',
+          answer: 'L’option Client Passager permet de saisir rapidement des ventes de comptoir au comptant sans créer au préalable une fiche client détaillée complète. Cependant, elle ne dispense pas de la présence générale de la base clients ni des autres exigences légales (taux de TVA, dépôt de départ, transporteur si livraison).',
+        },
+        {
+          question: 'Pourquoi ne puis-je pas modifier les lignes d’une facture issue d’un BL ?',
+          answer: 'Une facture générée à partir d’un ou plusieurs Bons de Livraison reflète juridiquement et comptablement les marchandises déjà livrées. Afin d’éviter tout écart entre la livraison constatée et la facturation, le document est verrouillé en modification directe. Pour ajuster des quantités, modifiez le BL d’origine avant facturation ou émettez un avoir.',
+        },
+        {
+          question: 'Comment fonctionne la Facturation Groupée ?',
+          answer: 'Dans la liste des documents, le bouton Facturation Groupée vous permet de sélectionner plusieurs Bons de Livraison validés d’un même client pour les fusionner en une facture unique. Chaque ligne de BL est reprise fidèlement sans recalcul de stock.',
+        },
+        {
+          question: 'Qu’est-ce que le plafond quotidien de facturation ?',
+          answer: 'Le plafond quotidien limite le montant total TTC facturable par jour selon les règles de gestion ou fiscales de votre entreprise. Il se configure dans Paramètres > Plafond quotidien.',
+        },
+      ],
+      tips: [
+        'Utilisez la « Recherche Approfondie » pour analyser l’historique des ventes par article, client ou période exacte.',
+        'Pour le négoce du bois, les longueurs, largeurs et épaisseurs calculent automatiquement le cubage en m³ et le montant total de la ligne.',
+        'Enregistrez les attestations de retenue à la source (RS) directement depuis le panneau latéral dédié pour un lettrage comptable fluide.',
+        'Vérifiez que le timbre fiscal est activé dans vos paramètres fiscaux si vos factures clients y sont assujetties.',
+      ],
+    },
+    prerequisites: [
+      {
+        id: 'sales_require_customer',
+        title: 'Clients requis',
+        description: 'La création de devis, commandes, bons de livraison et factures nécessite au moins un client actif enregistré dans la base.',
+        severity: 'blocking',
+        action: { label: 'Gérer les clients', href: '/customers' },
+      },
+      {
+        id: 'sales_require_article',
+        title: 'Articles du catalogue requis',
+        description: 'Au moins un article actif (marchandise ou prestation de service) doit être enregistré pour composer vos lignes de vente.',
+        severity: 'blocking',
+        action: { label: 'Gérer les articles', href: '/articles' },
+      },
+      {
+        id: 'sales_require_site',
+        title: 'Dépôts de stockage requis',
+        description: 'Un dépôt ou point de vente est indispensable pour déduire les sorties d’inventaire lors des livraisons et ventes directes.',
+        severity: 'blocking',
+        action: { label: 'Configurer les dépôts', href: '/settings?tab=enterprise' },
+      },
+      {
+        id: 'sales_require_transporter',
+        title: 'Transporteurs recommandés',
+        description: 'Un transporteur est obligatoire pour valider les Bons de Livraison (BL) et Factures Directes (facultatif pour devis et commandes).',
+        severity: 'recommended',
+        action: { label: 'Configurer les transporteurs', href: '/settings?tab=params&section=transporters' },
+      },
+      {
+        id: 'sales_require_taxe',
+        title: 'TVA et timbre fiscal pour facturation',
+        description: 'Vérifiez la configuration des taux de TVA et du timbre fiscal pour la conformité de vos factures clients.',
+        severity: 'recommended',
+        action: { label: 'Configurer les taxes', href: '/settings?tab=params&section=taxes' },
+      },
+    ],
+  },
 };
 
 /**

@@ -68,6 +68,11 @@ import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { useAuthStore } from '@/store/use-auth-store';
+import { useCustomers } from '@/hooks/use-customers';
+import { useArticles } from '@/hooks/use-articles';
+import { useSites } from '@/hooks/use-enterprise';
+import { useTransporters } from '@/hooks/use-transporters';
+import { PrerequisiteBanner } from '@/components/guidance/prerequisite-banner';
 
 const MONTHS = [
   'Janvier',
@@ -178,6 +183,36 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
   );
 
   const deleteDocMutation = useDeleteDocument();
+
+  // Prerequisite guidance queries reusing cached data
+  const {
+    data: customers = [],
+    isLoading: isCustomersLoading,
+    isError: isCustomersError
+  } = useCustomers('Customer');
+
+  const {
+    data: articles = [],
+    isLoading: isArticlesLoading,
+    isError: isArticlesError
+  } = useArticles();
+
+  const {
+    data: sites = [],
+    isLoading: isSitesLoading,
+    isError: isSitesError
+  } = useSites();
+
+  const {
+    data: transporters = [],
+    isLoading: isTransportersLoading,
+    isError: isTransportersError
+  } = useTransporters();
+
+  // Permission checks for prerequisite configuration action links
+  const canManageConfiguration = isAdmin || hasAnyPermission('configuration');
+  const canAccessCustomers = hasAnyPermission('customers');
+  const canAccessArticles = hasAnyPermission('articles');
 
   // Navigation handlers
   const handlePrevMonth = () => {
@@ -468,6 +503,79 @@ export default function SalesPage({ defaultTab = 'bl' }: { defaultTab?: string }
             </div>
           </Card>
         </div>
+
+        {/* Configuration Prerequisite Guidance — Evaluated from cached queries without duplicate network requests */}
+        {!isCustomersLoading && !isCustomersError && (!customers || customers.length === 0) && (
+          <PrerequisiteBanner
+            id="sales_require_customer"
+            title="Clients requis"
+            description={
+              canAccessCustomers
+                ? "Vous devez enregistrer au moins un client actif pour créer des devis, commandes, bons de livraison ou factures."
+                : "Aucun client actif n'est enregistré dans votre entreprise. Veuillez contacter un utilisateur autorisé ou un administrateur pour ajouter des clients."
+            }
+            severity="blocking"
+            action={
+              canAccessCustomers
+                ? { label: "Gérer les clients", href: "/customers" }
+                : undefined
+            }
+          />
+        )}
+
+        {!isArticlesLoading && !isArticlesError && (!articles || articles.length === 0) && (
+          <PrerequisiteBanner
+            id="sales_require_article"
+            title="Articles du catalogue requis"
+            description={
+              canAccessArticles
+                ? "Votre catalogue ne contient aucun article actif (marchandises ou prestations). Ajoutez des références pour alimenter vos lignes de vente."
+                : "Votre catalogue ne contient aucun article actif. Veuillez contacter un administrateur pour configurer le catalogue d'articles."
+            }
+            severity="blocking"
+            action={
+              canAccessArticles
+                ? { label: "Gérer les articles", href: "/articles" }
+                : undefined
+            }
+          />
+        )}
+
+        {!isSitesLoading && !isSitesError && (!sites || sites.length === 0) && (
+          <PrerequisiteBanner
+            id="sales_require_site"
+            title="Dépôts de stockage requis"
+            description={
+              canManageConfiguration
+                ? "Aucun dépôt ou site de stockage n'a été configuré. Un dépôt est obligatoire pour déduire les sorties d'inventaire lors des livraisons et ventes."
+                : "Aucun dépôt ou site de stockage n'a été configuré. Veuillez contacter un administrateur pour configurer les points de stockage de votre entreprise."
+            }
+            severity="blocking"
+            action={
+              canManageConfiguration
+                ? { label: "Configurer les dépôts", href: "/settings?tab=enterprise" }
+                : undefined
+            }
+          />
+        )}
+
+        {!isTransportersLoading && !isTransportersError && (!transporters || transporters.length === 0) && (
+          <PrerequisiteBanner
+            id="sales_require_transporter"
+            title="Transporteurs recommandés"
+            description={
+              canManageConfiguration
+                ? "Aucun transporteur n'est configuré. Un transporteur est obligatoire pour valider les Bons de Livraison (BL) et les Factures Directes (mais facultatif pour les Devis et Commandes)."
+                : "Aucun transporteur n'est configuré. La validation des bons de livraison et factures directes nécessite au moins un transporteur. Veuillez contacter un administrateur."
+            }
+            severity="recommended"
+            action={
+              canManageConfiguration
+                ? { label: "Configurer les transporteurs", href: "/settings?tab=params&section=transporters" }
+                : undefined
+            }
+          />
+        )}
 
         {/* Tab view */}
         <Card className="border-sand-200/80 shadow-md rounded-xl overflow-hidden bg-white">

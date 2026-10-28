@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { usePageGuidance } from '@/hooks/use-page-guidance';
-import { Sparkles, ArrowRight, CheckCircle2, Package, Layers, ShoppingCart } from 'lucide-react';
+import { Sparkles, ArrowRight, CheckCircle2, Package, Layers, ShoppingCart, TrendingUp } from 'lucide-react';
 
 export function WelcomeDialog() {
   const router = useRouter();
@@ -31,19 +31,19 @@ export function WelcomeDialog() {
 
   // Auto-display on first visit when hydrated and not dismissed
   useEffect(() => {
-    // Active on pilot modules: articles and purchases
+    // Active on pilot modules: articles, purchases, and sales
     if (
       hasHydrated &&
       guidance?.welcome &&
       !isWelcomeDismissed &&
       !hasClosedThisVisit.current &&
-      (moduleKey === 'articles' || moduleKey === 'purchases')
+      (moduleKey === 'articles' || moduleKey === 'purchases' || moduleKey === 'sales')
     ) {
       setIsOpen(true);
     }
   }, [hasHydrated, guidance, isWelcomeDismissed, moduleKey]);
 
-  if (!guidance?.welcome || (moduleKey !== 'articles' && moduleKey !== 'purchases')) {
+  if (!guidance?.welcome || (moduleKey !== 'articles' && moduleKey !== 'purchases' && moduleKey !== 'sales')) {
     return null;
   }
 
@@ -81,7 +81,9 @@ export function WelcomeDialog() {
         {/* Visual Header Banner */}
         <div className="relative bg-gradient-to-r from-corp-blue-900 via-corp-blue-800 to-corp-blue-900 p-6 sm:p-8 text-white overflow-hidden">
           <div className="absolute right-0 top-0 translate-x-4 -translate-y-4 opacity-10 pointer-events-none">
-            {moduleKey === 'purchases' ? (
+            {moduleKey === 'sales' ? (
+              <TrendingUp className="w-48 h-48" />
+            ) : moduleKey === 'purchases' ? (
               <ShoppingCart className="w-48 h-48" />
             ) : (
               <Package className="w-48 h-48" />
@@ -116,7 +118,11 @@ export function WelcomeDialog() {
           {/* Highlights List */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-corp-blue-900">
-              {moduleKey === 'purchases' ? 'Points clés des achats' : 'Points clés du catalogue'}
+              {moduleKey === 'sales'
+                ? 'Points clés des ventes'
+                : moduleKey === 'purchases'
+                ? 'Points clés des achats'
+                : 'Points clés du catalogue'}
             </h4>
             <div className="grid grid-cols-1 gap-3">
               {welcome.highlights.map((highlight, idx) => (
