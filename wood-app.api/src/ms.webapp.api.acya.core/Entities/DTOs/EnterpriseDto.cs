@@ -35,6 +35,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public string? customDomain { get; set; }
     public string? language { get; set; }
     public string? currency { get; set; }
+    public string? country { get; set; }
     public string? rneDocumentUrl { get; set; }
     public SiteDto[]? sites { get; set; }
     public AppUserEnterpriseDto? user { get; set; }
@@ -125,6 +126,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     [Required]
     [MinLength(8, ErrorMessage = "Password must be at least 8 characters.")]
     public string? password { get; set; }
+    public string? passwordHash { get; set; }
+    public string? passwordSalt { get; set; }
     public string? role { get; set; }
     public int? defaultSiteIndex { get; set; }
 

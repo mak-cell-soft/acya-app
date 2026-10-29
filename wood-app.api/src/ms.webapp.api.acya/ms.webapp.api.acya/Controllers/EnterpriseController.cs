@@ -101,6 +101,22 @@ namespace ms.webapp.api.acya.api.Controllers
       return Ok(new { entId = newEnterprise.Id, message = "Enterprise added successfully" });
     }
 
+    [HttpGet("check-email")]
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    public async Task<ActionResult> CheckEmail([FromQuery] string? email)
+    {
+      if (string.IsNullOrWhiteSpace(email))
+      {
+        return Ok(new { exists = false });
+      }
+
+      var normalizedEmail = email.Trim().ToLowerInvariant();
+      var exists = await _masterDb.TenantRegistries
+        .AnyAsync(t => t.Email != null && t.Email.ToLower() == normalizedEmail);
+
+      return Ok(new { exists });
+    }
+
     [HttpPost("request-registration")]
     [Microsoft.AspNetCore.Authorization.AllowAnonymous]
     public async Task<ActionResult> RequestRegistration(EnterpriseDto dto)
@@ -115,25 +131,30 @@ namespace ms.webapp.api.acya.api.Controllers
         return BadRequest("Le nom de l'entreprise est requis.");
       }
 
-      if (string.IsNullOrWhiteSpace(dto.matriculeFiscal))
+      var contactEmail = (!string.IsNullOrWhiteSpace(dto.email) ? dto.email : dto.user?.email)?.Trim();
+      if (string.IsNullOrWhiteSpace(contactEmail))
       {
-        return BadRequest("Le matricule fiscal est requis.");
+        return BadRequest("L'adresse e-mail est requise.");
       }
 
-      // Check if RNE PDF document is required by platform settings
-      var rneSetting = await _masterDb.PlatformSettings.FirstOrDefaultAsync(s => s.Key == "RneRequired");
-      bool isRneRequired = rneSetting == null || !rneSetting.Value.Equals("false", StringComparison.OrdinalIgnoreCase);
-
-      if (isRneRequired && string.IsNullOrWhiteSpace(dto.rneDocumentUrl))
+      var normalizedEmail = contactEmail.ToLowerInvariant();
+      var existingEmail = await _masterDb.TenantRegistries
+        .AnyAsync(t => t.Email != null && t.Email.ToLower() == normalizedEmail);
+      if (existingEmail)
       {
-        return BadRequest("Le document PDF RNE est obligatoire.");
+        return BadRequest("Cette adresse e-mail est déjà utilisée par un compte existant.");
       }
 
-      // Check if enterprise with the same matricule fiscal already exists in master db
-      var existingMF = await _masterDb.TenantRegistries.FirstOrDefaultAsync(t => t.Notes != null && t.Notes.Contains(dto.matriculeFiscal));
-      if (existingMF != null)
+      // Check if enterprise with the same matricule fiscal already exists in master db (when provided)
+      if (!string.IsNullOrWhiteSpace(dto.matriculeFiscal))
       {
-        return BadRequest("Une demande d'inscription avec ce matricule fiscal existe déjà.");
+        var trimmedMf = dto.matriculeFiscal.Trim();
+        var existingMF = await _masterDb.TenantRegistries
+          .FirstOrDefaultAsync(t => t.Notes != null && t.Notes.Contains(trimmedMf));
+        if (existingMF != null)
+        {
+          return BadRequest("Une demande d'inscription avec ce matricule fiscal existe déjà.");
+        }
       }
 
       // Auto-generate candidate slug
@@ -155,12 +176,27 @@ namespace ms.webapp.api.acya.api.Controllers
       }
       string finalSlug = uniqueSlug;
 
+      // Securely hash customer password and redact plaintext before serializing to Notes
+      if (dto.user != null && !string.IsNullOrWhiteSpace(dto.user.password))
+      {
+        using var hmac = new System.Security.Cryptography.HMACSHA512();
+        var hashBytes = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(dto.user.password));
+        var saltBytes = hmac.Key;
+        dto.user.passwordHash = Convert.ToBase64String(hashBytes);
+        dto.user.passwordSalt = Convert.ToBase64String(saltBytes);
+        dto.user.password = null; // Plaintext permanently redacted from memory and serialization
+      }
+
+      var resolvedCurrency = !string.IsNullOrWhiteSpace(dto.currency)
+        ? dto.currency
+        : (!string.IsNullOrWhiteSpace(dto.devise) ? dto.devise : "TND");
+
       // Map to TenantRegistry object
       var pendingTenant = new TenantRegistry
       {
-        Name = dto.name,
+        Name = dto.name.Trim(),
         Slug = finalSlug,
-        Email = dto.email,
+        Email = contactEmail,
         Phone = dto.phone,
         SchemaName = $"tenant_{finalSlug.Replace("-", "_")}",
         ConnectionString = _configuration.GetConnectionString("WoodAppContextConnection")
@@ -174,7 +210,10 @@ namespace ms.webapp.api.acya.api.Controllers
         PrimaryColor = dto.primaryColor ?? "#3B82F6",
         SecondaryColor = dto.secondaryColor,
         Language = dto.language ?? "fr",
-        Currency = dto.currency ?? "EUR",
+        Currency = resolvedCurrency,
+        IsSalingWood = dto.issalingwood ?? false,
+        IsManagingConstructions = dto.ismanagingconstructions ?? false,
+        IsManagingProduction = dto.ismanagingproduction ?? false,
         RneDocumentUrl = dto.rneDocumentUrl,
         Notes = System.Text.Json.JsonSerializer.Serialize(dto)
       };

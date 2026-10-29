@@ -133,6 +133,7 @@ export default function EnterprisesPage() {
   const [adminUsername, setAdminUsername] = useState("admin");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
+  const [hasCustomerPassword, setHasCustomerPassword] = useState(false);
 
   const clearForm = () => {
     setExistingId(null);
@@ -157,6 +158,7 @@ export default function EnterprisesPage() {
     setAdminUsername("admin");
     setAdminEmail("");
     setAdminPassword("");
+    setHasCustomerPassword(false);
 
     setDescription("");
     setMobileOne("");
@@ -394,7 +396,8 @@ export default function EnterprisesPage() {
       isManagingProduction,
       adminUsername,
       adminEmail: adminEmail || email || `admin@${slug || "tenant"}.acya.site`,
-      adminPassword: adminPassword || "AdminPass123!",
+      adminPassword: adminPassword.trim() ? adminPassword.trim() : null,
+      hasAdminPasswordOverride: Boolean(adminPassword.trim()),
       description: description || null,
       mobileOne: mobileOne || null,
       mobileTwo: mobileTwo || null,
@@ -445,7 +448,11 @@ export default function EnterprisesPage() {
           slug: createdResponse.slug || payload.slug,
           adminUsername,
           adminEmail: payload.adminEmail,
-          adminPassword: payload.adminPassword,
+          adminPassword: adminPassword.trim()
+            ? adminPassword.trim()
+            : (hasCustomerPassword
+                ? "[Défini lors de l'inscription (Sécurisé)]"
+                : "[Auto-généré par le système]"),
           url: `https://${createdResponse.slug || payload.slug}.acya.site`
         });
 
@@ -592,15 +599,18 @@ export default function EnterprisesPage() {
     if (ent.notes) {
       try {
         const payload = JSON.parse(ent.notes);
-        setIsSalingWood(payload.issalingwood ?? payload.isSalingWood ?? false);
-        setIsManagingConstructions(payload.ismanagingconstructions ?? payload.isManagingConstructions ?? false);
-        setIsManagingProduction(payload.ismanagingproduction ?? payload.isManagingProduction ?? false);
+        setIsSalingWood(payload.issalingwood ?? payload.isSalingWood ?? ent.isSalingWood ?? false);
+        setIsManagingConstructions(payload.ismanagingconstructions ?? payload.isManagingConstructions ?? ent.isManagingConstructions ?? false);
+        setIsManagingProduction(payload.ismanagingproduction ?? payload.isManagingProduction ?? ent.isManagingProduction ?? false);
         
         setDescription(payload.description || "");
         setMobileOne(payload.mobileOne || "");
         setMobileTwo(payload.mobileTwo || "");
         setMatriculeFiscal(payload.matriculeFiscal || "");
-        setDevise(payload.devise || "TND");
+        setDevise(payload.devise || payload.currency || ent.currency || "TND");
+        if (payload.currency || payload.devise) {
+          setCurrency(payload.currency || payload.devise);
+        }
         setSiegeAddress(payload.siegeAddress || "");
         setCommercialRegister(payload.commercialregister || payload.commercialRegister || "");
         setCapital(payload.capital || "");
@@ -616,22 +626,24 @@ export default function EnterprisesPage() {
           setAdminUsername(payload.user.name || "admin");
           setAdminSurname(payload.user.surname || "");
           setAdminEmail(payload.user.email || payload.email || ent.email || "");
-          setAdminPassword(payload.user.password || "");
+          setAdminPassword("");
+          setHasCustomerPassword(Boolean(payload.user.hasPassword || payload.user.passwordHash || payload.user.password));
         } else {
           setAdminUsername("admin");
           setAdminSurname("");
           setAdminEmail(ent.email || "");
           setAdminPassword("");
+          setHasCustomerPassword(false);
         }
       } catch (e) {
-        setIsSalingWood(false);
-        setIsManagingConstructions(false);
-        setIsManagingProduction(false);
+        setIsSalingWood(ent.isSalingWood ?? false);
+        setIsManagingConstructions(ent.isManagingConstructions ?? false);
+        setIsManagingProduction(ent.isManagingProduction ?? false);
         setDescription("");
         setMobileOne("");
         setMobileTwo("");
         setMatriculeFiscal("");
-        setDevise("TND");
+        setDevise(ent.currency || "TND");
         setSiegeAddress("");
         setCommercialRegister("");
         setCapital("");
@@ -645,14 +657,14 @@ export default function EnterprisesPage() {
         setAdminPassword("");
       }
     } else {
-      setIsSalingWood(false);
-      setIsManagingConstructions(false);
-      setIsManagingProduction(false);
+      setIsSalingWood(ent.isSalingWood ?? false);
+      setIsManagingConstructions(ent.isManagingConstructions ?? false);
+      setIsManagingProduction(ent.isManagingProduction ?? false);
       setDescription("");
       setMobileOne("");
       setMobileTwo("");
       setMatriculeFiscal("");
-      setDevise("TND");
+      setDevise(ent.currency || "TND");
       setSiegeAddress("");
       setCommercialRegister("");
       setCapital("");
@@ -1078,6 +1090,7 @@ export default function EnterprisesPage() {
         setAdminEmail={setAdminEmail}
         adminPassword={adminPassword}
         setAdminPassword={setAdminPassword}
+        hasCustomerPassword={hasCustomerPassword}
         logoUrl={logoUrl}
         setLogoUrl={setLogoUrl}
         faviconUrl={faviconUrl}

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   Shield,
+  ShieldCheck,
   Building2,
   CheckCircle2,
   AlertCircle,
@@ -81,6 +82,7 @@ export interface ProvisionEnterpriseModalProps {
   setAdminEmail: (v: string) => void;
   adminPassword: string;
   setAdminPassword: (v: string) => void;
+  hasCustomerPassword?: boolean;
 
   // Section 5: Branding & Regional
   logoUrl: string;
@@ -153,6 +155,7 @@ export function ProvisionEnterpriseModal({
   setAdminEmail,
   adminPassword,
   setAdminPassword,
+  hasCustomerPassword = false,
 
   logoUrl,
   setLogoUrl,
@@ -180,6 +183,7 @@ export function ProvisionEnterpriseModal({
   setNotes,
 }: ProvisionEnterpriseModalProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordOverride, setShowPasswordOverride] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("sec-enterprise");
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [isNotesExpanded, setIsNotesExpanded] = useState(false);
@@ -190,6 +194,7 @@ export function ProvisionEnterpriseModal({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !provisioningLoading) {
+        setShowPasswordOverride(false);
         onClose();
       }
     };
@@ -447,21 +452,27 @@ export function ProvisionEnterpriseModal({
               <div className="flex items-center justify-between gap-2">
                 <span className="text-muted-foreground shrink-0">Mot de passe :</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-200 font-semibold bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                  <span className={`font-semibold px-2 py-0.5 rounded border text-xs ${
+                    creationSuccessData.adminPassword.startsWith("[")
+                      ? "text-emerald-400 bg-emerald-950/60 border-emerald-800/80"
+                      : "text-slate-200 bg-slate-900 border-slate-800"
+                  }`}>
                     {creationSuccessData.adminPassword}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(creationSuccessData.adminPassword, "pwd")}
-                    className="text-slate-400 hover:text-slate-200 p-1 rounded hover:bg-slate-800"
-                    title="Copier le mot de passe"
-                  >
-                    {copiedField === "pwd" ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5" />
-                    )}
-                  </button>
+                  {!creationSuccessData.adminPassword.startsWith("[") && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(creationSuccessData.adminPassword, "pwd")}
+                      className="text-slate-400 hover:text-slate-200 p-1 rounded hover:bg-slate-800"
+                      title="Copier le mot de passe"
+                    >
+                      {copiedField === "pwd" ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -973,37 +984,76 @@ export function ProvisionEnterpriseModal({
                         htmlFor="prov-admin-password"
                         className="text-xs font-mono uppercase text-muted-foreground flex items-center justify-between"
                       >
-                        <span>Mot de Passe (Opt)</span>
-                        <span className="text-[10px] text-slate-500 lowercase">auto si vide</span>
+                        <span>Mot de Passe Administrateur</span>
+                        {hasCustomerPassword && !showPasswordOverride ? (
+                          <span className="text-[10px] text-emerald-400 font-sans font-medium">protégé</span>
+                        ) : (
+                          <span className="text-[10px] text-slate-500 lowercase">auto si vide</span>
+                        )}
                       </label>
-                      <div className="relative flex items-center">
-                        <input
-                          id="prov-admin-password"
-                          type={showPassword ? "text" : "password"}
-                          className="w-full pl-3.5 pr-10 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 font-mono focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
-                          value={adminPassword}
-                          onChange={(e) => setAdminPassword(e.target.value)}
-                          placeholder="Auto-généré si vide"
-                          disabled={provisioningLoading}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-2.5 p-1 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
-                          title={showPassword ? "Masquer" : "Afficher"}
-                          aria-label={
-                            showPassword
-                              ? "Masquer le mot de passe"
-                              : "Afficher le mot de passe"
-                          }
-                        >
-                          {showPassword ? (
-                            <EyeOff className="w-4 h-4" />
-                          ) : (
-                            <Eye className="w-4 h-4" />
+                      {hasCustomerPassword && !showPasswordOverride ? (
+                        <div className="flex items-center justify-between px-3 py-2 bg-slate-900/80 border border-emerald-500/30 rounded-lg">
+                          <div className="flex items-center gap-2 text-xs text-emerald-300">
+                            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                            <span>Défini à l&apos;inscription (Chiffré)</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowPasswordOverride(true);
+                              setAdminPassword("");
+                            }}
+                            className="text-[11px] text-primary hover:underline font-mono"
+                          >
+                            Remplacer
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-1.5">
+                          <div className="relative flex items-center">
+                            <input
+                              id="prov-admin-password"
+                              type={showPassword ? "text" : "password"}
+                              className="w-full pl-3.5 pr-10 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 font-mono focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
+                              value={adminPassword}
+                              onChange={(e) => setAdminPassword(e.target.value)}
+                              placeholder={hasCustomerPassword ? "Nouveau mot de passe de remplacement" : "Auto-généré si vide"}
+                              disabled={provisioningLoading}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-2.5 p-1 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                              title={showPassword ? "Masquer" : "Afficher"}
+                              aria-label={
+                                showPassword
+                                  ? "Masquer le mot de passe"
+                                  : "Afficher le mot de passe"
+                              }
+                            >
+                              {showPassword ? (
+                                <EyeOff className="w-4 h-4" />
+                              ) : (
+                                <Eye className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+                          {hasCustomerPassword && (
+                            <div className="flex justify-end">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setShowPasswordOverride(false);
+                                  setAdminPassword("");
+                                }}
+                                className="text-[10px] text-slate-400 hover:text-slate-300 underline"
+                              >
+                                Conserver le mot de passe client
+                              </button>
+                            </div>
                           )}
-                        </button>
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </section>

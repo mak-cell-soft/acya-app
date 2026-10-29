@@ -56,6 +56,7 @@ namespace ms.admin.api.acya.Controllers
         public string AdminUsername { get; set; } = "admin";
         public string AdminEmail { get; set; } = string.Empty;
         public string AdminPassword { get; set; } = string.Empty;
+        public bool HasAdminPasswordOverride { get; set; }
         public decimal? PlanPrice { get; set; }
         public string? RneDocumentUrl { get; set; }
     }
@@ -137,6 +138,10 @@ namespace ms.admin.api.acya.Controllers
         public async Task<IActionResult> GetAll()
         {
             var enterprises = await _enterpriseRepository.GetAllAsync();
+            foreach (var ent in enterprises)
+            {
+                ent.Notes = SanitizeNotesJson(ent.Notes);
+            }
             return Ok(enterprises);
         }
 
@@ -146,6 +151,10 @@ namespace ms.admin.api.acya.Controllers
             var enterprises = await _context.Enterprises
                 .Where(e => e.Status == TenantStatus.Pending)
                 .ToListAsync();
+            foreach (var ent in enterprises)
+            {
+                ent.Notes = SanitizeNotesJson(ent.Notes);
+            }
             return Ok(enterprises);
         }
 
@@ -154,6 +163,7 @@ namespace ms.admin.api.acya.Controllers
         {
             var enterprise = await _enterpriseRepository.GetByIdAsync(id);
             if (enterprise == null) return NotFound();
+            enterprise.Notes = SanitizeNotesJson(enterprise.Notes);
             return Ok(enterprise);
         }
 
@@ -197,6 +207,10 @@ namespace ms.admin.api.acya.Controllers
                 ?? throw new InvalidOperationException("Default connection string is missing.");
 
             MasterEnterprise created;
+            byte[]? precomputedHash = null;
+            byte[]? precomputedSalt = null;
+            string legacyPlaintextPassword = string.Empty;
+
             if (request.ExistingId.HasValue)
             {
                 var existing = await _enterpriseRepository.GetByIdAsync(request.ExistingId.Value);
@@ -204,13 +218,43 @@ namespace ms.admin.api.acya.Controllers
                 {
                     return NotFound("Existing pending enterprise request not found.");
                 }
+
+                // Safely extract credentials preserved in existing notes before updating
+                if (!string.IsNullOrWhiteSpace(existing.Notes))
+                {
+                    try
+                    {
+                        using var doc = System.Text.Json.JsonDocument.Parse(existing.Notes);
+                        if (doc.RootElement.TryGetProperty("user", out var userElem))
+                        {
+                            if (userElem.TryGetProperty("passwordHash", out var hElem) &&
+                                userElem.TryGetProperty("passwordSalt", out var sElem) &&
+                                !string.IsNullOrWhiteSpace(hElem.GetString()) &&
+                                !string.IsNullOrWhiteSpace(sElem.GetString()))
+                            {
+                                precomputedHash = Convert.FromBase64String(hElem.GetString()!);
+                                precomputedSalt = Convert.FromBase64String(sElem.GetString()!);
+                            }
+                            else if (userElem.TryGetProperty("password", out var pElem) &&
+                                     !string.IsNullOrWhiteSpace(pElem.GetString()))
+                            {
+                                legacyPlaintextPassword = pElem.GetString()!;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Freeform or non-JSON notes
+                    }
+                }
+
                 existing.Name = request.Name;
                 existing.Slug = slug;
                 existing.Email = request.Email;
                 existing.Phone = request.Phone;
                 existing.SchemaName = schemaName;
                 existing.Plan = request.Plan;
-                existing.Notes = request.Notes;
+                // Preserve existing.Notes with credentials intact until provisioning succeeds (do not overwrite with request.Notes here)
                 existing.LogoUrl = request.LogoUrl;
                 existing.FaviconUrl = request.FaviconUrl;
                 existing.PrimaryColor = request.PrimaryColor;
@@ -276,13 +320,40 @@ namespace ms.admin.api.acya.Controllers
             // 4. Automatic non-interactive database provisioning
             var adminUsername = string.IsNullOrWhiteSpace(request.AdminUsername) ? "admin" : request.AdminUsername;
             var adminEmail = string.IsNullOrWhiteSpace(request.AdminEmail) ? (request.Email ?? $"admin@{slug}.acya.site") : request.AdminEmail;
-            var adminPassword = string.IsNullOrWhiteSpace(request.AdminPassword) ? GenerateRandomPassword() : request.AdminPassword;
+
+            string adminPassword = string.Empty;
+            byte[]? finalHash = null;
+            byte[]? finalSalt = null;
+
+            if (request.HasAdminPasswordOverride && !string.IsNullOrWhiteSpace(request.AdminPassword))
+            {
+                adminPassword = request.AdminPassword;
+            }
+            else if (precomputedHash != null && precomputedSalt != null)
+            {
+                finalHash = precomputedHash;
+                finalSalt = precomputedSalt;
+            }
+            else if (!string.IsNullOrWhiteSpace(legacyPlaintextPassword))
+            {
+                adminPassword = legacyPlaintextPassword;
+            }
+            else if (!string.IsNullOrWhiteSpace(request.AdminPassword))
+            {
+                adminPassword = request.AdminPassword;
+            }
+            else
+            {
+                adminPassword = GenerateRandomPassword();
+            }
 
             var provisionDetails = new TenantProvisionDetails
             {
                 AdminUsername = adminUsername,
                 AdminEmail = adminEmail,
                 AdminPassword = adminPassword,
+                PrecomputedPasswordHash = finalHash,
+                PrecomputedPasswordSalt = finalSalt,
                 AdminSurname = request.AdminSurname,
                 Description = request.Description,
                 MobileOne = request.MobileOne,
@@ -320,10 +391,12 @@ namespace ms.admin.api.acya.Controllers
                 }
             }
 
-            // 5. Activate Registry details
+            // 5. Activate Registry details and scrub all credentials from master notes
             created.IsActive = true;
             created.Status = request.Plan == TenantPlan.Trial ? TenantStatus.Trial : TenantStatus.Active;
             created.ActivatedAt = DateTime.UtcNow;
+            var notesToPersist = !string.IsNullOrWhiteSpace(request.Notes) ? request.Notes : created.Notes;
+            created.Notes = SanitizeNotesJson(notesToPersist, removeAllCredentials: true);
             await _enterpriseRepository.UpdateAsync(created);
 
             // 6. Create Initial Subscription Record
@@ -436,7 +509,7 @@ namespace ms.admin.api.acya.Controllers
             enterprise.Email = request.Email;
             enterprise.Phone = request.Phone;
             enterprise.Plan = request.Plan;
-            enterprise.Notes = request.Notes;
+            enterprise.Notes = SanitizeNotesJson(request.Notes, removeAllCredentials: true);
             enterprise.LogoUrl = request.LogoUrl;
             enterprise.FaviconUrl = request.FaviconUrl;
             enterprise.PrimaryColor = request.PrimaryColor;
@@ -1076,6 +1149,49 @@ namespace ms.admin.api.acya.Controllers
         private string GenerateRandomPassword()
         {
             return Guid.NewGuid().ToString("N").Substring(0, 10) + "A1!";
+        }
+
+        private static string? SanitizeNotesJson(string? rawNotes, bool removeAllCredentials = false)
+        {
+            if (string.IsNullOrWhiteSpace(rawNotes)) return rawNotes;
+            try
+            {
+                var jsonNode = System.Text.Json.Nodes.JsonNode.Parse(rawNotes);
+                if (jsonNode is System.Text.Json.Nodes.JsonObject obj && obj["user"] is System.Text.Json.Nodes.JsonObject userObj)
+                {
+                    bool hasPlaintext = userObj.ContainsKey("password") && !string.IsNullOrWhiteSpace(userObj["password"]?.ToString());
+                    bool hasHashAndSalt = (userObj.ContainsKey("passwordHash") && !string.IsNullOrWhiteSpace(userObj["passwordHash"]?.ToString()))
+                                       || (userObj.ContainsKey("passwordSalt") && !string.IsNullOrWhiteSpace(userObj["passwordSalt"]?.ToString()));
+                    bool alreadyHadFlag = userObj.ContainsKey("hasPassword")
+                                       && bool.TryParse(userObj["hasPassword"]?.ToString(), out var flagVal)
+                                       && flagVal;
+
+                    bool hadCredential = hasPlaintext || hasHashAndSalt || alreadyHadFlag;
+
+                    // Always redact credential values
+                    if (userObj.ContainsKey("password")) userObj.Remove("password");
+                    if (userObj.ContainsKey("passwordHash")) userObj.Remove("passwordHash");
+                    if (userObj.ContainsKey("passwordSalt")) userObj.Remove("passwordSalt");
+
+                    if (removeAllCredentials)
+                    {
+                        if (userObj.ContainsKey("hasPassword")) userObj.Remove("hasPassword");
+                    }
+                    else if (hadCredential)
+                    {
+                        userObj["hasPassword"] = true;
+                    }
+                    else
+                    {
+                        if (userObj.ContainsKey("hasPassword")) userObj.Remove("hasPassword");
+                    }
+                }
+                return jsonNode.ToJsonString();
+            }
+            catch
+            {
+                return rawNotes;
+            }
         }
 
         private async Task WriteWelcomeEmailAsync(MasterEnterprise enterprise, string adminUsername, string adminEmail, string adminPassword)

@@ -14,6 +14,8 @@ namespace ms.admin.api.acya.core.DTOs
         public string AdminUsername { get; set; } = "admin";
         public string AdminEmail { get; set; } = string.Empty;
         public string AdminPassword { get; set; } = string.Empty;
+        public byte[]? PrecomputedPasswordHash { get; set; }
+        public byte[]? PrecomputedPasswordSalt { get; set; }
         public string? AdminSurname { get; set; }
 
         public string? Description { get; set; }
