@@ -341,4 +341,49 @@ describe('ACYA Élancé Two-Step Enterprise Registration Flow', () => {
     assert.ok(step2Html.includes('France'), 'Step 2 preserves selected country');
     assert.ok(step2Html.includes('Euro (€)'), 'Step 2 preserves selected currency');
   });
+
+  it('8. Renders the ACYA login-inspired two-column presentation panel, feature labels, ERP preview visual, and security footer', () => {
+    const html = renderToStaticMarkup(<EnterpriseRegistrationForm initialStep={1} />);
+
+    // Left presentation panel (RegistrationBrandPanel)
+    assert.ok(
+      html.includes('data-testid="registration-brand-panel"'),
+      'Must render ACYA presentation left panel'
+    );
+    assert.ok(
+      html.includes('Votre entreprise,') && html.includes('plus simple à piloter.'),
+      'Must render headline "Votre entreprise, plus simple à piloter."'
+    );
+    assert.ok(
+      html.includes('og-image.png'),
+      'Must render existing ERP visual preview asset (og-image.png)'
+    );
+    assert.ok(
+      html.includes('Bois et gestion des stocks'),
+      'Must render compact feature label: Bois et gestion des stocks'
+    );
+    assert.ok(
+      html.includes('Achats et ventes'),
+      'Must render compact feature label: Achats et ventes'
+    );
+    assert.ok(
+      html.includes('Chantiers BTP'),
+      'Must render compact feature label: Chantiers BTP'
+    );
+    assert.ok(
+      html.includes('Ateliers et production'),
+      'Must render compact feature label: Ateliers et production'
+    );
+    assert.ok(
+      html.includes('Élancé ERP par ACYA Technologies'),
+      'Must render discreet footer identifying Élancé ERP by ACYA'
+    );
+
+    // Right panel security & legal footer matching /login
+    assert.ok(
+      html.includes('Connexion sécurisée TLS') &&
+        html.includes('Données isolées par espace'),
+      'Must render security indicators matching /login'
+    );
+  });
 });
