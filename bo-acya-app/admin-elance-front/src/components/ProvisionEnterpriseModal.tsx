@@ -188,13 +188,35 @@ export function ProvisionEnterpriseModal({
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [isNotesExpanded, setIsNotesExpanded] = useState(false);
 
+  const modalSessionKey = `${isOpen}-${existingId ?? "new"}`;
+  const [prevModalSessionKey, setPrevModalSessionKey] = useState(modalSessionKey);
+  if (prevModalSessionKey !== modalSessionKey) {
+    setPrevModalSessionKey(modalSessionKey);
+    setShowPasswordOverride(false);
+    setShowPassword(false);
+  }
+
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Ensure any previously entered replacement password is cleared when modal opens/closes or enterprise changes
+  useEffect(() => {
+    setAdminPassword("");
+  }, [isOpen, existingId, setAdminPassword]);
+
+  const handleModalClose = () => {
+    setShowPasswordOverride(false);
+    setShowPassword(false);
+    setAdminPassword("");
+    onClose();
+  };
 
   // Close on Escape when not loading
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !provisioningLoading) {
         setShowPasswordOverride(false);
+        setShowPassword(false);
+        setAdminPassword("");
         onClose();
       }
     };
@@ -202,7 +224,7 @@ export function ProvisionEnterpriseModal({
       window.addEventListener("keydown", handleKeyDown);
     }
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, provisioningLoading, onClose]);
+  }, [isOpen, provisioningLoading, onClose, setAdminPassword]);
 
   // Track active section during scroll
   useEffect(() => {
@@ -308,7 +330,7 @@ export function ProvisionEnterpriseModal({
       aria-labelledby="provision-modal-title"
       onClick={(e) => {
         if (e.target === e.currentTarget && !provisioningLoading) {
-          onClose();
+          handleModalClose();
         }
       }}
     >
@@ -340,7 +362,7 @@ export function ProvisionEnterpriseModal({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleModalClose}
             disabled={provisioningLoading}
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
             aria-label="Fermer la boîte de dialogue"
@@ -480,7 +502,7 @@ export function ProvisionEnterpriseModal({
             <div className="mt-6 flex justify-center">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleModalClose}
                 className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors text-sm cursor-pointer shadow-sm"
               >
                 Fermer le Panel
@@ -1417,7 +1439,7 @@ export function ProvisionEnterpriseModal({
               <div className="flex items-center gap-2.5 shrink-0">
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={handleModalClose}
                   disabled={provisioningLoading}
                   className="px-4 py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-mono font-medium transition-colors disabled:opacity-40 cursor-pointer"
                 >

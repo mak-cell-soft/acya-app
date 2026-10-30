@@ -36,6 +36,23 @@ namespace ms.admin.api.acya.infrastructure.Services
             });
         }
 
+        public static (byte[] PasswordHash, byte[] PasswordSalt) ResolveAdminCredentials(TenantProvisionDetails details)
+        {
+            if (details.PrecomputedPasswordHash != null && details.PrecomputedPasswordHash.Length > 0 &&
+                details.PrecomputedPasswordSalt != null && details.PrecomputedPasswordSalt.Length > 0)
+            {
+                return (details.PrecomputedPasswordHash, details.PrecomputedPasswordSalt);
+            }
+
+            var pwd = !string.IsNullOrWhiteSpace(details.AdminPassword)
+                ? details.AdminPassword
+                : Guid.NewGuid().ToString("N").Substring(0, 12) + "!";
+            using var hmac = new HMACSHA512();
+            byte[] passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(pwd));
+            byte[] passwordSalt = hmac.Key;
+            return (passwordHash, passwordSalt);
+        }
+
         public async Task<bool> ProvisionTenantAsync(MasterEnterprise enterprise, TenantProvisionDetails details)
         {
             try
@@ -93,24 +110,7 @@ namespace ms.admin.api.acya.infrastructure.Services
                     // 3. Seed initial admin user credentials and enterprise details inside the schema search path
                     _logger.LogInformation("Seeding admin user and enterprise details for tenant {Slug}...", enterprise.Slug);
                     
-                    byte[] passwordHash;
-                    byte[] passwordSalt;
-
-                    if (details.PrecomputedPasswordHash != null && details.PrecomputedPasswordHash.Length > 0 &&
-                        details.PrecomputedPasswordSalt != null && details.PrecomputedPasswordSalt.Length > 0)
-                    {
-                        passwordHash = details.PrecomputedPasswordHash;
-                        passwordSalt = details.PrecomputedPasswordSalt;
-                    }
-                    else
-                    {
-                        var pwd = !string.IsNullOrWhiteSpace(details.AdminPassword)
-                            ? details.AdminPassword
-                            : Guid.NewGuid().ToString("N").Substring(0, 12) + "!";
-                        using var hmac = new HMACSHA512();
-                        passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(pwd));
-                        passwordSalt = hmac.Key;
-                    }
+                    var (passwordHash, passwordSalt) = ResolveAdminCredentials(details);
 
                     // Seeding enterprise table inside the schema search path (ID = 1)
                     long enterpriseId = 1;

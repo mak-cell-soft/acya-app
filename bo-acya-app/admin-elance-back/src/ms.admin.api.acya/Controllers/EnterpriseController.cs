@@ -53,9 +53,9 @@ namespace ms.admin.api.acya.Controllers
 
         public List<SiteProvisionItem>? Sites { get; set; }
 
-        public string AdminUsername { get; set; } = "admin";
-        public string AdminEmail { get; set; } = string.Empty;
-        public string AdminPassword { get; set; } = string.Empty;
+        public string? AdminUsername { get; set; } = "admin";
+        public string? AdminEmail { get; set; } = string.Empty;
+        public string? AdminPassword { get; set; }
         public bool HasAdminPasswordOverride { get; set; }
         public decimal? PlanPrice { get; set; }
         public string? RneDocumentUrl { get; set; }
@@ -206,6 +206,22 @@ namespace ms.admin.api.acya.Controllers
                 ?? _configuration.GetConnectionString("MasterConnection") 
                 ?? throw new InvalidOperationException("Default connection string is missing.");
 
+            if (request.HasAdminPasswordOverride)
+            {
+                if (string.IsNullOrWhiteSpace(request.AdminPassword))
+                {
+                    return BadRequest("A replacement administrator password is required when password override is enabled.");
+                }
+                if (request.AdminPassword.Trim().Length < 8)
+                {
+                    return BadRequest("The administrator password must be at least 8 characters long.");
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(request.AdminPassword) && request.AdminPassword.Trim().Length < 8)
+            {
+                return BadRequest("The administrator password must be at least 8 characters long.");
+            }
+
             MasterEnterprise created;
             byte[]? precomputedHash = null;
             byte[]? precomputedSalt = null;
@@ -225,20 +241,30 @@ namespace ms.admin.api.acya.Controllers
                     try
                     {
                         using var doc = System.Text.Json.JsonDocument.Parse(existing.Notes);
-                        if (doc.RootElement.TryGetProperty("user", out var userElem))
+                        if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object &&
+                            doc.RootElement.TryGetProperty("user", out var userElem) &&
+                            userElem.ValueKind == System.Text.Json.JsonValueKind.Object)
                         {
                             if (userElem.TryGetProperty("passwordHash", out var hElem) &&
                                 userElem.TryGetProperty("passwordSalt", out var sElem) &&
+                                hElem.ValueKind == System.Text.Json.JsonValueKind.String &&
+                                sElem.ValueKind == System.Text.Json.JsonValueKind.String &&
                                 !string.IsNullOrWhiteSpace(hElem.GetString()) &&
                                 !string.IsNullOrWhiteSpace(sElem.GetString()))
                             {
-                                precomputedHash = Convert.FromBase64String(hElem.GetString()!);
-                                precomputedSalt = Convert.FromBase64String(sElem.GetString()!);
+                                var decodedHash = Convert.FromBase64String(hElem.GetString()!);
+                                var decodedSalt = Convert.FromBase64String(sElem.GetString()!);
+                                if (decodedHash.Length > 0 && decodedSalt.Length > 0)
+                                {
+                                    precomputedHash = decodedHash;
+                                    precomputedSalt = decodedSalt;
+                                }
                             }
                             else if (userElem.TryGetProperty("password", out var pElem) &&
+                                     pElem.ValueKind == System.Text.Json.JsonValueKind.String &&
                                      !string.IsNullOrWhiteSpace(pElem.GetString()))
                             {
-                                legacyPlaintextPassword = pElem.GetString()!;
+                                legacyPlaintextPassword = pElem.GetString()!.Trim();
                             }
                         }
                     }
@@ -246,6 +272,15 @@ namespace ms.admin.api.acya.Controllers
                     {
                         // Freeform or non-JSON notes
                     }
+                }
+
+                bool hasExplicitPassword = request.HasAdminPasswordOverride || !string.IsNullOrWhiteSpace(request.AdminPassword);
+                bool hasStoredPrecomputedHash = precomputedHash != null && precomputedSalt != null;
+                bool hasLegacyPlaintext = !string.IsNullOrWhiteSpace(legacyPlaintextPassword);
+
+                if (!hasExplicitPassword && !hasStoredPrecomputedHash && !hasLegacyPlaintext)
+                {
+                    return BadRequest("No valid administrator credentials found for this pending registration. Please specify a replacement administrator password.");
                 }
 
                 existing.Name = request.Name;
@@ -321,30 +356,31 @@ namespace ms.admin.api.acya.Controllers
             var adminUsername = string.IsNullOrWhiteSpace(request.AdminUsername) ? "admin" : request.AdminUsername;
             var adminEmail = string.IsNullOrWhiteSpace(request.AdminEmail) ? (request.Email ?? $"admin@{slug}.acya.site") : request.AdminEmail;
 
-            string adminPassword = string.Empty;
+            string? adminPassword = null;
             byte[]? finalHash = null;
             byte[]? finalSalt = null;
 
-            if (request.HasAdminPasswordOverride && !string.IsNullOrWhiteSpace(request.AdminPassword))
+            if (request.ExistingId.HasValue)
             {
-                adminPassword = request.AdminPassword;
-            }
-            else if (precomputedHash != null && precomputedSalt != null)
-            {
-                finalHash = precomputedHash;
-                finalSalt = precomputedSalt;
-            }
-            else if (!string.IsNullOrWhiteSpace(legacyPlaintextPassword))
-            {
-                adminPassword = legacyPlaintextPassword;
-            }
-            else if (!string.IsNullOrWhiteSpace(request.AdminPassword))
-            {
-                adminPassword = request.AdminPassword;
+                if (request.HasAdminPasswordOverride || !string.IsNullOrWhiteSpace(request.AdminPassword))
+                {
+                    adminPassword = request.AdminPassword!.Trim();
+                }
+                else if (precomputedHash != null && precomputedSalt != null)
+                {
+                    finalHash = precomputedHash;
+                    finalSalt = precomputedSalt;
+                }
+                else
+                {
+                    adminPassword = legacyPlaintextPassword;
+                }
             }
             else
             {
-                adminPassword = GenerateRandomPassword();
+                adminPassword = !string.IsNullOrWhiteSpace(request.AdminPassword)
+                    ? request.AdminPassword.Trim()
+                    : GenerateRandomPassword();
             }
 
             var provisionDetails = new TenantProvisionDetails
@@ -442,7 +478,7 @@ namespace ms.admin.api.acya.Controllers
             await _context.SaveChangesAsync();
 
             // 9. Send welcome email via n8n Email Service (Fail-safe)
-            await _emailService.SendWelcomeEmailAsync(created, adminEmail, request.ExistingId, HttpContext.TraceIdentifier);
+            await _emailService.SendWelcomeEmailAsync(created, adminEmail, request.ExistingId, HttpContext?.TraceIdentifier);
 
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
