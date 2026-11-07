@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+"""ACYA Phase 11C.1.8 Individual Tenant Restore Engine CLI (`/opt/acya-backup/bin/acya-tenant-restore`).
+
+Restores exactly one tenant schema from a verified global Restic snapshot
+through the 9-state verification, staging, pre-restore backup, cutover,
+isolation validation, and rollback state machine.
+"""
+
+import argparse
+import json
+import os
+import sys
+
+_HERE = os.path.dirname(os.path.realpath(__file__))
+_LIB = os.path.normpath(os.path.join(_HERE, "..", "lib"))
+if os.path.isdir(_LIB) and _LIB not in sys.path:
+    sys.path.insert(0, _LIB)
+
+from acya_backup.config import load_config
+from acya_backup.errors import BackupError, ExitCode
+from acya_backup.postgres import Docker, PostgresInstance
+from acya_backup.proc import Logger
+from acya_backup.restic import ResticClient, TransferSession
+from acya_backup.restore import (
+    ArtifactChecksumVerifier,
+    PostgresRestoreDatabaseBackend,
+    PreRestoreBackupManager,
+    ResticSingleTenantExtractorAdapter,
+    RestoreAuditLogger,
+    RestoreError,
+    RestoreRequestValidator,
+    RestoreState,
+    SnapshotArtifactExtractor,
+    StagingDatabaseValidator,
+    TenantRestoreEngine,
+)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        prog="acya-tenant-restore",
+        description="Restore a single tenant schema from a verified global Restic snapshot.",
+    )
+    parser.add_argument(
+        "--tenant-id",
+        type=int,
+        required=True,
+        help="Numeric enterprise ID (`public.bo_tbl_enterprise.Id`).",
+    )
+    parser.add_argument(
+        "--snapshot-id",
+        required=True,
+        help="Restic snapshot short ID (8 hex) or full ID (64 hex).",
+    )
+    parser.add_argument(
+        "--actor",
+        default="cli-operator",
+        help="Identity of the administrator or service initiating the restore.",
+    )
+    parser.add_argument(
+        "--operation-id",
+        default=None,
+        help="Optional pre-allocated operation ID (restore-YYYYMMDDTHHMMSSZ-xxxxxxxx).",
+    )
+    parser.add_argument(
+        "--config",
+        default="/opt/acya-backup/config/backup.json",
+        help="Path to backup.json configuration file.",
+    )
+    parser.add_argument(
+        "--history-catalog",
+        default=None,
+        help="Path to tenant-backup-history.json (defaults to <stateDir>/tenant-backup-history.json).",
+    )
+    parser.add_argument(
+        "--confirm-restore",
+        action="store_true",
+        help="Explicit safety confirmation flag required to execute tenant cutover.",
+    )
+    args = parser.parse_args(argv)
+
+    if not args.confirm_restore:
+        sys.stderr.write(
+            "RESTORE BLOCKED: --confirm-restore flag is required to execute a tenant restoration.\n"
+        )
+        return ExitCode.CONFIG
+
+    logger = Logger(None)
+    try:
+        cfg = load_config(args.config)
+        catalog_path = args.history_catalog or os.path.join(cfg.state_dir, "tenant-backup-history.json")
+        audit_path = os.path.join(cfg.log_dir, "restore-audit.jsonl")
+        state_path = os.path.join(cfg.state_dir, "last-restore.json")
+        work_root = os.path.join(os.path.dirname(cfg.staging_root), "restore-work")
+
+        primary_spec = next(
+            (inst for inst in cfg.postgres_instances if inst["role"] == "primary"),
+            None,
+        )
+        if primary_spec is None:
+            raise RestoreError("Pending", "primary_postgres_not_configured", "No primary PostgreSQL instance in config")
+
+        docker = Docker(cfg, logger)
+        cid, cname = docker.resolve_container(primary_spec["composeProject"], primary_spec["composeService"])
+        pg_inst = PostgresInstance(docker, primary_spec, cid, cname, logger)
+        db_backend = PostgresRestoreDatabaseBackend(
+            pg_inst,
+            production_database_name=primary_spec["tenantDatabase"],
+        )
+
+        with TransferSession(cfg, logger) as session:
+            restic_client = ResticClient(cfg, session, logger)
+            restic_adapter = ResticSingleTenantExtractorAdapter(restic_client)
+
+            engine = TenantRestoreEngine(
+                validator=RestoreRequestValidator(catalog_path),
+                extractor=SnapshotArtifactExtractor(restic_adapter),
+                verifier=ArtifactChecksumVerifier(),
+                staging_validator=StagingDatabaseValidator(db_backend),
+                pre_backup_manager=PreRestoreBackupManager(db_backend),
+                db_backend=db_backend,
+                audit_logger=RestoreAuditLogger(audit_path, state_path, logger),
+                work_root_dir=work_root,
+                lock_file_path=os.path.join(cfg.lock_dir, "tenant-restore.lock"),
+            )
+            result = engine.execute_restore(
+                tenant_id=args.tenant_id,
+                snapshot_id=args.snapshot_id,
+                actor=args.actor,
+                operation_id=args.operation_id,
+            )
+            print(json.dumps(engine._result_to_dict(result), indent=2))
+            return ExitCode.SUCCESS if result.final_state == RestoreState.COMPLETED else ExitCode.VERIFICATION
+
+    except BackupError as berr:
+        sys.stderr.write(f"RESTORE ERROR [{berr.category}]: {berr.message}\n")
+        return berr.exit_code
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+

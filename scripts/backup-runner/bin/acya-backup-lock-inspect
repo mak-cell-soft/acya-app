@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+"""ACYA Phase 11B Non-Destructive Restic Lock Inspector (`/opt/acya-backup/bin/acya-backup-lock-inspect`).
+
+Read-only tool: runs `restic list locks --no-lock` and `restic cat lock <id> --no-lock`
+to classify repository locks without modifying or unlocking anything.
+"""
+
+import argparse
+import json
+import os
+import sys
+
+_HERE = os.path.dirname(os.path.realpath(__file__))
+_LIB = os.path.normpath(os.path.join(_HERE, "..", "lib"))
+if os.path.isdir(_LIB) and _LIB not in sys.path:
+    sys.path.insert(0, _LIB)
+
+from acya_backup.config import load_config
+from acya_backup.errors import BackupError, ExitCode
+from acya_backup.proc import Logger
+from acya_backup.restic import ResticClient, TransferSession
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        prog="acya-backup-lock-inspect",
+        description="Inspect Restic repository locks non-destructively (--no-lock).",
+    )
+    parser.add_argument(
+        "--config",
+        default="/opt/acya-backup/config/backup.json",
+        help="Path to backup.json configuration file.",
+    )
+    parser.add_argument(
+        "--require-clear",
+        action="store_true",
+        help="Exit with code 13 (LOCK_CONFLICT) if any active or exclusive lock blocks backup.",
+    )
+    args = parser.parse_args(argv)
+
+    logger = Logger(None)
+    try:
+        cfg = load_config(args.config)
+        with TransferSession(cfg, logger) as session:
+            client = ResticClient(cfg, session, logger)
+            probe = client.probe_repository()
+            report = client.inspect_locks()
+            output = {
+                "repository": probe,
+                "lockReport": report,
+            }
+            print(json.dumps(output, indent=2))
+            if args.require_clear and not report["canProceedWithBackup"]:
+                return ExitCode.LOCK_CONFLICT
+            return ExitCode.SUCCESS
+    except BackupError as berr:
+        sys.stderr.write(f"ERROR [{berr.stage}/{berr.category}]: {berr.message}\n")
+        return berr.exit_code
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+

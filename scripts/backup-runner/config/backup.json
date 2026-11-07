@@ -1,0 +1,164 @@
+{
+  "configVersion": 1,
+  "environment": "production",
+  "repositoryWritesAuthorized": false,
+  "testMode": false,
+  "requireRoot": true,
+  "paths": {
+    "baseDir": "/opt/acya-backup",
+    "stateDir": "/opt/acya-backup/state",
+    "logDir": "/opt/acya-backup/logs",
+    "cacheDir": "/opt/acya-backup/cache",
+    "stagingParent": "/opt/acya-backup/staging",
+    "stagingPrefix": "stage",
+    "excludeFile": "/opt/acya-backup/config/restic.excludes",
+    "minFreeBytes": 5368709120,
+    "logRetentionDays": 90
+  },
+  "guards": {
+    "excludedContainers": [
+      "acya-restore-test-pg",
+      "acya-restore-n8n-pg"
+    ],
+    "minTenantCount": 16
+  },
+  "postgres": [
+    {
+      "id": "primary",
+      "composeProject": "acya-app",
+      "composeService": "postgres",
+      "user": "postgres",
+      "databases": [
+        "wood-app-db",
+        "app-db-bo"
+      ],
+      "ignoreDatabases": [
+        "postgres"
+      ],
+      "autoDiscover": true,
+      "dumpGlobals": true,
+      "tenantDatabase": "wood-app-db"
+    },
+    {
+      "id": "n8n",
+      "composeProject": "acya-app",
+      "composeService": "postgres-n8n",
+      "user": "n8n_user",
+      "databases": [
+        "n8n_db"
+      ],
+      "ignoreDatabases": [
+        "postgres"
+      ],
+      "autoDiscover": true,
+      "dumpGlobals": true,
+      "tenantDatabase": null
+    }
+  ],
+  "fileSources": [
+    {
+      "id": "mobile-releases",
+      "kind": "dir",
+      "class": "data",
+      "path": "/home/ubuntu/acya-app/storage/private/mobile",
+      "required": true,
+      "nonEmpty": true
+    },
+    {
+      "id": "n8n-data",
+      "kind": "dir",
+      "class": "data",
+      "path": "/var/lib/docker/volumes/n8n_data/_data",
+      "dockerVolume": "n8n_data",
+      "required": true,
+      "nonEmpty": true
+    },
+    {
+      "id": "docker-compose",
+      "kind": "glob",
+      "class": "config",
+      "pattern": "/home/ubuntu/acya-app/docker-compose*.yml",
+      "minMatches": 2,
+      "required": true,
+      "nonEmpty": true
+    },
+    {
+      "id": "nginx-config",
+      "kind": "dir",
+      "class": "config",
+      "path": "/etc/nginx",
+      "required": true,
+      "nonEmpty": true
+    },
+    {
+      "id": "letsencrypt-tls",
+      "kind": "dir",
+      "class": "secret",
+      "path": "/etc/letsencrypt",
+      "required": true,
+      "nonEmpty": true
+    },
+    {
+      "id": "app-env",
+      "kind": "file",
+      "class": "secret",
+      "path": "/home/ubuntu/acya-app/.env",
+      "required": true,
+      "nonEmpty": true
+    },
+    {
+      "id": "n8n-env",
+      "kind": "file",
+      "class": "secret",
+      "path": "/home/ubuntu/acya-app/.env.n8n",
+      "required": true,
+      "nonEmpty": true
+    },
+    {
+      "id": "storage-secrets",
+      "kind": "dir",
+      "class": "secret",
+      "path": "/home/ubuntu/acya-app/storage/secrets",
+      "required": true,
+      "nonEmpty": true,
+      "requiredFiles": [
+        "firebase-management-key.json",
+        "firebase-service-account.json"
+      ]
+    }
+  ],
+  "transport": {
+    "mechanism": "sftp",
+    "sshHost": "51.254.216.8",
+    "sshPort": 22,
+    "sshUser": "backup",
+    "sshKeyFile": "/etc/acya-backup/acya_backup_ed25519",
+    "knownHostsFile": "/etc/acya-backup/known_hosts",
+    "remoteRepositoryPath": "/data/backups/restic",
+    "connectTimeoutSeconds": 15
+  },
+  "restic": {
+    "binary": "/usr/local/bin/restic",
+    "passwordFile": "/etc/acya-backup/.restic_password",
+    "host": "vps-1d2bffb5",
+    "tags": [
+      "automated",
+      "production",
+      "phase11b"
+    ],
+    "backupAttempts": 2,
+    "retryDelaySeconds": 120,
+    "limitUploadKiB": 0,
+    "backupTimeoutSeconds": 10800
+  },
+  "locks": {
+    "staleAfterSeconds": 1800,
+    "allowStaleShared": true
+  },
+  "tools": {
+    "docker": "/usr/bin/docker",
+    "ssh": "/usr/bin/ssh",
+    "sha256sum": "/usr/bin/sha256sum"
+  }
+}
+

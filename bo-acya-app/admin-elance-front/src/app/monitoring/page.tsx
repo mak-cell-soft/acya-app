@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Database, Users, Activity, Play, Download, RefreshCw, AlertTriangle, CheckCircle, Loader2, Search, Filter } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Database, Users, Activity, Download, RefreshCw, AlertTriangle, CheckCircle, Search, Filter, Archive } from "lucide-react";
+import { TenantRestorePanel } from "@/components/TenantRestorePanel";
 
 interface Enterprise {
   id: number;
@@ -43,18 +44,15 @@ export default function MonitoringPage() {
   const [backupJobs, setBackupJobs] = useState<BackupJob[]>([]);
   const [backupsLoading, setBackupsLoading] = useState(false);
 
-  const [backupSubmitting, setBackupSubmitting] = useState(false);
-  const [restoreSubmitting, setRestoreSubmitting] = useState(false);
-
-  const getHeaders = () => {
+  const getHeaders = useCallback(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
     return {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${token}`,
     };
-  };
+  }, []);
 
-  const fetchEnterprises = async () => {
+  const fetchEnterprises = useCallback(async () => {
     setLoading(true);
     try {
       const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api/";
@@ -62,20 +60,26 @@ export default function MonitoringPage() {
         headers: getHeaders(),
       });
       if (res.ok) {
-        const data = await res.json();
+        const data: Enterprise[] = await res.json();
         setEnterprises(data);
         if (data.length > 0) {
-          setSelectedEnt(data[0]);
+          let initial = data[0];
+          if (typeof window !== "undefined") {
+            const requestedId = Number(new URLSearchParams(window.location.search).get("tenantId"));
+            const matched = requestedId > 0 ? data.find((e) => e.id === requestedId) : undefined;
+            if (matched) initial = matched;
+          }
+          setSelectedEnt(initial);
         }
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to load enterprises.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load enterprises.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [getHeaders]);
 
-  const fetchStatsAndJobs = async (entId: number) => {
+  const fetchStatsAndJobs = useCallback(async (entId: number) => {
     setStatsLoading(true);
     setBackupsLoading(true);
     try {
@@ -97,20 +101,20 @@ export default function MonitoringPage() {
         const backupData = await backupRes.json();
         setBackupJobs(backupData);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
     } finally {
       setStatsLoading(false);
       setBackupsLoading(false);
     }
-  };
+  }, [getHeaders]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchEnterprises();
     }, 0);
     return () => clearTimeout(timer);
-  }, []);
+  }, [fetchEnterprises]);
 
   useEffect(() => {
     if (selectedEnt) {
@@ -120,56 +124,7 @@ export default function MonitoringPage() {
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [selectedEnt]);
-
-  const handleTriggerBackup = async () => {
-    if (!selectedEnt) return;
-    setBackupSubmitting(true);
-    setError("");
-
-    try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api/";
-      const res = await fetch(`${apiBase}admin/backup/${selectedEnt.id}`, {
-        method: "POST",
-        headers: getHeaders(),
-      });
-
-      if (!res.ok) throw new Error("Failed to queue backup job.");
-
-      fetchStatsAndJobs(selectedEnt.id);
-    } catch (err: any) {
-      setError(err.message || "Backup trigger failed.");
-    } finally {
-      setBackupSubmitting(false);
-    }
-  };
-
-  const handleTriggerRestore = async (jobId: number) => {
-    if (!selectedEnt) return;
-    const confirmRestore = window.confirm(
-      "CAUTION: Are you sure you want to restore the database to this backup snapshot?\n\nThis will completely overwrite current schema state and cannot be undone."
-    );
-    if (!confirmRestore) return;
-
-    setRestoreSubmitting(true);
-    setError("");
-
-    try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api/";
-      const res = await fetch(`${apiBase}admin/backup/restore/${jobId}`, {
-        method: "POST",
-        headers: getHeaders(),
-      });
-
-      if (!res.ok) throw new Error("Failed to queue restore job.");
-
-      fetchStatsAndJobs(selectedEnt.id);
-    } catch (err: any) {
-      setError(err.message || "Restore trigger failed.");
-    } finally {
-      setRestoreSubmitting(false);
-    }
-  };
+  }, [selectedEnt, fetchStatsAndJobs]);
 
   const handleDownloadBackup = async (jobId: number, filename: string) => {
     try {
@@ -192,8 +147,8 @@ export default function MonitoringPage() {
       document.body.appendChild(a);
       a.click();
       a.remove();
-    } catch (err: any) {
-      setError(err.message || "Backup download failed.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Backup download failed.");
     }
   };
 
@@ -360,26 +315,27 @@ export default function MonitoringPage() {
                   </div>
                 ) : null}
 
-                {/* Backups Panel */}
+                {/* Individual Tenant Restore (replaces legacy manual backup action) */}
+                <TenantRestorePanel
+                  key={selectedEnt.id}
+                  tenantId={selectedEnt.id}
+                  tenantName={selectedEnt.name}
+                  tenantSlug={selectedEnt.slug}
+                  onRestoreStateChanged={() => fetchStatsAndJobs(selectedEnt.id)}
+                />
+
+                {/* Legacy Backup Archive (read-only history) */}
                 <div className="glass-panel p-6 rounded-xl bg-slate-900 border border-slate-800 space-y-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                     <div>
-                      <h3 className="text-lg font-bold text-slate-100">Database Backups & Archives</h3>
-                      <p className="text-xs text-muted-foreground mt-0.5 font-mono">Manual trigger and restoration coordinator.</p>
+                      <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                        <Archive className="w-4 h-4 text-muted-foreground" />
+                        Legacy Backup Archive (Read-Only)
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-0.5 font-mono text-pretty">
+                        Historical in-container pg_dump jobs. Manual triggering and legacy in-place restore are retired; use the verified Restic restore points above.
+                      </p>
                     </div>
-
-                    <button 
-                      onClick={handleTriggerBackup}
-                      disabled={backupSubmitting}
-                      className="px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/95 text-xs font-mono cursor-pointer flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)]"
-                    >
-                      {backupSubmitting ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Play className="w-3.5 h-3.5" />
-                      )}
-                      RUN MANUAL BACKUP
-                    </button>
                   </div>
 
                   {/* Backups List */}
@@ -438,7 +394,7 @@ export default function MonitoringPage() {
                                     </div>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 text-slate-400 max-w-xs truncate" title={job.filePath}>
+                                <td className="px-4 py-3 text-slate-400 max-w-xs truncate" title={job.filePath.split("/").pop()}>
                                   {job.filePath.split('/').pop()}
                                 </td>
                                 <td className="px-4 py-3 text-right space-x-2">
@@ -451,14 +407,7 @@ export default function MonitoringPage() {
                                         <Download className="w-3 h-3" />
                                         Download
                                       </button>
-                                      <button 
-                                        onClick={() => handleTriggerRestore(job.id)}
-                                        disabled={restoreSubmitting}
-                                        className="text-xs font-semibold text-yellow-500 hover:underline cursor-pointer inline-flex items-center gap-0.5"
-                                      >
-                                        <RefreshCw className="w-3 h-3" />
-                                        Restore
-                                      </button>
+
                                     </>
                                   )}
                                 </td>

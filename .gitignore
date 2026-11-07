@@ -16,6 +16,8 @@ dist/
 # ===== .NET / C# =====
 bin/
 **/bin/
+!scripts/backup-runner/bin/
+!scripts/backup-runner/bin/*
 obj/
 **/obj/
 
@@ -57,3 +59,7 @@ backups/
 *.sql.gz
 *.dump
 *.bak
+
+# ===== Python =====
+__pycache__/
+*.py[cod]

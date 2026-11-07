@@ -80,70 +80,15 @@ namespace ms.admin.api.acya.Services
             _logger.LogInformation("pg_dump successfully completed for schema {Schema}", schemaName);
         }
 
-        public async Task RestoreTenantSchemaAsync(string schemaName, string sourceFilePath)
+        public Task RestoreTenantSchemaAsync(string schemaName, string sourceFilePath)
         {
-            if (!SchemaSanitizer.IsValidIdentifier(schemaName))
-            {
-                throw new ArgumentException($"Invalid schema name: '{schemaName}'", nameof(schemaName));
-            }
+            _logger.LogWarning(
+                "Blocked retired legacy restore invocation for schema '{Schema}' and source '{SourcePath}'. Legacy in-place DROP SCHEMA CASCADE restoration is disabled.",
+                schemaName,
+                sourceFilePath);
 
-            var fullPath = Path.GetFullPath(sourceFilePath);
-            var backupsDir = Path.GetFullPath("/app/backups");
-            if (!fullPath.StartsWith(backupsDir, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException("Invalid source file path outside backups directory.");
-            }
-
-            _logger.LogInformation("Starting pg_restore for schema {Schema} from {Path}", schemaName, fullPath);
-
-            if (!File.Exists(fullPath))
-            {
-                throw new FileNotFoundException("Backup file not found.", fullPath);
-            }
-
-            var builder = new NpgsqlConnectionStringBuilder(_connectionString);
-            var host = builder.Host;
-            var port = builder.Port;
-            var username = builder.Username;
-            var password = builder.Password;
-            var database = builder.Database;
-
-            // 1. Drop existing schema to prevent conflicts, then recreate it empty
-            using (var conn = new NpgsqlConnection(_connectionString))
-            {
-                await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand($"DROP SCHEMA IF EXISTS \"{schemaName}\" CASCADE; CREATE SCHEMA \"{schemaName}\";", conn))
-                {
-                    await cmd.ExecuteNonQueryAsync();
-                }
-            }
-
-            // 2. Restore using pg_restore
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = "pg_restore",
-                Arguments = $"-h {host} -p {port} -U {username} -d {database} -v \"{fullPath}\"",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            startInfo.EnvironmentVariables["PGPASSWORD"] = password;
-
-            using (var process = Process.Start(startInfo))
-            {
-                if (process == null) throw new Exception("Failed to start pg_restore process.");
-                string error = await process.StandardError.ReadToEndAsync();
-                await process.WaitForExitAsync();
-
-                if (process.ExitCode != 0)
-                {
-                    _logger.LogError("pg_restore failed with exit code {Code}. Error: {Err}", process.ExitCode, error);
-                    throw new Exception($"pg_restore failed with exit code {process.ExitCode}.");
-                }
-            }
-
-            _logger.LogInformation("pg_restore successfully completed for schema {Schema}", schemaName);
+            throw new NotSupportedException(
+                "The legacy in-place schema restore mechanism has been retired for production safety and cannot execute database modifications.");
         }
     }
 }

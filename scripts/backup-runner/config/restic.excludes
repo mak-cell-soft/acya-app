@@ -1,0 +1,27 @@
+# ============================================================================
+# ACYA Phase 11B — Restic Exclude Patterns (`/opt/acya-backup/config/restic.excludes`)
+# Avoids collecting transient logs, editor swap files, caches, or temp artifacts.
+# ============================================================================
+
+# Transient n8n runtime telemetry & crash journals inside n8n_data
+/var/lib/docker/volumes/n8n_data/_data/n8nEventLog*.log
+/var/lib/docker/volumes/n8n_data/_data/crash.journal
+/var/lib/docker/volumes/n8n_data/_data/logs
+/var/lib/docker/volumes/n8n_data/_data/.cache
+
+# Historical manual nginx backup copies in /etc/nginx
+/etc/nginx/sites-available/*.bak*
+/etc/nginx/sites-available/*.backup*
+/etc/nginx/*.bak*
+/etc/nginx/*.backup*
+
+# Generic editor swap, temp, and cache artifacts
+*.swp
+*.swo
+*.tmp
+*~
+.DS_Store
+__pycache__
+node_modules
+.next/cache
+

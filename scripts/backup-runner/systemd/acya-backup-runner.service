@@ -1,0 +1,49 @@
+[Unit]
+Description=ACYA Phase 11B Production Backup Runner
+Documentation=file:///home/ubuntu/acya-app/PHASE_11B_BACKUP_ARCHITECTURE_IMPLEMENTATION_REPORT.md
+Wants=network-online.target docker.service
+After=network-online.target docker.service
+StartLimitIntervalSec=2h
+StartLimitBurst=3
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/opt/acya-backup
+Environment="TZ=UTC"
+Environment="PYTHONUNBUFFERED=1"
+UMask=0077
+
+# Non-overlapping execution is enforced both by systemd single-instance unit semantics
+# and by non-blocking flock(2) on /opt/acya-backup/state/runner.lock.
+ExecStart=/opt/acya-backup/bin/acya-backup-runner --config /opt/acya-backup/config/backup.json --mode full --trigger systemd-timer
+
+# Defensive post-stop sweep: if the runner was killed by SIGKILL / OOM / timeout,
+# sweep any leftover staging directory and finalize current-run.json -> interrupted.
+ExecStopPost=/usr/bin/python3 -c "import sys; sys.path.insert(0, '/opt/acya-backup/lib'); from acya_backup.config import load_config; from acya_backup.proc import Logger; from acya_backup.pipeline import sweep_abandoned_staging; from acya_backup.telemetry import record_interrupted_previous; cfg = load_config('/opt/acya-backup/config/backup.json'); log = Logger(None); sweep_abandoned_staging(cfg, log); record_interrupted_previous(cfg, log)"
+
+# Retry strategy for recoverable transient failures (exit codes 11, 13, 20, 50, 60)
+Restart=on-failure
+RestartSec=5min
+RestartPreventExitStatus=10 12 21 30 40 61 70 75 129 130 143
+TimeoutStartSec=3h
+
+# Systemd sandboxing & privilege hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/acya-backup/staging /opt/acya-backup/logs /opt/acya-backup/state /opt/acya-backup/cache
+ReadOnlyPaths=/opt/acya-backup/bin /opt/acya-backup/lib /opt/acya-backup/config /etc/acya-backup /home/ubuntu/acya-app /etc/nginx /etc/letsencrypt /var/lib/docker/volumes/n8n_data
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=acya-backup-runner
+
+[Install]
+WantedBy=multi-user.target

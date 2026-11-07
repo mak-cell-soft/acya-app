@@ -1,0 +1,15 @@
+[Unit]
+Description=ACYA Phase 11B Daily Production Backup Timer (02:00 UTC)
+Documentation=file:///home/ubuntu/acya-app/PHASE_11B_BACKUP_ARCHITECTURE_IMPLEMENTATION_REPORT.md
+
+[Timer]
+# Explicit daily execution at 02:00:00 UTC (aligned with Admin-Dash freshness window)
+OnCalendar=*-*-* 02:00:00 UTC
+Persistent=true
+AccuracySec=1s
+RandomizedDelaySec=0
+Unit=acya-backup-runner.service
+
+[Install]
+WantedBy=timers.target
+

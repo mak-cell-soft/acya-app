@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+"""ACYA Phase 11C.1.7b Tenant Backup History Indexer (`/opt/acya-backup/bin/acya-backup-history`).
+
+Read-only tool: inspects existing Restic snapshots using `--no-lock`,
+reads snapshot metadata (`tenant-registry.json`, `manifest.txt`, `manifest.json`)
+and file listings (`restic ls --json`) without extracting any database dumps,
+and atomically writes `/opt/acya-backup/state/tenant-backup-history.json` (`0644`).
+
+Safety guarantees:
+  - Never extracts database dumps (`*.dump`).
+  - Never modifies the Restic repository.
+  - Never invokes `pg_dump` or `pg_restore`.
+"""
+
+import argparse
+import json
+import os
+import sys
+
+_HERE = os.path.dirname(os.path.realpath(__file__))
+_LIB = os.path.normpath(os.path.join(_HERE, "..", "lib"))
+if os.path.isdir(_LIB) and _LIB not in sys.path:
+    sys.path.insert(0, _LIB)
+
+from acya_backup.config import load_config
+from acya_backup.errors import BackupError, ExitCode
+from acya_backup.history import TenantBackupHistoryIndexer, write_tenant_backup_history
+from acya_backup.proc import Logger
+from acya_backup.restic import ResticClient, TransferSession
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        prog="acya-backup-history",
+        description="Generate per-tenant backup history catalog from Restic snapshots (--no-lock, read-only).",
+    )
+    parser.add_argument(
+        "--config",
+        default="/opt/acya-backup/config/backup.json",
+        help="Path to backup.json configuration file.",
+    )
+    parser.add_argument(
+        "--output",
+        default=None,
+        help="Output path for tenant-backup-history.json (defaults to <stateDir>/tenant-backup-history.json).",
+    )
+    parser.add_argument(
+        "--stdout",
+        action="store_true",
+        help="Print the generated catalog JSON to stdout in addition to writing the state file.",
+    )
+    args = parser.parse_args(argv)
+
+    logger = Logger(None)
+    try:
+        cfg = load_config(args.config)
+        output_path = args.output or os.path.join(cfg.state_dir, "tenant-backup-history.json")
+
+        with TransferSession(cfg, logger) as session:
+            client = ResticClient(cfg, session, logger)
+            indexer = TenantBackupHistoryIndexer(client, logger=logger)
+            catalog = indexer.build_catalog()
+            write_tenant_backup_history(catalog, output_path=output_path)
+
+        logger.info(
+            f"Generated tenant backup history catalog at {output_path} "
+            f"(snapshots={catalog['snapshotCount']}, tenants={catalog['knownTenantCount']}, "
+            f"entries={catalog['totalEntries']})"
+        )
+        if args.stdout:
+            print(json.dumps(catalog, indent=2))
+        return ExitCode.SUCCESS
+    except BackupError as berr:
+        sys.stderr.write(f"HISTORY INDEX ERROR [{berr.category}]: {berr.message}\n")
+        return berr.exit_code
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+

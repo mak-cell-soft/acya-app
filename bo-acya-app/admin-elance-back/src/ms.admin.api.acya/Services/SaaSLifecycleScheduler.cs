@@ -86,7 +86,7 @@ namespace ms.admin.api.acya.Services
             }
         }
 
-        private async Task ProcessBackupJobsAsync(MasterDbContext dbContext, BackupService backupService, CancellationToken stoppingToken)
+        public async Task ProcessBackupJobsAsync(MasterDbContext dbContext, BackupService backupService, CancellationToken stoppingToken)
         {
             var pendingJobs = await dbContext.BackupJobs
                 .Include(j => j.Tenant)
@@ -104,6 +104,30 @@ namespace ms.admin.api.acya.Services
                     continue;
                 }
 
+                if (string.Equals(job.Type, "Restore", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning(
+                        "Rejecting retired legacy restore job {Id} for tenant {Tenant}. Legacy restore is disabled.",
+                        job.Id,
+                        job.Tenant.Name);
+
+                    job.Status = "Failed";
+                    job.CompletedAt = DateTime.UtcNow;
+                    job.ErrorMessage = "The legacy in-place schema restore mechanism has been retired and disabled.";
+
+                    var rejectedAudit = new MasterAuditLog
+                    {
+                        TenantId = job.TenantId,
+                        Action = "Schema Restore Rejected (Retired)",
+                        Details = $"Job {job.Id} rejected: legacy in-place restore mechanism has been retired.",
+                        PerformedBy = "System Scheduler",
+                        Timestamp = DateTime.UtcNow
+                    };
+                    await dbContext.MasterAuditLogs.AddAsync(rejectedAudit, stoppingToken);
+                    await dbContext.SaveChangesAsync(stoppingToken);
+                    continue;
+                }
+
                 _logger.LogInformation("Processing backup/restore job {Id} ({Type}) for tenant {Tenant}", job.Id, job.Type, job.Tenant.Name);
                 
                 job.Status = "Running";
@@ -115,9 +139,9 @@ namespace ms.admin.api.acya.Services
                     {
                         await backupService.BackupTenantSchemaAsync(job.Tenant.SchemaName, job.FilePath);
                     }
-                    else if (job.Type == "Restore")
+                    else
                     {
-                        await backupService.RestoreTenantSchemaAsync(job.Tenant.SchemaName, job.FilePath);
+                        throw new NotSupportedException($"Unsupported backup job type '{job.Type}'.");
                     }
 
                     job.Status = "Completed";
@@ -126,7 +150,7 @@ namespace ms.admin.api.acya.Services
                     var audit = new MasterAuditLog
                     {
                         TenantId = job.TenantId,
-                        Action = job.Type == "Backup" ? "Schema Backup Executed" : "Schema Restore Executed",
+                        Action = "Schema Backup Executed",
                         Details = $"Job {job.Id} completed successfully. File path: {job.FilePath}",
                         PerformedBy = "System Scheduler",
                         Timestamp = DateTime.UtcNow
