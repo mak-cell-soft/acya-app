@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Database, Users, Activity, Download, RefreshCw, AlertTriangle, CheckCircle, Search, Filter, Archive } from "lucide-react";
 import { TenantRestorePanel } from "@/components/TenantRestorePanel";
+import { BackupSchedulerPanel } from "@/components/BackupSchedulerPanel";
 
 interface Enterprise {
   id: number;
@@ -185,6 +186,9 @@ export default function MonitoringPage() {
           {error}
         </div>
       )}
+
+      {/* Production Automatic Backup Scheduler (Phase 11C.2) */}
+      <BackupSchedulerPanel />
 
       {loading ? (
         <div className="glass-panel p-12 text-center text-muted-foreground font-mono">

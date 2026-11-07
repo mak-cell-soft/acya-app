@@ -1,0 +1,24 @@
+[Unit]
+Description=ACYA Production Backup Scheduler Management Daemon
+Documentation=file:///home/ubuntu/acya-app/PHASE_11C_2_BACKUP_SCHEDULER_REPORT.md
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/acya-backup
+ExecStart=/opt/acya-backup/bin/acya-scheduler-daemon --port 9095
+Restart=on-failure
+RestartSec=5s
+Environment="PYTHONUNBUFFERED=1"
+
+# Sandboxing & isolation
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/acya-backup/state /opt/acya-backup/logs /etc/systemd/system
+ReadOnlyPaths=/opt/acya-backup/bin /opt/acya-backup/lib /opt/acya-backup/config
+
+[Install]
+WantedBy=multi-user.target
+

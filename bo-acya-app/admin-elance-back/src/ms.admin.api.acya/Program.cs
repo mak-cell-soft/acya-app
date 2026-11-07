@@ -67,6 +67,27 @@ builder.Services.AddSingleton<TenantRestoreConcurrencyGate>();
 builder.Services.AddSingleton<ITenantRestoreCatalogProvider>(new FileTenantRestoreCatalogProvider());
 builder.Services.AddScoped<ITenantRestoreExecutionBridge, HostCliTenantRestoreBridge>();
 builder.Services.AddScoped<ITenantRestoreManagementService, TenantRestoreManagementService>();
+builder.Services.AddHttpClient("SchedulerDaemon", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
+builder.Services.AddScoped<IProductionSchedulerBridge>(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var daemonUrl = config["BackupScheduler:EndpointUrl"] ?? Environment.GetEnvironmentVariable("BACKUP_SCHEDULER_URL");
+    var secret = config["BackupScheduler:Secret"] ?? Environment.GetEnvironmentVariable("BACKUP_SCHEDULER_SECRET") ?? "";
+
+    if (!string.IsNullOrWhiteSpace(daemonUrl))
+    {
+        var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+        var httpLogger = sp.GetRequiredService<ILogger<HttpProductionSchedulerBridge>>();
+        return new HttpProductionSchedulerBridge(httpClientFactory.CreateClient("SchedulerDaemon"), daemonUrl, secret, httpLogger);
+    }
+
+    var cliLogger = sp.GetRequiredService<ILogger<HostCliProductionSchedulerBridge>>();
+    return new HostCliProductionSchedulerBridge(cliLogger);
+});
+builder.Services.AddScoped<IBackupSchedulerManagementService, BackupSchedulerManagementService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISupportTicketAdminService, SupportTicketAdminService>();
 builder.Services.AddHostedService<SaaSLifecycleScheduler>();

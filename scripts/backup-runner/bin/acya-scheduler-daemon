@@ -1,0 +1,216 @@
+#!/usr/bin/env python3
+"""
+ACYA Automated Production Backup — Scheduler Controller Daemon
+Service: acya-scheduler-daemon
+Description: Restricted, authenticated HTTP daemon on Production VPS for scheduler management
+Security:
+  - Requires pre-shared secret in header 'X-Scheduler-Token' or 'Authorization: Bearer <secret>'
+  - Strictly limited to 4 endpoints: GET /status, POST /schedule, POST /enable, POST /disable
+  - Operates exclusively on acya-backup-runner.timer
+  - Never executes arbitrary shell commands or accepts custom unit names
+  - Logs all requests with IP, timestamp, and audit trail
+"""
+
+import sys
+import os
+import json
+import secrets
+import argparse
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+from urllib.parse import urlparse
+
+# Ensure library is in import path
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib"))
+
+from acya_backup.scheduler import (
+    get_scheduler_status,
+    set_daily_schedule,
+    enable_timer,
+    disable_timer,
+    SchedulerError,
+    DEFAULT_CONFIG_PATH,
+    DEFAULT_STATE_DIR
+)
+
+DEFAULT_PORT = 9095
+DEFAULT_SECRET_FILE = "/opt/acya-backup/config/scheduler-secret.token"
+
+
+def get_or_create_secret(secret_file: str) -> str:
+    """Retrieve existing 256-bit secret token or generate new one with 0600 permissions."""
+    if os.path.exists(secret_file):
+        try:
+            with open(secret_file, "r", encoding="utf-8") as f:
+                token = f.read().strip()
+                if len(token) >= 32:
+                    return token
+        except Exception as e:
+            sys.stderr.write(f"[WARN] Failed to read secret file {secret_file}: {e}\n")
+
+    os.makedirs(os.path.dirname(secret_file), exist_ok=True)
+    token = secrets.token_hex(32)
+    tmp_file = f"{secret_file}.tmp.{os.getpid()}"
+    with open(tmp_file, "w", encoding="utf-8") as f:
+        f.write(token + "\n")
+    os.chmod(tmp_file, 0o600)
+    os.replace(tmp_file, secret_file)
+    return token
+
+
+class SchedulerHttpHandler(BaseHTTPRequestHandler):
+    server_version = "AcyaSchedulerDaemon/1.0"
+
+    @property
+    def auth_secret(self) -> str:
+        return self.server.auth_secret
+
+    @property
+    def config_path(self) -> str:
+        return self.server.config_path
+
+    @property
+    def state_dir(self) -> str:
+        return self.server.state_dir
+
+    def log_message(self, format, *args):
+        # Override to log in standard format
+        sys.stderr.write(f"[{self.log_date_time_string()}] {self.address_string()} - {format % args}\n")
+
+    def send_json(self, status_code: int, data: dict):
+        body = json.dumps(data, indent=2).encode("utf-8")
+        self.send_response(status_code)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def is_authenticated(self) -> bool:
+        # Check X-Scheduler-Token header
+        token_hdr = self.headers.get("X-Scheduler-Token", "").strip()
+        if token_hdr and secrets.compare_digest(token_hdr, self.auth_secret):
+            return True
+
+        # Check Authorization: Bearer <token>
+        auth_hdr = self.headers.get("Authorization", "").strip()
+        if auth_hdr.startswith("Bearer "):
+            bearer_token = auth_hdr[7:].strip()
+            if secrets.compare_digest(bearer_token, self.auth_secret):
+                return True
+
+        return False
+
+    def do_GET(self):
+        parsed = urlparse(self.path)
+        if parsed.path in ("/status", "/api/scheduler/status"):
+            if not self.is_authenticated():
+                self.send_json(401, {"error": True, "code": "unauthorized", "message": "Missing or invalid authentication token."})
+                return
+
+            try:
+                status = get_scheduler_status(config_path=self.config_path, state_dir=self.state_dir)
+                self.send_json(200, status)
+            except Exception as e:
+                self.send_json(500, {"error": True, "code": "status_error", "message": str(e)})
+            return
+
+        if parsed.path in ("/health", "/ping"):
+            self.send_json(200, {"status": "ok", "service": "acya-scheduler-daemon"})
+            return
+
+        self.send_json(404, {"error": True, "code": "not_found", "message": f"Endpoint '{parsed.path}' not found."})
+
+    def do_POST(self):
+        parsed = urlparse(self.path)
+
+        if not self.is_authenticated():
+            self.send_json(401, {"error": True, "code": "unauthorized", "message": "Missing or invalid authentication token."})
+            return
+
+        content_length = int(self.headers.get("Content-Length", 0))
+        post_data = self.rfile.read(content_length) if content_length > 0 else b"{}"
+
+        try:
+            body = json.loads(post_data.decode("utf-8")) if post_data else {}
+        except Exception:
+            self.send_json(400, {"error": True, "code": "invalid_json", "message": "Request body must be valid JSON."})
+            return
+
+        user = body.get("user") or self.headers.get("X-Forwarded-User") or "SuperAdmin"
+
+        try:
+            if parsed.path in ("/schedule", "/api/scheduler/schedule"):
+                time_str = body.get("time")
+                timezone_str = body.get("timezone")
+                if not time_str or not timezone_str:
+                    self.send_json(400, {"error": True, "code": "missing_parameters", "message": "'time' (HH:mm) and 'timezone' are required."})
+                    return
+
+                res = set_daily_schedule(
+                    time_str=str(time_str).strip(),
+                    timezone_str=str(timezone_str).strip(),
+                    performed_by=str(user).strip(),
+                    config_path=self.config_path,
+                    state_dir=self.state_dir
+                )
+                self.send_json(200, res)
+                return
+
+            elif parsed.path in ("/enable", "/api/scheduler/enable"):
+                res = enable_timer(
+                    performed_by=str(user).strip(),
+                    config_path=self.config_path,
+                    state_dir=self.state_dir
+                )
+                self.send_json(200, res)
+                return
+
+            elif parsed.path in ("/disable", "/api/scheduler/disable"):
+                res = disable_timer(
+                    performed_by=str(user).strip(),
+                    config_path=self.config_path,
+                    state_dir=self.state_dir
+                )
+                self.send_json(200, res)
+                return
+
+            else:
+                self.send_json(404, {"error": True, "code": "not_found", "message": f"Endpoint '{parsed.path}' not found."})
+                return
+
+        except SchedulerError as e:
+            self.send_json(422, {"error": True, "code": e.code, "message": str(e)})
+        except Exception as e:
+            self.send_json(500, {"error": True, "code": "internal_error", "message": str(e)})
+
+
+def main():
+    parser = argparse.ArgumentParser(description="ACYA Backup Scheduler Controller Daemon")
+    parser.add_argument("--host", default="0.0.0.0", help="Host interface to bind (default: 0.0.0.0)")
+    parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"Port to listen on (default: {DEFAULT_PORT})")
+    parser.add_argument("--secret-file", default=DEFAULT_SECRET_FILE, help="Path to pre-shared secret file")
+    parser.add_argument("--config", default=DEFAULT_CONFIG_PATH, help="Path to backup.json")
+    parser.add_argument("--state-dir", default=DEFAULT_STATE_DIR, help="Path to state directory")
+
+    args = parser.parse_args()
+
+    secret = os.environ.get("SCHEDULER_SECRET")
+    if not secret:
+        secret = get_or_create_secret(args.secret_file)
+
+    server = ThreadingHTTPServer((args.host, args.port), SchedulerHttpHandler)
+    server.auth_secret = secret
+    server.config_path = args.config
+    server.state_dir = args.state_dir
+
+    sys.stderr.write(f"[INFO] ACYA Scheduler Daemon running on {args.host}:{args.port}\n")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        sys.stderr.write("[INFO] Shutting down scheduler daemon.\n")
+        server.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+

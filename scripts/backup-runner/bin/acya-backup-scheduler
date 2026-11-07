@@ -1,0 +1,134 @@
+#!/usr/bin/env python3
+"""
+ACYA Automated Production Backup — Scheduler Management CLI
+Entrypoint: /opt/acya-backup/bin/acya-backup-scheduler
+Security:
+  - Operates strictly on acya-backup-runner.timer
+  - Validates all arguments with strict typing & regex
+  - Outputs JSON payload to stdout
+  - Return code 0 on success, non-zero on error
+"""
+
+import sys
+import os
+import argparse
+import json
+
+# Ensure library is in import path
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib"))
+
+from acya_backup.scheduler import (
+    get_scheduler_status,
+    set_daily_schedule,
+    enable_timer,
+    disable_timer,
+    SchedulerError,
+    DEFAULT_CONFIG_PATH,
+    DEFAULT_STATE_DIR
+)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="ACYA Production Backup Scheduler Management CLI",
+        prog="acya-backup-scheduler"
+    )
+    parser.add_argument(
+        "--config",
+        default=DEFAULT_CONFIG_PATH,
+        help="Path to backup.json configuration file"
+    )
+    parser.add_argument(
+        "--state-dir",
+        default=DEFAULT_STATE_DIR,
+        help="Path to backup state directory"
+    )
+    parser.add_argument(
+        "--user",
+        default="SuperAdmin",
+        help="Operator username for audit tracking"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Simulate changes without calling systemctl"
+    )
+
+    subparsers = parser.add_subparsers(dest="subcommand", required=True)
+
+    # Subcommand: status
+    subparsers.add_parser("status", help="Get live timer and scheduler status")
+
+    # Common options for subcommands
+    for p in (subparsers.add_parser("enable", help="Enable and start the backup timer"),
+              subparsers.add_parser("disable", help="Stop and disable the backup timer")):
+        p.add_argument("--dry-run", action="store_true", help="Simulate changes without calling systemctl")
+
+    # Subcommand: set-schedule
+    sched_parser = subparsers.add_parser("set-schedule", help="Update daily execution time and timezone")
+    sched_parser.add_argument(
+        "--time",
+        required=True,
+        help="Execution time in 24h HH:mm format (e.g. 02:00)"
+    )
+    sched_parser.add_argument(
+        "--timezone",
+        required=True,
+        help="IANA timezone identifier (e.g. Africa/Tunis, UTC)"
+    )
+    sched_parser.add_argument("--dry-run", action="store_true", help="Simulate changes without calling systemctl")
+
+    args = parser.parse_args()
+
+    try:
+        if args.subcommand == "status":
+            res = get_scheduler_status(config_path=args.config, state_dir=args.state_dir)
+        elif args.subcommand == "set-schedule":
+            res = set_daily_schedule(
+                time_str=args.time,
+                timezone_str=args.timezone,
+                performed_by=args.user,
+                config_path=args.config,
+                state_dir=args.state_dir,
+                apply_systemd=(not args.dry_run)
+            )
+        elif args.subcommand == "enable":
+            res = enable_timer(
+                performed_by=args.user,
+                config_path=args.config,
+                state_dir=args.state_dir,
+                apply_systemd=(not args.dry_run)
+            )
+        elif args.subcommand == "disable":
+            res = disable_timer(
+                performed_by=args.user,
+                config_path=args.config,
+                state_dir=args.state_dir,
+                apply_systemd=(not args.dry_run)
+            )
+        else:
+            sys.stderr.write(f"Unknown subcommand: {args.subcommand}\n")
+            sys.exit(2)
+
+        print(json.dumps(res, indent=2))
+        sys.exit(0)
+    except SchedulerError as e:
+        err_payload = {
+            "error": True,
+            "code": e.code,
+            "message": str(e)
+        }
+        sys.stderr.write(json.dumps(err_payload, indent=2) + "\n")
+        sys.exit(1)
+    except Exception as e:
+        err_payload = {
+            "error": True,
+            "code": "unexpected_error",
+            "message": str(e)
+        }
+        sys.stderr.write(json.dumps(err_payload, indent=2) + "\n")
+        sys.exit(2)
+
+
+if __name__ == "__main__":
+    main()

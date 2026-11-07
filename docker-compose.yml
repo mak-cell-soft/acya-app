@@ -111,6 +111,8 @@ services:
       dockerfile: Dockerfile
     container_name: admin-elance-back
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
@@ -126,6 +128,8 @@ services:
       - N8nEmailService__BaseUrl=http://n8n:5678
       - N8nEmailService__ApiKey=${N8N_EMAIL_SERVICE_API_KEY:?N8N_EMAIL_SERVICE_API_KEY is required and must not be empty}
       - TENANT_RESTORE_EXECUTION_ENABLED=false
+      - BACKUP_SCHEDULER_URL=http://host.docker.internal:9095
+      - BACKUP_SCHEDULER_SECRET=${BACKUP_SCHEDULER_SECRET}
     ports:
       - "8082:80"
     volumes:
