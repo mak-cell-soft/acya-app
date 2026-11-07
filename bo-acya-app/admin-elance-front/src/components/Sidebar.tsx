@@ -10,6 +10,7 @@ import {
   Loader2, 
   ChevronLeft, 
   ChevronRight, 
+  ChevronDown, 
   LayoutDashboard, 
   Shield, 
   CreditCard, 
@@ -45,6 +46,13 @@ export default function Sidebar() {
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  const isMobileActive = pathname.startsWith('/mobile');
+  const [isMobileExpanded, setIsMobileExpanded] = useState(true);
+
+  const toggleMobileExpanded = () => {
+    setIsMobileExpanded((prev) => !prev);
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -109,8 +117,8 @@ export default function Sidebar() {
         setIsPasswordOpen(false);
         setSuccess('');
       }, 1500);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -161,8 +169,8 @@ export default function Sidebar() {
         setIsPasswordOpen(false);
         setSuccess('');
       }, 1500);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -174,6 +182,25 @@ export default function Sidebar() {
     const layout = (mounted && isCollapsed) ? "justify-center p-2.5" : "gap-3 px-3 py-2.5";
     const colors = isActive
       ? "font-semibold bg-primary/10 text-primary border-primary/20 shadow-[0_0_15px_rgba(16,185,129,0.05)]"
+      : "font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 border-transparent hover:scale-[1.01]";
+    return `${base} ${layout} ${colors}`;
+  };
+
+  const getMobileParentClasses = () => {
+    const base = "flex items-center rounded-md text-sm transition-all duration-200 border cursor-pointer select-none w-full";
+    const layout = (mounted && isCollapsed) ? "justify-center p-2.5" : "justify-between px-3 py-2.5";
+    const colors = isMobileActive
+      ? "font-semibold bg-primary/10 text-primary border-primary/20 shadow-[0_0_15px_rgba(16,185,129,0.05)]"
+      : "font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 border-transparent hover:scale-[1.01]";
+    return `${base} ${layout} ${colors}`;
+  };
+
+  const getSubLinkClasses = (href: string) => {
+    const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
+    const base = "flex items-center rounded-md transition-all duration-200 border cursor-pointer";
+    const layout = (mounted && isCollapsed) ? "justify-center p-2 w-9 h-9" : "gap-2.5 px-2.5 py-2 text-xs";
+    const colors = isActive
+      ? "font-semibold bg-primary/15 text-primary border-primary/30 shadow-[0_0_12px_rgba(16,185,129,0.08)]"
       : "font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 border-transparent hover:scale-[1.01]";
     return `${base} ${layout} ${colors}`;
   };
@@ -260,32 +287,64 @@ export default function Sidebar() {
           {(!isCollapsed || !mounted) && <span>Enterprises Registry</span>}
         </Link>
 
-        <Link 
-          href="/mobile/builds" 
-          className={getLinkClasses('/mobile/builds')}
-          title={isCollapsed ? "Mobile Builds" : undefined}
-        >
-          <Smartphone className="w-4.5 h-4.5 shrink-0" />
-          {(!isCollapsed || !mounted) && <span>Mobile Builds</span>}
-        </Link>
+        <div className="space-y-1">
+          <button
+            type="button"
+            onClick={toggleMobileExpanded}
+            className={getMobileParentClasses()}
+            title={isCollapsed ? "Mobile Management" : undefined}
+            aria-expanded={isMobileExpanded}
+          >
+            <div className="flex items-center gap-3">
+              <Smartphone className="w-4.5 h-4.5 shrink-0" />
+              {(!isCollapsed || !mounted) && <span>Mobile Management</span>}
+            </div>
+            {(!isCollapsed || !mounted) && (
+              <ChevronDown
+                className={`w-4 h-4 transition-transform duration-200 shrink-0 ${
+                  isMobileExpanded ? 'rotate-180' : ''
+                } ${isMobileActive ? 'text-primary' : 'text-muted-foreground'}`}
+              />
+            )}
+          </button>
 
-        <Link 
-          href="/mobile/releases" 
-          className={getLinkClasses('/mobile/releases')}
-          title={isCollapsed ? "Mobile Releases" : undefined}
-        >
-          <Sparkles className="w-4.5 h-4.5 shrink-0" />
-          {(!isCollapsed || !mounted) && <span>Mobile Releases</span>}
-        </Link>
+          {isMobileExpanded && (
+            <div
+              className={
+                (mounted && isCollapsed)
+                  ? "space-y-1 pt-1 flex flex-col items-center"
+                  : "ml-3 pl-3 border-l border-border/60 space-y-1 pt-1"
+              }
+            >
+              <Link
+                href="/mobile/firebase"
+                className={getSubLinkClasses('/mobile/firebase')}
+                title={isCollapsed ? "Firebase Apps" : undefined}
+              >
+                <Flame className="w-4 h-4 shrink-0 text-orange-400" />
+                {(!isCollapsed || !mounted) && <span>Firebase Apps</span>}
+              </Link>
 
-        <Link
-          href="/mobile/firebase"
-          className={getLinkClasses('/mobile/firebase')}
-          title={isCollapsed ? "Firebase Apps" : undefined}
-        >
-          <Flame className="w-4.5 h-4.5 shrink-0" />
-          {(!isCollapsed || !mounted) && <span>Firebase Apps</span>}
-        </Link>
+              <Link
+                href="/mobile/builds"
+                className={getSubLinkClasses('/mobile/builds')}
+                title={isCollapsed ? "Mobile Builds" : undefined}
+              >
+                <Smartphone className="w-4 h-4 shrink-0" />
+                {(!isCollapsed || !mounted) && <span>Mobile Builds</span>}
+              </Link>
+
+              <Link
+                href="/mobile/releases"
+                className={getSubLinkClasses('/mobile/releases')}
+                title={isCollapsed ? "Mobile Releases" : undefined}
+              >
+                <Sparkles className="w-4 h-4 shrink-0" />
+                {(!isCollapsed || !mounted) && <span>Mobile Releases</span>}
+              </Link>
+            </div>
+          )}
+        </div>
 
         <Link
           href="/billing" 
