@@ -52,6 +52,10 @@ namespace ms.webapp.api.acya.api.Extentions
           options.AddPolicy("MobileApp.CanDownload", policy => policy.Requirements.Add(new ms.webapp.api.acya.PermissionsHelper.PermissionRequirement("MobileApp", "CanDownload")));
           options.AddPolicy("MobileApp.CanManage", policy => policy.Requirements.Add(new ms.webapp.api.acya.PermissionsHelper.PermissionRequirement("MobileApp", "CanManage")));
           options.AddPolicy("MobileApp.CanBuild", policy => policy.Requirements.Add(new ms.webapp.api.acya.PermissionsHelper.PermissionRequirement("MobileApp", "CanBuild")));
+          options.AddPolicy("Vehicles.CanRead", policy => policy.Requirements.Add(new ms.webapp.api.acya.PermissionsHelper.PermissionRequirement("Vehicles", "CanRead")));
+          options.AddPolicy("Vehicles.CanAdd", policy => policy.Requirements.Add(new ms.webapp.api.acya.PermissionsHelper.PermissionRequirement("Vehicles", "CanAdd")));
+          options.AddPolicy("Vehicles.CanUpdate", policy => policy.Requirements.Add(new ms.webapp.api.acya.PermissionsHelper.PermissionRequirement("Vehicles", "CanUpdate")));
+          options.AddPolicy("Vehicles.CanDelete", policy => policy.Requirements.Add(new ms.webapp.api.acya.PermissionsHelper.PermissionRequirement("Vehicles", "CanDelete")));
       });
 
       services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, ms.webapp.api.acya.PermissionsHelper.PermissionHandler>();

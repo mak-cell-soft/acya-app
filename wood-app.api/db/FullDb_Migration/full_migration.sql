@@ -1867,6 +1867,55 @@ INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20261026080000_AddSupportTickets', '7.0.20')
 ON CONFLICT ("MigrationId") DO NOTHING;
 
+-- Vehicle Delivery Tracking
+CREATE TABLE IF NOT EXISTS tbl_delivery_tracking (
+    id SERIAL PRIMARY KEY,
+    document_id INTEGER NOT NULL,
+    vehicle_id INTEGER NOT NULL,
+    transporter_id INTEGER NULL,
+    customer_id INTEGER NOT NULL,
+    customer_name VARCHAR(255) NULL,
+    driver_name VARCHAR(255) NULL,
+    departure_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    return_date TIMESTAMPTZ NULL,
+    delivery_address TEXT NULL,
+    status INTEGER NOT NULL DEFAULT 1,
+    notes TEXT NULL,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_by_id INTEGER NULL,
+    CONSTRAINT fk_tbl_delivery_tracking_tbl_document 
+        FOREIGN KEY (document_id) REFERENCES tbl_document(id) ON DELETE CASCADE,
+    CONSTRAINT fk_tbl_delivery_tracking_tbl_vehicle 
+        FOREIGN KEY (vehicle_id) REFERENCES tbl_vehicle(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_tbl_delivery_tracking_tbl_transporter 
+        FOREIGN KEY (transporter_id) REFERENCES tbl_transporter(id) ON DELETE SET NULL,
+    CONSTRAINT fk_tbl_delivery_tracking_tbl_counter_part 
+        FOREIGN KEY (customer_id) REFERENCES tbl_counter_part(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_tbl_delivery_tracking_tbl_app_user 
+        FOREIGN KEY (updated_by_id) REFERENCES tbl_app_user(id) ON DELETE SET NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tbl_delivery_tracking_doc_active 
+    ON tbl_delivery_tracking (document_id) 
+    WHERE is_deleted = false;
+
+CREATE INDEX IF NOT EXISTS idx_tbl_delivery_tracking_vehicle_date 
+    ON tbl_delivery_tracking (vehicle_id, departure_date DESC);
+
+CREATE INDEX IF NOT EXISTS idx_tbl_delivery_tracking_customer_date 
+    ON tbl_delivery_tracking (customer_id, departure_date DESC);
+
+CREATE INDEX IF NOT EXISTS idx_tbl_delivery_tracking_status 
+    ON tbl_delivery_tracking (status) 
+    WHERE is_deleted = false;
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20261109110000_AddDeliveryTrackingTable', '7.0.20')
+ON CONFLICT ("MigrationId") DO NOTHING;
+
+
 
 
 

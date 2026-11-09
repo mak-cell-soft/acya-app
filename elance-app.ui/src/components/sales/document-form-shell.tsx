@@ -83,6 +83,7 @@ import { useSites } from '@/hooks/use-enterprise';
 import { useAppVariables, useCreateAppVariable } from '@/hooks/use-app-variables';
 import { counterpartService } from '@/services/components/counterpart.service';
 import { documentService } from '@/services/components/document.service';
+import { deliveryTrackingService } from '@/services/components/delivery-tracking.service';
 import { pricingGridService } from '@/services/components/pricing-grid.service';
 import { stockService } from '@/services/components/stock.service';
 import { exchangeRateService } from '@/services/components/exchange-rate.service';
@@ -1470,6 +1471,50 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
       } else {
         result = await documentService.add(documentPayload);
         toast.success(`${title} créé avec succès !`);
+
+        // Automatic delivery tracking dispatch for internal enterprise fleet vehicle
+        const isTrackingEligible = docType === DocumentTypes.customerDeliveryNote || docType === DocumentTypes.customerInvoice;
+        const isInternalVehicle = Boolean(
+          selectedTransporter && (
+            selectedTransporter.isOwned === true ||
+            (typeof selectedTransporter.car === 'object' && selectedTransporter.car !== null && (selectedTransporter.car as any).isowned === true)
+          )
+        );
+
+        if (isTrackingEligible && isInternalVehicle && result?.id && selectedCustomer?.id) {
+          const vehicleId = selectedTransporter?.vehicleId || 
+            (typeof selectedTransporter?.car === 'object' && selectedTransporter?.car !== null ? (selectedTransporter.car as any).id : null);
+
+          if (vehicleId) {
+            try {
+              const driverName = (typeof selectedTransporter?.car === 'object' && selectedTransporter?.car !== null && (selectedTransporter.car as any).fuelcardconductor)
+                ? (selectedTransporter.car as any).fuelcardconductor
+                : selectedTransporter?.fullname || null;
+
+              const customerDisplayName = selectedCustomer.name || 
+                [selectedCustomer.firstname, selectedCustomer.lastname].filter(Boolean).join(' ') || 
+                customerSearchQuery;
+
+              await deliveryTrackingService.create({
+                documentId: result.id,
+                vehicleId: vehicleId,
+                customerId: selectedCustomer.id,
+                customerName: customerDisplayName,
+                deliveryAddress: selectedCustomer.address || '',
+                transporterId: (selectedTransporter && selectedTransporter.id > 0) ? selectedTransporter.id : null,
+                driverName: driverName,
+                departureDate: new Date().toISOString(),
+              });
+
+              await queryClient.invalidateQueries({ queryKey: ['vehicle-delivery-history'] });
+              await queryClient.invalidateQueries({ queryKey: ['vehicle-delivery-stats'] });
+              await queryClient.invalidateQueries({ queryKey: ['fleet-customers'] });
+            } catch (dtError) {
+              console.error('Delivery tracking auto-dispatch failed:', dtError);
+              toast.warning("Document créé, mais le suivi de livraison n'a pas pu être enregistré automatiquement.");
+            }
+          }
+        }
       }
 
       // Invalidate all cached document queries so the sales list immediately
@@ -2992,6 +3037,11 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
       <TransporterModal
         isOpen={isTransporterModalOpen}
         onClose={() => setIsTransporterModalOpen(false)}
+        selectedTransporterId={selectedTransporter?.id}
+        selectedVehicleId={
+          selectedTransporter?.vehicleId || 
+          (typeof selectedTransporter?.car === 'object' && selectedTransporter?.car !== null ? (selectedTransporter.car as any).id : null)
+        }
         onSelectTransporter={(trans) => {
           setSelectedTransporter(trans);
           setTransporterSearchQuery(trans.fullname || '');

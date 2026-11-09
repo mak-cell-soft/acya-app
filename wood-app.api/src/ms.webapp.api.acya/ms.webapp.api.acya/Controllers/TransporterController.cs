@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ms.webapp.api.acya.api.Controllers;
 using ms.webapp.api.acya.core.Entities.DTOs;
@@ -8,6 +9,7 @@ using ms.webapp.api.acya.infrastructure;
 
 namespace ms.webapp.api.acya.api.Controllers
 {
+  [Authorize]
   public class TransporterController : BaseApiController
   {
     private readonly TransporterRepository _repository;
@@ -101,6 +103,16 @@ namespace ms.webapp.api.acya.api.Controllers
       var transporter = await _repository.Get(id);
       if (transporter == null) return NotFound();
 
+      // Prevent editing if associated vehicle is an enterprise owned vehicle
+      if (transporter.VehicleId.HasValue && transporter.VehicleId.Value > 0)
+      {
+        var existingVehicle = await _vehicleRepository.Get(transporter.VehicleId.Value);
+        if (existingVehicle != null && existingVehicle.IsOwned)
+        {
+          return BadRequest("Les véhicules appartenant à l'entreprise (flotte interne) ne peuvent pas être modifiés depuis la gestion des transporteurs.");
+        }
+      }
+
       if (!string.IsNullOrEmpty(dto.firstname) && !string.IsNullOrEmpty(dto.lastname))
       {
         string _fullname = Helpers.CapitalizeFirstLetter(dto.firstname) + " " + dto.lastname.ToUpper();
@@ -151,6 +163,19 @@ namespace ms.webapp.api.acya.api.Controllers
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {
+      var transporter = await _repository.Get(id);
+      if (transporter == null) return NotFound();
+
+      // Prevent deleting if associated vehicle is an enterprise owned vehicle
+      if (transporter.VehicleId.HasValue && transporter.VehicleId.Value > 0)
+      {
+        var existingVehicle = await _vehicleRepository.Get(transporter.VehicleId.Value);
+        if (existingVehicle != null && existingVehicle.IsOwned)
+        {
+          return BadRequest("Les véhicules appartenant à l'entreprise (flotte interne) ne peuvent pas être supprimés depuis la gestion des transporteurs.");
+        }
+      }
+
       var deletedTransporter = await _repository.Delete(id);
       if (deletedTransporter == null)
       {

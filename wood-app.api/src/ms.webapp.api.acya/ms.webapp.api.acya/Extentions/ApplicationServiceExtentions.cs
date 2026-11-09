@@ -54,6 +54,8 @@ namespace ms.webapp.api.acya.api.Extentions
       services.AddScoped<TransporterRepository>();
       services.AddScoped<VehicleRepository>();
       services.AddScoped<VehicleExpenseRepository>();
+      services.AddScoped<IDeliveryTrackingRepository, DeliveryTrackingRepository>();
+      services.AddScoped<DeliveryTrackingRepository>();
       services.AddScoped<EmployeeLeaveRepository>();
       services.AddScoped<EmployeePayslipRepository>();
       services.AddScoped<EmployeeAdvanceRepository>();

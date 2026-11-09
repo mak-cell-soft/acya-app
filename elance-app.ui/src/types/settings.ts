@@ -97,8 +97,14 @@ export interface SubCategory {
   isdeleted: boolean;
 }
 
+import { Vehicle } from './vehicle';
+
 export interface Transporter {
   id: number;
   fullname: string;
-  car: string;
+  car?: string | Vehicle | { serialnumber?: string | null; brand?: string | null; [key: string]: any } | null;
+  firstname?: string | null;
+  lastname?: string | null;
+  vehicleId?: number | null;
+  isOwned?: boolean;
 }

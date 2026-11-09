@@ -39,6 +39,7 @@ import { VehicleFormDialog } from './components/vehicle-form-dialog';
 import { DeleteVehicleDialog } from './components/delete-vehicle-dialog';
 import { VehicleAnalyticsDialog } from './components/vehicle-analytics-dialog';
 import { VehicleExpenseDialog } from './components/vehicle-expense-dialog';
+import { VehicleActiveDeliveryCard } from './components/vehicle-active-delivery-card';
 import { toast } from 'sonner';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { useEnterprise } from '@/hooks/use-enterprise';
@@ -60,6 +61,7 @@ export default function VehiclesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+  const [analyticsDefaultTab, setAnalyticsDefaultTab] = useState<'charts' | 'journal' | 'deliveries'>('charts');
   const [isExpenseOpen, setIsExpenseOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [selectedVehicleForAnalytics, setSelectedVehicleForAnalytics] = useState<Vehicle | null>(null);
@@ -236,9 +238,10 @@ export default function VehiclesPage() {
     setIsDeleteOpen(true);
   };
 
-  const openAnalyticsDialog = (vehicle: Vehicle, e?: React.MouseEvent) => {
+  const openAnalyticsDialog = (vehicle: Vehicle, e?: React.MouseEvent, tab: 'charts' | 'journal' | 'deliveries' = 'charts') => {
     if (e) e.stopPropagation();
     setSelectedVehicleForAnalytics(vehicle);
+    setAnalyticsDefaultTab(tab);
     setIsAnalyticsOpen(true);
   };
 
@@ -446,7 +449,10 @@ export default function VehiclesPage() {
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" className="rounded-xl border-corp-blue-100 w-56">
-                                      <DropdownMenuItem onClick={(e) => openAnalyticsDialog(item, e)} className="gap-2 font-bold text-corp-blue-900 cursor-pointer">
+                                      <DropdownMenuItem onClick={(e) => openAnalyticsDialog(item, e, 'deliveries')} className="gap-2 font-bold text-blue-700 cursor-pointer">
+                                        <Truck className="w-4 h-4 text-blue-600" /> Suivi des Livraisons
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={(e) => openAnalyticsDialog(item, e, 'charts')} className="gap-2 font-bold text-corp-blue-900 cursor-pointer">
                                         <BarChart3 className="w-4 h-4 text-corp-blue-600" /> Historique & Graphiques
                                       </DropdownMenuItem>
                                       <DropdownMenuItem onClick={(e) => openQuickExpenseDialog(item, e)} className="gap-2 font-bold text-amber-600 cursor-pointer">
@@ -480,7 +486,15 @@ export default function VehiclesPage() {
                                     transition={{ duration: 0.3 }}
                                     className="overflow-hidden bg-sand-50/30 border-b border-corp-blue-50"
                                   >
-                                    <div className="p-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+                                    {/* Active Delivery Status Card */}
+                                    <div className="px-8 pt-6 pb-2">
+                                      <VehicleActiveDeliveryCard
+                                        vehicleId={item.id}
+                                        onViewAllHistory={() => openAnalyticsDialog(item, undefined, 'deliveries')}
+                                      />
+                                    </div>
+
+                                    <div className="p-8 pt-4 grid grid-cols-1 md:grid-cols-4 gap-8">
                                       {/* Maintenance */}
                                       <div className="space-y-4">
                                         <h4 className="text-[0.7rem] font-bold text-sand-400 uppercase tracking-widest flex items-center gap-1.5">
@@ -595,11 +609,19 @@ export default function VehiclesPage() {
                                       <div className="flex items-center gap-3">
                                         <Button
                                           size="sm"
-                                          onClick={(e) => openAnalyticsDialog(item, e)}
+                                          onClick={(e) => openAnalyticsDialog(item, e, 'deliveries')}
+                                          className="h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md shadow-blue-600/10 text-xs"
+                                        >
+                                          <Truck className="w-3.5 h-3.5 mr-2" />
+                                          Suivi des Livraisons
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          onClick={(e) => openAnalyticsDialog(item, e, 'charts')}
                                           className="h-9 px-4 rounded-xl bg-corp-blue-900 hover:bg-corp-blue-950 text-white font-bold shadow-md shadow-corp-blue-900/10 text-xs"
                                         >
                                           <BarChart3 className="w-3.5 h-3.5 mr-2 text-amber-400" />
-                                          Historique & Graphiques de Consommation
+                                          Historique & Graphiques
                                         </Button>
                                         <Button
                                           size="sm"
@@ -655,6 +677,7 @@ export default function VehiclesPage() {
         onClose={() => setIsAnalyticsOpen(false)}
         vehicle={selectedVehicleForAnalytics}
         onVehicleUpdated={loadVehicles}
+        defaultTab={analyticsDefaultTab}
       />
 
       {/* Quick Add Expense Dialog */}

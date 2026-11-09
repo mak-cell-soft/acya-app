@@ -29,13 +29,14 @@ namespace ms.webapp.api.acya.infrastructure
             var entity = await context.Set<TEntity>().FindAsync(id);
             if (entity == null)
             {
-                return entity!;
+                return null!;
             }
 
             context.Set<TEntity>().Remove(entity);
-            if(await context.SaveChangesAsync() == 0) return entity;
+            if (await context.SaveChangesAsync() == 0)
+                return null!;
 
-            return null!;
+            return entity;
         }
         public async Task<TEntity?> Get(int id)
         {

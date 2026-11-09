@@ -1136,6 +1136,7 @@ function NewStockTransferContent() {
       <TransporterModal
         isOpen={isTransporterModalOpen}
         onClose={() => setIsTransporterModalOpen(false)}
+        selectedTransporterId={transporterId}
         onSelectTransporter={(trans) => {
           setTransporterId(trans.id.toString());
         }}

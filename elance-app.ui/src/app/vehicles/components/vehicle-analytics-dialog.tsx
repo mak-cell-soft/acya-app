@@ -59,6 +59,7 @@ import { Vehicle } from '@/types/vehicle';
 import { VehicleExpense, VehicleExpenseStats } from '@/types/vehicle-expense';
 import { vehicleExpenseService } from '@/services/components/vehicle-expense.service';
 import { VehicleExpenseDialog } from './vehicle-expense-dialog';
+import { VehicleDeliveryHistoryTab } from './vehicle-delivery-history-tab';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -67,6 +68,7 @@ interface VehicleAnalyticsDialogProps {
   onClose: () => void;
   vehicle: Vehicle | null;
   onVehicleUpdated?: () => void;
+  defaultTab?: 'charts' | 'journal' | 'deliveries';
 }
 
 const TYPE_CONFIG: Record<string, { label: string; icon: any; color: string; bg: string; border: string }> = {
@@ -87,11 +89,19 @@ export function VehicleAnalyticsDialog({
   onClose,
   vehicle,
   onVehicleUpdated,
+  defaultTab = 'charts',
 }: VehicleAnalyticsDialogProps) {
+  const [activeTab, setActiveTab] = React.useState<string>(defaultTab);
   const [loading, setLoading] = React.useState(true);
   const [stats, setStats] = React.useState<VehicleExpenseStats | null>(null);
   const [expenses, setExpenses] = React.useState<VehicleExpense[]>([]);
   const [filterType, setFilterType] = React.useState<string>('ALL');
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setActiveTab(defaultTab || 'charts');
+    }
+  }, [isOpen, defaultTab]);
 
   // Expense form dialog state
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = React.useState(false);
@@ -301,8 +311,8 @@ export function VehicleAnalyticsDialog({
               </div>
             </div>
 
-            {/* Navigation Tabs: Visual Analytics vs Operations Journal */}
-            <Tabs defaultValue="charts" className="space-y-6">
+            {/* Navigation Tabs: Visual Analytics vs Operations Journal vs Deliveries */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
               <div className="flex items-center justify-between border-b border-corp-blue-100/60 pb-3">
                 <TabsList className="bg-sand-100/80 p-1 rounded-xl">
                   <TabsTrigger value="charts" className="rounded-lg font-bold text-xs data-[state=active]:bg-white data-[state=active]:text-corp-blue-950">
@@ -310,6 +320,9 @@ export function VehicleAnalyticsDialog({
                   </TabsTrigger>
                   <TabsTrigger value="journal" className="rounded-lg font-bold text-xs data-[state=active]:bg-white data-[state=active]:text-corp-blue-950">
                     📋 Journal des Opérations ({expenses.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="deliveries" className="rounded-lg font-bold text-xs data-[state=active]:bg-white data-[state=active]:text-corp-blue-950">
+                    🚚 Suivi des Livraisons
                   </TabsTrigger>
                 </TabsList>
               </div>
@@ -610,6 +623,15 @@ export function VehicleAnalyticsDialog({
                     </table>
                   </div>
                 </div>
+              </TabsContent>
+
+              {/* Tab 3: Delivery Tracking History & Analytics */}
+              <TabsContent value="deliveries" className="space-y-6 m-0">
+                <VehicleDeliveryHistoryTab
+                  vehicleId={vehicle.id}
+                  vehicleSerial={vehicle.serialnumber}
+                  vehicleBrand={vehicle.brand}
+                />
               </TabsContent>
             </Tabs>
           </div>

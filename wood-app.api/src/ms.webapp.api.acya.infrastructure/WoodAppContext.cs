@@ -124,6 +124,9 @@ namespace ms.webapp.api.acya.infrastructure
     // Support & Help Desk Tickets
     public virtual DbSet<SupportTicket> SupportTickets { get; set; }
 
+    // Vehicle Delivery Tracking
+    public virtual DbSet<DeliveryTracking> DeliveryTrackings { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       base.OnModelCreating(modelBuilder);
