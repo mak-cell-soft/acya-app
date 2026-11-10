@@ -871,10 +871,17 @@ namespace ms.webapp.api.acya.api.Controllers
               
               // Mettre à jour le transporteur du client s'il a été sélectionné/modifié 
               // lors de la création du document, pour le précharger les prochaines fois.
-              if (doc.CounterPart.TransporterId != dto.counterpart.transporterid)
+              // Protection: S'assurer que l'ID correspond à un transporteur existant dans tbl_transporter
+              // et ne pas persister d'ID véhicule ou d'ID invalide qui violerait la clé étrangère.
+              if (dto.counterpart.transporterid.HasValue && dto.counterpart.transporterid.Value > 0 &&
+                  doc.CounterPart.TransporterId != dto.counterpart.transporterid.Value)
               {
-                doc.CounterPart.TransporterId = dto.counterpart.transporterid;
-                _context.Entry(doc.CounterPart).Property(c => c.TransporterId).IsModified = true;
+                var transporterExists = await _context.Transporters.AnyAsync(t => t.Id == dto.counterpart.transporterid.Value);
+                if (transporterExists)
+                {
+                  doc.CounterPart.TransporterId = dto.counterpart.transporterid.Value;
+                  _context.Entry(doc.CounterPart).Property(c => c.TransporterId).IsModified = true;
+                }
               }
             }
           }
@@ -976,11 +983,12 @@ namespace ms.webapp.api.acya.api.Controllers
 
             foreach (var merchDto in dto.merchandises)
             {
-              // Skip if no article (should be validated earlier)
-              if (merchDto.article == null) continue;
+              // Skip if no article (unless it's a transport fee line)
+              if (merchDto.article == null && merchDto.line_type != LineType.TransportFee) continue;
 
-              bool isService = (merchDto.article.type == ArticleType.Service) || 
-                               (articlesDict.TryGetValue(merchDto.article.id!.Value, out var matchedArt) && matchedArt.Type == ArticleType.Service);
+              bool isService = merchDto.article != null && (
+                               (merchDto.article.type == ArticleType.Service) || 
+                               (merchDto.article.id.HasValue && articlesDict.TryGetValue(merchDto.article.id.Value, out var matchedArt) && matchedArt.Type == ArticleType.Service));
 
               if (isService)
               {
@@ -1066,12 +1074,22 @@ namespace ms.webapp.api.acya.api.Controllers
               }
 
               // Create DocumentMerchandise record
+              int? validMerchTransporterId = null;
+              if (merchDto.transporter_id.HasValue && merchDto.transporter_id.Value > 0)
+              {
+                var transporterExists = await _context.Transporters.AnyAsync(t => t.Id == merchDto.transporter_id.Value);
+                if (transporterExists)
+                {
+                  validMerchTransporterId = merchDto.transporter_id.Value;
+                }
+              }
+
               var docMerchandise = new DocumentMerchandise
               {
                 Document = doc,
                 Merchandise = merchandise,
                 Type = merchDto.line_type,
-                TransporterId = merchDto.transporter_id,
+                TransporterId = validMerchTransporterId,
                 Description = merchDto.line_type == LineType.TransportFee ? merchDto.description : null,
                 Quantity = merchDto.quantity,
                 UnitPriceHT = merchDto.unit_price_ht,
@@ -1087,10 +1105,13 @@ namespace ms.webapp.api.acya.api.Controllers
               };
 
               // Update counterpart's transporter if this is a transport fee
-              if (merchDto.line_type == LineType.TransportFee && merchDto.transporter_id > 0 && doc.CounterPart != null)
+              if (merchDto.line_type == LineType.TransportFee && validMerchTransporterId.HasValue && doc.CounterPart != null)
               {
-                doc.CounterPart.TransporterId = merchDto.transporter_id;
-                _context.Entry(doc.CounterPart).Property(c => c.TransporterId).IsModified = true;
+                if (doc.CounterPart.TransporterId != validMerchTransporterId.Value)
+                {
+                  doc.CounterPart.TransporterId = validMerchTransporterId.Value;
+                  _context.Entry(doc.CounterPart).Property(c => c.TransporterId).IsModified = true;
+                }
               }
 
               // Handle merchandise entity state
@@ -1948,10 +1969,15 @@ namespace ms.webapp.api.acya.api.Controllers
           // Handle CounterPart transporter update
           if (dto.counterpart != null && doc.CounterPart != null)
           {
-            if (doc.CounterPart.TransporterId != dto.counterpart.transporterid)
+            if (dto.counterpart.transporterid.HasValue && dto.counterpart.transporterid.Value > 0 &&
+                doc.CounterPart.TransporterId != dto.counterpart.transporterid.Value)
             {
-              doc.CounterPart.TransporterId = dto.counterpart.transporterid;
-              _context.Entry(doc.CounterPart).Property(c => c.TransporterId).IsModified = true;
+              var transporterExists = await _context.Transporters.AnyAsync(t => t.Id == dto.counterpart.transporterid.Value);
+              if (transporterExists)
+              {
+                doc.CounterPart.TransporterId = dto.counterpart.transporterid.Value;
+                _context.Entry(doc.CounterPart).Property(c => c.TransporterId).IsModified = true;
+              }
             }
           }
 
@@ -2035,12 +2061,22 @@ namespace ms.webapp.api.acya.api.Controllers
 
             if (merchandise != null || merchDto.line_type == LineType.TransportFee)
             {
+              int? validMerchTransporterId = null;
+              if (merchDto.transporter_id.HasValue && merchDto.transporter_id.Value > 0)
+              {
+                var transporterExists = await _context.Transporters.AnyAsync(t => t.Id == merchDto.transporter_id.Value);
+                if (transporterExists)
+                {
+                  validMerchTransporterId = merchDto.transporter_id.Value;
+                }
+              }
+
               var docMerchandise = new DocumentMerchandise
               {
                 Document = doc,
                 Merchandise = merchandise,
                 Type = merchDto.line_type,
-                TransporterId = merchDto.transporter_id,
+                TransporterId = validMerchTransporterId,
                 Description = merchDto.line_type == LineType.TransportFee ? merchDto.description : null,
                 Quantity = merchDto.quantity,
                 UnitPriceHT = merchDto.unit_price_ht,
@@ -2056,10 +2092,13 @@ namespace ms.webapp.api.acya.api.Controllers
               };
 
               // Update counterpart's transporter if this is a transport fee
-              if (merchDto.line_type == LineType.TransportFee && merchDto.transporter_id > 0 && doc.CounterPart != null)
+              if (merchDto.line_type == LineType.TransportFee && validMerchTransporterId.HasValue && doc.CounterPart != null)
               {
-                doc.CounterPart.TransporterId = merchDto.transporter_id;
-                _context.Entry(doc.CounterPart).Property(c => c.TransporterId).IsModified = true;
+                if (doc.CounterPart.TransporterId != validMerchTransporterId.Value)
+                {
+                  doc.CounterPart.TransporterId = validMerchTransporterId.Value;
+                  _context.Entry(doc.CounterPart).Property(c => c.TransporterId).IsModified = true;
+                }
               }
 
               // Handle QuantityMovement if lengths exist

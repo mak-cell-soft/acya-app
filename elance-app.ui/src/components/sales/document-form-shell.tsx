@@ -1013,7 +1013,11 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
     };
 
     if (selectedTransporter) {
-      newRow.transporter_id = selectedTransporter.id;
+      const isInternal = Boolean(
+        selectedTransporter.isOwned === true ||
+        (typeof selectedTransporter.car === 'object' && selectedTransporter.car !== null && Boolean((selectedTransporter.car as { isowned?: boolean })?.isowned))
+      );
+      newRow.transporter_id = isInternal ? null : selectedTransporter.id;
       newRow.transporter_name = selectedTransporter.fullname;
     }
     
@@ -1188,11 +1192,15 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
     const transporter = allTransporters.find(t => t.id.toString() === value);
     if (transporter) {
       setSelectedTransporter(transporter);
+      const isInternal = Boolean(
+        transporter.isOwned === true ||
+        (typeof transporter.car === 'object' && transporter.car !== null && Boolean((transporter.car as { isowned?: boolean })?.isowned))
+      );
       
       setRows(prevRows => 
         prevRows.map(row => {
           if (row.line_type === LineType.TransportFee) {
-            row.transporter_id = transporter.id;
+            row.transporter_id = isInternal ? null : transporter.id;
             row.transporter_name = transporter.fullname;
           }
           return row;
@@ -1413,7 +1421,16 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
         withholdingtax: !!selectedRS,
         counterpart: selectedCustomer ? {
           ...selectedCustomer,
-          transporterid: selectedTransporter?.id || null
+          // Business rule:
+          // - External transporter: its actual transporter ID may be assigned to counterpart.transporterid.
+          // - Internal owned vehicle (isOwned === true): MUST NOT be assigned to counterpart.transporterid.
+          // - When an internal vehicle is selected (or none), preserve the customer's existing transporterid unchanged.
+          transporterid: (selectedTransporter && !(
+            selectedTransporter.isOwned === true ||
+            (typeof selectedTransporter.car === 'object' && selectedTransporter.car !== null && Boolean((selectedTransporter.car as { isowned?: boolean })?.isowned))
+          ))
+            ? selectedTransporter.id
+            : (selectedCustomer.transporterid ?? null)
         } : null,
         sales_site: effectiveSite || activeUserSite,
         creationdate: editingDoc?.creationdate ? new Date(editingDoc.creationdate) : new Date(docDate),
@@ -1477,7 +1494,7 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
         const isInternalVehicle = Boolean(
           selectedTransporter && (
             selectedTransporter.isOwned === true ||
-            (typeof selectedTransporter.car === 'object' && selectedTransporter.car !== null && (selectedTransporter.car as any).isowned === true)
+            (typeof selectedTransporter.car === 'object' && selectedTransporter.car !== null && (selectedTransporter.car as { isowned?: boolean })?.isowned === true)
           )
         );
 
@@ -1501,7 +1518,7 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                 customerId: selectedCustomer.id,
                 customerName: customerDisplayName,
                 deliveryAddress: selectedCustomer.address || '',
-                transporterId: (selectedTransporter && selectedTransporter.id > 0) ? selectedTransporter.id : null,
+                transporterId: null, // Internal fleet delivery: vehicleId is tracked; do not pass vehicle ID as transporter ID
                 driverName: driverName,
                 departureDate: new Date().toISOString(),
               });
@@ -1871,10 +1888,14 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
                                 setIsTransporterDropdownOpen(false);
                                 
                                 // Sync to rows
+                                const isInternal = Boolean(
+                                  trans.isOwned === true ||
+                                  (typeof trans.car === 'object' && trans.car !== null && Boolean((trans.car as { isowned?: boolean })?.isowned))
+                                );
                                 setRows(prevRows => 
                                   prevRows.map(row => {
                                     if (row.line_type === LineType.TransportFee) {
-                                      row.transporter_id = trans.id;
+                                      row.transporter_id = isInternal ? null : trans.id;
                                       row.transporter_name = trans.fullname;
                                     }
                                     return row;
@@ -3045,10 +3066,14 @@ export function DocumentFormShell({ docType, title, subtitle, editDocumentId }: 
         onSelectTransporter={(trans) => {
           setSelectedTransporter(trans);
           setTransporterSearchQuery(trans.fullname || '');
+          const isInternal = Boolean(
+            trans.isOwned === true ||
+            (typeof trans.car === 'object' && trans.car !== null && Boolean((trans.car as { isowned?: boolean })?.isowned))
+          );
           setRows(prevRows => 
             prevRows.map(row => {
               if (row.line_type === LineType.TransportFee) {
-                row.transporter_id = trans.id;
+                row.transporter_id = isInternal ? null : trans.id;
                 row.transporter_name = trans.fullname;
               }
               return row;

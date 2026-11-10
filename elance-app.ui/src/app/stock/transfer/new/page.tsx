@@ -1138,7 +1138,9 @@ function NewStockTransferContent() {
         onClose={() => setIsTransporterModalOpen(false)}
         selectedTransporterId={transporterId}
         onSelectTransporter={(trans) => {
-          setTransporterId(trans.id.toString());
+          if (!trans.isOwned) {
+            setTransporterId(trans.id.toString());
+          }
         }}
       />
     </div>

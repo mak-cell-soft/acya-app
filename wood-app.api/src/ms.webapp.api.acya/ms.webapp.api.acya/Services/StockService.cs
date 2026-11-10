@@ -187,6 +187,16 @@ namespace ms.webapp.api.acya.api.Services
                 // Generate a random 4-digit PIN code (e.g., "0123")
                 string generatedPin = new Random().Next(0, 10000).ToString("D4");
 
+                int? validTransporterId = null;
+                if (dto.transporterId > 0)
+                {
+                    var transporterExists = await _context.Transporters.AnyAsync(t => t.Id == dto.transporterId);
+                    if (transporterExists)
+                    {
+                        validTransporterId = dto.transporterId;
+                    }
+                }
+
                 var transferRelationship = new StockTransfer
                 {
                     ExitDocument = exitDoc,
@@ -194,7 +204,7 @@ namespace ms.webapp.api.acya.api.Services
                     TransferDate = dto.transferDate,
                     Reference = dto.reference,
                     Notes = dto.notes,
-                    TransporterId = dto.transporterId,
+                    TransporterId = validTransporterId,
                     CreatedById = dto.updatedById,
                     Status = autoConfirm ? TransferStatus.Confirmed : TransferStatus.Pending,
                     ConfirmedById = autoConfirm ? dto.updatedById : null,
@@ -840,7 +850,18 @@ namespace ms.webapp.api.acya.api.Services
                 // Step 5: Update metadata fields
                 if (request.TransferDate.HasValue) transfer.TransferDate = request.TransferDate.Value;
                 if (request.Notes != null) transfer.Notes = request.Notes;
-                if (request.TransporterId.HasValue) transfer.TransporterId = request.TransporterId.Value;
+                if (request.TransporterId.HasValue)
+                {
+                    if (request.TransporterId.Value > 0)
+                    {
+                        var exists = await _context.Transporters.AnyAsync(t => t.Id == request.TransporterId.Value);
+                        if (exists) transfer.TransporterId = request.TransporterId.Value;
+                    }
+                    else
+                    {
+                        transfer.TransporterId = null;
+                    }
+                }
 
                 // Vehicle update if provided
                 if (request.VehicleId.HasValue && transfer.TransporterId.HasValue)
@@ -1235,7 +1256,18 @@ namespace ms.webapp.api.acya.api.Services
                 // Update metadata fields if provided
                 if (request.TransferDate.HasValue) transfer.TransferDate = request.TransferDate.Value;
                 if (request.Notes != null) transfer.Notes = request.Notes;
-                if (request.TransporterId.HasValue) transfer.TransporterId = request.TransporterId.Value;
+                if (request.TransporterId.HasValue)
+                {
+                    if (request.TransporterId.Value > 0)
+                    {
+                        var exists = await _context.Transporters.AnyAsync(t => t.Id == request.TransporterId.Value);
+                        if (exists) transfer.TransporterId = request.TransporterId.Value;
+                    }
+                    else
+                    {
+                        transfer.TransporterId = null;
+                    }
+                }
 
                 if (request.VehicleId.HasValue && transfer.TransporterId.HasValue)
                 {
