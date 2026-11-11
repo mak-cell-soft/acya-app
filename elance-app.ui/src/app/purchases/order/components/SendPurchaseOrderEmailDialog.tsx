@@ -78,6 +78,7 @@ export interface SendPurchaseOrderEmailDialogProps {
   isOpen: boolean;
   onClose: () => void;
   orderData: PurchaseOrderEmailData;
+  onSuccess?: () => void;
 }
 
 /**
@@ -212,7 +213,8 @@ function generateClientSidePurchaseOrderPdf(
 export function SendPurchaseOrderEmailDialog({
   isOpen,
   onClose,
-  orderData
+  orderData,
+  onSuccess
 }: SendPurchaseOrderEmailDialogProps) {
   const { user } = useAuthStore();
   const { data: enterprise } = useEnterprise();
@@ -375,33 +377,44 @@ export function SendPurchaseOrderEmailDialog({
     );
   }, [isValidEmail, subject, message, isLoadingPdf, sendState]);
 
-  // Handle Send action (Prepared for Phase 2 API integration)
+  // Handle Send action via authoritative backend endpoint
   const handleSend = async () => {
     if (!canSend) return;
+
+    if (!orderData.id || orderData.id <= 0) {
+      toast.error("La commande doit être enregistrée et approuvée avant d'être envoyée.");
+      return;
+    }
 
     setSendState('sending');
     setErrorMessage(null);
 
     try {
-      // NOTE: [Backend Phase 2 Architecture Slot]
-      // Replace this simulation block with the actual backend API call once implemented:
-      // await purchaseOrderEmailService.sendEmail({
-      //   documentId: orderData.id,
-      //   recipient: recipient.trim(),
-      //   subject: subject.trim(),
-      //   body: message.trim(),
-      //   pdfFileName: pdfFileName,
-      // });
-      await new Promise((resolve) => setTimeout(resolve, 1200));
+      const response = await documentService.sendOrderToSupplier(orderData.id, {
+        recipientEmail: recipient.trim(),
+        subject: subject.trim(),
+        message: message.trim()
+      });
 
       setSendState('success');
-      toast.success("Préparation de l'email terminée avec succès.");
+      toast.success(response?.message || "Bon de commande envoyé avec succès au fournisseur.");
+
+      if (onSuccess) {
+        onSuccess();
+      }
+
+      setTimeout(() => {
+        onClose();
+      }, 1500);
     } catch (err: any) {
       console.error('Error in send email lifecycle:', err);
       setSendState('error');
-      setErrorMessage(
-        err?.message || "Une erreur est survenue lors de la préparation du message."
-      );
+      const errDetail =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Une erreur est survenue lors de l'envoi du message au fournisseur.";
+      setErrorMessage(errDetail);
+      toast.error(errDetail);
     }
   };
 

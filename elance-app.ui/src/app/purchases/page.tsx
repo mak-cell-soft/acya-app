@@ -34,7 +34,8 @@ import {
   Gavel,
   SlidersHorizontal,
   X,
-  CalendarRange
+  CalendarRange,
+  Mail
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -88,6 +89,7 @@ import { SupplierReceiptToInvoiceModal } from '@/components/purchases/supplier-r
 import { SupplierCreditNoteModal } from '@/components/purchases/supplier-credit-note-modal';
 import { PrintVariantDialog } from '@/components/print/print-trigger-button';
 import { HoldingTaxListPanel } from '@/components/purchases/holding-tax-list-panel';
+import { SendPurchaseOrderEmailDialog, PurchaseOrderEmailData } from '@/app/purchases/order/components/SendPurchaseOrderEmailDialog';
 
 // Month names list for period filters
 const MONTHS = [
@@ -190,6 +192,36 @@ export default function PurchasesPage() {
   const [printDoc, setPrintDoc] = useState<{ doc: Document; type: 'purchase' } | null>(null);
   // Controls visibility of the RS (Holding Tax) list side-panel
   const [isRsPanelOpen, setIsRsPanelOpen] = useState(false);
+
+  // Supplier Purchase Order Email Dialog State
+  const [emailOrderData, setEmailOrderData] = useState<PurchaseOrderEmailData | null>(null);
+  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState<boolean>(false);
+
+  const handleOpenEmailDialog = (doc: Document) => {
+    const mappedData: PurchaseOrderEmailData = {
+      id: doc.id,
+      reference: doc.docnumber || `BC-${doc.id}`,
+      date: (doc.creationdate || new Date().toISOString()).toString(),
+      currency: doc.currency || 'TND',
+      supplier: doc.counterpart,
+      totals: {
+        netHT: doc.total_ht_net_doc || 0,
+        discount: doc.total_discount_doc || 0,
+        tva: doc.total_tva_doc || 0,
+        ttc: doc.total_net_ttc || 0
+      },
+      items: doc.merchandises?.map((m: any) => ({
+        description: m.description || m.article?.description || 'Article',
+        quantity: m.quantity || 0,
+        unitPriceHT: m.unit_price_ht || 0,
+        totalHT: m.cost_net_ht || ((m.unit_price_ht || 0) * (m.quantity || 0)) || 0,
+        tvaPercentage: m.tva_value || 0
+      })),
+      notes: doc.description || ''
+    };
+    setEmailOrderData(mappedData);
+    setIsEmailDialogOpen(true);
+  };
 
   // Resolves total days count in selected month to validate daily filters
   const getDaysCountInMonth = (year: number, monthIdx: number) => {
@@ -515,6 +547,18 @@ export default function PurchasesPage() {
         },
         { ht: 0, tva: 0, ttc: 0, avoirs: 0, payable: 0, remaining: 0 }
       );
+    } else if (activeTab === 'receipt') {
+      // Reception tab counters: exclude reception documents that are already invoiced
+      return list
+        .filter((doc) => !doc.isinvoiced && doc.billingstatus !== BillingStatus.Billed)
+        .reduce(
+          (acc, curr) => {
+            acc.ht += curr.total_ht_net_doc || 0;
+            acc.ttc += curr.total_net_ttc || 0;
+            return acc;
+          },
+          { ht: 0, tva: 0, ttc: 0, avoirs: 0, payable: 0, remaining: 0 }
+        );
     } else {
       // General Tab counters
       return list.reduce(
@@ -1633,13 +1677,15 @@ export default function PurchasesPage() {
                                     'rounded-full px-2.5 py-0.5 font-bold text-[9px] tracking-wide uppercase',
                                     (item.docstatus === DocStatus.Validated || item.docstatus === DocStatus.Completed || item.docstatus === DocStatus.Approved || item.docstatus === DocStatus.Delivered)
                                       ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/50'
-                                      : item.docstatus === DocStatus.PendingApproval
-                                        ? 'bg-blue-50 text-blue-800 border border-blue-200/50'
-                                        : item.docstatus === DocStatus.Rejected
-                                          ? 'bg-rose-50 text-rose-800 border border-rose-200/50'
-                                          : item.docstatus === DocStatus.PartiallyDelivered
-                                            ? 'bg-teal-50 text-teal-800 border border-teal-200/50'
-                                            : (activeTab === 'receipt' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/50' : activeTab === 'return' ? 'bg-purple-50 text-purple-800 border border-purple-200/50' : 'bg-amber-50 text-amber-800 border border-amber-200/50')
+                                      : item.docstatus === DocStatus.Sent
+                                        ? 'bg-indigo-50 text-indigo-800 border border-indigo-200/50'
+                                        : item.docstatus === DocStatus.PendingApproval
+                                          ? 'bg-blue-50 text-blue-800 border border-blue-200/50'
+                                          : item.docstatus === DocStatus.Rejected
+                                            ? 'bg-rose-50 text-rose-800 border border-rose-200/50'
+                                            : item.docstatus === DocStatus.PartiallyDelivered
+                                              ? 'bg-teal-50 text-teal-800 border border-teal-200/50'
+                                              : (activeTab === 'receipt' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/50' : activeTab === 'return' ? 'bg-purple-50 text-purple-800 border border-purple-200/50' : 'bg-amber-50 text-amber-800 border border-amber-200/50')
                                   )}
                                 >
                                   {item.docstatus === DocStatus.Validated || item.docstatus === DocStatus.Completed
@@ -1650,11 +1696,13 @@ export default function PurchasesPage() {
                                         ? 'Partielle'
                                         : item.docstatus === DocStatus.Approved
                                           ? 'Approuvé'
-                                          : item.docstatus === DocStatus.PendingApproval
-                                            ? 'En attente'
-                                            : item.docstatus === DocStatus.Rejected
-                                              ? 'Rejetée'
-                                              : (activeTab === 'receipt' ? 'Livrée' : activeTab === 'return' ? 'Retourné' : 'En cours')}
+                                          : item.docstatus === DocStatus.Sent
+                                            ? 'Envoyé'
+                                            : item.docstatus === DocStatus.PendingApproval
+                                              ? 'En attente'
+                                              : item.docstatus === DocStatus.Rejected
+                                                ? 'Rejetée'
+                                                : (activeTab === 'receipt' ? 'Livrée' : activeTab === 'return' ? 'Retourné' : 'En cours')}
                                 </Badge>
                               </td>
 
@@ -1702,6 +1750,17 @@ export default function PurchasesPage() {
                               {/* Actions Dropdown */}
                               <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex items-center justify-end gap-1.5">
+                                  {activeTab === 'order' && item.docstatus === DocStatus.Approved && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleOpenEmailDialog(item)}
+                                      className="h-8 w-8 rounded-lg text-slate-400 hover:text-amber-800"
+                                      title="Envoyer au Fournisseur"
+                                    >
+                                      <Mail className="w-4 h-4" />
+                                    </Button>
+                                  )}
                                   <Button
                                     variant="ghost"
                                     size="icon"
@@ -1733,6 +1792,16 @@ export default function PurchasesPage() {
                                       >
                                         <Printer className="w-4 h-4 text-slate-500" /> Imprimer Document
                                       </DropdownMenuItem>
+
+                                      {/* Send to Supplier action — only for approved purchase orders */}
+                                      {activeTab === 'order' && item.docstatus === DocStatus.Approved && (
+                                        <DropdownMenuItem
+                                          onClick={() => handleOpenEmailDialog(item)}
+                                          className="gap-2 font-bold text-amber-800 cursor-pointer hover:bg-amber-50"
+                                        >
+                                          <Mail className="w-4 h-4 text-amber-700" /> Envoyer au Fournisseur
+                                        </DropdownMenuItem>
+                                      )}
 
                                       {/* Edit action — only for receipts */}
                                       {activeTab === 'receipt' && !item.isinvoiced && hasPermission('purchases', 'canUpdate') && (
@@ -2166,6 +2235,22 @@ export default function PurchasesPage() {
         onNavigateToRelated={(id) => setSelectedDocIdForDetail(id)}
         onPrint={(doc) => setPrintDoc({ doc, type: 'purchase' })}
       />
+
+      {/* Supplier Purchase Order Email Dialog */}
+      {emailOrderData && (
+        <SendPurchaseOrderEmailDialog
+          isOpen={isEmailDialogOpen}
+          onClose={() => {
+            setIsEmailDialogOpen(false);
+            setEmailOrderData(null);
+          }}
+          orderData={emailOrderData}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
+            refetch();
+          }}
+        />
+      )}
 
       {/* RS Withholding Tax Modal Dialog (TEJ Integration) */}
       {docForRS && (

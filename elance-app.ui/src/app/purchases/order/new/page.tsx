@@ -22,7 +22,6 @@ import {
   ShieldCheck,
   Coins,
   LayoutGrid,
-  Send,
   Printer
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -57,7 +56,6 @@ import { WoodLengthsDialog } from '@/components/sales/wood-lengths-dialog';
 import { WoodBdLengthsDialog } from '@/components/sales/wood-bd-lengths-dialog';
 import { GlassSurfaceDialog } from '@/components/shared/glass-surface-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SendPurchaseOrderEmailDialog, PurchaseOrderEmailData } from '../components/SendPurchaseOrderEmailDialog';
 
 /**
  * 🎨 Aesthetic Direction: Refined Editorial Luxury
@@ -716,43 +714,8 @@ function NewSupplierOrderPageContent() {
     }
   };
 
-  // Email dialog visibility state (Phase 1 UI)
-  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
-
-  // Prepare purchase order summary payload for email dialog and attachment
-  const orderEmailData: PurchaseOrderEmailData = useMemo(() => {
-    return {
-      id: 0,
-      reference: supplierReference || 'BC-PROVISOIRE',
-      date: docDate,
-      currency: docCurrency,
-      supplier: selectedSupplier,
-      totals: totals,
-      items: rows.map(r => ({
-        description: r.description || r.selectedArticle?.description || 'Article',
-        quantity: r.quantity,
-        unitPriceHT: r.unit_price_ht,
-        totalHT: r.sellcostprice_net_ht,
-        tvaPercentage: r.tva_percentage
-      })),
-      notes: notes
-    };
-  }, [supplierReference, docDate, docCurrency, selectedSupplier, totals, rows, notes]);
-
   const handlePrint = () => {
     window.print();
-  };
-
-  const handleEmail = () => {
-    if (!selectedSupplier) {
-      toast.error("Veuillez sélectionner un fournisseur avant d'envoyer par email.");
-      return;
-    }
-    if (rows.length === 0) {
-      toast.error("Veuillez ajouter au moins un article à la commande avant d'envoyer par email.");
-      return;
-    }
-    setIsEmailDialogOpen(true);
   };
 
   return (
@@ -789,15 +752,6 @@ function NewSupplierOrderPageContent() {
               title="Imprimer"
             >
               <Printer className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-10 w-10 border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm"
-              onClick={handleEmail}
-              title="Envoyer par Email"
-            >
-              <Send className="w-4 h-4" />
             </Button>
           </div>
         </div>
@@ -1523,13 +1477,6 @@ function NewSupplierOrderPageContent() {
           onSave={handleSaveGlassSurface}
         />
       )}
-
-      {/* Send Purchase Order By Email Dialog (Phase 1 UI) */}
-      <SendPurchaseOrderEmailDialog
-        isOpen={isEmailDialogOpen}
-        onClose={() => setIsEmailDialogOpen(false)}
-        orderData={orderEmailData}
-      />
 
     </DashboardLayout>
   );

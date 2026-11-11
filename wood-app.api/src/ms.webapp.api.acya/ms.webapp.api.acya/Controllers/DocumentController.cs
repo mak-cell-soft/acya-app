@@ -27,7 +27,10 @@ namespace ms.webapp.api.acya.api.Controllers
     private readonly IPdfGenerationService _pdfService;
     private readonly IAppNotificationService _notificationService;
     private readonly IEmailService _emailService;
-    public DocumentController(DocumentRepository repository, MerchandiseRepository merchandiseRepository, StockRepository stockRepository, WoodAppContext context, IAccountService accountService, IBalanceService balanceService, IApprovalService approvalService, IPdfGenerationService pdfService, IAppNotificationService notificationService, IEmailService emailService)
+    private readonly IN8nEmailService? _n8nEmailService;
+    private readonly IConfiguration? _configuration;
+    private readonly ILogger<DocumentController>? _logger;
+    public DocumentController(DocumentRepository repository, MerchandiseRepository merchandiseRepository, StockRepository stockRepository, WoodAppContext context, IAccountService accountService, IBalanceService balanceService, IApprovalService approvalService, IPdfGenerationService pdfService, IAppNotificationService notificationService, IEmailService emailService, IN8nEmailService? n8nEmailService = null, IConfiguration? configuration = null, ILogger<DocumentController>? logger = null)
     {
       _repository = repository;
       _merchandiseRepository = merchandiseRepository;
@@ -39,6 +42,9 @@ namespace ms.webapp.api.acya.api.Controllers
       _pdfService = pdfService;
       _notificationService = notificationService;
       _emailService = emailService;
+      _n8nEmailService = n8nEmailService;
+      _configuration = configuration;
+      _logger = logger;
     }
 
     [HttpGet("_type")]
@@ -384,6 +390,176 @@ namespace ms.webapp.api.acya.api.Controllers
         message = "Facture et pièce jointe PDF envoyées avec succès au comptable.",
         accountantEmail = dto.AccountantEmail.Trim(),
         pdfFileName = pdfFileName
+      });
+    }
+
+    [HttpPost("{id}/send-to-supplier")]
+    public async Task<IActionResult> SendToSupplier(int id, [FromBody] SendSupplierOrderEmailDto dto)
+    {
+      if (!ModelState.IsValid)
+      {
+        return BadRequest(ModelState);
+      }
+
+      var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+      var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+      int.TryParse(userIdStr, out int userId);
+
+      // Fetch document with necessary navigation properties for authoritative PDF generation
+      var document = await _context.Documents
+          .AsSplitQuery()
+          .Include(d => d.CounterPart).ThenInclude(cp => cp!.Transporter).ThenInclude(t => t!.Vehicle)
+          .Include(d => d.SalesSite)
+          .Include(d => d.HoldingTaxes)
+          .Include(d => d.Payments)
+          .Include(d => d.Taxes)
+          .Include(d => d.AppUsers)
+              .ThenInclude(u => u!.Persons)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.Merchandise)
+                  .ThenInclude(m => m!.Articles)
+          .Include(d => d.DocumentMerchandises)
+              .ThenInclude(dm => dm.QuantityMovements)
+                  .ThenInclude(qm => qm!.ListOfLengths)
+                      .ThenInclude(ll => ll.AppVarLength)
+          .FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted);
+
+      if (document == null)
+      {
+        return NotFound(new { message = "Bon de commande fournisseur introuvable ou non disponible." });
+      }
+
+      if (document.Type != DocumentTypes.supplierOrder)
+      {
+        return BadRequest(new { message = "Seuls les bons de commande fournisseurs peuvent être envoyés via cette action." });
+      }
+
+      // Status guards: Must be exactly Approved, and not already Sent
+      if (document.DocStatus == DocStatus.Sent)
+      {
+        return Conflict(new { message = "Ce bon de commande a déjà été envoyé au fournisseur." });
+      }
+
+      if (document.DocStatus != DocStatus.Approved)
+      {
+        return Conflict(new { message = "Seuls les bons de commande approuvés peuvent être envoyés au fournisseur." });
+      }
+
+      var recipientEmail = dto.RecipientEmail?.Trim();
+      if (string.IsNullOrWhiteSpace(recipientEmail))
+      {
+        return BadRequest(new { message = "L'adresse email du fournisseur est requise." });
+      }
+
+      // Authoritative server-side PDF generation via QuestPdfDocumentReportService
+      var documentDto = new DocumentDto(document);
+      var pdfBytes = _pdfService.GenerateCommercialDocumentPdf(documentDto);
+      if (pdfBytes == null || pdfBytes.Length == 0)
+      {
+        return StatusCode(500, new { message = "Impossible de générer le document PDF du bon de commande." });
+      }
+
+      if (pdfBytes.Length > 10 * 1024 * 1024)
+      {
+        return BadRequest(new { message = "Le document PDF dépasse la taille maximale autorisée (10 Mo)." });
+      }
+
+      string cleanDocNum = !string.IsNullOrWhiteSpace(document.DocNumber)
+          ? document.DocNumber.Replace("/", "_").Replace("\\", "_")
+          : $"BC_{document.Id}";
+      string pdfFileName = $"BonCommande_{cleanDocNum}.pdf";
+
+      var subject = !string.IsNullOrWhiteSpace(dto.Subject)
+          ? dto.Subject.Trim()
+          : $"Bon de commande fournisseur - {document.DocNumber}";
+
+      var rawMessage = !string.IsNullOrWhiteSpace(dto.Message)
+          ? dto.Message.Trim()
+          : $"Veuillez trouver ci-joint notre bon de commande {document.DocNumber}.";
+
+      var htmlBody = $@"
+<div style=""font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;"">
+  <div style=""white-space: pre-line; line-height: 1.6; color: #1e293b; font-size: 15px;"">
+    {System.Net.WebUtility.HtmlEncode(rawMessage)}
+  </div>
+  <hr style=""border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0 16px 0;"" />
+  <p style=""font-size: 12px; color: #64748b; margin: 0;"">
+    Veuillez trouver ci-joint le bon de commande officiel <strong>{System.Net.WebUtility.HtmlEncode(document.DocNumber)}</strong> au format PDF.
+  </p>
+</div>";
+
+      var tenantSlug = _context.SchemaName?.Replace("tenant_", string.Empty) ?? "socobois";
+      var sender = _configuration?["EmailSettings:SenderEmail"] ?? "noreply";
+      var replyTo = _configuration?["EmailSettings:SupportEmail"] ?? "support@acya.site";
+
+      if (_n8nEmailService == null)
+      {
+        return StatusCode(503, new { message = "Le service d'envoi transactionnel n8n n'est pas disponible." });
+      }
+
+      EmailDispatchResult dispatchResult;
+      try
+      {
+        dispatchResult = await _n8nEmailService.SendEmailWithAttachmentAsync(
+            toEmail: recipientEmail,
+            subject: subject,
+            htmlBody: htmlBody,
+            attachmentBytes: pdfBytes,
+            fileName: pdfFileName,
+            contentType: "application/pdf",
+            sender: sender,
+            replyTo: replyTo,
+            tenantSlug: tenantSlug
+        );
+      }
+      catch (Exception ex)
+      {
+        _logger?.LogError(ex, "Exception dispatching purchase order email via n8n for order {DocNumber} to {Recipient}", document.DocNumber, recipientEmail);
+        return StatusCode(502, new { message = $"Erreur lors de la communication avec le service d'envoi : {ex.Message}" });
+      }
+
+      if (dispatchResult == null || dispatchResult.Status == EmailDispatchStatus.Rejected)
+      {
+        var errMsg = dispatchResult?.ErrorMessage ?? "Échec du transport d'email via n8n/Mailgun.";
+        _logger?.LogWarning("Failed to send purchase order email for {DocNumber} to {Recipient}: {Error}", document.DocNumber, recipientEmail, errMsg);
+        return StatusCode(502, new { message = $"Erreur lors de l'envoi de l'email : {errMsg}" });
+      }
+
+      if (dispatchResult.Status == EmailDispatchStatus.Unknown)
+      {
+        _logger?.LogWarning("Ambiguous timeout outcome sending purchase order {DocNumber} to {Recipient}. State preserved for manual review.", document.DocNumber, recipientEmail);
+        return StatusCode(504, new { message = "Le délai d'attente a été dépassé lors de la communication avec le service d'envoi. Veuillez patienter un instant et vérifier si l'email a été délivré avant de réessayer." });
+      }
+
+      // Success: Transition order status to Sent
+      document.DocStatus = DocStatus.Sent;
+
+      // Audit in AppNotifications table (Type = Email)
+      var emailNotification = new AppNotification
+      {
+        Title = subject,
+        Message = $"Bon de commande {document.DocNumber} envoyé par email au fournisseur ({recipientEmail}).",
+        Type = NotificationType.Email,
+        Priority = NotificationPriority.Normal,
+        TargetUserId = userId > 0 ? userId : null,
+        EmailRecipient = recipientEmail,
+        EmailSent = true,
+        EmailSentAt = DateTime.UtcNow,
+        RelatedEntityId = id.ToString(),
+        RelatedEntityType = "SupplierOrder",
+        CreatedAt = DateTime.UtcNow
+      };
+      _context.AppNotifications.Add(emailNotification);
+
+      await _context.SaveChangesAsync();
+
+      return Ok(new
+      {
+        success = true,
+        message = $"Bon de commande {document.DocNumber} envoyé avec succès au fournisseur.",
+        recipientEmail = recipientEmail,
+        pdfFileName = pdfFileName,
+        messageId = dispatchResult.MessageId
       });
     }
 

@@ -150,11 +150,63 @@ namespace ms.webapp.api.acya.Services.Mobile
             return await DispatchEmailPayloadAsync(payload, toEmail, "system", cancellationToken);
         }
 
+        public async Task<EmailDispatchResult> SendEmailWithAttachmentAsync(
+            string toEmail,
+            string subject,
+            string htmlBody,
+            byte[] attachmentBytes,
+            string fileName,
+            string contentType = "application/pdf",
+            string? template = null,
+            object? variables = null,
+            string sender = "noreply",
+            string replyTo = "support@acya.site",
+            string? tenantSlug = null,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(toEmail))
+            {
+                _logger.LogWarning("Cannot send email: Recipient email is empty.");
+                return EmailDispatchResult.Rejected("Recipient email is empty.");
+            }
+
+            if (attachmentBytes == null || attachmentBytes.Length == 0)
+            {
+                _logger.LogWarning("Attachment bytes are empty, falling back to email without attachment.");
+                return await SendEmailAsync(toEmail, subject, htmlBody, template, variables, sender, replyTo, cancellationToken);
+            }
+
+            var base64Content = Convert.ToBase64String(attachmentBytes);
+
+            var payload = new
+            {
+                to = toEmail.Trim(),
+                template = template ?? "raw",
+                subject = subject,
+                html = htmlBody,
+                variables = variables,
+                sender = sender,
+                replyTo = replyTo,
+                attachments = new[]
+                {
+                    new
+                    {
+                        filename = fileName,
+                        content = base64Content,
+                        contentType = contentType
+                    }
+                }
+            };
+
+            return await DispatchEmailPayloadAsync(payload, toEmail, tenantSlug ?? "system", cancellationToken, timeoutSeconds: 15);
+        }
+
         private async Task<EmailDispatchResult> DispatchEmailPayloadAsync(
             object payload,
             string recipient,
             string tenantSlug,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            int timeoutSeconds = 5)
         {
             var baseUrl = _configuration["N8nEmailService:BaseUrl"] ?? "http://n8n:5678";
             var apiKey = _configuration["N8nEmailService:ApiKey"];
@@ -185,7 +237,7 @@ namespace ms.webapp.api.acya.Services.Mobile
                     tenantSlug, recipient);
 
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                cts.CancelAfter(TimeSpan.FromSeconds(5));
+                cts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
 
                 var response = await _httpClient.SendAsync(request, cts.Token);
 

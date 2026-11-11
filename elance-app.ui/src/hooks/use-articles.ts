@@ -20,8 +20,25 @@ export const useCreateArticle = () => {
       queryClient.invalidateQueries({ queryKey: ['articles'] });
       toast.success('Article créé avec succès');
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Erreur lors de la création de l\'article');
+    onError: (error: any, variables: any) => {
+      const status = error.response?.status;
+      const data = error.response?.data;
+      const backendMessage = typeof data === 'string' ? data : (data?.message || data?.error || data?.title);
+
+      if (status === 409) {
+        const reference = variables?.reference?.trim();
+        if (reference) {
+          toast.error(`Impossible d'ajouter cet article : la référence ${reference} existe déjà. Veuillez utiliser une autre référence.`);
+        } else {
+          toast.error(
+            (typeof backendMessage === 'string' && backendMessage.includes('existe déjà'))
+              ? backendMessage
+              : "Impossible d'ajouter cet article : cette référence existe déjà. Veuillez utiliser une autre référence."
+          );
+        }
+      } else {
+        toast.error(backendMessage || 'Erreur lors de la création de l\'article');
+      }
     }
   });
 };

@@ -31,5 +31,19 @@ namespace ms.webapp.api.acya.core.Interfaces
             string sender = "noreply",
             string replyTo = "support@acya.site",
             CancellationToken cancellationToken = default);
+
+        Task<EmailDispatchResult> SendEmailWithAttachmentAsync(
+            string toEmail,
+            string subject,
+            string htmlBody,
+            byte[] attachmentBytes,
+            string fileName,
+            string contentType = "application/pdf",
+            string? template = null,
+            object? variables = null,
+            string sender = "noreply",
+            string replyTo = "support@acya.site",
+            string? tenantSlug = null,
+            CancellationToken cancellationToken = default);
     }
 }

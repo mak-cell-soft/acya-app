@@ -34,7 +34,7 @@
       },
       {
         "parameters": {
-          "jsCode": "const input = $input.first().json;\nconst body = input.body || {};\n\nconst emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n\nfunction validateEmail(email) {\n  return typeof email === 'string' && emailRegex.test(email.trim());\n}\n\nconst to = body.to ? String(body.to).trim() : '';\nif (!to) {\n  return [{ json: { valid: false, success: false, error: \"VALIDATION_ERROR\", message: \"Missing required field: 'to'\" } }];\n}\nif (!validateEmail(to)) {\n  return [{ json: { valid: false, success: false, error: \"VALIDATION_ERROR\", message: \"Invalid email format for 'to'\" } }];\n}\n\nlet replyTo = body.replyTo ? String(body.replyTo).trim() : 'support@acya.site';\nif (body.replyTo && !validateEmail(replyTo)) {\n  return [{ json: { valid: false, success: false, error: \"VALIDATION_ERROR\", message: \"Invalid email format for 'replyTo'\" } }];\n}\n\nlet template = body.template ? String(body.template).trim().toLowerCase() : '';\nif (!template && body.subject && body.html) {\n  template = 'raw';\n}\n\nif (!template) {\n  return [{ json: { valid: false, success: false, error: \"VALIDATION_ERROR\", message: \"Missing required field: 'template'\" } }];\n}\n\nconst TEMPLATES = {\n  welcome: (vars) => {\n    const companyName = vars && vars.companyName ? String(vars.companyName).trim() : '';\n    const contactName = vars && vars.contactName ? String(vars.contactName).trim() : (companyName || 'Cher Client');\n    const tenantUrl = vars && vars.tenantUrl ? String(vars.tenantUrl).trim() : 'https://acya.site';\n\n    if (!companyName) {\n      return { error: \"Missing required variable 'companyName' for template 'welcome'\" };\n    }\n\n    const html = `<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Bienvenue chez ACYA</title>\n</head>\n<body style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f8; margin: 0; padding: 20px; color: #1e293b;\">\n  <div style=\"max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);\">\n    <div style=\"background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 32px 24px; text-align: center;\">\n      <h1 style=\"color: #ffffff; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.5px;\">ACYA SaaS</h1>\n      <p style=\"color: #93c5fd; margin: 6px 0 0 0; font-size: 14px;\">Plateforme Multi-Tenant Entreprise</p>\n    </div>\n    <div style=\"padding: 32px 24px;\">\n      <h2 style=\"color: #0f172a; font-size: 20px; font-weight: 600; margin-top: 0;\">Bienvenue ${contactName} !</h2>\n      <p style=\"font-size: 15px; line-height: 1.6; color: #334155;\">\n        Nous avons le plaisir de vous confirmer que votre entreprise <strong>${companyName}</strong> a \u00e9t\u00e9 enregistr\u00e9e avec succ\u00e8s sur la plateforme ACYA.\n      </p>\n      <div style=\"background-color: #f8fafc; border-left: 4px solid #3b82f6; padding: 16px; margin: 24px 0; border-radius: 0 8px 8px 0;\">\n        <p style=\"margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #475569;\">Votre espace de travail d\u00e9di\u00e9 :</p>\n        <a href=\"${tenantUrl}\" style=\"color: #2563eb; font-weight: 700; font-size: 16px; text-decoration: none;\">${tenantUrl}</a>\n      </div>\n      <p style=\"font-size: 14px; line-height: 1.6; color: #64748b;\">\n        Si vous avez la moindre question, notre \u00e9quipe de support se tient \u00e0 votre disposition \u00e0 l'adresse <a href=\"mailto:support@acya.site\" style=\"color: #2563eb;\">support@acya.site</a>.\n      </p>\n    </div>\n    <div style=\"background: #f1f5f9; padding: 20px 24px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;\">\n      <p style=\"margin: 0;\">&copy; 2026 ACYA. Tous droits r\u00e9serv\u00e9s.</p>\n    </div>\n  </div>\n</body>\n</html>`;\n\n    return {\n      subject: `Bienvenue sur ACYA \u2014 ${companyName}`,\n      sender: 'ACYA <noreply@acya.site>',\n      html: html\n    };\n  },\n  raw: (vars, body) => {\n    const subject = body.subject ? String(body.subject).trim() : '';\n    const html = body.html ? String(body.html).trim() : '';\n    if (!subject || !html) {\n      return { error: \"Raw template requires both 'subject' and 'html' fields\" };\n    }\n\n    let sender = 'ACYA <support@acya.site>';\n    const senderAlias = body.sender ? String(body.sender).trim().toLowerCase() : '';\n    if (senderAlias === 'contact-socofeb') {\n      sender = 'SOCOFEB <contact-socofeb@acya.site>';\n    }\n\n    return {\n      subject: subject,\n      sender: sender,\n      html: html\n    };\n  }\n};\n\nif (!TEMPLATES[template]) {\n  return [{ json: { valid: false, success: false, error: \"VALIDATION_ERROR\", message: `Unsupported template: '${template}'` } }];\n}\n\nconst renderResult = TEMPLATES[template](body.variables, body);\nif (renderResult.error) {\n  return [{ json: { valid: false, success: false, error: \"VALIDATION_ERROR\", message: renderResult.error } }];\n}\n\nreturn [{\n  json: {\n    valid: true,\n    to: to,\n    sender: renderResult.sender,\n    replyTo: replyTo,\n    subject: renderResult.subject,\n    html: renderResult.html,\n    template: template,\n    successResponse: {\n      success: true,\n      accepted: true,\n      template: template\n    },\n    errorResponse: {\n      success: false,\n      error: \"MAILGUN_ERROR\",\n      message: \"Failed to send email via Mailgun API\"\n    }\n  }\n}];"
+          "jsCode": "const input = $input.first().json;\nconst body = input.body || {};\n\nconst emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n\nfunction validateEmail(email) {\n  return typeof email === 'string' && emailRegex.test(email.trim());\n}\n\nconst to = body.to ? String(body.to).trim() : '';\nif (!to) {\n  return [{ json: { valid: false, success: false, error: \"VALIDATION_ERROR\", message: \"Missing required field: 'to'\" } }];\n}\nif (!validateEmail(to)) {\n  return [{ json: { valid: false, success: false, error: \"VALIDATION_ERROR\", message: \"Invalid email format for 'to'\" } }];\n}\n\nlet replyTo = body.replyTo ? String(body.replyTo).trim() : 'support@acya.site';\nif (body.replyTo && !validateEmail(replyTo)) {\n  return [{ json: { valid: false, success: false, error: \"VALIDATION_ERROR\", message: \"Invalid email format for 'replyTo'\" } }];\n}\n\nlet template = body.template ? String(body.template).trim().toLowerCase() : '';\nif (!template && body.subject && body.html) {\n  template = 'raw';\n}\n\nif (!template) {\n  return [{ json: { valid: false, success: false, error: \"VALIDATION_ERROR\", message: \"Missing required field: 'template'\" } }];\n}\n\nconst TEMPLATES = {\n  welcome: (vars) => {\n    const companyName = vars && vars.companyName ? String(vars.companyName).trim() : '';\n    const contactName = vars && vars.contactName ? String(vars.contactName).trim() : (companyName || 'Cher Client');\n    const tenantUrl = vars && vars.tenantUrl ? String(vars.tenantUrl).trim() : 'https://acya.site';\n\n    if (!companyName) {\n      return { error: \"Missing required variable 'companyName' for template 'welcome'\" };\n    }\n\n    const html = `<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Bienvenue chez ACYA</title>\n</head>\n<body style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f8; margin: 0; padding: 20px; color: #1e293b;\">\n  <div style=\"max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);\">\n    <div style=\"background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 32px 24px; text-align: center;\">\n      <h1 style=\"color: #ffffff; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.5px;\">ACYA SaaS</h1>\n      <p style=\"color: #93c5fd; margin: 6px 0 0 0; font-size: 14px;\">Plateforme Multi-Tenant Entreprise</p>\n    </div>\n    <div style=\"padding: 32px 24px;\">\n      <h2 style=\"color: #0f172a; font-size: 20px; font-weight: 600; margin-top: 0;\">Bienvenue ${contactName} !</h2>\n      <p style=\"font-size: 15px; line-height: 1.6; color: #334155;\">\n        Nous avons le plaisir de vous confirmer que votre entreprise <strong>${companyName}</strong> a \u00e9t\u00e9 enregistr\u00e9e avec succ\u00e8s sur la plateforme ACYA.\n      </p>\n      <div style=\"background-color: #f8fafc; border-left: 4px solid #3b82f6; padding: 16px; margin: 24px 0; border-radius: 0 8px 8px 0;\">\n        <p style=\"margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #475569;\">Votre espace de travail d\u00e9di\u00e9 :</p>\n        <a href=\"${tenantUrl}\" style=\"color: #2563eb; font-weight: 700; font-size: 16px; text-decoration: none;\">${tenantUrl}</a>\n      </div>\n      <p style=\"font-size: 14px; line-height: 1.6; color: #64748b;\">\n        Si vous avez la moindre question, notre \u00e9quipe de support se tient \u00e0 votre disposition \u00e0 l'adresse <a href=\"mailto:support@acya.site\" style=\"color: #2563eb;\">support@acya.site</a>.\n      </p>\n    </div>\n    <div style=\"background: #f1f5f9; padding: 20px 24px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;\">\n      <p style=\"margin: 0;\">&copy; 2026 ACYA. Tous droits r\u00e9serv\u00e9s.</p>\n    </div>\n  </div>\n</body>\n</html>`;\n\n    return {\n      subject: `Bienvenue sur ACYA \u2014 ${companyName}`,\n      sender: 'ACYA <noreply@acya.site>',\n      html: html\n    };\n  },\n  raw: (vars, body) => {\n    const subject = body.subject ? String(body.subject).trim() : '';\n    const html = body.html ? String(body.html).trim() : '';\n    if (!subject || !html) {\n      return { error: \"Raw template requires both 'subject' and 'html' fields\" };\n    }\n\n    let sender = 'ACYA <support@acya.site>';\n    const senderAlias = body.sender ? String(body.sender).trim().toLowerCase() : '';\n    if (senderAlias === 'contact-socofeb') {\n      sender = 'SOCOFEB <contact-socofeb@acya.site>';\n    }\n\n    return {\n      subject: subject,\n      sender: sender,\n      html: html\n    };\n  }\n};\n\nif (!TEMPLATES[template]) {\n  return [{ json: { valid: false, success: false, error: \"VALIDATION_ERROR\", message: `Unsupported template: '${template}'` } }];\n}\n\nconst renderResult = TEMPLATES[template](body.variables, body);\nif (renderResult.error) {\n  return [{ json: { valid: false, success: false, error: \"VALIDATION_ERROR\", message: renderResult.error } }];\n}\n\nlet hasAttachment = false;\nlet binaryData = undefined;\n\nif (body.attachments && Array.isArray(body.attachments) && body.attachments.length > 0) {\n  const att = body.attachments[0];\n  if (att && typeof att === 'object') {\n    const filename = att.filename ? String(att.filename).trim() : 'BonCommande.pdf';\n    const contentType = att.contentType ? String(att.contentType).trim() : 'application/pdf';\n    const content = att.content ? String(att.content).trim() : '';\n\n    if (!content) {\n      return [{ json: { valid: false, success: false, error: \"VALIDATION_ERROR\", message: \"Attachment content is empty\" } }];\n    }\n\n    const base64Regex = /^[A-Za-z0-9+/=]+$/;\n    if (content.length % 4 !== 0 || !base64Regex.test(content)) {\n      return [{ json: { valid: false, success: false, error: \"VALIDATION_ERROR\", message: \"Invalid Base64 format for attachment content\" } }];\n    }\n\n    hasAttachment = true;\n    binaryData = {\n      attachment_0: {\n        data: content,\n        mimeType: contentType,\n        fileName: filename\n      }\n    };\n  }\n}\n\nconst outputItem = {\n  json: {\n    valid: true,\n    to: to,\n    sender: renderResult.sender,\n    replyTo: replyTo,\n    subject: renderResult.subject,\n    html: renderResult.html,\n    template: template,\n    hasAttachment: hasAttachment,\n    successResponse: {\n      success: true,\n      accepted: true,\n      template: template,\n      hasAttachment: hasAttachment\n    },\n    errorResponse: {\n      success: false,\n      error: \"MAILGUN_ERROR\",\n      message: \"Failed to send email via Mailgun API\"\n    }\n  }\n};\n\nif (hasAttachment && binaryData) {\n  outputItem.binary = binaryData;\n}\n\nreturn [outputItem];"
         },
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
@@ -107,8 +107,8 @@
         "type": "n8n-nodes-base.mailgun",
         "typeVersion": 1,
         "position": [
-          -48,
-          -96
+          60,
+          -20
         ],
         "id": "4f9c4e87-8ca9-44c5-af17-45305996c7d7",
         "name": "Mailgun",
@@ -149,6 +149,73 @@
         ],
         "id": "5a8e2b90-1111-4a22-9999-acya00000004",
         "name": "Respond Mailgun Error"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "c001-has-attachment-check",
+                "leftValue": "={{.hasAttachment}}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          -150,
+          -96
+        ],
+        "id": "8179f8fa-0807-415f-8f52-7788df8daf63",
+        "name": "Attachment Check"
+      },
+      {
+        "parameters": {
+          "fromEmail": "={{.sender}}",
+          "toEmail": "={{.to}}",
+          "bccEmail": "=",
+          "replyTo": "={{.replyTo}}",
+          "subject": "={{.subject}}",
+          "text": "=",
+          "html": "={{.html}}",
+          "options": {
+            "attachmentUi": {
+              "attachmentValues": {
+                "binaryPropertyName": "attachment_0"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.mailgun",
+        "typeVersion": 1,
+        "position": [
+          60,
+          -220
+        ],
+        "id": "4f9c4e87-8ca9-44c5-af17-45305996c7d8",
+        "name": "Mailgun With Attachment",
+        "credentials": {
+          "mailgunApi": {
+            "id": "5Yohq69zd17dt4sU",
+            "name": "Mailgun ACYA"
+          }
+        },
+        "onError": "continueErrorOutput"
       }
     ],
     "connections": {
@@ -178,7 +245,7 @@
         "main": [
           [
             {
-              "node": "Mailgun",
+              "node": "Attachment Check",
               "type": "main",
               "index": 0
             }
@@ -193,6 +260,42 @@
         ]
       },
       "Mailgun": {
+        "main": [
+          [
+            {
+              "node": "Respond Success",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond Mailgun Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Attachment Check": {
+        "main": [
+          [
+            {
+              "node": "Mailgun With Attachment",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Mailgun",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Mailgun With Attachment": {
         "main": [
           [
             {

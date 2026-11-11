@@ -109,5 +109,17 @@ export const documentService = {
   ) => {
     const response = await api.post(`/Document/${id}/send-to-accountant`, payload);
     return response.data;
+  },
+
+  sendOrderToSupplier: async (
+    id: number,
+    payload: {
+      recipientEmail: string;
+      subject: string;
+      message: string;
+    }
+  ) => {
+    const response = await api.post(`/Document/${id}/send-to-supplier`, payload);
+    return response.data;
   }
 };
