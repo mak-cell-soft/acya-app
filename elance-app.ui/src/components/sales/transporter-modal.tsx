@@ -241,14 +241,14 @@ export function TransporterModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl w-full rounded-3xl p-6 bg-white border border-slate-200/90 shadow-2xl shadow-slate-900/10 space-y-5 overflow-hidden">
+      <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-2xl rounded-3xl p-6 bg-white border border-slate-200/90 shadow-2xl shadow-slate-900/10 flex flex-col gap-4.5 overflow-hidden max-h-[90vh]">
         {/* Modal Header */}
-        <DialogHeader className="space-y-1.5">
-          <div className="flex items-center gap-3">
+        <DialogHeader className="space-y-1.5 pr-10 w-full shrink-0">
+          <div className="flex items-center gap-3 w-full">
             <div className="p-3 rounded-2xl bg-corp-blue-50/80 text-corp-blue-600 border border-corp-blue-100/90 shrink-0 shadow-2xs">
               <Truck className="w-6 h-6" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <DialogTitle className="text-xl font-black text-corp-blue-900 tracking-tight">
                 Gestion des Transporteurs & Flotte
               </DialogTitle>
@@ -260,7 +260,7 @@ export function TransporterModal({
         </DialogHeader>
 
         {/* Section Switcher Tabs */}
-        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-sand-100/70 border border-sand-200/80 shadow-2xs">
+        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-sand-100/70 border border-sand-200/80 shadow-2xs w-full shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -268,16 +268,16 @@ export function TransporterModal({
               setIsAddingNew(false);
             }}
             className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all",
+              "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all min-w-0",
               activeTab === 'fleet'
                 ? "bg-corp-blue-600 text-white shadow-sm shadow-corp-blue-600/20 border border-corp-blue-600"
                 : "text-sand-600 hover:text-corp-blue-900 hover:bg-white/80 border border-transparent hover:border-sand-200/70"
             )}
           >
-            <ShieldCheck className="w-4 h-4" />
-            <span>Flotte Entreprise</span>
+            <ShieldCheck className="w-4 h-4 shrink-0" />
+            <span className="truncate">Flotte Entreprise</span>
             <span className={cn(
-              "px-2 py-0.5 rounded-full text-[0.65rem] font-black",
+              "px-2 py-0.5 rounded-full text-[0.65rem] font-black shrink-0",
               activeTab === 'fleet' ? "bg-white/20 text-white" : "bg-sand-200/80 text-sand-600 border border-sand-300/40"
             )}>
               {canReadVehicles ? (fleetVehicles?.filter(v => v.isowned)?.length || 0) : '—'}
@@ -288,16 +288,16 @@ export function TransporterModal({
             type="button"
             onClick={() => setActiveTab('external')}
             className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all",
+              "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all min-w-0",
               activeTab === 'external'
                 ? "bg-corp-blue-600 text-white shadow-sm shadow-corp-blue-600/20 border border-corp-blue-600"
                 : "text-sand-600 hover:text-corp-blue-900 hover:bg-white/80 border border-transparent hover:border-sand-200/70"
             )}
           >
-            <Truck className="w-4 h-4" />
-            <span>Transporteurs Externes</span>
+            <Truck className="w-4 h-4 shrink-0" />
+            <span className="truncate">Transporteurs Externes</span>
             <span className={cn(
-              "px-2 py-0.5 rounded-full text-[0.65rem] font-black",
+              "px-2 py-0.5 rounded-full text-[0.65rem] font-black shrink-0",
               activeTab === 'external' ? "bg-white/20 text-white" : "bg-sand-200/80 text-sand-600 border border-sand-300/40"
             )}>
               {externalTransporters.length}
@@ -307,13 +307,13 @@ export function TransporterModal({
 
         {/* Tab A: Internal Fleet Banner */}
         {activeTab === 'fleet' && (
-          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 shadow-2xs text-xs">
-            <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 shadow-2xs text-xs w-full shrink-0 gap-3">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
               <div className="p-1.5 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-200/70 shrink-0">
                 <ShieldCheck className="w-4 h-4" />
               </div>
-              <div className="min-w-0">
-                <span className="font-bold text-emerald-950 block">Véhicules de la Flotte Entreprise</span>
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <span className="font-bold text-emerald-950 block truncate">Véhicules de la Flotte Entreprise</span>
                 <span className="text-[0.7rem] text-emerald-700 font-medium truncate block">
                   Véhicules appartenant à l'entreprise (IsOwned = true). Sélectionnables directement pour la livraison.
                 </span>
@@ -331,9 +331,9 @@ export function TransporterModal({
         )}
 
         {/* Search & Actions Bar */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
+        <div className="space-y-3 w-full shrink-0">
+          <div className="flex items-center gap-2 w-full">
+            <div className="relative flex-1 min-w-0">
               <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-sand-400 pointer-events-none" />
               <Input
                 value={searchQuery}
@@ -343,7 +343,7 @@ export function TransporterModal({
                     ? "Rechercher par matricule, marque, chauffeur..."
                     : "Rechercher par nom ou matricule transporteur..."
                 }
-                className="pl-10 h-11 rounded-2xl border border-sand-200 hover:border-sand-300 bg-sand-50/50 focus:bg-white text-xs font-bold text-corp-blue-900 focus-visible:border-corp-blue-500 focus-visible:ring-2 focus-visible:ring-corp-blue-500/20 focus-visible:ring-offset-0 transition-all duration-200"
+                className="pl-10 h-11 w-full rounded-2xl border border-sand-200 hover:border-sand-300 bg-sand-50/50 focus:bg-white text-xs font-bold text-corp-blue-900 focus-visible:border-corp-blue-500 focus-visible:ring-2 focus-visible:ring-corp-blue-500/20 focus-visible:ring-offset-0 transition-all duration-200"
               />
               {searchQuery && (
                 <button
@@ -376,7 +376,7 @@ export function TransporterModal({
 
           {/* New External Transporter Inline Form */}
           {activeTab === 'external' && isAddingNew && (
-            <div className="p-4 rounded-2xl bg-corp-blue-50/50 border border-corp-blue-200/80 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200 shadow-xs">
+            <div className="p-4 rounded-2xl bg-corp-blue-50/50 border border-corp-blue-200/80 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200 shadow-xs w-full">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black text-corp-blue-900 uppercase tracking-wider">
                   Nouveau Transporteur Externe
@@ -439,12 +439,12 @@ export function TransporterModal({
         </div>
 
         {/* Content Container */}
-        <div className="max-h-80 overflow-y-auto space-y-2.5 pr-1.5 custom-scrollbar">
+        <div className="flex-1 min-h-0 max-h-80 overflow-y-auto overflow-x-hidden space-y-2.5 pr-1.5 custom-scrollbar w-full">
           {/* TAB A: INTERNAL FLEET */}
           {activeTab === 'fleet' && (
             <>
               {!canReadVehicles ? (
-                <div className="text-center py-8 px-4 rounded-2xl border border-dashed border-sand-300/80 bg-sand-50/40 space-y-2">
+                <div className="text-center py-8 px-4 rounded-2xl border border-dashed border-sand-300/80 bg-sand-50/40 space-y-2 w-full">
                   <Lock className="w-6 h-6 text-sand-400 mx-auto" />
                   <p className="text-xs font-bold text-corp-blue-900">Accès restreint aux véhicules de la flotte</p>
                   <p className="text-[0.7rem] text-sand-500 max-w-sm mx-auto">
@@ -452,12 +452,12 @@ export function TransporterModal({
                   </p>
                 </div>
               ) : isLoadingVehicles ? (
-                <div className="text-center py-10 space-y-2">
+                <div className="text-center py-10 space-y-2 w-full">
                   <Loader2 className="w-6 h-6 animate-spin text-corp-blue-600 mx-auto" />
                   <p className="text-xs text-sand-500 font-medium">Chargement des véhicules de la flotte...</p>
                 </div>
               ) : isErrorVehicles ? (
-                <div className="text-center py-8 px-4 rounded-2xl border border-red-200/80 bg-red-50/40 space-y-2">
+                <div className="text-center py-8 px-4 rounded-2xl border border-red-200/80 bg-red-50/40 space-y-2 w-full">
                   <AlertCircle className="w-6 h-6 text-red-500 mx-auto" />
                   <p className="text-xs font-bold text-red-900">Erreur lors du chargement de la flotte</p>
                   <p className="text-[0.7rem] text-red-600">Impossible de récupérer les véhicules de l'entreprise.</p>
@@ -482,30 +482,30 @@ export function TransporterModal({
                     <div
                       key={v.id}
                       className={cn(
-                        "group p-3.5 rounded-2xl border bg-white transition-all duration-200 flex items-center justify-between gap-3.5 shadow-2xs",
+                        "group p-3.5 rounded-2xl border bg-white transition-all duration-200 flex items-center justify-between gap-3 shadow-2xs w-full",
                         isSelected
                           ? "border-corp-blue-500 bg-corp-blue-50/30 ring-1 ring-corp-blue-500/25 shadow-xs"
                           : "border-slate-200/90 hover:border-corp-blue-300 hover:bg-corp-blue-50/20 hover:shadow-xs"
                       )}
                     >
-                      <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
                         {/* Plate Badge */}
                         <div className="flex flex-col items-center justify-center px-3 py-1.5 rounded-xl bg-slate-900 text-white font-mono font-bold text-xs tracking-wider border border-slate-700/80 shrink-0 shadow-xs">
                           <span className="text-[0.55rem] text-slate-400 uppercase tracking-widest leading-none">TN</span>
                           <span className="text-xs font-black">{v.serialnumber || 'SANS MATRICULE'}</span>
                         </div>
 
-                        <div className="min-w-0 space-y-1">
+                        <div className="min-w-0 space-y-1 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-black text-corp-blue-950">
+                            <span className="text-xs font-black text-corp-blue-950 truncate">
                               {v.brand || 'Véhicule Flotte'}
                             </span>
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6rem] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6rem] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
                               <ShieldCheck className="w-2.5 h-2.5" />
                               Flotte Interne
                             </span>
                             {v.fuelcardenterprise && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.6rem] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.6rem] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 shrink-0">
                                 <Fuel className="w-2.5 h-2.5" />
                                 {v.fuelcardenterprise}
                               </span>
@@ -514,15 +514,15 @@ export function TransporterModal({
 
                           <div className="flex items-center gap-3 text-[0.7rem] text-sand-500 font-medium flex-wrap">
                             {v.fuelcardconductor ? (
-                              <span className="flex items-center gap-1 text-corp-blue-800 font-semibold">
-                                <UserCheck className="w-3 h-3 text-sand-400" />
-                                {v.fuelcardconductor}
+                              <span className="flex items-center gap-1 text-corp-blue-800 font-semibold truncate">
+                                <UserCheck className="w-3 h-3 text-sand-400 shrink-0" />
+                                <span className="truncate">{v.fuelcardconductor}</span>
                               </span>
                             ) : (
                               <span className="text-sand-400 italic">Conducteur non assigné</span>
                             )}
                             {v.mileage && (
-                              <span className="text-sand-400">
+                              <span className="text-sand-400 shrink-0">
                                 • {Number(v.mileage).toLocaleString()} km
                               </span>
                             )}
@@ -539,7 +539,7 @@ export function TransporterModal({
                             size="sm"
                             onClick={() => handleSelectFleetVehicle(v)}
                             className={cn(
-                              "h-8 px-3.5 rounded-xl font-bold text-xs transition-all shadow-xs gap-1.5 border",
+                              "h-8 px-3.5 rounded-xl font-bold text-xs transition-all shadow-xs gap-1.5 border shrink-0",
                               isSelected
                                 ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-emerald-600/20"
                                 : "bg-corp-blue-600 hover:bg-corp-blue-700 text-white border-corp-blue-600 shadow-corp-blue-600/20"
@@ -554,7 +554,7 @@ export function TransporterModal({
                   );
                 })
               ) : (
-                <div className="text-center py-8 px-4 rounded-2xl border border-dashed border-sand-300/80 bg-sand-50/40 space-y-3">
+                <div className="text-center py-8 px-4 rounded-2xl border border-dashed border-sand-300/80 bg-sand-50/40 space-y-3 w-full">
                   <p className="text-xs text-sand-500 font-medium">
                     {searchQuery
                       ? `Aucun véhicule de la flotte trouvé pour "${searchQuery}".`
@@ -577,12 +577,12 @@ export function TransporterModal({
           {activeTab === 'external' && (
             <>
               {isLoadingTransporters ? (
-                <div className="text-center py-10 space-y-2">
+                <div className="text-center py-10 space-y-2 w-full">
                   <Loader2 className="w-6 h-6 animate-spin text-corp-blue-600 mx-auto" />
                   <p className="text-xs text-sand-500 font-medium">Chargement des transporteurs externes...</p>
                 </div>
               ) : isErrorTransporters ? (
-                <div className="text-center py-8 px-4 rounded-2xl border border-red-200/80 bg-red-50/40 space-y-2">
+                <div className="text-center py-8 px-4 rounded-2xl border border-red-200/80 bg-red-50/40 space-y-2 w-full">
                   <AlertCircle className="w-6 h-6 text-red-500 mx-auto" />
                   <p className="text-xs font-bold text-red-900">Erreur lors du chargement des transporteurs</p>
                   <Button
@@ -610,7 +610,7 @@ export function TransporterModal({
                     return (
                       <div
                         key={t.id}
-                        className="p-3.5 rounded-2xl border border-amber-200/90 bg-amber-50/40 space-y-2.5 animate-in fade-in duration-150 shadow-2xs"
+                        className="p-3.5 rounded-2xl border border-amber-200/90 bg-amber-50/40 space-y-2.5 animate-in fade-in duration-150 shadow-2xs w-full"
                       >
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <Input
@@ -654,17 +654,17 @@ export function TransporterModal({
                     <div
                       key={t.id}
                       className={cn(
-                        "group p-3 rounded-2xl border bg-white transition-all duration-200 flex items-center justify-between gap-3 shadow-2xs",
+                        "group p-3.5 rounded-2xl border bg-white transition-all duration-200 flex items-center justify-between gap-3 shadow-2xs w-full",
                         isSelected
                           ? "border-corp-blue-500 bg-corp-blue-50/30 ring-1 ring-corp-blue-500/25 shadow-xs"
                           : "border-slate-200/90 hover:border-corp-blue-300 hover:bg-corp-blue-50/20 hover:shadow-xs"
                       )}
                     >
-                      <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className="p-2 rounded-xl bg-sand-100 text-sand-600 border border-sand-200/70 group-hover:bg-corp-blue-100 group-hover:text-corp-blue-600 group-hover:border-corp-blue-200/70 transition-colors shrink-0">
                           <Car className="w-4 h-4" />
                         </div>
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <div className="text-xs font-black text-corp-blue-900 truncate">
                             {t.fullname}
                           </div>
@@ -681,14 +681,14 @@ export function TransporterModal({
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        <div className="hidden sm:block w-px h-7 bg-sand-200/80 shrink-0" />
+                        <div className="hidden sm:block w-px h-8 bg-sand-200/80 shrink-0" />
                         {onSelectTransporter && (
                           <Button
                             type="button"
                             size="sm"
                             onClick={() => handleSelectExternalTransporter(t)}
                             className={cn(
-                              "h-8 px-3 rounded-xl font-bold text-xs transition-all border shadow-2xs",
+                              "h-8 px-3.5 rounded-xl font-bold text-xs transition-all border shadow-2xs shrink-0",
                               isSelected
                                 ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-emerald-600/20"
                                 : "bg-corp-blue-50 hover:bg-corp-blue-600 text-corp-blue-700 hover:text-white border-corp-blue-200/80 hover:border-corp-blue-600"
@@ -703,7 +703,7 @@ export function TransporterModal({
                           size="icon"
                           variant="ghost"
                           onClick={() => handleStartEdit(t)}
-                          className="h-8 w-8 rounded-xl border border-transparent hover:border-sand-200/90 text-sand-400 hover:text-corp-blue-600 hover:bg-corp-blue-50 transition-all"
+                          className="h-8 w-8 rounded-xl border border-transparent hover:border-sand-200/90 text-sand-400 hover:text-corp-blue-600 hover:bg-corp-blue-50 transition-all shrink-0"
                           title="Modifier"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -715,7 +715,7 @@ export function TransporterModal({
                           variant="ghost"
                           onClick={() => deleteTransporter.mutate(t.id)}
                           disabled={deleteTransporter.isPending}
-                          className="h-8 w-8 rounded-xl border border-transparent hover:border-red-200/90 text-sand-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                          className="h-8 w-8 rounded-xl border border-transparent hover:border-red-200/90 text-sand-400 hover:text-red-600 hover:bg-red-50 transition-all shrink-0"
                           title="Supprimer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -725,7 +725,7 @@ export function TransporterModal({
                   );
                 })
               ) : (
-                <div className="text-center py-8 px-4 rounded-2xl border border-dashed border-sand-300/80 bg-sand-50/40 space-y-3">
+                <div className="text-center py-8 px-4 rounded-2xl border border-dashed border-sand-300/80 bg-sand-50/40 space-y-3 w-full">
                   <p className="text-xs text-sand-500 font-medium">
                     {searchQuery
                       ? `Aucun transporteur trouvé pour "${searchQuery}".`

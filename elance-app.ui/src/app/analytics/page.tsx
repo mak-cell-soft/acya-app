@@ -1585,14 +1585,15 @@ export default function AnalyticsPage() {
             setDialogSort('outstanding_desc');
           }
         }}>
-          <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-5xl xl:max-w-6xl bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xl p-0 flex flex-col max-h-[90vh]">
-            <DialogHeader className="p-5 sm:p-6 pb-4 border-b border-slate-200 bg-slate-50/80">
+          <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-4xl lg:max-w-5xl bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl shadow-2xl shadow-slate-900/15 p-0 flex flex-col gap-0 max-h-[90vh] sm:max-h-[88vh] overflow-hidden [&>[data-slot=dialog-close]]:top-4.5 [&>[data-slot=dialog-close]]:right-4.5 sm:[&>[data-slot=dialog-close]]:top-5 sm:[&>[data-slot=dialog-close]]:right-5.5">
+            {/* Modal Header */}
+            <DialogHeader className="px-5 sm:px-6 py-4.5 sm:py-5 border-b border-slate-200/80 bg-slate-50/70 pr-14 sm:pr-16 shrink-0 w-full">
               <div className="flex items-center justify-between gap-4">
-                <div>
-                  <DialogTitle className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+                <div className="min-w-0 flex-1">
+                  <DialogTitle className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                     <span>Analyse Approfondie des Créances Clients</span>
                   </DialogTitle>
-                  <DialogDescription className="text-xs text-slate-500 mt-0.5">
+                  <DialogDescription className="text-xs text-slate-500 mt-1 font-medium">
                     Filtrez par montant, date d&apos;échéance et exportez les rapports complets.
                   </DialogDescription>
                 </div>
@@ -1601,87 +1602,95 @@ export default function AnalyticsPage() {
                   size="sm"
                   onClick={exportToCSV}
                   disabled={dialogFilteredReceivables.length === 0}
-                  className="rounded-xl border-emerald-300 text-emerald-700 hover:bg-emerald-50 font-semibold text-xs gap-2 shrink-0 h-9 bg-white shadow-xs"
+                  className="rounded-xl border-emerald-300/90 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 font-bold text-xs gap-2 shrink-0 h-9 px-3.5 bg-white shadow-2xs transition-all active:scale-[0.98]"
                 >
                   <FileDown className="w-4 h-4" />
-                  Exporter en CSV
+                  <span>Exporter en CSV</span>
                 </Button>
               </div>
             </DialogHeader>
 
             {/* Dialog summary KPI Banner */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-5 bg-slate-50/40 border-b border-slate-200">
-              <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-col gap-1">
-                <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Créances totales</span>
-                <span className="text-base sm:text-lg font-bold text-rose-700 font-mono tabular-nums">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 px-5 sm:px-6 py-4 bg-slate-50/40 border-b border-slate-200/80 shrink-0 w-full">
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition-shadow flex flex-col gap-1 min-w-0">
+                <span className="text-[10px] sm:text-[11px] text-slate-500 font-bold uppercase tracking-wider truncate">
+                  Créances totales
+                </span>
+                <span className="text-base sm:text-lg font-bold text-rose-700 font-mono tabular-nums truncate tracking-tight">
                   {formatCurrency(dialogSummaryStats.totalOutstanding)}
                 </span>
               </div>
-              <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-col gap-1">
-                <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Clients en retard (&gt;90j)</span>
-                <span className="text-base sm:text-lg font-bold text-amber-700 font-mono tabular-nums">
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition-shadow flex flex-col gap-1 min-w-0">
+                <span className="text-[10px] sm:text-[11px] text-slate-500 font-bold uppercase tracking-wider truncate">
+                  Clients en retard (&gt;90j)
+                </span>
+                <span className="text-base sm:text-lg font-bold text-amber-700 font-mono tabular-nums truncate tracking-tight">
                   {dialogSummaryStats.criticalCount}
                 </span>
               </div>
-              <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-col gap-1">
-                <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Ancienneté Moyenne</span>
-                <span className="text-base sm:text-lg font-bold text-slate-800 font-mono tabular-nums">
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition-shadow flex flex-col gap-1 min-w-0">
+                <span className="text-[10px] sm:text-[11px] text-slate-500 font-bold uppercase tracking-wider truncate">
+                  Ancienneté Moyenne
+                </span>
+                <span className="text-base sm:text-lg font-bold text-slate-800 font-mono tabular-nums truncate tracking-tight">
                   {dialogSummaryStats.avgAge} <span className="text-xs font-normal text-slate-400">jours</span>
                 </span>
               </div>
-              <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-col gap-1">
-                <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Total filtré</span>
-                <span className="text-base sm:text-lg font-bold text-emerald-700 font-mono tabular-nums">
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition-shadow flex flex-col gap-1 min-w-0">
+                <span className="text-[10px] sm:text-[11px] text-slate-500 font-bold uppercase tracking-wider truncate">
+                  Total filtré
+                </span>
+                <span className="text-base sm:text-lg font-bold text-emerald-700 font-mono tabular-nums truncate tracking-tight">
                   {dialogSummaryStats.totalCount} <span className="text-xs font-normal text-slate-400">clients</span>
                 </span>
               </div>
             </div>
 
             {/* Filtering and sorting controls */}
-            <div className="p-5 border-b border-slate-200 space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="px-5 sm:px-6 py-4 border-b border-slate-200/80 bg-white space-y-3.5 shrink-0 w-full">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                 {/* Search input */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <div className="sm:col-span-6 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                   <Input 
                     placeholder="Rechercher un client..." 
                     value={dialogSearch}
                     onChange={(e) => setDialogSearch(e.target.value)}
-                    className="pl-9 bg-white border-slate-200 rounded-xl w-full text-xs sm:text-sm h-9"
+                    className="pl-9 bg-white border-slate-200/90 rounded-xl w-full text-xs sm:text-sm h-9 shadow-2xs focus-visible:border-corp-blue-600"
                   />
                 </div>
 
                 {/* Min amount input */}
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 font-semibold uppercase">Min DT</span>
+                <div className="sm:col-span-3 relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold uppercase tracking-wider pointer-events-none select-none">Min DT</span>
                   <Input 
                     type="number"
                     placeholder="0.000" 
                     value={dialogMinAmount === '' ? '' : dialogMinAmount}
                     onChange={(e) => setDialogMinAmount(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="pl-16 bg-white border-slate-200 rounded-xl w-full text-xs sm:text-sm font-mono h-9"
+                    className="pl-16 bg-white border-slate-200/90 rounded-xl w-full text-xs sm:text-sm font-mono h-9 shadow-2xs focus-visible:border-corp-blue-600"
                   />
                 </div>
 
                 {/* Max amount input */}
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 font-semibold uppercase">Max DT</span>
+                <div className="sm:col-span-3 relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold uppercase tracking-wider pointer-events-none select-none">Max DT</span>
                   <Input 
                     type="number"
                     placeholder="Filtre max..." 
                     value={dialogMaxAmount === '' ? '' : dialogMaxAmount}
                     onChange={(e) => setDialogMaxAmount(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="pl-16 bg-white border-slate-200 rounded-xl w-full text-xs sm:text-sm font-mono h-9"
+                    className="pl-16 bg-white border-slate-200/90 rounded-xl w-full text-xs sm:text-sm font-mono h-9 shadow-2xs focus-visible:border-corp-blue-600"
                   />
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pt-0.5">
                 {/* Age and pay filters */}
-                <div className="flex flex-wrap gap-3 items-center">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Ancienneté</span>
-                    <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200/60">
+                <div className="flex flex-wrap gap-4 items-center">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Ancienneté</span>
+                    <div className="flex bg-slate-100/90 p-0.5 rounded-xl border border-slate-200/70 shadow-2xs">
                       {[
                         { id: 'all', label: 'Tous' },
                         { id: 'lt30', label: '< 30 j' },
@@ -1690,12 +1699,13 @@ export default function AnalyticsPage() {
                       ].map((opt) => (
                         <button
                           key={opt.id}
+                          type="button"
                           onClick={() => setDialogAgeFilter(opt.id as any)}
                           className={cn(
-                            "px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all",
+                            "px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all",
                             dialogAgeFilter === opt.id
-                              ? "bg-white text-slate-900 shadow-xs"
-                              : "text-slate-600 hover:text-slate-900"
+                              ? "bg-white text-slate-900 shadow-2xs border border-slate-200/60"
+                              : "text-slate-600 hover:text-slate-900 border border-transparent"
                           )}
                         >
                           {opt.label}
@@ -1704,9 +1714,9 @@ export default function AnalyticsPage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Taux de règlement</span>
-                    <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200/60">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Taux de règlement</span>
+                    <div className="flex bg-slate-100/90 p-0.5 rounded-xl border border-slate-200/70 shadow-2xs">
                       {[
                         { id: 'all', label: 'Tous' },
                         { id: 'lt50', label: '< 50%' },
@@ -1715,12 +1725,13 @@ export default function AnalyticsPage() {
                       ].map((opt) => (
                         <button
                           key={opt.id}
+                          type="button"
                           onClick={() => setDialogPayFilter(opt.id as any)}
                           className={cn(
-                            "px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all",
+                            "px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all",
                             dialogPayFilter === opt.id
-                              ? "bg-white text-slate-900 shadow-xs"
-                              : "text-slate-600 hover:text-slate-900"
+                              ? "bg-white text-slate-900 shadow-2xs border border-slate-200/60"
+                              : "text-slate-600 hover:text-slate-900 border border-transparent"
                           )}
                         >
                           {opt.label}
@@ -1731,10 +1742,10 @@ export default function AnalyticsPage() {
                 </div>
 
                 {/* Sort selector */}
-                <div className="flex flex-col gap-0.5 shrink-0 w-full sm:w-[220px]">
-                  <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Trier par</span>
+                <div className="flex flex-col gap-1 shrink-0 w-full sm:w-[220px]">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Trier par</span>
                   <Select value={dialogSort} onValueChange={(val) => setDialogSort(val as any)}>
-                    <SelectTrigger className="w-full bg-white border-slate-200 rounded-xl text-xs font-semibold h-9">
+                    <SelectTrigger className="w-full bg-white border-slate-200/90 rounded-xl text-xs font-bold h-9 shadow-2xs">
                       <SelectValue placeholder="Ordre d'affichage">
                         {dialogSort === 'outstanding_desc' && "Solde restant (Décroissant)"}
                         {dialogSort === 'outstanding_asc' && "Solde restant (Croissant)"}
@@ -1743,12 +1754,12 @@ export default function AnalyticsPage() {
                         {dialogSort === 'name_asc' && "Nom du client (A-Z)"}
                       </SelectValue>
                     </SelectTrigger>
-                    <SelectContent className="bg-white border border-slate-200 rounded-xl">
-                      <SelectItem value="outstanding_desc" className="text-xs font-medium cursor-pointer hover:bg-slate-50">Solde restant (Décroissant)</SelectItem>
-                      <SelectItem value="outstanding_asc" className="text-xs font-medium cursor-pointer hover:bg-slate-50">Solde restant (Croissant)</SelectItem>
-                      <SelectItem value="age_desc" className="text-xs font-medium cursor-pointer hover:bg-slate-50">Ancienneté (Plus ancien)</SelectItem>
-                      <SelectItem value="pay_asc" className="text-xs font-medium cursor-pointer hover:bg-slate-50">Taux payé (Moins réglé)</SelectItem>
-                      <SelectItem value="name_asc" className="text-xs font-medium cursor-pointer hover:bg-slate-50">Nom du client (A-Z)</SelectItem>
+                    <SelectContent className="bg-white border border-slate-200/90 rounded-xl shadow-lg">
+                      <SelectItem value="outstanding_desc" className="text-xs font-semibold cursor-pointer hover:bg-slate-50">Solde restant (Décroissant)</SelectItem>
+                      <SelectItem value="outstanding_asc" className="text-xs font-semibold cursor-pointer hover:bg-slate-50">Solde restant (Croissant)</SelectItem>
+                      <SelectItem value="age_desc" className="text-xs font-semibold cursor-pointer hover:bg-slate-50">Ancienneté (Plus ancien)</SelectItem>
+                      <SelectItem value="pay_asc" className="text-xs font-semibold cursor-pointer hover:bg-slate-50">Taux payé (Moins réglé)</SelectItem>
+                      <SelectItem value="name_asc" className="text-xs font-semibold cursor-pointer hover:bg-slate-50">Nom du client (A-Z)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1756,62 +1767,62 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Dialogue Table Area */}
-            <div className="flex-1 overflow-y-auto max-h-[50vh] custom-scrollbar">
+            <div className="flex-1 overflow-x-auto overflow-y-auto max-h-[48vh] custom-scrollbar w-full min-h-0">
               {dialogFilteredReceivables.length === 0 ? (
                 <div className="p-12 text-center text-slate-400">
                   <SlidersHorizontal className="w-8 h-8 mx-auto mb-2.5 text-slate-300" />
                   <p className="text-xs sm:text-sm font-semibold">Aucun résultat ne correspond à vos filtres.</p>
                 </div>
               ) : (
-                <table className="w-full text-left border-collapse">
+                <table className="w-full min-w-[720px] text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50 sticky top-0 backdrop-blur z-10">
-                      <th className="px-5 py-3 text-[11px] font-semibold text-slate-700 uppercase tracking-wider">Client</th>
-                      <th className="px-5 py-3 text-[11px] font-semibold text-slate-700 uppercase tracking-wider text-right">Facturé</th>
-                      <th className="px-5 py-3 text-[11px] font-semibold text-slate-700 uppercase tracking-wider text-right">Payé</th>
-                      <th className="px-5 py-3 text-[11px] font-semibold text-slate-700 uppercase tracking-wider text-right">Solde Restant</th>
-                      <th className="px-5 py-3 text-[11px] font-semibold text-slate-700 uppercase tracking-wider text-center">Taux</th>
-                      <th className="px-5 py-3 text-[11px] font-semibold text-slate-700 uppercase tracking-wider text-center">Ancienneté</th>
+                    <tr className="border-b border-slate-200/90 bg-slate-50/90 sticky top-0 backdrop-blur-md z-10">
+                      <th className="px-5 sm:px-6 py-3 text-[11px] font-bold text-slate-700 uppercase tracking-wider w-[30%]">Client</th>
+                      <th className="px-3 sm:px-4 py-3 text-[11px] font-bold text-slate-700 uppercase tracking-wider text-right w-[14%]">Facturé</th>
+                      <th className="px-3 sm:px-4 py-3 text-[11px] font-bold text-slate-700 uppercase tracking-wider text-right w-[14%]">Payé</th>
+                      <th className="px-3 sm:px-4 py-3 text-[11px] font-bold text-slate-700 uppercase tracking-wider text-right w-[16%]">Solde Restant</th>
+                      <th className="px-3 sm:px-4 py-3 text-[11px] font-bold text-slate-700 uppercase tracking-wider text-center w-[13%]">Taux</th>
+                      <th className="px-5 sm:px-6 py-3 text-[11px] font-bold text-slate-700 uppercase tracking-wider text-center w-[13%]">Ancienneté</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-100 bg-white">
                     {dialogFilteredReceivables.map((client: any) => {
                       const progress = client.totalInvoiced > 0 ? (client.totalPaid / client.totalInvoiced) * 100 : 0;
                       
-                      let ageColor = 'text-emerald-700 bg-emerald-50 border-emerald-200/80';
+                      let ageColor = 'text-emerald-700 bg-emerald-50/80 border-emerald-200/90';
                       let ageLabel = '< 30 j';
                       if (client.oldestInvoiceDays >= 30 && client.oldestInvoiceDays <= 90) {
-                        ageColor = 'text-amber-700 bg-amber-50 border-amber-200/80';
+                        ageColor = 'text-amber-700 bg-amber-50/80 border-amber-200/90';
                         ageLabel = `${client.oldestInvoiceDays} j`;
                       } else if (client.oldestInvoiceDays > 90) {
-                        ageColor = 'text-rose-700 bg-rose-50 border-rose-200/80';
+                        ageColor = 'text-rose-700 bg-rose-50/80 border-rose-200/90';
                         ageLabel = `> 90 j (${client.oldestInvoiceDays} j)`;
                       }
 
                       return (
-                        <tr key={client.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-5 py-3 text-xs font-semibold text-slate-900">
+                        <tr key={client.id} className="hover:bg-slate-50/80 transition-colors duration-150">
+                          <td className="px-5 sm:px-6 py-3.5 text-xs font-bold text-slate-900 truncate max-w-[240px]">
                             {client.name}
                           </td>
-                          <td className="px-5 py-3 text-xs font-mono font-medium text-slate-600 text-right tabular-nums">
+                          <td className="px-3 sm:px-4 py-3.5 text-xs font-mono font-medium text-slate-600 text-right tabular-nums whitespace-nowrap">
                             {formatCurrency(client.totalInvoiced)}
                           </td>
-                          <td className="px-5 py-3 text-xs font-mono font-medium text-slate-600 text-right tabular-nums">
+                          <td className="px-3 sm:px-4 py-3.5 text-xs font-mono font-medium text-slate-600 text-right tabular-nums whitespace-nowrap">
                             {formatCurrency(client.totalPaid)}
                           </td>
-                          <td className="px-5 py-3 text-xs font-mono font-bold text-rose-700 text-right tabular-nums">
+                          <td className="px-3 sm:px-4 py-3.5 text-xs font-mono font-bold text-rose-700 text-right tabular-nums whitespace-nowrap">
                             {formatCurrency(client.outstanding)}
                           </td>
-                          <td className="px-5 py-3 whitespace-nowrap text-center">
+                          <td className="px-3 sm:px-4 py-3.5 whitespace-nowrap text-center">
                             <div className="flex flex-col items-center gap-1">
                               <span className="text-[10px] font-bold text-slate-600 tabular-nums">{progress.toFixed(0)}%</span>
-                              <div className="w-16 h-1.5 bg-slate-200/90 rounded-full overflow-hidden">
+                              <div className="w-14 sm:w-16 h-1.5 bg-slate-100 rounded-full border border-slate-200/60 overflow-hidden">
                                 <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(progress, 100)}%` }} />
                               </div>
                             </div>
                           </td>
-                          <td className="px-5 py-3 text-center">
-                            <span className={cn("px-2 py-0.5 rounded-md border text-[11px] font-semibold inline-block", ageColor)}>
+                          <td className="px-5 sm:px-6 py-3.5 text-center whitespace-nowrap">
+                            <span className={cn("px-2.5 py-0.5 rounded-lg border text-[11px] font-bold inline-block shadow-2xs", ageColor)}>
                               {ageLabel}
                             </span>
                           </td>
