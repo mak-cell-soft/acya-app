@@ -63,7 +63,7 @@ When locating code or adding features, follow this mapping:
 - **Database Migrations:** [wood-app.api/db/wood/](file:///c:/Users/amine/source/repos/acya.app/acya-app/wood-app.api/db/wood/)
 - **Baseline Schema Provisioning:** [wood-app.api/db/FullDb_Migration/](file:///c:/Users/amine/source/repos/acya.app/acya-app/wood-app.api/db/FullDb_Migration/)
 - **Docker Orchestration:** [docker-compose.yml](file:///c:/Users/amine/source/repos/acya.app/acya-app/docker-compose.yml) and [docker-compose.n8n.yml](file:///c:/Users/amine/source/repos/acya.app/acya-app/docker-compose.n8n.yml)
-- **Deployment & Production Procedures:** [CONFIG-STEPS.md](file:///c:/Users/amine/source/repos/acya.app/acya-app/CONFIG-STEPS.md) and [DEPLOYMENT.md](file:///c:/Users/amine/source/repos/acya.app/acya-app/DEPLOYMENT.md)
+- **Deployment & Production Procedures:** [docs/deployment/CONFIG-STEPS.md](file:///c:/Users/amine/source/repos/acya.app/acya-app/docs/deployment/CONFIG-STEPS.md) and [docs/deployment/DEPLOYMENT.md](file:///c:/Users/amine/source/repos/acya.app/acya-app/docs/deployment/DEPLOYMENT.md)
 
 ---
 
@@ -161,7 +161,7 @@ When modifying or introducing API endpoints:
 
 ## 7. Production, Docker & DevOps Safety Rules
 
-Critical container and deployment safety rules derived from [CONFIG-STEPS.md](file:///c:/Users/amine/source/repos/acya.app/acya-app/CONFIG-STEPS.md):
+Critical container and deployment safety rules derived from [docs/deployment/CONFIG-STEPS.md](file:///c:/Users/amine/source/repos/acya.app/acya-app/docs/deployment/CONFIG-STEPS.md):
 
 ### 🚫 STRICTLY FORBIDDEN COMMANDS IN PRODUCTION
 - `docker compose down` — Disables all services simultaneously.
@@ -174,10 +174,10 @@ When deploying updates to production services:
 
 ```bash
 # Rebuild only the affected service without cache:
-sudo docker compose build --no-cache [migration-ui | api | admin-ui | admin-api]
+sudo docker compose build --no-cache [elance-app-ui | api | admin-ui | admin-api]
 
 # Re-create and restart only that single container without touching dependencies:
-sudo docker compose up -d --no-deps [migration-ui | api | admin-ui | admin-api]
+sudo docker compose up -d --no-deps [elance-app-ui | api | admin-ui | admin-api]
 
 # Verify container status:
 sudo docker ps --filter "name=[container-name]"

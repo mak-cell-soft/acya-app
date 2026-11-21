@@ -9,37 +9,37 @@ cd ~/acya-app
 
 Build the new UI image:
 ```bash
-sudo docker-compose build --no-cache migration-ui
+sudo docker-compose build --no-cache elance-app-ui
 ```
 
 Remove only the old UI container:
 ```bash
-sudo docker rm -f migration-ui 2>/dev/null || true
+sudo docker rm -f elance-app-ui 2>/dev/null || true
 ```
 
 Create the new UI container:
 ```bash
-sudo docker-compose up -d --no-deps migration-ui
+sudo docker-compose up -d --no-deps elance-app-ui
 ```
 
 Check running UI container:
 ```bash
-sudo docker ps --filter "name=migration-ui"
+sudo docker ps --filter "name=elance-app-ui"
 ```
 
 ### UI Verification
 ```bash
 # Verify container status
-sudo docker ps --filter "name=migration-ui"
+sudo docker ps --filter "name=elance-app-ui"
 
 # View recent container logs
-sudo docker logs --tail 100 migration-ui
+sudo docker logs --tail 100 elance-app-ui
 
 # Verify endpoint responds
 curl -I http://localhost:5000
 
 # Check UI image
-sudo docker images acya-app_migration-ui
+sudo docker images acya-elance-app-ui
 ```
 
 ---

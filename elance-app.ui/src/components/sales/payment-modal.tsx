@@ -33,7 +33,9 @@ import {
 } from '@/components/ui/select';
 import { paymentService } from '@/services/components/payment.service';
 import { bankService } from '@/services/configuration/bank.service';
+import { caisseService } from '@/services/treasury/caisse.service';
 import { exchangeRateService } from '@/services/components/exchange-rate.service';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { DEVISES } from '@/lib/constants/settings';
 import { cn } from '@/lib/utils';
@@ -78,6 +80,7 @@ interface PaymentModalProps {
     remainingAmount?: number;
     customerId: number;
     customerName: string;
+    isSupplier?: boolean;
     isEditMode?: boolean;
     paymentId?: number;
     prefillAmount?: number;
@@ -90,6 +93,7 @@ interface PaymentModalProps {
 }
 
 export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalProps) {
+  const queryClient = useQueryClient();
   const [selectedMethod, setSelectedMethod] = useState<'ESPECE' | 'CHEQUE' | 'TRAITE' | 'VIREMENT' | 'CARTE'>('ESPECE');
   const [remainingAmount, setRemainingAmount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
@@ -111,14 +115,28 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
   const [dueDate, setDueDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
   const [banks, setBanks] = useState<any[]>([]);
+  const [enterpriseBanks, setEnterpriseBanks] = useState<any[]>([]);
+  const [selectedBankId, setSelectedBankId] = useState<string>('');
+  const [mainCaisseBalance, setMainCaisseBalance] = useState<number | null>(null);
   const [existingEcheance, setExistingEcheance] = useState<{totalAmount: number, instrumentCount: number} | null>(null);
+
+  const isSupplierPayment = Boolean(
+    data.isSupplier ||
+    data.documentNumber?.toUpperCase().startsWith('FF-') ||
+    data.documentNumber?.toUpperCase().startsWith('BR-') ||
+    data.documentNumber?.toUpperCase().startsWith('CF-')
+  );
 
   useEffect(() => {
     bankService.getAll()
       .then((res) => {
-        const enterpriseBanks = res.items || res;
-        const bankNames = new Set(enterpriseBanks.map((b: any) => b.designation?.trim().toUpperCase()));
-        const merged = [...enterpriseBanks];
+        const entBanks = res.items || res || [];
+        setEnterpriseBanks(entBanks);
+        if (entBanks.length > 0 && !selectedBankId) {
+          setSelectedBankId(String(entBanks[0].id));
+        }
+        const bankNames = new Set(entBanks.map((b: any) => b.designation?.trim().toUpperCase()));
+        const merged = [...entBanks];
         
         TUNISIAN_BANKS.forEach(name => {
           if (!bankNames.has(name.toUpperCase())) {
@@ -133,6 +151,14 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
       })
       .catch((err) => console.error('Failed to load banks:', err));
   }, []);
+
+  useEffect(() => {
+    if (isOpen && isSupplierPayment) {
+      caisseService.getCaissePrincipaleBalance()
+        .then((bal) => setMainCaisseBalance(typeof bal === 'number' ? bal : Number(bal) || 0))
+        .catch(() => setMainCaisseBalance(null));
+    }
+  }, [isOpen, isSupplierPayment]);
 
   useEffect(() => {
     if (selectedMethod === 'TRAITE' && dueDate) {
@@ -239,6 +265,16 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
       return;
     }
 
+    if (isSupplierPayment && selectedMethod === 'ESPECE' && mainCaisseBalance !== null) {
+      const available = data.isEditMode && data.prefillMethod === 'ESPECE'
+        ? mainCaisseBalance + (data.prefillAmount || 0)
+        : mainCaisseBalance;
+      if (parsedAmount > available + 0.001) {
+        toast.error(`Solde insuffisant dans la Caisse Principale. Solde disponible : ${available.toFixed(3)} TND, montant demandé : ${parsedAmount.toFixed(3)} TND.`);
+        return;
+      }
+    }
+
     if (selectedMethod === 'CHEQUE' || selectedMethod === 'TRAITE') {
       if (!bank) {
         toast.warning('Veuillez sélectionner la banque émettrice.');
@@ -262,6 +298,7 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
           paymentMethod: selectedMethod,
           reference: reference || null,
           notes: notes || null,
+          bankId: selectedMethod === 'VIREMENT' && selectedBankId ? parseInt(selectedBankId, 10) : null,
           instrumentDetails: selectedMethod === 'CHEQUE' || selectedMethod === 'TRAITE' ? {
             instrumentNumber: instrumentNumber,
             bank: bank,
@@ -287,6 +324,7 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
           paymentMethod: selectedMethod,
           reference: reference || null,
           notes: notes || null,
+          bankId: selectedMethod === 'VIREMENT' && selectedBankId ? parseInt(selectedBankId, 10) : null,
         };
 
         // Add instrument if Cheque or Traite
@@ -306,6 +344,10 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
         await paymentService.add(payload);
         toast.success('Paiement enregistré avec succès.');
       }
+      queryClient.invalidateQueries({ queryKey: ['caisse'] });
+      queryClient.invalidateQueries({ queryKey: ['treasury'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['payments-deep-search'] });
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -658,7 +700,52 @@ export function PaymentModal({ isOpen, onClose, onSuccess, data }: PaymentModalP
                 )}
 
                 {/* Additional reference / generic notes */}
+                {isSupplierPayment && selectedMethod === 'ESPECE' && mainCaisseBalance !== null && (
+                  <div className={cn(
+                    "p-3.5 rounded-xl border flex items-center justify-between",
+                    parseFloat(amount || '0') > mainCaisseBalance
+                      ? "bg-rose-50/70 border-rose-200 text-rose-800"
+                      : "bg-amber-50/60 border-amber-200/80 text-amber-900"
+                  )}>
+                    <div className="flex items-center gap-2.5">
+                      <Banknote className="w-4 h-4 shrink-0" />
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider block">
+                          Solde Caisse Principale Disponible
+                        </span>
+                        <span className="text-xs font-mono font-bold">
+                          {mainCaisseBalance.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} TND
+                        </span>
+                      </div>
+                    </div>
+                    {parseFloat(amount || '0') > mainCaisseBalance && (
+                      <Badge className="bg-rose-600 text-white text-[10px] font-bold">
+                        Solde insuffisant
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 gap-4">
+                  {selectedMethod === 'VIREMENT' && enterpriseBanks.length > 0 && (
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Compte bancaire de l&apos;entreprise</label>
+                      <Select value={selectedBankId} onValueChange={(val) => setSelectedBankId(val || '')}>
+                        <SelectTrigger className="bg-white border-slate-200 rounded-xl h-10 text-xs font-semibold focus:ring-sky-500">
+                          <SelectValue placeholder="Sélectionner le compte bancaire">
+                            {selectedBankId ? enterpriseBanks.find((b: any) => String(b.id) === selectedBankId)?.designation : 'Sélectionner le compte bancaire'}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-slate-100">
+                          {enterpriseBanks.map((b: any) => (
+                            <SelectItem key={b.id} value={String(b.id)} className="text-xs font-semibold">
+                              {b.designation} {b.rib ? `(${b.rib})` : ''}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                   {(selectedMethod === 'VIREMENT' || selectedMethod === 'CARTE') && (
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Référence transaction</label>

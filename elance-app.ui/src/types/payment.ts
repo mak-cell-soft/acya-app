@@ -55,6 +55,8 @@ export interface EcheanceDetailDto {
 
 export interface DashboardPaymentDto {
   paymentId: number;
+  documentId?: number;
+  customerId?: number;
   amount: number;
   paymentDate: string;
   paymentMethod: string;
@@ -62,9 +64,15 @@ export interface DashboardPaymentDto {
   notes: string;
   customerName: string;
   invoiceNumber: string;
+  supplierReference?: string;
   deliveryNoteNumber: string;
   createdAt: string;
   dueDate?: string;
+  instrumentNumber?: string;
+  bankName?: string;
+  bankSettlementStatus?: string;
+  isPaidAtBank?: boolean;
+  paymentStatus?: string;
 }
 
 export interface UnpaidInvoiceSummaryDto {

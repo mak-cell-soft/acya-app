@@ -325,7 +325,8 @@ function SupplierPaymentsPageContent() {
       customerName: selectedSupplier?.name || `${selectedSupplier?.firstname || ''} ${selectedSupplier?.lastname || ''}`.trim(),
       withholdingtax: invoice.withholdingtax,
       holdingtax: invoice.holdingtax,
-      totalNetPayable: invoice.total_net_payable
+      totalNetPayable: invoice.total_net_payable,
+      isSupplier: true
     });
     setIsPaymentModalOpen(true);
   };
@@ -340,6 +341,7 @@ function SupplierPaymentsPageContent() {
 
     setPaymentModalData({
       isEditMode: true,
+      isSupplier: true,
       paymentId: payment.paymentId || payment.id,
       documentId: docId,
       documentNumber: linkedInvoice?.docnumber ?? '',

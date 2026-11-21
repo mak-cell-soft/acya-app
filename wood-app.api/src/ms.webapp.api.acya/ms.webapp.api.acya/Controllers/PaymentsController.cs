@@ -114,6 +114,10 @@ namespace ms.webapp.api.acya.api.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating payment");
@@ -139,6 +143,10 @@ namespace ms.webapp.api.acya.api.Controllers
                 return NotFound();
             }
             catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
@@ -238,24 +246,37 @@ namespace ms.webapp.api.acya.api.Controllers
 
         [HttpGet("dashboard")]
         public async Task<ActionResult<IEnumerable<DashboardPaymentDto>>> GetDashboardPayments(
-            [FromQuery] string date, 
+            [FromQuery] string? date, 
             [FromQuery] int? appuserid, 
             [FromQuery] string? documentSide, 
             [FromQuery] bool? monthOnly = false,
-            [FromQuery] bool? allSites = false)
+            [FromQuery] bool? allSites = false,
+            [FromQuery] string? fromDate = null,
+            [FromQuery] string? toDate = null)
         {
             try
             {
-                // Parse the date string explicitly to avoid timezone conversion issues
-                if (!DateTime.TryParse(date, out DateTime parsedDate))
+                DateTime parsedDate = DateTime.Today;
+                if (!string.IsNullOrWhiteSpace(date) && !DateTime.TryParse(date, out parsedDate))
                 {
                     return BadRequest("Invalid date format. Expected format: YYYY-MM-DD");
                 }
 
-                var userId = appuserid ?? GetCurrentUserId();
-                if (userId == 0) return Unauthorized("Invalid User ID");
+                DateTime? parsedFromDate = null;
+                DateTime? parsedToDate = null;
+                if (!string.IsNullOrWhiteSpace(fromDate) && DateTime.TryParse(fromDate, out DateTime fd))
+                {
+                    parsedFromDate = fd;
+                }
+                if (!string.IsNullOrWhiteSpace(toDate) && DateTime.TryParse(toDate, out DateTime td))
+                {
+                    parsedToDate = td;
+                }
 
-                var payments = await _paymentService.GetDashboardPaymentsAsync(parsedDate, userId, documentSide, monthOnly ?? false, allSites ?? false);
+                var userId = appuserid ?? GetCurrentUserId();
+                if (userId == 0 && !(allSites ?? false)) return Unauthorized("Invalid User ID");
+
+                var payments = await _paymentService.GetDashboardPaymentsAsync(parsedDate, userId, documentSide, monthOnly ?? false, allSites ?? false, parsedFromDate, parsedToDate);
                 return Ok(payments);
             }
             catch (Exception ex)

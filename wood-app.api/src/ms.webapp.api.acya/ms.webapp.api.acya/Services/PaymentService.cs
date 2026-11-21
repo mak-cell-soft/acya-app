@@ -1,3 +1,4 @@
+using System.Threading;
 using Microsoft.EntityFrameworkCore;
 using ms.webapp.api.acya.api.Interfaces;
 using ms.webapp.api.acya.common;
@@ -11,6 +12,7 @@ namespace ms.webapp.api.acya.api.Services
 {
     public class PaymentService : IPaymentService
     {
+        private static readonly SemaphoreSlim _cashRegisterLock = new SemaphoreSlim(1, 1);
         private readonly IPaymentRepository _paymentRepository;
         private readonly DocumentRepository _documentRepository;
         private readonly CounterPartRepository _customerRepository;
@@ -128,15 +130,37 @@ namespace ms.webapp.api.acya.api.Services
             if (paymentAmount > remainingBalance)
                 throw new ArgumentException($"Payment amount ({paymentAmount}) exceeds remaining balance ({remainingBalance}).");
 
+            bool isSupplier = IsSupplierDocument(document.Type);
+            bool isCash = createDto.PaymentMethod?.ToUpper() == "CASH" || createDto.PaymentMethod?.ToUpper() == "ESPECE";
+
             // Fetch generic user name if needed or let DB handle UpdatedById relation
             var user = await _appUserRepository.Get(createdById);
             string createdByName = user != null ? user.Login! : "Unknown";
 
-            using (var transaction = await _context.Database.BeginTransactionAsync())
+            bool lockAcquired = false;
+            if (isSupplier && isCash)
             {
-                try
+                await _cashRegisterLock.WaitAsync();
+                lockAcquired = true;
+            }
+
+            try
+            {
+                using (var transaction = await _context.Database.BeginTransactionAsync())
                 {
-                    var payment = new Payment
+                    try
+                    {
+                        if (isSupplier && isCash)
+                        {
+                            var mainCaisseBalance = await GetMainCashRegisterBalanceAsync();
+                            if (paymentAmount > mainCaisseBalance)
+                            {
+                                throw new InvalidOperationException(
+                                    $"Solde insuffisant dans la Caisse Principale pour effectuer ce règlement en espèces. Solde disponible : {mainCaisseBalance:F3} TND, montant demandé : {paymentAmount:F3} TND.");
+                            }
+                        }
+
+                        var payment = new Payment
                     {
                         DocumentId = createDto.DocumentId,
                         CustomerId = createDto.CustomerId,
@@ -173,23 +197,82 @@ namespace ms.webapp.api.acya.api.Services
                     var createdPayment = await _paymentRepository.Add(payment);
 
                     // Automate Caisse Movement for CASH/ESPECE
-                    if ((createDto.PaymentMethod?.ToUpper() == "CASH" || createDto.PaymentMethod?.ToUpper() == "ESPECE"))
+                    if (isCash)
                     {
                         var caisseMovement = new CaisseMovement
                         {
                             SalesSiteId = document.SalesSiteId,
                             MovementDate = DateTime.UtcNow,
-                            Type = "ENTREE",
-                            Reason = "ENCAISSEMENT",
+                            Type = isSupplier ? "SORTIE" : "ENTREE",
+                            Reason = isSupplier ? "REGLEMENT_FOURNISSEUR" : "ENCAISSEMENT",
                             Amount = paymentAmount,
                             Reference = document.DocNumber,
-                            Notes = $"Encaissement automatique pour la facture {document.DocNumber}",
+                            Notes = isSupplier
+                                ? $"Règlement espèces facture fournisseur {document.DocNumber}"
+                                : $"Encaissement automatique pour la facture {document.DocNumber}",
                             PaymentId = createdPayment.Id,
                             CreatedByUserId = createdById,
                             CreatedAt = DateTime.UtcNow,
                             IsDeleted = false
                         };
                         await _context.CaisseMovements.AddAsync(caisseMovement);
+                    }
+                    else if (createDto.PaymentMethod?.ToUpper() == "VIREMENT")
+                    {
+                        Bank? targetBank = null;
+                        if (createDto.BankId.HasValue && createDto.BankId.Value > 0)
+                        {
+                            targetBank = await _context.Banks.FirstOrDefaultAsync(b => b.Id == createDto.BankId.Value && b.IsDeleted != true);
+                        }
+                        else if (!string.IsNullOrWhiteSpace(createDto.InstrumentDetails?.Bank))
+                        {
+                            var bankName = createDto.InstrumentDetails.Bank.Trim().ToLower();
+                            targetBank = await _context.Banks.FirstOrDefaultAsync(b => b.IsDeleted != true &&
+                                ((b.Designation != null && b.Designation.ToLower() == bankName) ||
+                                 (b.Reference != null && b.Reference.ToLower() == bankName)));
+                        }
+
+                        if (targetBank != null)
+                        {
+                            string txRef = !string.IsNullOrWhiteSpace(createDto.Reference) ? createDto.Reference : (document.DocNumber ?? $"VIR-{createdPayment.Id}");
+                            string counterpartName = !string.IsNullOrEmpty(customer.Name) ? customer.Name : (customer.Fullname ?? "Inconnu");
+
+                            var deposit = new BankDeposit
+                            {
+                                BankId = targetBank.Id,
+                                DepositDate = createDto.PaymentDate,
+                                DepositType = "VIREMENT",
+                                AmountHT = isSupplier ? -paymentAmount : paymentAmount,
+                                FeeHT = 0,
+                                TaxRate = 0,
+                                FeeWithTax = 0,
+                                NetAmount = isSupplier ? -paymentAmount : paymentAmount,
+                                Reference = txRef,
+                                Notes = createDto.Notes ?? (isSupplier ? $"Virement fournisseur {counterpartName}" : $"Virement client {counterpartName}"),
+                                SalesSiteId = document.SalesSiteId,
+                                CreatedByUserId = createdById,
+                                CreatedAt = DateTime.UtcNow,
+                                IsDeleted = false
+                            };
+                            await _context.BankDeposits.AddAsync(deposit);
+
+                            var bankTx = new BankTransaction
+                            {
+                                BankId = targetBank.Id,
+                                TransactionDate = createDto.PaymentDate,
+                                Description = isSupplier
+                                    ? $"Virement fournisseur - {counterpartName} ({document.DocNumber})"
+                                    : $"Virement client - {counterpartName} ({document.DocNumber})",
+                                Debit = isSupplier ? 0 : paymentAmount,
+                                Credit = isSupplier ? paymentAmount : 0,
+                                Reference = txRef,
+                                CreationDate = DateTime.UtcNow,
+                                UpdateDate = DateTime.UtcNow,
+                                IsDeleted = false,
+                                IsReconciled = false
+                            };
+                            await _context.BankTransactions.AddAsync(bankTx);
+                        }
                     }
 
                     // Update document billing status
@@ -201,7 +284,6 @@ namespace ms.webapp.api.acya.api.Services
                     await _documentRepository.Update(document);
                     
                     // Integrate Ledger Entry
-                    bool isSupplier = IsSupplierDocument(document.Type);
                     await _accountService.AddLedgerEntryAsync(
                         createDto.CustomerId, 
                         "Payment", 
@@ -213,7 +295,8 @@ namespace ms.webapp.api.acya.api.Services
 
                     // Sync Account Ledger for converted delivery notes if applicable
                     await _accountService.SyncLedgerForInvoiceAsync(document);
-                                
+
+                    await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
                     // Update persistent balance after transaction success
@@ -229,6 +312,14 @@ namespace ms.webapp.api.acya.api.Services
                 {
                     await transaction.RollbackAsync();
                     throw;
+                }
+            }
+            }
+            finally
+            {
+                if (lockAcquired)
+                {
+                    _cashRegisterLock.Release();
                 }
             }
         }
@@ -316,15 +407,60 @@ namespace ms.webapp.api.acya.api.Services
 
                     var updatedPayment = await _paymentRepository.Update(payment);
                     
+                    Document? targetDocument = null;
+                    if (newDocumentId.HasValue && newDocumentId.Value > 0)
+                        targetDocument = await _documentRepository.Get(newDocumentId.Value);
+                        
+                    bool isSupplier = IsSupplierDocument(targetDocument?.Type) ||
+                                      (targetDocument == null && payment.Customer?.Type == CounterPartType.Supplier);
+                    bool isCash = updateDto.PaymentMethod?.ToUpper() == "CASH" || updateDto.PaymentMethod?.ToUpper() == "ESPECE";
+
                     // Sync Caisse Movement for CASH/ESPECE
                     var caisseMovement = await _context.CaisseMovements.FirstOrDefaultAsync(m => m.PaymentId == payment.Id && !m.IsDeleted);
-                    if ((updateDto.PaymentMethod?.ToUpper() == "CASH" || updateDto.PaymentMethod?.ToUpper() == "ESPECE"))
+                    if (isCash)
                     {
+                        var targetAmount = Math.Round(updateDto.Amount ?? (caisseMovement?.Amount ?? 0), 3, MidpointRounding.AwayFromZero);
+                        if (isSupplier)
+                        {
+                            var mainCaisseBalance = await GetMainCashRegisterBalanceAsync();
+                            var previousReserved = (caisseMovement != null && caisseMovement.Reason == "REGLEMENT_FOURNISSEUR" && caisseMovement.Type == "SORTIE")
+                                ? caisseMovement.Amount
+                                : 0m;
+                            var availableBalance = mainCaisseBalance + previousReserved;
+                            if (targetAmount > availableBalance)
+                            {
+                                throw new InvalidOperationException(
+                                    $"Solde insuffisant dans la Caisse Principale pour effectuer ce règlement en espèces. Solde disponible : {availableBalance:F3} TND, montant demandé : {targetAmount:F3} TND.");
+                            }
+                        }
+
                         if (caisseMovement != null)
                         {
-                            caisseMovement.Amount = updateDto.Amount ?? caisseMovement.Amount;
+                            caisseMovement.Amount = targetAmount;
+                            caisseMovement.Type = isSupplier ? "SORTIE" : "ENTREE";
+                            caisseMovement.Reason = isSupplier ? "REGLEMENT_FOURNISSEUR" : "ENCAISSEMENT";
                             caisseMovement.UpdatedAt = DateTime.UtcNow;
                             _context.CaisseMovements.Update(caisseMovement);
+                        }
+                        else if (targetDocument != null)
+                        {
+                            var newMovement = new CaisseMovement
+                            {
+                                SalesSiteId = targetDocument.SalesSiteId,
+                                MovementDate = DateTime.UtcNow,
+                                Type = isSupplier ? "SORTIE" : "ENTREE",
+                                Reason = isSupplier ? "REGLEMENT_FOURNISSEUR" : "ENCAISSEMENT",
+                                Amount = targetAmount,
+                                Reference = targetDocument.DocNumber,
+                                Notes = isSupplier
+                                    ? $"Règlement espèces facture fournisseur {targetDocument.DocNumber}"
+                                    : $"Encaissement automatique pour la facture {targetDocument.DocNumber}",
+                                PaymentId = payment.Id,
+                                CreatedByUserId = updatedById,
+                                CreatedAt = DateTime.UtcNow,
+                                IsDeleted = false
+                            };
+                            await _context.CaisseMovements.AddAsync(newMovement);
                         }
                     }
                     else if (caisseMovement != null)
@@ -335,12 +471,6 @@ namespace ms.webapp.api.acya.api.Services
                     }
 
                     // Sync Ledger Entry
-                    Document? targetDocument = null;
-                    if (newDocumentId.HasValue && newDocumentId.Value > 0)
-                        targetDocument = await _documentRepository.Get(newDocumentId.Value);
-                        
-                    bool isSupplier = IsSupplierDocument(targetDocument?.Type);
-
                     await _accountService.DeleteLedgerEntryAsync(payment.Id, "Payment");
                     await _accountService.AddLedgerEntryAsync(
                         payment.CustomerId, 
@@ -363,10 +493,11 @@ namespace ms.webapp.api.acya.api.Services
                         await RecalculateDocumentBillingStatusAsync(newDocumentId.Value);
                     }
 
+                    await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
                     // Update persistent balance
-                    await _balanceService.UpdateCustomerBalanceAsync(payment.CustomerId, "payment", DateTime.UtcNow);
+                    await UpdateBalanceByDocumentTypeAsync(targetDocument?.Type?.ToString(), payment.CustomerId, "payment", DateTime.UtcNow);
 
                     return MapToDto(updatedPayment);
                 }
@@ -525,24 +656,34 @@ namespace ms.webapp.api.acya.api.Services
         }
 
 
-        public async Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int userId, string? documentSide = null, bool monthOnly = false, bool allSites = false)
+        public async Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int userId, string? documentSide = null, bool monthOnly = false, bool allSites = false, DateTime? fromDate = null, DateTime? toDate = null)
         {
-            var user = await _appUserRepository.Get(userId);
-            if (user == null || !user.IdSalesSite.HasValue)
-                return new List<DashboardPaymentDto>();
+            int salesSiteId = 0;
+            if (!allSites)
+            {
+                var user = await _appUserRepository.Get(userId);
+                if (user == null || !user.IdSalesSite.HasValue)
+                    return new List<DashboardPaymentDto>();
+                salesSiteId = user.IdSalesSite.Value;
+            }
 
-            return await _paymentRepository.GetDashboardPaymentsAsync(date, allSites ? 0 : user.IdSalesSite.Value, documentSide, monthOnly);
+            return await _paymentRepository.GetDashboardPaymentsAsync(date, salesSiteId, documentSide, monthOnly, fromDate, toDate);
         }
 
         private PaymentDto MapToDto(Payment payment)
         {
+            bool isSupplier = (payment.Document != null && IsSupplierDocument(payment.Document.Type)) ||
+                              (payment.Document == null && payment.Customer?.Type == CounterPartType.Supplier);
+
             return new PaymentDto
             {
                 PaymentId = payment.Id,
                 DocumentId = payment.DocumentId,
                 DocumentNumber = payment.Document?.DocNumber,
+                DocumentType = payment.Document?.Type?.ToString(),
                 CustomerId = payment.CustomerId,
                 CustomerName = !string.IsNullOrEmpty(payment.Customer?.Name) ? payment.Customer.Name : (payment.Customer?.Fullname ?? "Inconnu"),
+                CounterpartType = isSupplier ? "Supplier" : "Customer",
                 PaymentDate = payment.PaymentDate ?? DateTime.MinValue,
                 Amount = payment.Amount ?? 0,
                 PaymentMethod = payment.PaymentMethod,
@@ -568,6 +709,23 @@ namespace ms.webapp.api.acya.api.Services
                     BankSettlementStatus = payment.PaymentInstrument.BankSettlementStatus
                 } : null
             };
+        }
+
+        private async Task<decimal> GetMainCashRegisterBalanceAsync()
+        {
+            var totalRemises = await _context.CaisseMovements
+                .Where(m => m.Reason == "REMISE_CENTRALE" && !m.IsDeleted)
+                .SumAsync(m => (decimal?)m.Amount ?? 0m);
+
+            var totalVersements = await _context.BankDeposits
+                .Where(d => (d.DepositType.ToUpper() == "ESPECE" || d.DepositType.ToUpper() == "CASH") && d.SalesSiteId == null && !d.IsDeleted)
+                .SumAsync(d => (decimal?)d.AmountHT ?? 0m);
+
+            var totalSupplierCashPayments = await _context.CaisseMovements
+                .Where(m => m.Reason == "REGLEMENT_FOURNISSEUR" && m.Type == "SORTIE" && !m.IsDeleted)
+                .SumAsync(m => (decimal?)m.Amount ?? 0m);
+
+            return totalRemises - totalVersements - totalSupplierCashPayments;
         }
 
         private async Task UpdateBalanceByDocumentTypeAsync(string? docType, int counterpartId, string lastTxType, DateTime txDate)

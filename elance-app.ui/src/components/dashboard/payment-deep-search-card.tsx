@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { format, subDays } from 'date-fns';
+import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Search, Filter, RefreshCw, AlertCircle } from 'lucide-react';
+import { Search, Filter, RefreshCw, AlertCircle, RotateCcw } from 'lucide-react';
 import { usePaymentDeepSearch } from '@/hooks/use-payment-deep-search';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -14,9 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TablePagination } from '@/components/shared/table-pagination';
 
 export function PaymentDeepSearchCard() {
-  const [fromDate, setFromDate] = React.useState<string>(format(subDays(new Date(), 30), 'yyyy-MM-dd'));
-  const [toDate, setToDate] = React.useState<string>(format(new Date(), 'yyyy-MM-dd'));
+  const [fromDate, setFromDate] = React.useState<string>('');
+  const [toDate, setToDate] = React.useState<string>('');
   const [search, setSearch] = React.useState<string>('');
+  const [counterpartType, setCounterpartType] = React.useState<string>('all');
   const [nature, setNature] = React.useState<string>('all');
   const [paymentMethod, setPaymentMethod] = React.useState<string>('all');
   
@@ -24,12 +25,12 @@ export function PaymentDeepSearchCard() {
   const [pageSize, setPageSize] = React.useState(5);
 
   const { data, isLoading, isError, refetch } = usePaymentDeepSearch({
-    fromDate,
-    toDate,
-    search: search || undefined,
+    fromDate: fromDate || undefined,
+    toDate: toDate || undefined,
+    search: search.trim() || undefined,
     nature: nature !== 'all' ? nature : undefined,
     paymentMethod: paymentMethod !== 'all' ? paymentMethod : undefined,
-    counterpartType: 'Customer',
+    counterpartType: counterpartType !== 'all' ? counterpartType : undefined,
     pageNumber,
     pageSize,
   });
@@ -43,14 +44,34 @@ export function PaymentDeepSearchCard() {
     refetch();
   };
 
-  const renderNatureBadge = (n: string | null | undefined) => {
+  const handleReset = () => {
+    setFromDate('');
+    setToDate('');
+    setSearch('');
+    setCounterpartType('all');
+    setNature('all');
+    setPaymentMethod('all');
+    setPageNumber(1);
+  };
+
+  const renderNatureBadge = (n: string | null | undefined, cpType?: string) => {
     if (n === 'RECOUVREMENT') {
+      if (cpType === 'Supplier') {
+        return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Avance</Badge>;
+      }
       return <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">Recouvrement</Badge>;
     }
     if (n === 'PAIEMENT_DOC') {
       return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">Paiement Doc</Badge>;
     }
     return <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">Inconnu</Badge>;
+  };
+
+  const renderCounterpartBadge = (cpType: string | null | undefined) => {
+    if (cpType === 'Supplier') {
+      return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-[10px] px-1.5 py-0">Fournisseur</Badge>;
+    }
+    return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] px-1.5 py-0">Client</Badge>;
   };
 
   return (
@@ -62,43 +83,98 @@ export function PaymentDeepSearchCard() {
               <Search className="w-5 h-5 text-indigo-500" />
               Recherche Approfondie des Règlements
             </CardTitle>
-            <CardDescription>Recherchez à travers tous les règlements et recouvrements</CardDescription>
+            <CardDescription>Recherchez à travers tous les règlements clients et fournisseurs</CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            Actualiser
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={handleReset} disabled={isLoading}>
+              <RotateCcw className="w-4 h-4 mr-1.5" />
+              Réinitialiser
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
+              <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              Actualiser
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="p-0">
         <div className="p-4 bg-gray-50/30 border-b border-gray-100">
-          <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-7 gap-3">
             <div className="space-y-1">
               <label className="text-xs font-medium text-gray-500">Période du</label>
-              <Input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="h-9" />
+              <Input
+                type="date"
+                value={fromDate}
+                onChange={e => {
+                  setFromDate(e.target.value);
+                  setPageNumber(1);
+                }}
+                className="h-9"
+              />
             </div>
             <div className="space-y-1">
               <label className="text-xs font-medium text-gray-500">Au</label>
-              <Input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="h-9" />
+              <Input
+                type="date"
+                value={toDate}
+                onChange={e => {
+                  setToDate(e.target.value);
+                  setPageNumber(1);
+                }}
+                className="h-9"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-500">Tiers</label>
+              <Select
+                value={counterpartType}
+                onValueChange={(val: string | null) => {
+                  setCounterpartType(val || 'all');
+                  setPageNumber(1);
+                }}
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Tous les tiers">
+                    {counterpartType === 'all' ? 'Tous les tiers' : counterpartType === 'Customer' ? 'Clients' : 'Fournisseurs'}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les tiers</SelectItem>
+                  <SelectItem value="Customer">Clients</SelectItem>
+                  <SelectItem value="Supplier">Fournisseurs</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <label className="text-xs font-medium text-gray-500">Nature</label>
-              <Select value={nature} onValueChange={(val: string | null) => setNature(val || 'all')}>
+              <Select
+                value={nature}
+                onValueChange={(val: string | null) => {
+                  setNature(val || 'all');
+                  setPageNumber(1);
+                }}
+              >
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="Toutes natures">
-                    {nature === 'all' ? 'Toutes natures' : nature === 'PAIEMENT_DOC' ? 'Paiement Doc' : 'Recouvrement'}
+                    {nature === 'all' ? 'Toutes natures' : nature === 'PAIEMENT_DOC' ? 'Paiement Doc' : 'Recouvrement / Avance'}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Toutes natures</SelectItem>
                   <SelectItem value="PAIEMENT_DOC">Paiement Doc</SelectItem>
-                  <SelectItem value="RECOUVREMENT">Recouvrement</SelectItem>
+                  <SelectItem value="RECOUVREMENT">Recouvrement / Avance</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1">
               <label className="text-xs font-medium text-gray-500">Méthode</label>
-              <Select value={paymentMethod} onValueChange={(val: string | null) => setPaymentMethod(val || 'all')}>
+              <Select
+                value={paymentMethod}
+                onValueChange={(val: string | null) => {
+                  setPaymentMethod(val || 'all');
+                  setPageNumber(1);
+                }}
+              >
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="Toutes méthodes">
                     {paymentMethod === 'all' ? 'Toutes méthodes' : paymentMethod === 'ESPECE' ? 'Espèce' : paymentMethod === 'CHEQUE' ? 'Chèque' : paymentMethod === 'TRAITE' ? 'Traite' : paymentMethod === 'VIREMENT' ? 'Virement' : paymentMethod === 'CARTE' ? 'Carte Bancaire' : paymentMethod}
@@ -117,9 +193,12 @@ export function PaymentDeepSearchCard() {
             <div className="space-y-1">
               <label className="text-xs font-medium text-gray-500">Recherche</label>
               <Input 
-                placeholder="Client, référence..." 
+                placeholder="Client, fournisseur, réf..." 
                 value={search} 
-                onChange={e => setSearch(e.target.value)} 
+                onChange={e => {
+                  setSearch(e.target.value);
+                  setPageNumber(1);
+                }} 
                 className="h-9"
               />
             </div>
@@ -155,7 +234,7 @@ export function PaymentDeepSearchCard() {
                 <tr>
                   <th className="px-4 py-3 font-medium">Date</th>
                   <th className="px-4 py-3 font-medium">Référence</th>
-                  <th className="px-4 py-3 font-medium">Client</th>
+                  <th className="px-4 py-3 font-medium">Tiers</th>
                   <th className="px-4 py-3 font-medium">Nature</th>
                   <th className="px-4 py-3 font-medium">Méthode</th>
                   <th className="px-4 py-3 font-medium text-right">Montant</th>
@@ -168,20 +247,26 @@ export function PaymentDeepSearchCard() {
                       {format(new Date(payment.paymentDate), 'dd MMM yyyy', { locale: fr })}
                     </td>
                     <td className="px-4 py-3 font-medium text-gray-900">
-                      {payment.documentNumber ? (
-                        <div className="flex flex-col">
-                          <span>{payment.documentNumber}</span>
-                          {payment.reference && <span className="text-xs text-gray-500 font-normal">{payment.reference}</span>}
-                        </div>
-                      ) : (
-                        payment.reference || '-'
-                      )}
+                      <div className="flex flex-col">
+                        <span>{payment.documentNumber || payment.reference || '-'}</span>
+                        {payment.documentNumber && payment.reference && (
+                          <span className="text-xs text-gray-500 font-normal">{payment.reference}</span>
+                        )}
+                        {payment.instrument?.instrumentNumber && (
+                          <span className="text-xs text-gray-500 font-normal">
+                            N° {payment.instrument.instrumentNumber}{payment.instrument.bank ? ` (${payment.instrument.bank})` : ''}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-gray-700">
-                      {payment.customerName || '-'}
+                      <div className="flex items-center gap-2">
+                        <span>{payment.customerName || '-'}</span>
+                        {renderCounterpartBadge(payment.counterpartType)}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
-                      {renderNatureBadge(payment.nature)}
+                      {renderNatureBadge(payment.nature, payment.counterpartType)}
                     </td>
                     <td className="px-4 py-3">
                       <Badge variant="secondary" className="bg-gray-100 text-gray-700 font-normal">

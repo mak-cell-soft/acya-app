@@ -54,7 +54,7 @@ namespace ms.admin.api.acya.Controllers
                 configuredServices.Add(new ServiceConfigItem 
                 { 
                     Name = "elance-app.ui (Frontend)", 
-                    Url = "http://migration-ui:3000" 
+                    Url = "http://elance-app-ui:3000" 
                 });
                 configuredServices.Add(new ServiceConfigItem 
                 { 

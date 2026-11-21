@@ -31,7 +31,7 @@ namespace ms.webapp.api.acya.api.Controllers
 
             var movements = await _caisseRepository.GetBySiteIdAsync(siteId);
             var entrees = movements.Where(m => m.Type == "ENTREE").Sum(m => m.Amount);
-            var sorties = movements.Where(m => m.Type == "SORTIE").Sum(m => m.Amount);
+            var sorties = movements.Where(m => m.Type == "SORTIE" && m.Reason != "REGLEMENT_FOURNISSEUR").Sum(m => m.Amount);
 
             return Ok(new CaisseBalanceDto
             {

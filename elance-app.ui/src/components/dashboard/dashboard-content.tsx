@@ -258,21 +258,26 @@ export function DashboardContent() {
     setTimelineDate(new Date());
   };
 
-  // Helper to format C# movement reasons to user-friendly titles
-  const formatReason = (reason: string) => {
-    if (!reason) return '';
-    return reason
-      .split('_')
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-      .join(' ');
-  };
-
   const MOVEMENT_REASONS: Record<string, string> = {
     SOLDE_INITIAL: 'Solde Initial',
     APPROVISIONNEMENT: 'Approvisionnement',
     AUTRE: 'Autre Entrée',
     REMISE_CENTRALE: 'Remise à la Caisse Principale',
-    DEPENSE_DIVERS: 'Dépense Divers'
+    DEPENSE_DIVERS: 'Dépense Divers',
+    ENCAISSEMENT: 'Encaissement Client',
+    RECOUVREMENT: 'Recouvrement Client',
+    REGLEMENT_FOURNISSEUR: 'Règlement Fournisseur',
+    VERSEMENT_BANQUE: 'Versement en Banque'
+  };
+
+  // Helper to format C# movement reasons to user-friendly titles
+  const formatReason = (reason: string) => {
+    if (!reason) return '';
+    if (MOVEMENT_REASONS[reason]) return MOVEMENT_REASONS[reason];
+    return reason
+      .split('_')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(' ');
   };
 
   // ── CAISSE MOVEMENT ACTIONS ──

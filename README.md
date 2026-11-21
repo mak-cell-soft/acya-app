@@ -108,9 +108,9 @@ acya-app/
 │   └── admin-elance-front/    # Backoffice Admin UI (Next.js)
 ├── qwerty-app/                # E-Invoicing / Qwerty integration schemas
 ├── scripts/                   # Deployment, Nginx, SSL, and migration utility scripts
-├── docker-compose.yml         # Main orchestration (postgres, api, migration-ui, admin-api, admin-ui)
-├── docker-compose.n8n.yml     # Workflow automation engine (n8n)
-└── DEPLOYMENT.md              # Production deployment & Nginx wildcard guide
+├── docs/                      # Categorized technical documentation & operational runbooks
+├── docker-compose.yml         # Main orchestration (postgres, api, elance-app-ui, admin-api, admin-ui)
+└── docker-compose.n8n.yml     # Workflow automation engine (n8n)
 ```
 
 ---
@@ -126,7 +126,7 @@ The entire stack can be launched locally or on staging using Docker Compose:
 | **Start Entire Stack** | `docker compose up -d` |
 | **Full Rebuild & Start** | `docker compose up -d --build` |
 | **Restart Core API** | `docker compose up -d --build api` |
-| **Restart Main ERP UI** | `docker compose up -d --build migration-ui` |
+| **Restart Main ERP UI** | `docker compose up -d --build elance-app-ui` |
 | **Restart Backoffice API** | `docker compose up -d --build admin-api` |
 | **Restart Backoffice UI** | `docker compose up -d --build admin-ui` |
 | **Stop All Containers** | `docker compose down` |
@@ -138,7 +138,7 @@ The entire stack can be launched locally or on staging using Docker Compose:
 | :--- | :--- | :--- | :--- | :--- |
 | **PostgreSQL** | `wood-app-postgres` | `5432` | `5432` | Core & Backoffice Database |
 | **Core API** | `wood-app-api` | `8080` | `80` | ASP.NET Core Business API |
-| **Main ERP UI** | `migration-ui` | `5000` | `3000` | Next.js Main ERP Web App |
+| **Main ERP UI** | `elance-app-ui` | `5000` | `3000` | Next.js Main ERP Web App |
 | **Admin API** | `admin-elance-back` | `8082` | `80` | Backoffice Management API |
 | **Admin UI** | `admin-elance-front` | `5002` | `3000` | Backoffice Web Client |
 
@@ -187,10 +187,11 @@ npm run dev
 
 ## 📑 Detailed Documentation
 
-- 🚀 [DEPLOYMENT.md](./DEPLOYMENT.md) — Production Multi-Tenant (Schema-per-Tenant) guide, Nginx reverse proxy configuration & wildcard SSL setup.
-- 📐 [Conception.md](./Conception.md) — ERP system conception and business model specifications.
-- 🔍 [logic.md](./logic.md) — Functional audit and exhaustive domain mapping.
-- 🔐 [SOL-TEJ-SSH.md](./SOL-TEJ-SSH.md) — TEJ server integration, SSH tunnel setup and configuration.
+- 🚀 [docs/deployment/DEPLOYMENT.md](./docs/deployment/DEPLOYMENT.md) — Production Multi-Tenant (Schema-per-Tenant) guide, Nginx reverse proxy configuration & wildcard SSL setup.
+- 🛠️ [docs/deployment/CONFIG-STEPS.md](./docs/deployment/CONFIG-STEPS.md) — Targeted Docker rebuild and production deployment workflow.
+- 📐 [docs/architecture/Conception.md](./docs/architecture/Conception.md) — ERP system conception and business model specifications.
+- 🔍 [docs/architecture/logic.md](./docs/architecture/logic.md) — Functional audit and exhaustive domain mapping.
+- 🔐 [docs/infrastructure/SOL-TEJ-SSH.md](./docs/infrastructure/SOL-TEJ-SSH.md) — TEJ server integration, SSH tunnel setup and configuration.
 - 🖥️ [elance-app.ui/README.md](./elance-app.ui/README.md) — UI architecture, component guidelines, and client-side setup.
 - ⚙️ [wood-app.api/README.md](./wood-app.api/README.md) — API architecture and package specifications.
 

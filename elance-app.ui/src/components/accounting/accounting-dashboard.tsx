@@ -116,6 +116,7 @@ export default function AccountingDashboard() {
   React.useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setAchatsPage(1);
+    setPaymentsPage(1);
   }, [selectedYear, selectedMonth, achatsSearch, periodMode, customStartDate, customEndDate]);
 
   React.useEffect(() => {
@@ -193,23 +194,26 @@ export default function AccountingDashboard() {
     day: docFilterParams.day
   });
 
-  const refreshAll = () => {
-    refetchAchats();
-    refetchAvoirs();
-    refetchVentes();
-  };
-
   const selectedMonthDate = useMemo(() => {
     return new Date(selectedYear, selectedMonth, 1);
   }, [selectedMonth, selectedYear]);
 
-  const { data: supplierPayments = [], isLoading: isPaymentsLoading } = useDashboardPayments(
+  const { data: supplierPayments = [], isLoading: isPaymentsLoading, refetch: refetchPayments } = useDashboardPayments(
     selectedMonthDate,
     user?.id ? Number(user.id) : undefined,
     'supplier',
-    true, // monthOnly
-    true // allSites
+    periodMode === 'month', // monthOnly
+    true, // allSites
+    periodMode === 'custom' ? customStartDate : undefined,
+    periodMode === 'custom' ? customEndDate : undefined
   );
+
+  const refreshAll = () => {
+    refetchAchats();
+    refetchAvoirs();
+    refetchVentes();
+    refetchPayments();
+  };
 
   const paginatedPayments = useMemo(() => {
     const start = (paymentsPage - 1) * paymentsPageSize;
@@ -722,7 +726,10 @@ export default function AccountingDashboard() {
                 <CreditCard className="w-6 h-6 text-amber-500" />
                 <h2 className="text-xl font-bold text-slate-900">Règlements Fournisseurs</h2>
                 <span className="text-xs font-bold text-slate-400 ml-1">
-                  — {format(selectedMonthDate, 'MMMM yyyy', { locale: fr })}
+                  —{' '}
+                  {periodMode === 'month'
+                    ? format(selectedMonthDate, 'MMMM yyyy', { locale: fr })
+                    : `Du ${customStartDate ? new Date(customStartDate).toLocaleDateString('fr-FR') : '...'} au ${customEndDate ? new Date(customEndDate).toLocaleDateString('fr-FR') : '...'}`}
                 </span>
               </div>
               <Button
@@ -748,7 +755,7 @@ export default function AccountingDashboard() {
                       <DollarSign className="w-6 h-6" />
                     </div>
                     <p className="text-sm font-bold text-slate-400">
-                      Aucun règlement fournisseur pour ce mois.
+                      Aucun règlement fournisseur pour cette période.
                     </p>
                   </div>
                 ) : (
@@ -759,40 +766,67 @@ export default function AccountingDashboard() {
                           <TableHead className="font-bold">Date</TableHead>
                           <TableHead className="font-bold">Fournisseur</TableHead>
                           <TableHead className="font-bold">Montant</TableHead>
-                          <TableHead className="font-bold">Mode</TableHead>
+                          <TableHead className="font-bold">Mode / Réf</TableHead>
                           <TableHead className="font-bold">Documents</TableHead>
+                          <TableHead className="font-bold">Statut</TableHead>
                           <TableHead className="font-bold text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody className="divide-y divide-amber-50/20 text-xs">
                         {paginatedPayments.map((p) => {
-                          const dateObj = new Date(p.createdAt || p.paymentDate);
+                          const dateObj = new Date(p.paymentDate || p.createdAt);
                           return (
                             <TableRow key={p.paymentId} className="hover:bg-amber-50/20 transition-all">
                               <TableCell>
-                                <span className="flex items-center gap-1.5 text-slate-400 font-medium">
-                                  <Calendar className="w-3.5 h-3.5" />
+                                <span className="flex items-center gap-1.5 text-slate-500 font-medium font-mono">
+                                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
                                   {format(dateObj, 'dd/MM/yyyy')}
                                 </span>
                               </TableCell>
                               <TableCell className="font-bold text-slate-800">
                                 {p.customerName || 'N/A'}
                               </TableCell>
-                              <TableCell className="font-black text-slate-900 whitespace-nowrap">
+                              <TableCell className="font-black text-slate-900 whitespace-nowrap font-mono">
                                 {p.amount.toFixed(3)}{' '}
                                 <span className="text-[0.65rem] font-bold text-slate-400">TND</span>
                               </TableCell>
                               <TableCell>
-                                <Badge variant="secondary" className="rounded-lg text-xs font-bold px-2 py-0.5">
-                                  {p.paymentMethod}
-                                </Badge>
+                                <div className="flex flex-col gap-0.5">
+                                  <div>
+                                    <Badge variant="secondary" className="rounded-lg text-xs font-bold px-2 py-0.5">
+                                      {p.paymentMethod}
+                                    </Badge>
+                                  </div>
+                                  {(p.instrumentNumber || p.reference) && (
+                                    <span className="text-[10px] font-mono text-slate-500">
+                                      {p.instrumentNumber ? `N° ${p.instrumentNumber}` : p.reference}
+                                      {p.bankName ? ` • ${p.bankName}` : ''}
+                                    </span>
+                                  )}
+                                  {p.dueDate && (
+                                    <span className="text-[10px] font-mono text-slate-400">
+                                      Éch: {format(new Date(p.dueDate), 'dd/MM/yyyy')}
+                                    </span>
+                                  )}
+                                </div>
                               </TableCell>
                               <TableCell>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-1.5">
                                   {p.invoiceNumber && (
-                                    <span className="inline-flex items-center gap-1 text-[0.65rem] font-black text-amber-800 bg-amber-50 border border-amber-100 rounded px-2 py-0.5">
+                                    <span className="inline-flex items-center gap-1 text-[0.65rem] font-black text-amber-800 bg-amber-50 border border-amber-100 rounded px-2 py-0.5 font-mono">
                                       <FileText className="w-3 h-3" />
                                       {p.invoiceNumber}
+                                    </span>
+                                  )}
+                                  {p.deliveryNoteNumber && (
+                                    <span className="inline-flex items-center gap-1 text-[0.65rem] font-black text-blue-800 bg-blue-50 border border-blue-100 rounded px-2 py-0.5 font-mono">
+                                      <FileText className="w-3 h-3" />
+                                      {p.deliveryNoteNumber}
+                                    </span>
+                                  )}
+                                  {p.supplierReference && (
+                                    <span className="inline-flex items-center gap-1 text-[0.65rem] font-bold text-slate-600 bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 font-mono">
+                                      Réf: {p.supplierReference}
                                     </span>
                                   )}
                                   {!p.invoiceNumber && !p.deliveryNoteNumber && (
@@ -802,6 +836,29 @@ export default function AccountingDashboard() {
                                   )}
                                 </div>
                               </TableCell>
+                              <TableCell>
+                                {p.paymentStatus === 'BOUNCED' ? (
+                                  <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 text-[10px] font-bold">
+                                    Rejeté / Impayé
+                                  </Badge>
+                                ) : p.paymentStatus === 'PAID' ? (
+                                  <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-bold">
+                                    Décaissé
+                                  </Badge>
+                                ) : p.paymentStatus === 'VERSED' ? (
+                                  <Badge variant="outline" className="bg-sky-50 text-sky-700 border-sky-200 text-[10px] font-bold">
+                                    Remis en banque
+                                  </Badge>
+                                ) : p.paymentStatus === 'PENDING' ? (
+                                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-bold">
+                                    En échéance
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-bold">
+                                    Confirmé
+                                  </Badge>
+                                )}
+                              </TableCell>
                               <TableCell className="text-right">
                                 <Button
                                   size="sm"
@@ -809,12 +866,14 @@ export default function AccountingDashboard() {
                                   onClick={() => {
                                     setSelectedSupplierPayment({
                                       id: p.paymentId,
-                                      date: p.createdAt || p.paymentDate,
+                                      date: p.paymentDate || p.createdAt,
                                       amount: p.amount,
                                       mode: p.paymentMethod,
                                       supplierName: p.customerName,
-                                      invoiceDocNumber: p.invoiceNumber,
-                                      reference: `REG-${p.paymentId}`
+                                      invoiceDocNumber: p.invoiceNumber || p.deliveryNoteNumber,
+                                      instrumentNumber: p.instrumentNumber || p.reference,
+                                      bankName: p.bankName,
+                                      reference: p.reference || `REG-${p.paymentId}`
                                     });
                                     setIsPrintSupplierPaymentOpen(true);
                                   }}

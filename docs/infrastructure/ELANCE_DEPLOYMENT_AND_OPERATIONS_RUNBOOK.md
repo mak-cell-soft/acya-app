@@ -52,7 +52,7 @@ flowchart TD
 
 ## 4. Component-Specific Deployment Procedures
 
-### 4.1 Frontend Client Deployment (`migration-ui`) `[TESTED]`
+### 4.1 Frontend Client Deployment (`elance-app-ui`) `[TESTED]`
 
 ```bash
 # 1. Navigate to project root
@@ -64,20 +64,20 @@ git log -n 1 --oneline
 
 # 3. Preserve active image as rollback tag
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-sudo docker tag acya-app-migration-ui:latest acya-app-migration-ui:rollback-${TIMESTAMP}
+sudo docker tag acya-elance-app-ui:latest acya-elance-app-ui:rollback-${TIMESTAMP}
 
 # 4. Compile fresh Next.js production image without cache
-sudo docker-compose build --no-cache migration-ui
+sudo docker-compose build --no-cache elance-app-ui
 
 # 5. Remove only the old UI container
-sudo docker rm -f migration-ui 2>/dev/null || true
+sudo docker rm -f elance-app-ui 2>/dev/null || true
 
 # 6. Re-create the UI container without touching other services
-sudo docker-compose up -d --no-deps migration-ui
+sudo docker-compose up -d --no-deps elance-app-ui
 
 # 7. Verify container status and logs
-sudo docker ps --filter "name=migration-ui"
-sudo docker logs --tail 50 migration-ui
+sudo docker ps --filter "name=elance-app-ui"
+sudo docker logs --tail 50 elance-app-ui
 
 # 8. Smoke test HTTP endpoint
 curl -I http://localhost:5000
@@ -162,19 +162,19 @@ curl -I http://127.0.0.1:5678
 
 If a deployment fails smoke testing or throws runtime errors, execute immediate rollback:
 
-### Rollback Example: Reverting `migration-ui` `[TESTED]`
+### Rollback Example: Reverting `elance-app-ui` `[TESTED]`
 ```bash
 # 1. Identify available rollback tags
-sudo docker images acya-app-migration-ui
+sudo docker images acya-elance-app-ui
 
 # 2. Retag desired rollback image to latest
-sudo docker tag acya-app-migration-ui:rollback-20261016-pre-branding-fix acya-app-migration-ui:latest
+sudo docker tag acya-elance-app-ui:rollback-20261016-pre-branding-fix acya-elance-app-ui:latest
 
 # 3. Remove failing container
-sudo docker rm -f migration-ui
+sudo docker rm -f elance-app-ui
 
 # 4. Start service with rollback image
-sudo docker-compose up -d --no-deps migration-ui
+sudo docker-compose up -d --no-deps elance-app-ui
 
 # 5. Verify restored state
 curl -I http://localhost:5000

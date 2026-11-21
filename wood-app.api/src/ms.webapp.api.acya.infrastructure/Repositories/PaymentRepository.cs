@@ -71,18 +71,14 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
             if (searchDto.FromDate.HasValue)
             {
-                var fromDate = searchDto.FromDate.Value.Kind == DateTimeKind.Unspecified
-                    ? DateTime.SpecifyKind(searchDto.FromDate.Value, DateTimeKind.Utc)
-                    : searchDto.FromDate.Value.ToUniversalTime();
+                var fromDate = DateTime.SpecifyKind(searchDto.FromDate.Value.Date, DateTimeKind.Unspecified);
                 query = query.Where(p => p.PaymentDate >= fromDate);
             }
 
             if (searchDto.ToDate.HasValue)
             {
-                var toDate = searchDto.ToDate.Value.Kind == DateTimeKind.Unspecified
-                    ? DateTime.SpecifyKind(searchDto.ToDate.Value, DateTimeKind.Utc)
-                    : searchDto.ToDate.Value.ToUniversalTime();
-                query = query.Where(p => p.PaymentDate <= toDate);
+                var toDateExclusive = DateTime.SpecifyKind(searchDto.ToDate.Value.Date.AddDays(1), DateTimeKind.Unspecified);
+                query = query.Where(p => p.PaymentDate < toDateExclusive);
             }
 
             if (searchDto.CustomerId.HasValue)
@@ -91,41 +87,62 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
             if (searchDto.DocumentId.HasValue)
                 query = query.Where(p => p.DocumentId == searchDto.DocumentId.Value);
 
-            if (!string.IsNullOrEmpty(searchDto.PaymentMethod))
-                query = query.Where(p => p.PaymentMethod == searchDto.PaymentMethod);
-
-            if (!string.IsNullOrEmpty(searchDto.Search))
+            if (!string.IsNullOrWhiteSpace(searchDto.PaymentMethod) && !searchDto.PaymentMethod.Equals("all", StringComparison.OrdinalIgnoreCase))
             {
-                var searchTerm = searchDto.Search;
+                var methodUpper = searchDto.PaymentMethod.Trim().ToUpper();
+                if (methodUpper == "ESPECE" || methodUpper == "CASH")
+                {
+                    query = query.Where(p => p.PaymentMethod != null && (p.PaymentMethod.ToUpper() == "ESPECE" || p.PaymentMethod.ToUpper() == "CASH"));
+                }
+                else
+                {
+                    query = query.Where(p => p.PaymentMethod != null && p.PaymentMethod.ToUpper() == methodUpper);
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchDto.Search))
+            {
+                var searchTerm = searchDto.Search.Trim().ToLower();
                 query = query.Where(p => 
-                    (p.Customer != null && p.Customer.FirstName != null && p.Customer.FirstName.Contains(searchTerm)) ||
-                    (p.Customer != null && p.Customer.LastName != null && p.Customer.LastName.Contains(searchTerm)) ||
-                    (p.Customer != null && p.Customer.Name != null && p.Customer.Name.Contains(searchTerm)) ||
-                    (p.Reference != null && p.Reference.Contains(searchTerm))
+                    (p.Customer != null && p.Customer.FirstName != null && p.Customer.FirstName.ToLower().Contains(searchTerm)) ||
+                    (p.Customer != null && p.Customer.LastName != null && p.Customer.LastName.ToLower().Contains(searchTerm)) ||
+                    (p.Customer != null && ((p.Customer.FirstName ?? "") + " " + (p.Customer.LastName ?? "")).ToLower().Contains(searchTerm)) ||
+                    (p.Customer != null && ((p.Customer.LastName ?? "") + " " + (p.Customer.FirstName ?? "")).ToLower().Contains(searchTerm)) ||
+                    (p.Customer != null && p.Customer.Name != null && p.Customer.Name.ToLower().Contains(searchTerm)) ||
+                    (p.Reference != null && p.Reference.ToLower().Contains(searchTerm)) ||
+                    (p.Notes != null && p.Notes.ToLower().Contains(searchTerm)) ||
+                    (p.Document != null && p.Document.DocNumber != null && p.Document.DocNumber.ToLower().Contains(searchTerm)) ||
+                    (p.Document != null && p.Document.SupplierReference != null && p.Document.SupplierReference.ToLower().Contains(searchTerm)) ||
+                    (p.PaymentInstrument != null && p.PaymentInstrument.InstrumentNumber != null && p.PaymentInstrument.InstrumentNumber.ToLower().Contains(searchTerm)) ||
+                    (p.PaymentInstrument != null && p.PaymentInstrument.Bank != null && p.PaymentInstrument.Bank.ToLower().Contains(searchTerm))
                 );
             }
 
-            if (!string.IsNullOrEmpty(searchDto.Nature))
+            if (!string.IsNullOrWhiteSpace(searchDto.Nature) && !searchDto.Nature.Equals("all", StringComparison.OrdinalIgnoreCase))
             {
-                if (searchDto.Nature == "RECOUVREMENT")
+                if (searchDto.Nature.Equals("RECOUVREMENT", StringComparison.OrdinalIgnoreCase))
                     query = query.Where(p => p.DocumentId == null);
-                else if (searchDto.Nature == "PAIEMENT_DOC")
+                else if (searchDto.Nature.Equals("PAIEMENT_DOC", StringComparison.OrdinalIgnoreCase))
                     query = query.Where(p => p.DocumentId != null);
             }
+
+            int pageNumber = searchDto.PageNumber < 1 ? 1 : searchDto.PageNumber;
+            int pageSize = searchDto.PageSize < 1 ? 10 : searchDto.PageSize;
 
             var totalCount = await query.CountAsync();
             var items = await query
                 .OrderByDescending(p => p.PaymentDate)
-                .Skip((searchDto.PageNumber - 1) * searchDto.PageSize)
-                .Take(searchDto.PageSize)
+                .ThenByDescending(p => p.Id)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             return new PagedResult<Payment>
             {
                 Items = items,
                 TotalCount = totalCount,
-                PageNumber = searchDto.PageNumber,
-                PageSize = searchDto.PageSize
+                PageNumber = pageNumber,
+                PageSize = pageSize
             };
         }
 
@@ -297,7 +314,7 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
             context.Payments.Update(payment);
             return await context.SaveChangesAsync() > 0;
         }
-        public async Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int salesSiteId, string? documentSide = null, bool monthOnly = false)
+        public async Task<IEnumerable<DashboardPaymentDto>> GetDashboardPaymentsAsync(DateTime date, int salesSiteId, string? documentSide = null, bool monthOnly = false, DateTime? fromDate = null, DateTime? toDate = null)
         {
             int year = date.Year;
             int month = date.Month;
@@ -307,6 +324,9 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                 .AsNoTracking()
                 .Include(p => p.Customer)
                 .Include(p => p.AppUser)
+                .Include(p => p.PaymentInstrument)
+                .Include(p => p.Document)
+                    .ThenInclude(d => d!.CounterPart)
                 .Include(p => p.Document)
                     .ThenInclude(d => d!.ChildDocuments)
                         .ThenInclude(cd => cd!.ChildDocument)
@@ -315,7 +335,15 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                         .ThenInclude(pd => pd!.ParentDocument)
                 .Where(p => !p.IsDeleted);
 
-            if (monthOnly)
+            if (fromDate.HasValue && toDate.HasValue)
+            {
+                var start = DateTime.SpecifyKind(fromDate.Value.Date, DateTimeKind.Unspecified);
+                var endExclusive = DateTime.SpecifyKind(toDate.Value.Date.AddDays(1), DateTimeKind.Unspecified);
+                query = query.Where(p => p.PaymentDate.HasValue &&
+                                         p.PaymentDate.Value >= start &&
+                                         p.PaymentDate.Value < endExclusive);
+            }
+            else if (monthOnly)
             {
                 query = query.Where(p => p.PaymentDate.HasValue && 
                                          p.PaymentDate.Value.Year == year && 
@@ -360,32 +388,102 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                                          (p.Document == null && p.Customer != null && (p.Customer.Type == CounterPartType.Supplier || p.Customer.Type == CounterPartType.Both)));
             }
 
-            var result = await query
-                .OrderByDescending(p => p.CreatedAt)
-                .Select(p => new DashboardPaymentDto
+            var payments = await query
+                .OrderByDescending(p => p.PaymentDate)
+                .ThenByDescending(p => p.CreatedAt)
+                .ThenByDescending(p => p.Id)
+                .ToListAsync();
+
+            var invoiceTypes = new[] {
+                DocumentTypes.customerInvoice,
+                DocumentTypes.supplierInvoice,
+                DocumentTypes.customerInvoiceReturn,
+                DocumentTypes.supplierInvoiceReturn
+            };
+
+            var deliveryOrReceiptTypes = new[] {
+                DocumentTypes.customerDeliveryNote,
+                DocumentTypes.supplierReceipt,
+                DocumentTypes.customerOrder,
+                DocumentTypes.supplierOrder,
+                DocumentTypes.supplierMerchandiseReturn
+            };
+
+            return payments.Select(p =>
+            {
+                string? invoiceNumber = null;
+                string? deliveryNoteNumber = null;
+
+                if (p.Document != null)
+                {
+                    if (p.Document.Type.HasValue && invoiceTypes.Contains(p.Document.Type.Value))
+                    {
+                        invoiceNumber = p.Document.DocNumber;
+                        var linkedChild = p.Document.ChildDocuments?
+                            .Select(cd => cd.ChildDocument)
+                            .FirstOrDefault(cd => cd != null && cd.Type.HasValue && deliveryOrReceiptTypes.Contains(cd.Type.Value));
+                        var linkedParent = p.Document.ParentDocuments?
+                            .Select(pd => pd.ParentDocument)
+                            .FirstOrDefault(pd => pd != null && pd.Type.HasValue && deliveryOrReceiptTypes.Contains(pd.Type.Value));
+                        deliveryNoteNumber = linkedChild?.DocNumber ?? linkedParent?.DocNumber;
+                    }
+                    else if (p.Document.Type.HasValue && deliveryOrReceiptTypes.Contains(p.Document.Type.Value))
+                    {
+                        deliveryNoteNumber = p.Document.DocNumber;
+                        var linkedParentInv = p.Document.ParentDocuments?
+                            .Select(pd => pd.ParentDocument)
+                            .FirstOrDefault(pd => pd != null && pd.Type.HasValue && invoiceTypes.Contains(pd.Type.Value));
+                        var linkedChildInv = p.Document.ChildDocuments?
+                            .Select(cd => cd.ChildDocument)
+                            .FirstOrDefault(cd => cd != null && cd.Type.HasValue && invoiceTypes.Contains(cd.Type.Value));
+                        invoiceNumber = linkedParentInv?.DocNumber ?? linkedChildInv?.DocNumber;
+                    }
+                    else
+                    {
+                        invoiceNumber = p.Document.DocNumber;
+                    }
+                }
+
+                string paymentStatus = "CONFIRMED";
+                if (p.PaymentInstrument != null)
+                {
+                    if (p.PaymentInstrument.BankSettlementStatus == "BOUNCED")
+                        paymentStatus = "BOUNCED";
+                    else if (p.PaymentInstrument.IsPaidAtBank || p.PaymentInstrument.BankSettlementStatus == "CLEARED" || p.PaymentInstrument.BankSettlementStatus == "PAID_AT_BANK")
+                        paymentStatus = "PAID";
+                    else if (p.PaymentInstrument.BankSettlementStatus == "VERSED")
+                        paymentStatus = "VERSED";
+                    else
+                        paymentStatus = "PENDING";
+                }
+
+                string customerName = !string.IsNullOrEmpty(p.Customer?.Name)
+                    ? p.Customer.Name
+                    : (p.Customer?.Fullname ?? p.Document?.CounterPart?.Fullname ?? "Inconnu");
+
+                return new DashboardPaymentDto
                 {
                     PaymentId = p.Id,
+                    DocumentId = p.DocumentId,
+                    CustomerId = p.CustomerId,
                     Amount = p.Amount ?? 0,
                     PaymentDate = p.PaymentDate ?? DateTime.MinValue,
                     PaymentMethod = p.PaymentMethod,
                     Reference = p.Reference,
                     Notes = p.Notes,
-                    CustomerName = p.Customer!.Fullname,
-                    InvoiceNumber = p.Document != null && p.Document.Type == DocumentTypes.customerInvoice 
-                        ? p.Document.DocNumber 
-                        : (p.Document != null && p.Document.ChildDocuments.FirstOrDefault(cd => cd.ChildDocument!.Type == DocumentTypes.customerInvoice) != null 
-                            ? p.Document.ChildDocuments.FirstOrDefault(cd => cd.ChildDocument!.Type == DocumentTypes.customerInvoice)!.ChildDocument!.DocNumber 
-                            : null),
-                    DeliveryNoteNumber = p.Document != null && p.Document.Type == DocumentTypes.customerDeliveryNote 
-                        ? p.Document.DocNumber 
-                        : (p.Document != null && p.Document.ParentDocuments.FirstOrDefault(pd => pd.ParentDocument!.Type == DocumentTypes.customerDeliveryNote) != null 
-                            ? p.Document.ParentDocuments.FirstOrDefault(pd => pd.ParentDocument!.Type == DocumentTypes.customerDeliveryNote)!.ParentDocument!.DocNumber 
-                            : null),
-                    CreatedAt = p.CreatedAt ?? DateTime.MinValue
-                })
-                .ToListAsync();
-
-            return result;
+                    CustomerName = customerName,
+                    InvoiceNumber = invoiceNumber,
+                    SupplierReference = p.Document?.SupplierReference,
+                    DeliveryNoteNumber = deliveryNoteNumber,
+                    CreatedAt = p.CreatedAt ?? DateTime.MinValue,
+                    DueDate = p.PaymentInstrument?.DueDate,
+                    InstrumentNumber = p.PaymentInstrument?.InstrumentNumber,
+                    BankName = p.PaymentInstrument?.Bank,
+                    BankSettlementStatus = p.PaymentInstrument?.BankSettlementStatus,
+                    IsPaidAtBank = p.PaymentInstrument?.IsPaidAtBank ?? false,
+                    PaymentStatus = paymentStatus
+                };
+            }).ToList();
         }
     }
 }

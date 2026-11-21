@@ -89,7 +89,7 @@ export function SupplierPaymentsListStandard({
           <tbody>
             {paymentsList.length > 0 ? (
               paymentsList.map((p, idx) => {
-                const dateObj = p.createdAt || p.paymentDate;
+                const dateObj = p.paymentDate || p.createdAt;
                 const echeance = p.dueDate || '-';
                 const docRef = p.invoiceNumber || p.deliveryNoteNumber || p.reference || 'Avance';
                 return (

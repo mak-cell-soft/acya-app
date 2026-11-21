@@ -84,14 +84,15 @@ services:
     networks:
       - wood-app-network
 
-  # Migration UI (React migration)
-  migration-ui:
+  # Main ERP UI (Next.js Frontend)
+  elance-app-ui:
+    image: acya-elance-app-ui
     build:
       context: ./elance-app.ui
       dockerfile: Dockerfile
       args:
         - NEXT_PUBLIC_API_URL=https://acya.site/api/
-    container_name: migration-ui
+    container_name: elance-app-ui
     restart: unless-stopped
     environment:
       - PORT=3000
@@ -102,7 +103,9 @@ services:
     depends_on:
       - api
     networks:
-      - wood-app-network
+      wood-app-network:
+        aliases:
+          - migration-ui
 
   # Backoffice ASP.NET Core API
   admin-api:

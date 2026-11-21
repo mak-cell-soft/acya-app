@@ -14,6 +14,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public string? PaymentMethod { get; set; }
         public string? Reference { get; set; }
         public string? Notes { get; set; }
+        public int? BankId { get; set; }
         public PaymentInstrumentDto? InstrumentDetails { get; set; }
     }
 
@@ -35,6 +36,7 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public string? PaymentMethod { get; set; }
         public string? Reference { get; set; }
         public string? Notes { get; set; }
+        public int? BankId { get; set; }
         public PaymentInstrumentDto? InstrumentDetails { get; set; }
     }
 
@@ -43,8 +45,10 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public int PaymentId { get; set; }
         public int? DocumentId { get; set; }
         public string? DocumentNumber { get; set; }
+        public string? DocumentType { get; set; }
         public int CustomerId { get; set; }
         public string? CustomerName { get; set; }
+        public string? CounterpartType { get; set; }
         public DateTime PaymentDate { get; set; }
         public decimal Amount { get; set; }
         public string? Currency { get; set; }
@@ -146,6 +150,8 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
     public class DashboardPaymentDto
     {
         public int PaymentId { get; set; }
+        public int? DocumentId { get; set; }
+        public int CustomerId { get; set; }
         public decimal Amount { get; set; }
         public DateTime PaymentDate { get; set; }
         public string? PaymentMethod { get; set; }
@@ -153,8 +159,15 @@ namespace ms.webapp.api.acya.core.Entities.DTOs
         public string? Notes { get; set; }
         public string? CustomerName { get; set; }
         public string? InvoiceNumber { get; set; }
+        public string? SupplierReference { get; set; }
         public string? DeliveryNoteNumber { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime? DueDate { get; set; }
+        public string? InstrumentNumber { get; set; }
+        public string? BankName { get; set; }
+        public string? BankSettlementStatus { get; set; }
+        public bool IsPaidAtBank { get; set; }
+        public string? PaymentStatus { get; set; }
     }
 
     public class CreateRecouvrementDto

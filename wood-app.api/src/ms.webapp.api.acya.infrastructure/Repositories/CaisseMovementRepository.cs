@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ms.webapp.api.acya.common;
 using ms.webapp.api.acya.core.Entities;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,8 +47,9 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                 .Where(m => m.SalesSiteId == siteId && m.Type == "ENTREE" && !m.IsDeleted)
                 .SumAsync(m => m.Amount);
 
+            // Exclude REGLEMENT_FOURNISSEUR from POS site balance because supplier cash payments are disbursed from Caisse Principale
             var sorties = await context.CaisseMovements
-                .Where(m => m.SalesSiteId == siteId && m.Type == "SORTIE" && !m.IsDeleted)
+                .Where(m => m.SalesSiteId == siteId && m.Type == "SORTIE" && m.Reason != "REGLEMENT_FOURNISSEUR" && !m.IsDeleted)
                 .SumAsync(m => m.Amount);
 
             return entrees - sorties;
@@ -75,22 +77,33 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
         }
 
         /// <summary>
-        /// Total des paiements ESPECE/CASH reçus aujourd'hui pour un site donné.
-        /// Source de vérité : table tbl_payments filtrée par SalesSiteId et date du jour.
+        /// Total des paiements ESPECE/CASH clients reçus aujourd'hui pour un site donné.
+        /// Source de vérité : table tbl_payments filtrée par SalesSiteId, documents clients, et date du jour.
         /// </summary>
         public async Task<decimal> GetTodayEspeceTotalBySiteAsync(int siteId)
         {
             var today = DateTime.Today;
             var tomorrow = today.AddDays(1);
+            var customerDocTypes = new[]
+            {
+                DocumentTypes.customerOrder,
+                DocumentTypes.customerDeliveryNote,
+                DocumentTypes.customerInvoice,
+                DocumentTypes.customerInvoiceReturn,
+                DocumentTypes.customerQuote
+            };
 
-            // Payment n'a pas de SalesSiteId direct — on joint via Document
+            // Payment n'a pas de SalesSiteId direct — on joint via Document (uniquement documents clients)
             return await context.Payments
                 .Where(p => !p.IsDeleted
-                         && (p.PaymentMethod == "ESPECE" || p.PaymentMethod == "CASH")
+                         && p.PaymentMethod != null
+                         && (p.PaymentMethod.ToUpper() == "ESPECE" || p.PaymentMethod.ToUpper() == "CASH")
                          && p.PaymentDate >= today
                          && p.PaymentDate < tomorrow
                          && p.Document != null
-                         && p.Document.SalesSiteId == siteId)
+                         && p.Document.SalesSiteId == siteId
+                         && p.Document.Type.HasValue
+                         && customerDocTypes.Contains(p.Document.Type.Value))
                 .SumAsync(p => (decimal?)p.Amount ?? 0m);
         }
 
@@ -115,7 +128,9 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
 
         /// <summary>
         /// Solde consolidé de la Caisse Principale :
-        /// Somme des remises centrales (entrées coffre) - Somme des versements espèces en banque depuis le coffre central.
+        /// Somme des remises centrales (entrées coffre)
+        /// - Somme des versements espèces en banque depuis le coffre central
+        /// - Somme des règlements fournisseurs en espèces (SORTIE / REGLEMENT_FOURNISSEUR).
         /// </summary>
         public async Task<decimal> GetCaissePrincipaleBalanceAsync()
         {
@@ -127,7 +142,11 @@ namespace ms.webapp.api.acya.infrastructure.Repositories
                 .Where(d => (d.DepositType.ToUpper() == "ESPECE" || d.DepositType.ToUpper() == "CASH") && d.SalesSiteId == null && !d.IsDeleted)
                 .SumAsync(d => (decimal?)d.AmountHT ?? 0m);
 
-            return totalRemises - totalVersements;
+            var totalSupplierCashPayments = await context.CaisseMovements
+                .Where(m => m.Reason == "REGLEMENT_FOURNISSEUR" && m.Type == "SORTIE" && !m.IsDeleted)
+                .SumAsync(m => (decimal?)m.Amount ?? 0m);
+
+            return totalRemises - totalVersements - totalSupplierCashPayments;
         }
     }
 }
