@@ -25,6 +25,7 @@ public class TejConfig
     public string ClientId { get; set; } = "seif-app";
     public string Username { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
+    public string? ProxyUrl { get; set; }
 }
 
 // ============================================================

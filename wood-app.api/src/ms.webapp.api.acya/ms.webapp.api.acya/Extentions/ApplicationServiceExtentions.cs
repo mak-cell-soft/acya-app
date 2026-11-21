@@ -105,16 +105,37 @@ namespace ms.webapp.api.acya.api.Extentions
       {
           client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
           client.DefaultRequestHeaders.Add("Accept", "application/json, text/plain, */*");
+      })
+      .ConfigurePrimaryHttpMessageHandler(sp =>
+      {
+          var tejConfig = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<TejConfig>>().Value;
+          var handler = new HttpClientHandler();
+          if (!string.IsNullOrWhiteSpace(tejConfig.ProxyUrl))
+          {
+              handler.Proxy = new System.Net.WebProxy(tejConfig.ProxyUrl);
+              handler.UseProxy = true;
+          }
+          return handler;
       });
       services.AddHttpClient<TejApiClient>(client => 
       {
           client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
           client.DefaultRequestHeaders.Add("Accept", "application/json, text/plain, */*");
       })
-      .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+      .ConfigurePrimaryHttpMessageHandler(sp =>
       {
-          CookieContainer = new System.Net.CookieContainer(),
-          UseCookies = true
+          var tejConfig = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<TejConfig>>().Value;
+          var handler = new HttpClientHandler
+          {
+              CookieContainer = new System.Net.CookieContainer(),
+              UseCookies = true
+          };
+          if (!string.IsNullOrWhiteSpace(tejConfig.ProxyUrl))
+          {
+              handler.Proxy = new System.Net.WebProxy(tejConfig.ProxyUrl);
+              handler.UseProxy = true;
+          }
+          return handler;
       });
       services.AddScoped<TejFacade>();
 
