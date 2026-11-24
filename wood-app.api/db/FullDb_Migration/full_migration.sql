@@ -1915,8 +1915,11 @@ INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20261109110000_AddDeliveryTrackingTable', '7.0.20')
 ON CONFLICT ("MigrationId") DO NOTHING;
 
+-- From v0.44: AppNotifications deduplication index for SaaS billing & lifecycle reminders
+CREATE INDEX IF NOT EXISTS ix_app_notifications_related_entity
+    ON "AppNotifications" ("RelatedEntityType", "RelatedEntityId");
 
-
-
-
-
+CREATE UNIQUE INDEX IF NOT EXISTS uq_app_notifications_saas_billing_event
+    ON "AppNotifications" ("RelatedEntityType", "RelatedEntityId")
+    WHERE "RelatedEntityType" IN ('SaaSInvoice', 'SaaSSubscription')
+      AND "RelatedEntityId" IS NOT NULL;

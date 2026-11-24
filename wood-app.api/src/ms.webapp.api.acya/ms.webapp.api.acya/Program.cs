@@ -22,6 +22,7 @@ builder.Services.AddScoped<ms.webapp.api.acya.api.Interfaces.IPdfGenerationServi
 builder.Services.AddHostedService<NotificationRetryService>();
 builder.Services.AddHostedService<AuditCleanupBackgroundService>();
 builder.Services.AddHostedService<QuoteEmailRecoveryBackgroundService>();
+builder.Services.AddHostedService<BillingReminderBackgroundService>();
 //builder.Services.AddControllers();
 //configure JSON serialization to ignore circular references.
 builder.Services.AddControllers()

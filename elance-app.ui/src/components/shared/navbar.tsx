@@ -87,6 +87,10 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleLogout = () => {
+    const token = useAuthStore.getState().token;
+    if (token) {
+      import('@/lib/axios').then(({ default: api }) => api.post('/Account/logout', {}).catch(() => {}));
+    }
     logout();
     router.push('/login');
   };
@@ -433,6 +437,26 @@ function NavbarNotifications() {
 
   const [isRefreshing, setIsRefreshing] = React.useState(false);
 
+  const unreadBillingNotifications = React.useMemo(
+    () =>
+      systemNotifications.filter(
+        (n) =>
+          !n.isRead &&
+          (n.relatedEntityType === 'SaaSInvoice' || n.relatedEntityType === 'SaaSSubscription')
+      ),
+    [systemNotifications]
+  );
+
+  const hasOverdueBillingAlert = React.useMemo(
+    () =>
+      unreadBillingNotifications.some(
+        (n) =>
+          (n.relatedEntityId && n.relatedEntityId.includes('OVERDUE')) ||
+          (n.relatedEntityId && n.relatedEntityId.includes('DUE_TODAY'))
+      ),
+    [unreadBillingNotifications]
+  );
+
   const handleRefresh = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
@@ -461,11 +485,33 @@ function NavbarNotifications() {
   };
 
   return (
+    <div className="flex items-center gap-2">
+      {unreadBillingNotifications.length > 0 && (
+        <SimpleTooltip
+          content={unreadBillingNotifications[0].title || "Rappel d'abonnement / facturation ACYA"}
+          side="bottom"
+        >
+          <div
+            data-testid="navbar-payment-reminder-indicator"
+            className={cn(
+              "hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-bold border shadow-xs select-none",
+              hasOverdueBillingAlert
+                ? "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-800/60"
+                : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800/60"
+            )}
+          >
+            <CreditCard className="h-3.5 w-3.5 shrink-0" />
+            <span className="tabular-nums">
+              {hasOverdueBillingAlert ? "Échéance Facturation" : "Rappel Facturation"} ({unreadBillingNotifications.length})
+            </span>
+          </div>
+        </SimpleTooltip>
+      )}
     <DropdownMenu>
       <DropdownMenuTrigger className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "relative cursor-pointer hover:bg-corp-blue-50 rounded-xl text-corp-blue-800")}>
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-2 right-2 w-4 h-4 bg-timber-500 text-white rounded-full flex items-center justify-center text-[8px] font-bold border-2 border-background ring-1 ring-timber-500/20 animate-pulse">
+          <span className="absolute top-2 right-2 w-4 h-4 bg-timber-500 text-white rounded-full flex items-center justify-center text-[8px] font-bold border-2 border-background ring-1 ring-timber-500/20 animate-pulse tabular-nums">
             {unreadCount}
           </span>
         )}
@@ -657,6 +703,7 @@ function NavbarNotifications() {
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
+    </div>
   );
 }
 

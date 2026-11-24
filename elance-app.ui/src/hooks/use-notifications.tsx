@@ -92,12 +92,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
   };
 
-  // Fetch unreads and stock alerts
+  // Fetch notification history (unreads + read history) and stock alerts
   const refreshAll = async () => {
     if (!isAuthenticated) return;
     try {
-      const unreads = await notificationService.fetchUnreads();
-      setSystemNotifications(unreads || []);
+      const history = await notificationService.fetchHistory(50);
+      setSystemNotifications(history || []);
 
       const alerts = await notificationService.fetchStockAlerts(user?.defaultSiteId ? Number(user.defaultSiteId) : undefined);
       setStockAlerts(alerts || []);
@@ -292,7 +292,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         case NotificationType.Warning:
           toast.warning(appNotif.message, { description: appNotif.title });
           break;
-        case NotificationType.Error:
+        case NotificationType.Alert:
           toast.error(appNotif.message, { description: appNotif.title });
           break;
         default:

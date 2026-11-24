@@ -61,6 +61,35 @@ namespace ms.webapp.api.acya.api.Controllers
       return Ok(notifications);
     }
 
+    [HttpGet("history")]
+    public async Task<IActionResult> GetHistory([FromQuery] int limit = 50)
+    {
+      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+      var siteId = int.TryParse(User.FindFirst("DefaultSiteId")?.Value, out var sId) ? (int?)sId : null;
+      var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+      if (userId == 0) return Unauthorized();
+      if (_context == null)
+      {
+        var unreads = await _appNotificationService.GetUnreadNotificationsAsync(userId, siteId, role);
+        return Ok(unreads);
+      }
+
+      var clampedLimit = Math.Clamp(limit, 1, 200);
+      var history = await _context.AppNotifications
+          .AsNoTracking()
+          .Where(n => n.Type != NotificationType.Email)
+          .Where(n => (n.TargetUserId == userId) ||
+                      (n.TargetRole != null && n.TargetRole == role) ||
+                      (n.TargetSiteId != null && n.TargetSiteId == siteId) ||
+                      (n.TargetUserId == null && n.TargetRole == null && n.TargetSiteId == null))
+          .OrderByDescending(n => n.CreatedAt)
+          .Take(clampedLimit)
+          .ToListAsync();
+
+      return Ok(history);
+    }
+
     [HttpPut("{id}/read")]
     public async Task<IActionResult> MarkAsRead(int id)
     {

@@ -1,10 +1,11 @@
 import api from '@/lib/axios';
 
 export enum NotificationType {
-  Info = 1,
-  Success = 2,
-  Warning = 3,
-  Error = 4
+  Info = 0,
+  Warning = 1,
+  Alert = 2,
+  Success = 3,
+  Email = 4
 }
 
 export interface AppNotification {
@@ -47,6 +48,16 @@ export const notificationService = {
   fetchUnreads: async () => {
     const response = await api.get('/notifications/unreads');
     return response.data;
+  },
+
+  fetchHistory: async (limit = 50) => {
+    try {
+      const response = await api.get('/notifications/history', { params: { limit } });
+      return response.data;
+    } catch {
+      const fallback = await api.get('/notifications/unreads');
+      return fallback.data;
+    }
   },
 
   markAsRead: async (id: number) => {
