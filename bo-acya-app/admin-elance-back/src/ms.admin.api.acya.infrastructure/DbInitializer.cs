@@ -55,10 +55,31 @@ namespace ms.admin.api.acya.infrastructure
                 ALTER TABLE public.bo_tbl_enterprise ADD COLUMN IF NOT EXISTS ""IsManagingProduction"" BOOLEAN DEFAULT FALSE;
                 ALTER TABLE public.bo_tbl_enterprise ADD COLUMN IF NOT EXISTS ""PlanPrice"" NUMERIC(18, 2) DEFAULT 0;
                 ALTER TABLE public.bo_tbl_enterprise ADD COLUMN IF NOT EXISTS ""RneDocumentUrl"" TEXT;
+                ALTER TABLE public.bo_tbl_enterprise ADD COLUMN IF NOT EXISTS ""MaxConnectedUsers"" INTEGER NOT NULL DEFAULT 5;
             ");
 
             // Create SaaS lifecycle tables
             context.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS public.bo_tbl_tenant_active_sessions (
+                    ""Id"" BIGSERIAL PRIMARY KEY,
+                    ""SessionId"" VARCHAR(100) UNIQUE NOT NULL,
+                    ""TenantId"" BIGINT NOT NULL REFERENCES public.bo_tbl_enterprise(""Id"") ON DELETE CASCADE,
+                    ""TenantSlug"" VARCHAR(100) NOT NULL,
+                    ""UserId"" INTEGER NOT NULL,
+                    ""Username"" VARCHAR(150) NOT NULL,
+                    ""CreatedAt"" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    ""ExpiresAt"" TIMESTAMPTZ NOT NULL,
+                    ""LastActivityAt"" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    ""IsRevoked"" BOOLEAN NOT NULL DEFAULT FALSE,
+                    ""RevokedAt"" TIMESTAMPTZ
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_bo_tbl_tenant_active_sessions_tenant_active
+                    ON public.bo_tbl_tenant_active_sessions (""TenantId"", ""IsRevoked"", ""ExpiresAt"");
+
+                CREATE INDEX IF NOT EXISTS idx_bo_tbl_tenant_active_sessions_slug_active
+                    ON public.bo_tbl_tenant_active_sessions (""TenantSlug"", ""IsRevoked"", ""ExpiresAt"");
+
                 CREATE TABLE IF NOT EXISTS public.bo_tbl_tenant_subscriptions (
                     ""Id"" BIGSERIAL PRIMARY KEY,
                     ""TenantId"" BIGINT NOT NULL REFERENCES public.bo_tbl_enterprise(""Id"") ON DELETE CASCADE,
@@ -133,6 +154,10 @@ namespace ms.admin.api.acya.infrastructure
 
                 INSERT INTO public.bo_tbl_platform_settings (""Key"", ""Value"", ""UpdatedAt"")
                 VALUES ('RneRequired', 'true', NOW())
+                ON CONFLICT (""Key"") DO NOTHING;
+
+                INSERT INTO public.bo_tbl_platform_settings (""Key"", ""Value"", ""UpdatedAt"")
+                VALUES ('BillingReminderIntervals', '{""beforeDueDays"":[7,3],""onDueDate"":true,""afterDueIntervalDays"":7,""subscriptionExpiringBeforeDays"":[7,3]}', NOW())
                 ON CONFLICT (""Key"") DO NOTHING;
             ");
 

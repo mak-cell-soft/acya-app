@@ -88,6 +88,11 @@ namespace ms.admin.api.acya.infrastructure.Configurations
 
             builder.Property(x => x.RneDocumentUrl)
                 .HasColumnName("RneDocumentUrl");
+
+            builder.Property(x => x.MaxConnectedUsers)
+                .HasColumnName("MaxConnectedUsers")
+                .HasDefaultValue(5)
+                .IsRequired();
         }
     }
 }

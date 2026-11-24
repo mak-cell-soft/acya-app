@@ -1234,8 +1234,6 @@ export function ProvisionEnterpriseModal({
                         disabled={provisioningLoading}
                       >
                         <option value="TND">TND</option>
-                        <option value="EUR">EUR</option>
-                        <option value="USD">USD</option>
                       </select>
                     </div>
                   </div>

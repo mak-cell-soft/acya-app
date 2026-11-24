@@ -90,6 +90,7 @@ builder.Services.AddScoped<IProductionSchedulerBridge>(sp =>
 builder.Services.AddScoped<IBackupSchedulerManagementService, BackupSchedulerManagementService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISupportTicketAdminService, SupportTicketAdminService>();
+builder.Services.AddScoped<ITenantBillingNotificationDispatcher, TenantBillingNotificationDispatcher>();
 builder.Services.AddHostedService<SaaSLifecycleScheduler>();
 
 // Repositories

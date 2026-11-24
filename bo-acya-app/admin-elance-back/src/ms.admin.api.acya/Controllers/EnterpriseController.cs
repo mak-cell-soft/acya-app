@@ -440,7 +440,7 @@ namespace ms.admin.api.acya.Controllers
             {
                 TenantId = created.Id,
                 Plan = created.Plan,
-                Status = "Active",
+                Status = created.Plan == TenantPlan.Trial ? SubscriptionStatuses.Trial : SubscriptionStatuses.Active,
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddDays(created.Plan == TenantPlan.Trial ? 30 : 365),
                 Price = created.PlanPrice,
@@ -448,7 +448,7 @@ namespace ms.admin.api.acya.Controllers
             };
             await _context.TenantSubscriptions.AddAsync(subscription);
 
-            // 7. Generate Initial Invoice if paid plan
+            // 7. Generate Initial Invoice if paid plan (Standardized in TND)
             if (created.Plan != TenantPlan.Trial)
             {
                 var invoice = new TenantInvoice
@@ -456,8 +456,8 @@ namespace ms.admin.api.acya.Controllers
                     TenantId = created.Id,
                     InvoiceNumber = $"INV-{DateTime.UtcNow:yyyyMMdd}-{created.Id}",
                     Amount = created.PlanPrice,
-                    Currency = created.Currency ?? "TND",
-                    Status = "Unpaid",
+                    Currency = "TND",
+                    Status = InvoiceStatuses.Unpaid,
                     BillingDate = DateTime.UtcNow,
                     DueDate = DateTime.UtcNow.AddDays(7),
                     CreatedAt = DateTime.UtcNow

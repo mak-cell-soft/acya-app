@@ -31,5 +31,6 @@ namespace ms.admin.api.acya.core.Entities
         public bool IsManagingProduction { get; set; }
         public decimal PlanPrice { get; set; }
         public string? RneDocumentUrl { get; set; }
+        public int MaxConnectedUsers { get; set; } = 5;
     }
 }
