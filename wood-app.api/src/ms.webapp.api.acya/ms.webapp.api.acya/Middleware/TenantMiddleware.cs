@@ -102,9 +102,12 @@ namespace ms.webapp.api.acya.api.Middleware
       }
 
       // Allow access to public configuration endpoint /api/enterprise/config even if inactive/suspended
-      if (!tenant.IsActive && path != "/api/enterprise/config")
+      // Payment status (PaymentDue / Overdue) is strictly independent of connection authorization;
+      // only explicit administrative deactivation (!tenant.IsActive or Status == "Suspended") blocks access.
+      var isExplicitlySuspended = !tenant.IsActive || string.Equals(tenant.Status, "Suspended", StringComparison.OrdinalIgnoreCase);
+      if (isExplicitlySuspended && path != "/api/enterprise/config")
       {
-        _logger.LogWarning("Multi-tenant request failed: tenant '{Slug}' is inactive (Status: {Status}).", tenant.Slug, tenant.Status);
+        _logger.LogWarning("Multi-tenant request failed: tenant '{Slug}' is inactive/suspended (Status: {Status}).", tenant.Slug, tenant.Status);
         context.Response.StatusCode = StatusCodes.Status403Forbidden;
         await context.Response.WriteAsJsonAsync(new { error = "your company is disabled contact administrator", status = tenant.Status });
         return;
@@ -121,15 +124,33 @@ namespace ms.webapp.api.acya.api.Middleware
           await context.Response.WriteAsJsonAsync(new { error = "Access denied: Tenant mismatch." });
           return;
         }
+
+        // Verify session has not been explicitly revoked on logout
+        var sessionId = context.User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti)?.Value
+                        ?? context.User.FindFirst("session_id")?.Value;
+        if (!string.IsNullOrEmpty(sessionId))
+        {
+          var sessionRecord = await masterDb.TenantActiveSessions
+              .AsNoTracking()
+              .FirstOrDefaultAsync(s => s.SessionId == sessionId);
+          if (sessionRecord != null && (sessionRecord.IsRevoked || sessionRecord.ExpiresAt <= DateTime.UtcNow))
+          {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsJsonAsync(new { error = "Session expired or logged out." });
+            return;
+          }
+        }
       }
 
       // 5. Set TenantContext for the scoped request lifetime
       tenantContext.IsEnabled = true;
+      tenantContext.TenantId = tenant.Id;
       tenantContext.Slug = tenant.Slug;
       tenantContext.SchemaName = tenant.SchemaName;
       tenantContext.ConnectionString = tenant.ConnectionString;
       tenantContext.Plan = tenant.Plan;
       tenantContext.Status = tenant.Status;
+      tenantContext.MaxConnectedUsers = tenant.MaxConnectedUsers > 0 ? tenant.MaxConnectedUsers : 5;
 
       // Proceed with pipeline
       await _next(context);

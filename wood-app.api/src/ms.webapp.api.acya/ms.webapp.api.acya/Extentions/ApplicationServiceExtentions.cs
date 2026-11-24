@@ -31,6 +31,7 @@ namespace ms.webapp.api.acya.api.Extentions
       #endregion
 
       services.AddScoped<ITokenService, TokenService>();
+      services.AddScoped<ITenantSessionService, TenantSessionService>();
       services.AddScoped<NotificationService>();
       services.AddScoped<AppHealthRepository>();
       services.AddScoped<ParentRepository>();

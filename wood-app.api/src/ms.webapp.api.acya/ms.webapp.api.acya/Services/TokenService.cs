@@ -65,7 +65,7 @@ namespace ms.webapp.api.acya.api.Services
       return tokeHandler.WriteToken(token);
     }
 
-    public string CreateToken(AppUser user, string? permissionsJson = null)
+    public string CreateToken(AppUser user, string? permissionsJson = null, string? sessionId = null)
     {
       var tokenHandler = new JwtSecurityTokenHandler();
 
@@ -81,6 +81,12 @@ namespace ms.webapp.api.acya.api.Services
           _configuration.GetSection("JWTSettings").GetSection("validAudience").Value!),
           new(JwtRegisteredClaimNames.Iss, _configuration.GetSection("JWTSettings").GetSection("validIssuer").Value!)
       };
+
+      if (!string.IsNullOrWhiteSpace(sessionId))
+      {
+        claims.Add(new Claim(JwtRegisteredClaimNames.Jti, sessionId));
+        claims.Add(new Claim("session_id", sessionId));
+      }
 
 
       // Assuming 'user.Person.Role' holds the numeric role value

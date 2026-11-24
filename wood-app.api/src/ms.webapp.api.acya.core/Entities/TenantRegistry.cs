@@ -50,5 +50,6 @@ namespace ms.webapp.api.acya.core.Entities
     public bool IsManagingConstructions { get; set; }
     public bool IsManagingProduction { get; set; }
     public string? RneDocumentUrl { get; set; }
+    public int MaxConnectedUsers { get; set; } = 5;
   }
 }

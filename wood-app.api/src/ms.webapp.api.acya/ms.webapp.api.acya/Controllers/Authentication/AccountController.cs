@@ -24,6 +24,7 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
     private readonly IAppNotificationService _notificationService;
     private readonly IPasswordResetRateLimiter? _rateLimiter;
     private readonly ILogger<AccountController>? _logger;
+    private readonly ms.webapp.api.acya.api.Services.ITenantSessionService? _sessionService;
 
     public AccountController(
         WoodAppContext context, 
@@ -31,7 +32,8 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
         TenantContext tenantContext,
         IAppNotificationService notificationService,
         IPasswordResetRateLimiter? rateLimiter = null,
-        ILogger<AccountController>? logger = null)
+        ILogger<AccountController>? logger = null,
+        ms.webapp.api.acya.api.Services.ITenantSessionService? sessionService = null)
     {
       _context = context;
       _tokenService = tokenService;
@@ -39,6 +41,7 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
       _notificationService = notificationService;
       _rateLimiter = rateLimiter;
       _logger = logger;
+      _sessionService = sessionService;
     }
 
     [Authorize]
@@ -262,6 +265,28 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
       user.Enterprise = ent;
       
       var userPerms = await _context.UserPermissions.FirstOrDefaultAsync(p => p.UserId == user.Id);
+
+      string? sessionId = null;
+      if (_tenantContext != null && _tenantContext.IsEnabled && _sessionService != null)
+      {
+        var sessionResult = await _sessionService.TryAcquireSessionAsync(
+            _tenantContext.Slug,
+            user.Id,
+            user.Login ?? user.Email ?? $"user-{user.Id}",
+            TimeSpan.FromDays(5));
+
+        if (!sessionResult.IsAllowed)
+        {
+          return Ok(new UserAuthDto
+          {
+            fullname = user.Persons?.FullName ?? "",
+            isSuccess = false,
+            message = sessionResult.ErrorMessage ?? "Limite de connexions simultanées atteinte."
+          });
+        }
+
+        sessionId = sessionResult.SessionId;
+      }
       
       return Ok(new UserAuthDto
       {
@@ -269,8 +294,25 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
         isSuccess = true,
         message = "Authentification avec Succés",
         enterpriseName = ent?.Name,
-        token = _tokenService.CreateToken(user, userPerms?.Permissions)
+        token = _tokenService.CreateToken(user, userPerms?.Permissions, sessionId)
       });
+    }
+
+    [Authorize]
+    [HttpPost("logout")]
+    public async Task<ActionResult> Logout()
+    {
+      if (_sessionService != null)
+      {
+        var sessionId = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti)?.Value
+                        ?? User.FindFirst("session_id")?.Value;
+        var tenantSlug = _tenantContext?.Slug ?? User.FindFirst("tenant_slug")?.Value;
+        if (!string.IsNullOrEmpty(sessionId))
+        {
+          await _sessionService.RevokeSessionAsync(sessionId, tenantSlug);
+        }
+      }
+      return Ok(new { isSuccess = true, message = "Déconnexion réussie." });
     }
 
     [AllowAnonymous]

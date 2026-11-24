@@ -4,6 +4,6 @@ namespace ms.webapp.api.acya.Interfaces
 {
   public interface ITokenService
   {
-    string CreateToken(AppUser user, string? permissionsJson = null);
+    string CreateToken(AppUser user, string? permissionsJson = null, string? sessionId = null);
   }
 }

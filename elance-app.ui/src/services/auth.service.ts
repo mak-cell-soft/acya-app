@@ -84,6 +84,10 @@ export const authService = {
   },
 
   logout: () => {
+    const token = useAuthStore.getState().token;
+    if (token) {
+      api.post('/Account/logout', {}).catch(() => {});
+    }
     useAuthStore.getState().logout();
   },
 

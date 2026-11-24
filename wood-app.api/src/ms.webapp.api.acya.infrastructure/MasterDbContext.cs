@@ -18,6 +18,10 @@ namespace ms.webapp.api.acya.infrastructure
     public DbSet<MobileBuild> MobileBuilds { get; set; }
     public DbSet<MobileRelease> MobileReleases { get; set; }
     public DbSet<TenantFirebaseApp> TenantFirebaseApps { get; set; }
+    public DbSet<TenantActiveSession> TenantActiveSessions { get; set; }
+    public DbSet<MasterTenantSubscription> TenantSubscriptions { get; set; }
+    public DbSet<MasterTenantInvoice> TenantInvoices { get; set; }
+    public DbSet<MasterTenantPayment> TenantPayments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,9 +60,43 @@ namespace ms.webapp.api.acya.infrastructure
         entity.Property(e => e.IsManagingConstructions).HasColumnName("IsManagingConstructions");
         entity.Property(e => e.IsManagingProduction).HasColumnName("IsManagingProduction");
         entity.Property(e => e.RneDocumentUrl).HasColumnName("RneDocumentUrl");
+        entity.Property(e => e.MaxConnectedUsers).HasColumnName("MaxConnectedUsers").HasDefaultValue(5);
 
         entity.HasIndex(e => e.Slug).IsUnique();
         entity.HasIndex(e => e.SchemaName).IsUnique();
+      });
+
+      modelBuilder.Entity<TenantActiveSession>(entity =>
+      {
+        entity.ToTable("bo_tbl_tenant_active_sessions", "public");
+        entity.HasKey(e => e.Id);
+        entity.Property(e => e.SessionId).HasMaxLength(100).IsRequired();
+        entity.HasIndex(e => e.SessionId).IsUnique();
+        entity.Property(e => e.TenantSlug).HasMaxLength(100).IsRequired();
+        entity.Property(e => e.Username).HasMaxLength(150).IsRequired();
+        entity.HasIndex(e => new { e.TenantId, e.IsRevoked, e.ExpiresAt });
+        entity.HasIndex(e => new { e.TenantSlug, e.IsRevoked, e.ExpiresAt });
+      });
+
+      modelBuilder.Entity<MasterTenantSubscription>(entity =>
+      {
+        entity.ToTable("bo_tbl_tenant_subscriptions", "public");
+        entity.HasKey(e => e.Id);
+        entity.Property(e => e.Price).HasColumnType("numeric(18,2)");
+      });
+
+      modelBuilder.Entity<MasterTenantInvoice>(entity =>
+      {
+        entity.ToTable("bo_tbl_tenant_invoices", "public");
+        entity.HasKey(e => e.Id);
+        entity.Property(e => e.Amount).HasColumnType("numeric(18,2)");
+      });
+
+      modelBuilder.Entity<MasterTenantPayment>(entity =>
+      {
+        entity.ToTable("bo_tbl_tenant_payments", "public");
+        entity.HasKey(e => e.Id);
+        entity.Property(e => e.Amount).HasColumnType("numeric(18,2)");
       });
 
       modelBuilder.Entity<PlatformSetting>(entity =>

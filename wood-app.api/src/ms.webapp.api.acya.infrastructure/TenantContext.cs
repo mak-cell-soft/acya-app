@@ -22,5 +22,11 @@ namespace ms.webapp.api.acya.infrastructure
 
     // Tenant lifecycle status (e.g. "Active", "Suspended", "Expired")
     public string Status { get; set; } = string.Empty;
+
+    // Tenant ID in public.bo_tbl_enterprise
+    public int TenantId { get; set; }
+
+    // Maximum concurrent connected users allowed for this tenant (default 5)
+    public int MaxConnectedUsers { get; set; } = 5;
   }
 }

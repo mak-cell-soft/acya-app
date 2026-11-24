@@ -15,15 +15,19 @@ public class NotificationHub : Hub
   private readonly IHttpContextAccessor _httpContextAccessor;
   private readonly ILogger<NotificationHub> _logger;
   private readonly WoodAppContext _context;
+  private readonly MasterDbContext? _masterDb;
 
+  [Microsoft.Extensions.DependencyInjection.ActivatorUtilitiesConstructor]
   public NotificationHub(
       IHttpContextAccessor httpContextAccessor, 
       ILogger<NotificationHub> logger,
-      WoodAppContext context)
+      WoodAppContext context,
+      MasterDbContext? masterDb = null)
   {
     _httpContextAccessor = httpContextAccessor;
     _logger = logger;
     _context = context;
+    _masterDb = masterDb;
   }
 
   public override async Task OnConnectedAsync()
@@ -35,6 +39,35 @@ public class NotificationHub : Hub
       _logger.LogWarning("NotificationHub: Connection {ConnectionId} rejected. Missing tenant_slug claim.", Context.ConnectionId);
       Context.Abort();
       return;
+    }
+
+    if (_masterDb != null)
+    {
+      var tenant = await _masterDb.TenantRegistries
+          .AsNoTracking()
+          .FirstOrDefaultAsync(t => t.Slug.ToLower() == tenantSlug);
+
+      if (tenant != null && (!tenant.IsActive || string.Equals(tenant.Status, "Suspended", StringComparison.OrdinalIgnoreCase)))
+      {
+        _logger.LogWarning("NotificationHub: Connection {ConnectionId} rejected. Tenant '{TenantSlug}' is suspended or inactive.", Context.ConnectionId, tenantSlug);
+        Context.Abort();
+        return;
+      }
+
+      var sessionId = Context.User?.FindFirst("jti")?.Value
+                      ?? Context.User?.FindFirst("session_id")?.Value;
+      if (!string.IsNullOrEmpty(sessionId))
+      {
+        var sessionRecord = await _masterDb.TenantActiveSessions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.SessionId == sessionId);
+        if (sessionRecord != null && (sessionRecord.IsRevoked || sessionRecord.ExpiresAt <= DateTime.UtcNow))
+        {
+          _logger.LogWarning("NotificationHub: Connection {ConnectionId} rejected. Session '{SessionId}' is revoked or expired.", Context.ConnectionId, sessionId);
+          Context.Abort();
+          return;
+        }
+      }
     }
 
     _logger.LogInformation("NotificationHub: New connection {ConnectionId} authenticated for tenant '{TenantSlug}'",
