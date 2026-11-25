@@ -83,12 +83,49 @@ export const authService = {
     return response.data;
   },
 
-  logout: () => {
-    const token = useAuthStore.getState().token;
-    if (token) {
-      api.post('/Account/logout', {}).catch(() => {});
+  logout: async (options?: { redirectToLogin?: boolean }): Promise<void> => {
+    // 1. Capture access token BEFORE clearing local state so the Authorization header is preserved
+    const capturedToken = useAuthStore.getState().token;
+
+    try {
+      const headers: Record<string, string> = {};
+      if (capturedToken) {
+        headers.Authorization = `Bearer ${capturedToken}`;
+      }
+
+      await api.post(
+        '/Account/logout',
+        {},
+        {
+          headers,
+          timeout: 5000,
+          ...({ skipAuthRedirect: true } as Record<string, unknown>),
+        }
+      );
+    } catch {
+      // Gracefully ignore expired/invalid/network errors during logout so local cleanup always completes
+    } finally {
+      // 2. Always clear local authentication state and tenant session redirect data
+      useAuthStore.getState().logout();
+
+      if (typeof window !== 'undefined') {
+        const tenantQuery = new URLSearchParams(window.location.search).get('tenant');
+        try {
+          sessionStorage.removeItem('acya_auth_redirect');
+          localStorage.removeItem('auth-storage');
+        } catch {
+          // Ignore storage access errors in restricted contexts
+        }
+
+        if (options?.redirectToLogin) {
+          const loginPath = tenantQuery
+            ? `/login?tenant=${encodeURIComponent(tenantQuery)}`
+            : '/login';
+          // Full page navigation clears in-memory React Query caches and SignalR connections
+          window.location.replace(loginPath);
+        }
+      }
     }
-    useAuthStore.getState().logout();
   },
 
   getRole: () => {

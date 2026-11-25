@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { useAuthStore } from '@/store/use-auth-store';
+import { authService } from '@/services/auth.service';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -82,17 +83,12 @@ const getRoleTranslated = (role: string | number | undefined): string => {
 };
 
 export function Navbar({ onMenuClick }: NavbarProps) {
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  const handleLogout = () => {
-    const token = useAuthStore.getState().token;
-    if (token) {
-      import('@/lib/axios').then(({ default: api }) => api.post('/Account/logout', {}).catch(() => {}));
-    }
-    logout();
-    router.push('/login');
+  const handleLogout = async () => {
+    await authService.logout({ redirectToLogin: true });
   };
 
   // Formats current local date to French format (e.g. '16 mai 2026')

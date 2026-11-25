@@ -39,7 +39,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useAuthStore } from '@/store/use-auth-store';
-import { useRouter } from 'next/navigation';
+import { authService } from '@/services/auth.service';
 import { usePermissionGuard } from '@/hooks/use-permission-guard';
 import { PermissionModuleKey } from '@/types/permissions';
 import { SupportDialog } from './support-dialog';
@@ -159,8 +159,7 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const { user, logout } = useAuthStore();
-  const router = useRouter();
+  const { user } = useAuthStore();
   const { hasAnyPermission } = usePermissionGuard();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
@@ -206,12 +205,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     )
   }));
 
-  const handleLogout = () => {
-    logout();
-    router.push('/');
+  const handleLogout = async () => {
     if (isOpen) {
       onClose();
     }
+    await authService.logout({ redirectToLogin: true });
   };
 
   return (

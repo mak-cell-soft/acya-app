@@ -298,20 +298,68 @@ namespace ms.webapp.api.acya.api.Controllers.Authentication
       });
     }
 
-    [Authorize]
+    [AllowAnonymous]
     [HttpPost("logout")]
     public async Task<ActionResult> Logout()
     {
       if (_sessionService != null)
       {
-        var sessionId = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti)?.Value
-                        ?? User.FindFirst("session_id")?.Value;
-        var tenantSlug = _tenantContext?.Slug ?? User.FindFirst("tenant_slug")?.Value;
-        if (!string.IsNullOrEmpty(sessionId))
+        ClaimsPrincipal? principal = null;
+
+        if (User?.Identity?.IsAuthenticated == true)
         {
-          await _sessionService.RevokeSessionAsync(sessionId, tenantSlug);
+          principal = User;
+        }
+        else if (Request?.Headers != null &&
+                 Request.Headers.TryGetValue("Authorization", out var authHeader))
+        {
+          var headerValue = authHeader.ToString();
+          if (headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+          {
+            var rawToken = headerValue.Substring("Bearer ".Length).Trim();
+            if (!string.IsNullOrEmpty(rawToken))
+            {
+              principal = _tokenService.ValidateTokenIgnoringLifetime(rawToken);
+            }
+          }
+        }
+
+        if (principal != null)
+        {
+          var sessionId = principal.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti)?.Value
+                          ?? principal.FindFirst("session_id")?.Value;
+          var tokenTenantSlug = principal.FindFirst("tenant_slug")?.Value;
+
+          if (!string.IsNullOrEmpty(sessionId))
+          {
+            if (_tenantContext != null && _tenantContext.IsEnabled)
+            {
+              var requestTenantSlug = _tenantContext.Slug;
+              if (!string.IsNullOrWhiteSpace(requestTenantSlug))
+              {
+                // Enforce strict tenant isolation: never revoke a session belonging to another tenant
+                if (string.IsNullOrWhiteSpace(tokenTenantSlug) ||
+                    string.Equals(tokenTenantSlug, requestTenantSlug, StringComparison.OrdinalIgnoreCase))
+                {
+                  await _sessionService.RevokeSessionAsync(sessionId, requestTenantSlug);
+                }
+                else
+                {
+                  _logger?.LogWarning(
+                      "Logout session revocation skipped due to tenant mismatch (token tenant '{TokenTenant}' vs request tenant '{RequestTenant}').",
+                      tokenTenantSlug,
+                      requestTenantSlug);
+                }
+              }
+            }
+            else
+            {
+              await _sessionService.RevokeSessionAsync(sessionId, tokenTenantSlug);
+            }
+          }
         }
       }
+
       return Ok(new { isSuccess = true, message = "Déconnexion réussie." });
     }
 

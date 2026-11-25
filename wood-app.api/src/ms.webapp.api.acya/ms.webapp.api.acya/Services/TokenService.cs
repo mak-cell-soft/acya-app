@@ -156,6 +156,49 @@ namespace ms.webapp.api.acya.api.Services
       return tokenHandler.WriteToken(token);
     }
 
+    public ClaimsPrincipal? ValidateTokenIgnoringLifetime(string token)
+    {
+      if (string.IsNullOrWhiteSpace(token))
+      {
+        return null;
+      }
+
+      var jwtSection = _configuration.GetSection("JWTSettings");
+      var signingKeyValue = _configuration["JWTSettings:securityKey"] ?? _configuration["TokenKey"];
+      if (string.IsNullOrWhiteSpace(signingKeyValue))
+      {
+        return null;
+      }
+
+      var validationParameters = new TokenValidationParameters
+      {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = false,
+        ValidateIssuerSigningKey = true,
+        ValidAudience = jwtSection["ValidAudience"],
+        ValidIssuer = jwtSection["ValidIssuer"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKeyValue)),
+      };
+
+      var tokenHandler = new JwtSecurityTokenHandler();
+      try
+      {
+        var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
+        if (validatedToken is not JwtSecurityToken jwtToken ||
+            !string.Equals(jwtToken.Header.Alg, SecurityAlgorithms.HmacSha256, StringComparison.OrdinalIgnoreCase))
+        {
+          return null;
+        }
+
+        return principal;
+      }
+      catch
+      {
+        return null;
+      }
+    }
+
     private static List<string> GetSelectedRoles()
     {
       // Define the specific roles you want to include as a filter

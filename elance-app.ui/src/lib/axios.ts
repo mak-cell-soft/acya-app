@@ -50,7 +50,7 @@ const getTenantSlug = (): string | null => {
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = useAuthStore.getState().token;
-    if (token && config.headers) {
+    if (token && config.headers && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
@@ -71,10 +71,23 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
-    
+    const originalRequest = error.config as (InternalAxiosRequestConfig & {
+      _retry?: boolean;
+      skipAuthRedirect?: boolean;
+    }) | undefined;
+
+    const requestUrl = (originalRequest?.url || '').toLowerCase();
+    const isLogoutRequest =
+      originalRequest?.skipAuthRedirect === true ||
+      requestUrl.includes('/account/logout');
+
+    // Never trigger session-expired toasts, retries, or global error handlers for logout calls
+    if (isLogoutRequest) {
+      return Promise.reject(error);
+    }
+
     // Handle 401 Unauthorized errors (token expired, etc.)
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
       
       // If we're on the client side, clear auth and redirect

@@ -126,18 +126,23 @@ namespace ms.webapp.api.acya.api.Middleware
         }
 
         // Verify session has not been explicitly revoked on logout
-        var sessionId = context.User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti)?.Value
-                        ?? context.User.FindFirst("session_id")?.Value;
-        if (!string.IsNullOrEmpty(sessionId))
+        // Allow /api/account/logout through even if already revoked so logout stays idempotent
+        var isLogoutEndpoint = path.Equals("/api/account/logout", StringComparison.OrdinalIgnoreCase);
+        if (!isLogoutEndpoint)
         {
-          var sessionRecord = await masterDb.TenantActiveSessions
-              .AsNoTracking()
-              .FirstOrDefaultAsync(s => s.SessionId == sessionId);
-          if (sessionRecord != null && (sessionRecord.IsRevoked || sessionRecord.ExpiresAt <= DateTime.UtcNow))
+          var sessionId = context.User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti)?.Value
+                          ?? context.User.FindFirst("session_id")?.Value;
+          if (!string.IsNullOrEmpty(sessionId))
           {
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await context.Response.WriteAsJsonAsync(new { error = "Session expired or logged out." });
-            return;
+            var sessionRecord = await masterDb.TenantActiveSessions
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.SessionId == sessionId);
+            if (sessionRecord != null && (sessionRecord.IsRevoked || sessionRecord.ExpiresAt <= DateTime.UtcNow))
+            {
+              context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+              await context.Response.WriteAsJsonAsync(new { error = "Session expired or logged out." });
+              return;
+            }
           }
         }
       }
