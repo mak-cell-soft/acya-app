@@ -38,6 +38,11 @@ services:
       dockerfile: Dockerfile
     container_name: wood-app-api
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
@@ -94,6 +99,11 @@ services:
         - NEXT_PUBLIC_API_URL=https://acya.site/api/
     container_name: elance-app-ui
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     environment:
       - PORT=3000
       - NODE_ENV=production
@@ -114,6 +124,11 @@ services:
       dockerfile: Dockerfile
     container_name: admin-elance-back
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
@@ -153,6 +168,11 @@ services:
         - NEXT_PUBLIC_API_URL=https://admin.acya.site/api/
     container_name: admin-elance-front
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     environment:
       - PORT=3000
       - NODE_ENV=production
