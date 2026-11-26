@@ -62,7 +62,7 @@ namespace ms.webapp.api.acya.tests
                 .ReturnsAsync(new HttpResponseMessage
                 {
                     StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent("{\"accepted\":true,\"messageId\":\"<msg-123@acya.site>\"}", Encoding.UTF8, "application/json")
+                    Content = new StringContent("{\"success\":true,\"accepted\":true,\"messageId\":\"<msg-123@acya.site>\"}", Encoding.UTF8, "application/json")
                 });
 
             var configMock = new Mock<IConfiguration>();
@@ -283,7 +283,7 @@ namespace ms.webapp.api.acya.tests
                     return Task.FromResult(new HttpResponseMessage
                     {
                         StatusCode = HttpStatusCode.OK,
-                        Content = new StringContent("{\"accepted\":true,\"messageId\":\"<msg-explicit@acya.site>\"}", Encoding.UTF8, "application/json")
+                        Content = new StringContent("{\"success\":true,\"accepted\":true,\"messageId\":\"<msg-explicit@acya.site>\"}", Encoding.UTF8, "application/json")
                     });
                 });
 
@@ -300,6 +300,167 @@ namespace ms.webapp.api.acya.tests
             Assert.Equal("Bearer", capturedRequest.Headers.Authorization!.Scheme);
             Assert.Equal("explicit-secret-key-12345", capturedRequest.Headers.Authorization!.Parameter);
             Assert.Equal(EmailDispatchStatus.Accepted, result.Status);
+        }
+
+        [Fact]
+        public async Task TestA11_ProviderAcceptance_WithIdFieldOnly_ReturnsAccepted()
+        {
+            var handlerMock = new Mock<HttpMessageHandler>();
+            handlerMock.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("{\"success\":true,\"id\":\"<mailgun-id-456@acya.site>\"}", Encoding.UTF8, "application/json")
+                });
+
+            var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["N8nEmailService:ApiKey"]).Returns("test-key");
+            var service = new N8nEmailService(new HttpClient(handlerMock.Object), configMock.Object, new Mock<ILogger<N8nEmailService>>().Object);
+
+            var result = await service.SendEmailAsync("user@socofeb.tn", "Subject", "<p>Body</p>");
+
+            Assert.Equal(EmailDispatchStatus.Accepted, result.Status);
+            Assert.Equal("<mailgun-id-456@acya.site>", result.MessageId);
+        }
+
+        [Fact]
+        public async Task TestA12_Http200WithEmptyBody_ReturnsRejected()
+        {
+            var handlerMock = new Mock<HttpMessageHandler>();
+            handlerMock.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("", Encoding.UTF8, "application/json")
+                });
+
+            var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["N8nEmailService:ApiKey"]).Returns("test-key");
+            var service = new N8nEmailService(new HttpClient(handlerMock.Object), configMock.Object, new Mock<ILogger<N8nEmailService>>().Object);
+
+            var result = await service.SendEmailAsync("user@socofeb.tn", "Subject", "<p>Body</p>");
+
+            Assert.Equal(EmailDispatchStatus.Rejected, result.Status);
+            Assert.Contains("Empty response body", result.ErrorMessage);
+        }
+
+        [Fact]
+        public async Task TestA13_Http200WithMalformedJson_ReturnsRejected()
+        {
+            var handlerMock = new Mock<HttpMessageHandler>();
+            handlerMock.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("not-json-response", Encoding.UTF8, "text/plain")
+                });
+
+            var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["N8nEmailService:ApiKey"]).Returns("test-key");
+            var service = new N8nEmailService(new HttpClient(handlerMock.Object), configMock.Object, new Mock<ILogger<N8nEmailService>>().Object);
+
+            var result = await service.SendEmailAsync("user@socofeb.tn", "Subject", "<p>Body</p>");
+
+            Assert.Equal(EmailDispatchStatus.Rejected, result.Status);
+            Assert.Contains("Malformed JSON", result.ErrorMessage);
+        }
+
+        [Fact]
+        public async Task TestA14_Http200WithoutExplicitSuccessTrue_ReturnsRejected()
+        {
+            var handlerMock = new Mock<HttpMessageHandler>();
+            handlerMock.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("{\"success\":false,\"messageId\":\"<msg-1@acya.site>\"}", Encoding.UTF8, "application/json")
+                });
+
+            var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["N8nEmailService:ApiKey"]).Returns("test-key");
+            var service = new N8nEmailService(new HttpClient(handlerMock.Object), configMock.Object, new Mock<ILogger<N8nEmailService>>().Object);
+
+            var result = await service.SendEmailAsync("user@socofeb.tn", "Subject", "<p>Body</p>");
+
+            Assert.Equal(EmailDispatchStatus.Rejected, result.Status);
+            Assert.Contains("success=true", result.ErrorMessage);
+        }
+
+        [Fact]
+        public async Task TestA15_Http200WithSuccessTrueButMissingMessageId_ReturnsRejected()
+        {
+            var handlerMock = new Mock<HttpMessageHandler>();
+            handlerMock.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("{\"success\":true,\"message\":\"Queued\"}", Encoding.UTF8, "application/json")
+                });
+
+            var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["N8nEmailService:ApiKey"]).Returns("test-key");
+            var service = new N8nEmailService(new HttpClient(handlerMock.Object), configMock.Object, new Mock<ILogger<N8nEmailService>>().Object);
+
+            var result = await service.SendEmailAsync("user@socofeb.tn", "Subject", "<p>Body</p>");
+
+            Assert.Equal(EmailDispatchStatus.Rejected, result.Status);
+            Assert.Contains("Missing Mailgun message identifier", result.ErrorMessage);
+        }
+
+        [Fact]
+        public async Task TestA16_AppNotificationService_Http200EmptyBody_MarksEmailSentFalse()
+        {
+            using var context = CreateContext(nameof(TestA16_AppNotificationService_Http200EmptyBody_MarksEmailSentFalse), "socofeb");
+            var handlerMock = new Mock<HttpMessageHandler>();
+            handlerMock.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("", Encoding.UTF8, "application/json")
+                });
+
+            var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["N8nEmailService:ApiKey"]).Returns("test-key");
+            var n8nService = new N8nEmailService(new HttpClient(handlerMock.Object), configMock.Object, new Mock<ILogger<N8nEmailService>>().Object);
+
+            var notificationService = new AppNotificationService(
+                context,
+                new Mock<IHubContext<NotificationHub>>().Object,
+                new Mock<IEmailService>().Object,
+                new Mock<ILogger<AppNotificationService>>().Object,
+                new TenantContext { IsEnabled = true, Slug = "socofeb" },
+                n8nService);
+
+            var result = await notificationService.SendEmailNotificationAsync("user@socofeb.tn", "Reset", "<p>Body</p>", targetUserId: 1);
+
+            Assert.Equal(EmailDispatchStatus.Rejected, result.Status);
+            var stored = await context.AppNotifications.FirstAsync();
+            Assert.False(stored.EmailSent);
+            Assert.Null(stored.EmailSentAt);
         }
 
         #endregion

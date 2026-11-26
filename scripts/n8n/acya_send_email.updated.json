@@ -122,6 +122,8 @@
       },
       {
         "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify({ success: true, accepted: true, id: $json.id || $json.messageId || null, messageId: $json.id || $json.messageId || null, message: $json.message || 'Queued' }) }}",
           "options": {
             "responseCode": 200
           }
@@ -162,7 +164,7 @@
             "conditions": [
               {
                 "id": "c001-has-attachment-check",
-                "leftValue": "={{.hasAttachment}}",
+                "leftValue": "={{$json.hasAttachment}}",
                 "rightValue": true,
                 "operator": {
                   "type": "boolean",
@@ -186,13 +188,13 @@
       },
       {
         "parameters": {
-          "fromEmail": "={{.sender}}",
-          "toEmail": "={{.to}}",
+          "fromEmail": "={{$json.sender}}",
+          "toEmail": "={{$json.to}}",
           "bccEmail": "=",
-          "replyTo": "={{.replyTo}}",
-          "subject": "={{.subject}}",
+          "replyTo": "={{$json.replyTo}}",
+          "subject": "={{$json.subject}}",
           "text": "=",
-          "html": "={{.html}}",
+          "html": "={{$json.html}}",
           "options": {
             "attachmentUi": {
               "attachmentValues": {

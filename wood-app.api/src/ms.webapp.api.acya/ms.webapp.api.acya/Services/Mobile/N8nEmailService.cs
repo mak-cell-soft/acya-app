@@ -243,28 +243,77 @@ namespace ms.webapp.api.acya.Services.Mobile
 
                 if (response.IsSuccessStatusCode)
                 {
-                    string? messageId = null;
+                    var content = await response.Content.ReadAsStringAsync(cancellationToken);
+                    if (string.IsNullOrWhiteSpace(content))
+                    {
+                        _logger.LogError(
+                            "n8n Email Service returned HTTP {StatusCode} with an empty response body for tenant '{Tenant}' (recipient: {Recipient}). Treating dispatch as rejected.",
+                            (int)response.StatusCode, tenantSlug, recipient);
+                        return EmailDispatchResult.Rejected($"HTTP {(int)response.StatusCode}: Empty response body from email service.");
+                    }
+
+                    JsonDocument doc;
                     try
                     {
-                        var content = await response.Content.ReadAsStringAsync(cancellationToken);
-                        if (!string.IsNullOrWhiteSpace(content))
-                        {
-                            using var doc = JsonDocument.Parse(content);
-                            if (doc.RootElement.TryGetProperty("messageId", out var msgIdElem))
-                            {
-                                messageId = msgIdElem.GetString();
-                            }
-                        }
+                        doc = JsonDocument.Parse(content);
                     }
-                    catch
+                    catch (JsonException ex)
                     {
-                        // Response body parsing is non-critical if HTTP status was 2xx success
+                        var snippet = content.Length > 200 ? content.Substring(0, 200) : content;
+                        _logger.LogError(ex,
+                            "n8n Email Service returned HTTP {StatusCode} with malformed JSON for tenant '{Tenant}' (recipient: {Recipient}). Body: {ResponseBody}",
+                            (int)response.StatusCode, tenantSlug, recipient, snippet);
+                        return EmailDispatchResult.Rejected($"HTTP {(int)response.StatusCode}: Malformed JSON response from email service.");
                     }
 
-                    _logger.LogInformation("Email successfully accepted by n8n for tenant '{Tenant}' to '{Recipient}' (MessageId: {MessageId}).",
-                        tenantSlug, recipient, messageId ?? "n/a");
+                    using (doc)
+                    {
+                        if (doc.RootElement.ValueKind != JsonValueKind.Object)
+                        {
+                            _logger.LogError(
+                                "n8n Email Service returned HTTP {StatusCode} with non-object JSON payload for tenant '{Tenant}' (recipient: {Recipient}).",
+                                (int)response.StatusCode, tenantSlug, recipient);
+                            return EmailDispatchResult.Rejected($"HTTP {(int)response.StatusCode}: Invalid JSON object response from email service.");
+                        }
 
-                    return EmailDispatchResult.Success(messageId);
+                        var hasExplicitSuccess = doc.RootElement.TryGetProperty("success", out var successElem)
+                            && successElem.ValueKind == JsonValueKind.True;
+
+                        if (!hasExplicitSuccess)
+                        {
+                            var snippet = content.Length > 200 ? content.Substring(0, 200) : content;
+                            _logger.LogError(
+                                "n8n Email Service returned HTTP {StatusCode} without explicit success=true for tenant '{Tenant}' (recipient: {Recipient}). Body: {ResponseBody}",
+                                (int)response.StatusCode, tenantSlug, recipient, snippet);
+                            return EmailDispatchResult.Rejected($"HTTP {(int)response.StatusCode}: Email service did not confirm success=true.");
+                        }
+
+                        string? messageId = null;
+                        if (doc.RootElement.TryGetProperty("messageId", out var msgIdElem) && msgIdElem.ValueKind == JsonValueKind.String)
+                        {
+                            messageId = msgIdElem.GetString()?.Trim();
+                        }
+                        if (string.IsNullOrWhiteSpace(messageId)
+                            && doc.RootElement.TryGetProperty("id", out var idElem)
+                            && idElem.ValueKind == JsonValueKind.String)
+                        {
+                            messageId = idElem.GetString()?.Trim();
+                        }
+
+                        if (string.IsNullOrWhiteSpace(messageId))
+                        {
+                            var snippet = content.Length > 200 ? content.Substring(0, 200) : content;
+                            _logger.LogError(
+                                "n8n Email Service returned HTTP {StatusCode} with success=true but missing message identifier for tenant '{Tenant}' (recipient: {Recipient}). Body: {ResponseBody}",
+                                (int)response.StatusCode, tenantSlug, recipient, snippet);
+                            return EmailDispatchResult.Rejected($"HTTP {(int)response.StatusCode}: Missing Mailgun message identifier in email service response.");
+                        }
+
+                        _logger.LogInformation("Email successfully accepted by n8n for tenant '{Tenant}' to '{Recipient}' (MessageId: {MessageId}).",
+                            tenantSlug, recipient, messageId);
+
+                        return EmailDispatchResult.Success(messageId);
+                    }
                 }
                 else
                 {
